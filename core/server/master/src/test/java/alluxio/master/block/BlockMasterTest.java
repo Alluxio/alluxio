@@ -25,8 +25,9 @@ import alluxio.master.SafeModeManager;
 import alluxio.master.TestSafeModeManager;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
-import alluxio.metrics.MetricsStore;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.util.ThreadFactoryUtils;
@@ -71,7 +72,7 @@ public class BlockMasterTest {
   private ManualClock mClock;
   private ExecutorService mExecutorService;
   private SafeModeManager mSafeModeManager;
-  private MetricsStore mMetricsStore;
+  private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
 
   /** Rule to create a new temporary folder during each test. */
@@ -93,14 +94,14 @@ public class BlockMasterTest {
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
-    mMetricsStore = new MetricsStore();
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
     mBlockMaster =
-        new DefaultBlockMaster(new MasterContext(journalSystem, mSafeModeManager, mMetricsStore),
+        new DefaultBlockMaster(mMetricsMaster, new MasterContext(journalSystem, mSafeModeManager),
             mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);

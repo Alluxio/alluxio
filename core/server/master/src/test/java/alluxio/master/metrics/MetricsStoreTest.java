@@ -9,12 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package metrics;
+package alluxio.master.metrics;
 
 import static org.junit.Assert.assertEquals;
 
 import alluxio.metrics.Metric;
-import alluxio.metrics.MetricsStore;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.collect.Lists;
 import jersey.repackaged.com.google.common.collect.Sets;
@@ -41,6 +41,6 @@ public class MetricsStoreTest {
     assertEquals(
         Sets.newHashSet(Metric.from("worker.192_1_1_1.metric1", 10),
             Metric.from("worker.192_1_1_2.metric1", 1)),
-        mMetricStore.getMetricsByInstanceTypeAndName("worker", "metric1"));
+        mMetricStore.getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType.WORKER, "metric1"));
   }
 }

@@ -14,6 +14,7 @@ package alluxio.metrics.aggregator;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsAggregator;
 import alluxio.metrics.MetricsFilter;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -27,7 +28,7 @@ import java.util.Set;
  * metric name. The aggregated metric will have name of pattern cluster.metric_name
  */
 public class SumInstancesAggregator implements MetricsAggregator {
-  private final String mInstanceType;
+  private final MetricsSystem.InstanceType mInstanceType;
   private final String mName;
   private final MetricsFilter mFilter;
 
@@ -37,7 +38,7 @@ public class SumInstancesAggregator implements MetricsAggregator {
    * @param instanceType instance type which can be worker or client
    * @param name the metric name
    */
-  public SumInstancesAggregator(String instanceType, String name) {
+  public SumInstancesAggregator(MetricsSystem.InstanceType instanceType, String name) {
     Preconditions.checkNotNull(instanceType, "instance type");
     Preconditions.checkNotNull(name, "name");
     mInstanceType = instanceType;
@@ -48,7 +49,7 @@ public class SumInstancesAggregator implements MetricsAggregator {
   /**
    * @return the instance type to aggregate on
    */
-  public String getInstanceType() {
+  public MetricsSystem.InstanceType getInstanceType() {
     return mInstanceType;
   }
 
@@ -63,10 +64,10 @@ public class SumInstancesAggregator implements MetricsAggregator {
   }
 
   @Override
-  public Object getValue(Map<MetricsFilter, Set<Metric>> map) {
+  public long getValue(Map<MetricsFilter, Set<Metric>> map) {
     long value = 0;
     for (Metric metric : map.get(mFilter)) {
-      value += (long) metric.getValue();
+      value += metric.getValue();
     }
     return value;
   }

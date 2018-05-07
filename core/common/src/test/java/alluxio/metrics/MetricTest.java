@@ -41,8 +41,8 @@ public class MetricTest {
 
   public static Metric createRandom() {
     Random random = new Random();
-    int idx = random.nextInt(Metric.SUPPORTED_INSTANCES.size());
-    String instance = (String) Metric.SUPPORTED_INSTANCES.toArray()[idx];
+    int idx = random.nextInt(MetricsSystem.InstanceType.values().length);
+    MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.values()[idx];
     String hostname = CommonUtils.randomAlphaNumString(random.nextInt(10));
     String name = CommonUtils.randomAlphaNumString(random.nextInt(10));
     long value = random.nextLong();

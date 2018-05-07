@@ -9,10 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.metrics;
+package alluxio.master.metrics;
 
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MetricsSystem.InstanceType;
 
 import java.util.List;
 import java.util.Set;
@@ -20,7 +23,7 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A store of metrics collecting metrics from workers and clients.
+ * A store of metrics containing the metrics collected from workers and clients.
  */
 @ThreadSafe
 public class MetricsStore {
@@ -54,6 +57,8 @@ public class MetricsStore {
 
   private final IndexedSet<Metric> mWorkerMetrics =
       new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, HOSTNAME_ID_INDEX);
+  private final IndexedSet<Metric> mClientMetrics =
+      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, HOSTNAME_ID_INDEX);
 
   /**
    * Gets all the metrics by instance type. The supported instance types are worker and client.
@@ -61,8 +66,8 @@ public class MetricsStore {
    * @param instanceType the instance type
    * @return the metrics stored in {@link IndexedSet};
    */
-  private IndexedSet<Metric> getMetricsByInstanceType(String instanceType) {
-    if (instanceType.equals(MetricsSystem.WORKER_INSTANCE)) {
+  private IndexedSet<Metric> getMetricsByInstanceType(MetricsSystem.InstanceType instanceType) {
+    if (instanceType == InstanceType.WORKER) {
       return mWorkerMetrics;
     } else {
       throw new IllegalArgumentException("Unsupported instance type " + instanceType);
@@ -85,9 +90,12 @@ public class MetricsStore {
 
   public synchronized void putClientMetrics(String hostname, String clientId,
       List<Metric> metrics) {
-    mWorkerMetrics.removeByField(HOSTNAME_ID_INDEX, getHostnameAndId(hostname, clientId));
+    mClientMetrics.removeByField(HOSTNAME_ID_INDEX, getHostnameAndId(hostname, clientId));
     for (Metric metric : metrics) {
-      mWorkerMetrics.add(metric);
+      if (metric.getHostname() == null) {
+        continue; // ignore metrics who hostname is null
+      }
+      mClientMetrics.add(metric);
     }
   }
 
@@ -99,8 +107,8 @@ public class MetricsStore {
    * @param name the metric name
    * @return the set of matched metrics
    */
-  public synchronized Set<Metric> getMetricsByInstanceTypeAndName(String instanceType,
-      String name) {
+  public synchronized Set<Metric> getMetricsByInstanceTypeAndName(
+      MetricsSystem.InstanceType instanceType, String name) {
     return getMetricsByInstanceType(instanceType).getByField(NAME_INDEX, name);
   }
 
@@ -109,5 +117,6 @@ public class MetricsStore {
    */
   public synchronized void clear() {
     mWorkerMetrics.clear();
+    mClientMetrics.clear();
   }
 }

@@ -48,10 +48,45 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsSystem.class);
 
+  /**
+   * An enum of supported instance type.
+   */
+  public enum InstanceType {
+    MASTER("master"), WORKER("worker"), CLIENT("client");
+
+    private String mValue;
+
+    /**
+     * Creates the instance type with value.
+     *
+     * @param value value of the instance type
+     */
+    InstanceType(String value) {
+      mValue = value;
+    }
+
+    @Override
+    public String toString() {
+      return mValue;
+    }
+
+    /**
+     * Creates an instance type from the string. This method is case insensitive.
+     *
+     * @param text the instance type in string
+     * @return the created instance
+     */
+    public static InstanceType fromString(String text) {
+      for (InstanceType type : InstanceType.values()) {
+        if (type.toString().equalsIgnoreCase(text)) {
+          return type;
+        }
+      }
+      throw new IllegalArgumentException("No constant with text " + text + " found");
+    }
+  }
+
   // Supported special instance names.
-  public static final String MASTER_INSTANCE = "master";
-  public static final String WORKER_INSTANCE = "worker";
-  public static final String CLIENT_INSTANCE = "client";
   public static final String CLUSTER = "cluster";
 
   public static final MetricRegistry METRIC_REGISTRY;
@@ -150,7 +185,7 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   public static String getMasterMetricName(String name) {
-    return Joiner.on(".").join(MASTER_INSTANCE, name);
+    return Joiner.on(".").join(MetricsSystem.InstanceType.MASTER, name);
   }
 
   /**
@@ -160,7 +195,7 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   public static String getWorkerMetricName(String name) {
-    return getMetricNameWithUniqueId(WORKER_INSTANCE, name);
+    return getMetricNameWithUniqueId(InstanceType.WORKER, name);
   }
 
   /**
@@ -170,7 +205,7 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   public static String getClientMetricName(String name) {
-    return getMetricNameWithUniqueId(CLIENT_INSTANCE, name);
+    return getMetricNameWithUniqueId(InstanceType.CLIENT, name);
   }
 
   /**
@@ -191,7 +226,7 @@ public final class MetricsSystem {
    * @param name the metric name
    * @return the metric registry name
    */
-  public static String getMetricNameWithUniqueId(String instance, String name) {
+  public static String getMetricNameWithUniqueId(InstanceType instance, String name) {
     return Joiner.on(".").join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'),
         name);
   }
@@ -221,7 +256,7 @@ public final class MetricsSystem {
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", metricsName);
 
     // Master metrics doesn't have hostname included.
-    if (!pieces[0].equals(MASTER_INSTANCE)) {
+    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())) {
       pieces[1] = null;
     }
     pieces[0] = null;
@@ -315,22 +350,26 @@ public final class MetricsSystem {
    * @return all the worker's gauges and counters in the format of {@link Metric}
    */
   public static List<Metric> allWorkerMetrics() {
-    return allMetrics(WORKER_INSTANCE);
+    return allMetrics(InstanceType.WORKER);
   }
 
   /**
    * @return all the client's gauges and counters in the format of {@link Metric}
    */
   public static List<Metric> allClientMetrics() {
-    return allMetrics(CLIENT_INSTANCE);
+    return allMetrics(InstanceType.CLIENT);
   }
 
-  private static List<Metric> allMetrics(String instanceType) {
+  private static List<Metric> allMetrics(MetricsSystem.InstanceType instanceType) {
     List<Metric> metrics = new ArrayList<>();
     for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
-      if (entry.getKey().startsWith(instanceType)) {
+      if (entry.getKey().startsWith(instanceType.toString())) {
         Object value = entry.getValue().getValue();
         if (!(value instanceof Integer) && !(value instanceof Long)) {
+          LOG.warn(
+              "The value of metric {} of type {} is not sent to metrics master,"
+                  + " only metrics value of type integer or long can be collected",
+              entry.getKey(), entry.getValue().getClass().getSimpleName());
           // skip the metrics not of integer/long types
           continue;
         }

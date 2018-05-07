@@ -21,7 +21,6 @@ import alluxio.master.TestSafeModeManager;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.metrics.Metric;
-import alluxio.metrics.MetricsStore;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.util.ThreadFactoryUtils;
@@ -43,7 +42,6 @@ public class MetricsMasterTest {
   private DefaultMetricsMaster mMetricsMaster;
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
-  private MetricsStore mMetricsStore;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
 
@@ -51,13 +49,12 @@ public class MetricsMasterTest {
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
-    mMetricsStore = new MetricsStore();
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestMetricsMaster-%d", true));
     JournalSystem journalSystem = new NoopJournalSystem();
     mMetricsMaster =
-        new DefaultMetricsMaster(new MasterContext(journalSystem, mSafeModeManager, mMetricsStore),
+        new DefaultMetricsMaster(new MasterContext(journalSystem, mSafeModeManager),
             mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mRegistry.start(true);
@@ -73,19 +70,21 @@ public class MetricsMasterTest {
 
   @Test
   public void testAggregator() {
-    mMetricsMaster.addAggregator(new SumInstancesAggregator("worker", "metric1"));
-    mMetricsMaster.addAggregator(new SumInstancesAggregator("worker", "metric2"));
+    mMetricsMaster
+        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER, "metric1"));
+    mMetricsMaster
+        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER, "metric2"));
     List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metric1", 10),
         Metric.from("worker.192_1_1_1.metric2", 20));
-    mMetricsStore.putWorkerMetrics("192_1_1_1", metrics1);
+    mMetricsMaster.putWorkerMetrics("192_1_1_1", metrics1);
     List<Metric> metrics2 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metric1", 1),
         Metric.from("worker.192_1_1_2.metric2", 2));
-    mMetricsStore.putWorkerMetrics("192_1_1_2", metrics2);
+    mMetricsMaster.putWorkerMetrics("192_1_1_2", metrics2);
     assertEquals(11L, getGauge("metric1"));
     assertEquals(22L, getGauge("metric2"));
     // override metrics from hostname 192_1_1_2
     List<Metric> metrics3 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metric1", 3));
-    mMetricsStore.putWorkerMetrics("192_1_1_2", metrics3);
+    mMetricsMaster.putWorkerMetrics("192_1_1_2", metrics3);
     assertEquals(13L, getGauge("metric1"));
     assertEquals(20L, getGauge("metric2"));
   }

@@ -17,7 +17,7 @@ import com.google.common.base.Objects;
  * A filter that matches the instance-level metrics by the instance type and metric name.
  */
 public class MetricsFilter {
-  private final String mInstanceType;
+  private final MetricsSystem.InstanceType mInstanceType;
   private final String mName;
 
   /**
@@ -26,7 +26,7 @@ public class MetricsFilter {
    * @param instanceType the instance type of the instance-level metric
    * @param name the metric name
    */
-  public MetricsFilter(String instanceType, String name) {
+  public MetricsFilter(MetricsSystem.InstanceType instanceType, String name) {
     mInstanceType = instanceType;
     mName = name;
   }
@@ -34,7 +34,7 @@ public class MetricsFilter {
   /**
    * @return the instance type
    */
-  public String getInstanceType() {
+  public MetricsSystem.InstanceType getInstanceType() {
     return mInstanceType;
   }
 

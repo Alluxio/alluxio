@@ -19,7 +19,6 @@ import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsAggregator;
 import alluxio.metrics.MetricsFilter;
-import alluxio.metrics.MetricsStore;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
@@ -30,7 +29,6 @@ import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
@@ -41,7 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Future;
 
 /**
  * Default implementation of the metrics master.
@@ -51,17 +48,11 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   private final MetricsStore mMetricsStore;
 
   /**
-   * The service that pulls and aggregates the metrics.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mMetricsAggregationService;
-
-  /**
    * Creates a new instance of {@link MetricsMaster}.
    *
    * @param masterContext the context for metrics master
    */
-  protected DefaultMetricsMaster(MasterContext masterContext) {
+  DefaultMetricsMaster(MasterContext masterContext) {
     this(masterContext, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.METRICS_MASTER_NAME, 2));
   }
@@ -74,10 +65,10 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  protected DefaultMetricsMaster(MasterContext masterContext, Clock clock,
+  DefaultMetricsMaster(MasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
-    mMetricsStore = masterContext.getMetricsStore();
+    mMetricsStore = new MetricsStore();
     registerAggregators();
   }
 
@@ -100,10 +91,10 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
 
   private void registerAggregators() {
     // worker metrics
-    addAggregator(new SumInstancesAggregator(MetricsSystem.WORKER_INSTANCE,
+    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
         WorkerMetrics.BYTES_READ_ALLUXIO));
     // client metrics
-    addAggregator(new SumInstancesAggregator(MetricsSystem.CLIENT_INSTANCE,
+    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT,
         ClientMetrics.BYTES_READ_LOCAL));
   }
 
@@ -151,5 +142,10 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   @Override
   public MetricsMasterClientServiceHandler getMasterServiceHandler() {
     return new MetricsMasterClientServiceHandler(this);
+  }
+
+  @Override
+  public void putWorkerMetrics(String hostname, List<Metric> metrics) {
+    mMetricsStore.putWorkerMetrics(hostname, metrics);
   }
 }
