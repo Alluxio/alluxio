@@ -577,8 +577,7 @@ public class InodeTree implements JournalEntryIterable {
     // NOTE, we set the mode of missing ancestor directories to be the default value, rather
     // than inheriting the option of the final file to create, because it may not have
     // "execute" permission.
-    CreateDirectoryOptions missingDirOptions =
-        CreateDirectoryOptions.defaults()
+    CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
             .setMountPoint(false)
             .setPersisted(options.isPersisted())
             .setOperationTimeMs(options.getOperationTimeMs())
