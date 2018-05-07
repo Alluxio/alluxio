@@ -2709,7 +2709,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey INTEGRATION_MESOS_JDK_URL =
       new Builder(Name.INTEGRATION_MESOS_JDK_URL)
           .setDefaultValue(Constants.MESOS_LOCAL_INSTALL)
-          .setDescription("A url from which to install the jdk during Mesos deployment. When "
+          .setDescription("A url from which to install the jdk during Mesos deployment. Default to "
+              + "LOCAL which tells Mesos to use the local JDK on the system. When "
               + "using this property, alluxio.integration.mesos.jdk.path must also be set "
               + "correctly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
