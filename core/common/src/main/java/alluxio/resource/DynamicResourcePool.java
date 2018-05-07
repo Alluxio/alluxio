@@ -457,7 +457,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   }
 
   /**
-   * Check whether the resource is healthy. If not retry. When this called, the resource
+   * Checks whether the resource is healthy. If not retry. When this called, the resource
    * is not in mAvailableResources.
    *
    * @param resource the resource to check
