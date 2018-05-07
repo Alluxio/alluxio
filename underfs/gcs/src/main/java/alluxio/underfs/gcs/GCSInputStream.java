@@ -74,7 +74,7 @@ public final class GCSInputStream extends InputStream {
     mKey = key;
     mClient = client;
     mPos = pos;
-    // For an empty file setting start pos = 0 will throw a ServiceException
+    // For an empty file setting start pos = 0 will throw a ServiceException.
     if (mPos > 0) {
       mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
     } else {
