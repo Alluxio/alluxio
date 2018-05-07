@@ -525,16 +525,17 @@ public class InodeTree implements JournalEntryIterable {
     String[] pathComponents = extensibleInodePath.getPathComponents();
     String name = path.getName();
 
-    // pathIndex is the index into pathComponents where we start filling in the path from the
-    // inode.
+    // pathIndex is the index into pathComponents where we start filling in the path from the inode.
     int pathIndex = extensibleInodePath.getInodes().size();
     if (pathIndex < pathComponents.length - 1) {
       // The immediate parent was not found. If it's not recursive, we throw an exception here.
       // Otherwise we add the remaining path components to the list of components to create.
       if (!options.isRecursive()) {
         final String msg = new StringBuilder().append("File ").append(path)
-            .append(" creation failed. Component ").append(pathIndex).append("(")
-            .append(pathComponents[pathIndex]).append(") does not exist").toString();
+            .append(" creation failed. Component ")
+            .append(pathIndex).append("(")
+            .append(pathComponents[pathIndex])
+            .append(") does not exist").toString();
         LOG.error("FileDoesNotExistException: {}", msg);
         throw new FileDoesNotExistException(msg);
       }
@@ -560,8 +561,8 @@ public class InodeTree implements JournalEntryIterable {
         && options.getOperationTimeMs() > currentInodeDirectory.getLastModificationTimeMs()) {
       // (1) There are components in parent paths that need to be created. Or
       // (2) The last component of the path needs to be created.
-      // In these two cases, the last traversed Inode will be modified if the new timestamp is
-      // after the existing last modified time.
+      // In these two cases, the last traversed Inode will be modified if the new timestamp is after
+      // the existing last modified time.
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
       modifiedInodes.add(currentInodeDirectory);
 
@@ -577,8 +578,11 @@ public class InodeTree implements JournalEntryIterable {
     // than inheriting the option of the final file to create, because it may not have
     // "execute" permission.
     CreateDirectoryOptions missingDirOptions =
-        CreateDirectoryOptions.defaults().setMountPoint(false).setPersisted(options.isPersisted())
-            .setOperationTimeMs(options.getOperationTimeMs()).setOwner(options.getOwner())
+        CreateDirectoryOptions.defaults()
+            .setMountPoint(false)
+            .setPersisted(options.isPersisted())
+            .setOperationTimeMs(options.getOperationTimeMs())
+            .setOwner(options.getOwner())
             .setGroup(options.getGroup());
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir = null;
@@ -586,8 +590,7 @@ public class InodeTree implements JournalEntryIterable {
         dir = InodeDirectory.create(
             mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
             currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
-        // Lock the newly created inode before subsequent operations, and add it to the lock
-        // group.
+        // Lock the newly created inode before subsequent operations, and add it to the lock group.
         lockList.lockWriteAndCheckNameAndParent(dir, currentInodeDirectory, pathComponents[k]);
 
         if (!currentInodeDirectory.addChild(dir)) {
@@ -605,8 +608,7 @@ public class InodeTree implements JournalEntryIterable {
             // Successfully added the child, while holding the write lock.
             dir.setPinned(currentInodeDirectory.isPinned());
             if (options.isPersisted()) {
-              // Do not journal the persist entry, since a creation entry will be journaled
-              // instead.
+              // Do not journal the persist entry, since a creation entry will be journaled instead.
               syncPersistDirectory(RpcContext.NOOP, dir);
             }
           } catch (Exception e) {
@@ -649,8 +651,8 @@ public class InodeTree implements JournalEntryIterable {
       }
       if (lastInode != null) {
         // inode to create already exists
-        if (lastInode.isDirectory() && options instanceof CreateDirectoryOptions
-            && !lastInode.isPersisted() && options.isPersisted()) {
+        if (lastInode.isDirectory() && options instanceof CreateDirectoryOptions && !lastInode
+            .isPersisted() && options.isPersisted()) {
           // The final path component already exists and is not persisted, so it should be added
           // to the non-persisted Inodes of traversalResult.
           syncPersistDirectory(rpcContext, (InodeDirectory) lastInode);
