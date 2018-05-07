@@ -2736,8 +2736,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey INTEGRATION_MESOS_JDK_URL =
       new Builder(Name.INTEGRATION_MESOS_JDK_URL)
-          .setDefaultValue("https://alluxio-mesos.s3.amazonaws.com/jdk-8u151-linux-x64.tar.gz")
-          .setDescription("A url from which to install the jdk during Mesos deployment. When "
+          .setDefaultValue(Constants.MESOS_LOCAL_INSTALL)
+          .setDescription("A url from which to install the jdk during Mesos deployment. Default to "
+              + "LOCAL which tells Mesos to use the local JDK on the system. When "
               + "using this property, alluxio.integration.mesos.jdk.path must also be set "
               + "correctly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
