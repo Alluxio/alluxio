@@ -20,6 +20,9 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.metrics.Metric;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.Command;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -129,10 +132,13 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
+    List<alluxio.thrift.Metric> metrics = new ArrayList<>();
+    for (Metric metric : MetricsSystem.allWorkerMetrics()) {
+      metrics.add(metric.toThrift());
+    }
     try {
-      cmdFromMaster = mMasterClient
-          .heartbeat(mWorkerId.get(), storeMeta.getUsedBytesOnTiers(),
-              blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
+      cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getUsedBytesOnTiers(),
+          blockReport.getRemovedBlocks(), blockReport.getAddedBlocks(), metrics);
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException | ConnectionFailedException e) {

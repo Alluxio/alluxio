@@ -149,6 +149,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    *
    * This is an expensive operation, and concurrent adds are permitted.
    */
+  @Override
   public void clear() {
     for (T obj : mPrimaryIndex) {
       remove(obj);

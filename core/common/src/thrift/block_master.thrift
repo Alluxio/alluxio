@@ -140,7 +140,9 @@ service BlockMasterClientService extends common.AlluxioService {
   ) throws (1: exception.AlluxioTException e)
 }
 
-struct BlockHeartbeatTOptions {}
+struct BlockHeartbeatTOptions {
+  1: list<common.Metric> metrics
+}
 struct BlockHeartbeatTResponse {
   1: common.Command command
 }

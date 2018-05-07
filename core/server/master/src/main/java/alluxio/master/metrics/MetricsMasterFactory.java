@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.block;
+package alluxio.master.metrics;
 
 import alluxio.Constants;
 import alluxio.master.MasterContext;
@@ -17,7 +17,6 @@ import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.metrics.MetricsMaster;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -26,16 +25,16 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory to create a {@link BlockMaster} instance.
+ * Factory to create a {@link MetricsMaster} instance.
  */
 @ThreadSafe
-public final class BlockMasterFactory implements MasterFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockMasterFactory.class);
+public final class MetricsMasterFactory implements MasterFactory {
+  private static final Logger LOG = LoggerFactory.getLogger(MetricsMasterFactory.class);
 
   /**
-   * Constructs a new {@link BlockMasterFactory}.
+   * Constructs a new {@link MetricsMasterFactory}.
    */
-  public BlockMasterFactory() {}
+  public MetricsMasterFactory() {}
 
   @Override
   public boolean isEnabled() {
@@ -44,18 +43,18 @@ public final class BlockMasterFactory implements MasterFactory {
 
   @Override
   public String getName() {
-    return Constants.BLOCK_MASTER_NAME;
+    return Constants.METRICS_MASTER_NAME;
   }
 
   @Override
-  public BlockMaster create(MasterRegistry registry, JournalSystem journalFactory,
+  public MetricsMaster create(MasterRegistry registry, JournalSystem journalSystem,
       SafeModeManager safeModeManager) {
-    Preconditions.checkArgument(journalFactory != null, "journal");
-    LOG.info("Creating {} ", BlockMaster.class.getName());
-    MetricsMaster metricsMaster = registry.get(MetricsMaster.class);
-    BlockMaster master =
-        new DefaultBlockMaster(metricsMaster, new MasterContext(journalFactory, safeModeManager));
-    registry.add(BlockMaster.class, master);
+    Preconditions.checkNotNull(journalSystem, "journal");
+    LOG.info("Creating {} ", MetricsMaster.class.getName());
+    MetricsMaster master =
+        new DefaultMetricsMaster(new MasterContext(journalSystem, safeModeManager));
+    registry.add(MetricsMaster.class, master);
     return master;
   }
+
 }

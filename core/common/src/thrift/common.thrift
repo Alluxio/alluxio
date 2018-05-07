@@ -21,6 +21,16 @@ struct BlockLocation {
   3: string tierAlias
 }
 
+/**
+ * Information about metrics.
+ */
+struct Metric {
+  1: string instance
+  2: string hostname
+  3: string name
+  4: i64 value
+}
+
 enum CommandType {
   Unknown = 0,
   Nothing = 1,
