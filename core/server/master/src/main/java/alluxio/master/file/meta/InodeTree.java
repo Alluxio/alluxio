@@ -209,35 +209,6 @@ public class InodeTree implements JournalEntryIterable {
     }
   }
 
-  private Inode<?> getInode(AlluxioURI uri) {
-    String[] pathComp;
-    try {
-      pathComp = PathUtils.getPathComponents(uri.getPath());
-    } catch (InvalidPathException e) {
-      return null;
-    }
-
-    if ((pathComp == null) || (pathComp.length == 0)) {
-      return null;
-    }
-    if (pathComp.length == 1 && pathComp[0].equals("")) {
-      // root
-      return mRoot;
-    }
-    Inode<?> current = mRoot;
-    for (int i = 1; i < pathComp.length; i++) {
-      if (current.isFile()) {
-        // we still have path components, should not be a file
-        return null;
-      }
-      current = ((InodeDirectory) current).getChild(pathComp[i]);
-      if (current == null) {
-        return null;
-      }
-    }
-    return current;
-  }
-
   /**
    * Locks existing inodes on the specified path, in the specified {@link LockMode}. The target
    * inode is not required to exist.
@@ -787,22 +758,18 @@ public class InodeTree implements JournalEntryIterable {
     } catch (InvalidPathException e) {
       return inodeGroup;
     }
-    // Traverse the inode tree to get an inode
-    Inode<?> child = getInode(descendantUri);
-
-    // return the empty locklist if the descendant has an invalid uri
-    if (child == null) {
+    try {
+      TraversalResult traversalResult =
+          traverseToInode(PathUtils.getPathComponents(descendantUri.getPath()), lockMode, null);
+      if (traversalResult.mFound) {
+        return traversalResult.mLockList;
+      } else {
+        // not found, return an empty list
+        return inodeGroup;
+      }
+    } catch (InvalidPathException e) {
       return inodeGroup;
     }
-
-    // Lock the descendant
-    if (lockMode == LockMode.READ) {
-      inodeGroup.lockRead(child);
-    } else if (lockMode == LockMode.WRITE) {
-      inodeGroup.lockWrite(child);
-    }
-
-    return inodeGroup;
   }
 
   /**

@@ -3230,8 +3230,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         try (InodeLockList mountPointLockList =
                  mInodeTree.lockDescendant(inodePath, lockingScheme.getMode(), mountPointUri)) {
           if (!mountPointLockList.getInodes().isEmpty()) {
-            // Get the first inode which is an inode corresponding to the mountPoint
-            Inode<?> mountPointInode = mountPointLockList.getInodes().get(0);
+            List<Inode<?>> inodes = mountPointLockList.getInodes();
+            // Get the last inode in the list which is an inode corresponding to the mountPoint
+            Inode<?> mountPointInode = inodes.get(inodes.size() - 1);
 
             // Construct an locked inodepath using TempInodePathForDescendant
             try (TempInodePathForDescendant tempInodePath =
@@ -3374,31 +3375,33 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           && syncDescendantType != DescendantType.NONE) {
         UfsStatus[] listStatus = ufs.listStatus(ufsUri.toString());
 
+        InodeDirectory inodeDir = (InodeDirectory) inode;
+        // maps children name to inode
+        Map<String, Inode<?>> inodeChildren = new HashMap<>();
+        for (Inode<?> child : inodeDir.getChildren()) {
+          inodeChildren.put(child.getName(), child);
+        }
+
         // if the alluxio path contains a mount point, we need to keep going to find it
-        if (listStatus != null || containsMountPoint) {
-          InodeDirectory inodeDir = (InodeDirectory) inode;
-          // maps children name to inode
-          Map<String, Inode<?>> inodeChildren = new HashMap<>();
-          for (Inode<?> child : inodeDir.getChildren()) {
-            inodeChildren.put(child.getName(), child);
-          }
-          if (listStatus != null) {
-            for (UfsStatus ufsChildStatus : listStatus) {
-              if (!inodeChildren.containsKey(ufsChildStatus.getName()) && !PathUtils
-                  .isTemporaryFileName(ufsChildStatus.getName())) {
-                // Ufs child exists, but Alluxio child does not. Must load metadata.
-                AlluxioURI mountUri = new AlluxioURI(mMountTable.getMountPoint(inodePath.getUri()));
-                // We only sync up to the mount point or the originalPath
-                if (PathUtils.hasPrefix(originalPath.getUri().getPath(), mountUri.getPath())) {
-                  pathsToLoad.add(originalPath.getUri().getPath());
-                } else {
-                  pathsToLoad.add(mountUri.getPath());
-                }
-                break;
+        if (listStatus != null) {
+
+          for (UfsStatus ufsChildStatus : listStatus) {
+            if (!inodeChildren.containsKey(ufsChildStatus.getName()) && !PathUtils
+                .isTemporaryFileName(ufsChildStatus.getName())) {
+              // Ufs child exists, but Alluxio child does not. Must load metadata.
+              AlluxioURI mountUri = new AlluxioURI(mMountTable.getMountPoint(inodePath.getUri()));
+              // We only sync up to the mount point or the originalPath
+              if (PathUtils.hasPrefix(originalPath.getUri().getPath(), mountUri.getPath())) {
+                pathsToLoad.add(originalPath.getUri().getPath());
+              } else {
+                pathsToLoad.add(mountUri.getPath());
               }
+              break;
             }
           }
+        }
 
+        if (listStatus != null || containsMountPoint) {
           // Iterate over Alluxio children and process persisted children.
           for (Map.Entry<String, Inode<?>> inodeEntry : inodeChildren.entrySet()) {
             if (!inodeEntry.getValue().isPersisted()) {
