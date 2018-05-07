@@ -459,14 +459,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       List<Long> loggedBlocks = invalidBlocks.stream().limit(maxSize).collect(Collectors.toList());
       if (repair) {
         LOG.warn(
-            "Blocks including {} (in total {} blocks) have no corresponding file metadata. " +
-                "Attempting to repair by deleting all invalid blocks.",
+            "Blocks including {} (in total {} blocks) have no corresponding file metadata. "
+                + "Attempting to repair by deleting all invalid blocks.",
             loggedBlocks, invalidBlocks.size());
         removeBlocks(invalidBlocks, true);
       } else {
         LOG.warn(
-            "Blocks including {} (in total {} blocks) have no corresponding file metadata. " +
-                "Restart Alluxio master with {}=true to delete the block and repair the system.",
+            "Blocks including {} (in total {} blocks) have no corresponding file metadata. "
+                + "Restart Alluxio master with {}=true to delete the block and repair the system.",
             loggedBlocks, invalidBlocks.size(),
             PropertyKey.Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED);
       }
