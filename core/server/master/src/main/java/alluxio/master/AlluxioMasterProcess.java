@@ -45,6 +45,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
@@ -74,6 +75,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -86,6 +88,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class AlluxioMasterProcess implements MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
+  private static final long SHUTDOWN_TIMEOUT_MS = 10 * Constants.SECOND_MS;
 
   // Master metadata management.
   private static final IndexDefinition<MasterInfo> ID_INDEX =
@@ -156,14 +159,17 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The clock to use for determining the time. */
   private final Clock mClock;
 
-  /** The executor used for running maintenance threads for the meta master. */
-  private final ExecutorService mExecutorService;
-
   /** The master configuration checker. */
   private final ServerConfigurationChecker mMasterConfigChecker;
 
   /** The worker configuration checker. */
   private final ServerConfigurationChecker mWorkerConfigChecker;
+
+  /** A factory for creating executor services when they are needed. */
+  private ExecutorServiceFactory mExecutorServiceFactory;
+
+  /** The executor used for running maintenance threads for the meta master. */
+  private ExecutorService mExecutorService;
 
   /** The hostname of this master. */
   private String mMasterHostname;
@@ -236,8 +242,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       mMasterConfigChecker = new ServerConfigurationChecker();
       mWorkerConfigChecker = new ServerConfigurationChecker();
       mClock = new SystemClock();
-      mExecutorService = ExecutorServiceFactories
-          .fixedThreadPoolExecutorServiceFactory(Constants.META_MASTER_NAME, 2).create();
+      mExecutorServiceFactory = ExecutorServiceFactories
+          .fixedThreadPoolExecutorServiceFactory(Constants.META_MASTER_NAME, 2);
       mMetaMasterClient = new MetaMasterMasterClient(MasterClientConfig.defaults());
       setMasterIdAndHostname();
 
@@ -350,9 +356,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       throw new NoMasterException(ExceptionMessage.NO_MASTER_FOUND.getMessage(masterId));
     }
 
-    synchronized (master) {
-      master.updateLastUpdatedTimeMs();
-    }
+    master.updateLastUpdatedTimeMs();
 
     List<ConfigProperty> configList = options.getConfigList().stream()
         .map(ConfigProperty::fromThrift).collect(Collectors.toList());
@@ -416,12 +420,18 @@ public class AlluxioMasterProcess implements MasterProcess {
       if (isLeader) {
         mSafeModeManager.notifyPrimaryMasterStarted();
 
+        stopExecutorService();
+        mExecutorService = mExecutorServiceFactory.create();
+
         //  The service that detects lost standby master nodes
         mExecutorService.submit(new HeartbeatThread(
             HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
             new LostMasterDetectionHeartbeatExecutor(),
             (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
       } else {
+        stopExecutorService();
+        mExecutorService = mExecutorServiceFactory.create();
+
         // Standby master should setup MetaMasterSync to communicate with the leader master
         mMetaMasterSync = new MetaMasterSync(mMasterId, mMasterHostname, mMetaMasterClient);
         mExecutorService.submit(new HeartbeatThread(HeartbeatContext.MASTER_SYNC, mMetaMasterSync,
@@ -576,6 +586,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       mWebServer = null;
     }
     MetricsSystem.stopSinks();
+    stopExecutorService();
     mIsServing = false;
   }
 
@@ -666,5 +677,28 @@ public class AlluxioMasterProcess implements MasterProcess {
 
     Preconditions.checkNotNull(mMasterId, "mMasterId");
     Preconditions.checkNotNull(mMasterHostname, "mMasterHostname");
+  }
+
+  /**
+   * Stops the executor service.
+   */
+  private void stopExecutorService() {
+    // Shut down the executor service, interrupting any running threads.
+    if (mExecutorService != null) {
+      try {
+        mExecutorService.shutdownNow();
+        String awaitFailureMessage =
+            "waiting for {} executor service to shut down. Daemons may still be running";
+        try {
+          if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+          }
+        } catch (InterruptedException e) {
+          LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
+        }
+      } finally {
+        mExecutorService = null;
+      }
+    }
   }
 }
