@@ -1199,8 +1199,7 @@ public class InodeTree implements JournalEntryIterable {
         }
       }
 
-      if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
-          == LockMode.READ) {
+      if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints) == LockMode.READ) {
         lockList.lockRead(mRoot);
       } else {
         lockList.lockWrite(mRoot);
