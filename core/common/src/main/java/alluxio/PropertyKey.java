@@ -900,6 +900,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
+      new Builder(Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL)
+          .setDefaultValue("10min")
+          .setDescription("Interval for removing closed client sockets from internal tracking.")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.MASTER_CONNECTION_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.master.connection.timeout.ms"})
@@ -2987,6 +2995,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
         "alluxio.master.audit.logging.queue.capacity";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
+    public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
+        "alluxio.master.client.socket.cleanup.interval";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
