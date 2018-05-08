@@ -3383,9 +3383,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           inodeChildren.put(child.getName(), child);
         }
 
-        // if the alluxio path contains a mount point, we need to keep going to find it
         if (listStatus != null) {
-
           for (UfsStatus ufsChildStatus : listStatus) {
             if (!inodeChildren.containsKey(ufsChildStatus.getName()) && !PathUtils
                 .isTemporaryFileName(ufsChildStatus.getName())) {
@@ -3397,26 +3395,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           }
         }
 
-        if (listStatus != null || containsMountPoint) {
-          // Iterate over Alluxio children and process persisted children.
-          for (Map.Entry<String, Inode<?>> inodeEntry : inodeChildren.entrySet()) {
-            if (!inodeEntry.getValue().isPersisted()) {
-              // Ignore non-persisted inodes.
-              continue;
-            }
-            try (TempInodePathForDescendant tempInodePath =
-                     new TempInodePathForDescendant(inodePath)) {
-              tempInodePath.setDescendant(inodeEntry.getValue(),
-                  inodePath.getUri().join(inodeEntry.getKey()));
 
-              // Recursively sync children
-              if (syncDescendantType != DescendantType.ALL) {
-                syncDescendantType = DescendantType.NONE;
-              }
-              SyncResult syncResult =
-                  syncInodeMetadata(rpcContext, tempInodePath, syncDescendantType);
-              pathsToLoad.addAll(syncResult.getPathsToLoad());
+        // Iterate over Alluxio children and process persisted children.
+        for (Map.Entry<String, Inode<?>> inodeEntry : inodeChildren.entrySet()) {
+          if (!inodeEntry.getValue().isPersisted()) {
+            // Ignore non-persisted inodes.
+            continue;
+          }
+          try (TempInodePathForDescendant tempInodePath =
+                   new TempInodePathForDescendant(inodePath)) {
+            tempInodePath.setDescendant(inodeEntry.getValue(),
+                inodePath.getUri().join(inodeEntry.getKey()));
+
+            // Recursively sync children
+            if (syncDescendantType != DescendantType.ALL) {
+              syncDescendantType = DescendantType.NONE;
             }
+            SyncResult syncResult =
+                syncInodeMetadata(rpcContext, tempInodePath, syncDescendantType);
+            pathsToLoad.addAll(syncResult.getPathsToLoad());
           }
         }
       }
