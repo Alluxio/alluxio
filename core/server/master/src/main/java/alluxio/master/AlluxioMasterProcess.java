@@ -451,6 +451,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void stopMasters() {
     try {
+      stopExecutorService();
       mRegistry.stop();
     } catch (IOException e) {
       throw Throwables.propagate(e);
@@ -587,7 +588,6 @@ public class AlluxioMasterProcess implements MasterProcess {
       mWebServer = null;
     }
     MetricsSystem.stopSinks();
-    stopExecutorService();
     mIsServing = false;
   }
 
