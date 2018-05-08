@@ -452,14 +452,12 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public void validateBlocks(Function<Long, Boolean> validator, boolean repair)
       throws UnavailableException {
-    List<Long> invalidBlocks = mBlocks.keySet()
-        .stream()
-        .filter((blockId) -> !validator.apply(blockId))
-        .collect(Collectors.toList());
+    List<Long> invalidBlocks =
+        mBlocks.keySet().stream().filter((blockId) -> !validator.apply(blockId))
+            .collect(Collectors.toList());
     if (!invalidBlocks.isEmpty()) {
-      long maxSize = 100;
-      List<Long> loggedBlocks = invalidBlocks.stream().limit(maxSize).collect(Collectors.toList());
-      LOG.warn("Found {} blocks (including {}) have no corresponding file metadata.",
+      List<Long> loggedBlocks = invalidBlocks.stream().limit(100).collect(Collectors.toList());
+      LOG.warn("Found {} blocks without corresponding file metadata. Blocks include {}.",
           invalidBlocks.size(), loggedBlocks);
       if (repair) {
         LOG.warn("Deleting {} invalid blocks.", invalidBlocks.size());
