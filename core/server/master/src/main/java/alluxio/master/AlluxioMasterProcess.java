@@ -51,8 +51,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -113,6 +115,9 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager;
 
+  /** The block master.*/
+  private final BlockMaster mBlockMaster;
+
   /** The worker configuration checker. */
   private final ServerConfigurationChecker mWorkerConfigChecker;
 
@@ -168,10 +173,10 @@ public class AlluxioMasterProcess implements MasterProcess {
       mWorkerConfigChecker = new ServerConfigurationChecker();
 
       // Register listeners for BlockMaster to interact with config checker
-      BlockMaster blockMaster = mRegistry.get(BlockMaster.class);
-      blockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
-      blockMaster.registerWorkerLostListener(this::workerLostHandler);
-      blockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
+      mBlockMaster = mRegistry.get(BlockMaster.class);
+      mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
+      mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
+      mBlockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -217,7 +222,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public List<ConfigProperty> getConfiguration() {
+  public List<ConfigProperty> getAlluxioConfiguration() {
     List<ConfigProperty> configInfoList = new ArrayList<>();
     String alluxioConfPrefix = "alluxio";
     for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
@@ -230,6 +235,24 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
     }
     return configInfoList;
+  }
+
+  @Override
+  public Map<String, Map<String, List<String>>> getWorkerConfErrors() {
+    // Change from id to hostname
+    Map<String, Map<String, List<Long>>> idMap = mWorkerConfigChecker.getConfErrors();
+    Map<String, Map<String, List<String>>> hostMap = new HashMap<>();
+    for (Map.Entry<String, Map<String, List<Long>>> entry: idMap.entrySet()) {
+      String propName = entry.getKey();
+      hostMap.put(propName, new HashMap<>());
+      Map<String, List<String>> valueHostMap = hostMap.get(propName);
+      for (Map.Entry<String, List<Long>> values : entry.getValue().entrySet()) {
+        List<String> hosts = values.getValue().stream()
+            .map(mBlockMaster::getHostname).collect(Collectors.toList());
+        valueHostMap.put(values.getKey(), hosts);
+      }
+    }
+    return hostMap;
   }
 
   @Override

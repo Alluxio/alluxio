@@ -89,12 +89,15 @@ public class ServerConfigurationChecker {
   }
 
   /**
-   * @return the configuration error map.
+   * Detects the configuration errors of live nodes.
+   *
+   * @return the configuration error map
    */
   public synchronized Map<String, Map<String, List<Long>>> getConfErrors() {
-    // The confValues and confErrors maps are of format Map<Property Name, Map<Property Value, List<Id>>>
+    // The confValues and confErrors maps are of format
+    // Map<Property Name, Map<Property Value, List<Id>>>
 
-    // Record all the property names and its values and ids belong to those values.
+    // Record all the property names and values and ids belong to those values.
     Map<String, Map<String, List<Long>>> confValues = new HashMap<>();
 
     // If one property has more than one value, it is defined as a configuration error
@@ -104,6 +107,9 @@ public class ServerConfigurationChecker {
     // Fill the confValues from mConfMap
     for (Map.Entry<Long, List<ConfigProperty>> entry : mConfMap.entrySet()) {
       Long id = entry.getKey();
+      if (mLostNodes.contains(id)) {
+        continue;
+      }
       for (ConfigProperty configProperty : entry.getValue()) {
         String name = configProperty.getName();
         String value = configProperty.getValue();
@@ -114,7 +120,6 @@ public class ServerConfigurationChecker {
         values.put(value, ids);
       }
     }
-
 
     // Fill the confErrors from confValues
     for (Map.Entry<String, Map<String, List<Long>>> entry : confValues.entrySet()) {

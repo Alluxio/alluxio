@@ -73,7 +73,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
     TreeSet<Triple<String, String, String>> rtn = new TreeSet<>();
     Set<String> alluxioConfExcludes = Sets.newHashSet(
         PropertyKey.MASTER_WHITELIST.toString());
-    for (ConfigProperty configProperty : mMasterProcess.getConfiguration()) {
+    for (ConfigProperty configProperty : mMasterProcess.getAlluxioConfiguration()) {
       String confName = configProperty.getName();
       if (!alluxioConfExcludes.contains(confName)) {
         rtn.add(new ImmutableTriple<>(confName,

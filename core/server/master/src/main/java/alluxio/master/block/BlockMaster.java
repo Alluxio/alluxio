@@ -139,6 +139,14 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   List<BlockInfo> getBlockInfoList(List<Long> blockIds) throws UnavailableException;
 
   /**
+   * Retrieves the worker hostname for the given worker id.
+   *
+   * @param id the worker id
+   * @return the worker hostname
+   */
+  String getHostname(Long id);
+
+  /**
    * @return the total bytes on each storage tier
    */
   Map<String, Long> getTotalBytesOnTiers();

@@ -21,6 +21,7 @@ import alluxio.wire.ConfigProperty;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -91,5 +92,13 @@ public interface MasterProcess extends Process {
   /**
    * @return configuration information list
    */
-  List<ConfigProperty> getConfiguration();
+  List<ConfigProperty> getAlluxioConfiguration();
+
+  /**
+   * Gets a map of configuration errors between workers.
+   * It is a map from property name to a map from property value to a list of hostnames.
+   *
+   * @return a configuration error map
+   */
+  Map<String, Map<String, List<String>>> getWorkerConfErrors();
 }

@@ -640,6 +640,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
+  public String getHostname(Long id) {
+    return mWorkers.getFirstByField(ID_INDEX, id).getWorkerAddress().getHost();
+  }
+
+  @Override
   public Map<String, Long> getTotalBytesOnTiers() {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
