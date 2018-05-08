@@ -2677,6 +2677,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey SECURITY_LOGIN_IMPERSONATION_USERNAME =
+      new Builder(Name.SECURITY_LOGIN_IMPERSONATION_USERNAME).setDescription(String.format(
+          "When alluxio.security.authentication.type is set to SIMPLE or "
+              + "CUSTOM, user application uses this property to indicate the IMPERSONATED user "
+              + "requesting Alluxio service. If it is not set explicitly, impersonation will not "
+              + "be used. A special value of '%s' can be specified to impersonate the hadoop "
+              + "client user.", Constants.IMPERSONATION_HDFS_USER))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey SECURITY_LOGIN_USERNAME =
       new Builder(Name.SECURITY_LOGIN_USERNAME)
           .setDescription("When alluxio.security.authentication.type is set to SIMPLE or "
@@ -3336,6 +3346,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_GROUP_MAPPING_CLASS =
         "alluxio.security.group.mapping.class";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
+    public static final String SECURITY_LOGIN_IMPERSONATION_USERNAME =
+        "alluxio.security.login.impersonation.username";
 
     //
     // JVM Monitor related properties

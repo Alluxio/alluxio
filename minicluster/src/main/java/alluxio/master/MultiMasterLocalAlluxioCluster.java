@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
@@ -74,6 +75,11 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   @Override
   public synchronized FileSystem getClient() throws IOException {
     return getLocalAlluxioMaster().getClient();
+  }
+
+  @Override
+  public FileSystem getClient(FileSystemContext context) throws IOException {
+    return getLocalAlluxioMaster().getClient(context);
   }
 
   /**

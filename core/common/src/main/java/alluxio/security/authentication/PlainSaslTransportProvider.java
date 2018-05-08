@@ -73,7 +73,11 @@ public final class PlainSaslTransportProvider implements TransportProvider {
     if (username == null || username.isEmpty()) {
       username = LoginUser.get().getName();
     }
-    return getClientTransport(username, password, serverAddress);
+
+    // Determine the impersonation user
+    String impersonationUser = TransportProviderUtils.getImpersonationUser(subject);
+
+    return getClientTransport(username, password, impersonationUser, serverAddress);
   }
 
   // TODO(binfan): make this private and use whitebox to access this method in test
@@ -82,17 +86,18 @@ public final class PlainSaslTransportProvider implements TransportProvider {
    *
    * @param username User Name of PlainClient
    * @param password Password of PlainClient
+   * @param impersonationUser impersonation user (not used if null)
    * @param serverAddress Address of the server
    * @return Wrapped transport with PLAIN mechanism
    */
-  public TTransport getClientTransport(String username, String password,
+  public TTransport getClientTransport(String username, String password, String impersonationUser,
       InetSocketAddress serverAddress) throws UnauthenticatedException {
     TTransport wrappedTransport =
         TransportProviderUtils.createThriftSocket(serverAddress, mSocketTimeoutMs);
     try {
-      return new TSaslClientTransport(PlainSaslServerProvider.MECHANISM, null, null, null,
-          new HashMap<String, String>(), new PlainSaslClientCallbackHandler(username, password),
-          wrappedTransport);
+      return new TSaslClientTransport(PlainSaslServerProvider.MECHANISM, impersonationUser, null,
+          null, new HashMap<String, String>(),
+          new PlainSaslClientCallbackHandler(username, password), wrappedTransport);
     } catch (SaslException e) {
       throw new UnauthenticatedException(e.getMessage(), e);
     }
