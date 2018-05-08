@@ -13,6 +13,7 @@ package alluxio.master.meta;
 
 import alluxio.wire.ConfigProperty;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -85,5 +86,43 @@ public class ServerConfigurationChecker {
       }
     }
     return map;
+  }
+
+  /**
+   * @return the configuration error map.
+   */
+  public synchronized Map<String, Map<String, List<Long>>> getConfErrors() {
+    // The confValues and confErrors maps are of format Map<Property Name, Map<Property Value, List<Id>>>
+
+    // Record all the property names and its values and ids belong to those values.
+    Map<String, Map<String, List<Long>>> confValues = new HashMap<>();
+
+    // If one property has more than one value, it is defined as a configuration error
+    // and will be put into the confErrorsMap.
+    Map<String, Map<String, List<Long>>> confErrors = new HashMap<>();
+
+    // Fill the confValues from mConfMap
+    for (Map.Entry<Long, List<ConfigProperty>> entry : mConfMap.entrySet()) {
+      Long id = entry.getKey();
+      for (ConfigProperty configProperty : entry.getValue()) {
+        String name = configProperty.getName();
+        String value = configProperty.getValue();
+        confValues.putIfAbsent(name, new HashMap<>());
+        Map<String, List<Long>> values = confValues.get(name);
+        List<Long> ids = values.getOrDefault(value, new ArrayList<>());
+        ids.add(id);
+        values.put(value, ids);
+      }
+    }
+
+
+    // Fill the confErrors from confValues
+    for (Map.Entry<String, Map<String, List<Long>>> entry : confValues.entrySet()) {
+      if (entry.getValue().size() >= 2) {
+        confErrors.put(entry.getKey(), entry.getValue());
+      }
+    }
+
+    return confErrors;
   }
 }

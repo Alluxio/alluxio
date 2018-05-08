@@ -37,11 +37,11 @@ public class ServerConfigurationCheckerTest {
   @Before
   public void before() {
     mConfigListOne = Arrays.asList(
-        new ConfigProperty().setName("TestName").setSource("TestSource").setValue("TestValue"),
-        new ConfigProperty().setName("TestName2").setSource("TestSource2").setValue("TestValue2"));
+        new ConfigProperty().setName("Name").setSource("Unimportant").setValue("Value"),
+        new ConfigProperty().setName("Name2").setSource("Unimportant").setValue("Value2"));
     mConfigListTwo = Arrays.asList(
-        new ConfigProperty().setName("TestName3").setSource("TestSource3").setValue("TestValue3"),
-        new ConfigProperty().setName("TestName4").setSource("TestSource4").setValue("TestValue4"));
+        new ConfigProperty().setName("Name3").setSource("Unimportant").setValue("Value3"),
+        new ConfigProperty().setName("Name4").setSource("Unimportant").setValue("Value4"));
     mIdOne = IdUtils.getRandomNonNegativeLong();
     mIdTwo = IdUtils.getRandomNonNegativeLong();
   }
@@ -88,6 +88,26 @@ public class ServerConfigurationCheckerTest {
     assertTrue(confMap.containsKey(mIdTwo));
     assertEquals(mConfigListTwo, confMap.get(mIdTwo));
     assertFalse(confMap.containsKey(mIdOne));
+  }
+
+  @Test
+  public void getConfErrors() {
+    ServerConfigurationChecker configChecker = createConfigChecker();
+    Map<String, Map<String, List<Long>>> confErrors = configChecker.getConfErrors();
+    assertTrue(confErrors.size() == 0);
+
+    // Register one new conf that has conflicts with the original two conf
+    List<ConfigProperty> configList = Arrays.asList(
+        new ConfigProperty().setName("Name").setSource("Unimportant").setValue("WrongValue"),
+        new ConfigProperty().setName("Name3").setSource("Unimportant").setValue("WrongValue"));
+    Long id = IdUtils.getRandomNonNegativeLong();
+    configChecker.registerNewConf(id, configList);
+
+    // Get the updated confErrors
+    confErrors = configChecker.getConfErrors();
+    assertTrue(confErrors.size() == 2);
+    assertTrue(confErrors.containsKey("Name") && confErrors.containsKey("Name3"));
+    assertTrue(confErrors.toString().contains("WrongValue"));
   }
 
   /**
