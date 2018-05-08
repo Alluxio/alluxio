@@ -173,6 +173,8 @@ public final class FileSystemContext implements Closeable {
       mExecutorService
           .submit(new HeartbeatThread(HeartbeatContext.METRICS_MASTER_SYNC, mClientMasterSync,
               (int) Configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
+      // register the shutdown hook
+      Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
     }
   }
 
@@ -384,6 +386,20 @@ public final class FileSystemContext implements Closeable {
     }
 
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
+  }
+
+  /**
+   * Class that heartbeats to the metrics master before exit.
+   */
+  private final class MetricsMasterSyncShutDownHook extends Thread {
+    @Override
+    public void run() {
+      try {
+        mClientMasterSync.heartbeat();
+      } catch (InterruptedException e) {
+        LOG.error("Failed to heartbeat to the metrics master before exxit");
+      }
+    }
   }
 
   /**
