@@ -456,11 +456,16 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         mBlocks.keySet().stream().filter((blockId) -> !validator.apply(blockId))
             .collect(Collectors.toList());
     if (!invalidBlocks.isEmpty()) {
-      List<Long> loggedBlocks = invalidBlocks.stream().limit(100).collect(Collectors.toList());
-      LOG.warn("Found {} blocks without corresponding file metadata. Blocks include {}.",
-          invalidBlocks.size(), loggedBlocks);
+      long limit = 100;
+      List<Long> loggedBlocks = invalidBlocks.stream().limit(limit).collect(Collectors.toList());
+      LOG.warn("Found {} orphan blocks without corresponding file metadata.", invalidBlocks.size());
+      if (invalidBlocks.size() > limit) {
+        LOG.warn("The first {} orphan blocks include {}.", limit, loggedBlocks);
+      } else {
+        LOG.warn("The orphan blocks include {}.", loggedBlocks);
+      }
       if (repair) {
-        LOG.warn("Deleting {} invalid blocks.", invalidBlocks.size());
+        LOG.warn("Deleting {} orphan blocks.", invalidBlocks.size());
         removeBlocks(invalidBlocks, true);
       } else {
         LOG.warn("Restart Alluxio master with {}=true to delete the blocks and repair the system.",
