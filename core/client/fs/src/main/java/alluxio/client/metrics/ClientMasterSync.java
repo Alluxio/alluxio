@@ -13,6 +13,7 @@ package alluxio.client.metrics;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.client.file.FileSystemContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
@@ -62,6 +63,7 @@ public final class ClientMasterSync implements HeartbeatExecutor {
   public void heartbeat() throws InterruptedException {
     List<alluxio.thrift.Metric> metrics = new ArrayList<>();
     for (Metric metric : MetricsSystem.allClientMetrics()) {
+      metric.setInstanceId(FileSystemContext.INSTANCE.getId());
       metrics.add(metric.toThrift());
     }
     try {

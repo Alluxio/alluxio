@@ -17,6 +17,9 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricsSystem.InstanceType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Set;
 
@@ -27,6 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class MetricsStore {
+  private static final Logger LOG = LoggerFactory.getLogger(MetricsStore.class);
   private static final IndexDefinition<Metric> FULL_NAME_INDEX = new IndexDefinition<Metric>(true) {
     @Override
     public Object getFieldValue(Metric o) {
@@ -69,6 +73,8 @@ public class MetricsStore {
   private IndexedSet<Metric> getMetricsByInstanceType(MetricsSystem.InstanceType instanceType) {
     if (instanceType == InstanceType.WORKER) {
       return mWorkerMetrics;
+    } else if (instanceType == InstanceType.CLIENT) {
+      return mClientMetrics;
     } else {
       throw new IllegalArgumentException("Unsupported instance type " + instanceType);
     }
@@ -103,6 +109,7 @@ public class MetricsStore {
       if (metric.getHostname() == null) {
         continue; // ignore metrics who hostname is null
       }
+      LOG.info(metric.toString());
       mClientMetrics.add(metric);
     }
   }

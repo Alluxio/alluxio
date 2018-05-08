@@ -55,6 +55,7 @@ public final class HeartbeatContext {
     sTimerClasses.put(WORKER_CLIENT, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_PIN_LIST_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_SPACE_RESERVER, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(METRICS_MASTER_SYNC, SLEEPING_TIMER_CLASS);
   }
 
   private HeartbeatContext() {} // to prevent initialization

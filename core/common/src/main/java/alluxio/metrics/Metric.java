@@ -27,7 +27,7 @@ public final class Metric implements Serializable {
   private final String mHostname;
   private final String mName;
   private final Long mValue;
-  private final String mInstanceId;
+  private String mInstanceId;
 
   /**
    * Constructs a {@link Metric} instance.
@@ -93,6 +93,15 @@ public final class Metric implements Serializable {
    */
   public String getInstanceId() {
     return mInstanceId;
+  }
+
+  /**
+   * Sets the instance id
+   *
+   * @param instanceId the instance id;
+   */
+  public void setInstanceId(String instanceId) {
+    mInstanceId = instanceId;
   }
 
   @Override

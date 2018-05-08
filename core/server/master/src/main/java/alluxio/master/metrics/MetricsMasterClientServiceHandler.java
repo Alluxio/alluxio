@@ -63,7 +63,8 @@ public final class MetricsMasterClientServiceHandler implements MetricsMasterCli
       public MetricsHeartbeatTResponse call() throws AlluxioException, IOException {
         List<Metric> metrics = Lists.newArrayList();
         for (alluxio.thrift.Metric metric : options.getMetrics()) {
-          metrics.add(Metric.from(metric));
+          Metric parsed =  Metric.from(metric);
+          metrics.add(parsed);
         }
         mMetricsMaster.clientHeartbeat(clientId, hostname, metrics);
         return new MetricsHeartbeatTResponse();
