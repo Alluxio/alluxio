@@ -806,7 +806,7 @@ public final class InodeTreeTest {
       // expected
     }
 
-    // Testing desendantURI is actually the URI of a parent.
+    // Testing descendantURI is actually the URI of a parent.
     Inode<?> subDirInode = createResult.getCreated().get(1);
     assertTrue(dirInode.isDirectory());
     try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(subDirInode.getId(),
