@@ -19,7 +19,7 @@ import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.NoMasterException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -351,10 +351,10 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public void masterRegister(long masterId, RegisterMasterTOptions options)
-      throws NoMasterException {
+      throws NotFoundException {
     MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
-      throw new NoMasterException(ExceptionMessage.NO_MASTER_FOUND.getMessage(masterId));
+      throw new NotFoundException(ExceptionMessage.NO_MASTER_FOUND.getMessage(masterId));
     }
 
     master.updateLastUpdatedTimeMs();

@@ -14,6 +14,7 @@ package alluxio.master.meta;
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterProcess;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetMasterIdTOptions;
@@ -91,9 +92,9 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
   @Override
   public RegisterMasterTResponse registerMaster(final long masterId,
       RegisterMasterTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<RegisterMasterTResponse>() {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallableThrowsIOException<RegisterMasterTResponse>() {
       @Override
-      public RegisterMasterTResponse call() throws AlluxioException {
+      public RegisterMasterTResponse call() throws AlluxioException, AlluxioStatusException {
         mMasterProcess.masterRegister(masterId, options);
         return new RegisterMasterTResponse();
       }

@@ -14,7 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Process;
 import alluxio.PropertyKey;
-import alluxio.exception.NoMasterException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.thrift.MetaCommand;
@@ -117,7 +117,7 @@ public interface MasterProcess extends Process {
    *
    * @param masterId the master id of the standby master registering
    * @param options the options that contains master configuration
-   * @throws NoMasterException if masterId cannot be found
+   * @throws NotFoundException if masterId cannot be found
    */
-  void masterRegister(long masterId, RegisterMasterTOptions options) throws NoMasterException;
+  void masterRegister(long masterId, RegisterMasterTOptions options) throws NotFoundException;
 }
