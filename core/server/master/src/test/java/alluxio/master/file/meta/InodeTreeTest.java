@@ -818,8 +818,6 @@ public final class InodeTreeTest {
     } catch (InvalidPathException e) {
       // expected
     }
-
-
   }
 
   // Helper to create a path.

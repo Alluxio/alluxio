@@ -3217,8 +3217,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       AlluxioURI mountPointUri = new AlluxioURI(mountPoint);
       try {
         if (PathUtils.hasPrefix(inodePath.getUri().getPath(), mountPointUri.getPath())) {
-          // one of the mountpoint is above the original inodePath, we start loading from the original
-          // inodePath. It is already locked. so we proceed to load metadata.
+          // one of the mountpoint is above the original inodePath, we start loading from the
+          // original inodePath. It is already locked. so we proceed to load metadata.
           try {
             loadMetadataAndJournal(rpcContext, inodePath, LoadMetadataOptions.defaults()
                 .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
@@ -3394,7 +3394,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             }
           }
         }
-
 
         // Iterate over Alluxio children and process persisted children.
         for (Map.Entry<String, Inode<?>> inodeEntry : inodeChildren.entrySet()) {
