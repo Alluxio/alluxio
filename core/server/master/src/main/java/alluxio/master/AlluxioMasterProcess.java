@@ -246,6 +246,7 @@ public class AlluxioMasterProcess implements MasterProcess {
           .fixedThreadPoolExecutorServiceFactory(Constants.META_MASTER_NAME, 2);
       mMetaMasterClient = new MetaMasterMasterClient(MasterClientConfig.defaults());
       mMasterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
+      mMasterId = new AtomicReference<>(-1L);
 
       // Register listeners for BlockMaster to interact with config checker
       BlockMaster blockMaster = mRegistry.get(BlockMaster.class);

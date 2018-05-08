@@ -99,7 +99,7 @@ service MetaMasterClientService extends common.AlluxioService {
 }
 
 /**
-  * This interface contains meta master service endpoints for Alluxio masters.
+  * This interface contains meta master service endpoints for Alluxio standby masters.
   */
 service MetaMasterMasterService extends common.AlluxioService {
   /**

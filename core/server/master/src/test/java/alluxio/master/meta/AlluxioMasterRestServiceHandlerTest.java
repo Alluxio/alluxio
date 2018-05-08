@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.master.meta;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -24,6 +24,10 @@ import static org.mockito.Mockito.when;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.master.MasterProcess;
+import alluxio.master.MasterRegistry;
+import alluxio.master.SafeModeManager;
+import alluxio.master.TestSafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.DefaultFileSystemMaster;
