@@ -423,7 +423,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
     // Skip non-local and non-HDFS UFSs.
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(sUfs) || UnderFileSystemUtils.isHdfs(sUfs));
 
-    Path fileA = new Path("/root/dirA/fileA");
+    Path fileA = new Path("/root/parentDirectoryPermissionForUfsDir/parentDirectoryPermissionForUfsFile");
     Path dirA = fileA.getParent();
     sTFS.mkdirs(dirA);
     short parentMode = (short) 0700;
@@ -437,7 +437,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
 
     // Rename from dirA to dirB, file and its parent permission should be in sync with the source
     // dirA.
-    Path fileB = new Path("/root/dirB/fileB");
+    Path fileB = new Path("/root/parentDirectoryPermissionForUfsDir/parentDirectoryPermissionForUfsFile");
     Path dirB = fileB.getParent();
     sTFS.rename(dirA, dirB);
     Assert.assertEquals((int) parentMode,
