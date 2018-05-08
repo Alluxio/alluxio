@@ -96,7 +96,7 @@ public final class Metric implements Serializable {
   }
 
   /**
-   * Sets the instance id
+   * Sets the instance id.
    *
    * @param instanceId the instance id;
    */
