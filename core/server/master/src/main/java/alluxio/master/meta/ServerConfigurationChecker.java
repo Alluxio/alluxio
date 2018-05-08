@@ -24,10 +24,23 @@ import java.util.Set;
  * This class is responsible for checking server-side configuration.
  */
 public class ServerConfigurationChecker {
+  /**
+   * Status of the check.
+   */
+  public enum Status {
+    PASSED,
+    FAILED,
+    NOT_STARTED,
+  }
+
   /** Map from a node id to its configuration. */
   private final Map<Long, List<ConfigProperty>> mConfMap;
   /** Set that contains the ids of lost nodes. */
   private final Set<Long> mLostNodes;
+  /** Record the status of last check conf. */
+  private Status mStatus;
+  /** Record the configuration errors of last check conf. */
+  private Map<String, Map<String, List<Long>>> mConfErrors;
 
   /**
    * Constructs a new {@link ServerConfigurationChecker}.
@@ -35,6 +48,7 @@ public class ServerConfigurationChecker {
   public ServerConfigurationChecker() {
     mConfMap = new HashMap<>();
     mLostNodes = new HashSet<>();
+    mStatus = Status.NOT_STARTED;
   }
 
   /**
@@ -54,6 +68,7 @@ public class ServerConfigurationChecker {
   public synchronized void registerNewConf(long id, List<ConfigProperty> configList) {
     mConfMap.put(id, configList);
     mLostNodes.remove(id);
+    checkConf();
   }
 
   /**
@@ -63,6 +78,7 @@ public class ServerConfigurationChecker {
    */
   public synchronized void handleNodeLost(long id) {
     mLostNodes.add(id);
+    checkConf();
   }
 
   /**
@@ -72,6 +88,7 @@ public class ServerConfigurationChecker {
    */
   public synchronized void lostNodeFound(long id) {
     mLostNodes.remove(id);
+    checkConf();
   }
 
   /**
@@ -89,20 +106,26 @@ public class ServerConfigurationChecker {
   }
 
   /**
-   * Detects the configuration errors of live nodes.
-   *
    * @return the configuration error map
    */
-  public synchronized Map<String, Map<String, List<Long>>> getConfErrors() {
-    // The confValues and confErrors maps are of format
-    // Map<Property Name, Map<Property Value, List<Id>>>
+  public Map<String, Map<String, List<Long>>> getConfErrors() {
+    return mConfErrors;
+  }
 
+  /**
+   * @return the configuration error map
+   */
+  public Status getStatus() {
+    return mStatus;
+  }
+
+  /**
+   * Checks the server-side configurations and records the configuration errors.
+   */
+  private void checkConf() {
+    // The maps are of format Map<Property Name, Map<Property Value, List<Id>>>
     // Record all the property names and values and ids belong to those values.
     Map<String, Map<String, List<Long>>> confValues = new HashMap<>();
-
-    // If one property has more than one value, it is defined as a configuration error
-    // and will be put into the confErrorsMap.
-    Map<String, Map<String, List<Long>>> confErrors = new HashMap<>();
 
     // Fill the confValues from mConfMap
     for (Map.Entry<Long, List<ConfigProperty>> entry : mConfMap.entrySet()) {
@@ -121,13 +144,19 @@ public class ServerConfigurationChecker {
       }
     }
 
-    // Fill the confErrors from confValues
+    // Update the mConfErrors
+    mConfErrors = new HashMap<>();
     for (Map.Entry<String, Map<String, List<Long>>> entry : confValues.entrySet()) {
       if (entry.getValue().size() >= 2) {
-        confErrors.put(entry.getKey(), entry.getValue());
+        mConfErrors.put(entry.getKey(), entry.getValue());
       }
     }
 
-    return confErrors;
+    // Update the status
+    if (mConfErrors.size() > 0) {
+      mStatus = Status.FAILED;
+    } else {
+      mStatus = Status.PASSED;
+    }
   }
 }

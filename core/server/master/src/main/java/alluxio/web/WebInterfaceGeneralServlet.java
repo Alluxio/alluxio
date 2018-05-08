@@ -19,6 +19,7 @@ import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
+import alluxio.master.meta.ServerConfigurationChecker;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
