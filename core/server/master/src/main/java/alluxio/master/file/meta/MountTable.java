@@ -282,26 +282,6 @@ public final class MountTable implements JournalEntryIterable {
   }
 
   /**
-   * @param uri the Alluxio uri to list
-   * @return a set of mount points which are descendants of the specified uri
-   */
-  public Set<String> listContainedMountPoint(AlluxioURI uri) throws InvalidPathException {
-    String path = uri.getPath();
-    Set<String> result = new HashSet<>();
-
-    try (LockResource r = new LockResource(mReadLock)) {
-      for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
-        String mountPath = entry.getKey();
-        if (PathUtils.hasPrefix(mountPath, path)) {
-          result.add(mountPath);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  /**
    * @param uri an Alluxio path URI
    * @return whether the given uri is a mount point
    */

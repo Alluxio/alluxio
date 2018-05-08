@@ -782,6 +782,46 @@ public final class InodeTreeTest {
     }
   }
 
+  @Test
+  public void lockingDescendent() throws Exception {
+    InodeTree.CreatePathResult createResult =
+        createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
+    Inode<?> dirInode = createResult.getCreated().get(0);
+    assertTrue(dirInode.isDirectory());
+    try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(dirInode.getId(),
+         InodeTree.LockMode.READ);
+         InodeLockList inodeLockList = mTree.lockDescendant(lockedDirPath,
+             InodeTree.LockMode.READ, NESTED_FILE_URI);
+        ) {
+      assertEquals(2, inodeLockList.getInodes().size());
+    }
+    // Testing descendant is the same as the LockedInodePath.
+    try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(dirInode.getId(),
+        InodeTree.LockMode.READ);
+         InodeLockList inodeLockList = mTree.lockDescendant(lockedDirPath,
+             InodeTree.LockMode.READ, lockedDirPath.getUri())
+    ) {
+      Assert.fail();
+    } catch (InvalidPathException e) {
+      // expected
+    }
+
+    // Testing desendantURI is actually the URI of a parent.
+    Inode<?> subDirInode = createResult.getCreated().get(1);
+    assertTrue(dirInode.isDirectory());
+    try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(subDirInode.getId(),
+        InodeTree.LockMode.READ);
+         InodeLockList inodeLockList = mTree.lockDescendant(lockedDirPath,
+             InodeTree.LockMode.READ, new AlluxioURI(""));
+    ) {
+      Assert.fail();
+    } catch (InvalidPathException e) {
+      // expected
+    }
+
+
+  }
+
   // Helper to create a path.
   private InodeTree.CreatePathResult createPath(InodeTree root, AlluxioURI path,
       CreatePathOptions<?> options) throws FileAlreadyExistsException, BlockInfoException,

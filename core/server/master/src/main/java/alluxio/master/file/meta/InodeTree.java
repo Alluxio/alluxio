@@ -518,7 +518,6 @@ public class InodeTree implements JournalEntryIterable {
     LOG.debug("createPath {}", path);
 
     TraversalResult traversalResult = traverseToInode(inodePath, inodePath.getLockMode());
-
     InodeLockList lockList = traversalResult.getInodeLockList();
 
     MutableLockedInodePath extensibleInodePath = (MutableLockedInodePath) inodePath;
@@ -578,11 +577,11 @@ public class InodeTree implements JournalEntryIterable {
     // than inheriting the option of the final file to create, because it may not have
     // "execute" permission.
     CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
-            .setMountPoint(false)
-            .setPersisted(options.isPersisted())
-            .setOperationTimeMs(options.getOperationTimeMs())
-            .setOwner(options.getOwner())
-            .setGroup(options.getGroup());
+        .setMountPoint(false)
+        .setPersisted(options.isPersisted())
+        .setOperationTimeMs(options.getOperationTimeMs())
+        .setOwner(options.getOwner())
+        .setGroup(options.getGroup());
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir = null;
       while (dir == null) {
@@ -748,27 +747,33 @@ public class InodeTree implements JournalEntryIterable {
    * @throws FileDoesNotExistException if inode does not exist
    */
   public InodeLockList lockDescendant(LockedInodePath inodePath, LockMode lockMode,
-      AlluxioURI descendantUri) throws FileDoesNotExistException {
+      AlluxioURI descendantUri) throws FileDoesNotExistException, InvalidPathException {
     InodeLockList inodeGroup = new InodeLockList();
     // Check if the descendant is really the descendant of inodePath
-    try {
-      if (!PathUtils.hasPrefix(descendantUri.getPath(), inodePath.getUri().getPath())
-          || descendantUri.getPath().equals(inodePath.getUri().getPath())) {
-        return inodeGroup;
-      }
-    } catch (InvalidPathException e) {
-      return inodeGroup;
+    if (!PathUtils.hasPrefix(descendantUri.getPath(), inodePath.getUri().getPath())
+        || descendantUri.getPath().equals(inodePath.getUri().getPath())) {
+      throw new InvalidPathException("Not a valid descendant.");
     }
-    try {
-      TraversalResult traversalResult =
-          traverseToInode(PathUtils.getPathComponents(descendantUri.getPath()), lockMode, null);
-      if (traversalResult.mFound) {
-        return traversalResult.mLockList;
-      } else {
-        // not found, return an empty list
-        return inodeGroup;
+
+    List<Inode<?>> nonPersistedInodes = new ArrayList<>();
+    List<Inode<?>> inodeList = new ArrayList<>(inodePath.getInodeList());
+    for (Inode<?> inode : inodeList) {
+      if (!inode.isPersisted()) {
+        nonPersistedInodes.add(inode);
       }
-    } catch (InvalidPathException e) {
+    }
+    // Lock from inodePath to the descendant
+    InodeLockList lockList = new InodeLockList();
+    TraversalResult traversalResult =
+        traverseToInodeInternal(PathUtils.getPathComponents(descendantUri.getPath()),
+            inodeList,
+            nonPersistedInodes,
+            lockList, lockMode, null
+            );
+    if (traversalResult.mFound) {
+      return traversalResult.mLockList;
+    } else {
+      // not found, return an empty list
       return inodeGroup;
     }
   }
