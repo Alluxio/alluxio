@@ -18,7 +18,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class NoMasterException extends AlluxioException {
-  private static final long serialVersionUID = 3207573433677248476L;
+  private static final long serialVersionUID = -4513463729402967717L;
 
   /**
    * Constructs a new exception with the specified detail message.

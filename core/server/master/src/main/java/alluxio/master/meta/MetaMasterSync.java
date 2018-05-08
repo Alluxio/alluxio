@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * If a master is detected as a standby master. It will set up its MetaMasterSync and manage
  * its own {@link MetaMasterMasterClient} which helps communicate with the leader master.
@@ -114,7 +115,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   }
 
   /**
-   * Handles a leader master command. The command is one of Unknown, Nothing, Register.
+   * Handles a leader master command.
    * This call will block until the command is complete.
    *
    * @param cmd the command to execute

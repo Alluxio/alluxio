@@ -245,7 +245,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       mExecutorServiceFactory = ExecutorServiceFactories
           .fixedThreadPoolExecutorServiceFactory(Constants.META_MASTER_NAME, 2);
       mMetaMasterClient = new MetaMasterMasterClient(MasterClientConfig.defaults());
-      setMasterIdAndHostname();
+      mMasterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
 
       // Register listeners for BlockMaster to interact with config checker
       BlockMaster blockMaster = mRegistry.get(BlockMaster.class);
@@ -373,9 +373,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       return MetaCommand.Register;
     }
 
-    synchronized (master) {
-      master.updateLastUpdatedTimeMs();
-    }
+    master.updateLastUpdatedTimeMs();
     return MetaCommand.Nothing;
   }
 
@@ -433,9 +431,11 @@ public class AlluxioMasterProcess implements MasterProcess {
         mExecutorService = mExecutorServiceFactory.create();
 
         // Standby master should setup MetaMasterSync to communicate with the leader master
+        setMasterId();
         mMetaMasterSync = new MetaMasterSync(mMasterId, mMasterHostname, mMetaMasterClient);
         mExecutorService.submit(new HeartbeatThread(HeartbeatContext.MASTER_SYNC, mMetaMasterSync,
             (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+        LOG.info("Standby master with id {} starts sending heartbeat to leader master.", mMasterId);
       }
       mRegistry.start(isLeader);
       LOG.info("All masters started");
@@ -658,10 +658,9 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Sets the master id and hostname.
+   * Sets the master id. This method should only be called when this master is a standby master.
    */
-  private void setMasterIdAndHostname() {
-    mMasterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
+  private void setMasterId() {
     try {
       RetryUtils.retry("get master id",
           () -> mMasterId.set(mMetaMasterClient.getId(mMasterHostname)),
@@ -676,7 +675,6 @@ public class AlluxioMasterProcess implements MasterProcess {
     }
 
     Preconditions.checkNotNull(mMasterId, "mMasterId");
-    Preconditions.checkNotNull(mMasterHostname, "mMasterHostname");
   }
 
   /**
