@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -60,7 +61,8 @@ public final class DuCommand extends AbstractFileSystemCommand {
   private long getFileOrFolderSize(FileSystem fs, AlluxioURI path)
       throws AlluxioException, IOException {
     long sizeInBytes = 0;
-    List<URIStatus> statuses = fs.listStatus(path);
+    ListStatusOptions listOptions = ListStatusOptions.defaults().setRecursive(true);
+    List<URIStatus> statuses = fs.listStatus(path, listOptions);
     for (URIStatus status : statuses) {
       if (status.isFolder()) {
         AlluxioURI subFolder = new AlluxioURI(status.getPath());
