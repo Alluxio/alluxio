@@ -747,12 +747,11 @@ public class InodeTree implements JournalEntryIterable {
    * @throws FileDoesNotExistException if inode does not exist
    */
   public InodeLockList lockDescendant(LockedInodePath inodePath, LockMode lockMode,
-      AlluxioURI descendantUri) throws FileDoesNotExistException, InvalidPathException {
-    InodeLockList inodeGroup = new InodeLockList();
+      AlluxioURI descendantUri) throws InvalidPathException {
     // Check if the descendant is really the descendant of inodePath
     if (!PathUtils.hasPrefix(descendantUri.getPath(), inodePath.getUri().getPath())
         || descendantUri.getPath().equals(inodePath.getUri().getPath())) {
-      throw new InvalidPathException(descendantUri.getPath() + "is not a valid descendant of "
+      throw new InvalidPathException(descendantUri.getPath() + " is not a valid descendant of "
           + inodePath.getUri().getPath());
     }
 
@@ -771,7 +770,8 @@ public class InodeTree implements JournalEntryIterable {
     if (traversalResult.mFound) {
       return traversalResult.mLockList;
     } else {
-      throw new InvalidPathException(descendantUri.getPath() + "path not found in traversal.");
+      throw new InvalidPathException(descendantUri.getPath()
+          + " path not found in traversal starting from " + inodePath.getUri().getPath() + ".");
     }
   }
 

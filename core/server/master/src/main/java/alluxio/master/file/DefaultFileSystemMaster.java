@@ -3247,14 +3247,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   loadMetadataAndJournal(rpcContext, tempInodePath, LoadMetadataOptions.defaults()
                       .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
                 } catch (Exception e) {
-                  LOG.debug("Failed to load metadata for path: {}", mountPointUri, e);
+                  LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
                 }
                 mUfsSyncPathCache.notifySyncedPath(mountPoint);
               }
             }
-          } catch (FileDoesNotExistException e) {
-            LOG.warn("Tried to update metadata from an invalid path: {}",
-                mountPointUri.getPath(), e);
           }
         }
       } catch (InvalidPathException e) {
