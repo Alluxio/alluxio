@@ -16,6 +16,7 @@ import alluxio.PropertyKey.ConsistencyCheckLevel;
 import alluxio.wire.ConfigProperty;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,24 +39,24 @@ public class ServerConfigurationChecker {
 
   /** Map from a node id to its configuration. */
   private final Map<Long, List<ConfigProperty>> mConfMap;
+  /** Record the configuration errors of last check conf. */
+  private Map<String, Map<String, List<Long>>> mConfErrors;
+  /** Record the configuration warnings of last check conf. */
+  private Map<String, Map<String, List<Long>>> mConfWarns;
   /** Set that contains the ids of lost nodes. */
   private final Set<Long> mLostNodes;
   /** Record the status of last check conf. */
   private Status mStatus;
-  /** Record the configuration errors of last check conf. */
-  private Map<String, Map<String, List<Long>>> mConfErrors;
-  /** Record the configuration warns of last check conf. */
-  private Map<String, Map<String, List<Long>>> mConfWarns;
 
   /**
    * Constructs a new {@link ServerConfigurationChecker}.
    */
   public ServerConfigurationChecker() {
     mConfMap = new HashMap<>();
-    mLostNodes = new HashSet<>();
-    mStatus = Status.NOT_STARTED;
     mConfErrors = new HashMap<>();
     mConfWarns = new HashMap<>();
+    mLostNodes = new HashSet<>();
+    mStatus = Status.NOT_STARTED;
   }
 
   /**
@@ -115,21 +116,21 @@ public class ServerConfigurationChecker {
   /**
    * @return the configuration error map
    */
-  public Map<String, Map<String, List<Long>>> getConfErrors() {
-    return mConfErrors;
+  public synchronized Map<String, Map<String, List<Long>>> getConfErrors() {
+    return Collections.unmodifiableMap(mConfErrors);
   }
 
   /**
    * @return the configuration warnings map
    */
-  public Map<String, Map<String, List<Long>>> getConfWarns() {
-    return mConfWarns;
+  public synchronized Map<String, Map<String, List<Long>>> getConfWarns() {
+    return Collections.unmodifiableMap(mConfWarns);
   }
 
   /**
    * @return the configuration error map
    */
-  public Status getStatus() {
+  public synchronized Status getStatus() {
     return mStatus;
   }
 

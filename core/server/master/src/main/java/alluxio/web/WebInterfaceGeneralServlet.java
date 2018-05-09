@@ -19,7 +19,6 @@ import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
-import alluxio.master.meta.ServerConfigurationChecker;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -209,8 +208,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("inconsistentPaths", 0);
     }
 
-    ServerConfigurationChecker.Status confStatus = mMasterProcess.getConfStatus();
-    request.setAttribute("configCheckStatus", confStatus);
+    request.setAttribute("configCheckStatus", mMasterProcess.getConfStatus());
     Map<String, Map<String, List<String>>> confErrors = mMasterProcess.getConfErrors();
     Map<String, Map<String, List<String>>> confWarns = mMasterProcess.getConfWarns();
     request.setAttribute("inconsistentProperties", confErrors.size() + confWarns.size());

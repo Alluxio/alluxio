@@ -173,13 +173,15 @@
                 <th class="span8">Value</th>
               </thead>
               <tbody>
-                <% if ((Integer) request.getAttribute("confErrorsNum") != 0) { String previousKey = "Not Set";  %>
+                <% if ((Integer) request.getAttribute("confErrorsNum") != 0) { %>
                   <tr>
-                    <th colspan="3"> <font color="red">Errors (those properties are required to be same) </font></th>
+                    <th colspan="3"> <font color="red">Errors (those properties are required to be same)</font></th>
                   </tr>
-                  <% for (String key : ((HashMap<String, List<String>>) request.getAttribute("confErrorsItem")).keySet()) { %>
-                    <% for (String value : (List<String>) ((HashMap<String, List<String>>) request.getAttribute("confErrorsItem")).get(key)) { %>
-                      <% if (key.equals(previousKey)) {key = "";} else {previousKey = key;}%>
+                  <% String previousKey = "Not Set"; %>
+                  <% for (Map.Entry<String, List<String>> entry : ((HashMap<String, List<String>>) request.getAttribute("confErrorsItem")).entrySet()) { %>
+                    <% String key = entry.getKey(); %>
+                    <% for (String value : entry.getValue()) { %>
+                      <% if (key.equals(previousKey)) {key = "";} else {previousKey = key;} %>
                       <tr>
                         <th class="span4"><font color="red"><%= key %></font></th>
                         <th class="span8"><font color="red"><%= value %></font></th>
@@ -187,13 +189,15 @@
                     <% } %>
                   <% } %>
                 <% } %>
-                <% if ((Integer) request.getAttribute("confWarnsNum") != 0) { String previousKey = "Not Set"; %>
+                <% if ((Integer) request.getAttribute("confWarnsNum") != 0) { %>
                   <tr>
                     <th colspan="3">Warnings (those properties are recommended to be same) </th>
                   </tr>
-                  <% for (String key : ((HashMap<String, List<String>>) request.getAttribute("confWarnsItem")).keySet()) { %>
-                    <% for (String value : (List<String>) ((HashMap<String, List<String>>) request.getAttribute("confWarnsItem")).get(key)) { %>
-                      <% if (key.equals(previousKey)) {key = "";} else {previousKey = key;}%>
+                  <% String previousKey = "Not Set"; %>
+                  <% for (Map.Entry<String, List<String>> entry : ((HashMap<String, List<String>>) request.getAttribute("confWarnsItem")).entrySet()) { %>
+                    <% String key = entry.getKey(); %>
+                    <% for (String value : entry.getValue()) { %>
+                      <% if (key.equals(previousKey)) {key = "";} else {previousKey = key;} %>
                       <tr>
                         <th class="span4"><%= key %></th>
                         <th class="span8"><%= value %></th>
