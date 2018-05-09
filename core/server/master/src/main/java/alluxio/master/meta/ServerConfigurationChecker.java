@@ -163,7 +163,6 @@ public class ServerConfigurationChecker {
       }
     }
 
-    // Update the mConfErrors
     mConfErrors = new HashMap<>();
     mConfWarns = new HashMap<>();
     for (Map.Entry<String, Map<String, List<Long>>> entry : confValues.entrySet()) {

@@ -15,12 +15,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.PropertyKey;
+import alluxio.PropertyKey.Builder;
+import alluxio.PropertyKey.ConsistencyCheckLevel;
 import alluxio.util.IdUtils;
 import alluxio.wire.ConfigProperty;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -33,15 +37,25 @@ public class ServerConfigurationCheckerTest {
   private List<ConfigProperty> mConfigListTwo;
   private long mIdOne;
   private long mIdTwo;
+  private PropertyKey mKeyEnforce;
+  private PropertyKey mKeyWarn;
 
   @Before
   public void before() {
+    mKeyEnforce = new Builder("TestKey1")
+        .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE).build();
+    mKeyWarn = new Builder("TestKey2")
+        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).build();
+    PropertyKey keyEnforce = new Builder("TestKey3")
+        .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE).build();
+    PropertyKey keyWarn = new Builder("TestKey4")
+        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).build();
     mConfigListOne = Arrays.asList(
-        new ConfigProperty().setName("Name").setSource("Unimportant").setValue("Value"),
-        new ConfigProperty().setName("Name2").setSource("Unimportant").setValue("Value2"));
+        new ConfigProperty().setName(mKeyEnforce.getName()).setSource("Test").setValue("Value"),
+        new ConfigProperty().setName(keyEnforce.getName()).setSource("Test").setValue("Value2"));
     mConfigListTwo = Arrays.asList(
-        new ConfigProperty().setName("Name3").setSource("Unimportant").setValue("Value3"),
-        new ConfigProperty().setName("Name4").setSource("Unimportant").setValue("Value4"));
+        new ConfigProperty().setName(mKeyWarn.getName()).setSource("Test").setValue("Value3"),
+        new ConfigProperty().setName(keyWarn.getName()).setSource("Test").setValue("Value4"));
     mIdOne = IdUtils.getRandomNonNegativeLong();
     mIdTwo = IdUtils.getRandomNonNegativeLong();
   }
@@ -91,23 +105,31 @@ public class ServerConfigurationCheckerTest {
   }
 
   @Test
-  public void getConfErrors() {
+  public void checkStatus() {
     ServerConfigurationChecker configChecker = createConfigChecker();
-    Map<String, Map<String, List<Long>>> confErrors = configChecker.getConfErrors();
-    assertTrue(confErrors.size() == 0);
+    assertEquals(0, configChecker.getConfErrors().size());
+    assertEquals(0, configChecker.getConfWarns().size());
+    assertEquals(ServerConfigurationChecker.Status.PASSED, configChecker.getStatus());
 
-    // Register one new conf that has conflicts with the original two conf
-    List<ConfigProperty> configList = Arrays.asList(
-        new ConfigProperty().setName("Name").setSource("Unimportant").setValue("WrongValue"),
-        new ConfigProperty().setName("Name3").setSource("Unimportant").setValue("WrongValue"));
+    // Contain configuration warnings
     Long id = IdUtils.getRandomNonNegativeLong();
+    List<ConfigProperty> configList = new ArrayList<>();
+    configList.add(new ConfigProperty()
+        .setName(mKeyWarn.getName()).setSource("Test").setValue("WrongValue"));
     configChecker.registerNewConf(id, configList);
 
-    // Get the updated confErrors
-    confErrors = configChecker.getConfErrors();
-    assertTrue(confErrors.size() == 2);
-    assertTrue(confErrors.containsKey("Name") && confErrors.containsKey("Name3"));
-    assertTrue(confErrors.toString().contains("WrongValue"));
+    assertEquals(0, configChecker.getConfErrors().size());
+    assertEquals(1, configChecker.getConfWarns().size());
+    assertEquals(ServerConfigurationChecker.Status.WARN, configChecker.getStatus());
+
+    // Contain configuration errors
+    configList.add(new ConfigProperty()
+        .setName(mKeyEnforce.getName()).setSource("Test").setValue("WrongValue"));
+    configChecker.registerNewConf(id, configList);
+
+    assertEquals(1, configChecker.getConfErrors().size());
+    assertEquals(1, configChecker.getConfWarns().size());
+    assertEquals(ServerConfigurationChecker.Status.FAILED, configChecker.getStatus());
   }
 
   /**
