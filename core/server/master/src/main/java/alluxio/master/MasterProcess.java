@@ -91,6 +91,7 @@ public interface MasterProcess extends Process {
    */
   boolean isServing();
 
+  // TODO(lu) we should have a separate MetaMaster
   /**
    * @return configuration information list
    */

@@ -37,7 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MetaMasterMasterClient extends AbstractMasterClient {
-  private MetaMasterMasterService.Client mClient = null;
+  private MetaMasterMasterService.Client mClient;
 
   /**
    * Creates a instance of {@link MetaMasterMasterClient}.

@@ -64,6 +64,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
    */
   public MetaMasterSync(AtomicReference<Long>  masterId,
       String masterHostname, MetaMasterMasterClient masterClient) throws IOException {
+    // TODO(lu) should avoid throw exception in Java constructor to avoid half-baked class instances
     mMasterId = masterId;
     mMasterHostname = masterHostname;
     mMasterClient = masterClient;
@@ -97,8 +98,8 @@ public final class MetaMasterSync implements HeartbeatExecutor {
       if (command == null) {
         LOG.error("Failed to receive leader master heartbeat command.", e);
       } else {
-        LOG.error("Failed to receive or execute leader master heartbeat command: {}",
-            command.toString(), e);
+        LOG.error("Failed to execute leader master heartbeat command: {}",
+            command, e);
       }
       mMasterClient.disconnect();
       if (mHeartbeatTimeoutMs > 0) {
