@@ -51,7 +51,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -239,38 +238,18 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public Map<String, List<String>> getWorkerConfErrors() {
-    /** // Change from id to hostname
-    Map<String, Map<String, List<Long>>> idMap = mWorkerConfigChecker.getConfErrors();
-    Map<String, List<String>> hostMap = new HashMap<>();
-    for (Map.Entry<String, Map<String, List<Long>>> entry: idMap.entrySet()) {
-      String propName = entry.getKey();
-      List<String> valueAndHost = new ArrayList<>();
-      for (Map.Entry<String, List<Long>> values : entry.getValue().entrySet()) {
-        List<String> hosts = values.getValue().stream()
-            .map(mBlockMaster::getHostname).collect(Collectors.toList());
-        valueAndHost.add(String.format("%s (%s)", values.getKey(), String.join(",", hosts)));
-      }
-      hostMap.put(propName, valueAndHost);
-    }
-    return hostMap;*/
-    Map<String, List<String>> hostMap = new HashMap<>();
-    List<String> aList = new ArrayList<>();
-    aList.add(String.format("%s (%s)", "ReallyLongValue1", String.join(", ", Arrays.asList("LongHostName1", "LongHostName2"))));
-    aList.add(String.format("%s (%s)", "ReallyLongValue2", String.join(", ", Arrays.asList("LongHostName3", "LongHostName4"))));
-    List<String> bList = new ArrayList<>();
-    aList.add(String.format("%s (%s)", "ReallyLongValue3", String.join(", ", Arrays.asList("LongHostName1", "LongHostName4"))));
-    aList.add(String.format("%s (%s)", "ReallyLongValue4", String.join(", ", Arrays.asList("LongHostName2", "LongHostName3"))));
-    hostMap.put("Property.key.name1", aList);
-    hostMap.put("Property.key.name2", bList);
-    return hostMap;
+  public Map<String, Map<String, List<String>>> getConfErrors() {
+    return fromIdToHost(mWorkerConfigChecker.getConfErrors(), false);
   }
 
   @Override
-  public ServerConfigurationChecker.Status getWorkerConfStatus() {
-    /**
-    return mWorkerConfigChecker.getStatus(); */
-    return ServerConfigurationChecker.Status.FAILED;
+  public Map<String, Map<String, List<String>>> getConfWarns() {
+    return fromIdToHost(mWorkerConfigChecker.getConfWarns(), false);
+  }
+
+  @Override
+  public ServerConfigurationChecker.Status getConfStatus() {
+    return mWorkerConfigChecker.getStatus();
   }
 
   @Override
@@ -469,6 +448,29 @@ public class AlluxioMasterProcess implements MasterProcess {
   @Override
   public String toString() {
     return "Alluxio master @" + mRpcConnectAddress;
+  }
+
+  /**
+   * Changes from ids to corresponding hostnames.
+   *
+   * @param idMap the id map to change
+   * @param isMaster whether this is master configuration
+   * @return changed host map
+   */
+  private Map<String, Map<String, List<String>>> fromIdToHost(
+      Map<String, Map<String, List<Long>>> idMap, boolean isMaster) {
+    Map<String, Map<String, List<String>>> hostMap = new HashMap<>();
+
+    for (Map.Entry<String, Map<String, List<Long>>> entry: idMap.entrySet()) {
+      Map<String, List<String>> valueAndHost = new HashMap<>();
+      for (Map.Entry<String, List<Long>> values : entry.getValue().entrySet()) {
+        List<String> hosts = values.getValue().stream()
+            .map(mBlockMaster::getHostname).collect(Collectors.toList());
+        valueAndHost.put(values.getKey(), hosts);
+      }
+      hostMap.put(entry.getKey(), valueAndHost);
+    }
+    return hostMap;
   }
 
   /**

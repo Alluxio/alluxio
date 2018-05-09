@@ -22,6 +22,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.Nullable;
@@ -80,6 +84,28 @@ public final class ConfigurationUtils {
       return null;
     }
     return properties;
+  }
+
+  /**
+   * Processes the input map to be more human-readable.
+   *
+   * @param inputMap the map to process
+   * @return processed map
+   */
+  public static Map<String, List<String>> processConfErrors(Map<String, Map<String,
+      List<String>>> inputMap) {
+    // Process the inputMap to Map<PropertyName, List<PropertyValue (Host1, Host2)>> format
+    // This will be easier for the Web UI and CLI to show human-readable information
+    Map<String, List<String>> map = new HashMap<>();
+    for (Map.Entry<String, Map<String, List<String>>> entry: inputMap.entrySet()) {
+      List<String> values = new ArrayList<>();
+      for (Map.Entry<String, List<String>> value : entry.getValue().entrySet()) {
+        values.add(String.format("%s (%s)",
+            value.getKey(), String.join(",", value.getValue())));
+      }
+      map.put(entry.getKey(), values);
+    }
+    return map;
   }
 
   /**

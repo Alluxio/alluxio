@@ -11,6 +11,8 @@
 
 package alluxio.master.meta;
 
+import alluxio.PropertyKey;
+import alluxio.PropertyKey.ConsistencyCheckLevel;
 import alluxio.wire.ConfigProperty;
 
 import java.util.ArrayList;
@@ -28,8 +30,9 @@ public class ServerConfigurationChecker {
    * Status of the check.
    */
   public enum Status {
-    PASSED,
-    FAILED,
+    PASSED, // do not have configuration errors and warnings
+    WARN, // do not have configuration errors but have warnings
+    FAILED, // have configuration errors
     NOT_STARTED,
   }
 
@@ -41,6 +44,8 @@ public class ServerConfigurationChecker {
   private Status mStatus;
   /** Record the configuration errors of last check conf. */
   private Map<String, Map<String, List<Long>>> mConfErrors;
+  /** Record the configuration warns of last check conf. */
+  private Map<String, Map<String, List<Long>>> mConfWarns;
 
   /**
    * Constructs a new {@link ServerConfigurationChecker}.
@@ -49,6 +54,8 @@ public class ServerConfigurationChecker {
     mConfMap = new HashMap<>();
     mLostNodes = new HashSet<>();
     mStatus = Status.NOT_STARTED;
+    mConfErrors = new HashMap<>();
+    mConfWarns = new HashMap<>();
   }
 
   /**
@@ -113,6 +120,13 @@ public class ServerConfigurationChecker {
   }
 
   /**
+   * @return the configuration warnings map
+   */
+  public Map<String, Map<String, List<Long>>> getConfWarns() {
+    return mConfWarns;
+  }
+
+  /**
    * @return the configuration error map
    */
   public Status getStatus() {
@@ -127,7 +141,8 @@ public class ServerConfigurationChecker {
     // Record all the property names and values and ids belong to those values.
     Map<String, Map<String, List<Long>>> confValues = new HashMap<>();
 
-    // Fill the confValues from mConfMap
+    // Fill the confValues from mConfMap, we do not check lost nodes
+    // and properties that can be different
     for (Map.Entry<Long, List<ConfigProperty>> entry : mConfMap.entrySet()) {
       Long id = entry.getKey();
       if (mLostNodes.contains(id)) {
@@ -135,6 +150,10 @@ public class ServerConfigurationChecker {
       }
       for (ConfigProperty configProperty : entry.getValue()) {
         String name = configProperty.getName();
+        if (PropertyKey.fromString(name).getConsistencyLevel()
+            .equals(ConsistencyCheckLevel.IGNORE)) {
+          continue;
+        }
         String value = configProperty.getValue();
         confValues.putIfAbsent(name, new HashMap<>());
         Map<String, List<Long>> values = confValues.get(name);
@@ -146,15 +165,24 @@ public class ServerConfigurationChecker {
 
     // Update the mConfErrors
     mConfErrors = new HashMap<>();
+    mConfWarns = new HashMap<>();
     for (Map.Entry<String, Map<String, List<Long>>> entry : confValues.entrySet()) {
       if (entry.getValue().size() >= 2) {
-        mConfErrors.put(entry.getKey(), entry.getValue());
+        ConsistencyCheckLevel checkLevel = PropertyKey.fromString(entry.getKey())
+            .getConsistencyLevel();
+        if (checkLevel.equals(ConsistencyCheckLevel.ENFORCE)) {
+          mConfErrors.put(entry.getKey(), entry.getValue());
+        } else if (checkLevel.equals(ConsistencyCheckLevel.WARN)) {
+          mConfWarns.put(entry.getKey(), entry.getValue());
+        }
       }
     }
 
     // Update the status
     if (mConfErrors.size() > 0) {
       mStatus = Status.FAILED;
+    } else if (mConfWarns.size() > 0) {
+      mStatus = Status.WARN;
     } else {
       mStatus = Status.PASSED;
     }

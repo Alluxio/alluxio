@@ -96,15 +96,23 @@ public interface MasterProcess extends Process {
   List<ConfigProperty> getAlluxioConfiguration();
 
   /**
-   * Gets a map of configuration errors between workers.
-   * It is a map from property name to a list contains values and corresponding hostnames.
+   * Gets a map of configuration errors.
+   * It is a map from property name to a map from value to its corresponding hostnames.
    *
    * @return a configuration error map
    */
-  Map<String, List<String>> getWorkerConfErrors();
+  Map<String, Map<String, List<String>>> getConfErrors();
 
   /**
-   * @return the worker configuration checker status.
+   * Gets a map of configuration warnings.
+   * It is a map from property name to a map from value to its corresponding hostnames.
+   *
+   * @return a configuration warnings map
    */
-  ServerConfigurationChecker.Status getWorkerConfStatus();
+  Map<String, Map<String, List<String>>> getConfWarns();
+
+  /**
+   * @return the configuration checker status
+   */
+  ServerConfigurationChecker.Status getConfStatus();
 }

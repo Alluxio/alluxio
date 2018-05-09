@@ -169,15 +169,36 @@
           <div class="accordion-inner">
             <table class="table table-hover table-condensed">
               <thead>
-                <th colspan="3"> <font color="red">Please fix the following inconsistent properties and restart the Alluxio cluster. </font></th>
+                <th class="span4">Property</th>
+                <th class="span8">Value</th>
               </thead>
               <tbody>
-                <% for (String key : ((Hashtable<String, List<String>>) request.getAttribute("inconsistentPropItems")).keySet()) { %>
-                  <% for (String value : ((List<String>) request.getAttribute("inconsistentPropItems")).get(key)) { %>
-                    <tr>
-                      <th class="span4"><%= key %></th>
-                      <th class="span8"><%= value %></th>
-                    </tr>
+                <% if ((Integer) request.getAttribute("confErrorsNum") != 0) { String previousKey = "Not Set";  %>
+                  <tr>
+                    <th colspan="3"> <font color="red">Errors (those properties are required to be same) </font></th>
+                  </tr>
+                  <% for (String key : ((HashMap<String, List<String>>) request.getAttribute("confErrorsItem")).keySet()) { %>
+                    <% for (String value : (List<String>) ((HashMap<String, List<String>>) request.getAttribute("confErrorsItem")).get(key)) { %>
+                      <% if (key.equals(previousKey)) {key = "";} else {previousKey = key;}%>
+                      <tr>
+                        <th class="span4"><font color="red"><%= key %></font></th>
+                        <th class="span8"><font color="red"><%= value %></font></th>
+                      </tr>
+                    <% } %>
+                  <% } %>
+                <% } %>
+                <% if ((Integer) request.getAttribute("confWarnsNum") != 0) { String previousKey = "Not Set"; %>
+                  <tr>
+                    <th colspan="3">Warnings (those properties are recommended to be same) </th>
+                  </tr>
+                  <% for (String key : ((HashMap<String, List<String>>) request.getAttribute("confWarnsItem")).keySet()) { %>
+                    <% for (String value : (List<String>) ((HashMap<String, List<String>>) request.getAttribute("confWarnsItem")).get(key)) { %>
+                      <% if (key.equals(previousKey)) {key = "";} else {previousKey = key;}%>
+                      <tr>
+                        <th class="span4"><%= key %></th>
+                        <th class="span8"><%= value %></th>
+                      </tr>
+                    <% } %>
                   <% } %>
                 <% } %>
               </tbody>
