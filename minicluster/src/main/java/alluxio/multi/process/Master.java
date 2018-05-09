@@ -14,6 +14,8 @@ package alluxio.multi.process;
 import alluxio.PropertyKey;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.File;
@@ -27,6 +29,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class Master implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(Master.class);
+
   private final File mLogsDir;
   private final Map<PropertyKey, String> mProperties;
 
@@ -46,6 +50,7 @@ public final class Master implements Closeable {
    */
   public synchronized void start() throws IOException {
     Preconditions.checkState(mProcess == null, "Master is already running");
+    LOG.info("Starting master with port {}", mProperties.get(PropertyKey.MASTER_RPC_PORT));
     mProcess = new ExternalProcess(mProperties, LimitedLifeMasterProcess.class,
         new File(mLogsDir, "master.out"));
     mProcess.start();

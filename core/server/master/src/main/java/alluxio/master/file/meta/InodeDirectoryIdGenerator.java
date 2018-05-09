@@ -11,6 +11,7 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.journal.JournalContext;
@@ -47,7 +48,7 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
   /**
    * @return the next directory id
    */
-  synchronized long getNewDirectoryId() {
+  synchronized long getNewDirectoryId() throws UnavailableException {
     return getNewDirectoryId(NoopJournalContext.INSTANCE);
   }
 
@@ -57,7 +58,7 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
    * @param journalContext the journal context
    * @return the next directory id
    */
-  synchronized long getNewDirectoryId(JournalContext journalContext) {
+  synchronized long getNewDirectoryId(JournalContext journalContext) throws UnavailableException {
     initialize();
     long directoryId = BlockId.createBlockId(mContainerId, mSequenceNumber);
     if (mSequenceNumber == BlockId.getMaxSequenceNumber()) {
@@ -94,7 +95,7 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
     mInitialized = true;
   }
 
-  private void initialize() {
+  private void initialize() throws UnavailableException {
     if (!mInitialized) {
       mContainerId = mContainerIdGenerator.getNewContainerId();
       mSequenceNumber = 0;

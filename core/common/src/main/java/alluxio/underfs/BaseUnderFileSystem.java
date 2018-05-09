@@ -30,7 +30,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 import javax.annotation.Nullable;
@@ -79,11 +81,26 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   public String getFingerprint(String path) {
     try {
       UfsStatus status = getStatus(path);
-      return Fingerprint.create(Fingerprint.getUfsName(this), status).serialize();
+      return Fingerprint.create(getUnderFSType(), status).serialize();
     } catch (Exception e) {
-      LOG.warn("Failed fingerprint. path: {} error: {}", path, e.toString());
+      // In certain scenarios, it is expected that the UFS path does not exist.
+      LOG.debug("Failed fingerprint. path: {} error: {}", path, e.toString());
       return Constants.INVALID_UFS_FINGERPRINT;
     }
+  }
+
+  @Override
+  public UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState) {
+    UfsMode ufsMode = physicalUfsState.get(mUri.getRootPath());
+    if (ufsMode != null) {
+      return ufsMode;
+    }
+    return UfsMode.READ_WRITE;
+  }
+
+  @Override
+  public List<String> getPhysicalStores() {
+    return new ArrayList<>(Arrays.asList(mUri.getRootPath()));
   }
 
   @Override

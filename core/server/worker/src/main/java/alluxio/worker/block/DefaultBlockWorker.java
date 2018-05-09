@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
+import alluxio.StorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -27,6 +28,8 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryUtils;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -50,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -197,7 +201,13 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void start(WorkerNetAddress address) throws IOException {
     mAddress = address;
     try {
-      mWorkerId.set(mBlockMasterClient.getId(address));
+      RetryUtils.retry("get worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
+          ExponentialTimeBoundedRetry.builder()
+              .withMaxDuration(Duration
+                  .ofMillis(Configuration.getMs(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)))
+              .withInitialSleep(Duration.ofMillis(100))
+              .withMaxSleep(Duration.ofSeconds(5))
+              .build());
     } catch (Exception e) {
       throw new RuntimeException("Failed to get a worker id from block master: " + e.getMessage());
     }
@@ -476,21 +486,24 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   @Override
   public void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    mUnderFileSystemBlockStore.closeReaderOrWriter(sessionId, blockId);
-    if (mBlockStore.getTempBlockMeta(sessionId, blockId) != null) {
-      try {
-        commitBlock(sessionId, blockId);
-      } catch (BlockDoesNotExistException e) {
-        // This can only happen if the session is expired. Ignore this exception if that happens.
-        LOG.warn("Block {} does not exist while being committed.", blockId);
-      } catch (InvalidWorkerStateException e) {
-        // This can happen if there are multiple sessions writing to the same block.
-        // BlockStore#getTempBlockMeta does not check whether the temp block belongs to
-        // the sessionId.
-        LOG.debug("Invalid worker state while committing block.", e);
+    try {
+      mUnderFileSystemBlockStore.closeReaderOrWriter(sessionId, blockId);
+      if (mBlockStore.getTempBlockMeta(sessionId, blockId) != null) {
+        try {
+          commitBlock(sessionId, blockId);
+        } catch (BlockDoesNotExistException e) {
+          // This can only happen if the session is expired. Ignore this exception if that happens.
+          LOG.warn("Block {} does not exist while being committed.", blockId);
+        } catch (InvalidWorkerStateException e) {
+          // This can happen if there are multiple sessions writing to the same block.
+          // BlockStore#getTempBlockMeta does not check whether the temp block belongs to
+          // the sessionId.
+          LOG.debug("Invalid worker state while committing block.", e);
+        }
       }
+    } finally {
+      mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
     }
-    mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
   }
 
   @Override
@@ -510,6 +523,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     public static final String CAPACITY_USED = "CapacityUsed";
     public static final String CAPACITY_FREE = "CapacityFree";
     public static final String BLOCKS_CACHED = "BlocksCached";
+    public static final String TIER = "Tier";
 
     /**
      * Registers metric gauges.
@@ -541,6 +555,35 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
                   .getUsedBytes();
             }
           });
+
+      StorageTierAssoc assoc = blockWorker.getStoreMeta().getStorageTierAssoc();
+      for (int i = 0; i < assoc.size(); i++) {
+        String tier = assoc.getAlias(i);
+        MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getWorkerMetricName(CAPACITY_TOTAL + TIER + tier), new Gauge<Long>() {
+              @Override
+              public Long getValue() {
+                return blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L);
+              }
+            });
+
+        MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getWorkerMetricName(CAPACITY_USED + TIER + tier), new Gauge<Long>() {
+              @Override
+              public Long getValue() {
+                return blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L);
+              }
+            });
+
+        MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getWorkerMetricName(CAPACITY_FREE + TIER + tier), new Gauge<Long>() {
+              @Override
+              public Long getValue() {
+                return blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L)
+                    - blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L);
+              }
+            });
+      }
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(BLOCKS_CACHED),
           new Gauge<Integer>() {

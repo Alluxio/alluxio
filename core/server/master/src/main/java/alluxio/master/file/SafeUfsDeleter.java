@@ -19,6 +19,7 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
 
 import org.slf4j.Logger;
@@ -71,31 +72,33 @@ public final class SafeUfsDeleter implements UfsDeleter {
     boolean failedToDelete = false;
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     String ufsUri = resolution.getUri().toString();
-    UnderFileSystem ufs = resolution.getUfs();
-    AlluxioURI parentUri = alluxioUri.getParent();
-    if (!isRecursiveDeleteSafe(parentUri)) {
-      // Parent will not recursively delete, so delete this inode individually
-      if (inode.isFile()) {
-        if (!ufs.deleteFile(ufsUri)) {
-          failedToDelete = ufs.isFile(ufsUri);
-          if (!failedToDelete) {
-            LOG.warn("The file to delete does not exist in ufs: {}", ufsUri);
-          }
-        }
-      } else {
-        if (isRecursiveDeleteSafe(alluxioUri)) {
-          if (!ufs.deleteDirectory(ufsUri,
-              alluxio.underfs.options.DeleteOptions.defaults().setRecursive(true))) {
-            // TODO(adit): handle partial failures of recursive deletes
-            failedToDelete = ufs.isDirectory(ufsUri);
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      AlluxioURI parentUri = alluxioUri.getParent();
+      if (!isRecursiveDeleteSafe(parentUri)) {
+        // Parent will not recursively delete, so delete this inode individually
+        if (inode.isFile()) {
+          if (!ufs.deleteFile(ufsUri)) {
+            failedToDelete = ufs.isFile(ufsUri);
             if (!failedToDelete) {
-              LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
+              LOG.warn("The file to delete does not exist in ufs: {}", ufsUri);
             }
           }
         } else {
-          failedToDelete = true;
-          LOG.warn("The directory cannot be deleted from the ufs as it is not in sync: {}",
-              ufsUri);
+          if (isRecursiveDeleteSafe(alluxioUri)) {
+            if (!ufs.deleteDirectory(ufsUri,
+                alluxio.underfs.options.DeleteOptions.defaults().setRecursive(true))) {
+              // TODO(adit): handle partial failures of recursive deletes
+              failedToDelete = ufs.isDirectory(ufsUri);
+              if (!failedToDelete) {
+                LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
+              }
+            }
+          } else {
+            failedToDelete = true;
+            LOG.warn("The directory cannot be deleted from the ufs as it is not in sync: {}",
+                ufsUri);
+          }
         }
       }
     }

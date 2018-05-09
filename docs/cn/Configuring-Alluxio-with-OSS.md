@@ -26,7 +26,7 @@ Alluxio通过[统一命名空间](Unified-and-Transparent-Namespace.html)统一�
 若要在Alluxio中使用OSS作为底层文件系统，一定要修改`conf/alluxio-site.properties`配置文件。首先要指定一个已有的OSS bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-site.properties`中添加如下语句指定它：
 
 ```
-alluxio.underfs.address=oss://OSS_BUCKET/OSS_DIRECTORY/
+alluxio.underfs.address=oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
 ```
 
 接着，需要指定Aliyun证书以便访问OSS，在`conf/alluxio-site.properties`中添加：
@@ -51,7 +51,7 @@ OSS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多�
 $ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
   --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
   --option fs.oss.endpoint=<OSS_ENDPOINT> \
-  /oss oss://OSS_BUCKET/OSS_DIRECTORY/
+  /oss oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
 ```
 
 ## 使用OSS在本地运行Alluxio
@@ -71,7 +71,7 @@ $ bin/alluxio-start.sh local
 $ bin/alluxio runTests
 ```
 
-运行成功后，访问你的OSS目录OSS_BUCKET/OSS_DIRECTORY，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像`OSS_BUCKET/OSS_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`这样。。
+运行成功后，访问你的OSS目录`oss://<OSS_BUCKET>/<OSS_DIRECTORY>`，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像`OSS_BUCKET/OSS_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`这样。。
 
 运行以下命令停止Alluxio：
 

@@ -172,10 +172,16 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
       Set<Long> blockIds = mSessionIdToBlockIds.get(sessionId);
       if (blockIds != null) {
         blockIds.remove(blockId);
+        if (blockIds.isEmpty()) {
+          mSessionIdToBlockIds.remove(sessionId);
+        }
       }
       Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
       if (sessionIds != null) {
         sessionIds.remove(sessionId);
+        if (sessionIds.isEmpty()) {
+          mBlockIdToSessionIds.remove(blockId);
+        }
       }
     }
   }
@@ -194,7 +200,9 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         return;
       }
     }
-
+    // Note that, there can be a race condition that blockIds can be stale when we release the
+    // access. The race condition only has a minimal negative consequence (printing extra logging
+    // message), and is expected very rare to trigger.
     for (Long blockId : blockIds) {
       try {
         // Note that we don't need to explicitly call abortBlock to cleanup the temp block

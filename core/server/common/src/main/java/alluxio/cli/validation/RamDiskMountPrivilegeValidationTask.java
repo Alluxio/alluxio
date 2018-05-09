@@ -33,27 +33,28 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
   }
 
   @Override
-  public boolean validate(Map<String, String> optionsMap) throws InterruptedException {
+  public TaskResult validate(Map<String, String> optionsMap)
+      throws InterruptedException {
     String path = Configuration.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH);
     String alias = Configuration.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS);
     if (!alias.equals("MEM")) {
       System.out.println("Top tier storage is not memory, skip validation.");
-      return true;
+      return TaskResult.SKIPPED;
     }
 
     if (!OSUtils.isLinux()) {
       System.out.println("OS is not Linux, skip validation.");
-      return true;
+      return TaskResult.SKIPPED;
     }
 
     if (path.isEmpty()) {
       System.err.println("Mount path is empty.");
-      return false;
+      return TaskResult.FAILED;
     }
 
     if (path.split(",").length > 1) {
       System.out.println("Multiple storage paths for memory tier found. Skip validation.");
-      return true;
+      return TaskResult.SKIPPED;
     }
 
     try {
@@ -62,7 +63,7 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
       if (file.exists()) {
         if (!file.isDirectory()) {
           System.err.format("Path %s is not a directory.%n", path);
-          return false;
+          return TaskResult.FAILED;
         }
 
         if (Utils.isMountingPoint(path, new String[]{"ramfs", "tmpfs"})) {
@@ -70,11 +71,11 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
           // to be able to use it.
           if (!file.canWrite()) {
             System.err.format("RAM disk at %s is not writable.%n", path);
-            return false;
+            return TaskResult.FAILED;
           }
 
           System.out.format("RAM disk is mounted at %s, skip validation.%n", path);
-          return true;
+          return TaskResult.SKIPPED;
         }
       }
 
@@ -85,15 +86,15 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
             + "If you would like to run Alluxio worker without sudo privilege, "
             + "please visit http://www.alluxio.org/docs/master/en/Running-Alluxio-Locally.html#"
             + "can-i-still-try-alluxio-on-linux-without-sudo-privileges");
-        return false;
+        return TaskResult.FAILED;
       }
     } catch (IOException e) {
       System.err.format("Failed to validate ram disk mounting privilege at %s: %s.%n",
           path, e.getMessage());
-      return false;
+      return TaskResult.FAILED;
     }
 
-    return true;
+    return TaskResult.OK;
   }
 
   private boolean checkSudoPrivilege() throws InterruptedException, IOException {

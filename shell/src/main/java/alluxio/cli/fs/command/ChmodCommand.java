@@ -12,9 +12,11 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.ModeParser;
 
@@ -40,6 +42,7 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
           .build();
 
   private final ModeParser mParser = new ModeParser();
+  private String mModeString = "";
 
   /**
    * Creates a new instance of {@link ChmodCommand}.
@@ -51,13 +54,19 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    chmod(plainPath, mModeString, cl.hasOption("R"));
+  }
+
+  @Override
   public String getCommandName() {
     return "chmod";
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 2;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 2);
   }
 
   @Override
@@ -85,9 +94,10 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    String modeStr = args[0];
+    mModeString = args[0];
+
     AlluxioURI path = new AlluxioURI(args[1]);
-    chmod(path, modeStr, cl.hasOption("R"));
+    runWildCardCmd(path, cl);
     return 0;
   }
 

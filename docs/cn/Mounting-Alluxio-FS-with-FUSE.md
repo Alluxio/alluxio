@@ -9,9 +9,9 @@ priority: 7
 * 内容列表
 {:toc}
 
-Alluxio-FUSE可以在一台Unix机器上的本地文件系统中挂载一个Alluxio分布式文件系统。通过使用该特性，一些标准的命令行工具（例如`ls`、 `cat`以及`echo`）可以直接访问Alluxio分布式文件系统中的数据。此外更重要的是用不同语言实现的应用程序如C, C++, Python, Ruby, Perl, Java都可以通过标准的POSIX接口来读写Alluxio，而不需要任何Alluxio的客户端整合与设置。
+Alluxio-FUSE可以在一台Unix机器上的本地文件系统中挂载一个Alluxio分布式文件系统。通过使用该特性，一些标准的命令行工具（例如`ls`、 `cat`以及`echo`）可以直接访问Alluxio分布式文件系统中的数据。此外更重要的是用不同语言实现的应用程序如C, C++, Python, Ruby, Perl, Java都可以通过标准的POSIX接口(例如`open, write, read`)来读写Alluxio，而不需要任何Alluxio的客户端整合与设置。
 
-Alluxio-FUSE是基于[FUSE]((http://fuse.sourceforge.net/))这个项目，并且都支持大多数的文件系统操作。但是由于Alluxio固有的属性，例如它的一次写不可改变的文件数据模型，该挂载的文件系统与POSIX标准不完全一致，尚有一定的局限性。因此，请先阅读本页面局限性这章，从而了解该特性的作用以及局限。
+Alluxio-FUSE是基于[FUSE]((http://fuse.sourceforge.net/))这个项目，并且都支持大多数的文件系统操作。但是由于Alluxio固有的属性，例如它的一次写不可改变的文件数据模型，该挂载的文件系统与POSIX标准不完全一致，尚有一定的局限性。因此，请先阅读[局限性](#assumptions-and-limitations)，从而了解该特性的作用以及局限。
 
 ## 安装要求
 
@@ -19,14 +19,6 @@ Alluxio-FUSE是基于[FUSE]((http://fuse.sourceforge.net/))这个项目，并且
 * Linux系统上[libfuse](https://github.com/libfuse/libfuse) 2.9.3及以上
   (2.8.3也能够工作，但会提示一些警告)
 * MAC系统上[osxfuse](https://osxfuse.github.io/) 3.7.1及以上
-
-## 构建
-
-在编译Alluxio源码过程中，只有当maven的`fuse`设置开启时，alluxio-fuse才会被构建。当使用JDK 1.8及以上编译Alluxio源码时该设置会自动开启。
-
-为了保持与JAVA 7的兼容性，预编译的alluxio二进制文件并不支持alluxio-fuse，因此若需要在部署中使用alluxio-fuse，你需要自己构建Alluxio。
-
-最好的方式是从Alluxio [GitHub repository](https://github.com/alluxio/alluxio)处获取你需要的分支的源码，或者直接从[source distribution](https://github.com/alluxio/alluxio/releases)处获取，请参考[该页面](Building-Alluxio-Master-Branch.html)进行构建。
 
 ## 用法
 

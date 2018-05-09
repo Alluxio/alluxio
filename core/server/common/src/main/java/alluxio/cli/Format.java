@@ -18,6 +18,7 @@ import alluxio.ServiceUtils;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -81,6 +82,8 @@ public final class Format {
       LOG.info(USAGE);
       System.exit(-1);
     }
+    // Set the process type as "MASTER" since format needs to access the journal like the master.
+    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.MASTER);
     Mode mode = null;
     try {
       mode = Mode.valueOf(args[0].toUpperCase());

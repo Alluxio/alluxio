@@ -20,13 +20,14 @@ priority: 4
 
 安装Google Vagrant 插件:
 
-{% include Running-Alluxio-on-GCE/install-google-vagrant-plugin.md %}
+```bash
+$ vagrant plugin install vagrant-google
+$ vagrant box add google https://github.com/mitchellh/vagrant-google/raw/master/google.box
+```
 
 **安装 Alluxio**
 
-下载Alluxio到本地，并解压:
-
-{% include Common-Commands/download-alluxio.md %}
+下载 [Alluxio](https://alluxio.org/download)到你本地的机器上并解压(unzip)。
 
 **安装python依赖库**
 
@@ -34,11 +35,15 @@ priority: 4
 
 进入 `deploy/vagrant` 目录下，运行:
 
-{% include Running-Alluxio-on-GCE/install-vagrant.md %}
+```bash
+$ sudo bash bin/install.sh
+```
 
 除了上述方法，你还可以手动安装 [pip](https://pip.pypa.io/en/latest/installing/), 之后进入 `deploy/vagrant` 目录，运行:
 
-{% include Running-Alluxio-on-GCE/install-pip.md %}
+```bash
+$ sudo pip install -r pip-req.txt
+```
 
 ## 启动集群
 
@@ -52,11 +57,18 @@ priority: 4
 
 使用[gcloud sdk](http://console.cloud.google.com) 配置ssh密钥:
 
-{% include Running-Alluxio-on-GCE/config-ssh.md %}
+```bash
+$ curl https://sdk.cloud.google.com | bash
+$ exec -l $SHELL
+$ gcloud init
+$ gcloud compute config-ssh
+```
 
 运行以下命令复制`deploy/vagrant/conf/gce.yml.template`到`deploy/vagrant/conf/gce.yml`:
 
-{% include Running-Alluxio-on-GCE/copy-gce.md %}
+```bash
+$ cp deploy/vagrant/conf/gce.yml.template deploy/vagrant/conf/gce.yml
+```
 
 在 `deploy/vagrant/conf/gce.yml`配置文件中,设置你的项目id,服务账号, JSON密钥的位置和已经创建好的ssh用户名.
 
@@ -64,11 +76,16 @@ priority: 4
 
 为了使用访问密钥访问GCS，你需要在GCS控制台中的[互操作性设置](https://console.cloud.google.com/storage/settings)里面创建[开发者密钥](https://cloud.google.com/storage/docs/migrating#keys)，并将shell环境变量`GCS_ACCESS_KEY_ID`和`GCS_SECRET_ACCESS_KEY`进行如下设置：
 
-{% include Running-Alluxio-on-GCE/access-key.md %}
+```bash
+$ export GCS_ACCESS_KEY_ID=<your access key>
+$ export GCS_SECRET_ACCESS_KEY=<your secret access key>
+```
 
 现在你可以启动Alluxio集群了，通过在 `deploy/vagrant`目录下运行:
 
-{% include Running-Alluxio-on-GCE/launch-cluster.md %}
+```bash
+$ ./create <number of machines> google
+```
 
 集群中的每个节点运行一个Alluxio worker, `AlluxioMaster` 节点上运行Alluxio master。
 
@@ -78,14 +95,19 @@ priority: 4
 
 命令 `./create <number of machines> google` 运行成功后, 在shell中会输出类似下面的两条语句:
 
-{% include Running-Alluxio-on-GCE/shell-output.md %}
+```bash
+>>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI<<<
+>>> visit default port of the web UI of what you deployed <<<
+```
 
 Alluxio Web UI的默认端口为 **19999**.
 
 在访问Web UI之前, 需要配置防火墙以允许19999端口上的tcp传输。
 可以通过在 [Console](https://console.cloud.google.com) UI 上完成或者使用类似如下的gcloud命令，假设网络名是 'default'.
 
-{% include Running-Alluxio-on-GCE/add-firewall-rule.md %}
+```bash
+$ gcloud compute firewall-rules create alluxio-ui --allow tcp:19999
+```
 
 在浏览器中输入 `http://{MASTER_IP}:{PORT}` 地址访问Web UI。
 
@@ -103,29 +125,39 @@ Alluxio Web UI的默认端口为 **19999**.
 
 通过ssh登陆一个节点，运行：
 
-{% include Running-Alluxio-on-GCE/ssh.md %}
+```bash
+$ vagrant ssh <node name>
+```
 
 例如，通过以下命令可以登陆 `AlluxioMaster`节点:
 
-{% include Running-Alluxio-on-GCE/ssh-AlluxioMaster.md %}
+```bash
+$ vagrant ssh AlluxioMaster
+```
 
 所有的软件都安装在根目录下，例如Alluxio安装在 `/alluxio`。
 
 在 `AlluxioMaster` 节点上，可以对Alluxio运行测试检测其健康状态:
 
-{% include Running-Alluxio-on-GCE/runTests.md %}
+```bash
+$ /alluxio/bin/alluxio runTests
+```
 
 在所有测试完成后，再次访问Alluxio的web UI `http://{MASTER_IP}:19999`，在导航栏中点击 `Browse
 File System` 你应该能看到测试过程中写入到Alluxio的文件。
 
 在集群中的某个节点上，可以通过ssh免密码登陆到集群中的其他节点：
 
-{% include Running-Alluxio-on-GCE/ssh-other-node.md %}
+```bash
+$ ssh AlluxioWorker1
+```
 
 ## 撤销集群
 
 在 `deploy/vagrant` 目录下运行：
 
-{% include Running-Alluxio-on-GCE/destroy.md %}
+```bash
+$ ./destroy
+```
 
 从而撤销之前创建的集群。一次只能创建一个集群。当该命令成功执行后，GCE 实例将终止运行。

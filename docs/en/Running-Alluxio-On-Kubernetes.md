@@ -43,13 +43,21 @@ From the host machine, create a directory for the shared domain socket.
 ```bash
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
-$ touch /tmp/domain/d
-$ chmod a+w /tmp/domain/d
 ```
 
 This step can be skipped in case short-circuit accesss is not desired or cannot be set up. To disable
 this feature, set the property `alluxio.user.short.circuit.enabled=false` according to the instructions
 in the configuration section below.
+
+By default, short-circuit operations between the Alluxio client and worker are enabled if the client
+hostname matches the worker hostname. This may not be true if the client is running as part of a container
+with virtual networking. In such a scenario, set the following property to use filesystem inspection
+to enable short-circuit. Short-circuit writes are then enabled if the worker UUID is located on the client
+filesystem.
+```properties
+alluxio.worker.data.server.domain.socket.as.uuid=true
+alluxio.worker.data.server.domain.socket.address=/path/to/domain/socket/directory
+```
 
 ## Provision a Persistent Volume
 
@@ -125,4 +133,19 @@ From the master pod, execute the following:
 ```bash
 $ cd /opt/alluxio
 $ ./bin/alluxio runTests
+```
+
+## Uninstall
+
+Uninstall Alluxio:
+```bash
+kubectl delete -f alluxio-worker.yaml
+kubectl delete -f alluxio-master.yaml
+kubectl delete configmaps alluxio-config
+```
+
+Execute the following to remove the persistent volume storing the Alluxio journal. Note: Alluxio metadata
+will be lost.
+```bash
+kubectl delete -f alluxio-journal-volume.yaml
 ```

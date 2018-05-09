@@ -20,7 +20,7 @@ Alluxio为大数据软件栈带来了显著的性能提升。例如，[百度](h
 [Amazon EC2](Running-Alluxio-on-EC2.html),
 [Google Compute Engine](Running-Alluxio-on-GCE.html)运行Alluxio, 或者用
 [Apache Mesos](Running-Alluxio-on-Mesos.html)或
-[Apache Yarn](Running-Alluxio-on-EC2-Yarn.html)安装Alluxio。
+[Apache Yarn](Running-Alluxio-Yarn-Integration.html)安装Alluxio。
 
 Alluxio与Hadoop是兼容的。现有的数据分析应用，如Spark和MapReduce程序，可以不修改代码直接在Alluxio上运行。Alluxio是一个已在多家公司部署的开源项目([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE))。
 Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以来，已有超过100个组织机构的
@@ -43,7 +43,6 @@ Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以�
 [ JIRA  ](https://alluxio.atlassian.net/browse/ALLUXIO) |
 [ 用户邮件列表  ](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [ 视频 ](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA) |
-[ Powered By  ](Powered-By-Alluxio.html)
 
 <style>
 #current-features + ul li {height:210px;}
@@ -78,6 +77,7 @@ HDFS，MaprFS，Ceph，NFS，Alibaba OSS，Minio以及单节点本地文件系�
 
 如果要快速地架设alluxio并运行，请阅读[快速入门](Getting-Started.html)页面，该页面描述了如何部署Alluxio并
 在本地环境下运行几个基本的样例。
+查看使用 Alluxio 的[公司名单](https://alluxio.org/community/powered-by-alluxio)。
 
 ## 下载
 

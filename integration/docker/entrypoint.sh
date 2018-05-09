@@ -69,6 +69,10 @@ for keyvaluepair in $(env); do
   fi
 done
 
+if [ "$ENABLE_FUSE" = true ]; then
+  integration/fuse/bin/alluxio-fuse mount /alluxio-fuse /
+fi
+
 case ${service,,} in
   master)
     if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then

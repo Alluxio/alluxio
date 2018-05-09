@@ -11,6 +11,8 @@
 
 package alluxio.network;
 
+import alluxio.DefaultSupplier;
+
 import io.netty.channel.epoll.Epoll;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -27,6 +29,9 @@ public enum ChannelType {
   EPOLL,
   ;
 
+  public static final DefaultSupplier DEFAULT_SUPPLIER =
+      new DefaultSupplier(() -> defaultType(), "EPOLL if it is available, otherwise NIO");
+
   /**
    * Determines the default type to use based off the system.
    * <p>
@@ -36,7 +41,7 @@ public enum ChannelType {
    *
    * @return a {@link ChannelType} compatible with the host
    */
-  public static ChannelType defaultType() {
+  private static ChannelType defaultType() {
     if (Epoll.isAvailable()) {
       return ChannelType.EPOLL;
     } else {

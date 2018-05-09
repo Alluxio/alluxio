@@ -14,7 +14,10 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.metrics.MetricsSystem;
+import alluxio.resource.CloseableResource;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
@@ -25,28 +28,37 @@ import java.io.Closeable;
  */
 public interface UfsManager extends Closeable {
   /** Container for a UFS and the URI for that UFS. */
-  class UfsInfo {
+  class UfsClient {
     private UnderFileSystem mUfs;
     private final AlluxioURI mUfsMountPointUri;
     private final Supplier<UnderFileSystem> mUfsSupplier;
+    private final Counter mCounter;
 
     /**
      * @param ufsSupplier the supplier function to create a new UFS instance
      * @param ufsMountPointUri the URI for the UFS path which is mounted in Alluxio
      */
-    public UfsInfo(Supplier<UnderFileSystem> ufsSupplier, AlluxioURI ufsMountPointUri) {
+    public UfsClient(Supplier<UnderFileSystem> ufsSupplier, AlluxioURI ufsMountPointUri) {
       mUfsSupplier = Preconditions.checkNotNull(ufsSupplier, "ufsSupplier is null");
       mUfsMountPointUri = Preconditions.checkNotNull(ufsMountPointUri, "ufsMountPointUri is null");
+      mCounter = MetricsSystem.workerCounter(
+          String.format("UfsSessionCount-Ufs:%s", MetricsSystem.escape(mUfsMountPointUri)));
     }
 
     /**
      * @return the UFS instance
      */
-    public synchronized UnderFileSystem getUfs() {
+    public synchronized CloseableResource<UnderFileSystem> acquireUfsResource() {
       if (mUfs == null) {
         mUfs = mUfsSupplier.get();
       }
-      return mUfs;
+      mCounter.inc();
+      return new CloseableResource<UnderFileSystem>(mUfs) {
+        @Override
+        public void close() {
+          mCounter.dec();
+        }
+      };
     }
 
     /**
@@ -84,10 +96,10 @@ public interface UfsManager extends Closeable {
    * @throws NotFoundException if mount id is not found in mount table
    * @throws UnavailableException if master is not available to query for mount table
    */
-  UfsInfo get(long mountId) throws NotFoundException, UnavailableException;
+  UfsClient get(long mountId) throws NotFoundException, UnavailableException;
 
   /**
-   * @return the UFS information associated with root
+   * @return the UFS client associated with root
    */
-  UfsInfo getRoot();
+  UfsClient getRoot();
 }

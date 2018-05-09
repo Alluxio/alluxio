@@ -12,12 +12,14 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -48,8 +50,14 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    checkConsistency(plainPath, cl.hasOption("r"));
+  }
+
+  @Override
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override
@@ -66,7 +74,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI root = new AlluxioURI(args[0]);
-    checkConsistency(root, cl.hasOption("r"));
+
+    runWildCardCmd(root, cl);
     return 0;
   }
 

@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
@@ -60,6 +61,9 @@ final class InodeTtlChecker implements HeartbeatExecutor {
         try (LockedInodePath inodePath = mInodeTree
             .lockFullInodePath(inode.getId(), InodeTree.LockMode.READ)) {
           path = inodePath.getUri();
+        } catch (FileDoesNotExistException e) {
+          // The inode has already been deleted, nothing needs to be done.
+          continue;
         } catch (Exception e) {
           LOG.error("Exception trying to clean up {} for ttl check: {}", inode.toString(),
               e.toString());

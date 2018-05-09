@@ -73,7 +73,7 @@ public abstract class AbstractBlockMeta {
    */
   public AbstractBlockMeta(long blockId, StorageDir dir) {
     mBlockId = blockId;
-    mDir = Preconditions.checkNotNull(dir);
+    mDir = Preconditions.checkNotNull(dir, "dir");
   }
 
   /**

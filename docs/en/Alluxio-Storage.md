@@ -48,7 +48,9 @@ alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk,/mnt/ssd1,/mnt/ssd2
 ```
 
 The paths provided should point to paths in the local filesystem mounting the appropriate storage
-media. The permissions of these paths should be 777 to enable short circuit operations.
+media. To enable short circuit operations, the permissions of these paths should be permissive for the
+client user to read, write and execute on the path. For example, 770 is needed for the client user who is
+among the same group of the user that starts the Alluxio service.
 
 After updating the storage media, we need to indicate how much storage is allocated for each storage
 directory. For example, if we wanted to use 16 GB on the ramdisk and 100 GB on each SSD:
@@ -79,28 +81,30 @@ For example, to turn off asynchronous eviction:
 alluxio.worker.tieredstore.reserver.enabled=false
 ```
 
-Asynchronous eviction relies on a periodic space reserver thread in each worker to evict data. It
-waits until the worker storage utilization reaches a configurable high watermark. Then it evicts
-data based on the eviction policy until it reaches the configurable low watermark. For example, if
-we had the same 16+100+100=216GB storage configured, we can set eviction to kick in at around 200GB
-and stop at around 160GB:
+Asynchronous eviction is the default implementation of eviction. It relies on a periodic space reserver 
+thread in each worker to evict data. It waits until the worker storage utilization reaches a configurable
+ high watermark. Then it evicts data based on the eviction policy until it reaches the configurable low
+  watermark. For example, if we had the same 16+100+100=216GB storage configured, we can set eviction to
+  kick in at around 200GB and stop at around 160GB:
 
 ```
 alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9 # 216GB * 0.9 ~ 200GB
 alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75 # 216GB * 0.75 ~ 160GB
 ```
 
-Synchronous eviction is the legacy implementation of eviction. It waits for a client to request more
-space than is currently available on the worker and then kicks off the eviction process to free up
-enough space to serve that request. This leads to many small eviction attempts, which is less
-efficient. It is recommended to use asynchronous eviction.
+In write or read-cache heavy workloads, asynchronous eviction can improve performance.
 
-Users can specify the Alluxio evictor to achieve fine grained control over the eviction process.
+Synchronous eviction waits for a client to request more space than is currently available on the worker 
+and then kicks off the eviction process to free up enough space to serve that request. This leads to many 
+small eviction attempts, which is less efficient but maximizes the utilization of available Alluxio space.
 
 ### Evictors
 
 Alluxio uses evictors for deciding which blocks to evict, when space needs to be
-freed. Alluxio supports custom evictors. Out-of-the-box implementations include:
+freed. Users can specify the Alluxio evictor to achieve fine grained control over the eviction
+process.
+
+Alluxio supports custom evictors. Out-of-the-box implementations include:
 
 * **GreedyEvictor**
 
@@ -124,9 +128,9 @@ freed. Alluxio supports custom evictors. Out-of-the-box implementations include:
 In the future, additional evictors will be available. Since Alluxio supports custom evictors,
 you can also develop your own evictor appropriate for your workload.
 
-When using synchronous eviction, it is recommended to use small block size (around 64MB),
-to reduce the latency of block eviction. When using the [space reserver](#space-reserver), block
-size does not affect eviction latency.
+When using synchronous eviction, it is recommended to use smaller block sizes (around 64-128MB),
+to reduce the latency of block eviction. When using the space reserver, block size does not affect
+eviction latency.
 
 ## Using Tiered Storage
 
@@ -208,7 +212,7 @@ path to the first tier
 * `alluxio.worker.tieredstore.level0.dirs.quota=100GB` sets the quota for the ramdisk to be `100GB`
 * `alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9` sets the ratio of high watermark on
 top layer to be 0.9
-* `alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7` sets the ratio of high watermark on
+* `alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7` sets the ratio of low watermark on
 top layer to be 0.7
 * `alluxio.worker.tieredstore.level1.alias=HDD` configures the second tier to be a hard disk tier
 * `alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3` configures 3 separate

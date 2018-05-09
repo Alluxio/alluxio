@@ -6,41 +6,36 @@ group: Deploying Alluxio
 priority: 6
 ---
 
-* Table of Contents
-{:toc}
-
 Alluxio should be run alongside YARN so that all YARN nodes have access to a local Alluxio worker.
-For YARN and Alluxio to play nicely together on the same nodes, it's important to inform YARN of
-the resources used by Alluxio. YARN needs to know how much memory and cpu to leave for Alluxio.
+For YARN and Alluxio to play nicely together on the same nodes, you must partition the node's
+memory and compute resources between YARN and Alluxio. To do this, first determine how much memory
+and cpu will be needed by Alluxio, then subtract those resources from what YARN would otherwise use.
 
-## Allocating Resources for Alluxio
+## Memory
 
-### Alluxio Worker Memory
+In `yarn-site.xml`, set
 
-The Alluxio worker requires some memory for its JVM process and some memory for its ramdisk.
-1GB is generally fine for the JVM memory since this memory is only used for buffering and metadata.
-If the worker is using a ramdisk for memory-speed data, the memory allocated to the ramdisk should
-be added to the 1GB JVM memory to get the total memory needed by the worker. The amount of memory used
-by the ramdisk is controlled by `alluxio.worker.memory.size`. Data stored in non-memory tiers such as
-SSD or HDD does not need to be included in the memory size calculation.
+```
+yarn.nodemanager.resource.memory-mb = Total RAM - Other services RAM - Alluxio RAM
+```
 
-### Alluxio Master Memory
+On Alluxio worker nodes, Alluxio RAM usage is 1GB plus the ramdisk size configured by
+`alluxio.worker.memory.size`.
+On Alluxio master nodes, Alluxio RAM usage is proportional to the number of files. Allocate at
+least 1GB. 32GB is recommended for a production deployment.
 
-The Alluxio master stores metadata about every file in Alluxio, so it needs a proportional amount
-of memory. This should be at least 1GB, and we recommend using at least 32GB in a production deployment.
+## CPU vcores
 
-### CPU vcores
+In `yarn-site.xml`, set
 
-One vcore should be adequate for Alluxio workers. We recommend at least 4 vcores for Alluxio masters
-in a production deployment.
+```
+yarn.nodemanager.resource.cpu-vcores = Total cores - Other services vcores - Alluxio vcores
+```
 
-### YARN Configuration
+On Alluxio worker nodes, Alluxio needs only one or two vcores.
+On Alluxio master nodes, we recommend at least 4 vcores.
 
-To inform YARN of the resources to reserve for Alluxio on each node, modify the YARN configuration
-parameters `yarn.nodemanager.resource.memory-mb` and `yarn.nodemanager.resource.cpu-vcores` in
-`yarn-site.xml`. After determining how much memory to allocate to Alluxio on the node, subtract this from
-`yarn.nodemanager.resource.memory-mb` and update the parameter with the new value. The same should be done
-for `yarn.nodemanager.resource.cpu-vcores`.
+## Restart YARN
 
 After updating the YARN configuration, restart YARN so that it picks up the changes:
 

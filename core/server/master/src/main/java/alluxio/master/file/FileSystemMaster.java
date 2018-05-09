@@ -22,6 +22,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
@@ -41,6 +42,7 @@ import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.UfsInfo;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -71,7 +73,7 @@ public interface FileSystemMaster extends Master {
    * @return the file id for a given path, or -1 if there is no file at that path
    * @throws AccessControlException if permission checking fails
    */
-  long getFileId(AlluxioURI path) throws AccessControlException;
+  long getFileId(AlluxioURI path) throws AccessControlException, UnavailableException;
 
   /**
    * Returns the {@link FileInfo} for a given file id. This method is not user-facing but supposed
@@ -100,7 +102,7 @@ public interface FileSystemMaster extends Master {
    */
   FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      UnavailableException;
+      UnavailableException, IOException;
 
   /**
    * Returns the persistence state for a file id. This method is used by the lineage master.
@@ -129,7 +131,7 @@ public interface FileSystemMaster extends Master {
    */
   List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
-      UnavailableException;
+      UnavailableException, IOException;
 
   /**
    * @return a read-only view of the file system master
@@ -200,7 +202,7 @@ public interface FileSystemMaster extends Master {
    */
   // Used by lineage master
   long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl, TtlAction ttlAction)
-      throws InvalidPathException, FileDoesNotExistException;
+      throws InvalidPathException, FileDoesNotExistException, UnavailableException;
 
   /**
    * Gets a new block id for the next block of a given file to write to.
@@ -329,7 +331,7 @@ public interface FileSystemMaster extends Master {
   // into RuntimeException on the client.
   void free(AlluxioURI path, FreeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      UnexpectedAlluxioException;
+      UnexpectedAlluxioException, UnavailableException;
 
   /**
    * Gets the path of a file with the given id.
@@ -444,7 +446,7 @@ public interface FileSystemMaster extends Master {
   // TODO(binfan): Add permission checking for internal APIs
   void resetFile(long fileId)
       throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException;
+      AccessControlException, UnavailableException;
 
   /**
    * Sets the file attribute.
@@ -468,7 +470,28 @@ public interface FileSystemMaster extends Master {
    *
    * @param path the path of the file for persistence
    */
-  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException;
+  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, UnavailableException;
+
+  /**
+   * Update the operation mode for the given ufs path under one or more mount points.
+   *
+   * @param ufsPath the physical ufs path
+   * @param ufsMode the ufs operation mode
+   * @throws InvalidPathException if ufs path is not used by any mount point
+   * @throws InvalidArgumentException if arguments for the method are invalid
+   */
+  void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
+      throws InvalidPathException, InvalidArgumentException, UnavailableException,
+      AccessControlException;
+
+  /**
+   * Checks the integrity of the inodes with respect to the blocks of the system.
+   *
+   * @param repair if true, will attempt to repair the state of the system when inconsistencies are
+   *               discovered
+   * @throws UnavailableException if the repair attempt fails
+   */
+  void validateInodeBlocks(boolean repair) throws UnavailableException;
 
   /**
    * Instructs a worker to persist the files.

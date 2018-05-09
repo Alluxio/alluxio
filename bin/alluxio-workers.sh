@@ -29,7 +29,7 @@ DEFAULT_LIBEXEC_DIR="${BIN}/../libexec"
 ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
 . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
-HOSTLIST=$(cat ${ALLUXIO_CONF_DIR}/workers | sed  "s/#.*$//;/^$/d")
+HOSTLIST=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
 mkdir -p "${ALLUXIO_LOGS_DIR}"
 ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 

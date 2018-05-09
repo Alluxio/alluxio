@@ -11,13 +11,11 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
-
-import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -28,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 @Deprecated
-public final class FileInfoCommand extends WithWildCardPathCommand {
+public final class FileInfoCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
@@ -42,10 +40,11 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) {
     System.out
         .println("The \"alluxio fs fileInfo <path>\" command is deprecated since version 1.5.");
     System.out.println("Use the \"alluxio fs stat <path>\" command instead.");
+    return 0;
   }
 
   @Override
@@ -56,5 +55,10 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   @Override
   public String getDescription() {
     return "Displays all block info for the specified file.";
+  }
+
+  @Override
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 }

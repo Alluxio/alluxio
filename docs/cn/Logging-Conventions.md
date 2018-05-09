@@ -103,7 +103,7 @@ log4j.appender.MASTER_LOGGER_SOCKET.layout.ConversionPattern=%d{ISO8601} %-5p %c
 
 这是Alluxio使用远程日志的一个例子。Alluxio鼓励用户探索各种由Log4J或第三方提供的appender和配置选项，从而创建最适合实际用例的日志记录解决方案。
 
-###在Alluxio服务器运行时动态更改日志级别
+### 在Alluxio服务器运行时动态更改日志级别
 
 Alluxio shell附带了一个`logLevel`命令，可以在特定实例上获取或更改特定类的日志级别。
 
@@ -120,13 +120,12 @@ alluxio logLevel --loggerName = alluxio.heartbeat.HeartbeatContext --target = ma
 alluxio logLevel --loggerName = alluxio.heartbeat.HeartbeatContext --target = workers
 ```
 
-###客户端日志记录配置
+### 客户端日志记录配置
 
 改变在计算框架（例如Spark，Presto）进程中运行的Alluxio客户端的日志级别并且为了调试把它保存为一个文件通常是有用的。要做到这一点，你可以将下面的java选项传递给计算框架进程。
 
 例如，选项`-Dalluxio.log.dir=/var/alluxio/ -Dalluxio.logger.type=USER_LOGGER -Dlog4j.configuration=/tmp/
-alluxio/conf/log4j.properties`将指导Alluxio客户端在Alluxio的conf路径上使用log4j配置并且
-输出日志到路径为`/var/alluxio/`，名为`user_USER_NAME.log`的文件中，`USER_NAME`是开始该客户端程序的用户。如果客户端机器和安装Alluxio的机器不一样，你可以将`conf/log4j.properties`中的文件复制到客户端机器并且把它的路径传给`log4j.configuration`选项。如果你不想覆盖应用的`log4j.properties`路径，你可以将下面的内容添加到它的`log4j.properties`文件中：
+alluxio/conf/log4j.properties`将指导Alluxio客户端在Alluxio的conf路径上使用log4j配置并且输出日志到路径为`/var/alluxio/`，名为`user_USER_NAME.log`的文件中，`USER_NAME`是开始该客户端程序的用户。如果客户端机器和安装Alluxio的机器不一样，你可以将`conf/log4j.properties`中的文件复制到客户端机器并且把它的路径传给`log4j.configuration`选项。如果你不想覆盖应用的`log4j.properties`路径，你可以将下面的内容添加到它的`log4j.properties`文件中：
 
 ```
 # Appender for Alluxio User

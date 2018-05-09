@@ -18,6 +18,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.thrift.PersistFile;
 import alluxio.util.CommonUtils;
@@ -64,7 +65,7 @@ public interface AsyncPersistHandler {
    *
    * @param path the path to the file
    */
-  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException;
+  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, UnavailableException;
 
   /**
    * Polls the files for persistence on the given worker.

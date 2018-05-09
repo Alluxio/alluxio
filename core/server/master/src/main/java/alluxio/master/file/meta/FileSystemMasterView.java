@@ -85,7 +85,7 @@ public final class FileSystemMasterView {
    * @throws FileDoesNotExistException if file does not exist
    */
   public synchronized long getFileId(AlluxioURI path)
-      throws AccessControlException, FileDoesNotExistException {
+      throws AccessControlException, FileDoesNotExistException, UnavailableException {
     return mFileSystemMaster.getFileId(path);
   }
 

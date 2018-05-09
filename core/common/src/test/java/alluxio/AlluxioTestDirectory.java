@@ -88,6 +88,10 @@ public final class AlluxioTestDirectory {
     if (!file.exists()) {
       return;
     }
+    if (file.isFile()) {
+      file.delete();
+      return;
+    }
     try {
       FileUtils.deleteDirectory(file);
     } catch (IOException e) {

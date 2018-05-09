@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>1.7.0-SNAPSHOT</version>
+    <version>1.8.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs</artifactId>
   <packaging>pom</packaging>
@@ -115,6 +115,19 @@
               </configuration>
             </execution>
           </executions>
+        </plugin>
+        <plugin>
+          <artifactId>maven-clean-plugin</artifactId>
+          <configuration>
+            <filesets>
+              <fileset>
+                <directory>${basedir}/../../lib</directory>
+                <includes>
+                  <include>**/${project.artifactId}-*.jar</include>
+                </includes>
+              </fileset>
+            </filesets>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>

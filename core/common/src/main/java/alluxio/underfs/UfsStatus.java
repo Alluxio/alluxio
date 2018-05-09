@@ -23,6 +23,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public abstract class UfsStatus {
   protected final boolean mIsDirectory;
+  /** Last modified epoch time in ms, or null if it is not available. */
+  protected final Long mLastModifiedTimeMs;
   protected String mName;
 
   // Permissions
@@ -38,13 +40,16 @@ public abstract class UfsStatus {
    * @param owner of the file
    * @param group of the file
    * @param mode of the file
+   * @param lastModifiedTimeMs last modified epoch time in ms, or null if it is not available
    */
-  protected UfsStatus(String name, boolean isDirectory, String owner, String group, short mode) {
+  protected UfsStatus(String name, boolean isDirectory, String owner, String group, short mode,
+      Long lastModifiedTimeMs) {
     mIsDirectory = isDirectory;
     mName = name;
     mOwner = owner;
     mGroup = group;
     mMode = mode;
+    mLastModifiedTimeMs = lastModifiedTimeMs;
   }
 
   /**
@@ -58,6 +63,7 @@ public abstract class UfsStatus {
     mOwner = status.mOwner;
     mGroup = status.mGroup;
     mMode = status.mMode;
+    mLastModifiedTimeMs = status.mLastModifiedTimeMs;
   }
 
   /**
@@ -107,6 +113,17 @@ public abstract class UfsStatus {
    */
   public String getGroup() {
     return mGroup;
+  }
+
+  /**
+   * Gets the UTC time of when the indicated path was modified recently in ms, or null if the last
+   * modified time is not available.
+   *
+   * @return modification time in milliseconds
+   */
+  @Nullable
+  public Long getLastModifiedTime() {
+    return mLastModifiedTimeMs;
   }
 
   /**

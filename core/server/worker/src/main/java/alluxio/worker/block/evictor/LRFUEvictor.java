@@ -35,8 +35,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class is used to evict blocks by LRFU. LRFU evict blocks with minimum CRF, where CRF of a
@@ -104,7 +104,7 @@ public final class LRFUEvictor extends AbstractEvictor {
   @Nullable
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-      BlockMetadataManagerView view) {
+      BlockMetadataManagerView view, Mode mode) {
     synchronized (mBlockIdToLastUpdateTime) {
       updateCRFValue();
       mManagerView = view;
@@ -112,7 +112,7 @@ public final class LRFUEvictor extends AbstractEvictor {
       List<BlockTransferInfo> toMove = new ArrayList<>();
       List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<>();
       EvictionPlan plan = new EvictionPlan(toMove, toEvict);
-      StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
+      StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan, mode);
 
       mManagerView.clearBlockMarks();
       if (candidateDir == null) {

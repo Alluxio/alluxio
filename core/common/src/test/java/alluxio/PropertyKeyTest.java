@@ -15,20 +15,27 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.PropertyKey.Builder;
 import alluxio.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Tests enum type {@link PropertyKey}.
  */
 public final class PropertyKeyTest {
 
-  private PropertyKey mTestProperty = PropertyKey.create("alluxio.test.property", false,
-       new String[] {"alluxio.test.property.alias1", "alluxio.test.property.alias2"}, "test",
-       false, false);
+  private PropertyKey mTestProperty = new Builder("alluxio.test.property")
+      .setAlias(new String[] {"alluxio.test.property.alias1", "alluxio.test.property.alias2"})
+      .setDescription("test")
+      .setDefaultValue(false)
+      .setIsHidden(false)
+      .setIgnoredSiteProperty(false)
+      .build();
 
   /**
    * Tests parsing string to PropertyKey by {@link PropertyKey#fromString}.
@@ -198,6 +205,18 @@ public final class PropertyKeyTest {
             ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
       }
     }
+  }
+
+  @Test
+  public void defaultSupplier() throws Exception {
+    AtomicInteger x = new AtomicInteger(100);
+    PropertyKey key = new Builder("test")
+        .setDefaultSupplier(new DefaultSupplier(() -> x.get(), "test description"))
+        .build();
+    assertEquals("100", key.getDefaultValue());
+    x.set(20);
+    assertEquals("20", key.getDefaultValue());
+    assertEquals("test description", key.getDefaultSupplier().getDescription());
   }
 
   @Test

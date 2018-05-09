@@ -174,8 +174,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX));
     int numThreads = Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_THREADS_MAX));
     if (numThreads < numAdminThreads + numTransferThreads) {
-      LOG.warn("Configured s3 max threads: {} is less than # admin threads: {} plus transfer "
-          + "threads {}. Using admin threads + transfer threads as max threads instead.");
+      LOG.warn("Configured s3 max threads ({}) is less than # admin threads ({}) plus transfer "
+          + "threads ({}). Using admin threads + transfer threads as max threads instead.",
+              numThreads, numAdminThreads, numTransferThreads);
       numThreads = numAdminThreads + numTransferThreads;
     }
     clientConf.setMaxConnections(numThreads);

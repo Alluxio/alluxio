@@ -37,7 +37,7 @@ Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-wit
 For the following quick start guide, you will need:
 
 * Mac OS X or Linux
-* [Java 7 or newer](Java-Setup.html)
+* [Java 8 or newer](Java-Setup.html)
 * **[Bonus]** AWS account and keys
 
 ### Setup SSH (Mac OS X)
@@ -60,7 +60,8 @@ $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 ```
 
 This will create a directory `alluxio-{{site.ALLUXIO_RELEASED_VERSION}}` with all of the Alluxio
-source files and Java binaries.
+source files and Java binaries. Through this tutorial, the path of this directory will be referred
+to as `${ALLUXIO_HOME}`.
 
 ## Configuring Alluxio
 
@@ -88,13 +89,13 @@ your AWS access information to the Alluxio configuration by adding the keys to t
 `conf/alluxio-site.properties` file. The following commands will update the configuration.
 
 ```bash
-$ echo "aws.accessKeyId=AWS_ACCESS_KEY_ID" >> conf/alluxio-site.properties
-$ echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
+$ echo "aws.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
+$ echo "aws.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
 ```
 
-You will have to replace **AWS_ACCESS_KEY_ID** with your AWS access key id, and
-**AWS_SECRET_ACCESS_KEY** with your AWS secret access key. Now, Alluxio is fully configured for the
-rest of this guide.
+You will have to replace **<AWS_ACCESS_KEY_ID>** with your AWS access key id, and
+**<AWS_SECRET_ACCESS_KEY>** with your AWS secret access key. Now, Alluxio is fully configured for
+the rest of this guide.
 
 ## Validating Alluxio environment
 
@@ -176,11 +177,12 @@ Alluxio with the command:
 
 ```bash
 $ ./bin/alluxio fs ls /
-26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
+-rw-r--r-- staff  staff     26847 NOT_PERSISTED 01-09-2018 15:24:37:088 100% /LICENSE
 ```
 
 The output shows the file that exists in Alluxio, as well as some other useful information, like the
-size of the file, the date it was created, and the in-Alluxio status of the file.
+size of the file, the date it was created, the owner and group of the file, and the percentage of
+this file in Alluxio.
 
 You can also view the contents of the file through the Alluxio shell. The `cat` command will print
 the contents of the file.
@@ -256,10 +258,10 @@ command to list the files from the S3 mounted directory.
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3
-87.86KB   06-20-2016 12:50:51:660  Not In Memory  /mnt/s3/sample_tweets_100k.csv
-933.21KB  06-20-2016 12:50:53:633  Not In Memory  /mnt/s3/sample_tweets_1m.csv
-149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
-9.61MB    06-20-2016 12:50:55:821  Not In Memory  /mnt/s3/sample_tweets_10m.csv
+-r-x------ staff  staff    955610 PERSISTED 01-09-2018 16:35:00:882   0% /mnt/s3/sample_tweets_1m.csv
+-r-x------ staff  staff  10077271 PERSISTED 01-09-2018 16:35:00:910   0% /mnt/s3/sample_tweets_10m.csv
+-r-x------ staff  staff     89964 PERSISTED 01-09-2018 16:35:00:972   0% /mnt/s3/sample_tweets_100k.csv
+-r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
 We can see the [newly mounted files and directories in the Alluxio web UI](http://localhost:19999/browse?path=%2Fmnt%2Fs3) as well.
@@ -270,13 +272,13 @@ exist under a directory.
 
 ```bash
 $ ./bin/alluxio fs ls -R /
-26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
-1.00B     06-20-2016 12:28:39:176                 /mnt
-4.00B     06-20-2016 12:30:41:986                 /mnt/s3
-87.86KB   06-20-2016 12:50:51:660  Not In Memory  /mnt/s3/sample_tweets_100k.csv
-933.21KB  06-20-2016 12:50:53:633  Not In Memory  /mnt/s3/sample_tweets_1m.csv
-149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
-9.61MB    06-20-2016 12:50:55:821  Not In Memory  /mnt/s3/sample_tweets_10m.csv
+-rw-r--r-- staff  staff     26847 PERSISTED 01-09-2018 15:24:37:088 100% /LICENSE
+drwxr-xr-x staff  staff         1 PERSISTED 01-09-2018 16:05:59:547  DIR /mnt
+dr-x------ staff  staff         4 PERSISTED 01-09-2018 16:34:55:362  DIR /mnt/s3
+-r-x------ staff  staff    955610 PERSISTED 01-09-2018 16:35:00:882   0% /mnt/s3/sample_tweets_1m.csv
+-r-x------ staff  staff  10077271 PERSISTED 01-09-2018 16:35:00:910   0% /mnt/s3/sample_tweets_10m.csv
+-r-x------ staff  staff     89964 PERSISTED 01-09-2018 16:35:00:972   0% /mnt/s3/sample_tweets_100k.csv
+-r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
 This shows all the files under the root of the Alluxio file system, from all of the mounted storage
@@ -290,7 +292,7 @@ look at the status of a file in Alluxio (mounted from S3).
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
-149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
+-r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
 The output shows that the file is **Not In Memory**. This file is a sample of tweets. Let’s see how
@@ -335,10 +337,10 @@ After loading the file, you can check the status with the ls command:
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
-149.77MB  06-20-2016 12:50:55:473  In Memory      /mnt/s3/sample_tweets_150m.csv
+-r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002 100% /mnt/s3/sample_tweets_150m.csv
 ```
 
-The output shows that the file is now **In Memory**. Now that the file is memory, reading the file
+The output shows that the file is now 100% loaded to Alluxio. Now that the file is Alluxio, reading the file
 should be much faster now.
 
 Let’s count the number of tweets with the word "puppy".
@@ -400,7 +402,6 @@ Alluxio can be deployed in many different environments.
 * [Alluxio on GCE](Running-Alluxio-on-GCE.html)
 * [Alluxio with Mesos on EC2](Running-Alluxio-on-Mesos.html)
 * [Alluxio with Fault Tolerance on EC2](Running-Alluxio-Fault-Tolerant-on-EC2.html)
-* [Alluxio with YARN on EC2](Running-Alluxio-on-EC2-Yarn.html)
 * [Alluxio YARN Integration](Running-Alluxio-Yarn-Integration.html)
 * [Alluxio Standalone with YARN](Running-Alluxio-Yarn-Standalone.html)
 

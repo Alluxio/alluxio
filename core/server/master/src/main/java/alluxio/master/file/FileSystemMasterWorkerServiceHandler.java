@@ -76,6 +76,12 @@ public final class FileSystemMasterWorkerServiceHandler
             return new FileSystemHeartbeatTResponse(mFileSystemMaster
                 .workerHeartbeat(workerId, persistedFiles, new WorkerHeartbeatOptions(options)));
           }
+
+          @Override
+          public String toString() {
+            return String.format("fileSystemHeartbeat: workerId=%s, persistedFiles=%s, options=%s",
+                workerId, persistedFiles, options);
+          }
         }
     );
   }
@@ -89,6 +95,11 @@ public final class FileSystemMasterWorkerServiceHandler
         return new GetFileInfoTResponse(
             ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId)));
       }
+
+      @Override
+      public String toString() {
+        return String.format("getFileInfo: fileId=%s, options=%s", fileId, options);
+      }
     });
   }
 
@@ -100,6 +111,11 @@ public final class FileSystemMasterWorkerServiceHandler
       public GetPinnedFileIdsTResponse call() throws AlluxioException {
         return new GetPinnedFileIdsTResponse(mFileSystemMaster.getPinIdList());
       }
+
+      @Override
+      public String toString() {
+        return String.format("getPinnedFileIds: options=%s", options);
+      }
     });
   }
 
@@ -110,6 +126,11 @@ public final class FileSystemMasterWorkerServiceHandler
       @Override
       public GetUfsInfoTResponse call() throws AlluxioException {
         return new GetUfsInfoTResponse(mFileSystemMaster.getUfsInfo(mountId));
+      }
+
+      @Override
+      public String toString() {
+        return String.format("getUfsInfo: mountId=%s, options=%s", mountId, options);
       }
     });
   }

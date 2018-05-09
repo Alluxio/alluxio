@@ -22,7 +22,6 @@ public class UfsFileStatus extends UfsStatus {
 
   protected final String mContentHash;
   protected final long mContentLength;
-  protected final long mLastModifiedTimeMs;
 
   /**
    * Creates new instance of {@link UfsFileStatus}.
@@ -37,10 +36,9 @@ public class UfsFileStatus extends UfsStatus {
    */
   public UfsFileStatus(String name, String contentHash, long contentLength, long lastModifiedTimeMs,
       String owner, String group, short mode) {
-    super(name, false, owner, group, mode);
+    super(name, false, owner, group, mode, lastModifiedTimeMs);
     mContentHash = contentHash;
     mContentLength = contentLength;
-    mLastModifiedTimeMs = lastModifiedTimeMs;
   }
 
   /**
@@ -52,7 +50,6 @@ public class UfsFileStatus extends UfsStatus {
     super(status);
     mContentHash = status.mContentHash;
     mContentLength = status.mContentLength;
-    mLastModifiedTimeMs = status.mLastModifiedTimeMs;
   }
 
   @Override
@@ -74,14 +71,5 @@ public class UfsFileStatus extends UfsStatus {
    */
   public long getContentLength() {
     return mContentLength;
-  }
-
-  /**
-   * Gets the UTC time of when the indicated path was modified recently in ms.
-   *
-   * @return modification time in milliseconds
-   */
-  public long getLastModifiedTime() {
-    return mLastModifiedTimeMs;
   }
 }

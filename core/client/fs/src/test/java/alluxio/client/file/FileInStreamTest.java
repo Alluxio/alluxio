@@ -14,6 +14,15 @@ package alluxio.client.file;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -38,7 +47,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -58,7 +66,7 @@ import java.util.List;
  * different locations.
  */
 @RunWith(Parameterized.class)
-@PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class})
+@PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class, BlockInStream.class})
 public final class FileInStreamTest {
   @Rule
   public PowerMockRule mPowerMockRule = new PowerMockRule();
@@ -110,7 +118,7 @@ public final class FileInStreamTest {
 
     mContext = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.when(mContext.getLocalWorker()).thenReturn(new WorkerNetAddress());
-    mBlockStore = Mockito.mock(AlluxioBlockStore.class);
+    mBlockStore = mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
     PowerMockito.when(mBlockStore.getEligibleWorkers()).thenReturn(new ArrayList<>());
@@ -126,10 +134,9 @@ public final class FileInStreamTest {
       final byte[] input = BufferUtils
           .getIncreasingByteArray((int) (i * BLOCK_LENGTH), (int) getBlockLength(i));
       mInStreams.add(new TestBlockInStream(input, i, input.length, false, mBlockSource));
-      Mockito.when(mBlockStore.getEligibleWorkers())
+      when(mBlockStore.getEligibleWorkers())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
-      Mockito.when(mBlockStore.getInStream(Mockito.eq((long) i), Mockito.any(InStreamOptions
-          .class)))
+      when(mBlockStore.getInStream(eq((long) i), any(InStreamOptions.class), any()))
           .thenAnswer(new Answer<BlockInStream>() {
             @Override
             public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
@@ -517,8 +524,7 @@ public final class FileInStreamTest {
    */
   @Test
   public void failGetInStream() throws IOException {
-    Mockito.when(mBlockStore
-        .getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class)))
+    when(mBlockStore.getInStream(anyLong(), any(InStreamOptions.class), any()))
         .thenThrow(new UnavailableException("test exception"));
     try {
       mTestStream.read();
@@ -604,6 +610,70 @@ public final class FileInStreamTest {
         BLOCK_LENGTH * 2), b);
   }
 
+  @Test
+  public void readOneRetry() throws Exception {
+    long offset = 37;
+    // Setups a broken stream for the first block to throw an exception.
+    TestBlockInStream workingStream = mInStreams.get(0);
+    TestBlockInStream brokenStream = mock(TestBlockInStream.class);
+    when(mBlockStore
+        .getInStream(eq(0L), any(InStreamOptions.class), any()))
+        .thenReturn(brokenStream).thenReturn(workingStream);
+    when(brokenStream.read()).thenThrow(new UnavailableException("test exception"));
+    when(brokenStream.getPos()).thenReturn(offset);
+
+    mTestStream.seek(offset);
+    int b = mTestStream.read();
+
+    doReturn(0).when(brokenStream).read();
+    verify(brokenStream, times(1))
+        .read();
+    assertEquals(offset, b);
+  }
+
+  @Test
+  public void readBufferRetry() throws Exception {
+    TestBlockInStream workingStream = mInStreams.get(0);
+    TestBlockInStream brokenStream = mock(TestBlockInStream.class);
+    when(mBlockStore
+        .getInStream(eq(0L), any(InStreamOptions.class), any()))
+        .thenReturn(brokenStream).thenReturn(workingStream);
+    when(brokenStream.read(any(byte[].class), anyInt(), anyInt()))
+        .thenThrow(new UnavailableException("test exception"));
+    when(brokenStream.getPos()).thenReturn(BLOCK_LENGTH / 2);
+
+    mTestStream.seek(BLOCK_LENGTH / 2);
+    byte[] b = new byte[(int) BLOCK_LENGTH * 2];
+    mTestStream.read(b, 0, b.length);
+
+    doReturn(0).when(brokenStream).read(any(byte[].class), anyInt(), anyInt());
+    verify(brokenStream, times(1))
+        .read(any(byte[].class), anyInt(), anyInt());
+    assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH / 2, (int)
+        BLOCK_LENGTH * 2), b);
+  }
+
+  @Test
+  public void positionedReadRetry() throws Exception {
+    TestBlockInStream workingStream = mInStreams.get(0);
+    TestBlockInStream brokenStream = mock(TestBlockInStream.class);
+    when(mBlockStore
+        .getInStream(eq(0L), any(InStreamOptions.class), any()))
+        .thenReturn(brokenStream).thenReturn(workingStream);
+    when(brokenStream.positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt()))
+        .thenThrow(new UnavailableException("test exception"));
+
+    byte[] b = new byte[(int) BLOCK_LENGTH * 2];
+    mTestStream.positionedRead(BLOCK_LENGTH / 2, b, 0, b.length);
+
+    doReturn(0)
+        .when(brokenStream).positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt());
+    verify(brokenStream, times(1))
+        .positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt());
+    assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH / 2, (int)
+        BLOCK_LENGTH * 2), b);
+  }
+
   /**
    * Tests that when the underlying blocks are inconsistent with the metadata in terms of block
    * length, an exception is thrown rather than client hanging indefinitely. This case may happen if
@@ -611,8 +681,7 @@ public final class FileInStreamTest {
    */
   @Test
   public void blockInStreamOutOfSync() throws Exception {
-    Mockito.when(
-        mBlockStore.getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class)))
+    when(mBlockStore.getInStream(anyLong(), any(InStreamOptions.class), any()))
         .thenAnswer(new Answer<BlockInStream>() {
           @Override
           public BlockInStream answer(InvocationOnMock invocation) throws Throwable {

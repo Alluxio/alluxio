@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.InvalidPathException;
+import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
 
@@ -72,8 +73,10 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
     try {
       MountTable.Resolution resolution = mMountTable.resolve(fileUri);
       String ufsUri = resolution.getUri().toString();
-      UnderFileSystem ufs = resolution.getUfs();
-      locations = ufs.getFileLocations(ufsUri, FileLocationOptions.defaults().setOffset(offset));
+      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+        UnderFileSystem ufs = ufsResource.get();
+        locations = ufs.getFileLocations(ufsUri, FileLocationOptions.defaults().setOffset(offset));
+      }
       if (locations != null) {
         mCache.put(blockId, locations);
         return locations;

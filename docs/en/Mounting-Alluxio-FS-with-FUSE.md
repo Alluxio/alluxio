@@ -24,9 +24,10 @@ full POSIX semantics and will have specific limitations.  Please read the [secti
 
 ## Requirements
 
-* JDK 1.8 or newer [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been
-* reported to also work - with some warnings) for Linux [osxfuse](https://osxfuse.github.io/) 3.7.1
-* or newer for MacOS
+* JDK 1.8 or newer 
+* [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been
+  reported to also work - with some warnings) for Linux 
+* [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer for MacOS
 
 ## Usage
 

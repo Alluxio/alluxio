@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,8 @@ public final class ConfigurationDocGenerator {
    * @param defaultKeys Collection which is from PropertyKey DEFAULT_KEYS_MAP.values()
    * @param filePath    path for csv files
    */
-  static void writeCSVFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
+  @VisibleForTesting
+  public static void writeCSVFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
       throws IOException {
     if (defaultKeys.size() == 0) {
       return;
@@ -79,17 +81,19 @@ public final class ConfigurationDocGenerator {
       List<PropertyKey> dfkeys = new ArrayList<>(defaultKeys);
       Collections.sort(dfkeys);
 
-      for (PropertyKey iteratorPK : dfkeys) {
-        String pKey = iteratorPK.toString();
-        String value;
-        if (iteratorPK.getDefaultValue() == null) {
-          value = "";
+      for (PropertyKey propertyKey : dfkeys) {
+        String pKey = propertyKey.toString();
+        String defaultDescription;
+        if (propertyKey.getDefaultSupplier().get() == null) {
+          defaultDescription = "";
         } else {
-          value = iteratorPK.getDefaultValue();
+          defaultDescription = propertyKey.getDefaultSupplier().getDescription();
         }
+        // Quote the whole description to escape characters such as commas.
+        defaultDescription = String.format("\"%s\"", defaultDescription);
 
         // Write property key and default value to CSV
-        String keyValueStr = pKey + "," + value + "\n";
+        String keyValueStr = pKey + "," + defaultDescription + "\n";
         if (pKey.startsWith("alluxio.user.")) {
           fileWriter = fileWriterMap.get("user");
         } else if (pKey.startsWith("alluxio.master.")) {
@@ -126,7 +130,8 @@ public final class ConfigurationDocGenerator {
    * @param defaultKeys Collection which is from PropertyKey DEFAULT_KEYS_MAP.values()
    * @param filePath path for csv files
    */
-  static void writeYMLFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
+  @VisibleForTesting
+  public static void writeYMLFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
       throws IOException {
     if (defaultKeys.size() == 0) {
       return;

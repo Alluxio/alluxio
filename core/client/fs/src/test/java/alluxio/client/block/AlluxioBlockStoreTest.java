@@ -12,11 +12,14 @@
 package alluxio.client.block;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -42,6 +45,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.netty.channel.Channel;
@@ -52,18 +56,20 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -140,11 +146,11 @@ public final class AlluxioBlockStoreTest {
     mBlockStore = new AlluxioBlockStore(mContext,
         TieredIdentityFactory.fromString("node=" + WORKER_HOSTNAME_LOCAL));
 
-    when(mContext.acquireNettyChannel(Mockito.any(WorkerNetAddress.class)))
+    when(mContext.acquireNettyChannel(any(WorkerNetAddress.class)))
         .thenReturn(mChannel);
     when(mChannel.pipeline()).thenReturn(mPipeline);
     when(mPipeline.last()).thenReturn(new RPCMessageDecoder());
-    when(mPipeline.addLast(Mockito.any(ChannelHandler.class))).thenReturn(mPipeline);
+    when(mPipeline.addLast(any(ChannelHandler.class))).thenReturn(mPipeline);
   }
 
   @Test
@@ -192,7 +198,7 @@ public final class AlluxioBlockStoreTest {
     ProtoMessage message = new ProtoMessage(
         Protocol.LocalBlockCreateResponse.newBuilder().setPath(file.getAbsolutePath()).build());
     PowerMockito.mockStatic(NettyRPC.class);
-    when(NettyRPC.call(Mockito.any(NettyRPCContext.class), Mockito.any(ProtoMessage.class)))
+    when(NettyRPC.call(any(NettyRPCContext.class), any(ProtoMessage.class)))
         .thenReturn(message);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
@@ -247,7 +253,7 @@ public final class AlluxioBlockStoreTest {
     ProtoMessage message = new ProtoMessage(
         Protocol.LocalBlockOpenResponse.newBuilder().setPath("/tmp").build());
     PowerMockito.mockStatic(NettyRPC.class);
-    when(NettyRPC.call(Mockito.any(NettyRPCContext.class), Mockito.any(ProtoMessage.class)))
+    when(NettyRPC.call(any(NettyRPCContext.class), any(ProtoMessage.class)))
         .thenReturn(message);
 
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
@@ -277,5 +283,88 @@ public final class AlluxioBlockStoreTest {
           .getAddress());
     }
     assertEquals(Sets.newHashSet(remote1, remote2), results);
+  }
+
+  @Test
+  public void getInStreamInAlluxioOnlyFallbackToAvailableWorker() throws Exception {
+    int workerCount = 4;
+    boolean persisted = false;
+    int[] blockLocations = new int[]{2, 3};
+    Map<Integer, Long> failedWorkers = ImmutableMap.of(
+        0, 3L,
+        1, 1L,
+        3, 2L);
+    int expectedWorker = 2;
+    testGetInStreamFallback(workerCount, persisted, blockLocations, failedWorkers, expectedWorker);
+  }
+
+  @Test
+  public void getInStreamPersistedAndInAlluxioFallbackToUFS() throws Exception {
+    int workerCount = 3;
+    boolean persisted = true;
+    int[] blockLocations = new int[]{0, 2};
+    Map<Integer, Long> failedWorkers = ImmutableMap.of(
+        0, 5L,
+        2, 2L);
+    int expectedWorker = 1;
+    testGetInStreamFallback(workerCount, persisted, blockLocations, failedWorkers, expectedWorker);
+  }
+
+  @Test
+  public void getInStreamPersistedFallbackToLeastRecentlyFailed() throws Exception {
+    int workerCount = 3;
+    boolean persisted = true;
+    int[] blockLocations = new int[0];
+    Map<Integer, Long> failedWorkers = ImmutableMap.of(
+        0, 5L,
+        1, 1L,
+        2, 2L);
+    int expectedWorker = 1;
+    testGetInStreamFallback(workerCount, persisted, blockLocations, failedWorkers, expectedWorker);
+  }
+
+  @Test
+  public void getInStreamInAlluxioOnlyFallbackToLeastRecentlyFailed() throws Exception {
+    int workerCount = 5;
+    boolean persisted = false;
+    int[] blockLocations = new int[]{1, 2, 3};
+    Map<Integer, Long> failedWorkers = ImmutableMap.of(
+        0, 5L,
+        1, 3L,
+        2, 2L,
+        3, 4L,
+        4, 1L);
+    int expectedWorker = 2;
+    testGetInStreamFallback(workerCount, persisted, blockLocations, failedWorkers, expectedWorker);
+  }
+
+  private void testGetInStreamFallback(int workerCount, boolean isPersisted, int[] blockLocations,
+        Map<Integer, Long> failedWorkers, int expectedWorker) throws Exception {
+    WorkerNetAddress[] workers = new WorkerNetAddress[workerCount];
+    Arrays.setAll(workers, i -> new WorkerNetAddress().setHost(String.format("worker-%d", i)));
+    BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID)
+        .setLocations(Arrays.stream(blockLocations).mapToObj(x ->
+            new BlockLocation().setWorkerAddress(workers[x])).collect(Collectors.toList()));
+    URIStatus dummyStatus =
+        new URIStatus(new FileInfo().setPersisted(isPersisted)
+            .setBlockIds(Collections.singletonList(BLOCK_ID))
+            .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
+    BlockLocationPolicy mockPolicy = mock(BlockLocationPolicy.class);
+    when(mockPolicy.getWorker(any())).thenAnswer(arg -> arg
+        .getArgumentAt(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
+        .getNetAddress());
+    OpenFileOptions readOptions =
+        OpenFileOptions.defaults().setUfsReadLocationPolicy(mockPolicy);
+    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
+    when(mMasterClient.getWorkerInfoList()).thenReturn(Arrays.stream(workers)
+        .map(x -> new WorkerInfo().setAddress(x)).collect((Collectors.toList())));
+    Map<WorkerNetAddress, Long> failedWorkerAddresses = failedWorkers.entrySet().stream()
+        .map(x -> new AbstractMap.SimpleImmutableEntry<>(workers[x.getKey()], x.getValue()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    BlockInStream inStream = mBlockStore.getInStream(BLOCK_ID, options, failedWorkerAddresses);
+
+    assertEquals(workers[expectedWorker], inStream.getAddress());
   }
 }

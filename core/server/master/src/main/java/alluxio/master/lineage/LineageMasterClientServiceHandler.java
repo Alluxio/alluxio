@@ -17,7 +17,6 @@ import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.thrift.AlluxioTException;
@@ -101,9 +100,9 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   @Override
   public DeleteLineageTResponse deleteLineage(final long lineageId, final boolean cascade,
       DeleteLineageTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<DeleteLineageTResponse>() {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<DeleteLineageTResponse>() {
       @Override
-      public DeleteLineageTResponse call() throws AlluxioException {
+      public DeleteLineageTResponse call() throws AlluxioException, IOException {
         return new DeleteLineageTResponse(mLineageMaster.deleteLineage(lineageId, cascade));
       }
     });
@@ -128,24 +127,18 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   public ReinitializeFileTResponse reinitializeFile(final String path, final long blockSizeBytes,
       final long ttl, final TTtlAction ttlAction, ReinitializeFileTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<ReinitializeFileTResponse>() {
-      @Override
-      public ReinitializeFileTResponse call() throws AlluxioException, AlluxioStatusException {
-        return new ReinitializeFileTResponse(mLineageMaster
-            .reinitializeFile(path, blockSizeBytes, ttl, ThriftUtils.fromThrift(ttlAction)));
-      }
-    });
+    return RpcUtils.call(LOG,
+    (RpcCallableThrowsIOException<ReinitializeFileTResponse>) () ->
+    new ReinitializeFileTResponse(mLineageMaster
+        .reinitializeFile(path, blockSizeBytes, ttl, ThriftUtils.fromThrift(ttlAction))));
   }
 
   @Override
   public ReportLostFileTResponse reportLostFile(final String path, ReportLostFileTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<ReportLostFileTResponse>() {
-      @Override
-      public ReportLostFileTResponse call() throws AlluxioException, AlluxioStatusException {
-        mLineageMaster.reportLostFile(path);
-        return new ReportLostFileTResponse();
-      }
+    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<ReportLostFileTResponse>) () -> {
+      mLineageMaster.reportLostFile(path);
+      return new ReportLostFileTResponse();
     });
   }
 }

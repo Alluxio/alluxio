@@ -15,6 +15,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.lineage.meta.Lineage;
@@ -115,6 +116,8 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
               LOG.error("the lost file {} is invalid", fileId, e);
             } catch (AccessControlException e) {
               LOG.error("the lost file {} cannot be accessed", fileId, e);
+            } catch (UnavailableException e) {
+              LOG.error("failed to reset file {}", fileId, e);
             }
           }
         } catch (FileDoesNotExistException e) {

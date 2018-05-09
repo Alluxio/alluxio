@@ -22,6 +22,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.util.Arrays;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -195,7 +196,7 @@ public final class GetConf {
         }
         break;
       default:
-        printHelp("More arguments than expected");
+        printHelp(String.format("More arguments than expected. Args: %s", Arrays.toString(args)));
         return 1;
     }
     return 0;

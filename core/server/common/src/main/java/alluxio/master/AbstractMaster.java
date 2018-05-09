@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.Constants;
 import alluxio.Server;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -131,7 +132,7 @@ public abstract class AbstractMaster implements Master {
   /**
    * @return new instance of {@link JournalContext}
    */
-  protected JournalContext createJournalContext() {
+  protected JournalContext createJournalContext() throws UnavailableException {
     return mJournal.createJournalContext();
   }
 }

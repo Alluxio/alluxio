@@ -11,6 +11,7 @@
 
 package alluxio.master.journal;
 
+import alluxio.exception.JournalClosedException;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.IOException;
@@ -25,10 +26,10 @@ public interface JournalWriter {
    *
    * @param entry the journal entry to write
    */
-  void write(JournalEntry entry) throws IOException;
+  void write(JournalEntry entry) throws IOException, JournalClosedException;
 
   /**
    * Flushes all the entries written to the underlying storage.
    */
-  void flush() throws IOException;
+  void flush() throws IOException, JournalClosedException;
 }

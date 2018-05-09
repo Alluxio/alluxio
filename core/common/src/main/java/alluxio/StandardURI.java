@@ -37,8 +37,12 @@ public class StandardURI implements URI {
    */
   public StandardURI(String scheme, String authority, String path, String query) {
     try {
-      mUri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null)
-          .normalize();
+      if (AlluxioURI.CUR_DIR.equals(path)) {
+        mUri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null);
+      } else {
+        mUri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null)
+                .normalize();
+      }
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }

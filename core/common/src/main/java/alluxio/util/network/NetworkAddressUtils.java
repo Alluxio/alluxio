@@ -14,13 +14,19 @@ package alluxio.util.network;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.status.UnauthenticatedException;
+import alluxio.security.authentication.TProtocols;
+import alluxio.security.authentication.TransportProvider;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.unix.DomainSocketAddress;
+import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -641,4 +647,29 @@ public final class NetworkAddressUtils {
     return address;
   }
 
+  /**
+   * Test if the input address is serving an Alluxio service. This method make use of the
+   * Thrift protocol for performing service communication.
+   *
+   * @param address the network address to ping
+   * @param serviceName the Alluxio service name
+   * @throws UnauthenticatedException If the user is not authenticated
+   * @throws ConnectionFailedException If there is a protocol transport error
+   */
+  public static void pingService(InetSocketAddress address, String serviceName)
+          throws UnauthenticatedException, ConnectionFailedException {
+    Preconditions.checkNotNull(address, "address");
+    Preconditions.checkNotNull(serviceName, "serviceName");
+    Preconditions.checkArgument(!serviceName.isEmpty(),
+            "Cannot resolve for empty service name");
+    try {
+      TransportProvider transportProvider = TransportProvider.Factory.create();
+      TProtocol protocol = TProtocols.createProtocol(transportProvider.getClientTransport(address),
+          serviceName);
+      protocol.getTransport().open();
+      protocol.getTransport().close();
+    } catch (TTransportException e) {
+      throw new ConnectionFailedException(e.getMessage());
+    }
+  }
 }

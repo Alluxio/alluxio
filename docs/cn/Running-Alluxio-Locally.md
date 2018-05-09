@@ -11,13 +11,13 @@ priority: 1
 
 # 前提条件
 
-这部分的前提条件是你安装了[Java](Java-Setup.html)(JDK 7或更高版本)。
+这部分的前提条件是你安装了[Java](Java-Setup.html)(JDK 8或更高版本)。
 
-下载Alluxio二进制发行版{{site.ALLUXIO_RELEASED_VERSION}}:
-
-{% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
+下载 [Alluxio](https://alluxio.org/download) 二进制发行版 {{site.ALLUXIO_RELEASED_VERSION}}:
 
 在独立模式下运行，请执行以下操作：
+
+通过拷贝`conf/alluxio-site.properties.template`文件，创建`conf/alluxio-site.properties`。
 
 * 将`conf/alluxio-site.properties`中的`alluxio.master.hostname`设置为`localhost`(即`alluxio.master.hostname=localhost`)。
 

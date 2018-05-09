@@ -11,18 +11,18 @@ priority: 1
 
 # Requirement
 
-The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 7 or above) installed.
+The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 8 or above) installed.
 
-Download the binary distribution of Alluxio {{site.ALLUXIO_RELEASED_VERSION}}:
-
-{% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
+[Download](https://alluxio.org/download) the binary distribution of Alluxio {{site.ALLUXIO_RELEASED_VERSION}}
 
 To run in standalone mode, do the following:
+
+* Create `conf/alluxio-site.properties` by copying `conf/alluxio-site.properties.template`
 
 * Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost` (i.e., `alluxio.master.hostname=localhost`).
 
 * Set `alluxio.underfs.address` in `conf/alluxio-site.properties` to a tmp directory in the local
-filesystem (e.g., `alluxio.underfs.address=/tmp`).
+  filesystem (e.g., `alluxio.underfs.address=/tmp`).
 
 * Turn on remote login service so that `ssh localhost` can succeed. To avoid the need to
 repeatedly input the password, you can add the public ssh key for the host into
@@ -31,7 +31,7 @@ repeatedly input the password, you can add the public ssh key for the host into
 # Step 0: Format Alluxio Filesystem
 
 > NOTE: This step is only required when you run Alluxio for the first time.
-> If you run this command for an existing Alluxio cluster, 
+> If you run this command for an existing Alluxio cluster,
 > all previously stored data and metadata in Alluxio filesystem will be erased.
 > However, data in under storage will not be changed.
 
@@ -47,14 +47,14 @@ Simply run the following command to start Alluxio filesystem.
 $ ./bin/alluxio-start.sh local
 ```
 
-> NOTE: On Linux, this command may require to input password to get sudo privileges 
-> in order to setup RAMFS. If you do not want to type in the password every time, or you do 
+> NOTE: On Linux, this command may require to input password to get sudo privileges
+> in order to setup RAMFS. If you do not want to type in the password every time, or you do
 > not even have sudo privileges, please read the alternative approaches in [FAQ](#faq).
 
 ## Verify Alluxio is running
 
 To verify that Alluxio is running, you can visit
-**[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder. 
+**[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder.
 
 To run a more comprehensive sanity check:
 
@@ -69,7 +69,7 @@ You can stop Alluxio any time by running:
 
 ## Why is sudo privilege needed to start Alluxio on Linux?
 
-By default, Alluxio filesystem uses [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage. On MacOS, it is fine for Alluxio to mount a RAMFS without being a super user. However, on Linux, it requires sudo privileges to perform "mount" (and the followed "umount", "mkdir" and "chmod" operations). 
+By default, Alluxio filesystem uses [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage. On MacOS, it is fine for Alluxio to mount a RAMFS without being a super user. However, on Linux, it requires sudo privileges to perform "mount" (and the followed "umount", "mkdir" and "chmod" operations).
 
 ## Can I still try Alluxio on Linux without sudo privileges?
 
@@ -88,7 +88,7 @@ and then start Alluxio with `NoMount` option to use the above directory as its d
 $ ./bin/alluxio-start.sh local NoMount
 ```
 
-Alternatively, you can also specify Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)  
+Alternatively, you can also specify Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)
 as the data storage. Tmpfs is a temporary file storage backed by memory (e.g., typically `/dev/shm` on Linux), but may use SWAP space and
 therefore provides less performance guarantees compared to ramfs. Similar to using a pre-mounted RAMFS, you can specify the tempfs path in
 `conf/alluxio-site.properties`:
@@ -104,7 +104,7 @@ followed by:
 $ ./bin/alluxio-start.sh local NoMount
 ```
 
-## How can I avoid typing the password to run sudo? 
+## How can I avoid typing the password to run sudo?
 
 Options:
 

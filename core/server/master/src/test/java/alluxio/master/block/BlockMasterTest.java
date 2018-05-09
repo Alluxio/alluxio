@@ -200,6 +200,21 @@ public class BlockMasterTest {
   }
 
   @Test
+  public void registerCleansUpOrphanedBlocks() throws Exception {
+    // Create a worker with unknown blocks.
+    long worker = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+    List<Long> orphanedBlocks = Arrays.asList(1L, 2L);
+    Map<String, Long> memUsage = ImmutableMap.of("MEM", 10L);
+    mBlockMaster.workerRegister(worker, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
+        memUsage, ImmutableMap.of("MEM", orphanedBlocks));
+
+    // Check that the worker heartbeat tells the worker to remove the blocks.
+    Command heartBeat =
+        mBlockMaster.workerHeartbeat(worker, memUsage, NO_BLOCKS, NO_BLOCKS_ON_TIERS);
+    assertEquals(orphanedBlocks, heartBeat.getData());
+  }
+
+  @Test
   public void workerHeartbeatUpdatesMemoryCount() throws Exception {
     // Create a worker.
     long worker = mBlockMaster.getWorkerId(NET_ADDRESS_1);

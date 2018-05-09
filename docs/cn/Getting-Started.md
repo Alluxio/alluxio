@@ -27,7 +27,7 @@ on-demand data analytics with Alluxio](https://alluxio.com/resources/acceleratin
 为了接下来的快速上手指南，你需要:
 
 * Mac OS X或Linux
-* [Java 7或更新版本](Java-Setup.html)
+* [Java 8或更新版本](Java-Setup.html)
 * **[奖励]** AWS账户和秘钥
 
 ### 安装SSH(Mac OS X)
@@ -45,7 +45,7 @@ $ tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
 $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 ```
 
-这会创建一个包含所有的Alluxio源文件和Java二进制文件的文件夹`alluxio-{{site.ALLUXIO_RELEASED_VERSION}}`。
+这会创建一个包含所有的Alluxio源文件和Java二进制文件的文件夹`alluxio-{{site.ALLUXIO_RELEASED_VERSION}}`。通过这个教程，这个文件夹的路径将被引用为`${ALLUXIO_HOME}`。
 
 ## 配置Alluxio
 
@@ -63,11 +63,11 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 如果你有一个包含access key id和secret accsee key的AWS账户，你可以添加你的Alluxio配置以备接下来与Amazon S3的交互。如下命令可以添加你的AWS访问信息到`conf/alluxio-site.properties`文件。
 
 ```bash
-$ echo "aws.accessKeyId=AWS_ACCESS_KEY_ID" >> conf/alluxio-site.properties
-$ echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
+$ echo "aws.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
+$ echo "aws.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
 ```
 
-你必须将**AWS_ACCESS_KEY_ID**替换成你的AWS access key id，将**AWS_SECRET_ACCESS_KEY**替换成你的AWS secret access key。现在，Alluxio完全配置好了。
+你必须将**<AWS_ACCESS_KEY_ID>**替换成你的AWS access key id，将**<AWS_SECRET_ACCESS_KEY>**替换成你的AWS secret access key。现在，Alluxio完全配置好了。
 
 ## 验证Alluxio运行环境
 
@@ -136,9 +136,9 @@ Copied LICENSE to /LICENSE
 
 ```bash
 $ ./bin/alluxio fs ls /
-26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
+-rw-r--r-- staff  staff     26847 NOT_PERSISTED 01-09-2018 15:24:37:088 100% /LICENSE
 ```
-输出显示`LICENSE`文件在Alluxio中，也包含一些其他的有用信息，比如文件的大小，创建的日期，文件的in-Alluxio状态。
+输出显示`LICENSE`文件在Alluxio中，也包含一些其他的有用信息，比如文件的大小，创建的日期，文件的所有者和组，以及Alluxio中这个文件的占比。
 
 你也可以通过Alluxio shell来查看文件的内容。`cat`命令可以打印文件的内容。
 
@@ -202,10 +202,10 @@ Mounted s3a://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3
-87.86KB   06-20-2016 12:50:51:660  Not In Memory  /mnt/s3/sample_tweets_100k.csv
-933.21KB  06-20-2016 12:50:53:633  Not In Memory  /mnt/s3/sample_tweets_1m.csv
-149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
-9.61MB    06-20-2016 12:50:55:821  Not In Memory  /mnt/s3/sample_tweets_10m.csv
+-r-x------ staff  staff    955610 PERSISTED 01-09-2018 16:35:00:882   0% /mnt/s3/sample_tweets_1m.csv
+-r-x------ staff  staff  10077271 PERSISTED 01-09-2018 16:35:00:910   0% /mnt/s3/sample_tweets_10m.csv
+-r-x------ staff  staff     89964 PERSISTED 01-09-2018 16:35:00:972   0% /mnt/s3/sample_tweets_100k.csv
+-r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
 我们也可以[在web UI上看见新挂载的文件和目录](http://localhost:19999/browse?path=%2Fmnt%2Fs3)。
@@ -214,13 +214,13 @@ $ ./bin/alluxio fs ls /mnt/s3
 
 ```bash
 $ ./bin/alluxio fs ls -R /
-26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
-1.00B     06-20-2016 12:28:39:176                 /mnt
-4.00B     06-20-2016 12:30:41:986                 /mnt/s3
-87.86KB   06-20-2016 12:50:51:660  Not In Memory  /mnt/s3/sample_tweets_100k.csv
-933.21KB  06-20-2016 12:50:53:633  Not In Memory  /mnt/s3/sample_tweets_1m.csv
-149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
-9.61MB    06-20-2016 12:50:55:821  Not In Memory  /mnt/s3/sample_tweets_10m.csv
+-rw-r--r-- staff  staff     26847 PERSISTED 01-09-2018 15:24:37:088 100% /LICENSE
+drwxr-xr-x staff  staff         1 PERSISTED 01-09-2018 16:05:59:547  DIR /mnt
+dr-x------ staff  staff         4 PERSISTED 01-09-2018 16:34:55:362  DIR /mnt/s3
+-r-x------ staff  staff    955610 PERSISTED 01-09-2018 16:35:00:882   0% /mnt/s3/sample_tweets_1m.csv
+-r-x------ staff  staff  10077271 PERSISTED 01-09-2018 16:35:00:910   0% /mnt/s3/sample_tweets_10m.csv
+-r-x------ staff  staff     89964 PERSISTED 01-09-2018 16:35:00:972   0% /mnt/s3/sample_tweets_100k.csv
+-r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
 输出显示了Alluxio文件系统根目录下来源于挂载的不同文件系统的所有文件。`/LICENSE`文件在本地文件系统，`/mnt/s3/`目录下是S3的文件。
@@ -231,7 +231,7 @@ $ ./bin/alluxio fs ls -R /
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
-149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
+-r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
 输出显示了文件**Not In Memory**。该文件是tweet的样本。我们看看有多少tweet提到了单词“kitten”。使用如下的命令，我们可以统计含有“kitten”的tweet数量。
@@ -268,10 +268,10 @@ $ ./bin/alluxio fs load /mnt/s3/sample_tweets_150m.csv
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
-149.77MB  06-20-2016 12:50:55:473  In Memory      /mnt/s3/sample_tweets_150m.csv
+-r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002 100% /mnt/s3/sample_tweets_150m.csv
 ```
 
-输出显示文件**In Memory**。既然文件在内存中，读文件应该会更快。
+输出显示文件已被Alluxio完全加载。既然文件在Alluxio中，读文件应该会更快。
 
 我们统计一下包含"puppy"的tweet数量。
 
@@ -305,11 +305,11 @@ sys	0m0.240s
 $ ./bin/alluxio-stop.sh local
 ```
 
-## 结论
+## 总结
 
 恭喜你完成了Alluxio的快速上手指南！你成功地在本地电脑上下载和安装Alluxio，并且通过Alluxio shell进行了基本的交互。这是一个如何上手Alluxio的简单例子。
 
-除此之外还有很多可以学习。你可以通过我们的文档学到Alluxio的各种特性。你可以在你的环境中安装Alluxio，挂载你已有的存储系统到Alluxio，配置你的应用和Alluxio一起工作。更多的资源在下面。
+除此之外还有很多可以学习。你可以通过我们的文档学到Alluxio的各种特性。你可以在你的环境中安装Alluxio，挂载你已有的存储系统到Alluxio，配置你的应用和Alluxio一起工作。浏览下方以获得更多信息。
 
 ### 部署Alluxio
 
@@ -324,7 +324,6 @@ Alluxio可以部署在很多不同的环境下。
 * [在GCE上运行Alluxio](Running-Alluxio-on-GCE.html)
 * [在EC2上使用Mesos运行Alluxio](Running-Alluxio-on-Mesos.html)
 * [在EC2上运行带容错机制的Alluxio](Running-Alluxio-Fault-Tolerant-on-EC2.html)
-* [在EC2上使用YARN运行Alluxio](Running-Alluxio-on-EC2-Yarn.html)
 * [Alluxio与YARN整合运行](Running-Alluxio-Yarn-Integration.html)
 * [在YARN Standalone模式上运行Alluxio](Running-Alluxio-Yarn-Standalone.html)
 

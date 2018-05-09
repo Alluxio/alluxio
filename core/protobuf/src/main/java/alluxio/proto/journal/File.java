@@ -90,6 +90,97 @@ public final class File {
     // @@protoc_insertion_point(enum_scope:alluxio.proto.journal.PTtlAction)
   }
 
+  /**
+   * Protobuf enum {@code alluxio.proto.journal.UfsMode}
+   */
+  public enum UfsMode
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>NO_ACCESS = 0;</code>
+     */
+    NO_ACCESS(0, 0),
+    /**
+     * <code>READ_ONLY = 1;</code>
+     */
+    READ_ONLY(1, 1),
+    /**
+     * <code>READ_WRITE = 2;</code>
+     */
+    READ_WRITE(2, 2),
+    ;
+
+    /**
+     * <code>NO_ACCESS = 0;</code>
+     */
+    public static final int NO_ACCESS_VALUE = 0;
+    /**
+     * <code>READ_ONLY = 1;</code>
+     */
+    public static final int READ_ONLY_VALUE = 1;
+    /**
+     * <code>READ_WRITE = 2;</code>
+     */
+    public static final int READ_WRITE_VALUE = 2;
+
+
+    public final int getNumber() { return value; }
+
+    public static UfsMode valueOf(int value) {
+      switch (value) {
+        case 0: return NO_ACCESS;
+        case 1: return READ_ONLY;
+        case 2: return READ_WRITE;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<UfsMode>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static com.google.protobuf.Internal.EnumLiteMap<UfsMode>
+        internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<UfsMode>() {
+            public UfsMode findValueByNumber(int number) {
+              return UfsMode.valueOf(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(index);
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return alluxio.proto.journal.File.getDescriptor().getEnumTypes().get(1);
+    }
+
+    private static final UfsMode[] VALUES = values();
+
+    public static UfsMode valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int index;
+    private final int value;
+
+    private UfsMode(int index, int value) {
+      this.index = index;
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:alluxio.proto.journal.UfsMode)
+  }
+
   public interface StringPairEntryOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
@@ -13062,6 +13153,575 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.SetAttributeEntry)
   }
 
+  public interface UpdateUfsModeEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional string ufsPath = 1;
+    /**
+     * <code>optional string ufsPath = 1;</code>
+     */
+    boolean hasUfsPath();
+    /**
+     * <code>optional string ufsPath = 1;</code>
+     */
+    java.lang.String getUfsPath();
+    /**
+     * <code>optional string ufsPath = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getUfsPathBytes();
+
+    // optional .alluxio.proto.journal.UfsMode ufsMode = 2 [default = READ_WRITE];
+    /**
+     * <code>optional .alluxio.proto.journal.UfsMode ufsMode = 2 [default = READ_WRITE];</code>
+     */
+    boolean hasUfsMode();
+    /**
+     * <code>optional .alluxio.proto.journal.UfsMode ufsMode = 2 [default = READ_WRITE];</code>
+     */
+    alluxio.proto.journal.File.UfsMode getUfsMode();
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.journal.UpdateUfsModeEntry}
+   *
+   * <pre>
+   * next available id: 3
+   * </pre>
+   */
+  public static final class UpdateUfsModeEntry extends
+      com.google.protobuf.GeneratedMessage
+      implements UpdateUfsModeEntryOrBuilder {
+    // Use UpdateUfsModeEntry.newBuilder() to construct.
+    private UpdateUfsModeEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private UpdateUfsModeEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final UpdateUfsModeEntry defaultInstance;
+    public static UpdateUfsModeEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public UpdateUfsModeEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private UpdateUfsModeEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              bitField0_ |= 0x00000001;
+              ufsPath_ = input.readBytes();
+              break;
+            }
+            case 16: {
+              int rawValue = input.readEnum();
+              alluxio.proto.journal.File.UfsMode value = alluxio.proto.journal.File.UfsMode.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(2, rawValue);
+              } else {
+                bitField0_ |= 0x00000002;
+                ufsMode_ = value;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateUfsModeEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateUfsModeEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.journal.File.UpdateUfsModeEntry.class, alluxio.proto.journal.File.UpdateUfsModeEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<UpdateUfsModeEntry> PARSER =
+        new com.google.protobuf.AbstractParser<UpdateUfsModeEntry>() {
+      public UpdateUfsModeEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new UpdateUfsModeEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<UpdateUfsModeEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // optional string ufsPath = 1;
+    public static final int UFSPATH_FIELD_NUMBER = 1;
+    private java.lang.Object ufsPath_;
+    /**
+     * <code>optional string ufsPath = 1;</code>
+     */
+    public boolean hasUfsPath() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional string ufsPath = 1;</code>
+     */
+    public java.lang.String getUfsPath() {
+      java.lang.Object ref = ufsPath_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          ufsPath_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string ufsPath = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUfsPathBytes() {
+      java.lang.Object ref = ufsPath_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ufsPath_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    // optional .alluxio.proto.journal.UfsMode ufsMode = 2 [default = READ_WRITE];
+    public static final int UFSMODE_FIELD_NUMBER = 2;
+    private alluxio.proto.journal.File.UfsMode ufsMode_;
+    /**
+     * <code>optional .alluxio.proto.journal.UfsMode ufsMode = 2 [default = READ_WRITE];</code>
+     */
+    public boolean hasUfsMode() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.UfsMode ufsMode = 2 [default = READ_WRITE];</code>
+     */
+    public alluxio.proto.journal.File.UfsMode getUfsMode() {
+      return ufsMode_;
+    }
+
+    private void initFields() {
+      ufsPath_ = "";
+      ufsMode_ = alluxio.proto.journal.File.UfsMode.READ_WRITE;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBytes(1, getUfsPathBytes());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeEnum(2, ufsMode_.getNumber());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, getUfsPathBytes());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(2, ufsMode_.getNumber());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.journal.File.UpdateUfsModeEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.File.UpdateUfsModeEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateUfsModeEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.File.UpdateUfsModeEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateUfsModeEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.journal.File.UpdateUfsModeEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateUfsModeEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.journal.File.UpdateUfsModeEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateUfsModeEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.journal.File.UpdateUfsModeEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.journal.File.UpdateUfsModeEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.journal.UpdateUfsModeEntry}
+     *
+     * <pre>
+     * next available id: 3
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.UpdateUfsModeEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateUfsModeEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateUfsModeEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.journal.File.UpdateUfsModeEntry.class, alluxio.proto.journal.File.UpdateUfsModeEntry.Builder.class);
+      }
+
+      // Construct using alluxio.proto.journal.File.UpdateUfsModeEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        ufsPath_ = "";
+        bitField0_ = (bitField0_ & ~0x00000001);
+        ufsMode_ = alluxio.proto.journal.File.UfsMode.READ_WRITE;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateUfsModeEntry_descriptor;
+      }
+
+      public alluxio.proto.journal.File.UpdateUfsModeEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.File.UpdateUfsModeEntry.getDefaultInstance();
+      }
+
+      public alluxio.proto.journal.File.UpdateUfsModeEntry build() {
+        alluxio.proto.journal.File.UpdateUfsModeEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.journal.File.UpdateUfsModeEntry buildPartial() {
+        alluxio.proto.journal.File.UpdateUfsModeEntry result = new alluxio.proto.journal.File.UpdateUfsModeEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.ufsPath_ = ufsPath_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.ufsMode_ = ufsMode_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.journal.File.UpdateUfsModeEntry) {
+          return mergeFrom((alluxio.proto.journal.File.UpdateUfsModeEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.journal.File.UpdateUfsModeEntry other) {
+        if (other == alluxio.proto.journal.File.UpdateUfsModeEntry.getDefaultInstance()) return this;
+        if (other.hasUfsPath()) {
+          bitField0_ |= 0x00000001;
+          ufsPath_ = other.ufsPath_;
+          onChanged();
+        }
+        if (other.hasUfsMode()) {
+          setUfsMode(other.getUfsMode());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.journal.File.UpdateUfsModeEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.journal.File.UpdateUfsModeEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional string ufsPath = 1;
+      private java.lang.Object ufsPath_ = "";
+      /**
+       * <code>optional string ufsPath = 1;</code>
+       */
+      public boolean hasUfsPath() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional string ufsPath = 1;</code>
+       */
+      public java.lang.String getUfsPath() {
+        java.lang.Object ref = ufsPath_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          ufsPath_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string ufsPath = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getUfsPathBytes() {
+        java.lang.Object ref = ufsPath_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ufsPath_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string ufsPath = 1;</code>
+       */
+      public Builder setUfsPath(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        ufsPath_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string ufsPath = 1;</code>
+       */
+      public Builder clearUfsPath() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        ufsPath_ = getDefaultInstance().getUfsPath();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string ufsPath = 1;</code>
+       */
+      public Builder setUfsPathBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        ufsPath_ = value;
+        onChanged();
+        return this;
+      }
+
+      // optional .alluxio.proto.journal.UfsMode ufsMode = 2 [default = READ_WRITE];
+      private alluxio.proto.journal.File.UfsMode ufsMode_ = alluxio.proto.journal.File.UfsMode.READ_WRITE;
+      /**
+       * <code>optional .alluxio.proto.journal.UfsMode ufsMode = 2 [default = READ_WRITE];</code>
+       */
+      public boolean hasUfsMode() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UfsMode ufsMode = 2 [default = READ_WRITE];</code>
+       */
+      public alluxio.proto.journal.File.UfsMode getUfsMode() {
+        return ufsMode_;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UfsMode ufsMode = 2 [default = READ_WRITE];</code>
+       */
+      public Builder setUfsMode(alluxio.proto.journal.File.UfsMode value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        bitField0_ |= 0x00000002;
+        ufsMode_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UfsMode ufsMode = 2 [default = READ_WRITE];</code>
+       */
+      public Builder clearUfsMode() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        ufsMode_ = alluxio.proto.journal.File.UfsMode.READ_WRITE;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.UpdateUfsModeEntry)
+    }
+
+    static {
+      defaultInstance = new UpdateUfsModeEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.UpdateUfsModeEntry)
+  }
+
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_StringPairEntry_descriptor;
   private static
@@ -13137,6 +13797,11 @@ public final class File {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_SetAttributeEntry_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_UpdateUfsModeEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_journal_UpdateUfsModeEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -13196,8 +13861,12 @@ public final class File {
       "ted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022" +
       "\022\n\npermission\030\010 \001(\005\022<\n\tttlAction\030\t \001(\0162!" +
       ".alluxio.proto.journal.PTtlAction:\006DELET",
-      "E\022\027\n\017ufs_fingerprint\030\n \001(\t*\"\n\nPTtlAction" +
-      "\022\n\n\006DELETE\020\000\022\010\n\004FREE\020\001"
+      "E\022\027\n\017ufs_fingerprint\030\n \001(\t\"b\n\022UpdateUfsM" +
+      "odeEntry\022\017\n\007ufsPath\030\001 \001(\t\022;\n\007ufsMode\030\002 \001" +
+      "(\0162\036.alluxio.proto.journal.UfsMode:\nREAD" +
+      "_WRITE*\"\n\nPTtlAction\022\n\n\006DELETE\020\000\022\010\n\004FREE" +
+      "\020\001*7\n\007UfsMode\022\r\n\tNO_ACCESS\020\000\022\r\n\tREAD_ONL" +
+      "Y\020\001\022\016\n\nREAD_WRITE\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -13294,6 +13963,12 @@ public final class File {
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor,
               new java.lang.String[] { "Id", "OpTimeMs", "Pinned", "Ttl", "Persisted", "Owner", "Group", "Permission", "TtlAction", "UfsFingerprint", });
+          internal_static_alluxio_proto_journal_UpdateUfsModeEntry_descriptor =
+            getDescriptor().getMessageTypes().get(15);
+          internal_static_alluxio_proto_journal_UpdateUfsModeEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_UpdateUfsModeEntry_descriptor,
+              new java.lang.String[] { "UfsPath", "UfsMode", });
           return null;
         }
       };

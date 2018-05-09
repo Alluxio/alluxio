@@ -12,37 +12,44 @@
 package alluxio.master.journal;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Base implementation for journal systems.
  */
+@ThreadSafe
 public abstract class AbstractJournalSystem implements JournalSystem {
-  private volatile Mode mMode = Mode.SECONDARY;
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractJournalSystem.class);
+
+  private Mode mMode = Mode.SECONDARY;
   private boolean mRunning = false;
 
   @Override
-  public void start() throws InterruptedException, IOException {
-    Preconditions.checkState(!isRunning(), "Journal is already running");
+  public synchronized void start() throws InterruptedException, IOException {
+    Preconditions.checkState(!mRunning, "Journal is already running");
     startInternal();
     mRunning = true;
   }
 
   @Override
-  public void stop() throws InterruptedException, IOException {
-    Preconditions.checkState(isRunning(), "Journal is not running");
+  public synchronized void stop() throws InterruptedException, IOException {
+    Preconditions.checkState(mRunning, "Journal is not running");
     mRunning = false;
     stopInternal();
   }
 
   @Override
-  public void setMode(Mode mode) {
-    Preconditions.checkState(isRunning(),
-        "Cannot change journal system mode while it is not running");
+  public synchronized void setMode(Mode mode) {
+    Preconditions.checkState(mRunning, "Cannot change journal system mode while it is not running");
     if (mMode.equals(mode)) {
       return;
     }
+    LOG.info("Transitioning from {} to {}", mMode, mode);
     switch (mode) {
       case PRIMARY:
         gainPrimacy();
@@ -54,20 +61,6 @@ public abstract class AbstractJournalSystem implements JournalSystem {
         throw new IllegalStateException("Unrecognized mode: " + mode);
     }
     mMode = mode;
-  }
-
-  /**
-   * @return the current mode for the journal system
-   */
-  protected Mode getMode() {
-    return mMode;
-  }
-
-  /**
-   * @return whether the journal system is currently running
-   */
-  protected boolean isRunning() {
-    return mRunning;
   }
 
   /**

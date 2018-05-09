@@ -91,7 +91,10 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         }
       }
       if (!mWorker.unlockBlock(context.getRequest().getSessionId(), context.getRequest().getId())) {
-        mWorker.closeUfsBlock(context.getRequest().getSessionId(), context.getRequest().getId());
+        if (reader != null) {
+          mWorker.closeUfsBlock(context.getRequest().getSessionId(), context.getRequest().getId());
+          context.setBlockReader(null);
+        }
       }
     }
 
@@ -129,9 +132,6 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         return;
       }
       BlockReadRequest request = context.getRequest();
-      int retryInterval = Constants.SECOND_MS;
-      RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
-
       // TODO(calvin): Update the locking logic so this can be done better
       if (request.isPromote()) {
         try {
@@ -144,7 +144,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         }
       }
 
-      do {
+      int retryInterval = Constants.SECOND_MS;
+      RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
+      while (retryPolicy.attempt()) {
         long lockId;
         if (request.isPersisted()) {
           lockId = mWorker.lockBlockNoException(request.getSessionId(), request.getId());
@@ -181,7 +183,11 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
             context.setCounter(MetricsSystem.workerCounter(metricName));
             return;
           } catch (Exception e) {
+            // TODO(binfan): remove the closeUfsBlock here as the exception will be handled in
+            // AbstractReadHandler. Current approach to use context.blockReader as a flag is a
+            // workaround.
             mWorker.closeUfsBlock(request.getSessionId(), request.getId());
+            context.setBlockReader(null);
             throw e;
           }
         }
@@ -191,7 +197,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         // Sends an empty buffer to the client to make sure that the client does not timeout when
         // the server is waiting for the UFS block access.
         channel.writeAndFlush(new RPCProtoMessage(heartbeat));
-      } while (retryPolicy.attemptRetry());
+      }
       throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
           .getMessage(request.getId(), request.getOpenUfsBlockOptions().getUfsPath()));
     }

@@ -240,3 +240,17 @@ hive> select * from u_user;
 你可以在命令行中看到相应查询结果：
 
 ![HiveQueryResult]({{site.data.img.screenshot_hive_query_result}})
+
+
+## 检查Hive和Alluxio的集成情况 (支持 Hive 2.X)
+
+在Alluxio上运行Hive之前，您可能需要确保您的配置已正确设置，以便与Alluxio集成。 Hive集成检查器可以帮助您实现这一点。
+
+您可以在Alluxio项目目录中运行以下命令：
+
+```bash
+$ checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
+```
+
+您可以使用`-h`来显示有关该命令的有用信息。
+此命令将报告可能会阻止您在Alluxio上运行Hive的潜在问题。

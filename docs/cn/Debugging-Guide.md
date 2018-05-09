@@ -109,6 +109,12 @@ spark.executor.extraClassPath
 {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
+如果已经设置相关的classpath，但是异常仍然存在，用户可以这样检测路径是否有效：
+
+```bash
+$ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
+```
+
 #### 问题: 出现类似如下的错误信息: "Frame size (67108864) larger than max length (16777216)",这种类型错误信息出现的原因是什么?
 
 解决办法: 多种可能的原因会导致这种错误信息的出现。

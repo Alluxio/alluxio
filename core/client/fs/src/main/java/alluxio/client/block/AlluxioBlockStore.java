@@ -11,6 +11,9 @@
 
 package alluxio.client.block;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
 import alluxio.Constants;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
@@ -36,14 +39,16 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -59,7 +64,7 @@ public final class AlluxioBlockStore {
   private final TieredIdentity mTieredIdentity;
 
   /**
-   * Creates an Alluxio block store with default file system context and default local host name.
+   * Creates an Alluxio block store with default file system context and default local hostname.
    *
    * @return the {@link AlluxioBlockStore} created
    */
@@ -117,7 +122,7 @@ public final class AlluxioBlockStore {
         mContext.acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()
           .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
-          .collect(Collectors.toList());
+          .collect(toList());
     }
   }
 
@@ -131,6 +136,22 @@ public final class AlluxioBlockStore {
    * @return a stream which reads from the beginning of the block
    */
   public BlockInStream getInStream(long blockId, InStreamOptions options) throws IOException {
+    return getInStream(blockId, options, ImmutableMap.of());
+  }
+
+  /**
+   * Gets a stream to read the data of a block. This method is primarily responsible for
+   * determining the data source and type of data source. The latest BlockInfo will be fetched
+   * from the master to ensure the locations are up to date. It takes a map of failed workers and
+   * their most recently failed time and attempts to avoid reading from a recently failed worker.
+   *
+   * @param blockId the id of the block to read
+   * @param options the options associated with the read request
+   * @param failedWorkers the map of workers address to most recent failure time
+   * @return a stream which reads from the beginning of the block
+   */
+  public BlockInStream getInStream(long blockId, InStreamOptions options,
+      Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
     // Get the latest block info from master
     BlockInfo info;
     try (CloseableResource<BlockMasterClient> masterClientResource =
@@ -138,33 +159,36 @@ public final class AlluxioBlockStore {
       info = masterClientResource.get().getBlockInfo(blockId);
     }
     List<BlockLocation> locations = info.getLocations();
-    if (locations.isEmpty() && !options.getStatus().isPersisted()) {
+    List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
+    // Initial target workers to read the block given the block locations.
+    Set<WorkerNetAddress> workerPool;
+    if (options.getStatus().isPersisted()) {
+      blockWorkerInfo = getEligibleWorkers();
+      workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
+    } else {
+      workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
+    }
+    if (workerPool.isEmpty()) {
       throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
     }
-    // Determine the data source and the type of data source
+    // Workers to read the block, after considering failed workers.
+    Set<WorkerNetAddress> workers = handleFailedWorkers(workerPool, failedWorkers);
     // TODO(calvin): Consider containing these two variables in one object
     BlockInStreamSource dataSourceType = null;
     WorkerNetAddress dataSource = null;
-    if (locations.isEmpty()) { // Data will be read from UFS
-      dataSourceType = BlockInStreamSource.UFS;
-      BlockLocationPolicy policy =
-          Preconditions.checkNotNull(options.getOptions().getUfsReadLocationPolicy(),
-              PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
-      GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults().setBlockId(info.getBlockId())
-          .setBlockSize(info.getLength()).setBlockWorkerInfos(getEligibleWorkers());
-      dataSource = policy.getWorker(getWorkerOptions);
-    } else { // Data will be read from Alluxio, determine which worker and if it is local
+    locations = locations.stream()
+        .filter(location -> workers.contains(location.getWorkerAddress())).collect(toList());
+    // First try to read data from Alluxio
+    if (!locations.isEmpty()) {
       // TODO(calvin): Get location via a policy
       List<TieredIdentity> tieredLocations =
           locations.stream().map(location -> location.getWorkerAddress().getTieredIdentity())
-              .collect(Collectors.toList());
+              .collect(toList());
       Collections.shuffle(tieredLocations);
       Optional<TieredIdentity> nearest = mTieredIdentity.nearest(tieredLocations);
       if (nearest.isPresent()) {
-        dataSource = info.getLocations().stream()
-            .map(BlockLocation::getWorkerAddress)
-            .filter(a -> a.getTieredIdentity().equals(nearest.get()))
-            .findFirst().get();
+        dataSource = locations.stream().map(BlockLocation::getWorkerAddress)
+            .filter(addr -> addr.getTieredIdentity().equals(nearest.get())).findFirst().get();
         if (mTieredIdentity.getTier(0).getTierName().equals(Constants.LOCALITY_NODE)
             && mTieredIdentity.topTiersMatch(nearest.get())) {
           dataSourceType = BlockInStreamSource.LOCAL;
@@ -173,11 +197,36 @@ public final class AlluxioBlockStore {
         }
       }
     }
+    // Can't get data from Alluxio, get it from the UFS instead
+    if (dataSource == null) {
+      dataSourceType = BlockInStreamSource.UFS;
+      BlockLocationPolicy policy =
+          Preconditions.checkNotNull(options.getOptions().getUfsReadLocationPolicy(),
+              PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
+      blockWorkerInfo = blockWorkerInfo.stream()
+          .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
+      GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults().setBlockId(info.getBlockId())
+          .setBlockSize(info.getLength()).setBlockWorkerInfos(blockWorkerInfo);
+      dataSource = policy.getWorker(getWorkerOptions);
+    }
     if (dataSource == null) {
       throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
-
     return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
+  }
+
+  private Set<WorkerNetAddress> handleFailedWorkers(Set<WorkerNetAddress> workers,
+      Map<WorkerNetAddress, Long> failedWorkers) {
+    if (workers.isEmpty()) {
+      return Collections.EMPTY_SET;
+    }
+    Set<WorkerNetAddress> nonFailed =
+        workers.stream().filter(worker -> !failedWorkers.containsKey(worker)).collect(toSet());
+    if (nonFailed.isEmpty()) {
+      return Collections.singleton(workers.stream()
+          .min((x, y) -> Long.compare(failedWorkers.get(x), failedWorkers.get(y))).get());
+    }
+    return nonFailed;
   }
 
   /**

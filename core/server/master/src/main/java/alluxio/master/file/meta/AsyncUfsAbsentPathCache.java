@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
@@ -164,8 +165,12 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
           return false;
         }
 
-        UnderFileSystem ufs = resolution.getUfs();
-        if (ufs.exists(resolution.getUri().toString())) {
+        boolean existsInUfs;
+        try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+          UnderFileSystem ufs = ufsResource.get();
+          existsInUfs = ufs.exists(resolution.getUri().toString());
+        }
+        if (existsInUfs) {
           // This ufs path exists. Remove the cache entry.
           mCache.invalidate(alluxioUri.getPath());
         } else {

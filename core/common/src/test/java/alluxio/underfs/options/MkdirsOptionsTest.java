@@ -12,7 +12,7 @@
 package alluxio.underfs.options;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Configuration;
@@ -41,8 +41,8 @@ public final class MkdirsOptionsTest {
     // Verify the default createParent is true.
     assertTrue(options.getCreateParent());
     // Verify that the owner and group are not set.
-    assertEquals("", options.getOwner());
-    assertEquals("", options.getGroup());
+    assertNull(options.getOwner());
+    assertNull(options.getGroup());
     assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
   }
 
@@ -63,8 +63,8 @@ public final class MkdirsOptionsTest {
     // Verify the default createParent is true.
     assertTrue(options.getCreateParent());
     // Verify that the owner and group are not set.
-    assertEquals("", options.getOwner());
-    assertEquals("", options.getGroup());
+    assertNull(options.getOwner());
+    assertNull(options.getGroup());
     assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
   }
 

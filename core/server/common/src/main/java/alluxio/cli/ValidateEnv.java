@@ -12,7 +12,9 @@
 package alluxio.cli;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.cli.validation.ClusterConfConsistencyValidationTask;
 import alluxio.cli.validation.HdfsValidationTask;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
 import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
@@ -20,6 +22,7 @@ import alluxio.cli.validation.SecureHdfsValidationTask;
 import alluxio.cli.validation.StorageSpaceValidationTask;
 import alluxio.cli.validation.SshValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
+import alluxio.cli.validation.UfsSuperUserValidationTask;
 import alluxio.cli.validation.UserLimitValidationTask;
 import alluxio.cli.validation.Utils;
 import alluxio.cli.validation.ValidationTask;
@@ -78,6 +81,7 @@ public final class ValidateEnv {
   private static final String ALLUXIO_PROXY_CLASS = "alluxio.proxy.AlluxioProxy";
 
   private static final List<ValidationTask> COMMON_TASKS = new ArrayList<>();
+  private static final List<ValidationTask> CLUSTER_TASKS = new ArrayList<>();
   private static final List<ValidationTask> MASTER_TASKS = new ArrayList<>();
   private static final List<ValidationTask> WORKER_TASKS = new ArrayList<>();
 
@@ -133,6 +137,9 @@ public final class ValidateEnv {
     registerTask("ufs.root.accessible",
         "validate root under file system location is accessible",
         new UfsDirectoryValidationTask(), COMMON_TASKS);
+    registerTask("ufs.root.superuser",
+        "validate Alluxio has super user privilege on root under file system",
+        new UfsSuperUserValidationTask(), COMMON_TASKS);
 
     // RAM disk validations
     registerTask("worker.ramdisk.mount.privilege",
@@ -152,6 +159,9 @@ public final class ValidateEnv {
     registerTask("worker.storage.space",
         "validate tiered storage locations have enough space",
         new StorageSpaceValidationTask(), WORKER_TASKS);
+    registerTask("cluster.conf.consistent",
+        "validate configuration consistency across the cluster",
+        new ClusterConfConsistencyValidationTask(), CLUSTER_TASKS);
   }
 
   private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
@@ -166,6 +176,7 @@ public final class ValidateEnv {
     allWorkerTasks.addAll(WORKER_TASKS);
     targetMap.put("worker", allWorkerTasks);
     targetMap.put("local", TASKS.keySet());
+    targetMap.put("cluster", new ArrayList<>(CLUSTER_TASKS));
     return targetMap;
   }
 
@@ -232,35 +243,56 @@ public final class ValidateEnv {
   private static boolean validateLocal(String target, String name, CommandLine cmd)
       throws InterruptedException {
     int validationCount = 0;
-    int failureCount = 0;
+    Map<ValidationTask.TaskResult, Integer> results = new HashMap<>();
     Map<String, String> optionsMap = new HashMap<>();
     for (Option opt : cmd.getOptions()) {
       optionsMap.put(opt.getOpt(), opt.getValue());
     }
     Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
+    System.out.format("Validating %s environment...%n", target);
     for (ValidationTask task: tasks) {
       String taskName = TASKS.get(task);
       if (name != null && !taskName.startsWith(name)) {
         continue;
       }
       System.out.format("Validating %s...%n", taskName);
-      if (task.shouldSkip()) {
-        continue;
+      ValidationTask.TaskResult result = task.validate(optionsMap);
+      results.put(result, results.getOrDefault(result, 0) + 1);
+      switch (result) {
+        case OK:
+          System.out.print(Constants.ANSI_GREEN);
+          break;
+        case WARNING:
+          System.out.print(Constants.ANSI_YELLOW);
+          break;
+        case FAILED:
+          System.out.print(Constants.ANSI_RED);
+          break;
+        case SKIPPED:
+          System.out.print(Constants.ANSI_PURPLE);
+          break;
+        default:
+          break;
       }
-      if (task.validate(optionsMap)) {
-        System.out.println("OK");
-      } else {
-        System.err.println("Failed");
-        failureCount++;
-      }
+      System.out.print(result.name());
+      System.out.println(Constants.ANSI_RESET);
       validationCount++;
     }
-    if (failureCount > 0) {
-      System.err.format("Validation failed. Total failures: %d.%n", failureCount);
-      return false;
+    if (results.containsKey(ValidationTask.TaskResult.FAILED)) {
+      System.err.format("%d failures ", results.get(ValidationTask.TaskResult.FAILED));
     }
+    if (results.containsKey(ValidationTask.TaskResult.WARNING)) {
+      System.err.format("%d warnings ", results.get(ValidationTask.TaskResult.WARNING));
+    }
+    if (results.containsKey(ValidationTask.TaskResult.SKIPPED)) {
+      System.err.format("%d skipped ", results.get(ValidationTask.TaskResult.SKIPPED));
+    }
+    System.err.println();
     if (validationCount == 0) {
       System.err.format("No validation task matched name \"%s\".%n", name);
+      return false;
+    }
+    if (results.containsKey(ValidationTask.TaskResult.FAILED)) {
       return false;
     }
     System.out.println("Validation succeeded.");
@@ -288,6 +320,7 @@ public final class ValidateEnv {
   private static void printTasks() {
     printTasks("master");
     printTasks("worker");
+    printTasks("cluster");
   }
 
   private static int runTasks(String target, String name, CommandLine cmd)
@@ -302,6 +335,7 @@ public final class ValidateEnv {
       case "all":
         success = validateMasters(name, cmd);
         success = validateWorkers(name, cmd) && success;
+        success = validateLocal("cluster", name, cmd) && success;
         break;
       case "workers":
         success = validateWorkers(name, cmd);

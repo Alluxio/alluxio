@@ -15,6 +15,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
+import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -31,7 +32,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Unit tests for the {@link LocalUnderFileSystem}.
@@ -166,6 +169,18 @@ public class LocalUnderFileSystemTest {
     List<String> fileLocations = mLocalUfs.getFileLocations(filepath);
     assertEquals(1, fileLocations.size());
     assertEquals(NetworkAddressUtils.getLocalHostName(), fileLocations.get(0));
+  }
+
+  @Test
+  public void getOperationMode() throws IOException {
+    Map<String, UnderFileSystem.UfsMode> physicalUfsState = new Hashtable<>();
+    // Check default
+    Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE,
+        mLocalUfs.getOperationMode(physicalUfsState));
+    // Check NO_ACCESS mode
+    physicalUfsState.put(AlluxioURI.SEPARATOR, UnderFileSystem.UfsMode.NO_ACCESS);
+    Assert.assertEquals(UnderFileSystem.UfsMode.NO_ACCESS,
+        mLocalUfs.getOperationMode(physicalUfsState));
   }
 
   @Test

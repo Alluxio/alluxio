@@ -21,6 +21,7 @@ Following is a list of under storage extension projects:
 
 - [S3N](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/s3n)
 - [GlusterFS](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/glusterfs) 
+- [OBS](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs) 
 
 # Managing Extensions
 

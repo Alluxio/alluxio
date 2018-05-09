@@ -12,8 +12,10 @@
 package alluxio.clock;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 /**
  * A manually set clock useful for testing.
@@ -55,6 +57,15 @@ public final class ManualClock extends Clock {
     mTimeMs += timeMs;
   }
 
+  /**
+   * Moves the clock forward the specified duration.
+   *
+   * @param time the duration to add
+   */
+  public synchronized void addTime(Duration time) {
+    mTimeMs += time.toMillis();
+  }
+
   @Override
   public synchronized long millis() {
     return mTimeMs;
@@ -62,16 +73,16 @@ public final class ManualClock extends Clock {
 
   @Override
   public ZoneId getZone() {
-    return null;
+    return ZoneOffset.UTC;
   }
 
   @Override
   public Clock withZone(ZoneId zone) {
-    return null;
+    throw new UnsupportedOperationException("ManualClock only uses UTC");
   }
 
   @Override
   public Instant instant() {
-    return null;
+    return Instant.ofEpochMilli(mTimeMs);
   }
 }

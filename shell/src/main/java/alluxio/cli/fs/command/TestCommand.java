@@ -12,9 +12,11 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -74,8 +76,8 @@ public final class TestCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public int getNumOfArgs() {
-    return 1;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override
@@ -172,11 +174,6 @@ public final class TestCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getDescription() {
-    return "Test a property of a path, returning 0 if the property is true, or 1 otherwise."
-        + " Specify -d to test whether the path is a directory,"
-        + " Specify -f to test whether the path is a file,"
-        + " Specify -e to test whether the path exists,"
-        + " Specify -s to test whether the directory is not empty,"
-        + " Specify -z to test whether the file is zero length,";
+    return "Test a property of a path, returning 0 if the property is true, or 1 otherwise.";
   }
 }

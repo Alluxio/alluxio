@@ -255,6 +255,9 @@
 
     <!-- Checks that there is whitespace after various tokens. -->
     <module name="WhitespaceAfter"/>
+
+    <!-- Allows SuppressionCommentFilter to access module contents. -->
+    <module name="FileContentsHolder"/>
   </module>
 
   <!-- always use Unix-style line separators -->
@@ -265,5 +268,11 @@
     <property name="format" value="\s+$"/>
     <property name="message" value="Trailing whitespace found."/>
     <property name="fileExtensions" value=".java"/>
+  </module>
+
+  <!-- Disables checkstyle for particular lines of codes. -->
+  <module name="SuppressionCommentFilter">
+    <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
+    <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
   </module>
 </module>

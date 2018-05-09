@@ -32,7 +32,13 @@ public final class Fingerprint {
   /** These tags are optional, and are serialized after the required tags. */
   private static final Tag[] OPTIONAL_TAGS = {Tag.CONTENT_HASH};
 
+  /** These tags are all the metadata tags in the fingerprints. */
+  private static final Tag[] METADATA_TAGS = {Tag.OWNER, Tag.GROUP, Tag.MODE};
+  /** These tags are all the content tags in the fingerprints. */
+  private static final Tag[] CONTENT_TAGS = {Tag.TYPE, Tag.UFS, Tag.CONTENT_HASH};
+
   private static final Pattern SANITIZE_REGEX = Pattern.compile("[ :]");
+  private static final String UNDERSCORE = "_";
 
   private final Map<Tag, String> mValues;
 
@@ -57,19 +63,9 @@ public final class Fingerprint {
   }
 
   /**
-   * Returns the ufs name for fingerprints.
-   *
-   * @param ufs the {@link UnderFileSystem} to get the name for
-   * @return the name of the UFS, for fingerprints
-   */
-  public static String getUfsName(UnderFileSystem ufs) {
-    return ufs.getClass().getSimpleName();
-  }
-
-  /**
    * Parses the input string and returns the fingerprint object.
    *
-   * @param ufsName the name of the ufs, calculated by {@link #getUfsName(UnderFileSystem)}
+   * @param ufsName the name of the ufs, should be {@link UnderFileSystem#getUnderFSType()}
    * @param status the {@link UfsStatus} to create the fingerprint from
    * @return the fingerprint object
    */
@@ -123,6 +119,26 @@ public final class Fingerprint {
   }
 
   /**
+   * Checks if the fingerprint object was generated from an INVALID_UFS_FINGERPRINT.
+   *
+   * @return returns true if the fingerprint is valid
+   */
+  public boolean isValid() {
+    if (mValues.isEmpty()) {
+      return false;
+    }
+
+    // Check required tags
+    for (Tag tag : REQUIRED_TAGS) {
+      if (!mValues.containsKey(tag)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * @return the serialized string of the fingerprint
    */
   public String serialize() {
@@ -144,16 +160,58 @@ public final class Fingerprint {
   }
 
   /**
+   * Returns true if the serialized fingerprint matches the fingerprint in metadata.
+   *
+   * @param fp a parsed fingerprint object
+   * @return true if the given fingerprint matches the current fingerprint in metadata
+   */
+  public boolean matchMetadata(Fingerprint fp) {
+    for (Tag tag : METADATA_TAGS) {
+      if (!getTag(tag).equals(fp.getTag(tag))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Returns true if the serialized fingerprint matches the fingerprint in the content part.
+   *
+   * @param fp a parsed fingerprint object
+   * @return true if the given fingerprint matches the current fingerprint's content
+   */
+  public boolean matchContent(Fingerprint fp) {
+    for (Tag tag : CONTENT_TAGS) {
+      if (!getTag(tag).equals(fp.getTag(tag))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Updates a specific tag in the fingerprint. If the new value is null, the fingerprint is kept
    * unchanged.
    *
    * @param tag the tag to update
    * @param value the new value of the tag
    */
-  public void updateTag(Tag tag, String value) {
+  public void putTag(Tag tag, String value) {
     if (value != null) {
       mValues.put(tag, sanitizeString(value));
     }
+  }
+
+  /**
+   * @param tag the tag to get
+   * @return the value of the tag
+   */
+  public String getTag(Tag tag) {
+    String value = mValues.get(tag);
+    if (value == null) {
+      return UNDERSCORE;
+    }
+    return value;
   }
 
   private Fingerprint(Map<Tag, String> values) {
@@ -163,22 +221,10 @@ public final class Fingerprint {
     }
   }
 
-  private void putTag(Tag tag, String value) {
-    mValues.put(tag, sanitizeString(value));
-  }
-
-  private String getTag(Tag tag) {
-    String value = mValues.get(tag);
-    if (value == null) {
-      return "_";
-    }
-    return value;
-  }
-
   private String sanitizeString(String input) {
     if (input == null || input.isEmpty()) {
-      return "_";
+      return UNDERSCORE;
     }
-    return SANITIZE_REGEX.matcher(input).replaceAll("_");
+    return SANITIZE_REGEX.matcher(input).replaceAll(UNDERSCORE);
   }
 }

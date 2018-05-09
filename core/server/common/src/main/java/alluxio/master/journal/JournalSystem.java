@@ -20,7 +20,7 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import java.io.IOException;
 import java.net.URI;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A journal system for storing and applying journal entries.
@@ -51,23 +51,24 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Journal fileSystemMasterJournal = journalSystem.createJournal(fileSystemMaster);
  *
  * // The journal system always starts in secondary mode. It must be transitioned to primary mode
- * // before it can serve RPC requests.
+ * // before it can write entries.
  * journalSystem.start();
  * journalSystem.setPrimary(true);
  *
- * blockMasterJournal.write(exampleBlockJournalEntry);
- * blockMasterJournal.flush();
+ * try (JournalContext c = blockMasterJournal.createJournalContext()) {
+ *   c.append(exampleBlockJournalEntry);
+ * }
  * // At this point, the journal entry is persistently committed to the journal and will be applied
  * // asynchronously to the in-memory state of all secondary masters.
- * fileSystemMasterJournal.write(exampleFileSystemJournalEntry);
- * fileSystemMasterJournal.flush();
- *
+ * try (JournalContext c = fileSystemMasterJournal.createJournalContext()) {
+ *   c.append(exampleFileSystemJournalEntry);
+ * }
  * // Transition to a secondary journal. In this mode, the journal will apply entries to the masters
  * // as they are committed to the log.
  * journalSystem.setPrimary(false);
  * </pre>
  */
-@NotThreadSafe
+@ThreadSafe
 public interface JournalSystem {
 
   /**
@@ -90,17 +91,14 @@ public interface JournalSystem {
   /**
    * Creates a journal for the given state machine.
    *
-   * The returned journal can use the {@link Journal#write(JournalEntry)} method to write journal
-   * entries. However, no entries may be written until the journal system has been started, and
-   * entries may only be written when the journal system is in PRIMARY mode.
+   * The returned journal can create journal contexts for writing journal entries. However, no
+   * entries may be written until the journal system has been started, and entries may only be
+   * written when the journal system is in PRIMARY mode.
    *
    * When the journal is started in secondary mode, it will call
    * {@link JournalEntryStateMachine#processJournalEntry(JournalEntry)} and
    * {@link JournalEntryStateMachine#resetState()} to keep the state machine's state in sync with
    * the entries written to the journal.
-   *
-   * Although the JournalSystem interface is generally not threadsafe, it is required that
-   * implementations of JournalSystem support concurrent invocations of this method.
    *
    * @param stateMachine the state machine to create the journal for
    * @return a new instance of {@link Journal}

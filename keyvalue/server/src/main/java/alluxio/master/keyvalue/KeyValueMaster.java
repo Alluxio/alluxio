@@ -17,6 +17,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.thrift.PartitionInfo;
 
@@ -38,8 +39,8 @@ public interface KeyValueMaster extends Master {
    * @throws FileDoesNotExistException if the key-value store URI does not exists
    * @throws InvalidPathException if the path is invalid
    */
-  void completePartition(AlluxioURI path, PartitionInfo info)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException;
+  void completePartition(AlluxioURI path, PartitionInfo info) throws AccessControlException,
+      FileDoesNotExistException, InvalidPathException, UnavailableException;
 
   /**
    * Marks a key-value store complete.
@@ -49,8 +50,8 @@ public interface KeyValueMaster extends Master {
    * @throws InvalidPathException if the path is not valid
    * @throws AccessControlException if permission checking fails
    */
-  void completeStore(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException;
+  void completeStore(AlluxioURI path) throws FileDoesNotExistException, InvalidPathException,
+      AccessControlException, UnavailableException;
 
   /**
    * Creates a new key-value store.
@@ -60,8 +61,8 @@ public interface KeyValueMaster extends Master {
    * @throws InvalidPathException if the given path is invalid
    * @throws AccessControlException if permission checking fails
    */
-  void createStore(AlluxioURI path)
-      throws FileAlreadyExistsException, InvalidPathException, AccessControlException;
+  void createStore(AlluxioURI path) throws FileAlreadyExistsException, InvalidPathException,
+      AccessControlException, UnavailableException;
 
   /**
    * Deletes a completed key-value store.
@@ -70,8 +71,8 @@ public interface KeyValueMaster extends Master {
    * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
    */
-  void deleteStore(AlluxioURI uri)
-      throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException;
+  void deleteStore(AlluxioURI uri) throws IOException, InvalidPathException,
+      FileDoesNotExistException, AlluxioException, UnavailableException;
 
   /**
    * Renames one completed key-value store.
@@ -79,7 +80,8 @@ public interface KeyValueMaster extends Master {
    * @param oldUri the old {@link AlluxioURI} to the store
    * @param newUri the {@link AlluxioURI} to the store
    */
-  void renameStore(AlluxioURI oldUri, AlluxioURI newUri) throws IOException, AlluxioException;
+  void renameStore(AlluxioURI oldUri, AlluxioURI newUri)
+      throws IOException, AlluxioException, UnavailableException;
 
   /**
    * Merges one completed key-value store to another completed key-value store.
@@ -89,8 +91,8 @@ public interface KeyValueMaster extends Master {
    * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
    */
-  void mergeStore(AlluxioURI fromUri, AlluxioURI toUri)
-      throws IOException, FileDoesNotExistException, InvalidPathException, AlluxioException;
+  void mergeStore(AlluxioURI fromUri, AlluxioURI toUri) throws IOException,
+      FileDoesNotExistException, InvalidPathException, AlluxioException, UnavailableException;
 
   /**
    * Gets a list of partitions of a given key-value store.
@@ -101,6 +103,6 @@ public interface KeyValueMaster extends Master {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  List<PartitionInfo> getPartitionInfo(AlluxioURI path)
-      throws FileDoesNotExistException, AccessControlException, InvalidPathException;
+  List<PartitionInfo> getPartitionInfo(AlluxioURI path) throws FileDoesNotExistException,
+      AccessControlException, InvalidPathException, UnavailableException;
 }

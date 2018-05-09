@@ -67,7 +67,7 @@ public interface LineageMaster extends Master {
    * @throws LineageDeletionException the lineage deletion fails
    */
   boolean deleteLineage(long lineageId, boolean cascade)
-      throws LineageDoesNotExistException, LineageDeletionException;
+      throws LineageDoesNotExistException, LineageDeletionException, UnavailableException;
 
   /**
    * Reinitializes the file when the file is lost or not completed.

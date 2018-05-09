@@ -21,6 +21,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A rule for login an Alluxio user during a test suite. It sets
  * {@link PropertyKey#SECURITY_LOGIN_USERNAME} to the specified user name during the lifetime
  * of this rule.
+ *
+ * NOTE: If this rule is used in conjunction with LocalAlluxioClusterResource, it must be ordered to
+ * be second within a RuleChain.
  */
 @NotThreadSafe
 public final class LoginUserRule extends AbstractResourceRule {

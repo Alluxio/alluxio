@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -39,16 +40,13 @@ import org.mockito.Mockito;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 
 /**
  * Unit tests for the {@link S3AUnderFileSystem}.
  */
 public class S3AUnderFileSystemTest {
-  private S3AUnderFileSystem mS3UnderFileSystem;
-  private AmazonS3Client mClient;
-  private TransferManager mManager;
-
   private static final String PATH = "path";
   private static final String SRC = "src";
   private static final String DST = "dst";
@@ -57,6 +55,10 @@ public class S3AUnderFileSystemTest {
   private static final String DEFAULT_OWNER = "";
   private static final short DEFAULT_MODE = 0700;
 
+  private S3AUnderFileSystem mS3UnderFileSystem;
+  private AmazonS3Client mClient;
+  private TransferManager mManager;
+
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
@@ -64,8 +66,8 @@ public class S3AUnderFileSystemTest {
   public void before() throws InterruptedException, AmazonClientException {
     mClient = Mockito.mock(AmazonS3Client.class);
     mManager = Mockito.mock(TransferManager.class);
-    mS3UnderFileSystem = new S3AUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        mManager, UnderFileSystemConfiguration.defaults());
+    mS3UnderFileSystem = new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient,
+        BUCKET_NAME, mManager, UnderFileSystemConfiguration.defaults());
   }
 
   @Test
@@ -156,5 +158,32 @@ public class S3AUnderFileSystemTest {
     Assert.assertEquals(DEFAULT_OWNER, permissions.getGroup());
     Assert.assertEquals(DEFAULT_OWNER, permissions.getOwner());
     Assert.assertEquals(DEFAULT_MODE, permissions.getMode());
+  }
+
+  @Test
+  public void getOperationMode() throws Exception {
+    Map<String, UnderFileSystem.UfsMode> physicalUfsState = new Hashtable<>();
+    // Check default
+    Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE,
+        mS3UnderFileSystem.getOperationMode(physicalUfsState));
+    physicalUfsState.put(new AlluxioURI("swift://" + BUCKET_NAME).getRootPath(),
+        UnderFileSystem.UfsMode.NO_ACCESS);
+    Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE,
+        mS3UnderFileSystem.getOperationMode(physicalUfsState));
+    // Check setting NO_ACCESS mode
+    physicalUfsState.put(new AlluxioURI("s3a://" + BUCKET_NAME).getRootPath(),
+        UnderFileSystem.UfsMode.NO_ACCESS);
+    Assert.assertEquals(UnderFileSystem.UfsMode.NO_ACCESS,
+        mS3UnderFileSystem.getOperationMode(physicalUfsState));
+    // Check setting READ_ONLY mode
+    physicalUfsState.put(new AlluxioURI("s3a://" + BUCKET_NAME).getRootPath(),
+        UnderFileSystem.UfsMode.READ_ONLY);
+    Assert.assertEquals(UnderFileSystem.UfsMode.READ_ONLY,
+        mS3UnderFileSystem.getOperationMode(physicalUfsState));
+    // Check setting READ_WRITE mode
+    physicalUfsState.put(new AlluxioURI("s3a://" + BUCKET_NAME).getRootPath(),
+        UnderFileSystem.UfsMode.READ_WRITE);
+    Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE,
+        mS3UnderFileSystem.getOperationMode(physicalUfsState));
   }
 }

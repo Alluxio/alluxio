@@ -26,6 +26,7 @@ import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
@@ -249,6 +250,15 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public synchronized void unmount(final AlluxioURI alluxioPath) throws AlluxioStatusException {
     retryRPC(() -> {
       mClient.unmount(alluxioPath.toString(), new UnmountTOptions());
+      return null;
+    });
+  }
+
+  @Override
+  public synchronized void updateUfsMode(final AlluxioURI ufsUri,
+      final UpdateUfsModeOptions options) throws AlluxioStatusException {
+    retryRPC(() -> {
+      mClient.updateUfsMode(ufsUri.getRootPath(), options.toThrift());
       return null;
     });
   }

@@ -12,9 +12,11 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -41,17 +43,22 @@ public final class TouchCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
+  }
+
+  @Override
+  protected void runPlainPath(AlluxioURI inputPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    mFileSystem.createFile(inputPath, CreateFileOptions.defaults()).close();
+    System.out.println(inputPath + " has been created");
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
-
-    mFileSystem.createFile(inputPath, CreateFileOptions.defaults()).close();
-    System.out.println(inputPath + " has been created");
+    runWildCardCmd(inputPath, cl);
     return 0;
   }
 

@@ -12,8 +12,9 @@
 package alluxio.master.journal;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.exception.JournalClosedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
@@ -33,8 +34,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class MasterJournalContext implements JournalContext {
   private static final Logger LOG = LoggerFactory.getLogger(MasterJournalContext.class);
   private static final long INVALID_FLUSH_COUNTER = -1;
-  private static final long JOURNAL_FLUSH_RETRY_TIMEOUT_MS =
+  private static final long FLUSH_RETRY_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
+  private static final int FLUSH_RETRY_INTERVAL_MS =
+      (int) Configuration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_RETRY_INTERVAL);
 
   private final AsyncJournalWriter mAsyncJournalWriter;
   private long mFlushCounter;
@@ -59,19 +62,22 @@ public final class MasterJournalContext implements JournalContext {
    * Waits for the flush counter to be flushed to the journal. If the counter is
    * {@link #INVALID_FLUSH_COUNTER}, this is a noop.
    */
-  private void waitForJournalFlush() {
+  private void waitForJournalFlush() throws UnavailableException {
     if (mFlushCounter == INVALID_FLUSH_COUNTER) {
       // Check this before the precondition.
       return;
     }
 
-    RetryPolicy retry = new TimeoutRetry(JOURNAL_FLUSH_RETRY_TIMEOUT_MS, Constants.SECOND_MS);
-    while (retry.attemptRetry()) {
+    RetryPolicy retry = new TimeoutRetry(FLUSH_RETRY_TIMEOUT_MS, FLUSH_RETRY_INTERVAL_MS);
+    while (retry.attempt()) {
       try {
         mAsyncJournalWriter.flush(mFlushCounter);
         return;
       } catch (IOException e) {
         LOG.warn("Journal flush failed. retrying...", e);
+      } catch (JournalClosedException e) {
+        throw new UnavailableException(String.format("Failed to complete request: %s",
+            e.getMessage()), e);
       } catch (Throwable e) {
         LOG.error("Journal flush failed. Terminating process to prevent inconsistency.", e);
         if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
@@ -82,16 +88,16 @@ public final class MasterJournalContext implements JournalContext {
     }
     LOG.error(
         "Journal flush failed after {} attempts. Terminating process to prevent inconsistency.",
-        retry.getRetryCount());
+        retry.getAttemptCount());
     if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-      throw new RuntimeException("Journal flush failed after " + retry.getRetryCount()
+      throw new RuntimeException("Journal flush failed after " + retry.getAttemptCount()
           + " attempts. Terminating process to prevent inconsistency.");
     }
     System.exit(-1);
   }
 
   @Override
-  public void close() {
+  public void close() throws UnavailableException {
     waitForJournalFlush();
   }
 }

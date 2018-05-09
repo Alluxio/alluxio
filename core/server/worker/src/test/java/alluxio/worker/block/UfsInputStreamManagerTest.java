@@ -22,6 +22,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.Invocation;
 
 import java.io.Closeable;
 import java.io.InputStream;
@@ -120,30 +121,45 @@ public final class UfsInputStreamManagerTest {
    */
   @Test
   public void testConcurrency() throws Exception {
-    mManager = new UfsInputStreamManager();
-    List<Thread> threads = new ArrayList<>();
-    int numCheckOutPerThread = 10;
-    for (int i = 0; i < mNumOfInputStreams / 2; i++) {
-      Runnable runnable = () -> {
-        for (int j = 0; j < numCheckOutPerThread; j++) {
-          InputStream instream;
-          try {
-            instream =
-                mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(j));
-            Thread.sleep(10);
-            mManager.release(instream);
-          } catch (Exception e) {
-            // the input streams created should not be more than mNumOfInputStreams
-            Assert.fail("input stream check in and out failed." + e);
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+      {
+        // use very large number
+        put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "200000");
+      }
+    }).toResource()) {
+      mManager = new UfsInputStreamManager();
+      List<Thread> threads = new ArrayList<>();
+      int numCheckOutPerThread = 10;
+      for (int i = 0; i < mNumOfInputStreams / 2; i++) {
+        Runnable runnable = () -> {
+          for (int j = 0; j < numCheckOutPerThread; j++) {
+            InputStream instream;
+            try {
+              instream =
+                  mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(j));
+              Thread.sleep(10);
+              mManager.release(instream);
+            } catch (Exception e) {
+              // the input streams created should not be more than mNumOfInputStreams
+              Assert.fail("input stream check in and out failed." + e);
+            }
+          }
+        };
+        threads.add(new Thread(runnable));
+      }
+      ConcurrencyUtils.assertConcurrent(threads, 30);
+      // Each subsequent check out per thread should be a seek operation
+      int numSeek = 0;
+      for (int i = 0; i < mNumOfInputStreams; i++) {
+        for (Invocation invocation : Mockito.mockingDetails(mSeekableInStreams[i])
+            .getInvocations()) {
+          if (invocation.getMethod().getName().equals("seek")) {
+            numSeek++;
           }
         }
-      };
-      threads.add(new Thread(runnable));
+      }
+      Assert.assertEquals(mNumOfInputStreams / 2 * (numCheckOutPerThread - 1), numSeek);
     }
-    ConcurrencyUtils.assertConcurrent(threads, 30);
-    // Each subsequent check out per thread should be a seek operation
-    Mockito.verify(mSeekableInStreams[0], Mockito.times(numCheckOutPerThread - 1))
-        .seek(Mockito.anyLong());
   }
 
   /**

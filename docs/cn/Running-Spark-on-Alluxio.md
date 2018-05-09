@@ -23,7 +23,9 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 
 * 我们建议您从Alluxio[下载页面](http://www.alluxio.org/download)下载tarball.
   另外，高级用户可以选择根据[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)的说明将源代码编译为客户端jar包，并在本文余下部分使用于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`路径处生成的jar包。
-  
+
+* 为使Spark应用程序能够在Alluxio中读写文件， 必须将Alluxio客户端jar包分布在不同节点的应用程序的classpath中（每个节点必须使客户端jar包具有相同的本地路径{{site.ALLUXIO_CLIENT_JAR_PATH}}）
+
 * 请添加如下代码到`spark/conf/spark-defaults.conf`。
 
 ```bash
@@ -44,22 +46,51 @@ spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 </configuration>
 ```
 
-
-* 如果你使用zookeeper让Alluxio运行在容错模式并且Hadoop集群是1.x，添加如下内容到先前创建的`spark/conf/core-site.xml`:
-
-```xml
-<property>
-  <name>fs.alluxio-ft.impl</name>
-  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
-</property>
-```
-
-以及如下内容到`spark/conf/spark-defaults.conf`:
+* 如果你使用zookeeper让Alluxio运行在容错模式，添加如下内容到`${SPARK_HOME}/conf/spark-defaults.conf`:
 
 ```bash
 spark.driver.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
 spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
 ```
+或者你可以添加内容到先前创建的Hadoop配置文件中`${SPARK_HOME}/conf/core-site.xml`:
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>[zookeeper_hostname]:2181</value>
+  </property>
+</configuration>
+```
+
+## 检查Spark与Alluxio的集成性 (支持Spark 2.X)
+
+在Alluxio上运行Spark之前，你需要确认你的Spark配置已经正确设置集成了Alluxio。Spark集成检查器可以帮助你确认。 
+
+当你运行Saprk集群(或单机运行)时,你可以在Alluxio项目目录运行以下命令:
+
+```bash
+$ checker/bin/alluxio-checker.sh spark <spark master uri> <spark partition number(optional)>
+```
+
+## 检查Spark和Alluxio的一体化（支持Spark 2.x）
+
+在Alluxio上运行Spark前，你可能想确定你的Spark与Alluxio一体化的配置已经正确设置了。Spark一体化检查器可以帮你实现这一点。
+
+当你拥有一个正在运行的Spark集群（或者Spark单机），你可以在Alluxio项目目录下运行以下的命令：
+
+```bash
+$ checker/bin/alluxio-checker.sh spark <spark master uri> <spark partition number(optional)>
+```
+
+这将会报告可能阻止你在Alluxio上运行Spark的潜在问题。
+
+你可以使用`-h`来显示关于这个命令的有用信息。这条命令将报告潜在的问题，可能会阻碍你在Alluxio上运行Spark。 
+
 
 ## 使用Alluxio作为输入输出
 

@@ -19,7 +19,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class UfsDirectoryStatus extends UfsStatus {
   /**
-   * Creates new instance of {@link UfsDirectoryStatus}.
+   * Creates new instance of {@link UfsDirectoryStatus} without providing last modified time.
    *
    * @param name relative path of directory
    * @param owner of the directory
@@ -27,7 +27,21 @@ public class UfsDirectoryStatus extends UfsStatus {
    * @param mode of the directory
    */
   public UfsDirectoryStatus(String name, String owner, String group, short mode) {
-    super(name, true, owner, group, mode);
+    super(name, true, owner, group, mode, null);
+  }
+
+  /**
+   * Creates new instance of {@link UfsDirectoryStatus}.
+   *
+   * @param name relative path of directory
+   * @param owner of the directory
+   * @param group of the directory
+   * @param mode of the directory
+   * @param lastModifiedTimeMs of the directory
+   */
+  public UfsDirectoryStatus(String name, String owner, String group, short mode,
+      long lastModifiedTimeMs) {
+    super(name, true, owner, group, mode, lastModifiedTimeMs);
   }
 
   /**

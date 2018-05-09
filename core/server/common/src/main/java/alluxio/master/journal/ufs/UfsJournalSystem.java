@@ -13,6 +13,8 @@ package alluxio.master.journal.ufs;
 
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.JournalEntryStateMachine;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.util.URIUtils;
 
 import com.google.common.io.Closer;
@@ -21,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -40,9 +43,9 @@ public class UfsJournalSystem extends AbstractJournalSystem {
    * Creates a UFS journal system with the specified base location. When journals are created, their
    * names are appended to the base location. The created journals all function independently.
    *
-   * @param base        the base location for journals created by this factory
+   * @param base the base location for journals created by this factory
    * @param quietTimeMs before upgrading from SECONDARY to PRIMARY mode, the journal will wait until
-   *                    this duration has passed without any journal entries being written.
+   *        this duration has passed without any journal entries being written.
    */
   public UfsJournalSystem(URI base, long quietTimeMs) {
     mBase = base;
@@ -93,10 +96,23 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     for (UfsJournal journal : mJournals.values()) {
       closer.register(journal);
     }
-    try {
-      closer.close();
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to stop journal system", e);
+    RetryPolicy retry = ExponentialTimeBoundedRetry.builder()
+        .withMaxDuration(Duration.ofMinutes(1))
+        .withInitialSleep(Duration.ofMillis(100))
+        .withMaxSleep(Duration.ofSeconds(3))
+        .build();
+    IOException exception = null;
+    while (retry.attempt()) {
+      try {
+        closer.close();
+        return;
+      } catch (IOException e) {
+        exception = e;
+        LOG.warn("Failed to close journal: {}", e.toString());
+      }
+    }
+    if (exception != null) {
+      throw new RuntimeException(exception);
     }
   }
 

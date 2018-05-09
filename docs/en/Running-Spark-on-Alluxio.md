@@ -31,7 +31,11 @@ Alluxio works together with Spark 1.1 or later out-of-the-box.
   by following Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
   The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
-* Add the following line to `spark/conf/spark-defaults.conf`.
+* In order for Spark applications to read and write files in Alluxio, the Alluxio client jar must be distributed 
+  on the classpath of the application across different nodes 
+  (each node must have the client jar on the same local path {{site.ALLUXIO_CLIENT_JAR_PATH}}). 
+  
+* Add the following line to `spark/conf/spark-defaults.conf`.  
 
 ```bash
 spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
@@ -72,6 +76,20 @@ Alternatively you can add the properties to the previously created Hadoop config
   </property>
 </configuration>
 ```
+
+## Check Spark with Alluxio integration (Supports Spark 2.X)
+
+Before running Spark on Alluxio, you might want to make sure that your Spark configuration has been 
+setup correctly for integrating with Alluxio. The Spark integration checker can help you achieve this. 
+
+When you have a running Spark cluster (or Spark standalone), you can run the following command in the Alluxio project directory:
+
+```bash
+$ checker/bin/alluxio-checker.sh spark <spark master uri> <spark partition number(optional)>
+```
+
+You can use `-h` to display helpful information about the command.
+This command will report potential problems that might prevent you from running Spark on Alluxio. 
 
 ## Use Alluxio as Input and Output
 

@@ -11,6 +11,8 @@
 
 package alluxio.hadoop;
 
+import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -25,14 +27,21 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.status.UnavailableException;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.net.HostAndPort;
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -56,6 +65,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.security.auth.Subject;
@@ -64,7 +75,8 @@ import javax.security.auth.Subject;
  * Unit tests for {@link AbstractFileSystem}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, UserGroupInformation.class})
+@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, FileSystemMasterClient.class,
+    UserGroupInformation.class})
 /*
  * [ALLUXIO-1384] Tell PowerMock to defer the loading of javax.security classes to the system
  * classloader in order to avoid linkage error when running this test with CDH.
@@ -359,6 +371,128 @@ public class AbstractFileSystemTest {
     URI uri = URI.create(Constants.HEADER + "host:1");
     org.apache.hadoop.fs.FileSystem.get(uri, conf);
     // FileSystem.get would have thrown an exception if the initialization failed.
+  }
+
+  @Test
+  public void getBlockLocationsOnlyInAlluxio() throws Exception {
+    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
+    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    List<WorkerNetAddress> blockWorkers = Arrays.asList(worker1);
+    List<String> ufsLocations = Arrays.asList();
+    List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
+
+    List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1);
+
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+  }
+
+  @Test
+  public void getBlockLocationsInUfs() throws Exception {
+    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
+    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    List<WorkerNetAddress> blockWorkers = Arrays.asList();
+    List<String> ufsLocations = Arrays.asList(worker2.getHost());
+    List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
+
+    List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker2);
+
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+  }
+
+  @Test
+  public void getBlockLocationsInUfsAndAlluxio() throws Exception {
+    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
+    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    List<WorkerNetAddress> blockWorkers = Arrays.asList(worker1);
+    List<String> ufsLocations = Arrays.asList(worker2.getHost());
+    List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
+
+    List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1);
+
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+  }
+
+  @Test
+  public void getBlockLocationsOnlyMatchingWorkers() throws Exception {
+    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
+    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    List<WorkerNetAddress> blockWorkers = Arrays.asList();
+    List<String> ufsLocations = Arrays.asList("worker0", worker2.getHost(), "worker3");
+    List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
+
+    List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker2);
+
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+  }
+
+  @Test
+  public void getBlockLocationsNoMatchingWorkers() throws Exception {
+    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
+    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    List<WorkerNetAddress> blockWorkers = Arrays.asList();
+    List<String> ufsLocations = Arrays.asList("worker0", "worker3");
+    List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
+
+    List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
+
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+  }
+
+  @Test
+  public void getBlockLocationsNoUfsLocations() throws Exception {
+    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
+    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    List<WorkerNetAddress> blockWorkers = Arrays.asList();
+    List<String> ufsLocations = Arrays.asList();
+    List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
+
+    List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
+
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+  }
+
+  void verifyBlockLocations(List<WorkerNetAddress> blockWorkers, List<String> ufsLocations,
+      List<WorkerNetAddress> allWorkers, List<WorkerNetAddress> expectedWorkers) throws Exception {
+    FileBlockInfo blockInfo = new FileBlockInfo().setBlockInfo(
+        new BlockInfo().setLocations(blockWorkers.stream().map(
+            addr -> new alluxio.wire.BlockLocation().setWorkerAddress(addr)).collect(
+            toList()))).setUfsLocations(ufsLocations);
+    FileInfo fileInfo = new FileInfo()
+        .setLastModificationTimeMs(111L)
+        .setFolder(false)
+        .setOwner("user1")
+        .setGroup("group1")
+        .setMode(00755)
+        .setFileBlockInfos(Arrays.asList(blockInfo));
+    Path path = new Path("/dir/file");
+    alluxio.client.file.FileSystem alluxioFs =
+        mock(alluxio.client.file.FileSystem.class);
+    when(alluxioFs.getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+        .thenReturn(new URIStatus(fileInfo));
+    AlluxioBlockStore blockStore = mock(AlluxioBlockStore.class);
+    PowerMockito.mockStatic(AlluxioBlockStore.class);
+    PowerMockito.when(AlluxioBlockStore.create(null)).thenReturn(blockStore);
+    List<BlockWorkerInfo> eligibleWorkerInfos = allWorkers.stream().map(worker ->
+        new BlockWorkerInfo(worker, 0, 0)).collect(toList());
+    PowerMockito.when(blockStore.getEligibleWorkers()).thenReturn(eligibleWorkerInfos);
+    List<HostAndPort> expectedWorkerNames = expectedWorkers.stream()
+        .map(addr -> HostAndPort.fromParts(addr.getHost(), addr.getDataPort())).collect(toList());
+    FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
+    FileStatus file = new FileStatus(0, false, 0, 0, 0, 0, null, null, null, path);
+    long start = 0;
+    long len = 100;
+    BlockLocation[] locations = alluxioHadoopFs.getFileBlockLocations(file, start, len);
+    assertEquals(1, locations.length);
+    Collections.sort(expectedWorkerNames, (x, y) -> x.toString().compareTo(y.toString()));
+    String[] actualNames = locations[0].getNames();
+    String[] actualHosts = locations[0].getHosts();
+    Arrays.sort(actualNames);
+    Arrays.sort(actualHosts);
+    assertArrayEquals(expectedWorkerNames.stream().map(HostAndPort::toString).toArray(),
+        actualNames);
+    assertArrayEquals(expectedWorkerNames.stream().map(HostAndPort::getHostText).toArray(),
+        actualHosts);
+    alluxioHadoopFs.close();
   }
 
   private org.apache.hadoop.conf.Configuration getConf() throws Exception {

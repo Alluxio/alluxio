@@ -14,12 +14,9 @@ package alluxio.worker.netty;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.AsyncCacheRequestManager;
-import alluxio.worker.block.BlockWorker;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-
-import java.util.concurrent.ExecutorService;
 
 /**
  * Handler for async cache requests.
@@ -30,11 +27,10 @@ public class AsyncCacheHandler extends ChannelInboundHandlerAdapter {
   /**
    * Constructs a new async cache handler.
    *
-   * @param service the thread pool
-   * @param blockWorker handler to the block worker
+   * @param requestManager the async cache manager
    */
-  public AsyncCacheHandler(ExecutorService service, BlockWorker blockWorker) {
-    mRequestManager = new AsyncCacheRequestManager(service, blockWorker);
+  public AsyncCacheHandler(AsyncCacheRequestManager requestManager) {
+    mRequestManager = requestManager;
   }
 
   @Override
@@ -44,7 +40,8 @@ public class AsyncCacheHandler extends ChannelInboundHandlerAdapter {
       Protocol.AsyncCacheRequest request =
           ((RPCProtoMessage) object).getMessage().asAsyncCacheRequest();
       mRequestManager.submitRequest(request);
-      ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
+      // Note that, because the client side of this RPC end point is fireAndForget, thus expecting
+      // no response. No OK response will be returned here.
     } else {
       ctx.fireChannelRead(object);
     }

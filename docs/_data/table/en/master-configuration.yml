@@ -5,7 +5,7 @@ alluxio.master.audit.logging.queue.capacity:
 alluxio.master.bind.host:
   'The hostname that Alluxio master binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
 alluxio.master.connection.timeout:
-  'Timeout of connections between master and client.'
+  'Timeout of connections between master and client. A value of 0 means never timeout'
 alluxio.master.file.async.persist.handler:
   'The handler for processing the async persistence requests.'
 alluxio.master.format.file_prefix:
@@ -40,6 +40,8 @@ alluxio.master.journal.type:
   'The type of journal to use. Valid options are UFS (store journal in UFS) and NOOP (do not use a journal).'
 alluxio.master.journal.ufs.option:
   'The configuration to use for the journal operations.'
+alluxio.master.jvm.monitor.enabled:
+  'Whether to enable start JVM monitor thread on master.'
 alluxio.master.keytab.file:
   'Kerberos keytab file for Alluxio master.'
 alluxio.master.lineage.checkpoint.class:
@@ -60,12 +62,18 @@ alluxio.master.mount.table.root.shared:
   'Whether Alluxio root mount point is shared.'
 alluxio.master.mount.table.root.ufs:
   'The UFS mounted to Alluxio root mount point.'
+alluxio.master.periodic.block.integrity.check.interval:
+  'The period for the block integrity check, disabled if <= 0.'
+alluxio.master.periodic.block.integrity.check.repair:
+  'Whether the system should delete orphaned blocks found during the periodic integrity check. This is an experimental feature.'
 alluxio.master.port:
   'The port that Alluxio master node runs on.'
 alluxio.master.principal:
   'Kerberos principal for Alluxio master.'
 alluxio.master.retry:
   'The number of retries that the client connects to master. (NOTE: this property is deprecated, use `alluxio.user.rpc.retry.max.num.retry` instead).'
+alluxio.master.startup.block.integrity.check.enabled:
+  'Whether the system should be checked on startup for orphaned blocks (blocks having no corresponding files but still taking system resource due to various system failures). Orphaned blocks will be deleted during master startup if this property is true. This property is available since 1.7.1'
 alluxio.master.startup.consistency.check.enabled:
   'Whether the system should be checked for consistency with the underlying storage on startup. During the time the check is running, Alluxio will be in read only mode. Enabled by default.'
 alluxio.master.thrift.shutdown.timeout:
@@ -80,6 +88,8 @@ alluxio.master.tieredstore.global.levels:
   'The total number of storage tiers in the system.'
 alluxio.master.ttl.checker.interval:
   'Time interval to periodically delete the files with expired ttl value.'
+alluxio.master.ufs.block.location.cache.capacity:
+  'The capacity of the UFS block locations cache. This cache caches UFS block locations for files that are persisted but not in Alluxio space, so that listing status of these files do not need to repeatedly ask UFS for their block locations. If this is set to 0, the cache will be disabled.'
 alluxio.master.ufs.path.cache.capacity:
   'The capacity of the UFS path cache. This cache is used to approximate the `Once` metadata load behavior (see `alluxio.user.file.metadata.load.type`). Larger caches will consume more memory, but will better approximate the `Once` behavior.'
 alluxio.master.ufs.path.cache.threads:
@@ -92,6 +102,8 @@ alluxio.master.web.port:
   'The port Alluxio web UI runs on.'
 alluxio.master.whitelist:
   'A comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Alluxio will try to cache the cacheable file when it is read for the first time.'
+alluxio.master.worker.connect.wait.time:
+  'Alluxio master will wait a period of time after start up for all workers to register, before it starts accepting client requests. This property determines the wait time.'
 alluxio.master.worker.threads.max:
   'The maximum number of incoming RPC requests to master that can be handled. This value is used to configure maximum number of threads in Thrift thread pool with master.'
 alluxio.master.worker.threads.min:

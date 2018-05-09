@@ -175,7 +175,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     PosixFileAttributes attr =
         Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
     return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
-        FileUtils.translatePosixPermissionToMode(attr.permissions()));
+        FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
   }
 
   @Override
@@ -236,7 +236,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     }
     // Return directory status.
     return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
-        FileUtils.translatePosixPermissionToMode(attr.permissions()));
+        FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
   }
 
   @Override
@@ -269,7 +269,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         UfsStatus retStatus;
         if (f.isDirectory()) {
           retStatus = new UfsDirectoryStatus(f.getName(), attr.owner().getName(),
-              attr.group().getName(), mode);
+              attr.group().getName(), mode, f.lastModified());
         } else {
           String contentHash =
               UnderFileSystemUtils.approximateContentHash(f.length(), f.lastModified());

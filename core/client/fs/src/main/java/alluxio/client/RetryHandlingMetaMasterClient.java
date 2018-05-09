@@ -13,16 +13,26 @@ package alluxio.client;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetMasterInfoTOptions;
+import alluxio.thrift.GetMetricsTOptions;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
+import alluxio.wire.MetricValue;
+import alluxio.wire.ThriftUtils;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -68,18 +78,39 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields) throws IOException {
+  public synchronized List<ConfigProperty> getConfiguration() throws IOException {
+    return retryRPC(() -> (mClient.getConfiguration(new GetConfigurationTOptions())
+          .getConfigList().stream()
+          .map(ConfigProperty::fromThrift)
+          .collect(Collectors.toList())));
+  }
+
+  @Override
+  public synchronized MasterInfo getMasterInfo(final Set<MasterInfoField> fields)
+      throws IOException {
     return retryRPC(() -> {
       Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
       if (fields == null) {
         thriftFields = null;
       } else {
-        for (MasterInfoField field : fields) {
+        for (MasterInfo.MasterInfoField field : fields) {
           thriftFields.add(field.toThrift());
         }
       }
-      return MasterInfo.fromThrift(
+      return ThriftUtils.fromThrift(
           mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
+    });
+  }
+
+  @Override
+  public synchronized Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
+    return retryRPC(() -> {
+      Map<String, MetricValue> wireMap = new HashMap<>();
+      for (Map.Entry<String, alluxio.thrift.MetricValue> entry :
+          mClient.getMetrics(new GetMetricsTOptions()).getMetricsMap().entrySet()) {
+        wireMap.put(entry.getKey(), MetricValue.fromThrift(entry.getValue()));
+      }
+      return wireMap;
     });
   }
 }

@@ -22,13 +22,14 @@ Download [Vagrant](https://www.vagrantup.com/downloads.html)
 
 Install AWS Vagrant plugin:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/install-aws-vagrant-plugin.md %}
+```bash
+$ vagrant plugin install vagrant-aws
+$ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
+```
 
 **Install Alluxio**
 
-Download Alluxio to your local machine, and unzip it:
-
-{% include Common-Commands/download-alluxio.md %}
+[Download Alluxio](https://alluxio.org/download) to your local machine, and unzip it:
 
 **Install python library dependencies**
 
@@ -36,12 +37,16 @@ Install [python>=2.7](https://www.python.org/), not python3.
 
 Under `deploy/vagrant` directory in your home directory, run:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/install-vagrant.md %}
+```bash
+$ sudo bash bin/install.sh
+```
 
 Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/installing/), and then
 in `deploy/vagrant` run:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/install-pip.md %}
+```bash
+$ sudo pip install -r pip-req.txt
+```
 
 
 ## Launch a Cluster
@@ -52,22 +57,29 @@ on the [Amazon Web Services site](http://aws.amazon.com/).
 Then create [access keys](https://aws.amazon.com/developers/access-keys/)
 and set shell environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` by:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/access-keys.md %}
+```bash
+$ export AWS_ACCESS_KEY_ID=<your access key>
+$ export AWS_SECRET_ACCESS_KEY=<your secret access key>
+```
 
 Next generate your EC2
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Make sure to set
 the permissions of your private key file that only you can read it:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/generate-key-pairs.md %}
+```bash
+$ chmod 400 <your key pair>.pem
+```
 
 Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml` by:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/copy-ec2-yml.md %}
+```bash
+$ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
+```
 
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
 name and `Key_Path` to the path to the pem key.
 
-In the configuration file `deploy/vagrant/conf/ufs.yml`, either set the value of `Type` to `hadoop` or
+In the configuration file `deploy/vagrant/conf/ufs.yml`, either set the value of `Type` to `hadoop2` or
 specify an S3 bucket for the `Bucket` field.
 
 In the configuration file `deploy/vagrant/conf/alluxio.yml`, set the value of `Masters` to the
@@ -84,7 +96,9 @@ traffic opened. You can change the *security group*, *region* and *availability 
 Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem in us-east-1b by running
 the script under `deploy/vagrant`:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/launch-cluster.md %}
+```bash
+$ ./create <number of machines> aws
+```
 
 Note that the `<number of machines>` above should be larger than or equal to `Masters` set in
 `deploy/vagrant/conf/alluxio.yml`.
@@ -99,7 +113,11 @@ is in one of the master nodes.
 After command `./create <number of machines> aws` succeeds, you can see three green lines like below
 shown at the end of the shell output:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/shell-output.md %}
+```bash
+>>> Master public IP for Alluxio is xxx, visit xxx:19999 for Alluxio web UI<<<
+>>> Master public IP for other softwares is xxx <<<
+>>> visit default port of the web UI of what you deployed <<<
+```
 
 The first line shows public IP for current leader of all Alluxio masters.
 
@@ -127,18 +145,24 @@ for Alluxio and other software like Hadoop.
 
 To ssh into a node, run:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/ssh.md %}
+```bash
+$ vagrant ssh <node name>
+```
 
 For example, you can ssh into `AlluxioMaster` with:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/ssh-AlluxioMaster.md %}
+```bash
+$ vagrant ssh AlluxioMaster
+```
 
 All software is installed under the root directory, e.g. Alluxio is installed in `/alluxio`,
 Hadoop is installed in `/hadoop`, and Zookeeper is installed in `/zookeeper`.
 
 On the leader master node, you can run tests against Alluxio to check its health:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/runTests.md %}
+```bash
+$ /alluxio/bin/alluxio runTests
+```
 
 After the tests finish, visit Alluxio web UI at `http://{MASTER_IP}:19999` again. Click
 `Browse` in the navigation bar, and you should see the files written to Alluxio by the
@@ -147,20 +171,28 @@ above tests.
 You can ssh into the current Alluxio master leader, and find process ID of the AlluxioMaster
 process with:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/jps.md %}
+```bash
+$ jps | grep AlluxioMaster
+```
 
 Then kill the leader with:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/kill-leader.md %}
+```bash
+$ kill -9 <leader pid found via the above command>
+```
 
 Then you can ssh into `AlluxioMaster` where [zookeeper](http://zookeeper.apache.org/) is
 running to find out the new leader, and run the zookeeper client via:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/zookeeper-client.md %}
+```bash
+$ /zookeeper/bin/zkCli.sh
+```
 
 In the zookeeper client shell, you can see the leader with the command:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/see-leader.md %}
+```bash
+$ ls /leader
+```
 
 The output of the command should show the new leader. You may need to wait for a moment for the
 new leader to be elected. You can query the public IP for the new leader based on its name in
@@ -171,13 +203,17 @@ navigation bar, and you should see all files are still there.
 
 From a node in the cluster, you can ssh to other nodes in the cluster without password with:
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/ssh-other-node.md %}
+```bash
+$ ssh AlluxioWorker1
+```
 
 ## Destroy the cluster
 
 Under `deploy/vagrant` directory, you can run
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/destroy.md %}
+```bash
+$ ./destroy
+```
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the EC2 instances are terminated.

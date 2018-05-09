@@ -35,11 +35,16 @@ $ cd integration/kubernetes
 ```bash
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
-$ touch /tmp/domain/d
-$ chmod a+w /tmp/domain/d
 ```
 
 如果不需要或不能设置短路访问，则可以跳过此步骤。要禁用此功能，请根据下面的配置部分中的说明设置属性 `alluxio.user.short.circuit.enabled=false`。
+
+默认情况下，如果客户端的 hostname 与 worker 的 hostname 一致，它们之间就会启用短路操作。但是若客户端运行在一个虚拟网络下的容器中，则短路操作不一定会启用。在这种情况下，需要设置以下属性来使用文件系统检查以启用短路操作。如果工作节点的UUID位于客户端文件系统上，短路写操作就可以启用。
+
+```properties
+alluxio.worker.data.server.domain.socket.as.uuid=true
+alluxio.worker.data.server.domain.socket.address=/path/to/domain/socket/directory
+```
 
 ## 提供持久性卷
 
@@ -106,4 +111,18 @@ $ kubectl exec -ti alluxio-master-0 /bin/bash
 ```bash
 $ cd /opt/alluxio
 $ ./bin/alluxio runTests
+```
+
+## 卸载
+
+卸载Alluxio：
+```bash
+kubectl delete -f alluxio-worker.yaml
+kubectl delete -f alluxio-master.yaml
+kubectl delete configmaps alluxio-config
+```
+
+执行以下命令来清理储存Alluxio journal数据的持久化卷。注意：Alluxio的元数据会丢失！
+```bash
+kubectl delete -f alluxio-journal-volume.yaml
 ```

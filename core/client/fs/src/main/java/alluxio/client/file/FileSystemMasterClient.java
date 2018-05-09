@@ -25,6 +25,7 @@ import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
@@ -204,4 +205,15 @@ public interface FileSystemMasterClient extends Client {
    * @param alluxioPath the Alluxio path
    */
   void unmount(AlluxioURI alluxioPath) throws AlluxioStatusException;
+
+  /**
+   * Updates the operation mode for the given ufs path. The path is required to be the scheme and
+   * authority only. For example, to update the mode for under storage at hdfs://ns/folder1
+   * specify the argument as hdfs://ns/. Note: the mode for any other mounted under storage which
+   * shares the prefix (such as hdfs://ns/folder2) is also updated.
+   *
+   * @param ufsUri the ufs path
+   * @param options the options to update ufs operation mode
+   */
+  void updateUfsMode(AlluxioURI ufsUri, UpdateUfsModeOptions options) throws AlluxioStatusException;
 }

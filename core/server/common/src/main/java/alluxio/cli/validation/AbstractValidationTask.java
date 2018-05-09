@@ -24,9 +24,4 @@ public abstract class AbstractValidationTask implements ValidationTask {
   public List<Option> getOptionList() {
     return new ArrayList<>();
   }
-
-  @Override
-  public boolean shouldSkip() {
-    return false;
-  }
 }

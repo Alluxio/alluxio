@@ -23,7 +23,9 @@ path to the resource.
 
 To obtain an Alluxio filesystem client in Java code, use:
 
-{% include File-System-API/get-fileSystem.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+```
 
 ### Creating a File
 
@@ -32,14 +34,29 @@ executed through the FileSystem object. Since Alluxio files are immutable once w
 idiomatic way to create files is to use `FileSystem#createFile(AlluxioURI)`, which returns
 a stream object that can be used to write the file. For example:
 
-{% include File-System-API/write-file.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Create a file and get its output stream
+FileOutStream out = fs.createFile(path);
+// Write data
+out.write(...);
+// Close and complete file
+out.close();
+```
 
 ### Specifying Operation Options
 
 For all FileSystem operations, an additional `options` field may be specified, which allows
 users to specify non-default settings for the operation. For example:
 
-{% include File-System-API/specify-options.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Generate options to set a custom blocksize of 128 MB
+CreateFileOptions options = CreateFileOptions.defaults().setBlockSize(128 * Constants.MB);
+FileOutStream out = fs.createFile(path, options);
+```
 
 ### IO Options
 
@@ -107,7 +124,7 @@ Users can simply override the default policy class in the
     Returns a worker with the specified host name. This policy cannot be set as default policy.
 
 Alluxio supports custom policies, so you can also develop your own policy appropriate for your
-workload by implementing interface `alluxio.client.file.policyFileWriteLocationPolicy`. Note that a
+workload by implementing interface `alluxio.client.file.policy.FileWriteLocationPolicy`. Note that a
 default policy must have an empty constructor. And to use ASYNC_THROUGH write type, all the blocks
 of a file must be written to the same worker.
 
@@ -133,7 +150,16 @@ metadata, ie. ttl or pin state, or getting an input stream to read the file.
 
 For example, to read a file:
 
-{% include File-System-API/read-file.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Open the file for reading
+FileInStream in = fs.openFile(path);
+// Read data
+in.read(...);
+// Close file relinquishing the lock
+in.close();
+```
 
 ### Javadoc
 

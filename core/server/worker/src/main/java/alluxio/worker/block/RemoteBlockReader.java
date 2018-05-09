@@ -31,6 +31,7 @@ import java.nio.channels.ReadableByteChannel;
  */
 public class RemoteBlockReader implements BlockReader {
   private final long mBlockId;
+  private final long mBlockSize;
   private final InetSocketAddress mDataSource;
   private final Protocol.OpenUfsBlockOptions mUfsOptions;
 
@@ -42,12 +43,14 @@ public class RemoteBlockReader implements BlockReader {
    * Constructs a remote block reader. It will read from a remote worker based on the data source.
    *
    * @param blockId the block to cache
+   * @param blockSize the size of the block
    * @param dataSource the data source to cache from
    * @param ufsOptions the options to read the block from ufs if necessary
    */
-  public RemoteBlockReader(long blockId, InetSocketAddress dataSource, Protocol.OpenUfsBlockOptions
-      ufsOptions) {
+  public RemoteBlockReader(long blockId, long blockSize, InetSocketAddress dataSource,
+      Protocol.OpenUfsBlockOptions ufsOptions) {
     mBlockId = blockId;
+    mBlockSize = blockSize;
     mDataSource = dataSource;
     mUfsOptions = ufsOptions;
     mClosed = false;
@@ -105,7 +108,7 @@ public class RemoteBlockReader implements BlockReader {
     WorkerNetAddress address = new WorkerNetAddress().setHost(mDataSource.getHostName())
         .setDataPort(mDataSource.getPort());
     mInputStream = BlockInStream.createRemoteBlockInStream(FileSystemContext.INSTANCE, mBlockId,
-        address, BlockInStream.BlockInStreamSource.REMOTE, mUfsOptions);
+        address, BlockInStream.BlockInStreamSource.REMOTE, mBlockSize, mUfsOptions);
     mChannel = Channels.newChannel(mInputStream);
   }
 }

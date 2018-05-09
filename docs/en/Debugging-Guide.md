@@ -124,6 +124,13 @@ spark.executor.extraClassPath
 {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
+If the corresponding classpath has been set but exceptions still exist, users can check
+whether the path is valid by:
+
+```bash
+$ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
+```
+
 #### Q: I'm seeing error messages like "Frame size (67108864) larger than max length (16777216)". What is wrong?
 
 A: This problem can be caused by different possible reasons.
@@ -166,6 +173,29 @@ it is because Alluxio master failed to update journal files stored in a HDFS dir
 the property `alluxio.master.journal.folder` setting. There can be multiple reasons for this type of errors, typically because
 some HDFS datanodes serving the journal files are under heavy load or running out of disk space. Please ensure the
 HDFS deployment is connected and healthy for Alluxio to store journals when the journal directory is set to be in HDFS.
+
+#### Q: I'm seeing that client connection was rejected by master
+
+A: When you see errors from applications like `"alluxio.exception.status.UnavailableException:
+Failed to connect to BlockMasterClient @ hostname:19998 after 13 attempts"` and also find the
+following warning messages in `logs/master.log`: `"WARN  TThreadPoolServer - Task has been rejected by
+ExecutorService 9 times till timedout, reason: java.util.concurrent.RejectedExecutionException:
+Task org.apache.thrift.server.TThreadPoolServer$WorkerProcess@22fba58c rejected from
+java.util.concurrent.ThreadPoolExecutor@19593091[Running, pool size = 2048, active threads = 2048,
+queued tasks = 0, completed tasks = 14]"`, it indicates that the Alluxio master server has run out
+of its thread pool to serve new incoming client requests.
+
+To solve this issue, you can try:
+- Increase the thread pool size on the master to serve client requests by increasing
+`alluxio.master.worker.threads.max`. You can set this property to a larger value in
+`conf/alluxio-site.properties`. Note that, this value should be no larger than the number of max
+open files allowed by the system allows. One can check the system limit using `"ulimit -n"` on Linux
+or [other approaches](https://stackoverflow.com/questions/880557/socket-accept-too-many-open-files)
+- Decrease the connection pool size on the client to send requests to master by decreasing
+`alluxio.user.block.master.client.threads` (default to 10) and
+`alluxio.user.file.master.client.threads` (default to 10). You can set this property to a smaller
+value in `conf/alluxio-site.properties`. Note that, reducing the value of these two properties may
+potentially add latency for master to serve requests.
 
 
 ## Performance FAQ

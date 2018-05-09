@@ -49,13 +49,21 @@ alluxio.underfs.address=s3a://S3_BUCKET/S3_DIRECTORY
 
 Next, you need to specify the AWS credentials for S3 access.
 
-You can specify credentials in 4 ways, from highest to lowest priority:
+You can specify credentials in different ways, from highest to lowest priority:
 
+Priority
+* aws.accessKeyId and aws.secretKey specified as mount options
+* aws.accessKeyId and aws.secretKey specified as Java system properties
+* aws.accessKeyId and aws.secretKey in Alluxio site properties
 * Environment Variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (either is acceptable) and
-`AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (either is acceptable)
-* System Properties `aws.accessKeyId` and `aws.secretKey`
+`AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (either is acceptable) on the Alluxio servers
 * Profile file containing credentials at `~/.aws/credentials`
 * AWS Instance profile credentials, if you are using an EC2 instance
+
+When using an AWS Instance profile as the credential provider:
+* Create an [IAM Role](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) with access to the mounted bucket
+* Create an [Instance profile](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#ec2-instance-profile) as a container for the defined IAM Role
+* Launch an EC2 instance using the created profile
 
 See [Amazon's documentation](http://docs.aws.amazon.com/java-sdk/latest/developer-guide/credentials.html#id6)
 for more details.

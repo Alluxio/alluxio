@@ -173,6 +173,8 @@ public enum ExceptionMessage {
   INVALID_ARGS_NULL("Null args for command {0}"),
   INVALID_ARGS_NUM("Command {0} takes {1} arguments, not {2}"),
   INVALID_ARGS_NUM_INSUFFICIENT("Command {0} requires at least {1} arguments ({2} provided)"),
+  INVALID_ARGS_NUM_TOO_MANY("Command {0} requires at most {1} arguments ({2} provided)"),
+  INVALID_ARGS_SORT_FIELD("Invalid sort option ‘{0}’ for --sort"),
 
   // extension shell
   INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),
@@ -245,6 +247,10 @@ public enum ExceptionMessage {
 
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),
+
+  // ufs maintenance
+  UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),
+  INVALID_UFS_MODE("{0} is not a valid ufs mode"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

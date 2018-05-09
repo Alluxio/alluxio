@@ -14,7 +14,6 @@ package alluxio.security.authentication;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
-import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
 
@@ -22,51 +21,41 @@ import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
-import javax.security.sasl.SaslException;
 
 /**
  * If authentication type is {@link AuthType#NOSASL}, we use this transport provider which simply
- * uses default Thrift {@link TFramedTransport}.
+ * uses default Thrift {@link TTransport}.
  */
 @ThreadSafe
 public final class NoSaslTransportProvider implements TransportProvider {
   /** Timeout for socket in ms. */
-  private final int mSocketTimeoutMs;
-  /** Max frame size of thrift transport in bytes. */
-  private final int mThriftFrameSizeMax;
+  private static final int SOCKET_TIMEOUT_MS = (int) Configuration
+      .getMs(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
 
   /**
    * Constructor for transport provider when authentication type is {@link AuthType#NOSASL}.
    */
-  public NoSaslTransportProvider() {
-    mSocketTimeoutMs =
-        (int) Configuration.getMs(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
-    mThriftFrameSizeMax =
-        (int) Configuration.getBytes(PropertyKey.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX);
-  }
+  public NoSaslTransportProvider() {}
 
   @Override
   public TTransport getClientTransport(InetSocketAddress serverAddress) {
-    TTransport tTransport =
-        TransportProviderUtils.createThriftSocket(serverAddress, mSocketTimeoutMs);
-    return new TFramedTransport(tTransport, mThriftFrameSizeMax);
+    return getClientTransport(null, serverAddress);
   }
 
   @Override
   public TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress) {
-    TTransport tTransport =
-        TransportProviderUtils.createThriftSocket(serverAddress, mSocketTimeoutMs);
-    return new TFramedTransport(tTransport, mThriftFrameSizeMax);
+    TTransport transport =
+        TransportProviderUtils.createThriftSocket(serverAddress, SOCKET_TIMEOUT_MS);
+    return transport;
   }
 
   @Override
-  public TTransportFactory getServerTransportFactory(String serverName) throws SaslException {
-    return new TFramedTransport.Factory(mThriftFrameSizeMax);
+  public TTransportFactory getServerTransportFactory(String serverName) {
+    return new TTransportFactory();
   }
 
   @Override
-  public TTransportFactory getServerTransportFactory(Runnable runnable, String serverName)
-      throws SaslException {
-    return new TFramedTransport.Factory(mThriftFrameSizeMax);
+  public TTransportFactory getServerTransportFactory(Runnable runnable, String serverName) {
+    return new TTransportFactory();
   }
 }

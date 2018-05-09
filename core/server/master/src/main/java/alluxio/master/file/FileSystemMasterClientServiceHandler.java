@@ -23,6 +23,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.file.options.DescendantType;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
@@ -66,6 +67,9 @@ import alluxio.thrift.SetAttributeTOptions;
 import alluxio.thrift.SetAttributeTResponse;
 import alluxio.thrift.UnmountTOptions;
 import alluxio.thrift.UnmountTResponse;
+import alluxio.thrift.UpdateUfsModeTOptions;
+import alluxio.thrift.UpdateUfsModeTResponse;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -183,9 +187,9 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public FreeTResponse free(final String path, final boolean recursive, final FreeTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<FreeTResponse>() {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<FreeTResponse>() {
       @Override
-      public FreeTResponse call() throws AlluxioException {
+      public FreeTResponse call() throws AlluxioException, IOException {
         if (options == null) {
           // For Alluxio client v1.4 or earlier.
           // NOTE, we try to be conservative here so early Alluxio clients will not be able to force
@@ -227,7 +231,7 @@ public final class FileSystemMasterClientServiceHandler implements
       throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetStatusTResponse>() {
       @Override
-      public GetStatusTResponse call() throws AlluxioException, AlluxioStatusException {
+      public GetStatusTResponse call() throws AlluxioException, IOException {
         return new GetStatusTResponse(ThriftUtils.toThrift(
             mFileSystemMaster.getFileInfo(new AlluxioURI(path), new GetStatusOptions(options))));
       }
@@ -236,7 +240,8 @@ public final class FileSystemMasterClientServiceHandler implements
       public String toString() {
         return String.format("GetStatus: path=%s, options=%s", path, options);
       }
-    });
+      // getStatus is often used to check file existence, so we avoid logging all of its failures
+    }, false);
   }
 
   @Override
@@ -244,7 +249,7 @@ public final class FileSystemMasterClientServiceHandler implements
       throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<ListStatusTResponse>() {
       @Override
-      public ListStatusTResponse call() throws AlluxioException, AlluxioStatusException {
+      public ListStatusTResponse call() throws AlluxioException, IOException {
         List<FileInfo> result = new ArrayList<>();
         for (alluxio.wire.FileInfo fileInfo : mFileSystemMaster
             .listStatus(new AlluxioURI(path), new ListStatusOptions(options))) {
@@ -274,7 +279,8 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public LoadMetadataTResponse call() throws AlluxioException, IOException {
         return new LoadMetadataTResponse(mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath),
-            LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true)));
+            LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantType(
+                DescendantType.ONE)));
       }
 
       @Override
@@ -374,18 +380,19 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public ScheduleAsyncPersistenceTResponse scheduleAsyncPersistence(final String path,
       final ScheduleAsyncPersistenceTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<ScheduleAsyncPersistenceTResponse>() {
-      @Override
-      public ScheduleAsyncPersistenceTResponse call() throws AlluxioException {
-        mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
-        return new ScheduleAsyncPersistenceTResponse();
-      }
+    return RpcUtils.call(LOG,
+        new RpcCallableThrowsIOException<ScheduleAsyncPersistenceTResponse>() {
+          @Override
+          public ScheduleAsyncPersistenceTResponse call() throws AlluxioException, IOException {
+            mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
+            return new ScheduleAsyncPersistenceTResponse();
+          }
 
-      @Override
-      public String toString() {
-        return String.format("ScheduleAsyncPersist: path=%s, options=%s", path, options);
-      }
-    });
+          @Override
+          public String toString() {
+            return String.format("ScheduleAsyncPersist: path=%s, options=%s", path, options);
+          }
+        });
   }
 
   @Override
@@ -418,6 +425,35 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public String toString() {
         return String.format("Unmount: alluxioPath=%s, options=%s", alluxioPath, options);
+      }
+    });
+  }
+
+  @Override
+  public UpdateUfsModeTResponse updateUfsMode(final String ufsPath,
+      final UpdateUfsModeTOptions options) throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<UpdateUfsModeTResponse>() {
+      @Override
+      public UpdateUfsModeTResponse call() throws AlluxioException, IOException {
+        UnderFileSystem.UfsMode ufsMode;
+        switch (options.getUfsMode()) {
+          case NoAccess:
+            ufsMode = UnderFileSystem.UfsMode.NO_ACCESS;
+            break;
+          case ReadOnly:
+            ufsMode = UnderFileSystem.UfsMode.READ_ONLY;
+            break;
+          default:
+            ufsMode = UnderFileSystem.UfsMode.READ_WRITE;
+            break;
+        }
+        mFileSystemMaster.updateUfsMode(new AlluxioURI(ufsPath), ufsMode);
+        return new UpdateUfsModeTResponse();
+      }
+
+      @Override
+      public String toString() {
+        return String.format("UpdateUfsMode: ufsPath=%s, options=%s", ufsPath, options);
       }
     });
   }
