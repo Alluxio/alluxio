@@ -752,7 +752,8 @@ public class InodeTree implements JournalEntryIterable {
     // Check if the descendant is really the descendant of inodePath
     if (!PathUtils.hasPrefix(descendantUri.getPath(), inodePath.getUri().getPath())
         || descendantUri.getPath().equals(inodePath.getUri().getPath())) {
-      throw new InvalidPathException("Not a valid descendant.");
+      throw new InvalidPathException(descendantUri.getPath() + "is not a valid descendant of "
+          + inodePath.getUri().getPath());
     }
 
     List<Inode<?>> nonPersistedInodes = new ArrayList<>();
@@ -764,17 +765,13 @@ public class InodeTree implements JournalEntryIterable {
     }
     // Lock from inodePath to the descendant
     InodeLockList lockList = new InodeLockList();
-    TraversalResult traversalResult =
-        traverseToInodeInternal(PathUtils.getPathComponents(descendantUri.getPath()),
-            inodeList,
-            nonPersistedInodes,
-            lockList, lockMode, null
-            );
+    TraversalResult traversalResult = traverseToInodeInternal(
+        PathUtils.getPathComponents(descendantUri.getPath()),
+        inodeList, nonPersistedInodes, lockList, lockMode, null);
     if (traversalResult.mFound) {
       return traversalResult.mLockList;
     } else {
-      // not found, return an empty list
-      return inodeGroup;
+      throw new InvalidPathException(descendantUri.getPath() + "path not found in traversal.");
     }
   }
 

@@ -3222,11 +3222,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           try {
             loadMetadataAndJournal(rpcContext, inodePath, LoadMetadataOptions.defaults()
                 .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
+
+            mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
           } catch (Exception e) {
             // This may be expected. For example, when creating a new file, the UFS file is not
             // expected to exist.
             LOG.debug("Failed to load metadata for path: {}", inodePath.getUri(), e);
-            return false;
+            continue;
           }
         } else {
           try (InodeLockList mountPointLockList =
@@ -3248,24 +3250,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   LOG.debug("Failed to load metadata for path: {}", mountPointUri, e);
                 }
                 mUfsSyncPathCache.notifySyncedPath(mountPoint);
-              } catch (InvalidPathException e) {
-                LOG.debug("Failed to load metadata for path: {}", mountPointUri, e);
-                return false;
               }
             }
           } catch (FileDoesNotExistException e) {
             LOG.warn("Tried to update metadata from an invalid path: {}",
                 mountPointUri.getPath(), e);
-            return false;
           }
         }
       } catch (InvalidPathException e) {
-        LOG.debug("Tried to update metadata from an invalid path : {}", mountPointUri.getPath(), e);
-        return false;
+        LOG.warn("Tried to update metadata from an invalid path : {}", mountPointUri.getPath(), e);
       }
     }
-
-    mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
     return true;
   }
 
@@ -3383,6 +3378,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           inodeChildren.put(child.getName(), child);
         }
 
+        // Iterate over UFS listings and process UFS children.
         if (listStatus != null) {
           for (UfsStatus ufsChildStatus : listStatus) {
             if (!inodeChildren.containsKey(ufsChildStatus.getName()) && !PathUtils
