@@ -26,6 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class ListStatusOptions {
   private CommonOptions mCommonOptions;
   private LoadMetadataType mLoadMetadataType;
+  private boolean mRecursive;
 
   /**
    * @return the default {@link ListStatusOptions}
@@ -38,6 +39,7 @@ public final class ListStatusOptions {
     super();
     mCommonOptions = CommonOptions.defaults();
     mLoadMetadataType = LoadMetadataType.Once;
+    mRecursive = false;
   }
 
   /**
@@ -56,6 +58,7 @@ public final class ListStatusOptions {
       } else if (!options.isLoadDirectChildren()) {
         mLoadMetadataType = LoadMetadataType.Never;
       }
+      mRecursive = options.isRecursive();
     }
   }
 
@@ -75,6 +78,13 @@ public final class ListStatusOptions {
   }
 
   /**
+   * @return whether to list status recursively
+   */
+  public boolean isRecursive() {
+    return mRecursive;
+  }
+
+  /**
    * @param options the common options
    * @return the updated options object
    */
@@ -91,6 +101,17 @@ public final class ListStatusOptions {
    */
   public ListStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
     mLoadMetadataType = loadMetadataType;
+    return this;
+  }
+
+  /**
+   * Sets the {@link ListStatusOptions#mRecursive}.
+   *
+   * @param recursive whether to recursively list status
+   * @return the updated options
+   */
+  public ListStatusOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
     return this;
   }
 

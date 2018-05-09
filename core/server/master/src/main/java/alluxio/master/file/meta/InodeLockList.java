@@ -26,7 +26,10 @@ public final class InodeLockList implements AutoCloseable {
   private final List<Inode<?>> mInodes;
   private final List<InodeTree.LockMode> mLockModes;
 
-  InodeLockList() {
+  /**
+   * Creates a new instance of {@link InodeLockList}.
+   */
+  public InodeLockList() {
     mInodes = new ArrayList<>();
     mLockModes = new ArrayList<>();
   }

@@ -908,6 +908,25 @@ public final class FileSystemMasterTest {
           filenames.contains(NESTED_URI.join("file" + String.format("%05d", i)).toString()));
     }
 
+    // Test recursive listStatus
+    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusOptions.defaults()
+        .setLoadMetadataType(LoadMetadataType.Never).setRecursive(true));
+    assertEquals(files + files + 1, infos.size());
+
+    filenames = new ArrayList<>();
+    for (FileInfo info : infos) {
+      filenames.add(info.getPath());
+    }
+    for (int i = 0; i < files; i++) {
+      assertTrue(
+          filenames.contains(ROOT_URI.join("file" + String.format("%05d", i)).toString()));
+    }
+    for (int i = 0; i < files; i++) {
+      assertTrue(
+          filenames.contains(NESTED_URI.join("file" + String.format("%05d", i)).toString()));
+    }
+    assertTrue(filenames.contains(ROOT_FILE_URI.getPath()));
+
     // Test non-existent URIs.
     try {
       mFileSystemMaster.listStatus(NESTED_URI.join("DNE"),

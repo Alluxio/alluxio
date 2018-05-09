@@ -156,8 +156,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.Stack;
@@ -891,16 +893,24 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         auditContext.setAllowed(false);
         throw e;
       }
+
+      DescendantType descendantType = listStatusOptions.isRecursive() ? DescendantType.ALL
+          : DescendantType.ONE;
       // Possible ufs sync.
-      if (syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE)) {
+      if (syncMetadata(rpcContext, inodePath, lockingScheme, descendantType)) {
         // If synced, do not load metadata.
         listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
       }
 
-      // load metadata for 1 level of descendants
-      DescendantType loadDescendantType =
-          (listStatusOptions.getLoadMetadataType() != LoadMetadataType.Never) ? DescendantType.ONE :
-              DescendantType.NONE;
+      DescendantType loadDescendantType;
+      if (listStatusOptions.getLoadMetadataType() == LoadMetadataType.Never) {
+        loadDescendantType = DescendantType.NONE;
+      } else if (listStatusOptions.isRecursive()) {
+        loadDescendantType = DescendantType.ALL;
+      } else {
+        loadDescendantType = DescendantType.ONE;
+      }
+      // load metadata for 1 level of descendants, or all descendants if recursive
       LoadMetadataOptions loadMetadataOptions =
           LoadMetadataOptions.defaults().setCreateAncestors(true)
               .setLoadDescendantType(loadDescendantType);
@@ -909,7 +919,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         inode = inodePath.getInode();
         if (inode.isDirectory()
             && listStatusOptions.getLoadMetadataType() != LoadMetadataType.Always
-            && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
+            && ((InodeDirectory) inode).isDirectChildrenLoaded()
+            && !listStatusOptions.isRecursive()) {
           loadMetadataOptions.setLoadDescendantType(DescendantType.NONE);
         }
       } else {
@@ -922,31 +933,44 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       auditContext.setSrcInode(inode);
 
       List<FileInfo> ret = new ArrayList<>();
-      if (inode.isDirectory()) {
-        try (TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath)) {
-          try {
-            mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, inodePath);
-          } catch (AccessControlException e) {
-            auditContext.setAllowed(false);
-            throw e;
-          }
-          for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-            child.lockReadAndCheckParent(inode);
-            try {
-              // the path to child for getPath should already be locked.
-              tempInodePath.setDescendant(child, mInodeTree.getPath(child));
-              ret.add(getFileInfoInternal(tempInodePath));
-            } finally {
-              child.unlockRead();
-            }
-          }
-        }
-      } else {
-        ret.add(getFileInfoInternal(inodePath));
-      }
+      listStatusRecursive(ret, inodePath, auditContext, listStatusOptions.isRecursive());
+
       auditContext.setSucceeded(true);
       Metrics.FILE_INFOS_GOT.inc();
       return ret;
+    }
+  }
+
+  private void listStatusRecursive(List<FileInfo> statusList, LockedInodePath inodePath,
+                                   AuditContext auditContext, boolean recursive)
+      throws UnavailableException, FileDoesNotExistException,
+      AccessControlException, InvalidPathException {
+    Queue<LockedInodePath> queue = new LinkedList<>();
+    queue.add(inodePath);
+
+    try (InodeLockList lockList = new InodeLockList()) {
+      while (!queue.isEmpty()) {
+        LockedInodePath lockedInodePath = queue.remove();
+        Inode<?> inode = lockedInodePath.getInode();
+        if (inode.isDirectory()) {
+          try {
+            mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, inodePath);
+          } catch (Exception e) {
+            auditContext.setAllowed(false);
+            throw e;
+          }
+          if (recursive || lockedInodePath.equals(inodePath)) {
+            for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
+              lockList.lockReadAndCheckParent(child, inode);
+              TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
+              tempInodePath.setDescendant(child, mInodeTree.getPath(child));
+              queue.add(tempInodePath);
+            }
+          }
+        } else {
+          statusList.add(getFileInfoInternal(lockedInodePath));
+        }
+      }
     }
   }
 
