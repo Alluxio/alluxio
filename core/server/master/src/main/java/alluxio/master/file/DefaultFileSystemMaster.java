@@ -941,34 +941,36 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
-  private void listStatusRecursive(List<FileInfo> statusList, LockedInodePath inodePath,
+  private void listStatusRecursive(List<FileInfo> statusList, LockedInodePath originalInodePath,
                                    AuditContext auditContext, boolean recursive)
       throws UnavailableException, FileDoesNotExistException,
       AccessControlException, InvalidPathException {
     Queue<LockedInodePath> queue = new LinkedList<>();
-    queue.add(inodePath);
+    queue.add(originalInodePath);
 
     try (InodeLockList lockList = new InodeLockList()) {
       while (!queue.isEmpty()) {
-        LockedInodePath lockedInodePath = queue.remove();
-        Inode<?> inode = lockedInodePath.getInode();
+        LockedInodePath currInodePath = queue.remove();
+        Inode<?> inode = currInodePath.getInode();
         if (inode.isDirectory()) {
           try {
-            mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, inodePath);
+            mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, originalInodePath);
           } catch (Exception e) {
             auditContext.setAllowed(false);
             throw e;
           }
-          if (recursive || lockedInodePath.equals(inodePath)) {
+          if (recursive || currInodePath.equals(originalInodePath)) {
             for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
               lockList.lockReadAndCheckParent(child, inode);
-              TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
+              TempInodePathForDescendant tempInodePath
+                  = new TempInodePathForDescendant(originalInodePath);
               tempInodePath.setDescendant(child, mInodeTree.getPath(child));
               queue.add(tempInodePath);
             }
           }
-        } else {
-          statusList.add(getFileInfoInternal(lockedInodePath));
+        }
+        if (currInodePath.getInode().isFile() || !currInodePath.equals(originalInodePath)) {
+          statusList.add(getFileInfoInternal(currInodePath));
         }
       }
     }

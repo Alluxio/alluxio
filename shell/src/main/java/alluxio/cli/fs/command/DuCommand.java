@@ -64,10 +64,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
     ListStatusOptions listOptions = ListStatusOptions.defaults().setRecursive(true);
     List<URIStatus> statuses = fs.listStatus(path, listOptions);
     for (URIStatus status : statuses) {
-      if (status.isFolder()) {
-        AlluxioURI subFolder = new AlluxioURI(status.getPath());
-        sizeInBytes += getFileOrFolderSize(fs, subFolder);
-      } else {
+      if (!status.isFolder()) {
         sizeInBytes += status.getLength();
       }
     }
