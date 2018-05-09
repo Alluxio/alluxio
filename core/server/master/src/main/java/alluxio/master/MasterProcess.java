@@ -16,6 +16,7 @@ import alluxio.Process;
 import alluxio.PropertyKey;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.master.meta.ServerConfigurationChecker;
 import alluxio.wire.ConfigProperty;
 
 import java.net.InetSocketAddress;
@@ -96,9 +97,14 @@ public interface MasterProcess extends Process {
 
   /**
    * Gets a map of configuration errors between workers.
-   * It is a map from property name to a map from property value to a list of hostnames.
+   * It is a map from property name to a list contains values and corresponding hostnames.
    *
    * @return a configuration error map
    */
-  Map<String, Map<String, List<String>>> getWorkerConfErrors();
+  Map<String, List<String>> getWorkerConfErrors();
+
+  /**
+   * @return the worker configuration checker status.
+   */
+  ServerConfigurationChecker.Status getWorkerConfStatus();
 }

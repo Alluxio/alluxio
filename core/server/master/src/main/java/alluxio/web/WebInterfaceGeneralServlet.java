@@ -24,6 +24,8 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
@@ -206,6 +211,16 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("inconsistentPathItems", check.getInconsistentUris());
     } else {
       request.setAttribute("inconsistentPaths", 0);
+    }
+
+    ServerConfigurationChecker.Status confStatus = mMasterProcess.getWorkerConfStatus();
+    request.setAttribute("configCheckStatus", confStatus);
+    if (confStatus == ServerConfigurationChecker.Status.FAILED) {
+      Map<String, List<String>> confErrors = mMasterProcess.getWorkerConfErrors();
+      request.setAttribute("inconsistentProperties", confErrors.size());
+      request.setAttribute("inconsistentPropItems", confErrors);
+    } else {
+      request.setAttribute("inconsistentProperties", 0);
     }
 
     String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);

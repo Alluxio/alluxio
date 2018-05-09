@@ -69,6 +69,16 @@
                     <th><font color="red"><%= request.getAttribute("inconsistentPaths") %></font></th>
                   </tr>
                 <% } %>
+                <tr>
+                  <th>Server Configuration Check:</th>
+                  <th><%= request.getAttribute("configCheckStatus") %></th>
+                </tr>
+                <% if ((Integer) request.getAttribute("inconsistentProperties") != 0) { %>
+                  <tr>
+                    <th><font color="red">Inconsistent Properties:</font></th>
+                    <th><font color="red"><%= request.getAttribute("inconsistentProperties") %></font></th>
+                  </tr>
+                <% } %>
               </tbody>
             </table>
           </div>
@@ -145,7 +155,39 @@
     </div>
   </div>
   <% } %>
-
+  <!--  show inconsistent configuration  -->
+  <% if ((Integer) request.getAttribute("inconsistentProperties") != 0) { %>
+  <div class="row-fluid">
+    <div class="accordion span12" id="accordion5">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+            <h4>Inconsistent Properties Details</h4>
+          </a>
+        </div>
+        <div id="data5" class="accordion-body collapse in">
+          <div class="accordion-inner">
+            <table class="table table-hover table-condensed">
+              <thead>
+                <th colspan="3"> <font color="red">Please fix the following inconsistent properties and restart the Alluxio cluster. </font></th>
+              </thead>
+              <tbody>
+                <% for (String key : ((Hashtable<String, List<String>>) request.getAttribute("inconsistentPropItems")).keySet()) { %>
+                  <% for (String value : ((List<String>) request.getAttribute("inconsistentPropItems")).get(key)) { %>
+                    <tr>
+                      <th class="span4"><%= key %></th>
+                      <th class="span8"><%= value %></th>
+                    </tr>
+                  <% } %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
   <div class="row-fluid">
     <div class="accordion span14" id="accordion3">
       <div class="accordion-group">
