@@ -3369,8 +3369,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       if (syncPlan.toSyncChildren() && inode instanceof InodeDirectory
           && syncDescendantType != DescendantType.NONE) {
-        UfsStatus[] listStatus = ufs.listStatus(ufsUri.toString());
-
         InodeDirectory inodeDir = (InodeDirectory) inode;
         // maps children name to inode
         Map<String, Inode<?>> inodeChildren = new HashMap<>();
@@ -3378,6 +3376,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           inodeChildren.put(child.getName(), child);
         }
 
+        UfsStatus[] listStatus = ufs.listStatus(ufsUri.toString());
         // Iterate over UFS listings and process UFS children.
         if (listStatus != null) {
           for (UfsStatus ufsChildStatus : listStatus) {
