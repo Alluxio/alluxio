@@ -9,13 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.master.meta;
 
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
+import alluxio.master.MasterProcess;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetConfigurationTOptions;
@@ -54,7 +55,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   /**
    * @param masterProcess the Alluxio master process
    */
-  MetaMasterClientServiceHandler(MasterProcess masterProcess) {
+  public MetaMasterClientServiceHandler(MasterProcess masterProcess) {
     mMasterProcess = masterProcess;
   }
 

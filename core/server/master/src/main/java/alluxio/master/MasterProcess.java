@@ -14,8 +14,11 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Process;
 import alluxio.PropertyKey;
+import alluxio.exception.status.NotFoundException;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.thrift.MetaCommand;
+import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.wire.ConfigProperty;
 
 import java.net.InetSocketAddress;
@@ -88,8 +91,34 @@ public interface MasterProcess extends Process {
    */
   boolean isServing();
 
+  // TODO(lu) we should have a separate MetaMaster
   /**
    * @return configuration information list
    */
   List<ConfigProperty> getConfiguration();
+
+  /**
+   * Returns a master id for the given master, creating one if the master is new.
+   *
+   * @param hostname the master hostname
+   * @return the master id for this master
+   */
+  long getMasterId(String hostname);
+
+  /**
+   * A standby master periodically heartbeats with the leader master.
+   *
+   * @param masterId the master id
+   * @return an optional command for the standby master to execute
+   */
+  MetaCommand masterHeartbeat(long masterId);
+
+  /**
+   * A standby master registers with the leader master.
+   *
+   * @param masterId the master id of the standby master registering
+   * @param options the options that contains master configuration
+   * @throws NotFoundException if masterId cannot be found
+   */
+  void masterRegister(long masterId, RegisterMasterTOptions options) throws NotFoundException;
 }
