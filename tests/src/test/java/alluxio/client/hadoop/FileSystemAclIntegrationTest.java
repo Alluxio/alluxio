@@ -501,7 +501,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
     Assume.assumeTrue(UnderFileSystemUtils.isS3(sUfs));
 
     alluxio.Configuration.set(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "");
-    Path fileA = new Path("/objectfileA");
+    Path fileA = new Path("/s3GetPermissionFile");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
