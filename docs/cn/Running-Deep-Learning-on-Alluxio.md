@@ -104,4 +104,4 @@ beanchmark通过输入的训练图像（单位为 图像数/秒）评价训练�
 
 通过将Alluxio worker与深度学习框架搭配在一起，Alluxio将远程数据缓存到本地以供将来访问，从而提供数据本地性。没有Alluxio，缓慢的远程存储可能
 会导致I/O瓶颈，并使宝贵的GPU资源得不到利用。例如，在benchmark模型中，我们发现AlexNet架构相对简单，因此当存储变得更慢时，更容易出现I/O性能瓶
-颈。在一台EC2 p2.8xlarge机器上运行时Alluxio可以带来近2倍的性能提升。
+颈。在一台EC2 p2.8xlarge机器上运行Alluxio可以带来近2倍的性能提升。
