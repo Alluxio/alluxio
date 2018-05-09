@@ -12,6 +12,7 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.LoginUser;
@@ -76,6 +77,17 @@ public final class PlainSaslTransportProvider implements TransportProvider {
 
     // Determine the impersonation user
     String impersonationUser = TransportProviderUtils.getImpersonationUser(subject);
+
+    if (impersonationUser != null && Configuration
+        .containsKey(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)
+        && Constants.IMPERSONATION_HDFS_USER
+        .equals(Configuration.get(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME))) {
+      // If impersonation is configured to use the HDFS user, the connection user should
+      // be not be the HDFS user, but the LoginUser.
+      // If the HDFS user is really supposed to be the connection user, that can be achieved by
+      // not enabling impersonation for the client.
+      username = LoginUser.get().getName();
+    }
 
     return getClientTransport(username, password, impersonationUser, serverAddress);
   }
