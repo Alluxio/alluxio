@@ -22,18 +22,25 @@ ADD_LIBRARY(FILESYSTEM
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/status.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/fileInStream.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/fileOutStream.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/options.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/wire.cc
 )
 
 ADD_EXECUTABLE(JNIHelper_Test jniHelperTest.cc)
 ADD_EXECUTABLE(filesystem_test fileSystemTest.cc)
 ADD_EXECUTABLE(fileRW_test fileRWTest.cc)
+ADD_EXECUTABLE(options_test optionsTest.cc)
+
 
 TARGET_LINK_LIBRARIES(fileRW_test FILESYSTEM ${JNI_LIBRARIES} -lpthread)
 TARGET_LINK_LIBRARIES(filesystem_test FILESYSTEM ${JNI_LIBRARIES} -lpthread)
 TARGET_LINK_LIBRARIES(JNIHelper_Test FILESYSTEM ${JNI_LIBRARIES} -lpthread)
+TARGET_LINK_LIBRARIES(options_test FILESYSTEM ${JNI_LIBRARIES} -lpthread)
 
 ENABLE_TESTING()
 
 ADD_TEST(NAME test_filesystem_API COMMAND filesystem_test)
 ADD_TEST(NAME test_read_write_API COMMAND fileRW_test)
 ADD_TEST(NAME JNIHelper_Test COMMAND JNIHelper_Test)
+ADD_TEST(NAME Options_Test COMMAND options_test)
+

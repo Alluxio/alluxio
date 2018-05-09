@@ -221,6 +221,24 @@ class JniHelper {
   }
 
   template <typename... Ts>
+  static int64_t CallLongMethod(jobject obj, const std::string& className,
+                           const std::string& methodName, Ts... xs) {
+    jlong res;
+    JniMethodInfo t;
+    std::string signature = "(" + std::string(GetJniSignature(xs...)) + ")J";
+    if (JniHelper::GetMethodInfo(&t, className.c_str(), methodName.c_str(),
+                                 signature.c_str(), false)) {
+      LocalRefMapType localRefs;
+      res = t.env->CallLongMethod(obj, t.methodID,
+                                 Convert(&localRefs, &t, xs)...);
+      DeleteLocalRefs(t.env, &localRefs);
+    } else {
+      ReportError(className, methodName, signature);
+    }
+    return static_cast<int64_t>(res);
+  }
+
+  template <typename... Ts>
   static std::string CallStringMethod(jobject obj, const std::string& className,
                                       const std::string& methodName, Ts... xs) {
     std::string res;
@@ -425,8 +443,9 @@ class JniHelper {
     ClassCache::instance(JniHelper::GetEnv())->CacheClassName(obj, classname);
   }
 
+  static jstring SringToJstring(JNIEnv *env, const char *pat);
+
  private:
-  static jstring SringToJstring(JNIEnv* env, const char* pat);
   static JNIEnv* CacheEnv(JavaVM* jvm);
   static bool GetMethodInfo(JniMethodInfo* methodinfo, const char* className,
                             const char *methodName, const char* paramCode,

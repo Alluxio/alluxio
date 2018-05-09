@@ -11,44 +11,18 @@
 #ifndef CPP_INCLUDE_OPTIONS_H_
 #define CPP_INCLUDE_OPTIONS_H_
 
-#include "jniHelper.h"
-
+#include <wire.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
 #include <string>
+#include <map>
 
 using ::jnihelper::JniHelper;
+using ::alluxio::JniObjectBase;
+using ::alluxio::WriteType;
 
 namespace alluxio {
-// The base options class of filesystem options
-class JniObjectBase {
- public:
-  explicit JniObjectBase(jobject localObj) {
-    options = localObj;
-  }
-
-  ~JniObjectBase() {
-    JniHelper::DeleteObjectRef(options);
-  }
-
-  const jobject& getOptions() const {
-    return options;
-  }
-
- protected:
-  jobject options;
-
-  template<typename T>
-  JniObjectBase& SetMemberValue(const std::string& className,
-                                const std::string& methodName, T t) {
-    jobject result = JniHelper::CallObjectMethod(options, className, methodName,
-                                                 className, t);
-    options = JniHelper::GetEnv()->NewGlobalRef(result);
-    JniHelper::DeleteObjectRef(result);
-    return *this;
-  }
-};
 
 class CreateDirectoryOptions : public JniObjectBase {
  public:
@@ -58,6 +32,18 @@ class CreateDirectoryOptions : public JniObjectBase {
         "alluxio/client/file/options/CreateDirectoryOptions");
     return new CreateDirectoryOptions(createDirectoryOpt);
   }
+  Mode* getMode();
+  WriteType* getWriteType();
+  bool isAllowExists();
+  int64_t getTtl();
+  TtlAction* getTtlAction();
+  bool isRecursive();
+  CreateDirectoryOptions* setAllowExists(bool allowExists);
+  CreateDirectoryOptions* setMode(Mode* mode);
+  CreateDirectoryOptions* setRecursive(bool recursive);
+  CreateDirectoryOptions* setTtl(int64_t ttl);
+  CreateDirectoryOptions* setTtlAction(TtlAction* ttlAction);
+  CreateDirectoryOptions* setWriteType(WriteType* writeType);
 
  private:
   explicit CreateDirectoryOptions(jobject createDirectoryOptions) :
@@ -72,6 +58,24 @@ class CreateFileOptions : public JniObjectBase {
         "alluxio/client/file/options/CreateFileOptions");
     return new CreateFileOptions(createFileOpt);
   }
+  int64_t getBlockSizeBytes();
+  // FileWriteLocationPolicy* getLocationPolicy();
+  TtlAction* getTtlAction();
+  Mode* getMode();
+  int64_t getTtl();
+  int getWriteTier();
+  WriteType* getWriteType();
+  std::string getLocationPolicyClass();
+  bool isRecursive();
+  CreateFileOptions* setBlockSizeBytes(int64_t blockSizeBytes);
+// * setLocationPolicy(FileWriteLocationPolicy* locationPolicy);
+  CreateFileOptions* setLocationPolicyClass(std::string className);
+  CreateFileOptions* setMode(Mode* mode);
+  CreateFileOptions* setRecursive(bool recursive);
+  CreateFileOptions* setTtl(int64_t ttl);
+  CreateFileOptions* setTtlAction(TtlAction* ttlAction);
+  CreateFileOptions* setWriteTier(int writeTier);
+  CreateFileOptions* setWriteType(WriteType* writeType);
 
  private:
   explicit CreateFileOptions(jobject createFileOptions) :
@@ -86,6 +90,12 @@ class DeleteOptions : public JniObjectBase {
         "alluxio/client/file/options/DeleteOptions");
     return new DeleteOptions(deleteOpt);
   }
+  bool isRecursive();
+  bool isAlluxioOnly();
+  bool isUnchecked();
+  DeleteOptions* setRecursive(bool recursive);
+  DeleteOptions* setAlluxioOnly(bool alluxioOnly);
+  DeleteOptions* setUnchecked(bool unchecked);
 
  private:
   explicit DeleteOptions(jobject deleteOptions) :
@@ -100,6 +110,8 @@ class ExistsOptions : public JniObjectBase {
         "alluxio/client/file/options/ExistsOptions");
     return new ExistsOptions(existsOpt);
   }
+  LoadMetadataType* getLoadMetadataType();
+  ExistsOptions* setLoadMetadataType(LoadMetadataType* loadMetadataType);
 
  private:
   explicit ExistsOptions(jobject existsOptions) :
@@ -114,6 +126,10 @@ class FreeOptions : public JniObjectBase {
         "alluxio/client/file/options/FreeOptions");
     return new FreeOptions(freeOpt);
   }
+  bool isForced();
+  bool isRecursive();
+  FreeOptions* setForced(bool forced);
+  FreeOptions* setRecursive(bool recursive);
 
  private:
   explicit FreeOptions(jobject existsOptions) :
@@ -128,6 +144,8 @@ class ListStatusOptions : public JniObjectBase {
         "alluxio/client/file/options/ListStatusOptions");
     return new ListStatusOptions(ListStatusOpt);
   }
+  LoadMetadataType* getLoadMetadataType();
+  ListStatusOptions* setLoadMetadataType(LoadMetadataType* loadMetadataType);
 
  private:
   explicit ListStatusOptions(jobject ListStatusOptions) :
@@ -142,6 +160,12 @@ class MountOptions : public JniObjectBase {
         "alluxio/client/file/options/MountOptions");
     return new MountOptions(mountOpt);
   }
+  bool isReadOnly();
+  std::map<std::string, std::string> getProperties();
+  bool isShared();
+  MountOptions* setReadOnly(bool readOnly);
+  MountOptions* setProperties(std::map<std::string, std::string> properties);
+  MountOptions* setShared(bool shared);
 
  private:
   explicit MountOptions(jobject mountOptions) :
@@ -156,6 +180,22 @@ class OpenFileOptions : public JniObjectBase {
         "alluxio/client/file/options/OpenFileOptions");
     return new OpenFileOptions(openFileOpt);
   }
+  // FileWriteLocationPolicy getLocationPolicy();
+  // FileWriteLocationPolicy getCacheLocationPolicy();
+  std::string getLocationPolicyClass();
+  std::string getCacheLocationPolicyClass();
+  ReadType* getReadType();
+  int getMaxUfsReadConcurrency();
+  // BlockLocationPolicy getUfsReadLocationPolicy();
+  std::string getUfsReadLocationPolicyClass();
+  // OpenFileOptions* setLocationPolicy(FileWriteLocationPolicy locationPolicy);
+// * setCacheLocationPolicy(FileWriteLocationPolicy locationPolicy);
+  // OpenFileOptions* setUfsReadLocationPolicy(BlockLocationPolicy policy);
+  OpenFileOptions* setLocationPolicyClass(std::string className);
+  OpenFileOptions* setCacheLocationPolicyClass(std::string className);
+  OpenFileOptions* setUfsReadLocationPolicyClass(std::string className);
+  OpenFileOptions* setReadType(ReadType* readType);
+  OpenFileOptions* setMaxUfsReadConcurrency(int maxUfsReadConcurrency);
 
  private:
   explicit OpenFileOptions(jobject openFileOptions) :
@@ -184,6 +224,22 @@ class SetAttributeOptions : public JniObjectBase {
         "alluxio/client/file/options/SetAttributeOptions");
     return new SetAttributeOptions(setAttributeOpt);
   }
+  bool getPinned();
+  int64_t getTtl();
+  TtlAction* getTtlAction();
+  bool getPersisted();
+  std::string getOwner();
+  std::string getGroup();
+  Mode* getMode();
+  bool isRecursive();
+  SetAttributeOptions* setPinned(bool pinned);
+  SetAttributeOptions* setTtl(int64_t ttl);
+  SetAttributeOptions* setTtlAction(TtlAction* ttlAction);
+  SetAttributeOptions* setPersisted(bool persisted);
+  Status setOwner(std::string owner);
+  Status setGroup(std::string group);
+  SetAttributeOptions* setMode(Mode* mode);
+  SetAttributeOptions* setRecursive(bool recursive);
 
  private:
   explicit SetAttributeOptions(jobject setAttributeOptions) :
@@ -212,6 +268,8 @@ class GetStatusOptions : public JniObjectBase {
         "alluxio/client/file/options/GetStatusOptions");
     return new GetStatusOptions(getStatusOpt);
   }
+  LoadMetadataType* getLoadMetadataType();
+  GetStatusOptions* setLoadMetadataType(LoadMetadataType* loadMetadataType);
 
  private:
   explicit GetStatusOptions(jobject getStatusOptions) :
