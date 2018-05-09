@@ -911,7 +911,8 @@ public final class FileSystemMasterTest {
     // Test recursive listStatus
     infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusOptions.defaults()
         .setLoadMetadataType(LoadMetadataType.Never).setRecursive(true));
-    assertEquals(files + files + 1, infos.size());
+    // 10 files in each directory, 1 file at the root directory, 2 levels of directories
+    assertEquals(files + files + 1 + 2, infos.size());
 
     filenames = new ArrayList<>();
     for (FileInfo info : infos) {

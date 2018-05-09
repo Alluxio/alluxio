@@ -109,7 +109,8 @@ public final class ListStatusOptions {
     }
     ListStatusOptions that = (ListStatusOptions) o;
     return Objects.equal(mCommonOptions, that.mCommonOptions)
-        && Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
+        && Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
+        && Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
