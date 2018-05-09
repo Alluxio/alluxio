@@ -11,7 +11,7 @@
 
 #include<string.h>
 #include<assert.h>
-#include<stdio.h>
+#include<iostream>
 
 #include <options.h>
 #include "fileSystem.h"
@@ -19,11 +19,14 @@
 
 using ::alluxio::CreateDirectoryOptions;
 using ::alluxio::CreateFileOptions;
+using ::alluxio::MountOptions;
+using ::alluxio::ExistsOptions;
 using ::alluxio::FileSystem;
 using ::alluxio::LocalAlluxioCluster;
 using ::alluxio::TtlAction;
 using ::alluxio::Mode;
 using ::alluxio::Bits;
+using ::alluxio::LoadMetadataType;
 
 void CreateDirectoryOptionsTest() {
   CreateDirectoryOptions* createDirectoryOptions;
@@ -61,6 +64,33 @@ void CreateFileOptionsTest() {
   assert(recursive == true);
 }
 
+void ExistsOptionsTest() {
+  ExistsOptions* existsOptions = ExistsOptions::getDefaultOptions();
+  existsOptions->setLoadMetadataType(new LoadMetadataType(1));
+  LoadMetadataType* loadMetadataType = existsOptions->getLoadMetadataType();
+  assert(loadMetadataType->getValue() == 1);
+}
+
+void MountOptionsTest() {
+  MountOptions* mountOptions = MountOptions::getDefaultOptions();
+  mountOptions->setReadOnly(true);
+  bool readOnly = mountOptions->isReadOnly();
+  mountOptions->setShared(false);
+  bool shared = mountOptions->isShared();
+  std::cout << "begin\n";
+  std::map<std::string, std::string> properties;
+  properties.insert(std::make_pair("what", "none"));
+  mountOptions->setProperties(properties);
+  std::cout << "end\n";
+  std::map<std::string, std::string> nProperties;
+  nProperties = mountOptions->getProperties();
+  std::map<std::string, std::string>::iterator iter;
+  std::cout << nProperties.size() << "\n";
+  for (iter = nProperties.begin(); iter != nProperties.end(); iter ++) {
+    std::cout << iter->first << ":" << iter->second << "\n";
+  }
+}
+
 int main(void) {
   FileSystem* fileSystem;
   LocalAlluxioCluster* miniCluster = new LocalAlluxioCluster();
@@ -68,6 +98,8 @@ int main(void) {
   miniCluster->getClient(&fileSystem);
   CreateDirectoryOptionsTest();
   CreateFileOptionsTest();
+  ExistsOptionsTest();
+  MountOptionsTest();
   delete miniCluster;
   return 0;
 }

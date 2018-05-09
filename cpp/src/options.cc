@@ -10,19 +10,25 @@
  */
 
 #include <options.h>
-// #include <stdio.h>
+#include <iostream>
+#include <iterator>
 
 using ::jnihelper::JniHelper;
 using ::alluxio::CreateDirectoryOptions;
 using ::alluxio::CreateFileOptions;
 using ::alluxio::DeleteOptions;
+using ::alluxio::ExistsOptions;
 using ::alluxio::SetAttributeOptions;
 using ::alluxio::FreeOptions;
+using ::alluxio::ListStatusOptions;
 using ::alluxio::MountOptions;
 using ::alluxio::OpenFileOptions;
+using ::alluxio::GetStatusOptions;
 using ::alluxio::WriteType;
+using ::alluxio::ReadType;
 using ::alluxio::TtlAction;
 using ::alluxio::Mode;
+using ::alluxio::LoadMetadataType;
 
 WriteType* CreateDirectoryOptions::getWriteType() {
   jobject jWriteType = JniHelper::CallObjectMethod(
@@ -45,12 +51,8 @@ TtlAction* CreateDirectoryOptions::getTtlAction() {
   jobject jTtlAction = JniHelper::CallObjectMethod(
       options, "alluxio/client/file/options/CreateDirectoryOptions",
       "getTtlAction", "alluxio/wire/TtlAction");
-  JNIEnv* env = JniHelper::GetEnv();
-  jclass clTtlAction = env->GetObjectClass(jTtlAction);
-  jmethodID getVal = env->GetMethodID(clTtlAction, "name",
-                                      "()Ljava/lang/String;");
-  jstring value = (jstring)env->CallObjectMethod(jTtlAction, getVal);
-  std::string str = JniHelper::JstringToString(value);
+  std::string str = JniHelper::CallStringMethod(jTtlAction,
+      "alluxio/wire/TtlAction", "name");
   JniHelper::DeleteObjectRef(jTtlAction);
   return new TtlAction(str);
 }
@@ -146,12 +148,8 @@ TtlAction* CreateFileOptions::getTtlAction() {
   jobject jTtlAction = JniHelper::CallObjectMethod(
       options, "alluxio/client/file/options/CreateFileOptions",
       "getTtlAction", "alluxio/wire/TtlAction");
-  JNIEnv* env = JniHelper::GetEnv();
-  jclass clTtlAction = env->GetObjectClass(jTtlAction);
-  jmethodID getVal = env->GetMethodID(clTtlAction, "name",
-                                      "()Ljava/lang/String;");
-  jstring value = (jstring)env->CallObjectMethod(jTtlAction, getVal);
-  std::string str = JniHelper::JstringToString(value);
+  std::string str = JniHelper::CallStringMethod(jTtlAction,
+      "alluxio/wire/TtlAction", "name");
   JniHelper::DeleteObjectRef(jTtlAction);
   return new TtlAction(str);
 }
@@ -301,6 +299,27 @@ DeleteOptions* DeleteOptions::setAlluxioOnly(bool alluxioOnly) {
       alluxioOnly));
 }
 
+LoadMetadataType* ExistsOptions::getLoadMetadataType() {
+  jobject jLoadMetadataType = JniHelper::CallObjectMethod(
+      options, "alluxio/client/file/options/ExistsOptions",
+      "getLoadMetadataType", "alluxio/wire/LoadMetadataType");
+  int value = JniHelper::CallIntMethod(
+      jLoadMetadataType, "alluxio/wire/LoadMetadataType", "getValue");
+  JniHelper::DeleteObjectRef(jLoadMetadataType);
+  return new LoadMetadataType(value);
+}
+
+ExistsOptions* ExistsOptions::setLoadMetadataType
+(LoadMetadataType* loadMetadataType) {
+  jobject jLoadMetadataType = loadMetadataType->tojLoadMetadataType();
+  ExistsOptions* opt = reinterpret_cast<ExistsOptions*>(
+    SetMemberValue("alluxio/client/file/options/ExistsOptions",
+                   "setLoadMetadataType",
+                   jLoadMetadataType));
+  JniHelper::DeleteObjectRef(jLoadMetadataType);
+  return opt;
+}
+
 bool FreeOptions::isForced() {
   bool forced = JniHelper::CallBooleanMethod(
       options, "alluxio/client/file/options/FreeOptions",
@@ -329,11 +348,60 @@ FreeOptions* FreeOptions::setRecursive(bool recursive) {
       recursive));
 }
 
+LoadMetadataType* ListStatusOptions::getLoadMetadataType() {
+  jobject jLoadMetadataType = JniHelper::CallObjectMethod(
+      options, "alluxio/client/file/options/ListStatusOptions",
+      "getLoadMetadataType", "alluxio/wire/LoadMetadataType");
+  int value = JniHelper::CallIntMethod(
+      jLoadMetadataType, "alluxio/wire/LoadMetadataType", "getValue");
+  JniHelper::DeleteObjectRef(jLoadMetadataType);
+  return new LoadMetadataType(value);
+}
+
+ListStatusOptions* ListStatusOptions::setLoadMetadataType
+(LoadMetadataType* loadMetadataType) {
+  jobject jLoadMetadataType = loadMetadataType->tojLoadMetadataType();
+  ListStatusOptions* opt = reinterpret_cast<ListStatusOptions*>(
+    SetMemberValue("alluxio/client/file/options/ListStatusOptions",
+                   "setLoadMetadataType",
+                   jLoadMetadataType));
+  JniHelper::DeleteObjectRef(jLoadMetadataType);
+  return opt;
+}
+
 bool MountOptions::isReadOnly() {
   bool readOnly = JniHelper::CallBooleanMethod(
       options, "alluxio/client/file/options/MountOptions",
       "isReadOnly");
   return readOnly;
+}
+
+std::map<std::string, std::string> MountOptions::getProperties() {
+  jobject jProperties = JniHelper::CallObjectMethod(options,
+      "alluxio/client/file/options/MountOptions", "getProperties", "java/util/Map");
+  int mapSize = JniHelper::CallIntMethod(jProperties, "java/util/Map", "size");
+  jobject keySet = JniHelper::CallObjectMethod(jProperties, "java/util/Map",
+                                               "keySet", "java/util/Set");
+  jobject keyArray = JniHelper::CallObjectMethod(keySet, "java/util/Set", "toArray",
+                                                 "[Ljava/lang/Object");
+  std::map<std::string, std::string> result;
+  //std::cout<<mapSize<<"\n";
+  for (int i = 0; i < mapSize; i ++) {
+    jobject keyItem = JniHelper::GetEnv()->
+        GetObjectArrayElement((jobjectArray)keyArray, i);
+    std::string key = JniHelper::JstringToString((jstring)keyItem);
+    JniHelper::CacheClassName(keyItem, "java/lang/Object");
+    jobject valueItem = JniHelper::CallObjectMethod(jProperties, "java/util/Map",
+        "get", "java/lang/Object", (jobject)keyItem);
+    std::string value = JniHelper::JstringToString((jstring)valueItem);
+    result.insert(std::make_pair(key, value));
+    JniHelper::DeleteObjectRef(keyItem);
+    JniHelper::DeleteObjectRef(valueItem);
+  }
+  JniHelper::DeleteObjectRef(keyArray);
+  JniHelper::DeleteObjectRef(keySet);
+  JniHelper::DeleteObjectRef(jProperties);
+  return result;
 }
 
 bool MountOptions::isShared() {
@@ -348,6 +416,33 @@ MountOptions* MountOptions::setReadOnly(bool readOnly) {
       "alluxio/client/file/options/MountOptions",
       "setReadOnly",
       readOnly));
+}
+
+
+MountOptions* MountOptions::setProperties
+(std::map<std::string, std::string> properties) {
+  JNIEnv* env = JniHelper::GetEnv();
+  jclass jMapClass = env->FindClass("alluxio/client/file/options/MountOptions");
+  jmethodID set = env->GetMethodID(jMapClass, "setProperties",
+      "(Ljava/util/Map;)Lalluxio/client/file/options/MountOptions;");
+  //jobject jMap = JniHelper::CallObjectMethod(options,
+      //"alluxio/client/file/options/MountOptions", "getProperties", "java/util/Map");
+  //JniHelper::CallVoidMethod(jMap, "java/util/Map", "clear");
+  jobject jMap = JniHelper::CreateObjectMethod("java/util/HashMap");
+  std::map<std::string, std::string>::iterator it;
+  for (it = properties.begin(); it != properties.end(); it++) {
+    jstring jkey = JniHelper::SringToJstring(env, it->first.c_str());
+    jstring jvalue = JniHelper::SringToJstring(env, it->second.c_str());
+    JniHelper::CacheClassName(jkey, "java/lang/Object");
+    JniHelper::CacheClassName(jvalue, "java/lang/Object");
+    JniHelper::CallObjectMethod(jMap, "java/util/Map", "put",
+        "java/lang/Object", (jobject)jkey, (jobject)jvalue);
+  }
+  int mapSize = JniHelper::CallIntMethod(jMap, "java/util/Map", "size");
+  std::cout<<mapSize<<"\n";
+  JniHelper::CacheClassName(jMap, "java/util/Map");
+  env->CallObjectMethod(options, set, jMap);
+  return this;
 }
 
 MountOptions* MountOptions::setShared(bool shared) {
@@ -376,6 +471,16 @@ std::string OpenFileOptions::getUfsReadLocationPolicyClass() {
       options, "alluxio/client/file/options/OpenFileOptions",
       "getUfsReadLocationPolicyClass");
   return ufsReadLocationPolicyClass;
+}
+
+ReadType* OpenFileOptions::getReadType() {
+  jobject jReadType = JniHelper::CallObjectMethod(
+      options, "alluxio/client/file/options/OpenFileOptions",
+      "getReadType", "alluxio/client/ReadType");
+  int value = JniHelper::CallIntMethod(
+      jReadType, "alluxio/client/ReadType", "getValue");
+  JniHelper::DeleteObjectRef(jReadType);
+  return new ReadType(value);
 }
 
 int OpenFileOptions::getMaxUfsReadConcurrency() {
@@ -409,6 +514,16 @@ OpenFileOptions* OpenFileOptions::setUfsReadLocationPolicyClass
       className));
 }
 
+OpenFileOptions* OpenFileOptions::setReadType(ReadType* readType) {
+  jobject jReadType = readType->tojReadType();
+  OpenFileOptions* opt = reinterpret_cast<OpenFileOptions*>(
+    SetMemberValue("alluxio/client/file/options/OpenFileOptions",
+                   "setReadType",
+                   jReadType));
+  JniHelper::DeleteObjectRef(jReadType);
+  return opt;
+}
+
 OpenFileOptions* OpenFileOptions::setMaxUfsReadConcurrency
 (int maxUfsReadConcurrency) {
   return reinterpret_cast<OpenFileOptions*>(SetMemberValue(
@@ -435,12 +550,8 @@ TtlAction* SetAttributeOptions::getTtlAction() {
   jobject jTtlAction = JniHelper::CallObjectMethod(
       options, "alluxio/client/file/options/SetAttributeOptions",
       "getTtlAction", "alluxio/wire/TtlAction");
-  JNIEnv* env = JniHelper::GetEnv();
-  jclass clTtlAction = env->GetObjectClass(jTtlAction);
-  jmethodID getVal = env->GetMethodID(clTtlAction, "name",
-                                      "()Ljava/lang/String;");
-  jstring value = (jstring)env->CallObjectMethod(jTtlAction, getVal);
-  std::string str = JniHelper::JstringToString(value);
+  std::string str = JniHelper::CallStringMethod(jTtlAction,
+      "alluxio/wire/TtlAction", "name");
   JniHelper::DeleteObjectRef(jTtlAction);
   return new TtlAction(str);
 }
@@ -548,4 +659,25 @@ SetAttributeOptions* SetAttributeOptions::setRecursive(bool recursive) {
       "alluxio/client/file/options/SetAttributeOptions",
       "setRecursive",
       recursive));
+}
+
+LoadMetadataType* GetStatusOptions::getLoadMetadataType() {
+  jobject jLoadMetadataType = JniHelper::CallObjectMethod(
+      options, "alluxio/client/file/options/GetStatusOptions",
+      "getLoadMetadataType", "alluxio/wire/LoadMetadataType");
+  int value = JniHelper::CallIntMethod(
+      jLoadMetadataType, "alluxio/wire/LoadMetadataType", "getValue");
+  JniHelper::DeleteObjectRef(jLoadMetadataType);
+  return new LoadMetadataType(value);
+}
+
+GetStatusOptions* GetStatusOptions::setLoadMetadataType
+(LoadMetadataType* loadMetadataType) {
+  jobject jLoadMetadataType = loadMetadataType->tojLoadMetadataType();
+  GetStatusOptions* opt = reinterpret_cast<GetStatusOptions*>(
+    SetMemberValue("alluxio/client/file/options/GetStatusOptions",
+                   "setLoadMetadataType",
+                   jLoadMetadataType));
+  JniHelper::DeleteObjectRef(jLoadMetadataType);
+  return opt;
 }

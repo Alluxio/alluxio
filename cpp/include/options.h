@@ -110,8 +110,8 @@ class ExistsOptions : public JniObjectBase {
         "alluxio/client/file/options/ExistsOptions");
     return new ExistsOptions(existsOpt);
   }
-  // LoadMetadataType getLoadMetadataType();
-  // ExistsOptions* setLoadMetadataType(LoadMetadataType loadMetadataType);
+  LoadMetadataType* getLoadMetadataType();
+  ExistsOptions* setLoadMetadataType(LoadMetadataType* loadMetadataType);
 
  private:
   explicit ExistsOptions(jobject existsOptions) :
@@ -144,8 +144,8 @@ class ListStatusOptions : public JniObjectBase {
         "alluxio/client/file/options/ListStatusOptions");
     return new ListStatusOptions(ListStatusOpt);
   }
-  // LoadMetadataType getLoadMetadataType();
-  // ListStatusOptions* setLoadMetadataType(LoadMetadataType loadMetadataType);
+  LoadMetadataType* getLoadMetadataType();
+  ListStatusOptions* setLoadMetadataType(LoadMetadataType* loadMetadataType);
 
  private:
   explicit ListStatusOptions(jobject ListStatusOptions) :
@@ -161,10 +161,10 @@ class MountOptions : public JniObjectBase {
     return new MountOptions(mountOpt);
   }
   bool isReadOnly();
-  // std::map<std::string, std::string> getProperties();
+  std::map<std::string, std::string> getProperties();
   bool isShared();
   MountOptions* setReadOnly(bool readOnly);
-  // MountOptions* setProperties(std::map<std::string, std::string> properties);
+  MountOptions* setProperties(std::map<std::string, std::string> properties);
   MountOptions* setShared(bool shared);
 
  private:
@@ -184,7 +184,7 @@ class OpenFileOptions : public JniObjectBase {
   // FileWriteLocationPolicy getCacheLocationPolicy();
   std::string getLocationPolicyClass();
   std::string getCacheLocationPolicyClass();
-  // ReadType getReadType();
+  ReadType* getReadType();
   int getMaxUfsReadConcurrency();
   // BlockLocationPolicy getUfsReadLocationPolicy();
   std::string getUfsReadLocationPolicyClass();
@@ -194,7 +194,7 @@ class OpenFileOptions : public JniObjectBase {
   OpenFileOptions* setLocationPolicyClass(std::string className);
   OpenFileOptions* setCacheLocationPolicyClass(std::string className);
   OpenFileOptions* setUfsReadLocationPolicyClass(std::string className);
-  // OpenFileOptions* setReadType(ReadType readType);
+  OpenFileOptions* setReadType(ReadType* readType);
   OpenFileOptions* setMaxUfsReadConcurrency(int maxUfsReadConcurrency);
 
  private:
@@ -268,8 +268,8 @@ class GetStatusOptions : public JniObjectBase {
         "alluxio/client/file/options/GetStatusOptions");
     return new GetStatusOptions(getStatusOpt);
   }
-  // LoadMetadataType getLoadMetadataType();
-  // GetStatusOptions* setLoadMetadataType(LoadMetadataType loadMetadataType);
+  LoadMetadataType* getLoadMetadataType();
+  GetStatusOptions* setLoadMetadataType(LoadMetadataType* loadMetadataType);
 
  private:
   explicit GetStatusOptions(jobject getStatusOptions) :

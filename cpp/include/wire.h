@@ -46,6 +46,84 @@ class JniObjectBase {
   }
 };
 
+class ReadType {
+ public:
+  explicit ReadType(int mValue) {
+    value = mValue;
+    rType = RType(value);
+  }
+
+  int getValue() { return value; }
+
+  jobject tojReadType() {
+    JNIEnv* env = JniHelper::GetEnv();
+    jclass clRType = env->FindClass("alluxio/client/ReadType");
+    jfieldID id = NULL;
+    switch (value) {
+    case 1:
+      id = env->GetStaticFieldID(clRType, "NO_CACHE",
+                                 "Lalluxio/client/ReadType;");
+      break;
+    case 2:
+      id = env->GetStaticFieldID(clRType, "CACHE",
+                                 "Lalluxio/client/ReadType;");
+      break;
+    case 3:
+      id = env->GetStaticFieldID(clRType, "CACHE_PROMOTE",
+                                 "Lalluxio/client/ReadType;");
+      break;
+    }
+    return env->GetStaticObjectField(clRType, id);
+  }
+
+ private:
+  enum RType {
+    NO_CACHE = 1,
+    CACHE = 2,
+    CACHE_PROMOTE = 3
+  } rType;
+  int value;
+};
+
+class LoadMetadataType {
+ public:
+  explicit LoadMetadataType(int mValue) {
+    value = mValue;
+    type = LMdType(value);
+  }
+
+  int getValue() { return value; }
+
+  jobject tojLoadMetadataType() {
+    JNIEnv* env = JniHelper::GetEnv();
+    jclass clLMdType = env->FindClass("alluxio/wire/LoadMetadataType");
+    jfieldID id = NULL;
+    switch (value) {
+    case 0:
+      id = env->GetStaticFieldID(clLMdType, "Never",
+                                 "Lalluxio/wire/LoadMetadataType;");
+      break;
+    case 1:
+      id = env->GetStaticFieldID(clLMdType, "Once",
+                                 "Lalluxio/wire/LoadMetadataType;");
+      break;
+    case 2:
+      id = env->GetStaticFieldID(clLMdType, "Always",
+                                 "Lalluxio/wire/LoadMetadataType;");
+      break;
+    }
+    return env->GetStaticObjectField(clLMdType, id);
+  }
+
+ private:
+  enum LMdType {
+    Never = 0,
+    Once = 1,
+    Always = 2
+  } type;
+  int value;
+};
+
 class Bits {
  public:
   explicit Bits(std::string str) {

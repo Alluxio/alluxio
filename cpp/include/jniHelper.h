@@ -443,8 +443,9 @@ class JniHelper {
     ClassCache::instance(JniHelper::GetEnv())->CacheClassName(obj, classname);
   }
 
+  static jstring SringToJstring(JNIEnv *env, const char *pat);
+
  private:
-  static jstring SringToJstring(JNIEnv* env, const char* pat);
   static JNIEnv* CacheEnv(JavaVM* jvm);
   static bool GetMethodInfo(JniMethodInfo* methodinfo, const char* className,
                             const char *methodName, const char* paramCode,
