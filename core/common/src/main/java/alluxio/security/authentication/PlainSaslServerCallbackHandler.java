@@ -69,8 +69,6 @@ public final class PlainSaslServerCallbackHandler implements CallbackHandler {
     mAuthenticationProvider.authenticate(username, password);
 
     if (ac != null) {
-      // TODO(gpang): check for impersonation permissions
-
       ac.setAuthorized(true);
 
       try {
@@ -78,6 +76,7 @@ public final class PlainSaslServerCallbackHandler implements CallbackHandler {
         mImpersonationAuthenticator.authenticate(username, ac.getAuthorizedID());
       } catch (Exception e) {
         ac.setAuthorized(false);
+        throw e;
       }
 
       // After verification succeeds, a user with this authz id will be set to a Threadlocal.

@@ -13,6 +13,7 @@ package alluxio.security.authentication;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.ExceptionMessage;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Splitter;
@@ -69,9 +70,8 @@ public final class ImpersonationAuthenticator {
       return;
     }
     if (!mImpersonationGroups.containsKey(connectionUser)) {
-      throw new AuthenticationException(String
-          .format("User %s is not configured for any impersonation. impersonationUser: %s",
-              connectionUser, impersonationUser));
+      throw new AuthenticationException(ExceptionMessage.IMPERSONATION_NOT_CONFIGURED
+          .getMessage(connectionUser, impersonationUser));
     }
     Set<String> allowedGroups = mImpersonationGroups.get(connectionUser);
     if (allowedGroups.contains(WILDCARD)) {
@@ -86,11 +86,10 @@ public final class ImpersonationAuthenticator {
         }
       }
     } catch (IOException e) {
-      throw new AuthenticationException(String
-          .format("Failed to get groups for impersonationUser %s. user: %s", impersonationUser,
-              connectionUser), e);
+      throw new AuthenticationException(ExceptionMessage.IMPERSONATION_GROUPS_FAILED
+          .getMessage(impersonationUser, connectionUser), e);
     }
-    throw new AuthenticationException(String
-        .format("User %s is not configured to impersonate %s", connectionUser, impersonationUser));
+    throw new AuthenticationException(
+        ExceptionMessage.IMPERSONATION_DENIED.getMessage(connectionUser, impersonationUser));
   }
 }
