@@ -98,8 +98,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
       if (command == null) {
         LOG.error("Failed to receive leader master heartbeat command.", e);
       } else {
-        LOG.error("Failed to execute leader master heartbeat command: {}",
-            command, e);
+        LOG.error("Failed to execute leader master heartbeat command: {}", command, e);
       }
       mMasterClient.disconnect();
       if (mHeartbeatTimeoutMs > 0) {
