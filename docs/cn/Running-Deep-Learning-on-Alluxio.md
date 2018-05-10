@@ -41,7 +41,7 @@ Alluxio还包括一个可以提供便利和人性化的使用体验的FUSE界面
 
 ![Fuse]({{site.data.img.fuse}})
 
-最后，Alluxio还提供常用数据的[本地缓存](Alluxio-Storage.html)。当数据远离计算时，这非常有用，例如存储环境中的分解计算。由于Alluxio可以
+最后，Alluxio还提供常用数据的[本地缓存](Alluxio-Storage.html)。当数据远离计算时，这非常有用，例如存储环境中的计算分离。由于Alluxio可以
 在本地缓存数据，所以不需要通过网络IO来访问数据，从而使得深度学习训练的成本会更低，并且花费的时间会更少。
 
 ## 设置 Alluxio FUSE
