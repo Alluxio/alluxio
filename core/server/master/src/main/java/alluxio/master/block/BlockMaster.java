@@ -225,4 +225,6 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param function the function to register
    */
   void registerNewWorkerConfListener(BiConsumer<Long, List<ConfigProperty>> function);
+
+  void registerCheckConfListener(Runnable function);
 }

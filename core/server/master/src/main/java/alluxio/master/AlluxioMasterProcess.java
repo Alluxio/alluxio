@@ -30,7 +30,9 @@ import alluxio.master.meta.MetaMasterClientServiceHandler;
 import alluxio.master.meta.MasterInfo;
 import alluxio.master.meta.MetaMasterMasterClient;
 import alluxio.master.meta.MetaMasterSync;
-import alluxio.master.meta.ServerConfigurationChecker;
+import alluxio.master.meta.checkConf.ServerConfigurationChecker;
+import alluxio.master.meta.checkConf.ServerConfigurationRecord;
+import alluxio.master.meta.checkConf.WrongProperty;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -72,6 +74,7 @@ import java.net.InetSocketAddress;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,10 +167,13 @@ public class AlluxioMasterProcess implements MasterProcess {
   private final Clock mClock;
 
   /** The master configuration checker. */
-  private final ServerConfigurationChecker mMasterConfigChecker;
+  private final ServerConfigurationRecord mMasterConfigRecord;
 
   /** The worker configuration checker. */
-  private final ServerConfigurationChecker mWorkerConfigChecker;
+  private final ServerConfigurationRecord mWorkerConfigRecord;
+
+  /** The server-side configuration checker. */
+  private final ServerConfigurationChecker mConfigChecker;
 
   /** A factory for creating executor services when they are needed. */
   private ExecutorServiceFactory mExecutorServiceFactory;
@@ -243,8 +249,11 @@ public class AlluxioMasterProcess implements MasterProcess {
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
 
       // Create config checker
-      mMasterConfigChecker = new ServerConfigurationChecker();
-      mWorkerConfigChecker = new ServerConfigurationChecker();
+      mMasterConfigRecord = new ServerConfigurationRecord();
+      mWorkerConfigRecord = new ServerConfigurationRecord();
+      mConfigChecker = new ServerConfigurationChecker(mMasterConfigRecord, mWorkerConfigRecord);
+      mConfigChecker.registerGetMasterHostnameListener(this::getMasterHostnameHandler);
+      mConfigChecker.registerGetWorkerHostnameListener(this::getMasterHostnameHandler);
       mClock = new SystemClock();
       mExecutorServiceFactory = ExecutorServiceFactories
           .fixedThreadPoolExecutorServiceFactory(Constants.META_MASTER_NAME, 2);
@@ -257,6 +266,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
       mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
       mBlockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
+      mBlockMaster.registerCheckConfListener(this::checkConfHandler);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -317,19 +327,57 @@ public class AlluxioMasterProcess implements MasterProcess {
     return configInfoList;
   }
 
+  /**
   @Override
-  public Map<String, Map<String, List<String>>> getConfErrors() {
-    return fromIdToHost(mWorkerConfigChecker.getConfErrors(), false);
+  public List<WrongProperty> getConfErrors() {
+    return mConfigChecker.getConfErrors();
   }
 
   @Override
-  public Map<String, Map<String, List<String>>> getConfWarns() {
-    return fromIdToHost(mWorkerConfigChecker.getConfWarns(), false);
+  public List<WrongProperty> getConfWarns() {
+    return mConfigChecker.getConfWarns();
   }
 
   @Override
   public ServerConfigurationChecker.Status getConfStatus() {
-    return mWorkerConfigChecker.getStatus();
+    return mConfigChecker.getStatus();
+  } */
+
+
+  @Override
+  public List<WrongProperty> getConfErrors() {
+    /**return fromIdToHost(mWorkerConfigChecker.getConfErrors(), false); */
+    List<WrongProperty> list = new ArrayList<>();
+    Map<String, List<String>> aMap = new HashMap<>();
+    aMap.put("hdfs://name1:port1", Arrays.asList("masterHostname1", "masterHostname2"));
+    aMap.put("hdfs://name2:port2", Arrays.asList("masterHostname3", "masterHostname4"));
+    Map<String, List<String>> bMap = new HashMap<>();
+    bMap.put("ErrorValue1", Arrays.asList("HostName4", "HostName2"));
+    bMap.put("ErrorValue2", Arrays.asList("HostName1", "HostName3"));
+    list.add(new WrongProperty().setName("alluxio.property.key").setValues(aMap));
+    list.add(new WrongProperty().setName("alluxio.configuration.key").setValues(bMap));
+    return list;
+  }
+
+  @Override
+  public List<WrongProperty> getConfWarns() {
+    /**return fromIdToHost(mWorkerConfigChecker.getConfWarns(), false); */
+    List<WrongProperty> list = new ArrayList<>();
+    Map<String, List<String>> aMap = new HashMap<>();
+    aMap.put("/a/b/c", Arrays.asList("workerHostname1", "workerHostname2"));
+    aMap.put("/d/e/f", Arrays.asList("masterhostname1", "masterHostname2"));
+    Map<String, List<String>> bMap = new HashMap<>();
+    bMap.put("WarnValue1", Arrays.asList("HostName4", "HostName2"));
+    bMap.put("WarnValue2", Arrays.asList("HostName1", "HostName3"));
+    list.add(new WrongProperty().setName("alluxio.property.key.second").setValues(aMap));
+    list.add(new WrongProperty().setName("alluxio.configuration.key.second").setValues(bMap));
+    return list;
+  }
+
+  @Override
+  public ServerConfigurationChecker.Status getConfStatus() {
+    /**return mWorkerConfigChecker.getStatus(); */
+    return ServerConfigurationChecker.Status.FAILED;
   }
 
   @Override
@@ -345,7 +393,8 @@ public class AlluxioMasterProcess implements MasterProcess {
     MasterInfo lostMaster = mLostMasters.getFirstByField(HOSTNAME_INDEX, hostname);
     if (lostMaster != null) {
       // This is one of the lost masters
-      mMasterConfigChecker.lostNodeFound(lostMaster.getId());
+      mMasterConfigRecord.lostNodeFound(lostMaster.getId());
+      mConfigChecker.checkConf();
       synchronized (lostMaster) {
         final long lostMasterId = lostMaster.getId();
         LOG.warn("A lost master {} has requested its old id {}.", hostname, lostMasterId);
@@ -380,7 +429,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
     List<ConfigProperty> configList = options.getConfigList().stream()
         .map(ConfigProperty::fromThrift).collect(Collectors.toList());
-    mMasterConfigChecker.registerNewConf(masterId, configList);
+    mMasterConfigRecord.registerNewConf(masterId, configList);
 
     LOG.info("registerMaster(): master: {} options: {}", master, options);
   }
@@ -434,8 +483,11 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startMasters(boolean isLeader) {
     try {
-      mWorkerConfigChecker.reset();
+      mMasterConfigRecord.reset();
+      mWorkerConfigRecord.reset();
       if (isLeader) {
+        // Add the configuration of the current leader master
+        mMasterConfigRecord.registerNewConf(-1L, Configuration.getConfiguration(PropertyKey.Scope.MASTER));
         mSafeModeManager.notifyPrimaryMasterStarted();
 
         stopExecutorService();
@@ -616,29 +668,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Changes from ids to corresponding hostnames.
-   *
-   * @param idMap the id map to change
-   * @param isMaster whether this is master configuration
-   * @return changed host map
-   */
-  private Map<String, Map<String, List<String>>> fromIdToHost(
-      Map<String, Map<String, List<Long>>> idMap, boolean isMaster) {
-    Map<String, Map<String, List<String>>> hostMap = new HashMap<>();
-
-    for (Map.Entry<String, Map<String, List<Long>>> entry: idMap.entrySet()) {
-      Map<String, List<String>> valueAndHost = new HashMap<>();
-      for (Map.Entry<String, List<Long>> values : entry.getValue().entrySet()) {
-        List<String> hosts = values.getValue().stream()
-            .map(mBlockMaster::getHostname).collect(Collectors.toList());
-        valueAndHost.put(values.getKey(), hosts);
-      }
-      hostMap.put(entry.getKey(), valueAndHost);
-    }
-    return hostMap;
-  }
-
-  /**
    * Lost master periodic check.
    */
   private final class LostMasterDetectionHeartbeatExecutor implements HeartbeatExecutor {
@@ -660,7 +689,8 @@ public class AlluxioMasterProcess implements MasterProcess {
                 master.getHostname(), lastUpdate);
             mLostMasters.add(master);
             mMasters.remove(master);
-            mMasterConfigChecker.handleNodeLost(master.getId());
+            mMasterConfigRecord.handleNodeLost(master.getId());
+            mConfigChecker.checkConf();
           }
         }
       }
@@ -678,16 +708,15 @@ public class AlluxioMasterProcess implements MasterProcess {
    * @param id the id of the worker
    */
   private void lostWorkerFoundHandler(long id) {
-    mWorkerConfigChecker.lostNodeFound(id);
+    mWorkerConfigRecord.lostNodeFound(id);
   }
-
   /**
    * Updates the config checker when a live worker becomes lost.
    *
    * @param id the id of the worker
    */
   private void workerLostHandler(long id) {
-    mWorkerConfigChecker.handleNodeLost(id);
+    mWorkerConfigRecord.handleNodeLost(id);
   }
 
   /**
@@ -697,7 +726,41 @@ public class AlluxioMasterProcess implements MasterProcess {
    * @param configList the configuration of this worker
    */
   private void registerNewWorkerConfHandler(long id, List<ConfigProperty> configList) {
-    mWorkerConfigChecker.registerNewConf(id, configList);
+    mWorkerConfigRecord.registerNewConf(id, configList);
+  }
+
+  /**
+   * Calls the config checker to check configuration.
+   */
+  private void checkConfHandler() {
+    mConfigChecker.checkConf();
+  }
+
+  /**
+   * Gets the hostname of a leader/standby master from its id.
+   *
+   * @param id the master id
+   * @return the master hostname
+   */
+  private String getMasterHostnameHandler(long id) {
+    MasterInfo masterInfo = mMasters.getFirstByField(ID_INDEX, id);
+    if (masterInfo == null) {
+      masterInfo = mLostMasters.getFirstByField(ID_INDEX, id);
+    }
+    if (masterInfo == null) {
+      throw new IllegalArgumentException("Can not find master hostname of the given master id");
+    }
+    return masterInfo.getHostname();
+  }
+
+  /**
+   * Gets the hostname of a worker from its id.
+   *
+   * @param id the worker id
+   * @return the worker hostname
+   */
+  private String getWorkerHostnameHandler(long id) {
+    return mBlockMaster.getHostname(id);
   }
 
   /**

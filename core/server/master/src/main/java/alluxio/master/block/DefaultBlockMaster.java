@@ -91,6 +91,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.swing.*;
 
 /**
  * This block master manages the metadata for all the blocks and block workers in Alluxio.
@@ -177,6 +178,10 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   /** Listeners to call when a new worker registers. */
   private final BlockingQueue<BiConsumer<Long, List<ConfigProperty>>> mWorkerRegisteredListeners
+      = new LinkedBlockingQueue<>();
+
+  /** Listeners to call when a new worker registers. */
+  private final BlockingQueue<Runnable> mCheckConfListeners
       = new LinkedBlockingQueue<>();
 
   /**
@@ -697,6 +702,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         for (Consumer<Long> function : mLostWorkerFoundListeners) {
           function.accept(lostWorker.getId());
         }
+        for (Runnable function : mCheckConfListeners) {
+          function.run();
+        }
         return lostWorkerId;
       }
     }
@@ -736,13 +744,16 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       processWorkerRemovedBlocks(worker, removedBlocks);
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
       processWorkerOrphanedBlocks(worker);
-      if (options.isSetConfigList()) {
-        List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
-            .stream().map(alluxio.wire.ConfigProperty::fromThrift)
-            .collect(Collectors.toList());
-        for (BiConsumer<Long, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
-          function.accept(workerId, wireConfigList);
-        }
+    }
+    if (options.isSetConfigList()) {
+      List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
+          .stream().map(alluxio.wire.ConfigProperty::fromThrift)
+          .collect(Collectors.toList());
+      for (BiConsumer<Long, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
+        function.accept(workerId, wireConfigList);
+      }
+      for (Runnable function : mCheckConfListeners) {
+        function.run();
       }
     }
 
@@ -919,6 +930,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             for (Consumer<Long> function : mWorkerLostListeners) {
               function.accept(worker.getId());
             }
+            for (Runnable function : mCheckConfListeners) {
+              function.run();
+            }
             processWorkerRemovedBlocks(worker, worker.getBlocks());
           }
         }
@@ -981,6 +995,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public void registerNewWorkerConfListener(BiConsumer<Long, List<ConfigProperty>> function) {
     mWorkerRegisteredListeners.add(function);
+  }
+
+  @Override
+  public void registerCheckConfListener(Runnable function) {
+    mCheckConfListeners.add(function);
   }
 
   /**

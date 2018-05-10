@@ -177,15 +177,14 @@
                   <tr>
                     <th colspan="3"> <font color="red">Errors (those properties are required to be same)</font></th>
                   </tr>
-                  <% String previousKey = "Not Set"; %>
-                  <% for (Map.Entry<String, List<String>> entry : ((HashMap<String, List<String>>) request.getAttribute("confErrorsItem")).entrySet()) { %>
-                    <% String key = entry.getKey(); %>
-                    <% for (String value : entry.getValue()) { %>
-                      <% if (key.equals(previousKey)) {key = "";} else {previousKey = key;} %>
+                  <% for (WebInterfaceGeneralServlet.WrongPropertyInfo info : ((List<WebInterfaceGeneralServlet.WrongPropertyInfo>) request.getAttribute("confErrorsItem"))) { %>
+                    <% String name = info.getName(); %>
+                    <% for (String valueAndHosts : ((List<String>) info.getValuesAndHosts())) { %>
                       <tr>
-                        <th class="span4"><font color="red"><%= key %></font></th>
-                        <th class="span8"><font color="red"><%= value %></font></th>
+                        <th class="span4"><font color="red"><%= name %></font></th>
+                        <th class="span8"><font color="red"><%= valueAndHosts %></font></th>
                       </tr>
+                      <% name = ""; %>
                     <% } %>
                   <% } %>
                 <% } %>
@@ -193,15 +192,14 @@
                   <tr>
                     <th colspan="3">Warnings (those properties are recommended to be same) </th>
                   </tr>
-                  <% String previousKey = "Not Set"; %>
-                  <% for (Map.Entry<String, List<String>> entry : ((HashMap<String, List<String>>) request.getAttribute("confWarnsItem")).entrySet()) { %>
-                    <% String key = entry.getKey(); %>
-                    <% for (String value : entry.getValue()) { %>
-                      <% if (key.equals(previousKey)) {key = "";} else {previousKey = key;} %>
+                  <% for (WebInterfaceGeneralServlet.WrongPropertyInfo info : ((List<WebInterfaceGeneralServlet.WrongPropertyInfo>) request.getAttribute("confWarnsItem"))) { %>
+                    <% String name = info.getName(); %>
+                    <% for (String valueAndHosts : ((List<String>) info.getValuesAndHosts())) { %>
                       <tr>
-                        <th class="span4"><%= key %></th>
-                        <th class="span8"><%= value %></th>
+                        <th class="span4"><%= name %></th>
+                        <th class="span8"><%= valueAndHosts %></th>
                       </tr>
+                      <% name = ""; %>
                     <% } %>
                   <% } %>
                 <% } %>

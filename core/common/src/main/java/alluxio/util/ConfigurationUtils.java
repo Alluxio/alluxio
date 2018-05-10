@@ -87,28 +87,6 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Processes the input map to be more human-readable.
-   *
-   * @param inputMap the map to process
-   * @return processed map
-   */
-  public static Map<String, List<String>> processConfErrors(Map<String, Map<String,
-      List<String>>> inputMap) {
-    // Process the inputMap to Map<PropertyName, List<PropertyValue (Host1, Host2)>> format
-    // This will be easier for the Web UI and CLI to show human-readable information
-    Map<String, List<String>> map = new HashMap<>();
-    for (Map.Entry<String, Map<String, List<String>>> entry: inputMap.entrySet()) {
-      List<String> values = new ArrayList<>();
-      for (Map.Entry<String, List<String>> value : entry.getValue().entrySet()) {
-        values.add(String.format("%s (%s)",
-            value.getKey(), String.join(",", value.getValue())));
-      }
-      map.put(entry.getKey(), values);
-    }
-    return map;
-  }
-
-  /**
    * Searches the given properties file from a list of paths as well as the classpath.
    *
    * @param propertiesFile the file to load properties

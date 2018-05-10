@@ -17,7 +17,9 @@ import alluxio.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
-import alluxio.master.meta.ServerConfigurationChecker;
+import alluxio.master.meta.checkConf.ServerConfigurationChecker;
+import alluxio.master.meta.checkConf.ServerConfigurationRecord;
+import alluxio.master.meta.checkConf.WrongProperty;
 import alluxio.thrift.MetaCommand;
 import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.wire.ConfigProperty;
@@ -25,7 +27,6 @@ import alluxio.wire.ConfigProperty;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -100,23 +101,17 @@ public interface MasterProcess extends Process {
   List<ConfigProperty> getAlluxioConfiguration();
 
   /**
-   * Gets a map of configuration errors.
-   * It is a map from property name to a map from value to its corresponding hostnames.
-   *
-   * @return a configuration error map
+   * @return a list of server-side configuration errors
    */
-  Map<String, Map<String, List<String>>> getConfErrors();
+  List<WrongProperty> getConfErrors();
 
   /**
-   * Gets a map of configuration warnings.
-   * It is a map from property name to a map from value to its corresponding hostnames.
-   *
-   * @return a configuration warnings map
+   * @return a list of server-side configuration warnings
    */
-  Map<String, Map<String, List<String>>> getConfWarns();
+  List<WrongProperty> getConfWarns();
 
   /**
-   * @return the configuration checker status
+   * @return the server-side configuration checker status
    */
   ServerConfigurationChecker.Status getConfStatus();
 
