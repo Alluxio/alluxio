@@ -29,7 +29,11 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.security.sasl.AuthenticationException;
 
 /**
- * An authenticator for impersonation users.
+ * An authenticator for impersonation users. This determines if a connection user (the user
+ * making the connection) is configured to impersonate as a separate impersonation user. To
+ * enable impersonation for a particular connection user, the configuration parameter template
+ * {@link PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION} must be used to specify the
+ * groups the connection user is allowed to impersonate.
  */
 @ThreadSafe
 public final class ImpersonationAuthenticator {

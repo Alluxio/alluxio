@@ -21,6 +21,7 @@ import org.apache.thrift.transport.TSocket;
 import java.net.InetSocketAddress;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 
@@ -45,6 +46,7 @@ public final class TransportProviderUtils {
    * @param subject the subject to use (can be null)
    * @return the configured impersonation user, or null if impersonation is not used
    */
+  @Nullable
   public static String getImpersonationUser(Subject subject) {
     // The user of the hdfs client
     String hdfsUser = null;

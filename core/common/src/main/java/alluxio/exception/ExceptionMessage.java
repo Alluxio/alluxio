@@ -218,7 +218,7 @@ public enum ExceptionMessage {
   IMPERSONATION_NOT_CONFIGURED(
       "User {0} is not configured for any impersonation. impersonationUser: {1}"),
   IMPERSONATION_GROUPS_FAILED("Failed to get groups for impersonationUser {0}. user: {1}"),
-  IMPERSONATION_DENIED("User %s is not configured to impersonate %s"),
+  IMPERSONATION_DENIED("User {0} is not configured to impersonate {1}"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   INVALID_MODE("Invalid mode {0}"),
   INVALID_MODE_SEGMENT("Invalid mode {0} - contains invalid segment {1}"),

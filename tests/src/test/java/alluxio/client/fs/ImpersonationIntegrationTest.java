@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -75,12 +76,16 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    GROUPS.put(IMPERSONATION_USER, IMPERSONATION_GROUP1 + "," + IMPERSONATION_GROUP2);
-    GROUPS.put(HDFS_USER, HDFS_GROUP1 + "," + HDFS_GROUP2);
-
-    // Give the root dir 777, to write files as different users.
+    // Give the root dir 777, to write files as different users. This must be run as the user
+    // that starts the master process
     FileSystem.Factory.get().setAttribute(new AlluxioURI("/"),
         SetAttributeOptions.defaults().setMode(new Mode((short) 0777)));
+  }
+
+  @BeforeClass
+  public static void beforeClass() {
+    GROUPS.put(IMPERSONATION_USER, IMPERSONATION_GROUP1 + "," + IMPERSONATION_GROUP2);
+    GROUPS.put(HDFS_USER, HDFS_GROUP1 + "," + HDFS_GROUP2);
   }
 
   @Test
@@ -98,7 +103,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
     fs.createFile(new AlluxioURI("/impersonation-test")).close();
     List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));
-    Assert.assertTrue(listing.size() == 1);
+    Assert.assertEquals(1, listing.size());
     URIStatus status = listing.get(0);
     Assert.assertNotEquals(IMPERSONATION_USER, status.getOwner());
   }
@@ -131,6 +136,17 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_CONFIG, "wrong_group"})
   public void impersonationGroupDenied() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
+    try {
+      checkCreateFile(null, IMPERSONATION_USER);
+      Assert.fail("Connection succeeded, but impersonation should be denied.");
+    } catch (IOException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void impersonationDenied() throws Exception {
     Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
     try {
       checkCreateFile(null, IMPERSONATION_USER);
@@ -176,7 +192,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
     fs.createFile(new AlluxioURI("/impersonation-test")).close();
     List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));
-    Assert.assertTrue(listing.size() == 1);
+    Assert.assertEquals(1, listing.size());
     URIStatus status = listing.get(0);
     Assert.assertEquals(expectedUser, status.getOwner());
   }
