@@ -24,8 +24,8 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.NoWorkerException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -526,14 +526,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   // TODO(binfan): check the logic is correct or not when commitBlock is a retry
   @Override
   public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
-      long length) throws NoWorkerException, UnavailableException {
+      long length) throws NotFoundException, UnavailableException {
     LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
         workerId, usedBytesOnTier, blockId, length);
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     // TODO(peis): Check lost workers as well.
     if (worker == null) {
-      throw new NoWorkerException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
 
     // Lock the worker metadata first.
@@ -715,11 +715,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<String, List<Long>> currentBlocksOnTiers,
-      RegisterWorkerTOptions options) throws NoWorkerException {
+      RegisterWorkerTOptions options) throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
-      throw new NoWorkerException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
 
     // Gather all blocks on this worker.

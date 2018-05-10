@@ -14,8 +14,8 @@ package alluxio.master.block;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.exception.BlockInfoException;
-import alluxio.exception.NoWorkerException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.thrift.Command;
@@ -108,11 +108,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param tierAlias the alias of the storage tier where the worker is committing the block to
    * @param blockId the committing block id
    * @param length the length of the block
-   * @throws NoWorkerException if the workerId is not active
+   * @throws NotFoundException if the workerId is not active
    */
   // TODO(binfan): check the logic is correct or not when commitBlock is a retry
   void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId, long
-      length) throws NoWorkerException, UnavailableException;
+      length) throws NotFoundException, UnavailableException;
 
   /**
    * Marks a block as committed, but without a worker location. This means the block is only in ufs.
@@ -174,12 +174,12 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param usedBytesOnTiers a mapping from storage tier alias to the used byes
    * @param currentBlocksOnTiers a mapping from storage tier alias to a list of blocks
    * @param options the options that may contain worker configuration
-   * @throws NoWorkerException if workerId cannot be found
+   * @throws NotFoundException if workerId cannot be found
    */
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<String, List<Long>> currentBlocksOnTiers,
-      RegisterWorkerTOptions options) throws NoWorkerException;
+      RegisterWorkerTOptions options) throws NotFoundException;
 
   /**
    * Updates metadata when a worker periodically heartbeats with the master.

@@ -14,6 +14,7 @@ package alluxio.master.block;
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockHeartbeatTResponse;
@@ -129,9 +130,9 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
       final List<String> storageTiers, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Map<String, List<Long>> currentBlocksOnTiers,
       RegisterWorkerTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<RegisterWorkerTResponse>() {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallableThrowsIOException<RegisterWorkerTResponse>() {
       @Override
-      public RegisterWorkerTResponse call() throws AlluxioException {
+      public RegisterWorkerTResponse call() throws AlluxioException, AlluxioStatusException {
         mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnTiers, options);
         return new RegisterWorkerTResponse();

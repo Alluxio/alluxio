@@ -15,18 +15,37 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.clock.SystemClock;
+import alluxio.collections.IndexDefinition;
+import alluxio.collections.IndexedSet;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.NotFoundException;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
+import alluxio.master.meta.MetaMasterClientServiceHandler;
+import alluxio.master.meta.MasterInfo;
+import alluxio.master.meta.MetaMasterMasterClient;
+import alluxio.master.meta.MetaMasterSync;
 import alluxio.master.meta.ServerConfigurationChecker;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.TransportProvider;
+import alluxio.thrift.MetaCommand;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
@@ -50,10 +69,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -65,6 +89,24 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class AlluxioMasterProcess implements MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
+  private static final long SHUTDOWN_TIMEOUT_MS = 10 * Constants.SECOND_MS;
+
+  // Master metadata management.
+  private static final IndexDefinition<MasterInfo> ID_INDEX =
+      new IndexDefinition<MasterInfo>(true) {
+        @Override
+        public Object getFieldValue(MasterInfo o) {
+          return o.getId();
+        }
+      };
+
+  private static final IndexDefinition<MasterInfo> HOSTNAME_INDEX =
+      new IndexDefinition<MasterInfo>(true) {
+        @Override
+        public Object getFieldValue(MasterInfo o) {
+          return o.getHostname();
+        }
+      };
 
   /** Maximum number of threads to serve the rpc server. */
   private final int mMaxWorkerThreads;
@@ -118,8 +160,39 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The block master.*/
   private final BlockMaster mBlockMaster;
 
+  /** The clock to use for determining the time. */
+  private final Clock mClock;
+
+  /** The master configuration checker. */
+  private final ServerConfigurationChecker mMasterConfigChecker;
+
   /** The worker configuration checker. */
   private final ServerConfigurationChecker mWorkerConfigChecker;
+
+  /** A factory for creating executor services when they are needed. */
+  private ExecutorServiceFactory mExecutorServiceFactory;
+
+  /** The executor used for running maintenance threads for the meta master. */
+  private ExecutorService mExecutorService;
+
+  /** The hostname of this master. */
+  private String mMasterHostname;
+
+  /** The master ID for this master. */
+  private AtomicReference<Long> mMasterId;
+
+  /** Client for all meta master communication. */
+  private final MetaMasterMasterClient mMetaMasterClient;
+
+  /** Runnable responsible for heartbeating and registration with leader master. */
+  private MetaMasterSync mMetaMasterSync;
+
+  /** Keeps track of standby masters which are in communication with the leader master. */
+  private final IndexedSet<MasterInfo> mMasters =
+      new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
+  /** Keeps track of standby masters which are no longer in communication with the leader master. */
+  private final IndexedSet<MasterInfo> mLostMasters =
+      new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -170,7 +243,14 @@ public class AlluxioMasterProcess implements MasterProcess {
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
 
       // Create config checker
+      mMasterConfigChecker = new ServerConfigurationChecker();
       mWorkerConfigChecker = new ServerConfigurationChecker();
+      mClock = new SystemClock();
+      mExecutorServiceFactory = ExecutorServiceFactories
+          .fixedThreadPoolExecutorServiceFactory(Constants.META_MASTER_NAME, 2);
+      mMetaMasterClient = new MetaMasterMasterClient(MasterClientConfig.defaults());
+      mMasterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
+      mMasterId = new AtomicReference<>(-1L);
 
       // Register listeners for BlockMaster to interact with config checker
       mBlockMaster = mRegistry.get(BlockMaster.class);
@@ -253,6 +333,71 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
+  public long getMasterId(String hostname) {
+    MasterInfo existingMaster = mMasters.getFirstByField(HOSTNAME_INDEX, hostname);
+    if (existingMaster != null) {
+      // This master hostname is already mapped to a master id.
+      long oldMasterId = existingMaster.getId();
+      LOG.warn("The master {} already exists as id {}.", hostname, oldMasterId);
+      return oldMasterId;
+    }
+
+    MasterInfo lostMaster = mLostMasters.getFirstByField(HOSTNAME_INDEX, hostname);
+    if (lostMaster != null) {
+      // This is one of the lost masters
+      mMasterConfigChecker.lostNodeFound(lostMaster.getId());
+      synchronized (lostMaster) {
+        final long lostMasterId = lostMaster.getId();
+        LOG.warn("A lost master {} has requested its old id {}.", hostname, lostMasterId);
+
+        // Update the timestamp of the master before it is considered an active master.
+        lostMaster.updateLastUpdatedTimeMs();
+        mMasters.add(lostMaster);
+        mLostMasters.remove(lostMaster);
+        return lostMasterId;
+      }
+    }
+
+    // Generate a new master id.
+    long masterId = IdUtils.getRandomNonNegativeLong();
+    while (!mMasters.add(new MasterInfo(masterId, hostname))) {
+      masterId = IdUtils.getRandomNonNegativeLong();
+    }
+
+    LOG.info("getMasterId(): Hostname: {} id: {}", hostname, masterId);
+    return masterId;
+  }
+
+  @Override
+  public void masterRegister(long masterId, RegisterMasterTOptions options)
+      throws NotFoundException {
+    MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
+    if (master == null) {
+      throw new NotFoundException(ExceptionMessage.NO_MASTER_FOUND.getMessage(masterId));
+    }
+
+    master.updateLastUpdatedTimeMs();
+
+    List<ConfigProperty> configList = options.getConfigList().stream()
+        .map(ConfigProperty::fromThrift).collect(Collectors.toList());
+    mMasterConfigChecker.registerNewConf(masterId, configList);
+
+    LOG.info("registerMaster(): master: {} options: {}", master, options);
+  }
+
+  @Override
+  public MetaCommand masterHeartbeat(long masterId) {
+    MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
+    if (master == null) {
+      LOG.warn("Could not find master id: {} for heartbeat.", masterId);
+      return MetaCommand.Register;
+    }
+
+    master.updateLastUpdatedTimeMs();
+    return MetaCommand.Nothing;
+  }
+
+  @Override
   public void waitForReady() {
     CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override
@@ -292,6 +437,25 @@ public class AlluxioMasterProcess implements MasterProcess {
       mWorkerConfigChecker.reset();
       if (isLeader) {
         mSafeModeManager.notifyPrimaryMasterStarted();
+
+        stopExecutorService();
+        mExecutorService = mExecutorServiceFactory.create();
+
+        //  The service that detects lost standby master nodes
+        mExecutorService.submit(new HeartbeatThread(
+            HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
+            new LostMasterDetectionHeartbeatExecutor(),
+            (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+      } else {
+        stopExecutorService();
+        mExecutorService = mExecutorServiceFactory.create();
+
+        // Standby master should setup MetaMasterSync to communicate with the leader master
+        setMasterId();
+        mMetaMasterSync = new MetaMasterSync(mMasterId, mMasterHostname, mMetaMasterClient);
+        mExecutorService.submit(new HeartbeatThread(HeartbeatContext.MASTER_SYNC, mMetaMasterSync,
+            (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+        LOG.info("Standby master with id {} starts sending heartbeat to leader master.", mMasterId);
       }
       mRegistry.start(isLeader);
       LOG.info("All masters started");
@@ -306,6 +470,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void stopMasters() {
     try {
+      stopExecutorService();
       mRegistry.stop();
     } catch (IOException e) {
       throw Throwables.propagate(e);
@@ -385,7 +550,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       registerServices(processor, master.getServices());
     }
     // register meta services
-    processor.registerProcessor(Constants.META_MASTER_SERVICE_NAME,
+    processor.registerProcessor(Constants.META_MASTER_CLIENT_SERVICE_NAME,
         new MetaMasterClientService.Processor<>(new MetaMasterClientServiceHandler(this)));
 
     // Return a TTransportFactory based on the authentication type
@@ -474,6 +639,40 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
+   * Lost master periodic check.
+   */
+  private final class LostMasterDetectionHeartbeatExecutor implements HeartbeatExecutor {
+
+    /**
+     * Constructs a new {@link LostMasterDetectionHeartbeatExecutor}.
+     */
+    public LostMasterDetectionHeartbeatExecutor() {
+    }
+
+    @Override
+    public void heartbeat() {
+      int masterTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
+      for (MasterInfo master : mMasters) {
+        synchronized (master) {
+          final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
+          if (lastUpdate > masterTimeoutMs) {
+            LOG.error("The master {}({}) timed out after {}ms without a heartbeat!", master.getId(),
+                master.getHostname(), lastUpdate);
+            mLostMasters.add(master);
+            mMasters.remove(master);
+            mMasterConfigChecker.handleNodeLost(master.getId());
+          }
+        }
+      }
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
+  }
+
+  /**
    * Updates the config checker when a lost worker becomes alive.
    *
    * @param id the id of the worker
@@ -499,5 +698,48 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   private void registerNewWorkerConfHandler(long id, List<ConfigProperty> configList) {
     mWorkerConfigChecker.registerNewConf(id, configList);
+  }
+
+  /**
+   * Sets the master id. This method should only be called when this master is a standby master.
+   */
+  private void setMasterId() {
+    try {
+      RetryUtils.retry("get master id",
+          () -> mMasterId.set(mMetaMasterClient.getId(mMasterHostname)),
+          ExponentialTimeBoundedRetry.builder()
+              .withMaxDuration(Duration
+                  .ofMillis(Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY)))
+              .withInitialSleep(Duration.ofMillis(100))
+              .withMaxSleep(Duration.ofSeconds(5))
+              .build());
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to get a master id from leader master: " + e.getMessage());
+    }
+
+    Preconditions.checkNotNull(mMasterId, "mMasterId");
+  }
+
+  /**
+   * Stops the executor service.
+   */
+  private void stopExecutorService() {
+    // Shut down the executor service, interrupting any running threads.
+    if (mExecutorService != null) {
+      try {
+        mExecutorService.shutdownNow();
+        String awaitFailureMessage =
+            "waiting for {} executor service to shut down. Daemons may still be running";
+        try {
+          if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+          }
+        } catch (InterruptedException e) {
+          LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
+        }
+      } finally {
+        mExecutorService = null;
+      }
+    }
   }
 }
