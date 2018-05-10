@@ -56,7 +56,6 @@ public class ServerConfigurationRecordTest {
     mIdTwo = IdUtils.getRandomNonNegativeLong();
   }
 
-
   @Test
   public void registerNewConf() {
     ServerConfigurationRecord configRecord = createConfigRecord();
