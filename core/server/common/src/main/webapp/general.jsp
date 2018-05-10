@@ -179,7 +179,7 @@
                   </tr>
                   <% for (WebInterfaceGeneralServlet.WrongPropertyInfo info : ((List<WebInterfaceGeneralServlet.WrongPropertyInfo>) request.getAttribute("confErrorsItem"))) { %>
                     <% String name = info.getName(); %>
-                    <% for (String valueAndHosts : ((List<String>) info.getValuesAndHosts())) { %>
+                    <% for (String valueAndHosts : info.getValuesAndHosts()) { %>
                       <tr>
                         <th class="span4"><font color="red"><%= name %></font></th>
                         <th class="span8"><font color="red"><%= valueAndHosts %></font></th>
@@ -194,7 +194,7 @@
                   </tr>
                   <% for (WebInterfaceGeneralServlet.WrongPropertyInfo info : ((List<WebInterfaceGeneralServlet.WrongPropertyInfo>) request.getAttribute("confWarnsItem"))) { %>
                     <% String name = info.getName(); %>
-                    <% for (String valueAndHosts : ((List<String>) info.getValuesAndHosts())) { %>
+                    <% for (String valueAndHosts : info.getValuesAndHosts()) { %>
                       <tr>
                         <th class="span4"><%= name %></th>
                         <th class="span8"><%= valueAndHosts %></th>

@@ -19,7 +19,7 @@ import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
-import alluxio.master.meta.checkConf.WrongProperty;
+import alluxio.master.meta.checkconf.WrongProperty;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -135,7 +134,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     /**
-     * @return the values of this property
+     * @return the values and hostnames of this property
      */
     public List<String> getValuesAndHosts() {
       return mValuesAndHosts;
@@ -227,11 +226,14 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    */
   private WrongPropertyInfo generateWrongPropertyInfo(WrongProperty wrongProperty) {
     // Each String in valuesAndHosts is of format Value (Host1, Host2, ...)
+    String valueAndHostsFormat = "%s (%s)";
     List<String> valuesAndHosts = new ArrayList<>();
     for (Map.Entry<String, List<String>> entry : wrongProperty.getValues().entrySet()) {
-      valuesAndHosts.add(String.format("%s (%s)", entry.getKey(), String.join(",", entry.getValue())));
+      valuesAndHosts.add(String.format(valueAndHostsFormat, entry.getKey(),
+          String.join(",", entry.getValue())));
     }
-    return new WrongPropertyInfo().setName(wrongProperty.getName()).setValuesAndHosts(valuesAndHosts);
+    return new WrongPropertyInfo()
+        .setName(wrongProperty.getName()).setValuesAndHosts(valuesAndHosts);
   }
 
   /**

@@ -11,22 +11,20 @@
 
 package alluxio.master.meta;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.Builder;
 import alluxio.PropertyKey.ConsistencyCheckLevel;
-import alluxio.master.meta.checkConf.ConfigRecord;
-import alluxio.master.meta.checkConf.ServerConfigurationRecord;
+import alluxio.master.meta.checkconf.ConfigRecord;
+import alluxio.master.meta.checkconf.ServerConfigurationRecord;
 import alluxio.util.IdUtils;
 import alluxio.wire.ConfigProperty;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -70,9 +68,6 @@ public class ServerConfigurationRecordTest {
 
     assertTrue(confMap.containsKey(mIdOne));
     assertTrue(confMap.containsKey(mIdTwo));
-
-    assertEquals(mConfigListOne, confMap.get(mIdOne));
-    assertEquals(mConfigListTwo, confMap.get(mIdTwo));
   }
 
   @Test
@@ -102,7 +97,6 @@ public class ServerConfigurationRecordTest {
     confMap = configRecord.getConfMap();
 
     assertTrue(confMap.containsKey(mIdTwo));
-    assertEquals(mConfigListTwo, confMap.get(mIdTwo));
     assertFalse(confMap.containsKey(mIdOne));
   }
 

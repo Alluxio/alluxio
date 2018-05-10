@@ -91,7 +91,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.swing.*;
 
 /**
  * This block master manages the metadata for all the blocks and block workers in Alluxio.
@@ -180,7 +179,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   private final BlockingQueue<BiConsumer<Long, List<ConfigProperty>>> mWorkerRegisteredListeners
       = new LinkedBlockingQueue<>();
 
-  /** Listeners to call when a new worker registers. */
+  /** Listeners to call when worker configuration record changes. */
   private final BlockingQueue<Runnable> mCheckConfListeners
       = new LinkedBlockingQueue<>();
 

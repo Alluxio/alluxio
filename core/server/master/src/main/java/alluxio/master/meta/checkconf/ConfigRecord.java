@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.meta.checkConf;
+package alluxio.master.meta.checkconf;
 
 import alluxio.PropertyKey;
 
@@ -25,9 +25,13 @@ public final class ConfigRecord {
    * Creates a new instance of {@link ConfigRecord}.
    */
   public ConfigRecord() {}
-  
+
   /**
-   * Creates a new instance of {@link ConfigRecord}
+   * Creates a new instance of {@link ConfigRecord}.
+   *
+   * @param key the property key
+   * @param source the source of the value
+   * @param value the property value
    */
   public ConfigRecord(PropertyKey key, String source, String value) {
     mKey = key;
@@ -36,28 +40,28 @@ public final class ConfigRecord {
   }
 
   /**
-   * @return the configuration property
+   * @return the property key
    */
   public PropertyKey getKey() {
     return mKey;
   }
 
   /**
-   * @return the source of this configuration property
+   * @return the source of this property
    */
   public String getSource() {
     return mSource;
   }
 
   /**
-   * @return the value of this configuration property
+   * @return the value of this property
    */
   public String getValue() {
     return mValue;
   }
 
   /**
-   * @param key the configuration property key
+   * @param key the property key
    * @return the configuration record
    */
   public ConfigRecord setKey(PropertyKey key) {
@@ -66,8 +70,8 @@ public final class ConfigRecord {
   }
 
   /**
-   * @param source the configuration source to use
-   * @return the configuration property
+   * @param source the source to use
+   * @return the configuration record
    */
   public ConfigRecord setSource(String source) {
     mSource = source;
@@ -75,8 +79,8 @@ public final class ConfigRecord {
   }
 
   /**
-   * @param value the configuration value to use
-   * @return the configuration property
+   * @param value the value to use
+   * @return the configuration record
    */
   public ConfigRecord setValue(String value) {
     mValue = value;

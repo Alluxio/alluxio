@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.meta.checkConf;
+package alluxio.master.meta.checkconf;
 
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.ConsistencyCheckLevel;
@@ -36,8 +36,9 @@ public class ServerConfigurationChecker {
     NOT_STARTED,
   }
 
+  /** Contain all the master configuration information. */
   private ServerConfigurationRecord mMasterRecord;
-
+  /** Contain all the worker configuration information. */
   private ServerConfigurationRecord mWorkerRecord;
 
   /** Record the configuration errors of last check conf. */
@@ -47,14 +48,21 @@ public class ServerConfigurationChecker {
   /** Record the status of last check conf. */
   private Status mStatus;
 
-  /** Listeners to call when checkConf need to get master hostname. */
+  /** Listeners to call when need to get master hostname. */
   private final BlockingQueue<Function<Long, String>> mGetMasterHostnameListeners
       = new LinkedBlockingQueue<>();
+  /** Listeners to call when need to get worker hostname. */
+  private final BlockingQueue<Function<Long, String>> mGetWorkerHostnameListeners
+      = new LinkedBlockingQueue<>();
 
-  /** Listeners to call when checkConf need to get worker hostname. */
-  private final BlockingQueue<Function<Long, String>> mGetWorkerHostnameListeners = new LinkedBlockingQueue<>();
-
-  public ServerConfigurationChecker(ServerConfigurationRecord masterRecord, ServerConfigurationRecord workerRecord) {
+  /**
+   * Constructs a new {@link ServerConfigurationChecker}.
+   *
+   * @param masterRecord master configuration record
+   * @param workerRecord worker configuration record
+   */
+  public ServerConfigurationChecker(ServerConfigurationRecord masterRecord,
+      ServerConfigurationRecord workerRecord) {
     mMasterRecord = masterRecord;
     mWorkerRecord = workerRecord;
     mConfErrors = new ArrayList<>();
@@ -63,16 +71,24 @@ public class ServerConfigurationChecker {
   }
 
   /**
-   * Checks the server-side configurations and records the configuration errors.
+   * Checks the server-side configurations and records the check results.
    */
   public synchronized void checkConf() {
-    // The maps are of format Map<Property Name, Map<Property Value, List<Hostname>>>
-    // Record all the property names and values and hostnames belong to those values.
+    // Generate the configuration map from master and worker configuration records
     Map<PropertyKey, Map<String, List<String>>> confMap = generateConfMap();
 
+    // Update the errors and warnings configuration
     mConfErrors = new ArrayList<>();
     mConfWarns = new ArrayList<>();
-    fillConfErrorsAndWarns(confMap);
+    for (Map.Entry<PropertyKey, Map<String, List<String>>> entry : confMap.entrySet()) {
+      WrongProperty wrongProperty = new WrongProperty()
+          .setName(entry.getKey().getName()).setValues(entry.getValue());
+      if (entry.getKey().getConsistencyLevel().equals(ConsistencyCheckLevel.ENFORCE)) {
+        mConfErrors.add(wrongProperty);
+      } else {
+        mConfWarns.add(wrongProperty);
+      }
+    }
 
     // Update the status
     if (mConfErrors.size() > 0) {
@@ -105,18 +121,12 @@ public class ServerConfigurationChecker {
     return mStatus;
   }
 
-  private void fillConfErrorsAndWarns(Map<PropertyKey, Map<String, List<String>>> confMap) {
-    for (Map.Entry<PropertyKey, Map<String, List<String>>> entry : confMap.entrySet()) {
-      WrongProperty wrongProperty = new WrongProperty()
-          .setName(entry.getKey().getName()).setValues(entry.getValue());
-      if (entry.getKey().getConsistencyLevel().equals(ConsistencyCheckLevel.ENFORCE)) {
-         mConfErrors.add(wrongProperty);
-       } else {
-         mConfWarns.add(wrongProperty);
-       }
-    }
-  }
-
+  /**
+   * Generates the configuration map to find wrong configuration.
+   * The map is of format Map<PropertyKey, Map<Value, List<Hosts>>.
+   *
+   * @return the generated configuration map
+   */
   private Map<PropertyKey, Map<String, List<String>>> generateConfMap() {
     Map<PropertyKey, Map<String, List<String>>> confMap = new HashMap<>();
     for (Map.Entry<Long, List<ConfigRecord>> record : mMasterRecord.getConfMap().entrySet()) {
@@ -131,7 +141,15 @@ public class ServerConfigurationChecker {
     return confMap;
   }
 
-  private void fillConfMap(Map<PropertyKey, Map<String, List<String>>> map, List<ConfigRecord> recordList, String hostname) {
+  /**
+   * Fills the configuration map.
+   *
+   * @param map the map to put data to
+   * @param recordList the records to get information from
+   * @param hostname the hostname of the configuration to put
+   */
+  private void fillConfMap(Map<PropertyKey, Map<String, List<String>>> map,
+      List<ConfigRecord> recordList, String hostname) {
     for (ConfigRecord record : recordList) {
       PropertyKey key = record.getKey();
       if (key.getConsistencyLevel().equals(ConsistencyCheckLevel.IGNORE)) {
@@ -145,10 +163,20 @@ public class ServerConfigurationChecker {
     }
   }
 
+  /**
+   * Registers callback functions to use when need to get master hostname.
+   *
+   * @param function the function to register
+   */
   public void registerGetMasterHostnameListener(Function<Long, String> function) {
     mGetMasterHostnameListeners.add(function);
   }
 
+  /**
+   * Registers callback functions to use when need to get worker hostname.
+   *
+   * @param function the function to register
+   */
   public void registerGetWorkerHostnameListener(Function<Long, String> function) {
     mGetWorkerHostnameListeners.add(function);
   }

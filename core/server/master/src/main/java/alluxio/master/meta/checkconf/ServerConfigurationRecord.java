@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.meta.checkConf;
+package alluxio.master.meta.checkconf;
 
 import alluxio.PropertyKey;
 import alluxio.wire.ConfigProperty;
@@ -54,8 +54,8 @@ public class ServerConfigurationRecord {
    */
   public synchronized void registerNewConf(long id, List<ConfigProperty> configList) {
     mConfMap.put(id, configList.stream().map(c -> new ConfigRecord()
-        .setKey(PropertyKey.fromString(c.getName())).setSource(c.getSource()).setValue(c.getValue()))
-        .collect(Collectors.toList()));
+        .setKey(PropertyKey.fromString(c.getName())).setSource(c.getSource())
+        .setValue(c.getValue())).collect(Collectors.toList()));
     mLostNodes.remove(id);
   }
 

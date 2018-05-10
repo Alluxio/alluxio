@@ -206,6 +206,13 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void reportLostBlocks(List<Long> blockIds);
 
   /**
+   * Registers callback functions to use when worker config record changes.
+   *
+   * @param function the function to register
+   */
+  void registerCheckConfListener(Runnable function);
+
+  /**
    * Registers callback functions to use when lost workers become alive.
    *
    * @param function the function to register
@@ -225,6 +232,4 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param function the function to register
    */
   void registerNewWorkerConfListener(BiConsumer<Long, List<ConfigProperty>> function);
-
-  void registerCheckConfListener(Runnable function);
 }

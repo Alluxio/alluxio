@@ -9,13 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.meta.checkConf;
+package alluxio.master.meta.checkconf;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * Records a property that has error or warnings.
+ * Records a property that has error or warning.
  */
 public class WrongProperty {
   /** The name of the property that has errors/warnings.*/
@@ -56,10 +56,8 @@ public class WrongProperty {
    * @param values the values to use
    * @return the wrong property
    */
-  public WrongProperty setValues(Map<String, List<String>>values) {
+  public WrongProperty setValues(Map<String, List<String>> values) {
     mValues = values;
     return this;
   }
 }
-
-
