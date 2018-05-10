@@ -3373,6 +3373,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
     MASTER_IMPERSONATION_GROUPS_OPTION("alluxio.master.security.impersonation.%s.groups",
         "alluxio.master.security.impersonation.(\\w+).groups"),
+    MASTER_IMPERSONATION_USERS_OPTION("alluxio.master.security.impersonation.%s.users",
+        "alluxio.master.security.impersonation.(\\w+).users"),
     MASTER_JOURNAL_UFS_OPTION("alluxio.master.journal.ufs.option",
         "alluxio\\.master\\.journal\\.ufs\\.option"),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",

@@ -134,15 +134,31 @@ In order to configure Alluxio for impersonation, client and master configuration
 
 ### Master Configuration
 In order to enable a particular user to impersonate other users, the Alluxio master must be configured
-to allow that ability. The master configuration property required is: `alluxio.master.security.impersonation.<USERNAME>.groups` .
-You can specify the comma-separated groups of users that the `<USERNAME>` is allowed to impersonate.
-The wildcard `*` can be used to indicate that the user can impersonate any other user. For every user
-allowed to impersonate other users, this property must be specified on the master. Here are some examples.
+to allow that ability. 
+The master configuration properties are: `alluxio.master.security.impersonation.<USERNAME>.users` and
+`alluxio.master.security.impersonation.<USERNAME>.groups`.
+
+For `alluxio.master.security.impersonation.<USERNAME>.users`, you can specify the comma-separated list
+of users that the `<USERNAME>` is allowed to impersonate. The wildcard `*` can be used to indicate that
+the user can impersonate any other user. Here are some examples.
+
+- `alluxio.master.security.impersonation.alluxio_user.users=user1,user2`
+    - This means the Alluxio user `alluxio_user` is allowed to impersonate the users `user1` and `user2`.
+- `alluxio.master.security.impersonation.client.users=*`
+    - This means the Alluxio user `client` is allowed to impersonate any user.
+
+For `alluxio.master.security.impersonation.<USERNAME>.users`, you can specify the comma-separated groups
+of users that the `<USERNAME>` is allowed to impersonate. The wildcard `*` can be used to indicate that
+the user can impersonate any other user. Here are some examples.
 
 - `alluxio.master.security.impersonation.alluxio_user.groups=group1,group2`
     - This means the Alluxio user `alluxio_user` is allowed to impersonate any users from groups `group1` and `group2`.
 - `alluxio.master.security.impersonation.client.groups=*`
     - This means the Alluxio user `client` is allowed to impersonate any user.
+
+In order to enable impersonation for some user `alluxio_user`, at least 1 of
+`alluxio.master.security.impersonation.<USERNAME>.users` and `alluxio.master.security.impersonation.<USERNAME>.groups`
+must be set (replace `<USERNAME>` with `alluxio_user`). Both parameters are allowed to be set for the same user.
 
 ### Client Configuration
 If the master enables impersonation for particular users, the client must also be configured to

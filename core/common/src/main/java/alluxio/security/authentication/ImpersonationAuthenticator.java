@@ -31,9 +31,10 @@ import javax.security.sasl.AuthenticationException;
 /**
  * An authenticator for impersonation users. This determines if a connection user (the user
  * making the connection) is configured to impersonate as a separate impersonation user. To
- * enable impersonation for a particular connection user, the configuration parameter template
+ * enable impersonation for a particular connection user, the configuration parameter templates
+ * {@link PropertyKey.Template.MASTER_IMPERSONATION_USERS_OPTION} and/or
  * {@link PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION} must be used to specify the
- * groups the connection user is allowed to impersonate.
+ * users and groups the connection user is allowed to impersonate.
  */
 @ThreadSafe
 public final class ImpersonationAuthenticator {
@@ -41,20 +42,34 @@ public final class ImpersonationAuthenticator {
   private static final String WILDCARD = "*";
   // Maps users configured for impersonation to the set of groups which they can impersonate.
   private final Map<String, Set<String>> mImpersonationGroups;
+  // Maps users configured for impersonation to the set of users which they can impersonate.
+  private final Map<String, Set<String>> mImpersonationUsers;
 
   /**
    * Constructs a new {@link ImpersonationAuthenticator}.
    */
   public ImpersonationAuthenticator() {
     mImpersonationGroups = new HashMap<>();
+    mImpersonationUsers = new HashMap<>();
     Map<String, String> properties = Configuration.toRawMap();
     for (Map.Entry<String, String> entry : properties.entrySet()) {
+      // Process impersonation groups
       Matcher matcher =
           PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION.match(entry.getKey());
       if (matcher.matches()) {
         String connectionUser = matcher.group(1);
         if (connectionUser != null) {
           mImpersonationGroups
+              .put(connectionUser, Sets.newHashSet(SPLITTER.split(entry.getValue())));
+        }
+      }
+
+      // Process impersonation users
+      matcher = PropertyKey.Template.MASTER_IMPERSONATION_USERS_OPTION.match(entry.getKey());
+      if (matcher.matches()) {
+        String connectionUser = matcher.group(1);
+        if (connectionUser != null) {
+          mImpersonationUsers
               .put(connectionUser, Sets.newHashSet(SPLITTER.split(entry.getValue())));
         }
       }
@@ -73,25 +88,40 @@ public final class ImpersonationAuthenticator {
       // Impersonation is not being used.
       return;
     }
-    if (!mImpersonationGroups.containsKey(connectionUser)) {
+
+    Set<String> allowedUsers = mImpersonationUsers.get(connectionUser);
+    Set<String> allowedGroups = mImpersonationGroups.get(connectionUser);
+
+    if (allowedUsers == null && allowedGroups == null) {
       throw new AuthenticationException(ExceptionMessage.IMPERSONATION_NOT_CONFIGURED
           .getMessage(connectionUser, impersonationUser));
     }
-    Set<String> allowedGroups = mImpersonationGroups.get(connectionUser);
-    if (allowedGroups.contains(WILDCARD)) {
-      // Impersonation is allowed for all groups
-      return;
-    }
-    try {
-      for (String impersonationGroup : CommonUtils.getGroups(impersonationUser)) {
-        if (allowedGroups.contains(impersonationGroup)) {
-          // Impersonation is allowed for this group
-          return;
-        }
+
+    // Check the impersonation users configs
+    if (allowedUsers != null) {
+      if (allowedUsers.contains(WILDCARD) || allowedUsers.contains(impersonationUser)) {
+        // Impersonation is allowed
+        return;
       }
-    } catch (IOException e) {
-      throw new AuthenticationException(ExceptionMessage.IMPERSONATION_GROUPS_FAILED
-          .getMessage(impersonationUser, connectionUser), e);
+    }
+
+    // Check the impersonation groups configs
+    if (allowedGroups != null) {
+      if (allowedGroups.contains(WILDCARD)) {
+        // Impersonation is allowed for all groups
+        return;
+      }
+      try {
+        for (String impersonationGroup : CommonUtils.getGroups(impersonationUser)) {
+          if (allowedGroups.contains(impersonationGroup)) {
+            // Impersonation is allowed for this group
+            return;
+          }
+        }
+      } catch (IOException e) {
+        throw new AuthenticationException(ExceptionMessage.IMPERSONATION_GROUPS_FAILED
+            .getMessage(impersonationUser, connectionUser), e);
+      }
     }
     throw new AuthenticationException(
         ExceptionMessage.IMPERSONATION_DENIED.getMessage(connectionUser, impersonationUser));
