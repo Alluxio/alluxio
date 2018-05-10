@@ -26,6 +26,23 @@ import java.util.function.Function;
  * This class is responsible for checking server-side configuration.
  */
 public class ServerConfigurationChecker {
+  /** Contain all the master configuration information. */
+  private final ServerConfigurationRecord mMasterRecord;
+  /** Contain all the worker configuration information. */
+  private final ServerConfigurationRecord mWorkerRecord;
+
+  /** Listeners to call when need to get master hostname. */
+  private final BlockingQueue<Function<Long, String>> mGetMasterHostnameListeners
+      = new LinkedBlockingQueue<>();
+  /** Listeners to call when need to get worker hostname. */
+  private final BlockingQueue<Function<Long, String>> mGetWorkerHostnameListeners
+      = new LinkedBlockingQueue<>();
+
+  /** Record the configuration errors of last check conf. */
+  private List<WrongProperty> mConfErrors;
+  /** Record the configuration warnings of last check conf. */
+  private List<WrongProperty> mConfWarns;
+
   /**
    * Status of the check.
    */
@@ -36,24 +53,8 @@ public class ServerConfigurationChecker {
     NOT_STARTED,
   }
 
-  /** Contain all the master configuration information. */
-  private ServerConfigurationRecord mMasterRecord;
-  /** Contain all the worker configuration information. */
-  private ServerConfigurationRecord mWorkerRecord;
-
-  /** Record the configuration errors of last check conf. */
-  private List<WrongProperty> mConfErrors;
-  /** Record the configuration warnings of last check conf. */
-  private List<WrongProperty> mConfWarns;
   /** Record the status of last check conf. */
   private Status mStatus;
-
-  /** Listeners to call when need to get master hostname. */
-  private final BlockingQueue<Function<Long, String>> mGetMasterHostnameListeners
-      = new LinkedBlockingQueue<>();
-  /** Listeners to call when need to get worker hostname. */
-  private final BlockingQueue<Function<Long, String>> mGetWorkerHostnameListeners
-      = new LinkedBlockingQueue<>();
 
   /**
    * Constructs a new {@link ServerConfigurationChecker}.

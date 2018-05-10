@@ -46,19 +46,16 @@ public class ServerConfigurationRecordTest {
         .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE).build();
     mKeyWarn = new Builder("TestKey2")
         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).build();
-    PropertyKey keyEnforce = new Builder("TestKey3")
-        .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE).build();
-    PropertyKey keyWarn = new Builder("TestKey4")
-        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).build();
     mConfigListOne = Arrays.asList(
         new ConfigProperty().setName(mKeyEnforce.getName()).setSource("Test").setValue("Value"),
-        new ConfigProperty().setName(keyEnforce.getName()).setSource("Test").setValue("Value2"));
+        new ConfigProperty().setName(mKeyWarn.getName()).setSource("Test").setValue("Value2"));
     mConfigListTwo = Arrays.asList(
-        new ConfigProperty().setName(mKeyWarn.getName()).setSource("Test").setValue("Value3"),
-        new ConfigProperty().setName(keyWarn.getName()).setSource("Test").setValue("Value4"));
+        new ConfigProperty().setName(mKeyEnforce.getName()).setSource("Test").setValue("Value3"),
+        new ConfigProperty().setName(mKeyWarn.getName()).setSource("Test").setValue("Value4"));
     mIdOne = IdUtils.getRandomNonNegativeLong();
     mIdTwo = IdUtils.getRandomNonNegativeLong();
   }
+
 
   @Test
   public void registerNewConf() {
@@ -101,7 +98,7 @@ public class ServerConfigurationRecordTest {
   }
 
   /**
-   * @return a config checker with two conf registered
+   * @return a config record with two conf registered
    */
   private ServerConfigurationRecord createConfigRecord() {
     ServerConfigurationRecord configRecord = new ServerConfigurationRecord();

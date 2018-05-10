@@ -645,7 +645,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public String getHostname(Long id) {
-    return mWorkers.getFirstByField(ID_INDEX, id).getWorkerAddress().getHost();
+    MasterWorkerInfo workerInfo = mWorkers.getFirstByField(ID_INDEX, id);
+    if (workerInfo == null) {
+      workerInfo = mLostWorkers.getFirstByField(ID_INDEX, id);
+    }
+    if (workerInfo == null) {
+      throw new IllegalArgumentException("Can not find worker hostname for the given worker id");
+    }
+    return workerInfo.getWorkerAddress().getHost();
   }
 
   @Override

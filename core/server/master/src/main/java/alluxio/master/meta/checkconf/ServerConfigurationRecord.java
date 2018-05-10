@@ -53,6 +53,7 @@ public class ServerConfigurationRecord {
    * @param configList the configuration of this node
    */
   public synchronized void registerNewConf(long id, List<ConfigProperty> configList) {
+    // Instead of recording property name, we record property key.
     mConfMap.put(id, configList.stream().map(c -> new ConfigRecord()
         .setKey(PropertyKey.fromString(c.getName())).setSource(c.getSource())
         .setValue(c.getValue())).collect(Collectors.toList()));

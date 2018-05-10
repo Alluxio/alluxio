@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Records a property that has error or warning.
+ * Records a property that is required to be consistent but is not within its scope.
  */
 public class WrongProperty {
   /** The name of the property that has errors/warnings.*/

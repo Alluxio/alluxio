@@ -230,7 +230,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     List<String> valuesAndHosts = new ArrayList<>();
     for (Map.Entry<String, List<String>> entry : wrongProperty.getValues().entrySet()) {
       valuesAndHosts.add(String.format(valueAndHostsFormat, entry.getKey(),
-          String.join(",", entry.getValue())));
+          String.join(", ", entry.getValue())));
     }
     return new WrongPropertyInfo()
         .setName(wrongProperty.getName()).setValuesAndHosts(valuesAndHosts);
