@@ -932,8 +932,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       inode = inodePath.getInode();
       auditContext.setSrcInode(inode);
 
-      List<FileInfo> ret = new ArrayList<>();
-      listStatusRecursive(ret, inodePath, auditContext, listStatusOptions.isRecursive());
+      List<FileInfo> ret = listStatusInternal(inodePath, auditContext,
+          listStatusOptions.isRecursive());
 
       auditContext.setSucceeded(true);
       Metrics.FILE_INFOS_GOT.inc();
@@ -941,12 +941,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
-  private void listStatusRecursive(List<FileInfo> statusList, LockedInodePath originalInodePath,
-                                   AuditContext auditContext, boolean recursive)
+  private List<FileInfo> listStatusInternal(LockedInodePath inodePath, AuditContext auditContext,
+                                             boolean recursive)
       throws UnavailableException, FileDoesNotExistException,
       AccessControlException, InvalidPathException {
+    List<FileInfo> statusList = new ArrayList<>();
     Queue<LockedInodePath> queue = new LinkedList<>();
-    queue.add(originalInodePath);
+    queue.add(inodePath);
 
     try (InodeLockList lockList = new InodeLockList()) {
       while (!queue.isEmpty()) {
@@ -954,26 +955,27 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         Inode<?> inode = currInodePath.getInode();
         if (inode.isDirectory()) {
           try {
-            mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, originalInodePath);
-          } catch (Exception e) {
+            mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, inodePath);
+          } catch (AccessControlException e) {
             auditContext.setAllowed(false);
             throw e;
           }
-          if (recursive || currInodePath.equals(originalInodePath)) {
+          if (recursive || currInodePath.equals(inodePath)) {
             for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
               lockList.lockReadAndCheckParent(child, inode);
               TempInodePathForDescendant tempInodePath
-                  = new TempInodePathForDescendant(originalInodePath);
+                  = new TempInodePathForDescendant(inodePath);
               tempInodePath.setDescendant(child, mInodeTree.getPath(child));
               queue.add(tempInodePath);
             }
           }
         }
-        if (currInodePath.getInode().isFile() || !currInodePath.equals(originalInodePath)) {
+        if (currInodePath.getInode().isFile() || !currInodePath.equals(inodePath)) {
           statusList.add(getFileInfoInternal(currInodePath));
         }
       }
     }
+    return statusList;
   }
 
   /**

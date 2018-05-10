@@ -110,7 +110,7 @@ public final class PermissionChecker {
    * @throws InvalidPathException if the path is invalid
    */
   public void checkPermission(Mode.Bits bits, LockedInodePath inodePath)
-      throws AccessControlException, InvalidPathException {
+      throws AccessControlException {
     if (!mPermissionCheckEnabled) {
       return;
     }
