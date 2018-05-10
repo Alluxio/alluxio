@@ -908,11 +908,36 @@ public final class FileSystemMasterTest {
           filenames.contains(NESTED_URI.join("file" + String.format("%05d", i)).toString()));
     }
 
+    // Test non-existent URIs.
+    try {
+      mFileSystemMaster.listStatus(NESTED_URI.join("DNE"),
+          ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
+      Assert.fail("listStatus() for a non-existent URI should fail.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case.
+    }
+  }
+
+  @Test
+  public void listStatusRecursive() throws Exception {
+    final int files = 10;
+    List<FileInfo> infos;
+    List<String> filenames;
+
+    // Test files in root directory.
+    for (int i = 0; i < files; i++) {
+      createFileWithSingleBlock(ROOT_URI.join("file" + String.format("%05d", i)));
+    }
+    // Test files in nested directory.
+    for (int i = 0; i < files; i++) {
+      createFileWithSingleBlock(NESTED_URI.join("file" + String.format("%05d", i)));
+    }
+
     // Test recursive listStatus
     infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusOptions.defaults()
         .setLoadMetadataType(LoadMetadataType.Never).setRecursive(true));
-    // 10 files in each directory, 1 file at the root directory, 2 levels of directories
-    assertEquals(files + files + 1 + 2, infos.size());
+    // 10 files in each directory, 2 levels of directories
+    assertEquals(files + files + 2, infos.size());
 
     filenames = new ArrayList<>();
     for (FileInfo info : infos) {
@@ -925,16 +950,6 @@ public final class FileSystemMasterTest {
     for (int i = 0; i < files; i++) {
       assertTrue(
           filenames.contains(NESTED_URI.join("file" + String.format("%05d", i)).toString()));
-    }
-    assertTrue(filenames.contains(ROOT_FILE_URI.getPath()));
-
-    // Test non-existent URIs.
-    try {
-      mFileSystemMaster.listStatus(NESTED_URI.join("DNE"),
-          ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
-      Assert.fail("listStatus() for a non-existent URI should fail.");
-    } catch (FileDoesNotExistException e) {
-      // Expected case.
     }
   }
 

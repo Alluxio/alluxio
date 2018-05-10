@@ -933,7 +933,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       auditContext.setSrcInode(inode);
 
       List<FileInfo> ret = listStatusInternal(inodePath, auditContext,
-          listStatusOptions.isRecursive());
+          listStatusOptions.isRecursive(), inodePath);
 
       auditContext.setSucceeded(true);
       Metrics.FILE_INFOS_GOT.inc();
@@ -941,39 +941,35 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
-  private List<FileInfo> listStatusInternal(LockedInodePath inodePath, AuditContext auditContext,
-                                             boolean recursive)
-      throws UnavailableException, FileDoesNotExistException,
-      AccessControlException, InvalidPathException {
+  private List<FileInfo> listStatusInternal(LockedInodePath currInodePath,
+                                                  AuditContext auditContext,
+                                                  boolean recursive,
+                                                  LockedInodePath originalInodePath)
+      throws FileDoesNotExistException, UnavailableException, AccessControlException {
     List<FileInfo> statusList = new ArrayList<>();
-    Queue<LockedInodePath> queue = new LinkedList<>();
-    queue.add(inodePath);
-
-    try (InodeLockList lockList = new InodeLockList()) {
-      while (!queue.isEmpty()) {
-        LockedInodePath currInodePath = queue.remove();
-        Inode<?> inode = currInodePath.getInode();
-        if (inode.isDirectory()) {
-          try {
-            mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, inodePath);
-          } catch (AccessControlException e) {
-            auditContext.setAllowed(false);
-            throw e;
+    Inode<?> inode = currInodePath.getInode();
+    if (inode.isDirectory()) {
+      try {
+        mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, currInodePath);
+      } catch (AccessControlException e) {
+        auditContext.setAllowed(false);
+        return statusList;
+      }
+      if (recursive || currInodePath.equals(originalInodePath)) {
+        for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
+          try (LockedInodePath childInodePath = mInodeTree.lockFullInodePath(child.getId(), InodeTree.LockMode.READ)) {
+            statusList.addAll(listStatusInternal
+                (childInodePath, auditContext, recursive, originalInodePath));
+          } catch (Exception e) {
+            LOG.debug("ListStatus failed for path {}", mInodeTree.getPath(child).getPath(), e);
+            continue;
           }
-          if (recursive || currInodePath.equals(inodePath)) {
-            for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-              lockList.lockReadAndCheckParent(child, inode);
-              TempInodePathForDescendant tempInodePath
-                  = new TempInodePathForDescendant(inodePath);
-              tempInodePath.setDescendant(child, mInodeTree.getPath(child));
-              queue.add(tempInodePath);
-            }
-          }
-        }
-        if (currInodePath.getInode().isFile() || !currInodePath.equals(inodePath)) {
-          statusList.add(getFileInfoInternal(currInodePath));
         }
       }
+    }
+    // We add the file info of all files and any directory that is not the original directory
+    if (currInodePath.getInode().isFile() || !currInodePath.equals(originalInodePath)) {
+      statusList.add(getFileInfoInternal(currInodePath));
     }
     return statusList;
   }
