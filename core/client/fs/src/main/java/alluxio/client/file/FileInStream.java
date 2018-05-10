@@ -12,12 +12,12 @@
 package alluxio.client.file;
 
 import alluxio.Configuration;
+import alluxio.MetaCache;
 import alluxio.PropertyKey;
 import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
-import alluxio.client.block.AlluxioBlockCache;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.options.InStreamOptions;
@@ -227,7 +227,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
         //qiniu2 - block may be evicted
         LOG.info("==== file " + mStatus.getPath() + " block " + blockId + " may be evicted, clear local cache");
-        AlluxioBlockCache.invalidaeBlockInfoCache(blockId);
+        MetaCache.invalidateBlockInfoCache(blockId);
 
         if (!retry.attemptRetry()) {
           throw e;

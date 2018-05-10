@@ -24,8 +24,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.FileBlockInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -56,9 +54,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
+import alluxio.MetaCache;
 
 /**
  * Main FUSE implementation class.
@@ -81,7 +79,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   // an action on the URI alluxio://<master>:<port>/users/foo/bar
   private final Path mAlluxioRootPath;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
-  private final LoadingCache<String, AlluxioURI> mPathResolverCache;
+  //private final LoadingCache<String, AlluxioURI> mPathResolverCache;
 
   // Table of open files with corresponding InputStreams and OutputStreams
   private final Map<Long, OpenFileEntry> mOpenFiles;
@@ -100,12 +98,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     mNextOpenFileId = 0L;
     mOpenFiles = new HashMap<>();
 
-    final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
+    //final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
     mIsShellGroupMapping = ShellBasedUnixGroupsMapping.class.getName()
         .equals(Configuration.get(PropertyKey.SECURITY_GROUP_MAPPING_CLASS));
-    mPathResolverCache = CacheBuilder.newBuilder()
-        .maximumSize(maxCachedPaths)
-        .build(new PathCacheLoader());
+    //mPathResolverCache = CacheBuilder.newBuilder()
+    //    .maximumSize(maxCachedPaths)
+    //    .build(new PathCacheLoader());
 
     Preconditions.checkArgument(mAlluxioRootPath.isAbsolute(),
         "alluxio root path should be absolute");
@@ -120,7 +118,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int chmod(String path, @mode_t long mode) {
-    AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    //AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    AlluxioURI uri = MetaCache.getURI(path);
 
     SetAttributeOptions options = SetAttributeOptions.defaults().setMode(new Mode((short) mode));
     try {
@@ -161,7 +160,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       }
       SetAttributeOptions options =
           SetAttributeOptions.defaults().setGroup(groupName).setOwner(userName);
-      final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+      //final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+      final AlluxioURI uri = MetaCache.getURI(path);
       LOG.info("Change owner and group of file {} to {}:{}", path, userName, groupName);
 
       mFileSystem.setAttribute(uri, options);
@@ -182,7 +182,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int create(String path, @mode_t long mode, FuseFileInfo fi) {
-    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    //final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    final AlluxioURI uri = MetaCache.getURI(path);
     final int flags = fi.flags.get();
     LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
@@ -249,7 +250,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.EIO();
       }
       LOG.debug("---- invalidate path after flush " + path);
-      mPathResolverCache.invalidate(path); // qiniu
+      //mPathResolverCache.invalidate(path); // qiniu
+      MetaCache.invalidate(path);  // qiniu
     } else {
       LOG.debug("Not flushing: {} was not open for writing", path);
     }
@@ -265,8 +267,15 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int getattr(String path, FileStat stat) {
-    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    //final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    final AlluxioURI turi = MetaCache.getURI(path);
     LOG.trace("getattr({}) [Alluxio: {}]", path, turi);
+    if (path.contains(".purge_attr_cache")) {
+        MetaCache.invalidateAll();
+    }
+    if (path.contains(".purge_block_cache")) {
+        MetaCache.invalidateAllBlockInfoCache();
+    }
     try {
       if (!mFileSystem.exists(turi)) {
         return -ErrorCodes.ENOENT();
@@ -341,7 +350,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int mkdir(String path, @mode_t long mode) {
-    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    //final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    final AlluxioURI turi = MetaCache.getURI(path);
     LOG.trace("mkdir({}) [Alluxio: {}]", path, turi);
     try {
       mFileSystem.createDirectory(turi);
@@ -376,7 +386,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int open(String path, FuseFileInfo fi) {
-    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    //final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    final AlluxioURI uri = MetaCache.getURI(path);
     // (see {@code man 2 open} for the structure of the flags bitfield)
     // File creation flags are the last two bits of flags
     final int flags = fi.flags.get();
@@ -502,7 +513,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int readdir(String path, Pointer buff, FuseFillDir filter,
       @off_t long offset, FuseFileInfo fi) {
-    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    //final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    final AlluxioURI turi = MetaCache.getURI(path);
     LOG.trace("readdir({}) [Alluxio: {}]", path, turi);
 
     try {
@@ -583,8 +595,10 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int rename(String oldPath, String newPath) {
-    final AlluxioURI oldUri = mPathResolverCache.getUnchecked(oldPath);
-    final AlluxioURI newUri = mPathResolverCache.getUnchecked(newPath);
+    //final AlluxioURI oldUri = mPathResolverCache.getUnchecked(oldPath);
+    //final AlluxioURI newUri = mPathResolverCache.getUnchecked(newPath);
+    final AlluxioURI oldUri = MetaCache.getURI(oldPath);
+    final AlluxioURI newUri = MetaCache.getURI(newPath);
     LOG.trace("rename({}, {}) [Alluxio: {}, {}]", oldPath, newPath, oldUri, newUri);
 
     try {
@@ -632,7 +646,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int truncate(String path, long size) {
-    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    //final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    final AlluxioURI uri = MetaCache.getURI(path);
     try {
       if (!mFileSystem.exists(uri)) {
         LOG.error("File {} does not exist", uri);
@@ -738,8 +753,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    * @return 0 on success, a negative value on error
    */
   private int rmInternal(String path, boolean mustBeFile) {
-    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
-    mPathResolverCache.invalidate(path);  // qiniu
+    //final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    final AlluxioURI turi = MetaCache.getURI(path);
 
     try {
       if (!mFileSystem.exists(turi)) {
@@ -753,12 +768,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       }
 
       mFileSystem.delete(turi);
-      if (status.isFolder()) {
-          Set<String> keys = mPathResolverCache.asMap().keySet();
-          for (String k: keys) {
-              if (k.startsWith(path)) mPathResolverCache.invalidate(k);
-          }
-      }
+      MetaCache.invalidate(path); // qiniu
+      if (status.isFolder()) MetaCache.invalidatePrefix(path);  //qiniu
     } catch (FileDoesNotExistException e) {
       LOG.debug("File does not exist {}", path, e);
       return -ErrorCodes.ENOENT();
@@ -783,7 +794,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    * Exposed for testing.
    */
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
-    return mPathResolverCache;
+    //return mPathResolverCache; //qiniu
+    final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
+    LoadingCache<String, AlluxioURI> c = CacheBuilder.newBuilder()
+        .maximumSize(maxCachedPaths)
+        .build(new PathCacheLoader());
+    return c;
   }
 
   /**

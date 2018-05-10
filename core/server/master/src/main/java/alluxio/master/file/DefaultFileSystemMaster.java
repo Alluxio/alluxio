@@ -3344,40 +3344,45 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // qiniu
     // EVICT -> PERSIST or FREE
-    Map<Long, PersistFile> evict = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_EVICT, workerId);
-    Iterator<Map.Entry<Long, PersistFile>> it = evict.entrySet().iterator();
+    Map<Long, PersistFile> m = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_EVICT, workerId);
+    Iterator<Map.Entry<Long, PersistFile>> it = m.entrySet().iterator();
+    FileInfo info = null;
     while (it.hasNext()) {
-        FileInfo info = getFileInfo(it.next().getValue().getFileId());
-        if (info == null) {
-            LOG.error("==== EVICT[ERROR] file:" + it.next().getValue().getFileId() + " not existed");
-        } else if (info.isPersisted()) {
-            DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
-                                            new PersistFile(info.getFileId(), 
-                                            new ArrayList<Long>(info.getBlockIds())));
-        } else {
-            if (DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_PERSIST, workerId,  // ready for persist 
-                                            new PersistFile(info.getFileId(), 
-                                            new ArrayList<Long>(info.getBlockIds())))) {
-                filesToPersist.add(new PersistFile(info.getFileId(), info.getBlockIds()));
-                LOG.info("===== EVICT[PERSIST] worker:" + workerId + " file:" + info.getFileId()
-                        + " blocks:" + info.getBlockIds());
+        try {
+            info = getFileInfo(it.next().getValue().getFileId());  // this may throw exception
+            if (info.isPersisted()) {
+                DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
+                        new PersistFile(info.getFileId(), 
+                            new ArrayList<Long>(info.getBlockIds())));
+            } else {
+                if (DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_PERSIST, workerId,  // ready for persist 
+                            new PersistFile(info.getFileId(), new ArrayList<Long>(info.getBlockIds())))) {
+                    filesToPersist.add(new PersistFile(info.getFileId(), info.getBlockIds()));
+                    LOG.debug("===== EVICT[PERSIST] worker:" + workerId + " file:" + info.getFileId()
+                            + " blocks:" + info.getBlockIds());
+                }
             }
+        } catch (Exception e) {
+            LOG.error("==== EVICT[PERSIST or FREE ERROR]:" + e.getMessage());   // complain and ignore the file
         }
-        it.remove();
     }
+    m.clear();
 
     // PERSIST -> FREE
-    Map<Long, PersistFile> persist = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_PERSIST, workerId);
-    it = evict.entrySet().iterator();
+    m = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_PERSIST, workerId);
+    it = m.entrySet().iterator();
     while (it.hasNext()) {
-        FileInfo info = getFileInfo(it.next().getValue().getFileId());
-        if (info == null) {
-            LOG.error("==== EVICT[ERROR] file:" + info.getFileId() + " not existed");
-        } else if (info.isPersisted()) {
-            DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
-                                            new PersistFile(info.getFileId(), info.getBlockIds()));
+        info = null;
+        try {
+            info = getFileInfo(it.next().getValue().getFileId());
+            if (info.isPersisted()) {
+                DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
+                        new PersistFile(info.getFileId(), info.getBlockIds()));
+            }
+        } catch (Exception e) {
+            LOG.error("==== EVICT[FREE ERROR]:" + e.getMessage());   // complain and ignore the file
         }
-        it.remove();
+        if (info == null || info.isPersisted()) it.remove(); // file gone or already persisted
     }
 
     if (!filesToPersist.isEmpty()) {

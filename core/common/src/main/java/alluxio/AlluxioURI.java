@@ -12,7 +12,6 @@
 package alluxio;
 
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.URIStatus;
 import alluxio.util.URIUtils;
 
 import org.apache.commons.lang.StringUtils;
@@ -54,17 +53,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
 
   /** A {@link URI} is used to hold the URI components. */
   private final URI mUri;
-
-  //qiniu
-  private URIStatus uriStatus = null; 
-
-  public void setURIStatus(URIStatus s) {
-      this.uriStatus = s;
-  }
-
-  public URIStatus getURIStatus() {
-      return this.uriStatus;
-  }
 
   /**
    * Constructs an {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
