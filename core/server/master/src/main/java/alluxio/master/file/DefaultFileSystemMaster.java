@@ -1552,7 +1552,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
           String failureReason = null;
           if (unsafeInodes.contains(delInode.getId())) {
-            failureReason = "Directory not empty";
+            failureReason = ExceptionMessage.DELETE_FAILED_DIR_NONEMPTY.getMessage();
           } else if (!replayed && delInode.isPersisted()) {
             try {
               // If this is a mount point, we have deleted all the children and can unmount it
