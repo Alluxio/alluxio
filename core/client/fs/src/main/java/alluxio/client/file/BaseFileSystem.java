@@ -191,7 +191,6 @@ public class BaseFileSystem implements FileSystem {
       // TODO(calvin): Make this more efficient
       //URIStatus s = masterClient.getStatus(path, options.toGetStatusOptions());
       s = getStatus(path, options.toGetStatusOptions());
-      if (s.getLength() > 0) MetaCache.setStatus(path.getPath(), s); // qiniu
       return true;
     } catch (NotFoundException e) {
       return false;
@@ -245,14 +244,14 @@ public class BaseFileSystem implements FileSystem {
         MetaCache.invalidate(path.getPath()); // qiniu
     } else {
         URIStatus s = MetaCache.getStatus(path.getPath());
-        if (s != null && s.getLength() > 0) return s;
+        if (s != null && !MetaCache.shouldUpdateStatus(s)) return s;
     }
 
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       URIStatus s = masterClient.getStatus(path, options);  // qiniu
+      MetaCache.setStatus(path.getPath(), s);
       if (s.getLength() > 0) {
-          MetaCache.setStatus(path.getPath(), s);
           for (FileBlockInfo f: s.getFileBlockInfos()) {
               BlockInfo b = f.getBlockInfo();
               MetaCache.addBlockInfoCache(b.getBlockId(), b);

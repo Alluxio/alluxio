@@ -36,6 +36,7 @@ import alluxio.util.FormatUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.TieredIdentity;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -165,13 +166,19 @@ public final class AlluxioBlockStore {
           info = masterClientResource.get().getBlockInfo(blockId);
           
         }*/
-        try {
+        try {   // qiniu
             info = getInfo(blockId);
         } catch (Exception e)  {
             LOG.info("==== fail to get block info for " + blockId);
         }
     }
     List<BlockLocation> locations = info.getLocations();
+
+    //qiniu
+    Set<WorkerNetAddress> cachedWorkers = MetaCache.getWorkerInfoList().stream().map(WorkerInfo::getAddress).collect(toSet());
+    Set<WorkerNetAddress> blockWorkers = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
+    if (!cachedWorkers.containsAll(blockWorkers)) MetaCache.invalidateWorkerInfoList();
+
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
     // Initial target workers to read the block given the block locations.
     Set<WorkerNetAddress> workerPool;
@@ -182,7 +189,7 @@ public final class AlluxioBlockStore {
       workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
     }
     if (workerPool.isEmpty()) {
-      LOG.info("==== info:" + info);
+      MetaCache.invalidateBlockInfoCache(blockId); //qiniu
       throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
     }
     // Workers to read the block, after considering failed workers.
@@ -210,9 +217,12 @@ public final class AlluxioBlockStore {
           dataSourceType = BlockInStreamSource.REMOTE;
         }
       }
+    } else {
+        MetaCache.invalidateBlockInfoCache(blockId);
     }
     // Can't get data from Alluxio, get it from the UFS instead
     if (dataSource == null) {
+      MetaCache.invalidateBlockInfoCache(blockId);
       dataSourceType = BlockInStreamSource.UFS;
       BlockLocationPolicy policy =
           Preconditions.checkNotNull(options.getOptions().getUfsReadLocationPolicy(),

@@ -225,10 +225,6 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         len -= bytesRead;
         retry.reset();
       } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
-        //qiniu2 - block may be evicted
-        LOG.info("==== file " + mStatus.getPath() + " block " + blockId + " may be evicted, clear local cache");
-        MetaCache.invalidateBlockInfoCache(blockId);
-
         if (!retry.attemptRetry()) {
           throw e;
         }
@@ -347,6 +343,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     WorkerNetAddress workerAddress = stream.getAddress();
     LOG.warn("Failed to read block {} from worker {}, will retry: {}",
         stream.getId(), workerAddress, e.getMessage());
+
+    //qiniu2 - block may be evicted or wrong
+    MetaCache.invalidateBlockInfoCache(stream.getId());
+
     try {
       stream.close();
     } catch (Exception ex) {

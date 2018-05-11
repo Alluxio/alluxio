@@ -246,6 +246,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       try {
         oe.getOut().flush();
       } catch (IOException e) {
+        MetaCache.invalidate(path);
         LOG.error("IOException on  {}", path, e);
         return -ErrorCodes.EIO();
       }
@@ -270,12 +271,14 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     //final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     final AlluxioURI turi = MetaCache.getURI(path);
     LOG.trace("getattr({}) [Alluxio: {}]", path, turi);
-    if (path.contains(".purge_attr_cache")) {
-        MetaCache.invalidateAll();
+    String seed = "/@alluxio@";
+    int idx = path.lastIndexOf(seed);
+    if (idx >= 0) {
+        String p = path.substring(idx).replace(seed, "");
+        MetaCache.debug_meta_cache(p);
+        return -ErrorCodes.ENOENT();
     }
-    if (path.contains(".purge_block_cache")) {
-        MetaCache.invalidateAllBlockInfoCache();
-    }
+
     try {
       if (!mFileSystem.exists(turi)) {
         return -ErrorCodes.ENOENT();
@@ -490,9 +493,11 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         buf.put(0, dest, 0, nread);
       }
     } catch (IOException e) {
+      MetaCache.invalidate(path);
       LOG.error("IOException while reading from {}.", path, e);
       return -ErrorCodes.EIO();
     } catch (Throwable e) {
+      MetaCache.invalidate(path);
       LOG.error("Unexpected exception on {}", path, e);
       return -ErrorCodes.EFAULT();
     }
@@ -597,6 +602,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int rename(String oldPath, String newPath) {
     //final AlluxioURI oldUri = mPathResolverCache.getUnchecked(oldPath);
     //final AlluxioURI newUri = mPathResolverCache.getUnchecked(newPath);
+    MetaCache.invalidate(oldPath);
+    MetaCache.invalidate(newPath);
     final AlluxioURI oldUri = MetaCache.getURI(oldPath);
     final AlluxioURI newUri = MetaCache.getURI(newPath);
     LOG.trace("rename({}, {}) [Alluxio: {}, {}]", oldPath, newPath, oldUri, newUri);
@@ -737,6 +744,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       oe.getOut().write(dest);
       oe.setWriteOffset(offset + size);
     } catch (IOException e) {
+      MetaCache.invalidate(path);
       LOG.error("IOException while writing to {}.", path, e);
       return -ErrorCodes.EIO();
     }
@@ -768,7 +776,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       }
 
       mFileSystem.delete(turi);
-      MetaCache.invalidate(path); // qiniu
       if (status.isFolder()) MetaCache.invalidatePrefix(path);  //qiniu
     } catch (FileDoesNotExistException e) {
       LOG.debug("File does not exist {}", path, e);
@@ -785,6 +792,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     } catch (Throwable e) {
       LOG.error("Unexpected exception on {}", path, e);
       return -ErrorCodes.EFAULT();
+    } finally { //qiniu
+      MetaCache.invalidate(path); // qiniu
     }
 
     return 0;

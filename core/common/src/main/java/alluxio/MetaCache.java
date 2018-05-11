@@ -15,12 +15,16 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.URIStatus;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+import java.util.ArrayList;
 import java.util.Set;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,6 +38,91 @@ public class MetaCache {
   private static LoadingCache<String, MetaCacheData> fcache = null;
   private static LoadingCache<Long, BlockInfoData> bcache = null;
   private static MetaCache singleton = new MetaCache();     // just make compiler happy
+  private static List<WorkerInfo> workerList = new ArrayList<>();
+  private static long lastWorkerListAccess = 0;
+  private static boolean attr_cache_enabled = true;
+  private static boolean block_cache_enabled = true;
+  private static boolean worker_cache_enabled = true;
+
+  public static void debug_meta_cache(String p) {
+      if (p.startsWith("start_attr_cache")) {
+          MetaCache.set_attr_cache(1);
+          System.out.println("Alluxio attr cache enabled.");
+      } else if (p.startsWith("stop_attr_cache")) {
+          MetaCache.set_attr_cache(0);
+          System.out.println("Alluxio attr cache disabled.");
+      } else if (p.startsWith("show_attr_cache")) {
+          System.out.println("Alluxio attr cache state:" + attr_cache_enabled);
+          System.out.println("Alluxio attr cache size:" + fcache.size());
+      } else if (p.startsWith("purge_attr_cache")) {
+          MetaCache.set_attr_cache(2);
+          System.out.println("Alluxio attr cache purged.");
+      } else if (p.startsWith("start_block_cache")) {
+          MetaCache.set_block_cache(1);
+          System.out.println("Alluxio block cache enabled.");
+      } else if (p.startsWith("stop_block_cache")) {
+          MetaCache.set_block_cache(0);
+          System.out.println("Alluxio block cache disabled.");
+      } else if (p.startsWith("purge_block_cache")) {
+          MetaCache.set_block_cache(2);
+          System.out.println("Alluxio block cache purged.");
+      } else if (p.startsWith("show_block_cache")) {
+          System.out.println("Alluxio block cache state:" + block_cache_enabled);
+          System.out.println("Alluxio block cache size:" + bcache.size());
+      } else if (p.startsWith("start_worker_cache")) {
+          MetaCache.set_worker_cache(1);
+          System.out.println("Alluxio worker cache enabled.");
+      } else if (p.startsWith("stop_worker_cache")) {
+          MetaCache.set_worker_cache(0);
+          System.out.println("Alluxio worker cache disabled.");
+      } else if (p.startsWith("purge_worker_cache")) {
+          MetaCache.set_worker_cache(2);
+          System.out.println("Alluxio worker cache purged.");
+      } else if (p.startsWith("show_worker_cache")) {
+          System.out.println("Cached workers state:" + worker_cache_enabled);
+          System.out.println("Cached workers:" + MetaCache.getWorkerInfoList());
+      } else {
+          p = p.replace("@", "/");
+          if (p.startsWith("/")) {
+              System.out.println("Attr cache for " + p + ":" + MetaCache.getStatus(p));
+          } else {
+              Long l = Long.parseLong(p);
+              System.out.println("Cached block for " + l + ":" + MetaCache.getBlockInfoCache(l));
+          }
+      }
+  }
+
+  public static void set_attr_cache(int v) {
+      switch (v) {
+          case 0: 
+              attr_cache_enabled = false; 
+              fcache.invalidateAll();
+              return;
+          case 1: 
+              attr_cache_enabled = true; 
+              return;
+          default: 
+              fcache.invalidateAll(); 
+      }
+  }
+  public static void set_block_cache(int v) {
+      switch (v) {
+          case 0: 
+              block_cache_enabled = false;
+              bcache.invalidateAll();
+              return;
+          case 1:
+              block_cache_enabled = true;
+              return;
+          default:
+              bcache.invalidateAll();
+      }
+
+  }
+  public static void set_worker_cache(int v) {
+      worker_cache_enabled = (0 == v) ? false : true;
+      if (v > 1) MetaCache.invalidateWorkerInfoList();
+  }
 
   public MetaCache() {
       int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
@@ -41,12 +130,49 @@ public class MetaCache {
       bcache = CacheBuilder.newBuilder().maximumSize(maxCachedPaths).build(new BlockInfoLoader());
   }
 
+  public static void setWorkerInfoList(List<WorkerInfo> list) {
+      if (!worker_cache_enabled) return;
+
+      if (list != null) {
+          synchronized (workerList) {
+              workerList.clear();
+              workerList.addAll(list);
+          }
+      }
+  }
+
+  public static List<WorkerInfo> getWorkerInfoList() {
+      long now = System.currentTimeMillis(); // expire every 10s
+      if (now - lastWorkerListAccess > 1000 * 300) {
+          synchronized (workerList) {
+              workerList.clear();
+          }
+      }
+      lastWorkerListAccess = now;
+      return workerList;
+  }
+
+  public static void invalidateWorkerInfoList() {
+      synchronized (workerList) {
+          workerList.clear();
+      }
+  }
+
   public static URIStatus getStatus(String path) {
       MetaCacheData c = fcache.getIfPresent(path);
       return (c != null) ? c.getStatus() : null;
   }
 
+  public static boolean shouldUpdateStatus(URIStatus s) {
+      if (s.isFolder() || s.getBlockSizeBytes() == 0) return false;
+      if (s.getLength() == 0) return true;
+      if (s.getInAlluxioPercentage() == 100) return false;
+      return true;
+  }
+
   public static void setStatus(String path, URIStatus s) {
+      if (!attr_cache_enabled) return;
+
       MetaCacheData c = fcache.getUnchecked(path);
       if (c != null) c.setStatus(s);
   }
@@ -82,6 +208,8 @@ public class MetaCache {
   }
 
   public static void addBlockInfoCache(long blockId, BlockInfo info) {
+      if (!block_cache_enabled) return;
+
       BlockInfoData data = bcache.getUnchecked(blockId);
       if (data != null) data.setBlockInfo(info);
   }
