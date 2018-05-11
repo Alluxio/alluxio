@@ -75,7 +75,7 @@ public class ServerConfigurationChecker {
     /**
      * @return the status of the configuration checker results
      */
-    public Status getStatus() {
+    public Status getConfigStatus() {
       return mConfigStatus;
     }
 
