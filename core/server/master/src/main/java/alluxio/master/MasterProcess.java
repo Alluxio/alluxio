@@ -102,7 +102,7 @@ public interface MasterProcess extends Process {
   /**
    * @return the server-side configuration checker report
    */
-  ServerConfigurationChecker.ConfigReport getConfigReport();
+  ServerConfigurationChecker.ConfigCheckReport getConfigCheckReport();
 
   /**
    * Returns a master id for the given master, creating one if the master is new.

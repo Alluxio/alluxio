@@ -207,7 +207,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("inconsistentPaths", 0);
     }
 
-    request.setAttribute("configReport", mMasterProcess.getConfigReport());
+    request.setAttribute("configCheckReport", mMasterProcess.getConfigCheckReport());
 
     String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsRoot);

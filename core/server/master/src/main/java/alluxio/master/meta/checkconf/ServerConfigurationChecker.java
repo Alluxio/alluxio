@@ -26,7 +26,7 @@ import java.util.Map;
  */
 public class ServerConfigurationChecker {
   /** Contain the checker results. */
-  private final ConfigReport mConfigReport;
+  private final ConfigCheckReport mConfigCheckReport;
   /** Contain all the master configuration information. */
   private final ServerConfigurationRecord mMasterRecord;
   /** Contain all the worker configuration information. */
@@ -45,63 +45,46 @@ public class ServerConfigurationChecker {
   /**
    * Represents a configuration report which records the configuration checker results.
    */
-  public static final class ConfigReport {
+  public static final class ConfigCheckReport {
     /** Record the configuration errors of last check conf. */
-    private List<WrongProperty> mErrors;
+    private List<WrongProperty> mConfigErrors = new ArrayList<>();
     /** Record the configuration warnings of last check conf. */
-    private List<WrongProperty> mWarns;
+    private List<WrongProperty> mConfigWarns = new ArrayList<>();
     /** Record the status of last check conf. */
-    private Status mStatus;
+    private Status mConfigStatus = Status.NOT_STARTED;
 
     /**
-     * Creates a new instance of {@link ConfigReport}.
+     * Creates a new instance of {@link ConfigCheckReport}.
      */
-    private ConfigReport() {
-      mErrors = new ArrayList<>();
-      mWarns = new ArrayList<>();
-      mStatus = Status.NOT_STARTED;
-    }
-
-    /**
-     * Creates a new instance of {@link ConfigReport}.
-     *
-     * @param errors the configuration errors
-     * @param warns the configuration warns
-     * @param status the checked status
-     */
-    private ConfigReport(List<WrongProperty> errors, List<WrongProperty> warns, Status status) {
-      mErrors = errors;
-      mWarns = warns;
-      mStatus = status;
-    }
+    private ConfigCheckReport() {}
 
     /**
      * @return a list of configuration errors
      */
-    public List<WrongProperty> getErrors() {
-      return mErrors;
+    public List<WrongProperty> getConfigErrors() {
+      return mConfigErrors;
     }
 
     /**
      * @return a list of configuration warnings
      */
-    public List<WrongProperty> getWarns() {
-      return mWarns;
+    public List<WrongProperty> getConfigWarns() {
+      return mConfigWarns;
     }
 
     /**
      * @return the status of the configuration checker results
      */
     public Status getStatus() {
-      return mStatus;
+      return mConfigStatus;
     }
 
     /**
      * @param errors the errors to set
      * @return the configuration report
      */
-    private ConfigReport setErrors(List<WrongProperty> errors) {
-      mErrors = Preconditions.checkNotNull(errors, "Cannot set null config errors");
+    private ConfigCheckReport setConfigErrors(List<WrongProperty> errors) {
+      mConfigErrors = Preconditions.checkNotNull(errors, "Cannot set null config errors");
       return this;
     }
 
@@ -109,8 +92,8 @@ public class ServerConfigurationChecker {
      * @param warns the warnings to set
      * @return the configuration report
      */
-    private ConfigReport setWarns(List<WrongProperty> warns) {
-      mWarns = Preconditions.checkNotNull(warns, "Cannot set null config warns");
+    private ConfigCheckReport setConfigWarns(List<WrongProperty> warns) {
+      mConfigWarns = Preconditions.checkNotNull(warns, "Cannot set null config warns");
       return this;
     }
 
@@ -118,8 +101,8 @@ public class ServerConfigurationChecker {
      * @param status the status to set
      * @return the configuration report
      */
-    private ConfigReport setStatus(Status status) {
-      mStatus = status;
+    private ConfigCheckReport setConfigStatus(Status status) {
+      mConfigStatus = status;
       return this;
     }
   }
@@ -134,7 +117,7 @@ public class ServerConfigurationChecker {
       ServerConfigurationRecord workerRecord) {
     mMasterRecord = masterRecord;
     mWorkerRecord = workerRecord;
-    mConfigReport = new ConfigReport();
+    mConfigCheckReport = new ConfigCheckReport();
   }
 
   /**
@@ -156,19 +139,17 @@ public class ServerConfigurationChecker {
         configWarns.add(wrongProperty);
       }
     }
-    mConfigReport.setErrors(configErrors);
-    mConfigReport.setWarns(configWarns);
 
-    // Update the status
-    mConfigReport.setStatus(configErrors.size() > 0 ? Status.FAILED
+    mConfigCheckReport.setConfigErrors(configErrors).setConfigWarns(configWarns)
+        .setConfigStatus(configErrors.size() > 0 ? Status.FAILED
         : configWarns.size() > 0 ? Status.WARN : Status.PASSED);
   }
 
   /**
    * @return the configuration checker report
    */
-  public synchronized ConfigReport getConfigReport() {
-    return mConfigReport;
+  public synchronized ConfigCheckReport getConfigCheckReport() {
+    return mConfigCheckReport;
   }
 
   /**

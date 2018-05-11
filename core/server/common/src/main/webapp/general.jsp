@@ -73,11 +73,11 @@
                 <% } %>
                 <tr>
                   <th>Server Configuration Check:</th>
-                  <% ServerConfigurationChecker.ConfigReport configReport = ((ServerConfigurationChecker.ConfigReport) request.getAttribute("configReport")); %>
-                  <th><%= configReport.getStatus() %></th>
+                  <% ServerConfigurationChecker.ConfigCheckReport configReport = ((ServerConfigurationChecker.ConfigCheckReport) request.getAttribute("configCheckReport")); %>
+                  <th><%= configReport.getConfigStatus() %></th>
                 </tr>
-                <% List<WrongProperty> errors = configReport.getErrors(); %>
-                <% List<WrongProperty> warns = configReport.getWarns(); %>
+                <% List<WrongProperty> errors = configReport.getConfigErrors(); %>
+                <% List<WrongProperty> warns = configReport.getConfigWarns(); %>
                 <% int inconsistentProperties = errors.size() + warns.size(); %>
                 <% if (inconsistentProperties != 0) { %>
                   <tr>

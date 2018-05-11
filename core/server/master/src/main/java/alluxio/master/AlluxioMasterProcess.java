@@ -326,8 +326,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public ServerConfigurationChecker.ConfigReport getConfigReport() {
-    return mConfigChecker.getConfigReport();
+  public ServerConfigurationChecker.ConfigCheckReport getConfigCheckReport() {
+    return mConfigChecker.getConfigCheckReport();
   }
 
   @Override
