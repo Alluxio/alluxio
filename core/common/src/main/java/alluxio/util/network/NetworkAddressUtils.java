@@ -16,7 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.security.authentication.TProtocols;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
@@ -25,18 +25,15 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Preconditions;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
@@ -570,36 +567,6 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets the port for the underline socket. This function calls
-   * {@link #getThriftSocket(org.apache.thrift.transport.TServerSocket)}, so reflection will be used
-   * to get the port.
-   *
-   * @param thriftSocket the underline socket
-   * @return the thrift port for the underline socket
-   * @see #getThriftSocket(org.apache.thrift.transport.TServerSocket)
-   */
-  public static int getThriftPort(TServerSocket thriftSocket) {
-    return getThriftSocket(thriftSocket).getLocalPort();
-  }
-
-  /**
-   * Extracts the port from the thrift socket. As of thrift 0.9, the internal socket used is not
-   * exposed in the API, so this function will use reflection to get access to it.
-   *
-   * @param thriftSocket the underline thrift socket
-   * @return the server socket
-   */
-  public static ServerSocket getThriftSocket(final TServerSocket thriftSocket) {
-    try {
-      Field field = TServerSocket.class.getDeclaredField("serverSocket_");
-      field.setAccessible(true);
-      return (ServerSocket) field.get(thriftSocket);
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
    * Parses {@link InetSocketAddress} from a String.
    *
    * @param address socket address to parse
@@ -664,7 +631,7 @@ public final class NetworkAddressUtils {
             "Cannot resolve for empty service name");
     try {
       TransportProvider transportProvider = TransportProvider.Factory.create();
-      TProtocol protocol = TProtocols.createProtocol(transportProvider.getClientTransport(address),
+      TProtocol protocol = ThriftUtils.createThriftProtocol(transportProvider.getClientTransport(address),
           serviceName);
       protocol.getTransport().open();
       protocol.getTransport().close();

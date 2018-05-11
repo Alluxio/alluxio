@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.retry.RetryPolicy;
-import alluxio.security.authentication.TProtocols;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
 
 import org.apache.thrift.protocol.TProtocol;
@@ -87,7 +87,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   private void pingMetaService(InetSocketAddress address)
       throws UnauthenticatedException, TTransportException {
     TTransport transport = TransportProvider.Factory.create().getClientTransport(address);
-    TProtocol protocol = TProtocols.createProtocol(transport, Constants.META_MASTER_SERVICE_NAME);
+    TProtocol protocol = ThriftUtils.createThriftProtocol(transport, Constants.META_MASTER_SERVICE_NAME);
     protocol.getTransport().open();
     protocol.getTransport().close();
   }

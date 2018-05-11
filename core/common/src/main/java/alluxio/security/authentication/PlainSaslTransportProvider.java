@@ -14,6 +14,7 @@ package alluxio.security.authentication;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
 
@@ -41,16 +42,10 @@ public final class PlainSaslTransportProvider implements TransportProvider {
     Security.addProvider(new PlainSaslServerProvider());
   }
 
-  /** Timeout for socket in ms. */
-  private int mSocketTimeoutMs;
-
   /**
    * Constructor for transport provider with {@link AuthType#SIMPLE} or {@link AuthType#CUSTOM}.
    */
-  public PlainSaslTransportProvider() {
-    mSocketTimeoutMs =
-        (int) Configuration.getMs(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
-  }
+  public PlainSaslTransportProvider() {}
 
   @Override
   public TTransport getClientTransport(InetSocketAddress serverAddress)
@@ -87,8 +82,7 @@ public final class PlainSaslTransportProvider implements TransportProvider {
    */
   public TTransport getClientTransport(String username, String password,
       InetSocketAddress serverAddress) throws UnauthenticatedException {
-    TTransport wrappedTransport =
-        TransportProviderUtils.createThriftSocket(serverAddress, mSocketTimeoutMs);
+    TTransport wrappedTransport = ThriftUtils.createThriftSocket(serverAddress);
     try {
       return new TSaslClientTransport(PlainSaslServerProvider.MECHANISM, null, null, null,
           new HashMap<String, String>(), new PlainSaslClientCallbackHandler(username, password),

@@ -17,6 +17,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -62,7 +63,7 @@ public final class TransportProviderTest {
     // Use port 0 to assign each test case an available port (possibly different)
     String localhost = NetworkAddressUtils.getLocalHostName();
     mServerTSocket = new TServerSocket(new InetSocketAddress(localhost, 0));
-    int port = NetworkAddressUtils.getThriftPort(mServerTSocket);
+    int port = ThriftUtils.getThriftPort(mServerTSocket);
     mServerAddress = new InetSocketAddress(localhost, port);
   }
 
