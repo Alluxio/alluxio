@@ -953,8 +953,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         auditContext.setAllowed(false);
         if (recursive) {
           return statusList;
-        }
-        else {
+        } else {
           throw e;
         }
       }
