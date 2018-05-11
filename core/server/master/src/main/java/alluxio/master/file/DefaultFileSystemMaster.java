@@ -1602,13 +1602,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                 tempInodePath, opTimeMs, deleteOptions);
           }
         }
-      }
-      if (!failedUris.isEmpty()) {
-        Collection<String> messages = failedUris.stream()
-            .map(pair -> String.format("%s (%s)", pair.getFirst(), pair.getSecond()))
-            .collect(Collectors.toList());
-        throw new FailedPreconditionException(
-            ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(messages, ", ")));
+        if (!failedUris.isEmpty()) {
+          Collection<String> messages = failedUris.stream()
+              .map(pair -> String.format("%s (%s)", pair.getFirst(), pair.getSecond()))
+              .collect(Collectors.toList());
+          throw new FailedPreconditionException(
+              ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(messages, ", ")));
+        }
       }
     }
 
