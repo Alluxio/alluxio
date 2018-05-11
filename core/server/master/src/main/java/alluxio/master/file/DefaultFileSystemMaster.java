@@ -951,7 +951,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, currInodePath);
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
-        return statusList;
+        if (recursive) {
+          return statusList;
+        }
+        else {
+          throw e;
+        }
       }
       if (recursive || currInodePath.equals(originalInodePath)) {
         for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
