@@ -186,7 +186,11 @@ public final class UnderFileSystemBlockReader implements BlockReader {
         mBlockWriter.append(buffer.duplicate());
       } catch (Exception e) {
         LOG.warn("Failed to cache data read from UFS (on read()): {}", e.getMessage());
-        cancelBlockWriter();
+        try {
+          cancelBlockWriter();
+        } catch (IOException ee) {
+          LOG.error("Failed to cancel block writer:", ee);
+        }
       }
     }
     return ByteBuffer.wrap(data, 0, bytesRead);
