@@ -11,6 +11,8 @@
 
 package alluxio.master.meta;
 
+import alluxio.wire.MasterAddress;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -26,36 +28,30 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class MasterInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterInfo.class);
 
-  /**
-   * Master's hostname.
-   */
-  private final String mHostname;
-  /**
-   * The id of the master.
-   */
+  /** Master's address. */
+  private final MasterAddress mMasterAddress;
+  /** The id of the master. */
   private final long mId;
-  /**
-   * Master's last updated time in ms.
-   */
+  /** Master's last updated time in ms. */
   private long mLastUpdatedTimeMs;
 
   /**
    * Creates a new instance of {@link MasterInfo}.
    *
    * @param id       the master id to use
-   * @param hostname the master hostname to use
+   * @param masterAddress the master address to use
    */
-  public MasterInfo(long id, String hostname) {
-    mHostname = Preconditions.checkNotNull(hostname, "hostname");
+  public MasterInfo(long id, MasterAddress masterAddress) {
+    mMasterAddress = Preconditions.checkNotNull(masterAddress, "address");
     mId = id;
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
 
   /**
-   * @return the master's hostname
+   * @return the master's address
    */
-  public String getHostname() {
-    return mHostname;
+  public MasterAddress getMasterAddress() {
+    return mMasterAddress;
   }
 
   /**
@@ -74,7 +70,7 @@ public final class MasterInfo {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("id", mId).add("hostname", mHostname)
+    return Objects.toStringHelper(this).add("id", mId).add("address", mMasterAddress)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).toString();
   }
 

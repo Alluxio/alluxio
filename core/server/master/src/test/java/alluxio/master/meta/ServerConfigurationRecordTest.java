@@ -37,21 +37,19 @@ public class ServerConfigurationRecordTest {
   private List<ConfigProperty> mConfigListTwo;
   private long mIdOne;
   private long mIdTwo;
-  private PropertyKey mKeyEnforce;
-  private PropertyKey mKeyWarn;
 
   @Before
   public void before() {
-    mKeyEnforce = new Builder("TestKey1")
+    PropertyKey keyEnforce = new Builder("TestKey1")
         .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE).build();
-    mKeyWarn = new Builder("TestKey2")
+    PropertyKey keyWarn = new Builder("TestKey2")
         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).build();
     mConfigListOne = Arrays.asList(
-        new ConfigProperty().setName(mKeyEnforce.getName()).setSource("Test").setValue("Value"),
-        new ConfigProperty().setName(mKeyWarn.getName()).setSource("Test").setValue("Value2"));
+        new ConfigProperty().setName(keyEnforce.getName()).setSource("Test").setValue("Value"),
+        new ConfigProperty().setName(keyWarn.getName()).setSource("Test").setValue("Value2"));
     mConfigListTwo = Arrays.asList(
-        new ConfigProperty().setName(mKeyEnforce.getName()).setSource("Test").setValue("Value3"),
-        new ConfigProperty().setName(mKeyWarn.getName()).setSource("Test").setValue("Value4"));
+        new ConfigProperty().setName(keyEnforce.getName()).setSource("Test").setValue("Value3"),
+        new ConfigProperty().setName(keyWarn.getName()).setSource("Test").setValue("Value4"));
     mIdOne = IdUtils.getRandomNonNegativeLong();
     mIdTwo = IdUtils.getRandomNonNegativeLong();
   }
