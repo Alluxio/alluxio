@@ -14,34 +14,23 @@ package alluxio.master.meta.checkconf;
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.ConsistencyCheckLevel;
 
+import com.google.common.base.Preconditions;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Function;
 
 /**
  * This class is responsible for checking server-side configuration.
  */
 public class ServerConfigurationChecker {
+  /** Contain the checker results. */
+  private final ConfigReport mConfigReport;
   /** Contain all the master configuration information. */
   private final ServerConfigurationRecord mMasterRecord;
   /** Contain all the worker configuration information. */
   private final ServerConfigurationRecord mWorkerRecord;
-
-  /** Listeners to call when need to get master hostname. */
-  private final BlockingQueue<Function<Long, String>> mGetMasterHostnameListeners
-      = new LinkedBlockingQueue<>();
-  /** Listeners to call when need to get worker hostname. */
-  private final BlockingQueue<Function<Long, String>> mGetWorkerHostnameListeners
-      = new LinkedBlockingQueue<>();
-
-  /** Record the configuration errors of last check conf. */
-  private List<WrongProperty> mConfErrors;
-  /** Record the configuration warnings of last check conf. */
-  private List<WrongProperty> mConfWarns;
 
   /**
    * Status of the check.
@@ -53,8 +42,87 @@ public class ServerConfigurationChecker {
     NOT_STARTED,
   }
 
-  /** Record the status of last check conf. */
-  private Status mStatus;
+  /**
+   * Represents a configuration report which records the configuration checker results.
+   */
+  public static final class ConfigReport {
+    /** Record the configuration errors of last check conf. */
+    private List<WrongProperty> mErrors;
+    /** Record the configuration warnings of last check conf. */
+    private List<WrongProperty> mWarns;
+    /** Record the status of last check conf. */
+    private Status mStatus;
+
+    /**
+     * Creates a new instance of {@link ConfigReport}.
+     */
+    private ConfigReport() {
+      mErrors = new ArrayList<>();
+      mWarns = new ArrayList<>();
+      mStatus = Status.NOT_STARTED;
+    }
+
+    /**
+     * Creates a new instance of {@link ConfigReport}.
+     *
+     * @param errors the configuration errors
+     * @param warns the configuration warns
+     * @param status the checked status
+     */
+    private ConfigReport(List<WrongProperty> errors, List<WrongProperty> warns, Status status) {
+      mErrors = errors;
+      mWarns = warns;
+      mStatus = status;
+    }
+
+    /**
+     * @return a list of configuration errors
+     */
+    public List<WrongProperty> getErrors() {
+      return mErrors;
+    }
+
+    /**
+     * @return a list of configuration warnings
+     */
+    public List<WrongProperty> getWarns() {
+      return mWarns;
+    }
+
+    /**
+     * @return the status of the configuration checker results
+     */
+    public Status getStatus() {
+      return mStatus;
+    }
+
+    /**
+     * @param errors the errors to set
+     * @return the configuration report
+     */
+    private ConfigReport setErrors(List<WrongProperty> errors) {
+      mErrors = Preconditions.checkNotNull(errors, "Cannot set null config errors");
+      return this;
+    }
+
+    /**
+     * @param warns the warnings to set
+     * @return the configuration report
+     */
+    private ConfigReport setWarns(List<WrongProperty> warns) {
+      mWarns = Preconditions.checkNotNull(warns, "Cannot set null config warns");
+      return this;
+    }
+
+    /**
+     * @param status the status to set
+     * @return the configuration report
+     */
+    private ConfigReport setStatus(Status status) {
+      mStatus = status;
+      return this;
+    }
+  }
 
   /**
    * Constructs a new {@link ServerConfigurationChecker}.
@@ -66,9 +134,7 @@ public class ServerConfigurationChecker {
       ServerConfigurationRecord workerRecord) {
     mMasterRecord = masterRecord;
     mWorkerRecord = workerRecord;
-    mConfErrors = new ArrayList<>();
-    mConfWarns = new ArrayList<>();
-    mStatus = Status.NOT_STARTED;
+    mConfigReport = new ConfigReport();
   }
 
   /**
@@ -79,47 +145,30 @@ public class ServerConfigurationChecker {
     Map<PropertyKey, Map<String, List<String>>> confMap = generateConfMap();
 
     // Update the errors and warnings configuration
-    mConfErrors = new ArrayList<>();
-    mConfWarns = new ArrayList<>();
+    List<WrongProperty> configErrors = new ArrayList<>();
+    List<WrongProperty> configWarns = new ArrayList<>();
     for (Map.Entry<PropertyKey, Map<String, List<String>>> entry : confMap.entrySet()) {
       WrongProperty wrongProperty = new WrongProperty()
           .setName(entry.getKey().getName()).setValues(entry.getValue());
       if (entry.getKey().getConsistencyLevel().equals(ConsistencyCheckLevel.ENFORCE)) {
-        mConfErrors.add(wrongProperty);
+        configErrors.add(wrongProperty);
       } else {
-        mConfWarns.add(wrongProperty);
+        configWarns.add(wrongProperty);
       }
     }
+    mConfigReport.setErrors(configErrors);
+    mConfigReport.setWarns(configWarns);
 
     // Update the status
-    if (mConfErrors.size() > 0) {
-      mStatus = Status.FAILED;
-    } else if (mConfWarns.size() > 0) {
-      mStatus = Status.WARN;
-    } else {
-      mStatus = Status.PASSED;
-    }
+    mConfigReport.setStatus(configErrors.size() > 0 ? Status.FAILED
+        : configWarns.size() > 0 ? Status.WARN : Status.PASSED);
   }
 
   /**
-   * @return a list of configuration errors
+   * @return the configuration checker report
    */
-  public synchronized List<WrongProperty> getConfErrors() {
-    return mConfErrors;
-  }
-
-  /**
-   * @return a list of configuration warnings
-   */
-  public synchronized List<WrongProperty> getConfWarns() {
-    return mConfWarns;
-  }
-
-  /**
-   * @return the server-side configuration check status
-   */
-  public synchronized Status getStatus() {
-    return mStatus;
+  public synchronized ConfigReport getConfigReport() {
+    return mConfigReport;
   }
 
   /**
@@ -130,55 +179,32 @@ public class ServerConfigurationChecker {
    */
   private Map<PropertyKey, Map<String, List<String>>> generateConfMap() {
     Map<PropertyKey, Map<String, List<String>>> confMap = new HashMap<>();
-    for (Map.Entry<Long, List<ConfigRecord>> record : mMasterRecord.getConfMap().entrySet()) {
-      String hostname = mGetMasterHostnameListeners.iterator().next().apply(record.getKey());
-      fillConfMap(confMap, record.getValue(), hostname);
-    }
-
-    for (Map.Entry<Long, List<ConfigRecord>> record : mWorkerRecord.getConfMap().entrySet()) {
-      String hostname = mGetWorkerHostnameListeners.iterator().next().apply(record.getKey());
-      fillConfMap(confMap, record.getValue(), hostname);
-    }
+    fillConfMap(confMap, mMasterRecord.getConfMap());
+    fillConfMap(confMap, mWorkerRecord.getConfMap());
     return confMap;
   }
 
   /**
    * Fills the configuration map.
    *
-   * @param map the map to put data to
-   * @param recordList the records to get information from
-   * @param hostname the hostname of the configuration to put
+   * @param targetMap the map to fill
+   * @param recordMap the map to get data from
    */
-  private void fillConfMap(Map<PropertyKey, Map<String, List<String>>> map,
-      List<ConfigRecord> recordList, String hostname) {
-    for (ConfigRecord record : recordList) {
-      PropertyKey key = record.getKey();
-      if (key.getConsistencyLevel().equals(ConsistencyCheckLevel.IGNORE)) {
-        continue;
+  private void fillConfMap(Map<PropertyKey, Map<String, List<String>>> targetMap,
+      Map<String, List<ConfigRecord>> recordMap) {
+    for (Map.Entry<String, List<ConfigRecord>> record : recordMap.entrySet()) {
+      String hostname = record.getKey();
+      for (ConfigRecord conf : record.getValue()) {
+        PropertyKey key = conf.getKey();
+        if (key.getConsistencyLevel().equals(ConsistencyCheckLevel.IGNORE)) {
+          continue;
+        }
+        String value = conf.getValue();
+        targetMap.putIfAbsent(key, new HashMap<>());
+        Map<String, List<String>> values = targetMap.get(key);
+        values.putIfAbsent(value, new ArrayList<>());
+        values.get(value).add(hostname);
       }
-      String value = record.getValue();
-      map.putIfAbsent(key, new HashMap<>());
-      Map<String, List<String>> values = map.get(key);
-      values.putIfAbsent(value, new ArrayList<>());
-      values.get(value).add(hostname);
     }
-  }
-
-  /**
-   * Registers callback functions to use when need to get master hostname.
-   *
-   * @param function the function to register
-   */
-  public void registerGetMasterHostnameListener(Function<Long, String> function) {
-    mGetMasterHostnameListeners.add(function);
-  }
-
-  /**
-   * Registers callback functions to use when need to get worker hostname.
-   *
-   * @param function the function to register
-   */
-  public void registerGetWorkerHostnameListener(Function<Long, String> function) {
-    mGetWorkerHostnameListeners.add(function);
   }
 }

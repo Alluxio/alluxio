@@ -11,7 +11,9 @@
 
 --%>
 <%@ page import="java.util.*" %>
+<%@ page import="java.lang.*" %>
 <%@ page import="alluxio.web.*" %>
+<%@ page import="alluxio.master.meta.checkconf.*" %>
 
 <html>
 <head>
@@ -71,12 +73,16 @@
                 <% } %>
                 <tr>
                   <th>Server Configuration Check:</th>
-                  <th><%= request.getAttribute("configCheckStatus") %></th>
+                  <% ServerConfigurationChecker.ConfigReport configReport = ((ServerConfigurationChecker.ConfigReport) request.getAttribute("configReport")); %>
+                  <th><%= configReport.getStatus() %></th>
                 </tr>
-                <% if ((Integer) request.getAttribute("inconsistentProperties") != 0) { %>
+                <% List<WrongProperty> errors = configReport.getErrors(); %>
+                <% List<WrongProperty> warns = configReport.getWarns(); %>
+                <% int inconsistentProperties = errors.size() + warns.size(); %>
+                <% if (inconsistentProperties != 0) { %>
                   <tr>
                     <th><font color="red">Inconsistent Properties:</font></th>
-                    <th><font color="red"><%= request.getAttribute("inconsistentProperties") %></font></th>
+                    <th><font color="red"><%= inconsistentProperties %></font></th>
                   </tr>
                 <% } %>
               </tbody>
@@ -155,8 +161,9 @@
     </div>
   </div>
   <% } %>
+
   <!--  show inconsistent configuration  -->
-  <% if ((Integer) request.getAttribute("inconsistentProperties") != 0) { %>
+  <% if (inconsistentProperties != 0) { %>
   <div class="row-fluid">
     <div class="accordion span12" id="accordion5">
       <div class="accordion-group">
@@ -173,31 +180,33 @@
                 <th class="span8">Value</th>
               </thead>
               <tbody>
-                <% if ((Integer) request.getAttribute("confErrorsNum") != 0) { %>
+                <% if (errors.size() != 0) { %>
                   <tr>
                     <th colspan="3"> <font color="red">Errors (those properties are required to be same)</font></th>
                   </tr>
-                  <% for (WebInterfaceGeneralServlet.WrongPropertyInfo info : ((List<WebInterfaceGeneralServlet.WrongPropertyInfo>) request.getAttribute("confErrorsItem"))) { %>
-                    <% String name = info.getName(); %>
-                    <% for (String valueAndHosts : info.getValuesAndHosts()) { %>
+                  <% for (WrongProperty error : errors) { %>
+                    <% String name = error.getName(); %>
+                    <% for (Map.Entry<String, List<String>> entry : error.getValues().entrySet()) { %>
                       <tr>
                         <th class="span4"><font color="red"><%= name %></font></th>
-                        <th class="span8"><font color="red"><%= valueAndHosts %></font></th>
+                        <% String value = String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()));%>
+                        <th class="span8"><font color="red"><%= value %></font></th>
                       </tr>
                       <% name = ""; %>
                     <% } %>
                   <% } %>
                 <% } %>
-                <% if ((Integer) request.getAttribute("confWarnsNum") != 0) { %>
+                <% if (warns.size() != 0) { %>
                   <tr>
-                    <th colspan="3">Warnings (those properties are recommended to be same) </th>
+                    <th colspan="3">Warnings (those properties are recommended to be same)</th>
                   </tr>
-                  <% for (WebInterfaceGeneralServlet.WrongPropertyInfo info : ((List<WebInterfaceGeneralServlet.WrongPropertyInfo>) request.getAttribute("confWarnsItem"))) { %>
-                    <% String name = info.getName(); %>
-                    <% for (String valueAndHosts : info.getValuesAndHosts()) { %>
+                  <% for (WrongProperty warn : warns) { %>
+                    <% String name = warn.getName(); %>
+                    <% for (Map.Entry<String, List<String>> entry : warn.getValues().entrySet()) { %>
                       <tr>
                         <th class="span4"><%= name %></th>
-                        <th class="span8"><%= valueAndHosts %></th>
+                        <% String value = String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()));%>
+                        <th class="span8"><%= value %></th>
                       </tr>
                       <% name = ""; %>
                     <% } %>
@@ -211,6 +220,7 @@
     </div>
   </div>
   <% } %>
+
   <div class="row-fluid">
     <div class="accordion span14" id="accordion3">
       <div class="accordion-group">

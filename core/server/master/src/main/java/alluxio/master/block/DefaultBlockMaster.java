@@ -169,14 +169,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /** Listeners to call when lost workers are found. */
-  private final BlockingQueue<Consumer<Long>> mLostWorkerFoundListeners
+  private final BlockingQueue<Consumer<String>> mLostWorkerFoundListeners
       = new LinkedBlockingQueue<>();
 
   /** Listeners to call when workers are lost. */
-  private final BlockingQueue<Consumer<Long>> mWorkerLostListeners = new LinkedBlockingQueue<>();
+  private final BlockingQueue<Consumer<String>> mWorkerLostListeners = new LinkedBlockingQueue<>();
 
   /** Listeners to call when a new worker registers. */
-  private final BlockingQueue<BiConsumer<Long, List<ConfigProperty>>> mWorkerRegisteredListeners
+  private final BlockingQueue<BiConsumer<String, List<ConfigProperty>>> mWorkerRegisteredListeners
       = new LinkedBlockingQueue<>();
 
   /** Listeners to call when worker configuration record changes. */
@@ -644,18 +644,6 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public String getHostname(Long id) {
-    MasterWorkerInfo workerInfo = mWorkers.getFirstByField(ID_INDEX, id);
-    if (workerInfo == null) {
-      workerInfo = mLostWorkers.getFirstByField(ID_INDEX, id);
-    }
-    if (workerInfo == null) {
-      throw new IllegalArgumentException("Can not find worker hostname for the given worker id");
-    }
-    return workerInfo.getWorkerAddress().getHost();
-  }
-
-  @Override
   public Map<String, Long> getTotalBytesOnTiers() {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
@@ -705,8 +693,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         lostWorker.updateLastUpdatedTimeMs();
         mWorkers.add(lostWorker);
         mLostWorkers.remove(lostWorker);
-        for (Consumer<Long> function : mLostWorkerFoundListeners) {
-          function.accept(lostWorker.getId());
+        for (Consumer<String> function : mLostWorkerFoundListeners) {
+          function.accept(lostWorker.getWorkerAddress().getHost());
         }
         for (Runnable function : mCheckConfListeners) {
           function.run();
@@ -755,8 +743,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
           .stream().map(alluxio.wire.ConfigProperty::fromThrift)
           .collect(Collectors.toList());
-      for (BiConsumer<Long, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
-        function.accept(workerId, wireConfigList);
+      for (BiConsumer<String, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
+        function.accept(worker.getWorkerAddress().getHost(), wireConfigList);
       }
       for (Runnable function : mCheckConfListeners) {
         function.run();
@@ -933,8 +921,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
                 worker.getWorkerAddress(), lastUpdate);
             mLostWorkers.add(worker);
             mWorkers.remove(worker);
-            for (Consumer<Long> function : mWorkerLostListeners) {
-              function.accept(worker.getId());
+            for (Consumer<String> function : mWorkerLostListeners) {
+              function.accept(worker.getWorkerAddress().getHost());
             }
             for (Runnable function : mCheckConfListeners) {
               function.run();
@@ -989,17 +977,17 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public void registerLostWorkerFoundListener(Consumer<Long> function) {
+  public void registerLostWorkerFoundListener(Consumer<String> function) {
     mLostWorkerFoundListeners.add(function);
   }
 
   @Override
-  public void registerWorkerLostListener(Consumer<Long> function) {
+  public void registerWorkerLostListener(Consumer<String> function) {
     mWorkerLostListeners.add(function);
   }
 
   @Override
-  public void registerNewWorkerConfListener(BiConsumer<Long, List<ConfigProperty>> function) {
+  public void registerNewWorkerConfListener(BiConsumer<String, List<ConfigProperty>> function) {
     mWorkerRegisteredListeners.add(function);
   }
 

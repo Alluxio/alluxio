@@ -18,7 +18,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
-import alluxio.master.meta.checkconf.WrongProperty;
 import alluxio.thrift.MetaCommand;
 import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.wire.ConfigProperty;
@@ -101,19 +100,9 @@ public interface MasterProcess extends Process {
   List<ConfigProperty> getAlluxioConfiguration();
 
   /**
-   * @return a list of server-side configuration errors
+   * @return the server-side configuration checker report
    */
-  List<WrongProperty> getConfErrors();
-
-  /**
-   * @return a list of server-side configuration warnings
-   */
-  List<WrongProperty> getConfWarns();
-
-  /**
-   * @return the server-side configuration checker status
-   */
-  ServerConfigurationChecker.Status getConfStatus();
+  ServerConfigurationChecker.ConfigReport getConfigReport();
 
   /**
    * Returns a master id for the given master, creating one if the master is new.

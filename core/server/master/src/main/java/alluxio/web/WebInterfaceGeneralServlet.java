@@ -19,7 +19,6 @@ import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
-import alluxio.master.meta.checkconf.WrongProperty;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -31,7 +30,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
@@ -109,56 +107,6 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     }
   }
 
-  /**
-   * Class to make wrong property information more intuitive and human-readable.
-   */
-  public static final class WrongPropertyInfo {
-    /** The name of the property that has errors/warnings.*/
-    private String mName;
-    /**
-     * Record the values and corresponding hostnames.
-     * Each string in valuesAndHosts is of format Value (Host1, Host2, ...)
-     */
-    private List<String> mValuesAndHosts;
-
-    /**
-     * Creates a new instance of {@link WrongProperty}.
-     */
-    private WrongPropertyInfo() {}
-
-    /**
-     * @return the name of this property
-     */
-    public String getName() {
-      return mName;
-    }
-
-    /**
-     * @return the values and hostnames of this property
-     */
-    public List<String> getValuesAndHosts() {
-      return mValuesAndHosts;
-    }
-
-    /**
-     * @param name the property name
-     * @return the wrong property
-     */
-    private WrongPropertyInfo setName(String name) {
-      mName = name;
-      return this;
-    }
-
-    /**
-     * @param valuesAndHosts the values to use
-     * @return the wrong property
-     */
-    private WrongPropertyInfo setValuesAndHosts(List<String> valuesAndHosts) {
-      mValuesAndHosts = valuesAndHosts;
-      return this;
-    }
-  }
-
   private static final long serialVersionUID = 2335205655766736309L;
 
   private final transient MasterProcess mMasterProcess;
@@ -219,24 +167,6 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   }
 
   /**
-   * Generates the wrong property info from wrong property for human-readable.
-   *
-   * @param wrongProperty the wrong property to transfrom
-   * @return generated wrong property info
-   */
-  private WrongPropertyInfo generateWrongPropertyInfo(WrongProperty wrongProperty) {
-    // Each String in valuesAndHosts is of format Value (Host1, Host2, ...)
-    String valueAndHostsFormat = "%s (%s)";
-    List<String> valuesAndHosts = new ArrayList<>();
-    for (Map.Entry<String, List<String>> entry : wrongProperty.getValues().entrySet()) {
-      valuesAndHosts.add(String.format(valueAndHostsFormat, entry.getKey(),
-          String.join(", ", entry.getValue())));
-    }
-    return new WrongPropertyInfo()
-        .setName(wrongProperty.getName()).setValuesAndHosts(valuesAndHosts);
-  }
-
-  /**
    * Populates key, value pairs for UI display.
    *
    * @param request The {@link HttpServletRequest} object
@@ -277,16 +207,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("inconsistentPaths", 0);
     }
 
-    request.setAttribute("configCheckStatus", mMasterProcess.getConfStatus());
-    List<WrongPropertyInfo> confErrors = mMasterProcess.getConfErrors().stream()
-        .map(this::generateWrongPropertyInfo).collect(Collectors.toList());
-    List<WrongPropertyInfo> confWarns = mMasterProcess.getConfWarns().stream()
-        .map(this::generateWrongPropertyInfo).collect(Collectors.toList());
-    request.setAttribute("inconsistentProperties", confErrors.size() + confWarns.size());
-    request.setAttribute("confErrorsItem", confErrors);
-    request.setAttribute("confErrorsNum", confErrors.size());
-    request.setAttribute("confWarnsItem", confWarns);
-    request.setAttribute("confWarnsNum", confWarns.size());
+    request.setAttribute("configReport", mMasterProcess.getConfigReport());
 
     String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsRoot);

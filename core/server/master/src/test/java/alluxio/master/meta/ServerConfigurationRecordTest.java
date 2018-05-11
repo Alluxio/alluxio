@@ -19,9 +19,9 @@ import alluxio.PropertyKey.Builder;
 import alluxio.PropertyKey.ConsistencyCheckLevel;
 import alluxio.master.meta.checkconf.ConfigRecord;
 import alluxio.master.meta.checkconf.ServerConfigurationRecord;
-import alluxio.util.IdUtils;
 import alluxio.wire.ConfigProperty;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,8 +35,8 @@ import java.util.Map;
 public class ServerConfigurationRecordTest {
   private List<ConfigProperty> mConfigListOne;
   private List<ConfigProperty> mConfigListTwo;
-  private long mIdOne;
-  private long mIdTwo;
+  private String mHostOne;
+  private String mHostTwo;
 
   @Before
   public void before() {
@@ -50,48 +50,48 @@ public class ServerConfigurationRecordTest {
     mConfigListTwo = Arrays.asList(
         new ConfigProperty().setName(keyEnforce.getName()).setSource("Test").setValue("Value3"),
         new ConfigProperty().setName(keyWarn.getName()).setSource("Test").setValue("Value4"));
-    mIdOne = IdUtils.getRandomNonNegativeLong();
-    mIdTwo = IdUtils.getRandomNonNegativeLong();
+    mHostOne = RandomStringUtils.randomAlphanumeric(10);
+    mHostTwo = RandomStringUtils.randomAlphanumeric(10);
   }
 
   @Test
   public void registerNewConf() {
     ServerConfigurationRecord configRecord = createConfigRecord();
 
-    Map<Long, List<ConfigRecord>> confMap = configRecord.getConfMap();
+    Map<String, List<ConfigRecord>> confMap = configRecord.getConfMap();
 
-    assertTrue(confMap.containsKey(mIdOne));
-    assertTrue(confMap.containsKey(mIdTwo));
+    assertTrue(confMap.containsKey(mHostOne));
+    assertTrue(confMap.containsKey(mHostTwo));
   }
 
   @Test
   public void detectNodeLost() {
     ServerConfigurationRecord configRecord = createConfigRecord();
 
-    configRecord.handleNodeLost(mIdOne);
+    configRecord.handleNodeLost(mHostOne);
 
-    Map<Long, List<ConfigRecord>> confMap = configRecord.getConfMap();
+    Map<String, List<ConfigRecord>> confMap = configRecord.getConfMap();
 
-    assertFalse(confMap.containsKey(mIdOne));
-    assertTrue(confMap.containsKey(mIdTwo));
+    assertFalse(confMap.containsKey(mHostOne));
+    assertTrue(confMap.containsKey(mHostTwo));
   }
 
   @Test
   public void lostNodeFound() {
     ServerConfigurationRecord configRecord = createConfigRecord();
 
-    configRecord.handleNodeLost(mIdOne);
-    configRecord.handleNodeLost(mIdTwo);
+    configRecord.handleNodeLost(mHostOne);
+    configRecord.handleNodeLost(mHostTwo);
 
-    Map<Long, List<ConfigRecord>> confMap = configRecord.getConfMap();
-    assertFalse(confMap.containsKey(mIdTwo));
-    assertFalse(confMap.containsKey(mIdOne));
+    Map<String, List<ConfigRecord>> confMap = configRecord.getConfMap();
+    assertFalse(confMap.containsKey(mHostTwo));
+    assertFalse(confMap.containsKey(mHostOne));
 
-    configRecord.lostNodeFound(mIdTwo);
+    configRecord.lostNodeFound(mHostTwo);
     confMap = configRecord.getConfMap();
 
-    assertTrue(confMap.containsKey(mIdTwo));
-    assertFalse(confMap.containsKey(mIdOne));
+    assertTrue(confMap.containsKey(mHostTwo));
+    assertFalse(confMap.containsKey(mHostOne));
   }
 
   /**
@@ -99,8 +99,8 @@ public class ServerConfigurationRecordTest {
    */
   private ServerConfigurationRecord createConfigRecord() {
     ServerConfigurationRecord configRecord = new ServerConfigurationRecord();
-    configRecord.registerNewConf(mIdOne, mConfigListOne);
-    configRecord.registerNewConf(mIdTwo, mConfigListTwo);
+    configRecord.registerNewConf(mHostOne, mConfigListOne);
+    configRecord.registerNewConf(mHostTwo, mConfigListTwo);
     return configRecord;
   }
 }
