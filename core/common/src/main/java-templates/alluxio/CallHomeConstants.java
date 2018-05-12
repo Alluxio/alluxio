@@ -12,15 +12,15 @@
 package alluxio;
 
 /**
- * Project constants from compilation time by maven.
+ * Compile time call home constants.
  */
-public final class ProjectConstants {
-  /* URL to the proxy server for call home. **/
-  public static final String PROXY_URL = "${proxy.url}";
-  /* Project version, specified in maven property. **/
-  public static final String VERSION = "${project.version}";
-  /* Hadoop version, specified in maven property. **/
-  public static final String HADOOP_VERSION = "${hadoop.version}";
+public final class CallHomeConstants {
+  /* AWS S3 bucket for storing call home information. **/
+  public static final String CALL_HOME_BUCKET = "${call.home.bucket}";
+  /* Enable call home or not. **/
+  public static final String CALL_HOME_ENABLED = "${call.home.enabled}";
+  /* Period between two consequent call home executions. **/
+  public static final String CALL_HOME_PERIOD_MS  = "${call.home.period}";
 
-  private ProjectConstants() {} // prevent instantiation
+  private CallHomeConstants() {} // prevent instantiation
 }

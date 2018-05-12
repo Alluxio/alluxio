@@ -9,18 +9,30 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.master.diagnostic;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Project constants from compilation time by maven.
+ * Different log levels for gathering diagnostic info.
  */
-public final class ProjectConstants {
-  /* URL to the proxy server for call home. **/
-  public static final String PROXY_URL = "${proxy.url}";
-  /* Project version, specified in maven property. **/
-  public static final String VERSION = "${project.version}";
-  /* Hadoop version, specified in maven property. **/
-  public static final String HADOOP_VERSION = "${hadoop.version}";
+@ThreadSafe
+public enum DiagnosticLogLevel {
+  /**
+   * Diagnostic logging is disabled. No diagnostic info is gathered.
+   */
+  NONE,
 
-  private ProjectConstants() {} // prevent instantiation
+  /**
+   * Diagnostic logging is enabled. Info is not obfuscated.
+   */
+  PLAIN,
+  ;
+
+  /**
+   * @return the string value of AuthType
+   */
+  public String getName() {
+    return name();
+  }
 }
