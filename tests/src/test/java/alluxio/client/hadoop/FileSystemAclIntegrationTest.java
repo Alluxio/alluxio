@@ -423,8 +423,8 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
     // Skip non-local and non-HDFS UFSs.
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(sUfs) || UnderFileSystemUtils.isHdfs(sUfs));
 
-    String a = "/root/parentDirectoryPermissionForUfsDir/parentDirectoryPermissionForUfsFile";
-    Path fileA = new Path(a);
+    String path = "/root/parentDirectoryPermissionForUfsDir/parentDirectoryPermissionForUfsFile";
+    Path fileA = new Path(path);
     Path dirA = fileA.getParent();
     sTFS.mkdirs(dirA);
     short parentMode = (short) 0700;
