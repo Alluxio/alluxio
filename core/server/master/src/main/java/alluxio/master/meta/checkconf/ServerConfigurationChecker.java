@@ -131,12 +131,14 @@ public class ServerConfigurationChecker {
     List<WrongProperty> configErrors = new ArrayList<>();
     List<WrongProperty> configWarns = new ArrayList<>();
     for (Map.Entry<PropertyKey, Map<String, List<String>>> entry : confMap.entrySet()) {
-      WrongProperty wrongProperty = new WrongProperty()
-          .setName(entry.getKey().getName()).setValues(entry.getValue());
-      if (entry.getKey().getConsistencyLevel().equals(ConsistencyCheckLevel.ENFORCE)) {
-        configErrors.add(wrongProperty);
-      } else {
-        configWarns.add(wrongProperty);
+      if (entry.getValue().size() >= 2) {
+        WrongProperty wrongProperty = new WrongProperty()
+            .setName(entry.getKey().getName()).setValues(entry.getValue());
+        if (entry.getKey().getConsistencyLevel().equals(ConsistencyCheckLevel.ENFORCE)) {
+          configErrors.add(wrongProperty);
+        } else {
+          configWarns.add(wrongProperty);
+        }
       }
     }
 

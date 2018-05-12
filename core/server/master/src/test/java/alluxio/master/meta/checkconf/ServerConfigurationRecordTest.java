@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.meta;
+package alluxio.master.meta.checkconf;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -17,8 +17,6 @@ import static org.junit.Assert.assertTrue;
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.Builder;
 import alluxio.PropertyKey.ConsistencyCheckLevel;
-import alluxio.master.meta.checkconf.ConfigRecord;
-import alluxio.master.meta.checkconf.ServerConfigurationRecord;
 import alluxio.wire.ConfigProperty;
 
 import org.apache.commons.lang.RandomStringUtils;
