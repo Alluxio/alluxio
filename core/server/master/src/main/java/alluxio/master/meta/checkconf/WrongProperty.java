@@ -15,7 +15,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Records a property that is required to be consistent but is not within its scope.
+ * Records a property that is required or recommended to be consistent but is not within its scope.
+ *
+ * For example, the ConsistencyCheckLevel of key A is ENFORCE and its Scope is MASTER,
+ * so this property is required to be consistent in all master nodes.
+ * The ConsistencyCheckLevel of key B is WARN and its Scope is SERVER,
+ * so this property is recommended to be consistent in all master and worker nodes.
  */
 public class WrongProperty {
   /** The name of the property that has errors/warnings.*/

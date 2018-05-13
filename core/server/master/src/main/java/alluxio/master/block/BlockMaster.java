@@ -20,6 +20,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.thrift.Command;
 import alluxio.thrift.RegisterWorkerTOptions;
+import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.WorkerInfo;
@@ -198,30 +199,23 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void reportLostBlocks(List<Long> blockIds);
 
   /**
-   * Registers callback functions to use when worker config record changes.
-   *
-   * @param function the function to register
-   */
-  void registerCheckConfListener(Runnable function);
-
-  /**
    * Registers callback functions to use when lost workers become alive.
    *
    * @param function the function to register
    */
-  void registerLostWorkerFoundListener(Consumer<String> function);
+  void registerLostWorkerFoundListener(Consumer<Address> function);
 
   /**
    * Registers callback functions to use when detecting lost workers.
    *
    * @param function the function to register
    */
-  void registerWorkerLostListener(Consumer<String> function);
+  void registerWorkerLostListener(Consumer<Address> function);
 
   /**
    * Registers callback functions to use when workers register with configuration.
    *
    * @param function the function to register
    */
-  void registerNewWorkerConfListener(BiConsumer<String, List<ConfigProperty>> function);
+  void registerNewWorkerConfListener(BiConsumer<Address, List<ConfigProperty>> function);
 }

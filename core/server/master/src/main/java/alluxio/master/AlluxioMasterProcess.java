@@ -51,6 +51,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
+import alluxio.wire.Address;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterAddress;
 
@@ -261,7 +262,6 @@ public class AlluxioMasterProcess implements MasterProcess {
 
       // Register listeners for BlockMaster to interact with config checker
       mBlockMaster = mRegistry.get(BlockMaster.class);
-      mBlockMaster.registerCheckConfListener(this::checkConfHandler);
       mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
       mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
       mBlockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
@@ -343,8 +343,10 @@ public class AlluxioMasterProcess implements MasterProcess {
     MasterInfo lostMaster = mLostMasters.getFirstByField(ADDRESS_INDEX, masterAddress);
     if (lostMaster != null) {
       // This is one of the lost masters
-      mMasterConfigRecord.lostNodeFound(lostMaster.getMasterAddress().getHost());
-      mConfigChecker.checkConf();
+      MasterAddress lostMasterAddress = lostMaster.getMasterAddress();
+      mMasterConfigRecord.lostNodeFound(new Address(lostMasterAddress.getHost(),
+          lostMasterAddress.getRpcPort()));
+      mConfigChecker.regenerateReport();
       synchronized (lostMaster) {
         final long lostMasterId = lostMaster.getId();
         LOG.warn("A lost master {} has requested its old id {}.", masterAddress, lostMasterId);
@@ -379,7 +381,9 @@ public class AlluxioMasterProcess implements MasterProcess {
 
     List<ConfigProperty> configList = options.getConfigList().stream()
         .map(ConfigProperty::fromThrift).collect(Collectors.toList());
-    mMasterConfigRecord.registerNewConf(master.getMasterAddress().getHost(), configList);
+    MasterAddress masterAddress = master.getMasterAddress();
+    mMasterConfigRecord.registerNewConf(new Address(masterAddress.getHost(),
+        masterAddress.getRpcPort()), configList);
 
     LOG.info("registerMaster(): master: {} options: {}", master, options);
   }
@@ -437,7 +441,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       mWorkerConfigRecord.reset();
       if (isLeader) {
         // Add the configuration of the current leader master
-        mMasterConfigRecord.registerNewConf(mMasterAddress.getHost(),
+        mMasterConfigRecord.registerNewConf(
+            new Address(mMasterAddress.getHost(), mMasterAddress.getRpcPort()),
             Configuration.getConfiguration(PropertyKey.Scope.MASTER));
         mSafeModeManager.notifyPrimaryMasterStarted();
 
@@ -640,8 +645,10 @@ public class AlluxioMasterProcess implements MasterProcess {
                 master.getMasterAddress(), lastUpdate);
             mLostMasters.add(master);
             mMasters.remove(master);
-            mMasterConfigRecord.handleNodeLost(master.getMasterAddress().getHost());
-            mConfigChecker.checkConf();
+            MasterAddress masterAddress = master.getMasterAddress();
+            mMasterConfigRecord.handleNodeLost(new Address(masterAddress.getHost(),
+                masterAddress.getRpcPort()));
+            mConfigChecker.regenerateReport();
           }
         }
       }
@@ -654,60 +661,34 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Calls the config checker to check configuration.
-   */
-  private void checkConfHandler() {
-    mConfigChecker.checkConf();
-  }
-
-  /**
    * Updates the config checker when a lost worker becomes alive.
    *
-   * @param hostname the hostname of the worker
+   * @param address the address of the worker
    */
-  private void lostWorkerFoundHandler(String hostname) {
-    mWorkerConfigRecord.lostNodeFound(hostname);
+  private void lostWorkerFoundHandler(Address address) {
+    mWorkerConfigRecord.lostNodeFound(address);
+    mConfigChecker.regenerateReport();
   }
 
   /**
    * Updates the config checker when a live worker becomes lost.
    *
-   * @param hostname the hostname of the worker
+   * @param address the address of the worker
    */
-  private void workerLostHandler(String hostname) {
-    mWorkerConfigRecord.handleNodeLost(hostname);
+  private void workerLostHandler(Address address) {
+    mWorkerConfigRecord.handleNodeLost(address);
+    mConfigChecker.regenerateReport();
   }
 
   /**
    * Updates the config checker when a worker registers with configuration.
    *
-   * @param hostname the hostname of the worker
+   * @param address the address of the worker
    * @param configList the configuration of this worker
    */
-  private void registerNewWorkerConfHandler(String hostname, List<ConfigProperty> configList) {
-    mWorkerConfigRecord.registerNewConf(hostname, configList);
-  }
-
-  /**
-   * Gets the hostname of a leader/standby master from its id.
-   *
-   * @param id the master id
-   * @return the master hostname
-   */
-  private String getMasterHostnameHandler(long id) {
-    // We use -1L to represent the leader master(this master)
-    if (id == -1L) {
-      return mMasterAddress.getHost();
-    }
-
-    MasterInfo masterInfo = mMasters.getFirstByField(ID_INDEX, id);
-    if (masterInfo == null) {
-      masterInfo = mLostMasters.getFirstByField(ID_INDEX, id);
-    }
-    if (masterInfo == null) {
-      throw new IllegalArgumentException("Can not find master hostname for the given master id");
-    }
-    return masterInfo.getMasterAddress().getHost();
+  private void registerNewWorkerConfHandler(Address address, List<ConfigProperty> configList) {
+    mWorkerConfigRecord.registerNewConf(address, configList);
+    mConfigChecker.regenerateReport();
   }
 
   /**

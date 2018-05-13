@@ -12,6 +12,7 @@
 package alluxio.master.meta.checkconf;
 
 import alluxio.PropertyKey;
+import alluxio.wire.Address;
 import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Preconditions;
@@ -27,10 +28,10 @@ import java.util.stream.Collectors;
  * This class is responsible for recording server-side configuration.
  */
 public class ServerConfigurationRecord {
-  /** Map from a node id to its configuration. */
-  private final Map<String, List<ConfigRecord>> mConfMap;
-  /** Set that contains the ids of lost nodes. */
-  private final Set<String> mLostNodes;
+  /** Map from a node address to its configuration. */
+  private final Map<Address, List<ConfigRecord>> mConfMap;
+  /** Set that contains the addresses of lost nodes. */
+  private final Set<Address> mLostNodes;
 
   /**
    * Constructs a new {@link ServerConfigurationRecord}.
@@ -51,48 +52,48 @@ public class ServerConfigurationRecord {
   /**
    * Registers new configuration information.
    *
-   * @param hostname the node hostname
+   * @param address the node address
    * @param configList the configuration of this node
    */
-  public synchronized void registerNewConf(String hostname, List<ConfigProperty> configList) {
-    Preconditions.checkNotNull(hostname, "hostname should not be null");
+  public synchronized void registerNewConf(Address address, List<ConfigProperty> configList) {
+    Preconditions.checkNotNull(address, "address should not be null");
     Preconditions.checkNotNull(configList, "configuration list should not be null");
     // Instead of recording property name, we record property key.
-    mConfMap.put(hostname, configList.stream().map(c -> new ConfigRecord()
+    mConfMap.put(address, configList.stream().map(c -> new ConfigRecord()
         .setKey(PropertyKey.fromString(c.getName())).setSource(c.getSource())
         .setValue(c.getValue())).collect(Collectors.toList()));
-    mLostNodes.remove(hostname);
+    mLostNodes.remove(address);
   }
 
   /**
    * Updates configuration when a live node becomes lost.
    *
-   * @param hostname the node hostname
+   * @param address the node address
    */
-  public synchronized void handleNodeLost(String hostname) {
-    Preconditions.checkNotNull(hostname, "hostname should not be null");
-    mLostNodes.add(hostname);
+  public synchronized void handleNodeLost(Address address) {
+    Preconditions.checkNotNull(address, "address should not be null");
+    mLostNodes.add(address);
   }
 
   /**
    * Updates configuration when a lost node is found.
    *
-   * @param hostname the node hostname
+   * @param address the node address
    */
-  public synchronized void lostNodeFound(String hostname) {
-    Preconditions.checkNotNull(hostname, "hostname should not be null");
-    mLostNodes.remove(hostname);
+  public synchronized void lostNodeFound(Address address) {
+    Preconditions.checkNotNull(address, "address should not be null");
+    mLostNodes.remove(address);
   }
 
   /**
    * @return the configuration map of live nodes
    */
-  public synchronized Map<String, List<ConfigRecord>> getConfMap() {
-    Map<String, List<ConfigRecord>> map = new HashMap<>();
-    for (Map.Entry<String, List<ConfigRecord>> entry : mConfMap.entrySet()) {
-      String hostname = entry.getKey();
-      if (!mLostNodes.contains(hostname)) {
-        map.put(hostname, entry.getValue());
+  public synchronized Map<Address, List<ConfigRecord>> getConfMap() {
+    Map<Address, List<ConfigRecord>> map = new HashMap<>();
+    for (Map.Entry<Address, List<ConfigRecord>> entry : mConfMap.entrySet()) {
+      Address address = entry.getKey();
+      if (!mLostNodes.contains(address)) {
+        map.put(address, entry.getValue());
       }
     }
     return map;
