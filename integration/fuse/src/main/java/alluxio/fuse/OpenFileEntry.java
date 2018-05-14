@@ -18,6 +18,7 @@ import java.io.Closeable;
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import ru.serce.jnrfuse.struct.FuseFileInfo;
 
 /**
  * Convenience class to encapsulate input/output streams of open alluxio files.
@@ -35,11 +36,13 @@ final class OpenFileEntry implements Closeable {
   private final FileOutStream mOut;
   /** the next write offset.  */
   private long mOffset;
+  public FuseFileInfo fi;
 
-  public OpenFileEntry(FileInStream in, FileOutStream out) {
+  public OpenFileEntry(FileInStream in, FileOutStream out, FuseFileInfo fi) {
     mIn = in;
     mOut = out;
     mOffset = -1;
+    this.fi = fi;
   }
 
   /**

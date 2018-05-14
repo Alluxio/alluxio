@@ -99,7 +99,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     URIStatus status = options.getStatus();
     OpenFileOptions readOptions = options.getOptions();
 
-    boolean promote = readOptions.getReadType().isPromote();
+    boolean promote = readOptions.getReadType().isPromote() && status.isPersisted();  //qiniu only promote persist ones
 
     long blockId = info.getBlockId();
     long blockSize = info.getLength();

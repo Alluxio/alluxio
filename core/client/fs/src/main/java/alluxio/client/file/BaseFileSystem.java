@@ -12,8 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.MetaCache;
 import alluxio.annotation.PublicApi;
-import alluxio.client.block.AlluxioBlockCache;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -183,7 +183,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public boolean exists(AlluxioURI path, ExistsOptions options)
       throws InvalidPathException, IOException, AlluxioException {
-    URIStatus s = path.getURIStatus();
+    URIStatus s = MetaCache.getStatus(path.getPath());
     if (s != null && s.getLength() > 0) return true;  // qiniu
 
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
@@ -191,7 +191,6 @@ public class BaseFileSystem implements FileSystem {
       // TODO(calvin): Make this more efficient
       //URIStatus s = masterClient.getStatus(path, options.toGetStatusOptions());
       s = getStatus(path, options.toGetStatusOptions());
-      if (s.getLength() > 0) path.setURIStatus(s);  // qiniu
       return true;
     } catch (NotFoundException e) {
       return false;
@@ -241,18 +240,21 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    if (options.isInvalidateCache()) path.setURIStatus(null);  //qiniu
-    URIStatus s = path.getURIStatus(); // qiniu
-    if (s != null && s.getLength() > 0) return s;
+    if (options.isInvalidateCache()) { 
+        MetaCache.invalidate(path.getPath()); // qiniu
+    } else {
+        URIStatus s = MetaCache.getStatus(path.getPath());
+        if (s != null && !MetaCache.shouldUpdateStatus(s)) return s;
+    }
 
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
-      /*URIStatus*/ s = masterClient.getStatus(path, options);  // qiniu
+      URIStatus s = masterClient.getStatus(path, options);  // qiniu
+      MetaCache.setStatus(path.getPath(), s);
       if (s.getLength() > 0) {
-          path.setURIStatus(s);
           for (FileBlockInfo f: s.getFileBlockInfos()) {
               BlockInfo b = f.getBlockInfo();
-              AlluxioBlockCache.addBlockInfoCache(b.getBlockId(), b);
+              MetaCache.addBlockInfoCache(b.getBlockId(), b);
           }
       }
       return s;

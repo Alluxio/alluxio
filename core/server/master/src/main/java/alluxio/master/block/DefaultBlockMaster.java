@@ -711,7 +711,6 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
           }
       }
       for (long id: evictingBlockIds) {
-          MasterBlockInfo block = mBlocks.get(id);
           long containerId = BlockId.getContainerId(id);
           long fileId = IdUtils.createFileId(containerId);
           DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_EVICT, workerId, 
@@ -732,13 +731,12 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       Iterator<Map.Entry<Long, PersistFile>> it = frees.entrySet().iterator();
       while (it.hasNext()) {
           PersistFile f = it.next().getValue();
-          LOG.info("===== EVICT[FREE] worker:" + workerId + " file:" + f.getFileId() + " blocks:" + f.getBlockIds());
+          LOG.debug("===== EVICT[FREE] worker:" + workerId + " file:" + f.getFileId() + " blocks:" + f.getBlockIds());
           ids.addAll(f.getBlockIds());
       }
       frees.clear();
 
       toRemoveBlocks.addAll(ids);
-      //processWorkerRemovedBlocks(worker, ids);
 
       if (toRemoveBlocks.isEmpty()) {
         return new Command(CommandType.Nothing, new ArrayList<Long>());

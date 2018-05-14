@@ -733,7 +733,7 @@ public class TieredBlockStore implements BlockStore {
       synchronized (mBlockStoreEventListeners) {
         try {
             BlockMeta blockMeta = mMetaManager.getBlockMeta(blockInfo.getFirst());
-            LOG.info(" ===== EVICT add block:" + blockMeta.getBlockId() + " file:" + blockMeta.getPath());
+            LOG.debug(" ===== EVICT add block:" + blockMeta.getBlockId() + " file:" + blockMeta.getPath());
         } catch (Exception e) {}
 
         for (BlockStoreEventListener listener : mBlockStoreEventListeners) {

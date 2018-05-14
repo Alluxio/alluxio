@@ -136,7 +136,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
 
       // TODO(calvin): Update the locking logic so this can be done better
-      if (request.isPromote()) {
+      if (request.isPromote() && request.isPersisted()) {       // qiniu only promote persist blocks
         try {
           mWorker.moveBlock(request.getSessionId(), request.getId(), mStorageTierAssoc.getAlias(0));
         } catch (BlockDoesNotExistException e) {

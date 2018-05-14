@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.MetaCache;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
@@ -32,6 +33,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -272,6 +274,10 @@ public class FileOutStream extends AbstractOutStream {
 
   private void handleCacheWriteException(Exception e) throws IOException {
     LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
+
+    //qiniu2 - block may be evicted or wrong
+    MetaCache.invalidate(mUri.getPath());
+
     if (!mUnderStorageType.isSyncPersist()) {
       throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
     }
