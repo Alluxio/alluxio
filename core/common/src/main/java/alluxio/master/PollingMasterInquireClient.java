@@ -87,7 +87,8 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   private void pingMetaService(InetSocketAddress address)
       throws UnauthenticatedException, TTransportException {
     TTransport transport = TransportProvider.Factory.create().getClientTransport(address);
-    TProtocol protocol = ThriftUtils.createThriftProtocol(transport, Constants.META_MASTER_SERVICE_NAME);
+    TProtocol protocol =
+        ThriftUtils.createThriftProtocol(transport, Constants.META_MASTER_SERVICE_NAME);
     protocol.getTransport().open();
     protocol.getTransport().close();
   }

@@ -631,8 +631,9 @@ public final class NetworkAddressUtils {
             "Cannot resolve for empty service name");
     try {
       TransportProvider transportProvider = TransportProvider.Factory.create();
-      TProtocol protocol = ThriftUtils.createThriftProtocol(transportProvider.getClientTransport(address),
-          serviceName);
+      TProtocol protocol =
+          ThriftUtils.createThriftProtocol(transportProvider.getClientTransport(address),
+              serviceName);
       protocol.getTransport().open();
       protocol.getTransport().close();
     } catch (TTransportException e) {
