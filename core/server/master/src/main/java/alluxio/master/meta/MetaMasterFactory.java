@@ -52,9 +52,9 @@ public final class MetaMasterFactory implements MasterFactory {
       SafeModeManager safeModeManager) {
     Preconditions.checkArgument(journalFactory != null, "journal");
     LOG.info("Creating {} ", MetaMaster.class.getName());
-    MetaMaster master = new DefaultMetaMaster(registry.get(BlockMaster.class),
+    MetaMaster metaMaster = new DefaultMetaMaster(registry.get(BlockMaster.class),
         new MasterContext(journalFactory, safeModeManager));
-    registry.add(MetaMaster.class, master);
-    return master;
+    registry.add(MetaMaster.class, metaMaster);
+    return metaMaster;
   }
 }
