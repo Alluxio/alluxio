@@ -226,7 +226,7 @@ public final class CallHomeMaster extends AbstractNonJournaledMaster {
      * @return the object key of the call home information
      * @throws IOException when failed to construct the object key
      */
-    private String getObjectKey(String objectKey) throws IOException {
+    private String getObjectKey() throws IOException {
       // Get time related information.
       Date now = new Date(System.currentTimeMillis());
       DateFormat formatter = new SimpleDateFormat(TIME_FORMAT);
@@ -248,7 +248,7 @@ public final class CallHomeMaster extends AbstractNonJournaledMaster {
       String mac = sb.toString();
 
       Joiner joiner = Joiner.on("/");
-      return joiner.join("user", year, month, day, objectKey, mac + "-" + time);
+      return joiner.join("user", year, month, day, mac + "-" + time);
     }
 
     /**
@@ -267,7 +267,7 @@ public final class CallHomeMaster extends AbstractNonJournaledMaster {
       }
 
       // Create the upload request.
-      String objectKey = getObjectKey(Constants.CALL_HOME_OBJECT_KEY);
+      String objectKey = getObjectKey();
       Joiner joiner = Joiner.on("/");
       String path = joiner.join("upload", CallHomeConstants.CALL_HOME_BUCKET, objectKey);
       String url = new URL(new URL(ProjectConstants.PROXY_URL), path).toString();

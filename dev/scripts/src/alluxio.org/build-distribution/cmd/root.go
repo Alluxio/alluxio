@@ -29,9 +29,20 @@ or generating a suite of release tarballs.
 		},
 	}
 
+        callHomeFlag       bool
+        callHomeBucketFlag string
+
 	debugFlag bool
+
+        proxyURLFlag   string
 )
 
 func init() {
 	Root.Flags.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
+
+        // Call home
+        Root.Flags.BoolVar(&callHomeFlag, "call-home", true, "whether the generated distributions should perform call home")
+        Root.Flags.StringVar(&callHomeBucketFlag, "call-home-bucket", "", "the S3 bucket the generated distribution should upload call home information to")
+
+        Root.Flags.StringVar(&proxyURLFlag, "proxy-url", "", "the URL used for sending diagnostic information")
 }
