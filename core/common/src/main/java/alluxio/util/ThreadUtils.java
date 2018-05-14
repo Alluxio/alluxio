@@ -44,7 +44,7 @@ public final class ThreadUtils {
    * reject incoming tasks, and then calling shutdownNow, if necessary, to cancel any lingering
    * tasks.
    *
-   * @param pool the executor service to shutdown.
+   * @param pool the executor service to shutdown
    */
   public static void shutdownAndAwaitTermination(ExecutorService pool) {
     pool.shutdown(); // Disable new tasks from being submitted
@@ -53,8 +53,9 @@ public final class ThreadUtils {
       if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
         pool.shutdownNow(); // Cancel currently executing tasks
         // Wait a while for tasks to respond to being cancelled
-        if (!pool.awaitTermination(60, TimeUnit.SECONDS))
+        if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
           LOG.warn("Pool did not terminate");
+        }
       }
     } catch (InterruptedException ie) {
       // (Re-)Cancel if current thread also interrupted
