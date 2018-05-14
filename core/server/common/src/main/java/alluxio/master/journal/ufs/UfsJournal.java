@@ -167,7 +167,7 @@ public class UfsJournal implements Journal {
    * Flushes the journal.
    */
   @VisibleForTesting
-  synchronized void flush() throws IOException, JournalClosedException {
+  public synchronized void flush() throws IOException, JournalClosedException {
     writer().flush();
   }
 
@@ -306,7 +306,8 @@ public class UfsJournal implements Journal {
   /**
    * @return the log directory location
    */
-  URI getLogDir() {
+  @VisibleForTesting
+  public URI getLogDir() {
     return mLogDir;
   }
 

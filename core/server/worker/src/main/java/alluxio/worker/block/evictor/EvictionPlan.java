@@ -39,8 +39,8 @@ public final class EvictionPlan {
    */
   public EvictionPlan(List<BlockTransferInfo> toTransfer,
       List<Pair<Long, BlockStoreLocation>> toEvict) {
-    mToMove = Preconditions.checkNotNull(toTransfer);
-    mToEvict = Preconditions.checkNotNull(toEvict);
+    mToMove = Preconditions.checkNotNull(toTransfer, "toTransfer");
+    mToEvict = Preconditions.checkNotNull(toEvict, "toEvict");
   }
 
   /**

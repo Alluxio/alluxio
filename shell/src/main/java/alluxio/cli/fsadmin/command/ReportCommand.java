@@ -15,6 +15,7 @@ import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.cli.fsadmin.report.ConfigurationCommand;
+import alluxio.cli.fsadmin.report.MetricsCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.client.MetaMasterClient;
@@ -89,6 +90,7 @@ public final class ReportCommand implements Command {
   enum Command {
     CAPACITY, // Report worker capacity information
     CONFIGURATION, // Report runtime configuration
+    METRICS, // Report metrics information
     SUMMARY, // Report cluster summary
     UFS // Report under filesystem information
   }
@@ -97,8 +99,8 @@ public final class ReportCommand implements Command {
    * Creates a new instance of {@link ReportCommand}.
    */
   public ReportCommand() {
-    mCloser = Closer.create();
     MasterClientConfig config = MasterClientConfig.defaults();
+    mCloser = Closer.create();
     mBlockMasterClient = mCloser.register(new RetryHandlingBlockMasterClient(config));
     mFileSystemMasterClient = mCloser.register(new RetryHandlingFileSystemMasterClient(config));
     mMetaMasterClient = mCloser.register(new RetryHandlingMetaMasterClient(config));
@@ -132,6 +134,9 @@ public final class ReportCommand implements Command {
             break;
           case "configuration":
             command = Command.CONFIGURATION;
+            break;
+          case "metrics":
+            command = Command.METRICS;
             break;
           case "summary":
             command = Command.SUMMARY;
@@ -189,6 +194,11 @@ public final class ReportCommand implements Command {
               mMetaMasterClient, mPrintStream);
           configurationCommand.run();
           break;
+        case METRICS:
+          MetricsCommand metricsCommand = new MetricsCommand(
+              mMetaMasterClient, mPrintStream);
+          metricsCommand.run();
+          break;
         case SUMMARY:
           SummaryCommand summaryCommand = new SummaryCommand(
               mMetaMasterClient, mBlockMasterClient, mPrintStream);
@@ -229,6 +239,7 @@ public final class ReportCommand implements Command {
         + "[category] can be one of the following:\n"
         + "    capacity         worker capacity information\n"
         + "    configuration    runtime configuration\n"
+        + "    metrics          metrics information\n"
         + "    summary          cluster summary\n"
         + "    ufs              under filesystem information\n";
   }

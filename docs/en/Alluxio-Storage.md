@@ -48,7 +48,9 @@ alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk,/mnt/ssd1,/mnt/ssd2
 ```
 
 The paths provided should point to paths in the local filesystem mounting the appropriate storage
-media. The permissions of these paths should be 777 to enable short circuit operations.
+media. To enable short circuit operations, the permissions of these paths should be permissive for the
+client user to read, write and execute on the path. For example, 770 is needed for the client user who is
+among the same group of the user that starts the Alluxio service.
 
 After updating the storage media, we need to indicate how much storage is allocated for each storage
 directory. For example, if we wanted to use 16 GB on the ramdisk and 100 GB on each SSD:
@@ -210,7 +212,7 @@ path to the first tier
 * `alluxio.worker.tieredstore.level0.dirs.quota=100GB` sets the quota for the ramdisk to be `100GB`
 * `alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9` sets the ratio of high watermark on
 top layer to be 0.9
-* `alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7` sets the ratio of high watermark on
+* `alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7` sets the ratio of low watermark on
 top layer to be 0.7
 * `alluxio.worker.tieredstore.level1.alias=HDD` configures the second tier to be a hard disk tier
 * `alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3` configures 3 separate

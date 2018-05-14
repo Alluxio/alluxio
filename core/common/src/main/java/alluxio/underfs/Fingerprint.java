@@ -27,11 +27,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class Fingerprint {
-  // TODO(gpang): partition fingerprint for metadata and content, for more efficient updates.
   /** These tags are required in all fingerprints. */
   private static final Tag[] REQUIRED_TAGS = {Tag.TYPE, Tag.UFS, Tag.OWNER, Tag.GROUP, Tag.MODE};
   /** These tags are optional, and are serialized after the required tags. */
   private static final Tag[] OPTIONAL_TAGS = {Tag.CONTENT_HASH};
+
+  /** These tags are all the metadata tags in the fingerprints. */
+  private static final Tag[] METADATA_TAGS = {Tag.OWNER, Tag.GROUP, Tag.MODE};
+  /** These tags are all the content tags in the fingerprints. */
+  private static final Tag[] CONTENT_TAGS = {Tag.TYPE, Tag.UFS, Tag.CONTENT_HASH};
 
   private static final Pattern SANITIZE_REGEX = Pattern.compile("[ :]");
   private static final String UNDERSCORE = "_";
@@ -115,6 +119,26 @@ public final class Fingerprint {
   }
 
   /**
+   * Checks if the fingerprint object was generated from an INVALID_UFS_FINGERPRINT.
+   *
+   * @return returns true if the fingerprint is valid
+   */
+  public boolean isValid() {
+    if (mValues.isEmpty()) {
+      return false;
+    }
+
+    // Check required tags
+    for (Tag tag : REQUIRED_TAGS) {
+      if (!mValues.containsKey(tag)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * @return the serialized string of the fingerprint
    */
   public String serialize() {
@@ -133,6 +157,36 @@ public final class Fingerprint {
       }
     }
     return sb.toString();
+  }
+
+  /**
+   * Returns true if the serialized fingerprint matches the fingerprint in metadata.
+   *
+   * @param fp a parsed fingerprint object
+   * @return true if the given fingerprint matches the current fingerprint in metadata
+   */
+  public boolean matchMetadata(Fingerprint fp) {
+    for (Tag tag : METADATA_TAGS) {
+      if (!getTag(tag).equals(fp.getTag(tag))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Returns true if the serialized fingerprint matches the fingerprint in the content part.
+   *
+   * @param fp a parsed fingerprint object
+   * @return true if the given fingerprint matches the current fingerprint's content
+   */
+  public boolean matchContent(Fingerprint fp) {
+    for (Tag tag : CONTENT_TAGS) {
+      if (!getTag(tag).equals(fp.getTag(tag))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

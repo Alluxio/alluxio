@@ -11,13 +11,16 @@
 
 package alluxio.client;
 
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
+import alluxio.wire.MetricValue;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -36,4 +39,11 @@ public interface MetaMasterClient extends Closeable {
    * @return the requested master info
    */
   MasterInfo getMasterInfo(Set<MasterInfoField> masterInfoFields) throws IOException;
+
+  /**
+   * Gets a map of metrics property names and their values from metrics system.
+   *
+   * @return a map of metrics information
+   */
+  Map<String, MetricValue> getMetrics() throws AlluxioStatusException;
 }

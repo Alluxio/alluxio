@@ -48,15 +48,6 @@ public abstract class LockedInodePath implements AutoCloseable {
     mLockMode = lockMode;
   }
 
-  LockedInodePath(LockedInodePath inodePath) {
-    Preconditions.checkArgument(!inodePath.mInodes.isEmpty());
-    mUri = inodePath.mUri;
-    mPathComponents = inodePath.mPathComponents;
-    mInodes = inodePath.mInodes;
-    mLockList = inodePath.mLockList;
-    mLockMode = inodePath.mLockMode;
-  }
-
   /**
    * @return the full uri of the path
    */

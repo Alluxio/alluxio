@@ -11,6 +11,13 @@
 
 package alluxio.master.lineage;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.eq;
+
 import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
@@ -41,7 +48,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +77,7 @@ public final class LineageMasterTest {
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem = new NoopJournalSystem();
-    mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
+    mFileSystemMaster = mock(FileSystemMaster.class);
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mSafeModeManager = new DefaultSafeModeManager();
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
@@ -93,7 +99,7 @@ public final class LineageMasterTest {
    */
   @Test
   public void listLineages() throws Exception {
-    Mockito.when(mFileSystemMaster.getPath(Mockito.anyLong())).thenReturn(new AlluxioURI("test"));
+    when(mFileSystemMaster.getPath(anyLong())).thenReturn(new AlluxioURI("test"));
     mRegistry.start(true);
     mLineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
@@ -110,7 +116,7 @@ public final class LineageMasterTest {
   @Test
   public void createLineageWithNonExistingFile() throws Exception {
     AlluxioURI missingInput = new AlluxioURI("/test1");
-    Mockito.when(mFileSystemMaster.getFileId(missingInput)).thenReturn(IdUtils.INVALID_FILE_ID);
+    when(mFileSystemMaster.getFileId(missingInput)).thenReturn(IdUtils.INVALID_FILE_ID);
     mRegistry.start(true);
     // try catch block used because ExpectedExceptionRule conflicts with Powermock
     try {
@@ -182,12 +188,12 @@ public final class LineageMasterTest {
   public void reinitializeFile() throws Exception {
     FileInfo fileInfo = new FileInfo();
     fileInfo.setCompleted(false);
-    Mockito.when(mFileSystemMaster.getFileInfo(Mockito.any(Long.class))).thenReturn(fileInfo);
+    when(mFileSystemMaster.getFileInfo(any(Long.class))).thenReturn(fileInfo);
     mRegistry.start(true);
     mLineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
     mLineageMaster.reinitializeFile("/test1", 500L, 10L, TtlAction.DELETE);
-    Mockito.verify(mFileSystemMaster).reinitializeFile(new AlluxioURI("/test1"), 500L, 10L,
+    verify(mFileSystemMaster).reinitializeFile(new AlluxioURI("/test1"), 500L, 10L,
         TtlAction.DELETE);
   }
 
@@ -200,8 +206,8 @@ public final class LineageMasterTest {
     AlluxioURI file = new AlluxioURI("/test1");
     mLineageMaster.createLineage(new ArrayList<AlluxioURI>(), Lists.newArrayList(file), mJob);
     mFileSystemMaster.completeFile(file, CompleteFileOptions.defaults());
-    Mockito.verify(mFileSystemMaster).completeFile(Mockito.eq(file),
-        Mockito.any(CompleteFileOptions.class));
+    verify(mFileSystemMaster).completeFile(eq(file),
+        any(CompleteFileOptions.class));
   }
 
   @Test

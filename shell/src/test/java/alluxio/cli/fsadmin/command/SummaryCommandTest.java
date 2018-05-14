@@ -52,7 +52,9 @@ public class SummaryCommandTest {
         .setStartTimeMs(1131242343122L)
         .setUpTimeMs(12412412312L)
         .setVersion("testVersion")
-        .setSafeMode(false);
+        .setSafeMode(false)
+        .setZookeeperAddresses(Arrays.asList("[zookeeper_hostname1]:2181",
+            "[zookeeper_hostname2]:2181", "[zookeeper_hostname3]:2181"));
     Mockito.when(mMetaMasterClient.getMasterInfo(Mockito.any())).thenReturn(masterInfo);
 
     // Prepare mock block master client
@@ -109,6 +111,11 @@ public class SummaryCommandTest {
         "    Uptime: 143 day(s), 15 hour(s), 53 minute(s), and 32 second(s)",
         "    Version: testVersion",
         "    Safe Mode: false",
+        "    Zookeeper Enabled: true",
+        "    Zookeeper Addresses: ",
+        "        [zookeeper_hostname1]:2181",
+        "        [zookeeper_hostname2]:2181",
+        "        [zookeeper_hostname3]:2181",
         "    Live Workers: 12",
         "    Lost Workers: 4",
         "    Total Capacity: 1309.92KB",

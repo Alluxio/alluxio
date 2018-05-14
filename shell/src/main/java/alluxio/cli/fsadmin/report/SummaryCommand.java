@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -78,7 +79,7 @@ public class SummaryCommand {
         .asList(MasterInfoField.MASTER_ADDRESS, MasterInfoField.WEB_PORT,
             MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
             MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
-            MasterInfoField.SAFE_MODE));
+            MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES));
     MasterInfo masterInfo = mMetaMasterClient.getMasterInfo(masterInfoFilter);
 
     print("Master Address: " + masterInfo.getMasterAddress());
@@ -88,6 +89,20 @@ public class SummaryCommand {
     print("Uptime: " + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
     print("Version: " + masterInfo.getVersion());
     print("Safe Mode: " + masterInfo.isSafeMode());
+
+    List<String> zookeeperAddresses = masterInfo.getZookeeperAddresses();
+    if (zookeeperAddresses == null || zookeeperAddresses.isEmpty()) {
+      print("Zookeeper Enabled: false");
+    } else {
+      print("Zookeeper Enabled: true");
+      print("Zookeeper Addresses: ");
+      mIndentationLevel++;
+      for (String zkAddress : zookeeperAddresses) {
+        print(zkAddress);
+      }
+      mIndentationLevel--;
+    }
+
   }
 
   /**

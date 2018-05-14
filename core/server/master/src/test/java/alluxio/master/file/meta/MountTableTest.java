@@ -11,6 +11,10 @@
 
 package alluxio.master.file.meta;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.anyLong;
+
 import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
@@ -29,7 +33,6 @@ import com.google.common.base.Suppliers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,10 +48,10 @@ public final class MountTableTest {
 
   @Before
   public void before() throws Exception {
-    UfsManager ufsManager = Mockito.mock(UfsManager.class);
+    UfsManager ufsManager = mock(UfsManager.class);
     UfsClient ufsClient =
         new UfsManager.UfsClient(Suppliers.ofInstance(mTestUfs), AlluxioURI.EMPTY_URI);
-    Mockito.when(ufsManager.get(Mockito.anyLong())).thenReturn(ufsClient);
+    when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mMountTable = new MountTable(ufsManager);
   }
 

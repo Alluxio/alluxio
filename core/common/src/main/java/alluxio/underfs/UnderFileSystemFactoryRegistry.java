@@ -13,9 +13,9 @@ package alluxio.underfs;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.RuntimeConstants;
 import alluxio.extensions.ExtensionsClassLoader;
 import alluxio.util.ExtensionUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -91,6 +91,9 @@ public final class UnderFileSystemFactoryRegistry {
    * creation occurs.
    */
   private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
+
+  public static final String LIB_DIR =
+      PathUtils.concatPath(Configuration.get(PropertyKey.HOME), "lib");
 
   private static boolean sInit = false;
 
@@ -189,10 +192,10 @@ public final class UnderFileSystemFactoryRegistry {
    * @param factories list of factories to add to
    */
   private static void scanLibs(List<UnderFileSystemFactory> factories) {
-    LOG.info("Loading core UFS jars from {}", RuntimeConstants.LIB_DIR);
+    LOG.info("Loading core UFS jars from {}", LIB_DIR);
     List<File> files = new ArrayList<>();
-    try (DirectoryStream<Path> stream = Files.newDirectoryStream(
-        Paths.get(RuntimeConstants.LIB_DIR), "alluxio-underfs-*.jar")) {
+    try (DirectoryStream<Path> stream =
+        Files.newDirectoryStream(Paths.get(LIB_DIR), "alluxio-underfs-*.jar")) {
       for (Path entry : stream) {
         if (entry.toFile().isFile()) {
           files.add(entry.toFile());

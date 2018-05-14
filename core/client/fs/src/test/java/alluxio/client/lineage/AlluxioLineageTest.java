@@ -11,6 +11,9 @@
 
 package alluxio.client.lineage;
 
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
@@ -25,7 +28,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -50,7 +52,7 @@ public final class AlluxioLineageTest {
   public void before() throws Exception {
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
-    Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
+    when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
     mAlluxioLineage = AlluxioLineage.get(mLineageContext);
   }
 
@@ -65,26 +67,26 @@ public final class AlluxioLineageTest {
     List<AlluxioURI> outputFiles = Lists.newArrayList(new AlluxioURI("output"));
     CommandLineJob job = new CommandLineJob("cmd", new JobConf("out"));
     mAlluxioLineage.createLineage(inputFiles, outputFiles, job);
-    Mockito.verify(mLineageMasterClient).createLineage(Lists.newArrayList("input"),
+    verify(mLineageMasterClient).createLineage(Lists.newArrayList("input"),
         Lists.newArrayList("output"), job);
     // verify client is released
-    Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
+    verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
 
   @Test
   public void deleteLineage() throws Exception {
     DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
     mAlluxioLineage.deleteLineage(0, options);
-    Mockito.verify(mLineageMasterClient).deleteLineage(0, true);
+    verify(mLineageMasterClient).deleteLineage(0, true);
     // verify client is released
-    Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
+    verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
 
   @Test
   public void getLineageInfoList() throws Exception {
     mAlluxioLineage.getLineageInfoList();
-    Mockito.verify(mLineageMasterClient).getLineageInfoList();
+    verify(mLineageMasterClient).getLineageInfoList();
     // verify client is released
-    Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
+    verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
 }

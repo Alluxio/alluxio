@@ -49,6 +49,16 @@ This step can be skipped in case short-circuit accesss is not desired or cannot 
 this feature, set the property `alluxio.user.short.circuit.enabled=false` according to the instructions
 in the configuration section below.
 
+By default, short-circuit operations between the Alluxio client and worker are enabled if the client
+hostname matches the worker hostname. This may not be true if the client is running as part of a container
+with virtual networking. In such a scenario, set the following property to use filesystem inspection
+to enable short-circuit. Short-circuit writes are then enabled if the worker UUID is located on the client
+filesystem.
+```properties
+alluxio.worker.data.server.domain.socket.as.uuid=true
+alluxio.worker.data.server.domain.socket.address=/path/to/domain/socket/directory
+```
+
 ## Provision a Persistent Volume
 
 Alluxio master can be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
