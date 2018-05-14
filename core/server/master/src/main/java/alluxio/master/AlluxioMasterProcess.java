@@ -346,7 +346,6 @@ public class AlluxioMasterProcess implements MasterProcess {
       MasterAddress lostMasterAddress = lostMaster.getMasterAddress();
       mMasterConfigRecord.lostNodeFound(new Address(lostMasterAddress.getHost(),
           lostMasterAddress.getRpcPort()));
-      mConfigChecker.regenerateReport();
       synchronized (lostMaster) {
         final long lostMasterId = lostMaster.getId();
         LOG.warn("A lost master {} has requested its old id {}.", masterAddress, lostMasterId);
@@ -648,7 +647,6 @@ public class AlluxioMasterProcess implements MasterProcess {
             MasterAddress masterAddress = master.getMasterAddress();
             mMasterConfigRecord.handleNodeLost(new Address(masterAddress.getHost(),
                 masterAddress.getRpcPort()));
-            mConfigChecker.regenerateReport();
           }
         }
       }
@@ -667,7 +665,6 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   private void lostWorkerFoundHandler(Address address) {
     mWorkerConfigRecord.lostNodeFound(address);
-    mConfigChecker.regenerateReport();
   }
 
   /**
@@ -677,7 +674,6 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   private void workerLostHandler(Address address) {
     mWorkerConfigRecord.handleNodeLost(address);
-    mConfigChecker.regenerateReport();
   }
 
   /**
@@ -688,7 +684,6 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   private void registerNewWorkerConfHandler(Address address, List<ConfigProperty> configList) {
     mWorkerConfigRecord.registerNewConf(address, configList);
-    mConfigChecker.regenerateReport();
   }
 
   /**

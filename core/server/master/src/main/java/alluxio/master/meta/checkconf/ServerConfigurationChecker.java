@@ -45,15 +45,26 @@ public class ServerConfigurationChecker {
   /**
    * Represents a configuration report which records the configuration checker results.
    * Since we check server-side configuration, Scope here only includes
-   * SERVER, MASTER and WORKER.
+   * SERVER, MASTER and WORKER. Scope.ALL will be considered as Scope.SERVER.
    */
   public static final class ConfigCheckReport {
-    /** Record the configuration errors of last check conf. */
-    private Map<Scope, List<WrongProperty>> mConfigErrors;
-    /** Record the configuration warnings of last check conf. */
-    private Map<Scope, List<WrongProperty>> mConfigWarns;
-    /** Record the status of last check conf. */
-    private Map<Scope, Status> mConfigStatus;
+    /** Record the configuration errors. */
+    private final Map<Scope, List<WrongProperty>> mConfigErrors;
+    /** Record the configuration warnings. */
+    private final Map<Scope, List<WrongProperty>> mConfigWarns;
+    /**
+     * Record the status of masters and workers.
+     * Scope here includes MASTER and WORKER and their corresponding Statuses represent
+     * whether errors/warnings exist in masters/workers.
+     */
+    private final Map<Scope, Status> mConfigStatus;
+    /**
+     *  Record the overall status of config check report.
+     *  If any errors (Status = FAILED) exist in Configuration status, the Status here
+     *  will be FAILED, else if any warnings exist, the Status will be WARN.
+     *  If no errors or warnings exist, the Status will be PASSED.
+     */
+    private final Status mReportStatus;
 
     /**
      * Creates a new instance of {@link ConfigCheckReport}.
@@ -62,9 +73,9 @@ public class ServerConfigurationChecker {
       mConfigErrors = new HashMap<>();
       mConfigWarns = new HashMap<>();
       mConfigStatus = new HashMap<>();
-      mConfigStatus.put(Scope.SERVER, Status.NOT_STARTED);
       mConfigStatus.put(Scope.MASTER, Status.NOT_STARTED);
       mConfigStatus.put(Scope.WORKER, Status.NOT_STARTED);
+      mReportStatus = Status.NOT_STARTED;
     }
 
     /**
@@ -73,12 +84,15 @@ public class ServerConfigurationChecker {
      * @param configErrors the configuration errors
      * @param configWarns the configuration warnings
      * @param configStatus the configuration status
+     * @param reportStatus the overall report status
      */
     private ConfigCheckReport(Map<Scope, List<WrongProperty>> configErrors,
-        Map<Scope, List<WrongProperty>> configWarns, Map<Scope, Status> configStatus) {
+        Map<Scope, List<WrongProperty>> configWarns, Map<Scope, Status> configStatus,
+        Status reportStatus) {
       mConfigErrors = configErrors;
       mConfigWarns = configWarns;
       mConfigStatus = configStatus;
+      mReportStatus = reportStatus;
     }
 
     /**
@@ -101,6 +115,13 @@ public class ServerConfigurationChecker {
     public Map<Scope, Status> getConfigStatus() {
       return mConfigStatus;
     }
+
+    /**
+     * @return the overall report status
+     */
+    public Status getReportStatus() {
+      return mReportStatus;
+    }
   }
 
   /**
@@ -114,6 +135,7 @@ public class ServerConfigurationChecker {
     mMasterRecord = masterRecord;
     mWorkerRecord = workerRecord;
     mConfigCheckReport = new ConfigCheckReport();
+    mMasterRecord.registerRegenerateReportListener(this::regenerateReport);
   }
 
   /**
@@ -173,12 +195,13 @@ public class ServerConfigurationChecker {
 
     configStatus.put(Scope.MASTER, masterStatus);
     configStatus.put(Scope.WORKER, workerStatus);
-    configStatus.put(Scope.SERVER,
-        (masterStatus.equals(Status.FAILED) || workerStatus.equals(Status.FAILED)) ? Status.FAILED
-        : (masterStatus.equals(Status.WARN) || workerStatus.equals(Status.WARN)) ? Status.WARN
-        : Status.PASSED);
 
-    mConfigCheckReport = new ConfigCheckReport(confErrors, confWarns, configStatus);
+    Status reportStatus =
+        (masterStatus.equals(Status.FAILED) || workerStatus.equals(Status.FAILED))
+        ? Status.FAILED : (masterStatus.equals(Status.WARN) || workerStatus.equals(Status.WARN))
+        ? Status.WARN : Status.PASSED;
+
+    mConfigCheckReport = new ConfigCheckReport(confErrors, confWarns, configStatus, reportStatus);
   }
 
   /**

@@ -63,8 +63,7 @@ public final class Address implements Serializable {
    * @return the address
    */
   public Address setHost(String host) {
-    Preconditions.checkNotNull(host, "host");
-    mHost = host;
+    mHost = Preconditions.checkNotNull(host, "host");
     return this;
   }
 

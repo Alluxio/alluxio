@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +34,9 @@ public class ServerConfigurationRecord {
   private final Map<Address, List<ConfigRecord>> mConfMap;
   /** Set that contains the addresses of lost nodes. */
   private final Set<Address> mLostNodes;
+
+  /** Listeners to call when needs to check configuration. */
+  private final BlockingQueue<Runnable> mRegenerateReportListeners = new LinkedBlockingQueue<>();
 
   /**
    * Constructs a new {@link ServerConfigurationRecord}.
@@ -63,6 +68,9 @@ public class ServerConfigurationRecord {
         .setKey(PropertyKey.fromString(c.getName())).setSource(c.getSource())
         .setValue(c.getValue())).collect(Collectors.toList()));
     mLostNodes.remove(address);
+    for (Runnable function : mRegenerateReportListeners) {
+      function.run();
+    }
   }
 
   /**
@@ -73,6 +81,9 @@ public class ServerConfigurationRecord {
   public synchronized void handleNodeLost(Address address) {
     Preconditions.checkNotNull(address, "address should not be null");
     mLostNodes.add(address);
+    for (Runnable function : mRegenerateReportListeners) {
+      function.run();
+    }
   }
 
   /**
@@ -83,10 +94,13 @@ public class ServerConfigurationRecord {
   public synchronized void lostNodeFound(Address address) {
     Preconditions.checkNotNull(address, "address should not be null");
     mLostNodes.remove(address);
+    for (Runnable function : mRegenerateReportListeners) {
+      function.run();
+    }
   }
 
   /**
-   * @return the configuration map of live nodes
+   * @return a copy of the configuration map of live nodes
    */
   public synchronized Map<Address, List<ConfigRecord>> getConfMap() {
     Map<Address, List<ConfigRecord>> map = new HashMap<>();
@@ -97,5 +111,14 @@ public class ServerConfigurationRecord {
       }
     }
     return map;
+  }
+
+  /**
+   * Registers callback functions to use when needs to regenerate config check report.
+   *
+   * @param function the function to register
+   */
+  public void registerRegenerateReportListener(Runnable function) {
+    mRegenerateReportListeners.add(function);
   }
 }

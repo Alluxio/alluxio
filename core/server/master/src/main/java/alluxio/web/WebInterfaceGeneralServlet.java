@@ -13,7 +13,6 @@ package alluxio.web;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.PropertyKey.Scope;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
 import alluxio.master.MasterProcess;
@@ -210,7 +209,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     ConfigCheckReport report = mMasterProcess.getConfigCheckReport();
-    request.setAttribute("configCheckStatus", report.getConfigStatus().get(Scope.SERVER));
+    request.setAttribute("configCheckStatus", report.getReportStatus());
     request.setAttribute("configCheckErrors", report.getConfigErrors());
     request.setAttribute("configCheckWarns", report.getConfigWarns());
     request.setAttribute("configCheckErrorNum",
