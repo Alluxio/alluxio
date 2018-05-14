@@ -156,6 +156,15 @@ public class AlluxioMasterProcess implements MasterProcess {
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
+            if (Boolean.parseBoolean(alluxio.CallHomeConstants.CALL_HOME_ENABLED)
+          && Configuration.getBoolean(PropertyKey.CALL_HOME_ENABLED)) {
+        mRegistry.get(alluxio.master.callhome.CallHomeMaster.class).setMaster(this);
+      }
+      if (Configuration.getEnum(PropertyKey.DIAGNOSTIC_LOG_LEVEL,
+          alluxio.master.diagnostic.DiagnosticLogLevel.class)
+          != alluxio.master.diagnostic.DiagnosticLogLevel.NONE) {
+        mRegistry.get(alluxio.master.diagnostic.DiagnosticMaster.class).setMaster(this);
+      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
