@@ -277,6 +277,12 @@ public abstract class AbstractLocalAlluxioCluster {
   public abstract FileSystem getClient() throws IOException;
 
   /**
+   * @param context the FileSystemContext to use
+   * @return a {@link FileSystem} client, using a specific context
+   */
+  public abstract FileSystem getClient(FileSystemContext context) throws IOException;
+
+  /**
    * @return the local Alluxio master
    */
   protected abstract LocalAlluxioMaster getLocalAlluxioMaster();
