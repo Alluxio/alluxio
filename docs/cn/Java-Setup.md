@@ -22,6 +22,8 @@ title: Java安装
 2.  将目录转换到JDK将要安装的位置。将.tar.gz压缩包移动到当前目录。
 3.  解压压缩包，安装JDK。
 
-{% include Java-Setup/install-jdk-linux.md %}
+```bash
+$ tar zxvf jdk-7u<version>-linux-x64.tar.gz
+```
 
 4.  Java开发工具包被安装到当前目录名为`jdk1.7.0_`的目录下面。如果你想节省磁盘空间，删除.tar.gz文件。
