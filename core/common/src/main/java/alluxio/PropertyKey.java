@@ -2940,7 +2940,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // Diagnostic logs
     //
-    public static final String DIAGNOSTIC_LOG_INTERVAL_MS = "alluxio.master.diagnostic.log.interval.ms";
+    public static final String DIAGNOSTIC_LOG_INTERVAL_MS =
+        "alluxio.master.diagnostic.log.interval.ms";
     public static final String DIAGNOSTIC_LOG_LEVEL = "alluxio.master.diagnostic.log.level";
 
     //
