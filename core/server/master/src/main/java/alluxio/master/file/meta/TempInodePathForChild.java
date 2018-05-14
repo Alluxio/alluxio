@@ -17,7 +17,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class represents a temporary {@link LockedInodePath}, with a child component joined to the
- * existing path. This {@link LockedInodePath} will not unlock the inodes on close.
+ * existing path. This {@link LockedInodePath} has its own lock list and will only unlock its own
+ * lock list when closed.
  *
  * This is useful for being able to pass in a new child path based on an existing
  * {@link LockedInodePath}, without having to re-traverse the inode tree, and re-acquire locks.
@@ -36,12 +37,8 @@ public final class TempInodePathForChild extends MutableLockedInodePath {
    */
   public TempInodePathForChild(LockedInodePath inodePath, String childComponent)
       throws InvalidPathException {
-    super(inodePath.mUri.join(childComponent), inodePath.mInodes, inodePath.mLockList,
+    super(inodePath.getUri().join(childComponent), inodePath.mInodes, new InodeLockList(),
         inodePath.mLockMode);
   }
 
-  @Override
-  public synchronized void close() {
-    // nothing to close
-  }
 }

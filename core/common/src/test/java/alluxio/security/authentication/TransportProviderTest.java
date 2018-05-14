@@ -127,7 +127,7 @@ public final class TransportProviderTest {
     mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport(null, "whatever", mServerAddress);
+        .getClientTransport(null, "whatever", null, mServerAddress);
   }
 
   /**
@@ -142,7 +142,7 @@ public final class TransportProviderTest {
     mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport("anyone", null, mServerAddress);
+        .getClientTransport("anyone", null, null, mServerAddress);
   }
 
   /**
@@ -161,7 +161,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
         + " identity provided");
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport("", "whatever", mServerAddress);
+        .getClientTransport("", "whatever", null, mServerAddress);
     try {
       client.open();
     } finally {
@@ -187,7 +187,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage(
         "Peer indicated failure: Plain authentication failed: No password " + "provided");
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport("anyone", "", mServerAddress);
+        .getClientTransport("anyone", "", null, mServerAddress);
     try {
       client.open();
     } finally {
@@ -213,7 +213,7 @@ public final class TransportProviderTest {
     // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME,
-            ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
+            ExactlyMatchAuthenticationProvider.PASSWORD, null, mServerAddress);
     client.open();
     assertTrue(client.isOpen());
 
@@ -238,7 +238,7 @@ public final class TransportProviderTest {
 
     // User with wrong password can not pass auth, and throw exception.
     TTransport wrongClient = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "wrong-password",
+        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "wrong-password", null,
             mServerAddress);
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage(
@@ -262,7 +262,8 @@ public final class TransportProviderTest {
     mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport(null, ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
+        .getClientTransport(null, ExactlyMatchAuthenticationProvider.PASSWORD, null,
+            mServerAddress);
   }
 
   /**
@@ -277,7 +278,8 @@ public final class TransportProviderTest {
     mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, null, mServerAddress);
+        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, null, null,
+            mServerAddress);
   }
 
   /**
@@ -298,7 +300,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
         + " identity provided");
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport("", ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
+        .getClientTransport("", ExactlyMatchAuthenticationProvider.PASSWORD, null, mServerAddress);
     try {
       client.open();
     } finally {
@@ -324,7 +326,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage(
         "Peer indicated failure: Plain authentication failed: No password provided");
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "", mServerAddress);
+        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "", null, mServerAddress);
     try {
       client.open();
     } finally {
