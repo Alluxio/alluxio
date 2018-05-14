@@ -2684,6 +2684,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "impersonation will not be used. A special value of '%s' can be specified to "
               + "impersonate the hadoop client user.",
           SECURITY_AUTHENTICATION_TYPE, Constants.IMPERSONATION_HDFS_USER))
+          .setDefaultValue(Constants.IMPERSONATION_HDFS_USER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
