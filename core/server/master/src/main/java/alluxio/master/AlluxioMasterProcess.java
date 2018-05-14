@@ -91,11 +91,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The RPC server. */
   private TServer mThriftServer;
 
-  /** is true if the master is serving the RPC server. */
+  /** True if the master is serving the RPC server. */
   private boolean mIsServing;
-
-  /** The start time for when the master started serving the RPC server. */
-  private long mStartTimeMs = -1;
 
   /** The journal system for writing journal entries and restoring master state. */
   protected final JournalSystem mJournalSystem;
@@ -166,16 +163,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   @Override
   public InetSocketAddress getRpcAddress() {
     return mRpcConnectAddress;
-  }
-
-  @Override
-  public long getStartTimeMs() {
-    return mStartTimeMs;
-  }
-
-  @Override
-  public long getUptimeMs() {
-    return System.currentTimeMillis() - mStartTimeMs;
   }
 
   @Override

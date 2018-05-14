@@ -95,6 +95,7 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String GET_WORKER_INFO_LIST = "worker_info_list";
 
   private final MasterProcess mMasterProcess;
+  private final MetaMaster mMetaMaster;
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
   private final String mUfsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
@@ -109,6 +110,7 @@ public final class AlluxioMasterRestServiceHandler {
     // Poor man's dependency injection through the Jersey application scope.
     mMasterProcess = (MasterProcess) context
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
     mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     mUfs = UnderFileSystem.Factory.createForRoot();
@@ -141,11 +143,11 @@ public final class AlluxioMasterRestServiceHandler {
                 .setMetrics(getMetricsInternal())
                 .setMountPoints(getMountPointsInternal())
                 .setRpcAddress(mMasterProcess.getRpcAddress().toString())
-                .setStartTimeMs(mMasterProcess.getStartTimeMs())
+                .setStartTimeMs(mMetaMaster.getStartTimeMs())
                 .setStartupConsistencyCheck(getStartupConsistencyCheckInternal())
                 .setTierCapacity(getTierCapacityInternal())
                 .setUfsCapacity(getUfsCapacityInternal())
-                .setUptimeMs(mMasterProcess.getUptimeMs())
+                .setUptimeMs(mMetaMaster.getUptimeMs())
                 .setVersion(RuntimeConstants.VERSION)
                 .setWorkers(mBlockMaster.getWorkerInfoList());
         return result;
@@ -209,7 +211,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        return mMasterProcess.getStartTimeMs();
+        return mMetaMaster.getStartTimeMs();
       }
     });
   }
@@ -225,7 +227,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
-    return RestUtils.call(() -> mMasterProcess.getUptimeMs());
+    return RestUtils.call(() -> mMetaMaster.getUptimeMs());
   }
 
   /**

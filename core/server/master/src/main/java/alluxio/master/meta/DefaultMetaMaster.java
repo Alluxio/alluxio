@@ -27,8 +27,6 @@ import alluxio.master.AbstractMaster;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.Inode;
-import alluxio.master.file.meta.InodeDirectory;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.ExponentialTimeBoundedRetry;
@@ -56,11 +54,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -152,14 +148,11 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   DefaultMetaMaster(BlockMaster blockMaster, MasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
-    mBlockMaster = blockMaster;
-
     mIsInSafeMode = masterContext.getmSafeModeManager().isInSafeMode();
+    mBlockMaster = blockMaster;
     mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
     mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
     mBlockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
-
-    Metrics.registerGauges(this);
   }
 
   @Override
@@ -190,11 +183,10 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
-    final Queue<Inode<?>> inodes = new LinkedList<>();
     return new Iterator<Journal.JournalEntry>() {
       @Override
       public boolean hasNext() {
-        return !inodes.isEmpty();
+        return false;
       }
 
       @Override
@@ -202,11 +194,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
         if (!hasNext()) {
           throw new NoSuchElementException();
         }
-        Inode<?> inode = inodes.poll();
-        if (inode.isDirectory()) {
-          inodes.addAll(((InodeDirectory) inode).getChildren());
-        }
-        return inode.toJournalEntry();
+        return JournalEntry.getDefaultInstance();
       }
     };
   }
@@ -378,21 +366,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     public void close() {
       // Nothing to clean up
     }
-  }
-
-  /**
-   * Class that contains metrics related to MetaMaster.
-   */
-  public static final class Metrics {
-
-    /**
-     * Registers metric gauges.
-     *
-     * @param master the meta master handle
-     */
-    public static void registerGauges(final MetaMaster master) {}
-
-    private Metrics() {} // prevent instantiation
   }
 
   /**

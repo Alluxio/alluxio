@@ -19,6 +19,7 @@ import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
+import alluxio.master.meta.MetaMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -110,14 +111,17 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   private static final long serialVersionUID = 2335205655766736309L;
 
   private final transient MasterProcess mMasterProcess;
+  private final transient MetaMaster mMetaMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceGeneralServlet}.
    *
    * @param masterProcess Alluxio master process
+   * @param metaMaster Alluxio meta master
    */
-  public WebInterfaceGeneralServlet(MasterProcess masterProcess) {
+  public WebInterfaceGeneralServlet(MasterProcess masterProcess, MetaMaster metaMaster) {
     mMasterProcess = masterProcess;
+    mMetaMaster = metaMaster;
   }
 
   /**
@@ -180,9 +184,9 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("masterNodeAddress", mMasterProcess.getRpcAddress().toString());
 
     request.setAttribute("uptime", CommonUtils
-        .convertMsToClockTime(System.currentTimeMillis() - mMasterProcess.getStartTimeMs()));
+        .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()));
 
-    request.setAttribute("startTime", CommonUtils.convertMsToDate(mMasterProcess.getStartTimeMs()));
+    request.setAttribute("startTime", CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()));
 
     request.setAttribute("version", RuntimeConstants.VERSION);
 
