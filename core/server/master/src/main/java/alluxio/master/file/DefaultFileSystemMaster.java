@@ -929,9 +929,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       ensureFullPathAndUpdateCache(inodePath);
       inode = inodePath.getInode();
       auditContext.setSrcInode(inode);
+      List<FileInfo> ret = new ArrayList<>();
+      DescendantType descendantTypeForListStatus =  (listStatusOptions.isRecursive())
+          ? DescendantType.ALL : DescendantType.ONE;
+      listStatusInternal(inodePath, auditContext,
+          descendantTypeForListStatus, ret);
 
-      List<FileInfo> ret = listStatusInternal(inodePath, auditContext,
-          listStatusOptions.isRecursive(), inodePath);
+      // If we are listing the status of a directory, we remove the directory info that we inserted
+      if (inode.isDirectory() && ret.size() >= 1) {
+        ret.remove(ret.size() - 1);
+      }
 
       auditContext.setSucceeded(true);
       Metrics.FILE_INFOS_GOT.inc();
@@ -939,30 +946,31 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
-  private List<FileInfo> listStatusInternal(LockedInodePath currInodePath,
-                                                  AuditContext auditContext,
-                                                  boolean recursive,
-                                                  LockedInodePath originalInodePath)
+  private void listStatusInternal(LockedInodePath currInodePath,
+                                  AuditContext auditContext,
+                                  DescendantType descendantType,
+                                  List<FileInfo> statusList)
       throws FileDoesNotExistException, UnavailableException, AccessControlException {
-    List<FileInfo> statusList = new ArrayList<>();
     Inode<?> inode = currInodePath.getInode();
     if (inode.isDirectory()) {
       try {
         mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, currInodePath);
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
-        if (recursive) {
-          return statusList;
+        if (descendantType == DescendantType.ALL) {
+          return;
         } else {
           throw e;
         }
       }
-      if (recursive || currInodePath.equals(originalInodePath)) {
+      if (descendantType == DescendantType.ALL || descendantType == DescendantType.ONE) {
+        DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
+            ? DescendantType.ALL : DescendantType.NONE;
         for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
           try (LockedInodePath childInodePath = mInodeTree.lockFullInodePath(child.getId(),
               InodeTree.LockMode.READ)) {
-            statusList.addAll(listStatusInternal(childInodePath, auditContext,
-                recursive, originalInodePath));
+            listStatusInternal(childInodePath, auditContext,
+                nextDescendantType, statusList);
           } catch (Exception e) {
             LOG.debug("ListStatus failed for path {}", mInodeTree.getPath(child).getPath(), e);
             continue;
@@ -970,11 +978,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
     }
-    // We add the file info of all files and any directory that is not the original directory
-    if (currInodePath.getInode().isFile() || !currInodePath.equals(originalInodePath)) {
-      statusList.add(getFileInfoInternal(currInodePath));
-    }
-    return statusList;
+    statusList.add(getFileInfoInternal(currInodePath));
   }
 
   /**

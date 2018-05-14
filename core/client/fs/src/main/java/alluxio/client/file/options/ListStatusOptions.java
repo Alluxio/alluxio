@@ -115,7 +115,7 @@ public final class ListStatusOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCommonOptions, mLoadMetadataType);
+    return Objects.hashCode(mCommonOptions, mLoadMetadataType, mRecursive);
   }
 
   @Override
@@ -123,6 +123,7 @@ public final class ListStatusOptions {
     return Objects.toStringHelper(this)
         .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
+        .add("Recursive", mRecursive)
         .toString();
   }
 

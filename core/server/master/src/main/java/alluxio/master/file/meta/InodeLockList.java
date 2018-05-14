@@ -29,7 +29,7 @@ public final class InodeLockList implements AutoCloseable {
   /**
    * Creates a new instance of {@link InodeLockList}.
    */
-  public InodeLockList() {
+  InodeLockList() {
     mInodes = new ArrayList<>();
     mLockModes = new ArrayList<>();
   }
