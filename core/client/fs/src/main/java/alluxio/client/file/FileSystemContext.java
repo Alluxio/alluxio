@@ -85,7 +85,7 @@ public final class FileSystemContext implements Closeable {
   // Closed flag for debugging information.
   private final AtomicBoolean mClosed;
 
-  private final ExecutorService mExecutorService;
+  private ExecutorService mExecutorService;
   private MetricsMasterClient mMetricsMasterClient;
   private ClientMasterSync mClientMasterSync;
 
@@ -171,6 +171,8 @@ public final class FileSystemContext implements Closeable {
     // setup metrics master client sync
     mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults());
     mClientMasterSync = new ClientMasterSync(mMetricsMasterClient);
+    mExecutorService = Executors.newFixedThreadPool(1,
+        ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
     if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       mExecutorService
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,

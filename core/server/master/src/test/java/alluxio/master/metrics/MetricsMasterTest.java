@@ -89,6 +89,25 @@ public class MetricsMasterTest {
     assertEquals(20L, getGauge("metric2"));
   }
 
+  @Test
+  public void testClientHeartbeat() {
+    mMetricsMaster
+        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT, "metric1"));
+    mMetricsMaster
+        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT, "metric2"));
+    List<Metric> metrics1 = Lists.newArrayList(Metric.from("client.192_1_1_1:A.metric1", 10),
+        Metric.from("client.192_1_1_1:A.metric2", 20));
+    mMetricsMaster.clientHeartbeat("A", "192.1.1.1", metrics1);
+    List<Metric> metrics2 = Lists.newArrayList(Metric.from("client.192_1_1_1:B.metric1", 15),
+        Metric.from("client.192_1_1_1:B.metric2", 25));
+    mMetricsMaster.clientHeartbeat("B", "192.1.1.1", metrics2);
+    List<Metric> metrics3 = Lists.newArrayList(Metric.from("client.192_1_1_2:C.metric1", 1),
+        Metric.from("client.192_1_1_2:C.metric2", 2));
+    mMetricsMaster.clientHeartbeat("C", "192.1.1.2", metrics3);
+    assertEquals(26L, getGauge("metric1"));
+    assertEquals(47L, getGauge("metric2"));
+  }
+
   private Object getGauge(String name) {
     return MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricsSystem.getClusterMetricName(name))
         .getValue();

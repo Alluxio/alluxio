@@ -55,6 +55,7 @@ public class MetricsStore {
 
   private static String getHostnameAndId(String hostname, String id) {
     String str = hostname == null ? "" : hostname;
+    str = str.replace('.', '_');
     str += id == null ? "" : ":" + id;
     return str;
   }
