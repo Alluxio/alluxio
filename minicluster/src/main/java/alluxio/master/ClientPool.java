@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 
 import com.google.common.base.Supplier;
 
@@ -42,6 +43,19 @@ public final class ClientPool implements Closeable {
    */
   public FileSystem getClient() throws IOException {
     final FileSystem fs = FileSystem.Factory.get();
+    mClients.add(fs);
+    return fs;
+  }
+
+  /**
+   * Returns a {@link FileSystem} client using a specific context. This client does not need to be
+   * closed directly, but can be closed by calling {@link #close()} on this object.
+   *
+   * @param context the FileSystemContext to use
+   * @return a {@link FileSystem} client
+   */
+  public FileSystem getClient(FileSystemContext context) throws IOException {
+    final FileSystem fs = FileSystem.Factory.get(context);
     mClients.add(fs);
     return fs;
   }
