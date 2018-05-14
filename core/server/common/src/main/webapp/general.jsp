@@ -13,6 +13,7 @@
 <%@ page import="java.util.*" %>
 <%@ page import="java.lang.*" %>
 <%@ page import="alluxio.web.*" %>
+<%@ page import="alluxio.PropertyKey.*" %>
 <%@ page import="alluxio.master.meta.checkconf.*" %>
 
 <html>
@@ -74,11 +75,11 @@
                 <tr>
                   <th>Server Configuration Check:</th>
                   <% ServerConfigurationChecker.ConfigCheckReport configReport = ((ServerConfigurationChecker.ConfigCheckReport) request.getAttribute("configCheckReport")); %>
-                  <th><%= configReport.getConfigStatus() %></th>
+                  <th><%= (ServerConfigurationChecker.Status) request.getAttribute("configCheckStatus") %></th>
                 </tr>
-                <% List<WrongProperty> errors = configReport.getConfigErrors(); %>
-                <% List<WrongProperty> warns = configReport.getConfigWarns(); %>
-                <% int inconsistentProperties = errors.size() + warns.size(); %>
+                <% int errorSize = (int) request.getAttribute("configCheckErrorNum"); %>
+                <% int warnSize = (int) request.getAttribute("configCheckWarnNum"); %>
+                <% int inconsistentProperties = errorSize + warnSize; %>
                 <% if (inconsistentProperties != 0) { %>
                   <tr>
                     <th><font color="red">Inconsistent Properties:</font></th>
@@ -161,7 +162,6 @@
     </div>
   </div>
   <% } %>
-
   <!--  show inconsistent configuration  -->
   <% if (inconsistentProperties != 0) { %>
   <div class="row-fluid">
@@ -176,39 +176,50 @@
           <div class="accordion-inner">
             <table class="table table-hover table-condensed">
               <thead>
+                <th class="span2">Scope</th>
                 <th class="span4">Property</th>
-                <th class="span8">Value</th>
+                <th class="span6">Value</th>
               </thead>
               <tbody>
-                <% if (errors.size() != 0) { %>
+                <% if (errorSize != 0) { %>
                   <tr>
                     <th colspan="3"> <font color="red">Errors (those properties are required to be same)</font></th>
                   </tr>
-                  <% for (WrongProperty error : errors) { %>
-                    <% String name = error.getName(); %>
-                    <% for (Map.Entry<String, List<String>> entry : error.getValues().entrySet()) { %>
-                      <tr>
-                        <th class="span4"><font color="red"><%= name %></font></th>
-                        <% String value = String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()));%>
-                        <th class="span8"><font color="red"><%= value %></font></th>
-                      </tr>
-                      <% name = ""; %>
+                  <% for (Map.Entry<Scope, List<WrongProperty>> error : ((Map<Scope, List<WrongProperty>>) request.getAttribute("configCheckErrors")).entrySet()) { %>
+                    <% for (WrongProperty wrongProperty: error.getValue()) { %>
+                      <% String scope = error.getKey().toString(); %>
+                      <% String name = wrongProperty.getName(); %>
+                      <% for (Map.Entry<String, List<String>> entry : wrongProperty.getValues().entrySet()) { %>
+                        <tr>
+                          <th class="span2"><font color="red"><%= scope %></font></th>
+                          <th class="span4"><font color="red"><%= name %></font></th>
+                          <% String value = String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()));%>
+                          <th class="span8"><font color="red"><%= value %></font></th>
+                        </tr>
+                        <% scope = ""; %>
+                        <% name = ""; %>
+                      <% } %>
                     <% } %>
                   <% } %>
                 <% } %>
-                <% if (warns.size() != 0) { %>
+                <% if (warnSize != 0) { %>
                   <tr>
                     <th colspan="3">Warnings (those properties are recommended to be same)</th>
                   </tr>
-                  <% for (WrongProperty warn : warns) { %>
-                    <% String name = warn.getName(); %>
-                    <% for (Map.Entry<String, List<String>> entry : warn.getValues().entrySet()) { %>
-                      <tr>
-                        <th class="span4"><%= name %></th>
-                        <% String value = String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()));%>
-                        <th class="span8"><%= value %></th>
-                      </tr>
-                      <% name = ""; %>
+                  <% for (Map.Entry<Scope, List<WrongProperty>> warn : ((Map<Scope, List<WrongProperty>>) request.getAttribute("configCheckWarns")).entrySet()) { %>
+                    <% for (WrongProperty wrongProperty: warn.getValue()) { %>
+                      <% String scope = warn.getKey().toString(); %>
+                      <% String name = wrongProperty.getName(); %>
+                      <% for (Map.Entry<String, List<String>> entry : wrongProperty.getValues().entrySet()) { %>
+                        <tr>
+                          <th class="span2"><%= scope %></th>
+                          <th class="span4"><%= name %></th>
+                          <% String value = String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()));%>
+                          <th class="span8"><%= value %></th>
+                        </tr>
+                        <% scope = ""; %>
+                        <% name = ""; %>
+                      <% } %>
                     <% } %>
                   <% } %>
                 <% } %>
@@ -220,7 +231,6 @@
     </div>
   </div>
   <% } %>
-
   <div class="row-fluid">
     <div class="accordion span14" id="accordion3">
       <div class="accordion-group">

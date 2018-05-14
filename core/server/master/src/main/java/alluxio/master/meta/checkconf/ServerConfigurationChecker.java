@@ -62,6 +62,9 @@ public class ServerConfigurationChecker {
       mConfigErrors = new HashMap<>();
       mConfigWarns = new HashMap<>();
       mConfigStatus = new HashMap<>();
+      mConfigStatus.put(Scope.SERVER, Status.NOT_STARTED);
+      mConfigStatus.put(Scope.MASTER, Status.NOT_STARTED);
+      mConfigStatus.put(Scope.WORKER, Status.NOT_STARTED);
     }
 
     /**
