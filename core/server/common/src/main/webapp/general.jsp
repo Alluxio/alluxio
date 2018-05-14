@@ -75,15 +75,25 @@
                 <tr>
                   <th>Server Configuration Check:</th>
                   <% ServerConfigurationChecker.ConfigCheckReport configReport = ((ServerConfigurationChecker.ConfigCheckReport) request.getAttribute("configCheckReport")); %>
-                  <th><%= (ServerConfigurationChecker.Status) request.getAttribute("configCheckStatus") %></th>
+                  <% ServerConfigurationChecker.Status status = (ServerConfigurationChecker.Status) request.getAttribute("configCheckStatus");%>
+                  <% if (status.equals(ServerConfigurationChecker.Status.FAILED)) { %>
+                    <th><font color="red"><%= status %><font color="red"></th>
+                  <% } else { %>
+                    <th><%= status %></th>
+                  <% } %>
                 </tr>
                 <% int errorSize = (int) request.getAttribute("configCheckErrorNum"); %>
                 <% int warnSize = (int) request.getAttribute("configCheckWarnNum"); %>
                 <% int inconsistentProperties = errorSize + warnSize; %>
                 <% if (inconsistentProperties != 0) { %>
                   <tr>
-                    <th><font color="red">Inconsistent Properties:</font></th>
-                    <th><font color="red"><%= inconsistentProperties %></font></th>
+                    <% if (errorSize != 0) { %>
+                      <th><font color="red">Inconsistent Properties:</font></th>
+                      <th><font color="red"><%= inconsistentProperties %></font></th>
+                    <% } else { %>
+                      <th>Inconsistent Properties:</th>
+                      <th><%= inconsistentProperties %></th>
+                    <% } %>
                   </tr>
                 <% } %>
               </tbody>
