@@ -28,7 +28,9 @@ import alluxio.network.netty.NettyChannelPool;
 import alluxio.network.netty.NettyClient;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.ThreadUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -45,7 +47,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -151,7 +152,8 @@ public final class FileSystemContext implements Closeable {
     mParentSubject = subject;
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
-    mId = UUID.randomUUID().toString().replace("-", "");
+    mId = IdUtils.createFileSystemContextId();
+    LOG.info("Created filesystem context with id " + mId);
     mClosed = new AtomicBoolean(false);
   }
 
@@ -171,7 +173,7 @@ public final class FileSystemContext implements Closeable {
     mClientMasterSync = new ClientMasterSync(mMetricsMasterClient);
     if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       mExecutorService
-          .submit(new HeartbeatThread(HeartbeatContext.METRICS_MASTER_SYNC, mClientMasterSync,
+          .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
               (int) Configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
       // register the shutdown hook
       Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
@@ -190,8 +192,6 @@ public final class FileSystemContext implements Closeable {
     mFileSystemMasterClientPool = null;
     mBlockMasterClientPool.close();
     mBlockMasterClientPool = null;
-    mMetricsMasterClient.close();
-    mMetricsMasterClient = null;
     mMasterInquireClient = null;
 
     for (NettyChannelPool pool : mNettyChannelPools.values()) {
@@ -200,7 +200,9 @@ public final class FileSystemContext implements Closeable {
     mNettyChannelPools.clear();
 
     synchronized (this) {
-      mExecutorService.shutdown();
+      ThreadUtils.shutdownAndAwaitTermination(mExecutorService);
+      mMetricsMasterClient.close();
+      mMetricsMasterClient = null;
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
       mClosed.set(true);

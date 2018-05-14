@@ -15,9 +15,7 @@ package alluxio.metrics;
  * Metrics of an Alluxio client.
  */
 public final class ClientMetrics {
-  /**
-   * Total number of bytes short-circuit read from local storage.
-   */
+  /** Total number of bytes short-circuit read from local storage. */
   public static final String BYTES_READ_LOCAL = "BytesReadLocal";
 
   private ClientMetrics() {} // prevent instantiation

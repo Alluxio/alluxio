@@ -88,6 +88,9 @@ public class MetricsStore {
    * @param metrics the new worker metrics
    */
   public synchronized void putWorkerMetrics(String hostname, List<Metric> metrics) {
+    if (metrics.isEmpty()) {
+      return;
+    }
     mWorkerMetrics.removeByField(HOSTNAME_ID_INDEX, hostname);
     for (Metric metric : metrics) {
       mWorkerMetrics.add(metric);
@@ -104,6 +107,9 @@ public class MetricsStore {
    */
   public synchronized void putClientMetrics(String hostname, String clientId,
       List<Metric> metrics) {
+    if (metrics.isEmpty()) {
+      return;
+    }
     mClientMetrics.removeByField(HOSTNAME_ID_INDEX, getHostnameAndId(hostname, clientId));
     for (Metric metric : metrics) {
       if (metric.getHostname() == null) {

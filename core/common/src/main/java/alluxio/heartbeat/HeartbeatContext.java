@@ -34,13 +34,13 @@ public final class HeartbeatContext {
   public static final String MASTER_FILE_RECOMPUTATION = "Master File Recomputation";
   public static final String MASTER_LOST_FILES_DETECTION = "Master Lost Files Detection";
   public static final String MASTER_LOST_WORKER_DETECTION = "Master Lost Worker Detection";
+  public static final String MASTER_METRICS_SYNC = "Master Metrics Sync";
   public static final String MASTER_TTL_CHECK = "Master TTL Check";
   public static final String WORKER_BLOCK_SYNC = "Worker Block Sync";
   public static final String WORKER_CLIENT = "Worker Client";
   public static final String WORKER_FILESYSTEM_MASTER_SYNC = "Worker FileSystemMaster Sync";
   public static final String WORKER_PIN_LIST_SYNC = "Worker Pin List Sync";
   public static final String WORKER_SPACE_RESERVER = "Worker Space Reserver";
-  public static final String METRICS_MASTER_SYNC = "Metrics Master Sync";
 
   static {
     sTimerClasses = new HashMap<>();
@@ -55,7 +55,7 @@ public final class HeartbeatContext {
     sTimerClasses.put(WORKER_CLIENT, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_PIN_LIST_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_SPACE_RESERVER, SLEEPING_TIMER_CLASS);
-    sTimerClasses.put(METRICS_MASTER_SYNC, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_METRICS_SYNC, SLEEPING_TIMER_CLASS);
   }
 
   private HeartbeatContext() {} // to prevent initialization

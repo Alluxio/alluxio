@@ -934,7 +934,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("5min")
           .setDescription("The timeout value of metrics master's heartbeats.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
+          .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey MASTER_HOSTNAME =
       new Builder(Name.MASTER_HOSTNAME)

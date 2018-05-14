@@ -91,4 +91,11 @@ public final class IdUtils {
   public static long createMountId() {
     return getRandomNonNegativeLong();
   }
+
+  /**
+   * @return a random UUID which does not have hyphens
+   */
+  public static String createFileSystemContextId() {
+    return UUID.randomUUID().toString().replace("-", "");
+  }
 }
