@@ -11,4 +11,5 @@
 
 alluxio.master.block.BlockMasterFactory
 alluxio.master.file.FileSystemMasterFactory
+alluxio.master.meta.MetaMasterFactory
 alluxio.master.lineage.LineageMasterFactory
