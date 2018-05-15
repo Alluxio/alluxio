@@ -62,6 +62,16 @@ public interface MasterProcess extends Process {
   InetSocketAddress getRpcAddress();
 
   /**
+   * @return the start time of the master in milliseconds
+   */
+  long getStartTimeMs();
+
+  /**
+   * @return the uptime of the master in milliseconds
+   */
+  long getUptimeMs();
+
+  /**
    * @return the master's web address, or null if the web server hasn't been started yet
    */
   InetSocketAddress getWebAddress();

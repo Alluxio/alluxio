@@ -93,7 +93,6 @@ public final class AlluxioMasterRestServiceHandlerTest {
       "SSD", 200L);
 
   private MasterProcess mMasterProcess;
-  private MetaMaster mMetaMaster;
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
@@ -123,7 +122,6 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
-    mMetaMaster = new MetaMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
     mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
@@ -229,7 +227,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Test
   public void getStartTimeMs() {
-    when(mMetaMaster.getStartTimeMs()).thenReturn(100L);
+    when(mMasterProcess.getStartTimeMs()).thenReturn(100L);
     Response response = mHandler.getStartTimeMs();
     try {
       assertNotNull("Response must be not null!", response);
@@ -244,7 +242,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Test
   public void getUptimeMs() {
-    when(mMetaMaster.getUptimeMs()).thenReturn(100L);
+    when(mMasterProcess.getUptimeMs()).thenReturn(100L);
     Response response = mHandler.getUptimeMs();
     try {
       assertNotNull("Response must be not null!", response);

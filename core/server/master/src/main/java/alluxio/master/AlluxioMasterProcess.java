@@ -94,6 +94,9 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** True if the master is serving the RPC server. */
   private boolean mIsServing;
 
+  /** The start time for when the master started serving the RPC server. */
+  private long mStartTimeMs = -1;
+
   /** The journal system for writing journal entries and restoring master state. */
   protected final JournalSystem mJournalSystem;
 
@@ -163,6 +166,16 @@ public class AlluxioMasterProcess implements MasterProcess {
   @Override
   public InetSocketAddress getRpcAddress() {
     return mRpcConnectAddress;
+  }
+
+  @Override
+  public long getStartTimeMs() {
+    return mStartTimeMs;
+  }
+
+  @Override
+  public long getUptimeMs() {
+    return System.currentTimeMillis() - mStartTimeMs;
   }
 
   @Override
@@ -344,6 +357,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
     // start thrift rpc server
     mIsServing = true;
+    mStartTimeMs = System.currentTimeMillis();
     mSafeModeManager.notifyRpcServerStarted();
     mThriftServer.serve();
   }
