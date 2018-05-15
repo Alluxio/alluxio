@@ -21,7 +21,10 @@ Download [Vagrant](https://www.vagrantup.com/downloads.html)
 
 Install Google Vagrant plugin:
 
-{% include Running-Alluxio-on-GCE/install-google-vagrant-plugin.md %}
+```bash
+$ vagrant plugin install vagrant-google
+$ vagrant box add google https://github.com/mitchellh/vagrant-google/raw/master/google.box
+```
 
 **Install Alluxio**
 
@@ -34,11 +37,15 @@ Install [python>=2.7](https://www.python.org/), not python3.
 If you already have [pip](https://pip.pypa.io/en/latest/installing/) installed, you can directly
 install the dependencies by running the following in the `deploy/vagrant` of the Alluxio install:
 
-{% include Running-Alluxio-on-GCE/install-pip.md %}
+```bash
+$ sudo bash bin/install.sh
+```
 
 If you do not have `pip` installed, in the `deploy/vagrant` directory of the Alluxio install, run:
 
-{% include Running-Alluxio-on-GCE/install-vagrant.md %}
+```bash
+$ sudo pip install -r pip-req.txt
+```
 
 ## Launch a Cluster
 
@@ -59,11 +66,18 @@ right, then "create key"), which will download the JSON key. Save the JSON key i
 
 Using the [gcloud sdk](https://console.cloud.google.com) configure keys for ssh:
 
-{% include Running-Alluxio-on-GCE/config-ssh.md %}
+```bash
+$ curl https://sdk.cloud.google.com | bash
+$ exec -l $SHELL
+$ gcloud init
+$ gcloud compute config-ssh
+```
 
 Copy `deploy/vagrant/conf/gce.yml.template` to `deploy/vagrant/conf/gce.yml` by:
 
-{% include Running-Alluxio-on-GCE/copy-gce.md %}
+```bash
+$ cp deploy/vagrant/conf/gce.yml.template deploy/vagrant/conf/gce.yml
+```
 
 In the configuration file `deploy/vagrant/conf/gce.yml`, set the project id, service account, location to JSON key and ssh username you've just created.
 
@@ -77,12 +91,18 @@ To access GCS, you need to create [developer keys](https://cloud.google.com/stor
 in the [Interoperability tab](https://console.cloud.google.com/storage/settings) of the GCS console,
 and set shell environment variables `GCS_ACCESS_KEY_ID` and `GCS_SECRET_ACCESS_KEY` by:
 
-{% include Running-Alluxio-on-GCE/access-key.md %}
+```bash
+$ export GCS_ACCESS_KEY_ID=<your access key>
+$ export GCS_SECRET_ACCESS_KEY=<your secret access key>
+```
 
 Now you can launch the Alluxio cluster by running
 the script under `deploy/vagrant`:
 
-{% include Running-Alluxio-on-GCE/launch-cluster.md %}
+```bash
+$ ./create <number of machines> google
+```
+
 
 Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
 
@@ -93,7 +113,10 @@ Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs th
 After the command `./create <number of machines> google` succeeds, you can see two green lines like
 below shown at the end of the shell output:
 
-{% include Running-Alluxio-on-GCE/shell-output.md %}
+```bash
+>>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI<<<
+>>> visit default port of the web UI of what you deployed <<<
+```
 
 Default port for Alluxio Web UI is **19999**.
 
@@ -101,7 +124,9 @@ Before you can access the Web UI, a network firewall rule needs to be made to al
 This can be done through the [Console](https://console.cloud.google.com) UI or using a gcloud command like the
 following, which assumes a network named 'default'.
 
-{% include Running-Alluxio-on-GCE/add-firewall-rule.md %}
+```bash
+$ gcloud compute firewall-rules create alluxio-ui --allow tcp:19999
+```
 
 Visit `http://{MASTER_IP}:{PORT}` in the browser to access the Alluxio Web UI.
 
@@ -118,30 +143,40 @@ The nodes set up are named to `AlluxioMaster`, `AlluxioWorker1`, `AlluxioWorker2
 
 To ssh into a node, run:
 
-{% include Running-Alluxio-on-GCE/ssh.md %}
+```bash
+$ vagrant ssh <node name>
+```
 
 For example, you can ssh into `AlluxioMaster` with:
 
-{% include Running-Alluxio-on-GCE/ssh-AlluxioMaster.md %}
+```bash
+$ vagrant ssh AlluxioMaster
+```
 
 All software is installed under the root directory, e.g. Alluxio is installed in `/alluxio`.
 
 On the `AlluxioMaster` node, you can run sample tests on Alluxio to check its health:
 
-{% include Running-Alluxio-on-GCE/runTests.md %}
+```bash
+$ /alluxio/bin/alluxio runTests
+```
 
 After the tests finish, visit Alluxio web UI at `http://{MASTER_IP}:19999` again. Click `Browse
 File System` in the navigation bar, and you should see the files written to Alluxio by the tests.
 
 From a node in the cluster, you can ssh to other nodes in the cluster with:
 
-{% include Running-Alluxio-on-GCE/ssh-other-node.md %}
+```bash
+$ ssh AlluxioWorker1
+```
 
 ## Destroy the cluster
 
 In the `deploy/vagrant` directory, you can run:
 
-{% include Running-Alluxio-on-GCE/destroy.md %}
+```bash
+$ ./destroy
+```
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the GCE instances are terminated.

@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
@@ -59,6 +60,11 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   @Override
   public FileSystem getClient() throws IOException {
     return mMaster.getClient();
+  }
+
+  @Override
+  public FileSystem getClient(FileSystemContext context) throws IOException {
+    return mMaster.getClient(context);
   }
 
   @Override

@@ -145,6 +145,7 @@ public final class Constants {
   public static final short DEFAULT_FILE_SYSTEM_MODE = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
   public static final short INVALID_MODE = -1;
+  public static final String IMPERSONATION_HDFS_USER = "_HDFS_USER_";
 
   // Specific tier write
   public static final int FIRST_TIER = 0;
