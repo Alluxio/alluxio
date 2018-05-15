@@ -25,7 +25,9 @@ alluxio.worker.data.port:
 alluxio.worker.data.server.class:
   'Selects the networking stack to run the worker with. Valid options are: `alluxio.worker.netty.NettyDataServer`.'
 alluxio.worker.data.server.domain.socket.address:
-  'The path to the domain socket. Short-circuit reads make use of a UNIX domain socket when this is set (non-empty). This is a special path in the file system that allows the client and the AlluxioWorker to communicate. You will need to set a path to this socket. The AlluxioWorker needs to be able to create this path.'
+  'The path to the domain socket. Short-circuit reads make use of a UNIX domain socket when this is set (non-empty). This is a special path in the file system that allows the client and the AlluxioWorker to communicate. You will need to set a path to this socket. The AlluxioWorker needs to be able to create the path. If alluxio.worker.data.server.domain.socket.as.uuid is set, the path should be the home directory for the domain socket. The full path for the domain socket with be <path>/<uuid>.'
+alluxio.worker.data.server.domain.socket.as.uuid:
+  'If true, the property alluxio.worker.data.server.domain.socket.addressis the path to the home directory for the domain socket and a unique identifier is used as the domain socket name. In addition, clients ignore alluxio.user.hostname while detecting a local worker for short circuit ops. If false, the property is the absolute path to the UNIX domain socket.'
 alluxio.worker.data.tmp.subdir.max:
   'The maximum number of sub-directories allowed to be created in alluxio.worker.data.tmp.folder.'
 alluxio.worker.evictor.class:

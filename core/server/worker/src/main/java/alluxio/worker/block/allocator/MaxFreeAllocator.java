@@ -40,7 +40,7 @@ public final class MaxFreeAllocator implements Allocator {
   @Override
   public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view);
+    mManagerView = Preconditions.checkNotNull(view, "view");
     return allocateBlock(sessionId, blockSize, location);
   }
 
