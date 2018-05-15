@@ -77,7 +77,7 @@ HDFS，MaprFS，Ceph，NFS，Alibaba OSS，Minio以及单节点本地文件系�
 
 如果要快速地架设alluxio并运行，请阅读[快速入门](Getting-Started.html)页面，该页面描述了如何部署Alluxio并
 在本地环境下运行几个基本的样例。
-查看Alluxio的使用者名单[公司](https://alluxio.org/community/powered-by-alluxio)
+查看使用 Alluxio 的[公司名单](https://alluxio.org/community/powered-by-alluxio)。
 
 ## 下载
 
