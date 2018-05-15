@@ -28,7 +28,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
 /**
- * Class for creating Thrift protocols for communicating with Alluxio services.
+ * Util class for methods to create Thrift communication with Alluxio services.
  */
 public final class ThriftUtils {
   /** Timeout for client socket in ms. */

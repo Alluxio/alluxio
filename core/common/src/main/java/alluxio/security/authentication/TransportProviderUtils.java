@@ -16,9 +16,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.User;
 
-import org.apache.thrift.transport.TSocket;
-
-import java.net.InetSocketAddress;
 import java.util.Set;
 
 import javax.annotation.Nullable;
