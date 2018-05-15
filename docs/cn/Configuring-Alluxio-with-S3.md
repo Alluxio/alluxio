@@ -31,17 +31,21 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 若要在Alluxio中使用S3作为底层文件系统，一定要修改`conf/alluxio-env.sh`配置文件。首先要指定一个**已有的**S3 bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-env.sh`中添加如下语句指定它：
 
-{% include Configuring-Alluxio-with-S3/underfs-address-s3n.md %}
+properties
+alluxio.underfs.address=s3n://S3_BUCKET/S3_DIRECTORY
 
 接着，需要指定AWS证书以便访问S3，在`conf/alluxio-env.sh`中的`ALLUXIO_JAVA_OPTS`部分添加：
 
-{% include Configuring-Alluxio-with-S3/aws.md %}
+properties
+fs.s3n.awsAccessKeyId=<AWS_ACCESS_KEY_ID>
+fs.s3n.awsSecretAccessKey=<AWS_SECRET_ACCESS_KEY>
 
 其中，`<AWS_ACCESS_KEY_ID>`和`<AWS_SECRET_ACCESS_KEY>`是你实际的[AWS keys](https://aws.amazon.com/developers/access-keys)，或者其他包含证书的环境变量。
 
 底层的S3软件库JetS3t可以包含与其请求的主机名的DNS相兼容的bucket名称。你可以选择性地通过配置`conf/alluxio-env.sh`文件中的`ALLUXIO_JAVA_OPTS`部分的内容来指定这种行为。具体地，添加下面内容：
 
-{% include Configuring-Alluxio-with-S3/jets3t.md %}
+properties
+alluxio.underfs.s3.disable.dns.buckets=<DISABLE_DNS>
 
 当`<DISABLE_DNS>`设置为`false`（默认情况）时，定向到名称为"mybucket"的bucket会被发送到名称为"mybucket.s3.amazonaws.com"的主机。当当`<DISABLE_DNS>`设置为`true`时，JetS3t会在HTTP消息请求路径中设定bucket名称，例如"http://s3.amazonaws.com/mybucket"，而不是在主机头部设定。如果不设置该参数，系统将默认设置为`false`.更多的详情请参考http://www.jets3t.org/toolkit/configuration.html。
 
@@ -51,7 +55,9 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 若要通过代理与S3交互，修改文件`conf/alluxio-site.properties`以包含：
 
-{% include Configuring-Alluxio-with-S3/proxy.md %}
+properties
+alluxio.underfs.s3.proxy.host=<PROXY_HOST>
+alluxio.underfs.s3.proxy.port=<PROXY_PORT>
 
 其中，`<PROXY_HOST>`和`<PROXY_PORT>`为代理的主机名和端口。
 
@@ -60,7 +66,19 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 当使用Alluxio构建你的应用时，你的应用需要包含一个client模块，如果要使用[Alluxio file system interface](File-System-API.html)，那么需要配置`alluxio-core-client-fs`模块，如果需要使用[Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS)，则需要使用`alluxio-core-client-hdfs`模块。
 举例来说，如果你正在使用 [maven](https://maven.apache.org/)，你可以通过添加以下代码来添加你的应用的依赖：
 
-{% include Configuring-Alluxio-with-S3/dependency.md %}
+properties
+<!-- Alluxio file system interface -->
+<dependency>
+  <groupId>org.alluxio</groupId>
+  <artifactId>alluxio-core-client-fs</artifactId>
+  <version>{{site.ALLUXIO_RELEASED_VERSION}}</version>
+</dependency>
+<!-- HDFS file system interface -->
+<dependency>
+  <groupId>org.alluxio</groupId>
+  <artifactId>alluxio-core-client-hdfs</artifactId>
+  <version>{{site.ALLUXIO_RELEASED_VERSION}}</version>
+</dependency>
 
 另外，你也可以将`conf/alluxio-site.properties`（包含了设置证书的配置项）拷贝到你的应用运行时的classpath中（例如对于Spark而言为`$SPARK_CLASSPATH`），或者将该配置文件所在的路径追加到classpath末尾。
 
@@ -68,7 +86,8 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 如果需要使用一个不是来自"s3.amazonaws.com"的S3服务，修改文件`conf/alluxio-site.properties`以包含：
 
-{% include Configuring-Alluxio-with-S3/non-amazon.md %}
+properties
+alluxio.underfs.s3.endpoint=<S3_ENDPOINT>
 
 对于这些参数，将`<S3_ENDPOINT>`参数替换成你的S3服务的主机名和端口，例如`http://localhost:9000`。该参数只有在你的服务提供商非`s3.amazonaws.com`时才需要进行配置。
 
@@ -80,21 +99,22 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
-{% include Common-Commands/start-alluxio.md %}
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，你可以运行一个简单的示例程序：
 
-{% include Common-Commands/runTests.md %}
+$ ./bin/alluxio runTests
 
 运行成功后，访问你的S3目录`S3_BUCKET/S3_DIRECTORY`，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像下面这样：
 
-{% include Configuring-Alluxio-with-S3/s3-file.md %}
+S3_BUCKET/S3_DIRECTORY/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
 
 运行以下命令停止Alluxio：
 
-{% include Common-Commands/stop-alluxio.md %}
+$ ./bin/alluxio-stop.sh local
 
 ## S3访问控制
 
