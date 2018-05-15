@@ -370,9 +370,9 @@ function main {
     done
   ;;
   "grpcGen")
-    rm -rf ${BIN}/../core/common/src/main/java/alluxio/grpc
-    for src_file in $(find ${BIN}/../core/common/src/grpc -name '*.proto' -type f); do
-      protoc --java_out=${BIN}/../core/common/src/main/java --proto_path=${BIN}/../core/common/src/grpc --plugin=protoc-gen-grpc-java=${BIN}/protoc-gen-grpc-java-1.10.1-osx-x86_64.exe --grpc-java_out=${BIN}/../core/common/src/main/java ${src_file}
+    rm -rf ${BIN}/../core/protobuf/src/main/java/alluxio/grpc
+    for src_file in $(find ${BIN}/../core/protobuf/src/grpc -name '*.proto' -type f); do
+      protoc --java_out=${BIN}/../core/protobuf/src/main/java --proto_path=${BIN}/../core/protobuf/src/grpc --plugin=protoc-gen-grpc-java=${BIN}/protoc-gen-grpc-java-1.10.1-osx-x86_64.exe --grpc-java_out=${BIN}/../core/protobuf/src/main/java ${src_file}
     done
   ;;
   "clearCache")

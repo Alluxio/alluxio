@@ -26,10 +26,10 @@ import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.util.grpc.GrpcChannel;
+import alluxio.util.grpc.GrpcChannelBuilder;
 
 import com.google.common.base.Preconditions;
-import io.grpc.ManagedChannel;
-import io.grpc.netty.NettyChannelBuilder;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
@@ -71,7 +71,7 @@ public abstract class AbstractClient implements Client {
   protected TProtocol mProtocol = null;
 
   protected FileSystemMasterServiceGrpc.FileSystemMasterServiceBlockingStub mBlockingStub;
-  protected ManagedChannel mChannel;
+  protected GrpcChannel mChannel;
 
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
@@ -103,7 +103,7 @@ public abstract class AbstractClient implements Client {
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mTransportProvider = TransportProvider.Factory.create();
     mParentSubject = subject;
-    mChannel = NettyChannelBuilder
+    mChannel = GrpcChannelBuilder
         .forAddress("localhost", 50051)
         .usePlaintext(true)
         .build();

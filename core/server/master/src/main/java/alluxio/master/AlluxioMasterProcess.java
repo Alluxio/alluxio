@@ -26,6 +26,8 @@ import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
+import alluxio.util.grpc.GrpcServer;
+import alluxio.util.grpc.GrpcServerBuilder;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
@@ -34,8 +36,6 @@ import alluxio.web.WebServer;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import io.grpc.Server;
-import io.grpc.netty.NettyServerBuilder;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -95,7 +95,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The RPC server. */
   private TServer mThriftServer;
-  private Server mGrpcServer;
+  private GrpcServer mGrpcServer;
 
   /** is true if the master is serving the RPC server. */
   private boolean mIsServing;
@@ -331,7 +331,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     ExecutorService executorService = Executors.newFixedThreadPool(4);
     try {
       LOG.info("Starting gRPC server on port {}", port);
-      mGrpcServer = NettyServerBuilder.forPort(port)
+      mGrpcServer = GrpcServerBuilder.forPort(port)
           .addService(new FileSystemMasterClientServiceHandlerNew(getMaster(FileSystemMaster.class)))
           .executor(executorService)
           .build()
