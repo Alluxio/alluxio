@@ -58,10 +58,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -97,10 +94,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   /** The clock to use for determining the time. */
   private final Clock mClock = new SystemClock();
 
-  /** Listeners to call when needs to get start time in milliseconds. */
-  private final BlockingQueue<Supplier<Long>> mGetStartTimeMsListeners
-      = new LinkedBlockingQueue<>();
-
   /** The master configuration checker. */
   private final ServerConfigurationChecker mMasterConfigChecker = new ServerConfigurationChecker();
   /** The worker configuration checker. */
@@ -122,6 +115,9 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   /** The manager of safe mode state. */
   private final SafeModeManager mSafeModeManager;
+
+  /** The start time for when the master started serving the RPC server. */
+  private final long mStartTimeMs;
 
   /** The master ID for this master. */
   private AtomicReference<Long> mMasterId = new AtomicReference<>(-1L);
@@ -149,6 +145,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
     mSafeModeManager = masterContext.getmSafeModeManager();
+    mStartTimeMs = masterContext.getStartTimeMs();
     mBlockMaster = blockMaster;
     mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
     mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
@@ -275,16 +272,12 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public long getStartTimeMs() {
-    long startTimeMs = -1;
-    for (Supplier<Long> function : mGetStartTimeMsListeners) {
-      startTimeMs = function.get();
-    }
-    return startTimeMs;
+    return mStartTimeMs;
   }
 
   @Override
   public long getUptimeMs() {
-    return System.currentTimeMillis() - getStartTimeMs();
+    return System.currentTimeMillis() - mStartTimeMs;
   }
 
   @Override
@@ -324,11 +317,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     mMasterConfigChecker.registerNewConf(masterId, configList);
 
     LOG.info("registerMaster(): master: {} options: {}", master, options);
-  }
-
-  @Override
-  public void registerGetStartTimeMsListener(Supplier<Long> function) {
-    mGetStartTimeMsListeners.add(function);
   }
 
   /**

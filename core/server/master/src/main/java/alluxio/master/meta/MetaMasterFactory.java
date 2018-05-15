@@ -49,11 +49,11 @@ public final class MetaMasterFactory implements MasterFactory {
 
   @Override
   public MetaMaster create(MasterRegistry registry, JournalSystem journalFactory,
-      SafeModeManager safeModeManager) {
+      SafeModeManager safeModeManager, long startTimeMs) {
     Preconditions.checkArgument(journalFactory != null, "journal");
     LOG.info("Creating {} ", MetaMaster.class.getName());
     MetaMaster metaMaster = new DefaultMetaMaster(registry.get(BlockMaster.class),
-        new MasterContext(journalFactory, safeModeManager));
+        new MasterContext(journalFactory, safeModeManager, startTimeMs));
     registry.add(MetaMaster.class, metaMaster);
     return metaMaster;
   }

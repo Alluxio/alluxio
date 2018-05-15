@@ -133,6 +133,7 @@ public final class FileSystemMasterTest {
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
   private SafeModeManager mSafeModeManager;
+  private long mStartTimeMs;
   private long mWorkerId1;
   private long mWorkerId2;
 
@@ -1992,12 +1993,14 @@ public final class FileSystemMasterTest {
   private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
+    mStartTimeMs = System.currentTimeMillis();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
+    mBlockMaster = new BlockMasterFactory()
+        .create(mRegistry, mJournalSystem, mSafeModeManager, mStartTimeMs);
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster,
-        new MasterContext(mJournalSystem, mSafeModeManager),
+        new MasterContext(mJournalSystem, mSafeModeManager, mStartTimeMs),
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();
