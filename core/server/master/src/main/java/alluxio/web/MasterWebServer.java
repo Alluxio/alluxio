@@ -48,8 +48,8 @@ public final class MasterWebServer extends WebServer {
     super(serviceName, address);
     Preconditions.checkNotNull(masterProcess, "Alluxio master cannot be null");
 
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterProcess,
-        masterProcess.getMaster(MetaMaster.class))), "/home");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterProcess)),
+        "/home");
     mWebAppContext.addServlet(new ServletHolder(
         new WebInterfaceWorkersServlet(masterProcess.getMaster(BlockMaster.class))),
         "/workers");

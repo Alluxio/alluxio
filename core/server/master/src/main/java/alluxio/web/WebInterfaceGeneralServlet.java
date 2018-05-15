@@ -117,11 +117,10 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    * Creates a new instance of {@link WebInterfaceGeneralServlet}.
    *
    * @param masterProcess Alluxio master process
-   * @param metaMaster Alluxio meta master
    */
-  public WebInterfaceGeneralServlet(MasterProcess masterProcess, MetaMaster metaMaster) {
+  public WebInterfaceGeneralServlet(MasterProcess masterProcess) {
     mMasterProcess = masterProcess;
-    mMetaMaster = metaMaster;
+    mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
   }
 
   /**

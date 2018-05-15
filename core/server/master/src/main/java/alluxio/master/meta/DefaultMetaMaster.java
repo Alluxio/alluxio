@@ -67,7 +67,7 @@ import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The master that handles Alluxio metadata management.
+ * The default meta master.
  */
 @NotThreadSafe
 public final class DefaultMetaMaster extends AbstractMaster implements MetaMaster {
@@ -115,10 +115,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   /** The hostname of this master. */
   private final String mMasterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
-
-  /** Client for all meta master communication. */
-  private final MetaMasterMasterClient mMetaMasterClient
-      = new MetaMasterMasterClient(MasterClientConfig.defaults());
 
   /** The connect address for the rpc server. */
   private final InetSocketAddress mRpcConnectAddress
@@ -204,9 +200,11 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
     } else {
       // Standby master should setup MetaMasterSync to communicate with the leader master
-      setMasterId();
+      MetaMasterMasterClient metaMasterClient =
+          new MetaMasterMasterClient(MasterClientConfig.defaults());
+      setMasterId(metaMasterClient);
       MetaMasterSync metaMasterSync =
-          new MetaMasterSync(mMasterId, mMasterHostname, mMetaMasterClient);
+          new MetaMasterSync(mMasterId, mMasterHostname, metaMasterClient);
       getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
           metaMasterSync, (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
       LOG.info("Standby master with id {} starts sending heartbeat to leader master.", mMasterId);
@@ -397,11 +395,13 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   /**
    * Sets the master id. This method should only be called when this master is a standby master.
+   *
+   * @param metaMasterClient the meta master client to get id from
    */
-  private void setMasterId() {
+  private void setMasterId(MetaMasterMasterClient metaMasterClient) {
     try {
       RetryUtils.retry("get master id",
-          () -> mMasterId.set(mMetaMasterClient.getId(mMasterHostname)),
+          () -> mMasterId.set(metaMasterClient.getId(mMasterHostname)),
           ExponentialTimeBoundedRetry.builder()
               .withMaxDuration(Duration
                   .ofMillis(Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY)))
