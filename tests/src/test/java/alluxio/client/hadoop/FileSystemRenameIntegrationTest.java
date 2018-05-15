@@ -11,10 +11,10 @@
 
 package alluxio.client.hadoop;
 
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.hadoop.FileSystem;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -231,7 +231,11 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     o.writeBytes("Test Bytes");
     // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
     // FSDataOutputStream.hflush will be the new one.
+    //#ifdef HADOOP1
     o.sync();
+    //#else
+    o.hflush();
+    //#endif
 
     Assert.assertTrue(sTFS.rename(dirA, dirB));
 

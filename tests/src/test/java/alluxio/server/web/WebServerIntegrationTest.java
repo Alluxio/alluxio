@@ -11,10 +11,10 @@
 
 package alluxio.server.web;
 
-import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.client.rest.TestCase;
 import alluxio.client.rest.TestCaseOptions;
+import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 

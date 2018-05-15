@@ -12,7 +12,6 @@
 package alluxio.server.health;
 
 import alluxio.AlluxioURI;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -24,6 +23,7 @@ import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockWorker;

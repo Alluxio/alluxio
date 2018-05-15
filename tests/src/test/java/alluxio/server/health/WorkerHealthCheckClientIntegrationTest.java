@@ -11,12 +11,12 @@
 
 package alluxio.server.health;
 
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.HealthCheckClient;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.retry.CountingRetry;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.WorkerHealthCheckClient;
 

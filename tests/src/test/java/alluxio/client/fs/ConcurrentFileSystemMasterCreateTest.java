@@ -13,11 +13,9 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.WriteType;
@@ -27,6 +25,8 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 import alluxio.wire.LoadMetadataType;
@@ -59,7 +59,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
   private static final String TEST_USER = "test";
   private static final int CONCURRENCY_FACTOR = 50;
   /** Duration to sleep during the rename call to show the benefits of concurrency. */
-  private static final long SLEEP_MS = Constants.SECOND_MS;
+  private static final long SLEEP_MS = Constants.SECOND_MS / 10;
 
   private FileSystem mFileSystem;
 

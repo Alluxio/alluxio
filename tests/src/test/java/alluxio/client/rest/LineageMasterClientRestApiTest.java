@@ -13,7 +13,6 @@ package alluxio.client.rest;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.testutils.LocalAlluxioClusterResource.Config;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
@@ -23,6 +22,7 @@ import alluxio.job.JobConf;
 import alluxio.master.MasterProcess;
 import alluxio.master.lineage.LineageMaster;
 import alluxio.master.lineage.LineageMasterClientRestServiceHandler;
+import alluxio.testutils.LocalAlluxioClusterResource.Config;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
 

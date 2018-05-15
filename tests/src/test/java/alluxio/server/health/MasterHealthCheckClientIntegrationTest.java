@@ -12,7 +12,6 @@
 package alluxio.server.health;
 
 import alluxio.HealthCheckClient;
-import alluxio.PropertyKey;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterHealthCheckClient;
 import alluxio.testutils.BaseIntegrationTest;
@@ -27,8 +26,7 @@ public class MasterHealthCheckClientIntegrationTest extends BaseIntegrationTest 
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-          new LocalAlluxioClusterResource.Builder()
-                  .setProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, 5).build();
+          new LocalAlluxioClusterResource.Builder().build();
 
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private HealthCheckClient mHealthCheckClient;

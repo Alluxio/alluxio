@@ -11,14 +11,14 @@
 
 package alluxio.server.web;
 
-import alluxio.testutils.BaseIntegrationTest;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.SingleMasterInquireClient;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;

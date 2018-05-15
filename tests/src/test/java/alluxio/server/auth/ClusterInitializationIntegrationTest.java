@@ -14,20 +14,20 @@ package alluxio.server.auth;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.master.MasterRegistry;
-import alluxio.testutils.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.testutils.master.MasterTestUtils;
 
 import org.junit.Rule;
 import org.junit.Test;

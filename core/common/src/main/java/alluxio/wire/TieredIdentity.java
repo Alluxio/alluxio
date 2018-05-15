@@ -78,6 +78,7 @@ public final class TieredIdentity implements Serializable {
    * @param tieredIdentity a Thrift tiered identity
    * @return the corresponding wire type tiered identity
    */
+  @Nullable
   public static TieredIdentity fromThrift(alluxio.thrift.TieredIdentity tieredIdentity) {
     if (tieredIdentity == null) {
       return null;

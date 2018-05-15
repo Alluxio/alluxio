@@ -12,9 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Constants;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -26,6 +24,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.security.authorization.Mode;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;

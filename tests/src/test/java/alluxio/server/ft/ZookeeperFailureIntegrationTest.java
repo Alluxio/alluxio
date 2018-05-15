@@ -13,8 +13,6 @@ package alluxio.server.ft;
 
 import static org.junit.Assert.assertFalse;
 
-import alluxio.testutils.AlluxioOperationThread;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -24,6 +22,8 @@ import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.security.authentication.TProtocols;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.security.authentication.TransportProvider.Factory;
+import alluxio.testutils.AlluxioOperationThread;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.thrift.FileSystemMasterClientService.Client;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.util.CommonUtils;
@@ -50,7 +50,8 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
       PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1000",
       PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "5",
       PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS, "500",
-      PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500")
+      PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500",
+      PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2500")
   );
 
   @Rule

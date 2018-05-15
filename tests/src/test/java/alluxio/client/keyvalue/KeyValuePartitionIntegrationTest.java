@@ -13,11 +13,11 @@ package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Lists;

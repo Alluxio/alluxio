@@ -12,8 +12,6 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.testutils.BaseIntegrationTest;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -22,6 +20,8 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.MasterClientConfig;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.Sets;

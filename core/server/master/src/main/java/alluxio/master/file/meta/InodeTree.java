@@ -736,6 +736,46 @@ public class InodeTree implements JournalEntryIterable {
   }
 
   /**
+   * Locks a specific descendant of a particular {@link LockedInodePath}. It does not extend the
+   * {@link LockedInodePath}, it only locks the descendant.
+   *
+   * @param inodePath the root to start locking
+   * @param lockMode the lock type to use
+   * @param descendantUri the path to the descendant that we are locking
+   * @return  an {@link InodeLockList} representing the list of descendants that got locked as
+   * a result of this call.
+   * @throws FileDoesNotExistException if inode does not exist
+   */
+  public InodeLockList lockDescendant(LockedInodePath inodePath, LockMode lockMode,
+      AlluxioURI descendantUri) throws InvalidPathException {
+    // Check if the descendant is really the descendant of inodePath
+    if (!PathUtils.hasPrefix(descendantUri.getPath(), inodePath.getUri().getPath())
+        || descendantUri.getPath().equals(inodePath.getUri().getPath())) {
+      throw new InvalidPathException(descendantUri.getPath() + " is not a valid descendant of "
+          + inodePath.getUri().getPath());
+    }
+
+    List<Inode<?>> nonPersistedInodes = new ArrayList<>();
+    List<Inode<?>> inodeList = new ArrayList<>(inodePath.getInodeList());
+    for (Inode<?> inode : inodeList) {
+      if (!inode.isPersisted()) {
+        nonPersistedInodes.add(inode);
+      }
+    }
+    // Lock from inodePath to the descendant
+    InodeLockList lockList = new InodeLockList();
+    TraversalResult traversalResult = traverseToInodeInternal(
+        PathUtils.getPathComponents(descendantUri.getPath()),
+        inodeList, nonPersistedInodes, lockList, lockMode, null);
+    if (traversalResult.mFound) {
+      return traversalResult.mLockList;
+    } else {
+      throw new InvalidPathException(descendantUri.getPath()
+          + " path not found in traversal starting from " + inodePath.getUri().getPath() + ".");
+    }
+  }
+
+  /**
    * Locks all descendants of a particular {@link LockedInodePath}. Any directory inode
    * precedes its descendants in the list.
    *
@@ -843,20 +883,23 @@ public class InodeTree implements JournalEntryIterable {
     } else {
       assert inode instanceof InodeDirectory;
       // inode is a directory. Set the pinned state for all children.
-      TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
-      for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-        try {
-          child.lockWriteAndCheckParent(inode);
-        } catch (InvalidPathException e) {
-          // Inode is no longer a child of the directory, continue.
-          continue;
+      try (TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath)) {
+        for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
+          try {
+            child.lockWriteAndCheckParent(inode);
+          } catch (InvalidPathException e) {
+            // Inode is no longer a child of the directory, continue.
+            continue;
+          }
+          try {
+            tempInodePath.setDescendant(child, getPath(child));
+            setPinned(tempInodePath, pinned, opTimeMs);
+          } finally {
+            child.unlockWrite();
+          }
         }
-        try {
-          tempInodePath.setDescendant(child, getPath(child));
-          setPinned(tempInodePath, pinned, opTimeMs);
-        } finally {
-          child.unlockWrite();
-        }
+      } catch (InvalidPathException e) {
+        LOG.warn("setPinned encountered an invalid path {}", inodePath.mUri.getPath());
       }
     }
   }

@@ -14,14 +14,14 @@ package alluxio.server.ft.journal.ufs;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystem.Factory;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystem;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystemFactory;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystem.Factory;
 import alluxio.util.CommonUtils;
 
 import com.google.common.io.Files;

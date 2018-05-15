@@ -15,10 +15,8 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
@@ -38,6 +36,8 @@ import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.Mode;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
@@ -398,6 +398,18 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/"), options);
     Assert.assertEquals(1, listing.size());
     Assert.assertEquals("ufs", listing.get(0).getName());
+
+    // adding a file into the nested mount point
+    writeUfsFile(ufsPath + "/nestedufs", 1);
+
+    // recursively sync (setAttribute enables recursive sync)
+    mFileSystem.setAttribute(new AlluxioURI("/"),
+        SetAttributeOptions.defaults().setCommonOptions(SYNC_ALWAYS).setRecursive(true)
+            .setTtl(44444));
+    // Verify /nested/mnt/ufs dir has 1 file
+    listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/ufs"), options);
+    Assert.assertEquals(1, listing.size());
+    Assert.assertEquals("nestedufs", listing.get(0).getName());
   }
 
   @Test

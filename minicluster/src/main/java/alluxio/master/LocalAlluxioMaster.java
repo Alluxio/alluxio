@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -212,6 +213,14 @@ public final class LocalAlluxioMaster {
    */
   public FileSystem getClient() throws IOException {
     return mClientPool.getClient();
+  }
+
+  /**
+   * @param context the FileSystemContext to use
+   * @return the client from the pool, using a specific context
+   */
+  public FileSystem getClient(FileSystemContext context) throws IOException {
+    return mClientPool.getClient(context);
   }
 
   private static String uniquePath() throws IOException {

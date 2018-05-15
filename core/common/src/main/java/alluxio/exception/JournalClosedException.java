@@ -11,6 +11,8 @@
 
 package alluxio.exception;
 
+import java.io.IOException;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -19,18 +21,40 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class JournalClosedException extends Exception {
   /**
-   * Constructs a <code>JournalClosedException</code> with no detail message.
-   */
-  public JournalClosedException() {
-    super();
-  }
-
-  /**
    * Constructs a <code>JournalClosedException</code> with the specified detail message.
    *
    * @param s the detail message
    */
   public JournalClosedException(String s) {
     super(s);
+  }
+
+  /**
+   * @return an IOException version of this exception
+   */
+  public IOJournalClosedException toIOException() {
+    return new IOJournalClosedException(getMessage());
+  }
+
+  /**
+   * Same as {@link JournalClosedException}, but extends IOException for situations where only
+   * IOException is allowed.
+   */
+  public static final class IOJournalClosedException extends IOException {
+    /**
+     * Constructs an <code>IOJournalClosedException</code> with the specified detail message.
+     *
+     * @param s the detail message
+     */
+    private IOJournalClosedException(String s) {
+      super(s);
+    }
+
+    /**
+     * @return a regular (non-IOException) version of this exception
+     */
+    public JournalClosedException toJournalClosedException() {
+      return new JournalClosedException(getMessage());
+    }
   }
 }

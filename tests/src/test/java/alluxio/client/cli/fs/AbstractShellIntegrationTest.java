@@ -11,12 +11,12 @@
 
 package alluxio.client.cli.fs;
 
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Constants;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.SystemErrRule;
 import alluxio.SystemOutRule;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;

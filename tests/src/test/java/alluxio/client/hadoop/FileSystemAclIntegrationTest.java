@@ -13,12 +13,12 @@ package alluxio.client.hadoop;
 
 import alluxio.Constants;
 import alluxio.hadoop.HadoopClientTestUtils;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.hadoop.FileSystem;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -535,7 +535,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   public void swiftGetPermission() throws Exception {
     Assume.assumeTrue(UnderFileSystemUtils.isSwift(sUfs));
 
-    Path fileA = new Path("/objectfileA");
+    Path fileA = new Path("/swiftGetPermissionFile");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 

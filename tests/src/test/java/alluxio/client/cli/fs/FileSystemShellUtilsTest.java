@@ -13,7 +13,6 @@ package alluxio.client.cli.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fs.FileSystemShellUtils;
@@ -23,6 +22,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.thrift.TException;
