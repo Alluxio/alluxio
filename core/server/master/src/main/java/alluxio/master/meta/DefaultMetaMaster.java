@@ -176,27 +176,16 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public void processJournalEntry(JournalEntry entry) {}
+  public void processJournalEntry(JournalEntry entry) throws IOException {
+    throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
+  }
 
   @Override
   public void resetState() {}
 
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
-    return new Iterator<Journal.JournalEntry>() {
-      @Override
-      public boolean hasNext() {
-        return false;
-      }
-
-      @Override
-      public Journal.JournalEntry next() {
-        if (!hasNext()) {
-          throw new NoSuchElementException();
-        }
-        return JournalEntry.getDefaultInstance();
-      }
-    };
+    return null;
   }
 
   @Override
