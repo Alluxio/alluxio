@@ -71,22 +71,22 @@ public class MetricsMasterTest {
   @Test
   public void testAggregator() {
     mMetricsMaster
-        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER, "metric1"));
+        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER, "metricA"));
     mMetricsMaster
-        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER, "metric2"));
-    List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metric1", 10),
-        Metric.from("worker.192_1_1_1.metric2", 20));
+        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER, "metricB"));
+    List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metricA", 10),
+        Metric.from("worker.192_1_1_1.metricB", 20));
     mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
-    List<Metric> metrics2 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metric1", 1),
-        Metric.from("worker.192_1_1_2.metric2", 2));
+    List<Metric> metrics2 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metricA", 1),
+        Metric.from("worker.192_1_1_2.metricB", 2));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
-    assertEquals(11L, getGauge("metric1"));
-    assertEquals(22L, getGauge("metric2"));
+    assertEquals(11L, getGauge("metricA"));
+    assertEquals(22L, getGauge("metricB"));
     // override metrics from hostname 192_1_1_2
-    List<Metric> metrics3 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metric1", 3));
+    List<Metric> metrics3 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metricA", 3));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics3);
-    assertEquals(13L, getGauge("metric1"));
-    assertEquals(20L, getGauge("metric2"));
+    assertEquals(13L, getGauge("metricA"));
+    assertEquals(20L, getGauge("metricB"));
   }
 
   @Test
