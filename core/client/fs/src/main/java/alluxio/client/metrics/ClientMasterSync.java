@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Task that carries the client metrics information to master through heartheat. This class manages
@@ -35,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * If the task fails to heartbeat to the master, it will destroy its old master client and recreate
  * it before retrying.
  */
-@NotThreadSafe
+@ThreadSafe
 public final class ClientMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ClientMasterSync.class);
 

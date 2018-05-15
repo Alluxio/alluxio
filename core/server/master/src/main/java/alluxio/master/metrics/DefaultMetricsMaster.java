@@ -142,7 +142,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   }
 
   @Override
-  public void putWorkerMetrics(String hostname, List<Metric> metrics) {
+  public void workerHeartbeat(String hostname, List<Metric> metrics) {
     mMetricsStore.putWorkerMetrics(hostname, metrics);
   }
 }

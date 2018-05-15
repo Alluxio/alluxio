@@ -760,7 +760,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     if (metrics.isEmpty()) {
       return;
     }
-    mMetricsMaster.putWorkerMetrics(hostname, metrics);
+    mMetricsMaster.workerHeartbeat(hostname, metrics);
   }
 
   /**

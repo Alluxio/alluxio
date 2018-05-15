@@ -76,15 +76,15 @@ public class MetricsMasterTest {
         .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER, "metric2"));
     List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metric1", 10),
         Metric.from("worker.192_1_1_1.metric2", 20));
-    mMetricsMaster.putWorkerMetrics("192_1_1_1", metrics1);
+    mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
     List<Metric> metrics2 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metric1", 1),
         Metric.from("worker.192_1_1_2.metric2", 2));
-    mMetricsMaster.putWorkerMetrics("192_1_1_2", metrics2);
+    mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
     assertEquals(11L, getGauge("metric1"));
     assertEquals(22L, getGauge("metric2"));
     // override metrics from hostname 192_1_1_2
     List<Metric> metrics3 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metric1", 3));
-    mMetricsMaster.putWorkerMetrics("192_1_1_2", metrics3);
+    mMetricsMaster.workerHeartbeat("192_1_1_2", metrics3);
     assertEquals(13L, getGauge("metric1"));
     assertEquals(20L, getGauge("metric2"));
   }

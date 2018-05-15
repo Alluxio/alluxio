@@ -34,12 +34,13 @@ public interface MetricsMaster extends Master  {
    * @return the master service handler
    */
   MetricsMasterClientServiceHandler getMasterServiceHandler();
+
   /**
-   * Put the metrics from an instance with a hostname. If all the old metrics associated with this
-   * instance will be removed and then replaced by the latest.
+   * Handles the worker heartbeat and puts the metrics from an instance with a hostname. If all the
+   * old metrics associated with this instance will be removed and then replaced by the latest.
    *
    * @param hostname the hostname of the instance
    * @param metrics the new worker metrics
    */
-  void putWorkerMetrics(String hostname, List<Metric> metrics);
+  void workerHeartbeat(String hostname, List<Metric> metrics);
 }
