@@ -932,8 +932,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       List<FileInfo> ret = new ArrayList<>();
       DescendantType descendantTypeForListStatus =  (listStatusOptions.isRecursive())
           ? DescendantType.ALL : DescendantType.ONE;
-      listStatusInternal(inodePath, auditContext,
-          descendantTypeForListStatus, ret);
+      listStatusInternal(inodePath, auditContext, descendantTypeForListStatus, ret);
 
       // If we are listing the status of a directory, we remove the directory info that we inserted
       if (inode.isDirectory() && ret.size() >= 1) {
@@ -946,6 +945,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
+  /**
+   * Lists the status of the path in {@link LockedInodePath}, possibly recursively depending on
+   * the descendantType. The result is returned via a list specified by statusList, in postorder
+   * traversal order.
+   *
+   * @param currInodePath the inode path to find the status
+   * @param auditContext the audit context to return any access exceptions
+   * @param descendantType if the currInodePath is a directory, how many levels of its descendant
+   *                       should be returned
+   * @param statusList To be populated with the status of the files and directories requested
+   * @throws AccessControlException if the path can not be read by the user
+   * @throws FileDoesNotExistException if the path does not exist
+   * @throws UnavailableException if the service is temporarily unavailable
+   */
   private void listStatusInternal(LockedInodePath currInodePath,
                                   AuditContext auditContext,
                                   DescendantType descendantType,
@@ -967,6 +980,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
             ? DescendantType.ALL : DescendantType.NONE;
         for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
+          // TODO(david): Make Extending InodePath more efficient
           try (LockedInodePath childInodePath = mInodeTree.lockFullInodePath(child.getId(),
               InodeTree.LockMode.READ)) {
             listStatusInternal(childInodePath, auditContext,

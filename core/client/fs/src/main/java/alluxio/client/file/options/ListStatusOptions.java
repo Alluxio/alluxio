@@ -123,7 +123,7 @@ public final class ListStatusOptions {
     return Objects.toStringHelper(this)
         .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
-        .add("Recursive", mRecursive)
+        .add("recursive", mRecursive)
         .toString();
   }
 
