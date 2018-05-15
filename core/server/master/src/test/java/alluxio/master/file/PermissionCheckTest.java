@@ -255,7 +255,7 @@ public final class PermissionCheckTest {
         new Mode((short) 0754)));
     LockedInodePath lockedInodePath = getLockedInodePath(permissions);
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_1.getUser()).toResource()) {
-      PermissionChecker checker = new PermissionChecker(mInodeTree);
+      PermissionChecker checker = new DefaultPermissionChecker(mInodeTree);
       Mode.Bits actual = checker.getPermission(lockedInodePath);
       assertEquals(Mode.Bits.ALL, actual);
     }
@@ -268,7 +268,7 @@ public final class PermissionCheckTest {
         new Mode((short) 0754)));
     LockedInodePath lockedInodePath = getLockedInodePath(permissions);
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_3.getUser()).toResource()) {
-      PermissionChecker checker = new PermissionChecker(mInodeTree);
+      PermissionChecker checker = new DefaultPermissionChecker(mInodeTree);
       Mode.Bits actual = checker.getPermission(lockedInodePath);
       assertEquals(Mode.Bits.READ_EXECUTE, actual);
     }
@@ -281,7 +281,7 @@ public final class PermissionCheckTest {
         new Mode((short) 0754)));
     LockedInodePath lockedInodePath = getLockedInodePath(permissions);
     try (Closeable r  = new AuthenticatedUserRule(TEST_USER_2.getUser()).toResource()) {
-      PermissionChecker checker = new PermissionChecker(mInodeTree);
+      PermissionChecker checker = new DefaultPermissionChecker(mInodeTree);
       Mode.Bits actual = checker.getPermission(lockedInodePath);
       assertEquals(Mode.Bits.READ, actual);
     }
