@@ -60,8 +60,7 @@ import java.util.concurrent.Future;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This service periodically collects call home information and stores it to Alluxio company's
- * backend.
+ * This service periodically collects call home information.
  */
 @ThreadSafe
 public final class CallHomeMaster extends AbstractNonJournaledMaster {
