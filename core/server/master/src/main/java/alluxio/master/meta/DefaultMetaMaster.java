@@ -26,6 +26,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterContext;
+import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.ExponentialTimeBoundedRetry;
@@ -42,6 +43,7 @@ import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,13 +58,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The master that handles all metadata management.
+ * The master that handles Alluxio metadata management.
  */
 @NotThreadSafe
 public final class DefaultMetaMaster extends AbstractMaster implements MetaMaster {
@@ -92,12 +97,14 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   /** The clock to use for determining the time. */
   private final Clock mClock = new SystemClock();
 
-  /** The connect address for the rpc server. */
-  private final InetSocketAddress mRpcConnectAddress
-      = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC);
+  /** Listeners to call when needs to get start time in milliseconds. */
+  private final BlockingQueue<Supplier<Long>> mGetStartTimeMsListeners
+      = new LinkedBlockingQueue<>();
 
-  /** is true if the master is in safe mode. */
-  private boolean mIsInSafeMode;
+  /** The master configuration checker. */
+  private final ServerConfigurationChecker mMasterConfigChecker = new ServerConfigurationChecker();
+  /** The worker configuration checker. */
+  private final ServerConfigurationChecker mWorkerConfigChecker = new ServerConfigurationChecker();
 
   /** Keeps track of standby masters which are in communication with the leader master. */
   private final IndexedSet<MasterInfo> mMasters =
@@ -106,23 +113,22 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   private final IndexedSet<MasterInfo> mLostMasters =
       new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
 
-  /** The master configuration checker. */
-  private final ServerConfigurationChecker mMasterConfigChecker = new ServerConfigurationChecker();
-  /** The worker configuration checker. */
-  private final ServerConfigurationChecker mWorkerConfigChecker = new ServerConfigurationChecker();
-
   /** The hostname of this master. */
-  private String mMasterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
-
-  /** The master ID for this master. */
-  private AtomicReference<Long> mMasterId = new AtomicReference<>(-1L);
+  private final String mMasterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
 
   /** Client for all meta master communication. */
   private final MetaMasterMasterClient mMetaMasterClient
       = new MetaMasterMasterClient(MasterClientConfig.defaults());
 
-  /** The start time for when the master started serving the RPC server. */
-  private long mStartTimeMs = -1;
+  /** The connect address for the rpc server. */
+  private final InetSocketAddress mRpcConnectAddress
+      = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC);
+
+  /** The manager of safe mode state. */
+  private final SafeModeManager mSafeModeManager;
+
+  /** The master ID for this master. */
+  private AtomicReference<Long> mMasterId = new AtomicReference<>(-1L);
 
   /**
    * Creates a new instance of {@link DefaultMetaMaster}.
@@ -146,7 +152,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   DefaultMetaMaster(BlockMaster blockMaster, MasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
-    mIsInSafeMode = masterContext.getmSafeModeManager().isInSafeMode();
+    mSafeModeManager = masterContext.getmSafeModeManager();
     mBlockMaster = blockMaster;
     mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
     mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
@@ -183,18 +189,15 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
-    return null;
+    return Iterators.emptyIterator();
   }
 
   @Override
   public void start(Boolean isPrimary) throws IOException {
     super.start(isPrimary);
     mWorkerConfigChecker.reset();
-    mStartTimeMs = System.currentTimeMillis();
     if (isPrimary) {
-      mSafeModeManager.notifyPrimaryMasterStarted();
-
-      //  The service that detects lost standby master nodes
+      // The service that detects lost standby master nodes
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
@@ -246,7 +249,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       // This is one of the lost masters
       mMasterConfigChecker.lostNodeFound(lostMaster.getId());
       synchronized (lostMaster) {
-        final long lostMasterId = lostMaster.getId();
+        long lostMasterId = lostMaster.getId();
         LOG.warn("A lost master {} has requested its old id {}.", hostname, lostMasterId);
 
         // Update the timestamp of the master before it is considered an active master.
@@ -274,12 +277,16 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public long getStartTimeMs() {
-    return mStartTimeMs;
+    long startTimeMs = -1;
+    for (Supplier<Long> function : mGetStartTimeMsListeners) {
+      startTimeMs = function.get();
+    }
+    return startTimeMs;
   }
 
   @Override
   public long getUptimeMs() {
-    return System.currentTimeMillis() - mStartTimeMs;
+    return System.currentTimeMillis() - getStartTimeMs();
   }
 
   @Override
@@ -289,7 +296,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public boolean isInSafeMode() {
-    return mIsInSafeMode;
+    return mSafeModeManager.isInSafeMode();
   }
 
   @Override
@@ -319,6 +326,11 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     mMasterConfigChecker.registerNewConf(masterId, configList);
 
     LOG.info("registerMaster(): master: {} options: {}", master, options);
+  }
+
+  @Override
+  public void registerGetStartTimeMsListener(Supplier<Long> function) {
+    mGetStartTimeMsListeners.add(function);
   }
 
   /**

@@ -19,6 +19,7 @@ import alluxio.wire.ConfigProperty;
 
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * The interface of meta master.
@@ -79,4 +80,11 @@ public interface MetaMaster extends Master {
    * @throws NotFoundException if masterId cannot be found
    */
   void masterRegister(long masterId, RegisterMasterTOptions options) throws NotFoundException;
+
+  /**
+   * Registers callback functions to use when needs to get start time in milliseconds.
+   *
+   * @param function the function to register
+   */
+  void registerGetStartTimeMsListener(Supplier<Long> function);
 }

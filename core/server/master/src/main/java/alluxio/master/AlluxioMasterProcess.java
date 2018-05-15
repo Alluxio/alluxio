@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
+import alluxio.master.meta.MetaMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -153,6 +154,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
+
+      mRegistry.get(MetaMaster.class).registerGetStartTimeMsListener(this::getStartTimeMs);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
