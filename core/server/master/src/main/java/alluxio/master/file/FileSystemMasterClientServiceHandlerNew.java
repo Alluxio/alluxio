@@ -20,6 +20,7 @@ import alluxio.grpc.GetStatusPResponse;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.wire.ProtoUtils;
 
+import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +49,7 @@ public final class FileSystemMasterClientServiceHandlerNew
 
   @Override
   public void getStatus(alluxio.grpc.GetStatusPRequest request,
-                        io.grpc.stub.StreamObserver<alluxio.grpc.GetStatusPResponse> responseObserver) {
+      StreamObserver<GetStatusPResponse> responseObserver) {
    String path = request.getPath();
    GetStatusPOptions options = request.getOptions();
    RpcUtilsNew.call(LOG, new RpcUtilsNew.RpcCallableThrowsIOException<GetStatusPResponse>() {

@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
-import alluxio.thrift.AlluxioTException;
 
 /**
  * Utilities for handling RPC calls.
@@ -78,7 +77,7 @@ public final class RpcUtilsNew {
    * @param <T> the return type of the callable
    */
   public static <T> void call(Logger logger, RpcCallableThrowsIOException<T> callable,
-      StreamObserver<T> responseObserver) throws AlluxioTException {
+      StreamObserver<T> responseObserver) {
     call(logger, callable, responseObserver, true);
   }
 
