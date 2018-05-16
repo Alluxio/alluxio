@@ -88,6 +88,7 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -951,6 +952,17 @@ public final class FileSystemMasterTest {
       assertTrue(
           filenames.contains(NESTED_URI.join("file" + String.format("%05d", i)).toString()));
     }
+
+    // Test with permissions
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setMode((short)0400).setRecursive(true));
+    try (Closeable r = new AuthenticatedUserRule("test_user1").toResource()) {
+      // Test recursive listStatus
+      infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusOptions.defaults()
+          .setLoadMetadataType(LoadMetadataType.Always).setRecursive(true));
+      // 10 files in each directory, 1 level of directories
+      assertEquals(files + 1, infos.size());
+    }
+
   }
 
   @Test

@@ -172,6 +172,24 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   }
 
   /**
+   * @return true if we have loaded all the direct and indirect children's metadata once
+   */
+  public synchronized boolean isDescendantLoaded() {
+    if (!isDirectChildrenLoaded()) {
+      return false;
+    }
+    for (Inode<?> inode : getChildren()) {
+      if (inode.isDirectory()) {
+        InodeDirectory inodeDirectory = (InodeDirectory) inode;
+        if (!inodeDirectory.isDescendantLoaded()) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
    * Removes the given inode from the directory.
    *
    * @param child the Inode to remove

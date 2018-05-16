@@ -917,8 +917,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         inode = inodePath.getInode();
         if (inode.isDirectory()
             && listStatusOptions.getLoadMetadataType() != LoadMetadataType.Always
-            && ((InodeDirectory) inode).isDirectChildrenLoaded()
-            && !listStatusOptions.isRecursive()) {
+            && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
           loadMetadataOptions.setLoadDescendantType(DescendantType.NONE);
         }
       } else {
@@ -930,7 +929,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       inode = inodePath.getInode();
       auditContext.setSrcInode(inode);
       List<FileInfo> ret = new ArrayList<>();
-      DescendantType descendantTypeForListStatus =  (listStatusOptions.isRecursive())
+      DescendantType descendantTypeForListStatus = (listStatusOptions.isRecursive())
           ? DescendantType.ALL : DescendantType.ONE;
       listStatusInternal(inodePath, auditContext, descendantTypeForListStatus, ret);
 
@@ -976,11 +975,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           throw e;
         }
       }
-      if (descendantType == DescendantType.ALL || descendantType == DescendantType.ONE) {
+      if (descendantType != DescendantType.NONE) {
         DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
             ? DescendantType.ALL : DescendantType.NONE;
         for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-          // TODO(david): Make Extending InodePath more efficient
+          // TODO(david): Make extending InodePath more efficient
           try (LockedInodePath childInodePath = mInodeTree.lockFullInodePath(child.getId(),
               InodeTree.LockMode.READ)) {
             listStatusInternal(childInodePath, auditContext,
