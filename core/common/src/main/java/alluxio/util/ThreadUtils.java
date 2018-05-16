@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Utility method for working with threads.
@@ -47,21 +48,21 @@ public final class ThreadUtils {
    */
   public static void shutdownAndAwaitTermination(ExecutorService pool) {
     pool.shutdown(); // Disable new tasks from being submitted
-//    try {
-//      // Wait a while for existing tasks to terminate
-//      if (!pool.awaitTermination(1, TimeUnit.SECONDS)) {
-//        pool.shutdownNow(); // Cancel currently executing tasks
-//        // Wait a while for tasks to respond to being cancelled
-//        if (!pool.awaitTermination(1, TimeUnit.SECONDS)) {
-//          LOG.warn("Pool did not terminate");
-//        }
-//      }
-//    } catch (InterruptedException ie) {
-//      // (Re-)Cancel if current thread also interrupted
-//      pool.shutdownNow();
-//      // Preserve interrupt status
-//      Thread.currentThread().interrupt();
-//    }
+    try {
+      // Wait a while for existing tasks to terminate
+      if (!pool.awaitTermination(1, TimeUnit.SECONDS)) {
+        pool.shutdownNow(); // Cancel currently executing tasks
+        // Wait a while for tasks to respond to being cancelled
+        if (!pool.awaitTermination(1, TimeUnit.SECONDS)) {
+          LOG.warn("Pool did not terminate");
+        }
+      }
+    } catch (InterruptedException ie) {
+      // (Re-)Cancel if current thread also interrupted
+      pool.shutdownNow();
+      // Preserve interrupt status
+      Thread.currentThread().interrupt();
+    }
   }
 
   private ThreadUtils() {} // prevent instantiation of utils class
