@@ -15,7 +15,6 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -38,6 +37,7 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;

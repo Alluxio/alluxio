@@ -169,7 +169,8 @@ public final class FileSystemContext implements Closeable {
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
     mClosed.set(false);
     // setup metrics master client sync
-    mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults());
+    mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults()
+        .withSubject(mParentSubject).withMasterInquireClient(mMasterInquireClient));
     mClientMasterSync = new ClientMasterSync(mMetricsMasterClient);
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));

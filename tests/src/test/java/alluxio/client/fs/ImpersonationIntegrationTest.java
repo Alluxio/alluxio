@@ -66,18 +66,21 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false)
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, CONNECTION_USER)
           .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS, 0)
           .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
               CustomGroupMapping.class.getName()).build();
 
   @After
-  public void after() {
+  public void after()  throws Exception{
     ConfigurationTestUtils.resetConfiguration();
+    FileSystemContext.INSTANCE.reset();
   }
 
   @Before
   public void before() throws Exception {
+    FileSystemContext.INSTANCE.reset();
     // Give the root dir 777, to write files as different users. This must be run as the user
     // that starts the master process
     FileSystem.Factory.get().setAttribute(new AlluxioURI("/"),
