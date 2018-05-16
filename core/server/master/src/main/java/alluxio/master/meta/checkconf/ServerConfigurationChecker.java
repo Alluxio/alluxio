@@ -16,15 +16,20 @@ import alluxio.PropertyKey.Scope;
 import alluxio.PropertyKey.ConsistencyCheckLevel;
 import alluxio.wire.Address;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This class is responsible for checking server-side configuration.
  */
 public class ServerConfigurationChecker {
+  private static final Logger LOG = LoggerFactory.getLogger(ServerConfigurationChecker.class);
   /** Contain all the master configuration information. */
   private final ServerConfigurationStore mMasterStore;
   /** Contain all the worker configuration information. */
@@ -146,6 +151,7 @@ public class ServerConfigurationChecker {
         : confWarns.values().stream().anyMatch(a -> a.size() > 0) ? Status.WARN : Status.PASSED;
 
     mConfigCheckReport = new ConfigCheckReport(confErrors, confWarns, status);
+    logConfigCheckReport();
   }
 
   /**
@@ -153,6 +159,26 @@ public class ServerConfigurationChecker {
    */
   public synchronized ConfigCheckReport getConfigCheckReport() {
     return mConfigCheckReport;
+  }
+
+  /**
+   * Logs the configuration check report information.
+   */
+  private void logConfigCheckReport() {
+    Status reportStatus = mConfigCheckReport.getStatus();
+    if (reportStatus.equals(Status.PASSED)) {
+      LOG.info("Stauts: {}", reportStatus);
+    } else if (reportStatus.equals(Status.WARN)) {
+      LOG.warn("Status: {}", reportStatus);
+      LOG.warn("Warnings: {}", mConfigCheckReport.getConfigWarns().values().stream()
+          .map(Object::toString).collect(Collectors.joining(", ")));
+    } else {
+      LOG.error("Status: {}", reportStatus);
+      LOG.error("Errors: {}", mConfigCheckReport.getConfigErrors().values().stream()
+          .map(Object::toString).collect(Collectors.joining(", ")));
+      LOG.warn("Warnings: {}", mConfigCheckReport.getConfigWarns().values().stream()
+          .map(Object::toString).collect(Collectors.joining(", ")));
+    }
   }
 
   /**
