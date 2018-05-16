@@ -117,8 +117,8 @@ public final class BlockLockManager {
    * @param timeUnit the time unit of the {@code time} argument
    * @return lock id or {@link BlockLockManager#INVALID_LOCK_ID}
    */
-  public long tryLockBlock(long sessionId, long blockId, BlockLockType blockLockType, long maximumTime,
-      TimeUnit timeUnit) {
+  public long tryLockBlock(long sessionId, long blockId, BlockLockType blockLockType,
+      long maximumTime, TimeUnit timeUnit) {
     Lock lock = getBlockRWLock(sessionId, blockId, blockLockType);
     try {
       if (!lock.tryLock(maximumTime, timeUnit)) {
