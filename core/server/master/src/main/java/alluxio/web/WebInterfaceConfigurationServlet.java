@@ -11,16 +11,17 @@
 
 package alluxio.web;
 
-import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.master.MasterProcess;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.wire.ConfigProperty;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -37,19 +38,19 @@ import javax.servlet.http.HttpServletResponse;
 @ThreadSafe
 public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
-  private static final String ALLUXIO_CONF_PREFIX = "alluxio";
-  private static final Set<String> ALLUXIO_CONF_EXCLUDES = Sets.newHashSet(
-      PropertyKey.MASTER_WHITELIST.toString());
 
-  private final FileSystemMaster mFsMaster;
+  private final transient FileSystemMaster mFsMaster;
+  private final transient MasterProcess mMasterProcess;
 
   /**
    * Creates a new instance of {@link WebInterfaceConfigurationServlet}.
    *
-   * @param fsMaster file system master
+   * @param fsMaster file system master to get white list
+   * @param masterProcess the Alluxio master process to get configuration
    */
-  public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster) {
+  public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster, MasterProcess masterProcess) {
     mFsMaster = fsMaster;
+    mMasterProcess = Preconditions.checkNotNull(masterProcess, "masterProcess");
   }
 
   /**
@@ -70,19 +71,13 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
 
   private SortedSet<Triple<String, String, String>> getSortedProperties() {
     TreeSet<Triple<String, String, String>> rtn = new TreeSet<>();
-    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      String key = entry.getKey();
-      if (key.startsWith(ALLUXIO_CONF_PREFIX) && !ALLUXIO_CONF_EXCLUDES.contains(key)) {
-        PropertyKey propertyKey = PropertyKey.fromString(key);
-        Configuration.Source source = Configuration.getSource(propertyKey);
-        String sourceStr;
-        if (source == Configuration.Source.SITE_PROPERTY) {
-          sourceStr =
-              String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
-        } else {
-          sourceStr = source.name();
-        }
-        rtn.add(new ImmutableTriple<>(key, Configuration.get(propertyKey), sourceStr));
+    Set<String> alluxioConfExcludes = Sets.newHashSet(
+        PropertyKey.MASTER_WHITELIST.toString());
+    for (ConfigProperty configProperty : mMasterProcess.getConfiguration()) {
+      String confName = configProperty.getName();
+      if (!alluxioConfExcludes.contains(confName)) {
+        rtn.add(new ImmutableTriple<>(confName,
+            configProperty.getValue(), configProperty.getSource()));
       }
     }
     return rtn;

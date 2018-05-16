@@ -54,7 +54,6 @@ public class DefaultSafeModeManager implements SafeModeManager {
 
   @Override
   public void notifyPrimaryMasterStarted() {
-    LOG.info("Entering safe mode.");
     mWorkerConnectWaitStartTimeMs.set(null, true);
   }
 
@@ -62,7 +61,7 @@ public class DefaultSafeModeManager implements SafeModeManager {
   public void notifyRpcServerStarted() {
     // updates start time when Alluxio master waits for workers to register
     long waitTime = Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
-    LOG.info(String.format("Expect leaving safe mode after %dms", waitTime));
+    LOG.info(String.format("Rpc server started, waiting %dms for workers to register", waitTime));
     mWorkerConnectWaitStartTimeMs.set(mClock.millis(), true);
   }
 
@@ -86,7 +85,7 @@ public class DefaultSafeModeManager implements SafeModeManager {
     }
 
     if (mWorkerConnectWaitStartTimeMs.compareAndSet(startTime, null, true, false)) {
-      LOG.info("Exiting safe mode.");
+      LOG.debug("Exiting safe mode.");
     }
 
     return mWorkerConnectWaitStartTimeMs.isMarked();

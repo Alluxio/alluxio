@@ -21,7 +21,7 @@ USAGE="Usage: alluxio-checker.sh mapreduce [NUM_MAPS]
 where NUM_MAPS is an optional argument which affects the number of map tasks in MapReduce job of integration checker.
   We recommend users to set this number according to your Hadoop cluster size,
   so that MapReduce integration checker can check more Hadoop nodes.
-  By default, the INPUT_SPLITS is 10.
+  By default, the NUM_MAPS is 10.
 
 -h  display this help."
 
@@ -103,8 +103,8 @@ function main {
     exit 1
   fi
 
-  # Check if INPUT_SPLITS is valid
-  if [[ -n ${INPUT_SPLITS//[0-9]/} ]]; then
+  # Check if NUM_MAPS is valid
+  if [[ -n ${NUM_MAPS//[0-9]/} ]]; then
     echo -e "${USAGE}" >&2
     exit 1
   fi

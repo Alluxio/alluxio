@@ -39,6 +39,13 @@ $ chmod a+w /tmp/domain
 
 如果不需要或不能设置短路访问，则可以跳过此步骤。要禁用此功能，请根据下面的配置部分中的说明设置属性 `alluxio.user.short.circuit.enabled=false`。
 
+默认情况下，如果客户端的 hostname 与 worker 的 hostname 一致，它们之间就会启用短路操作。但是若客户端运行在一个虚拟网络下的容器中，则短路操作不一定会启用。在这种情况下，需要设置以下属性来使用文件系统检查以启用短路操作。如果工作节点的UUID位于客户端文件系统上，短路写操作就可以启用。
+
+```properties
+alluxio.worker.data.server.domain.socket.as.uuid=true
+alluxio.worker.data.server.domain.socket.address=/path/to/domain/socket/directory
+```
+
 ## 提供持久性卷
 
 Alluxio master可以配置为使用[持久性卷](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)来存储日志。一旦使用，在master进程的重启之间该卷将被持久化。

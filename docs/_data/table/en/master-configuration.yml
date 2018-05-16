@@ -62,12 +62,18 @@ alluxio.master.mount.table.root.shared:
   'Whether Alluxio root mount point is shared.'
 alluxio.master.mount.table.root.ufs:
   'The UFS mounted to Alluxio root mount point.'
+alluxio.master.periodic.block.integrity.check.interval:
+  'The period for the block integrity check, disabled if <= 0.'
+alluxio.master.periodic.block.integrity.check.repair:
+  'Whether the system should delete orphaned blocks found during the periodic integrity check. This is an experimental feature.'
 alluxio.master.port:
   'The port that Alluxio master node runs on.'
 alluxio.master.principal:
   'Kerberos principal for Alluxio master.'
 alluxio.master.retry:
   'The number of retries that the client connects to master. (NOTE: this property is deprecated, use `alluxio.user.rpc.retry.max.num.retry` instead).'
+alluxio.master.startup.block.integrity.check.enabled:
+  'Whether the system should be checked on startup for orphaned blocks (blocks having no corresponding files but still taking system resource due to various system failures). Orphaned blocks will be deleted during master startup if this property is true. This property is available since 1.7.1'
 alluxio.master.startup.consistency.check.enabled:
   'Whether the system should be checked for consistency with the underlying storage on startup. During the time the check is running, Alluxio will be in read only mode. Enabled by default.'
 alluxio.master.thrift.shutdown.timeout:

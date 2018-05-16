@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.exception.ExceptionMessage;
 import alluxio.network.ChannelType;
 import alluxio.util.OSUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -338,6 +339,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "should be the same on the clients and server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
+  /**
+   * @deprecated since 1.8.0 and will be removed in 2.0.
+   */
+  @Deprecated
   public static final PropertyKey NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
       new Builder(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX)
           .setDefaultValue("16MB")
@@ -895,6 +900,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
+      new Builder(Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL)
+          .setDefaultValue("10min")
+          .setDescription("Interval for removing closed client sockets from internal tracking.")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.MASTER_CONNECTION_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.master.connection.timeout.ms"})
@@ -1129,9 +1142,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether the system should be checked for orphaned blocks on startup. "
-              + "Orphaned blocks will be deleted.")
+          .setDefaultValue(true)
+          .setDescription("Whether the system should be checked on startup for orphaned blocks "
+              + "(blocks having no corresponding files but still taking system resource due to "
+              + "various system failures). Orphaned blocks will be deleted during master startup "
+              + "if this property is true. This property is available since 1.7.1")
           .build();
   public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)
@@ -1385,9 +1400,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "UNIX domain socket when this is set (non-empty). This is a special path in "
               + "the file system that allows the client and the AlluxioWorker to communicate. "
               + "You will need to set a path to this socket. The AlluxioWorker needs to be "
-              + "able to create this path.")
+              + "able to create the path. If " + Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID
+              + " is set, the path should be the home directory for the domain socket. The full "
+              + "path for the domain socket with be <path>/<uuid>.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =
+      new Builder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)
+          .setDefaultValue("false")
+          .setDescription("If true, the property " + Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS
+              + "is the path to the home directory for the domain socket and a unique identifier "
+              + "is used as the domain socket name. In addition, clients ignore "
+              + Name.USER_HOSTNAME + " while detecting a local worker for short circuit ops. "
+              + "If false, the property is the absolute path to the UNIX domain socket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey WORKER_DATA_TMP_FOLDER =
       new Builder(Name.WORKER_DATA_TMP_FOLDER)
@@ -2521,7 +2549,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
       new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
-          .setDescription("The policy block workers follow for reading UFS blocks.")
+          .setDescription(String.format("When an Alluxio client reads a file from the UFS, it "
+              + "delegates the read to an Alluxio worker. The client uses this policy to choose "
+              + "which worker to read through. Builtin choices: %s.", Arrays.asList(
+              javadocLink("alluxio.client.block.policy.DeterministicHashPolicy"),
+              javadocLink("alluxio.client.file.policy.LocalFirstAvoidEvictionPolicy"),
+              javadocLink("alluxio.client.file.policy.LocalFirstPolicy"),
+              javadocLink("alluxio.client.file.policy.MostAvailableFirstPolicy"),
+              javadocLink("alluxio.client.file.policy.RoundRobinPolicy"),
+              javadocLink("alluxio.client.file.policy.SpecificHostPolicy"))))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -2649,6 +2685,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey SECURITY_LOGIN_IMPERSONATION_USERNAME =
+      new Builder(Name.SECURITY_LOGIN_IMPERSONATION_USERNAME).setDescription(String.format(
+          "When %s is set to SIMPLE or CUSTOM, user application uses this property to indicate "
+              + "the IMPERSONATED user requesting Alluxio service. If it is not set explicitly, "
+              + "impersonation will not be used. A special value of '%s' can be specified to "
+              + "impersonate the hadoop client user.",
+          SECURITY_AUTHENTICATION_TYPE, Constants.IMPERSONATION_HDFS_USER))
+          .setDefaultValue(Constants.IMPERSONATION_HDFS_USER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey SECURITY_LOGIN_USERNAME =
       new Builder(Name.SECURITY_LOGIN_USERNAME)
           .setDescription("When alluxio.security.authentication.type is set to SIMPLE or "
@@ -2708,8 +2755,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey INTEGRATION_MESOS_JDK_URL =
       new Builder(Name.INTEGRATION_MESOS_JDK_URL)
-          .setDefaultValue("https://alluxio-mesos.s3.amazonaws.com/jdk-8u151-linux-x64.tar.gz")
-          .setDescription("A url from which to install the jdk during Mesos deployment. When "
+          .setDefaultValue(Constants.MESOS_LOCAL_INSTALL)
+          .setDescription("A url from which to install the jdk during Mesos deployment. Default to "
+              + "LOCAL which tells Mesos to use the local JDK on the system. When "
               + "using this property, alluxio.integration.mesos.jdk.path must also be set "
               + "correctly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2794,6 +2842,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+
+  /**
+   * @param fullyQualifiedClassname a fully qualified classname
+   * @return html linking the text of the classname to the alluxio javadoc for the class
+   */
+  private static String javadocLink(String fullyQualifiedClassname) {
+    String javadocPath = fullyQualifiedClassname.replace(".", "/") + ".html";
+    return String.format("<a href=\"%s\">%s</a>",
+        PathUtils.concatPath(RuntimeConstants.ALLUXIO_JAVADOC_URL, javadocPath),
+        fullyQualifiedClassname);
+  }
 
   /**
    * A nested class to hold named string constants for their corresponding properties.
@@ -2947,6 +3006,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
         "alluxio.master.audit.logging.queue.capacity";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
+    public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
+        "alluxio.master.client.socket.cleanup.interval";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
@@ -3046,6 +3107,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_DATA_SERVER_CLASS = "alluxio.worker.data.server.class";
     public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
         "alluxio.worker.data.server.domain.socket.address";
+    public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =
+        "alluxio.worker.data.server.domain.socket.as.uuid";
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
@@ -3294,6 +3357,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.security.group.mapping.cache.timeout";
     public static final String SECURITY_GROUP_MAPPING_CLASS =
         "alluxio.security.group.mapping.class";
+    public static final String SECURITY_LOGIN_IMPERSONATION_USERNAME =
+        "alluxio.security.login.impersonation.username";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
 
     //
@@ -3318,6 +3383,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @ThreadSafe
   public enum Template {
     LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
+    MASTER_IMPERSONATION_GROUPS_OPTION("alluxio.master.security.impersonation.%s.groups",
+        "alluxio.master.security.impersonation.(\\w+).groups"),
+    MASTER_IMPERSONATION_USERS_OPTION("alluxio.master.security.impersonation.%s.users",
+        "alluxio.master.security.impersonation.(\\w+).users"),
     MASTER_JOURNAL_UFS_OPTION("alluxio.master.journal.ufs.option",
         "alluxio\\.master\\.journal\\.ufs\\.option"),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",

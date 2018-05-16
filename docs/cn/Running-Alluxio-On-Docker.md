@@ -194,6 +194,10 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
              alluxio worker)
 ```
 
+默认情况下，如果Alluxio客户端和工作节点的主机名相匹配，那么它们之间的短路操作是允许的。但如果客户端依靠虚拟网络作为容器的一部分来运行那就不一定允许。
+在这种情况下，当你启动工作节点的时候，设置以下属性来使用文件系统校验：`ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain`和`ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true`。
+短路写操作就启用了，只要工作节点的UUID位于客户端文件系统上。
+
 # FUSE
 为了使用FUSE,你需要在FUSE激活状态下创建一个docker镜像。
 

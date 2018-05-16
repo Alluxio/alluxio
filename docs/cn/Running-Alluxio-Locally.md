@@ -13,9 +13,7 @@ priority: 1
 
 这部分的前提条件是你安装了[Java](Java-Setup.html)(JDK 8或更高版本)。
 
-下载Alluxio二进制发行版{{site.ALLUXIO_RELEASED_VERSION}}:
-
-{% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
+下载 [Alluxio](https://alluxio.org/download) 二进制发行版 {{site.ALLUXIO_RELEASED_VERSION}}:
 
 在独立模式下运行，请执行以下操作：
 

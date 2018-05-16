@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
+import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
 import alluxio.clock.SystemClock;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
@@ -23,6 +25,7 @@ import alluxio.collections.IndexedSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.NoWorkerException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -46,12 +49,14 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -60,6 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -75,6 +81,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -146,7 +153,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    * forms a total ordering on all storage level aliases in the system, and must be consistent
    * across masters.
    */
-  private StorageTierAssoc mGlobalStorageTierAssoc;
+  private final StorageTierAssoc mGlobalStorageTierAssoc;
 
   /** Keeps track of workers which are in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mWorkers =
@@ -187,6 +194,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   DefaultBlockMaster(MasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
+    mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     Metrics.registerGauges(this);
   }
 
@@ -269,7 +277,6 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
-    mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     if (isLeader) {
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
@@ -285,20 +292,6 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public int getLostWorkerCount() {
     return mLostWorkers.size();
-  }
-
-  @Override
-  public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
-    if (mSafeModeManager.isInSafeMode()) {
-      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
-    }
-    List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
-    for (MasterWorkerInfo worker : mWorkers) {
-      synchronized (worker) {
-        workerInfoList.add(worker.generateClientWorkerInfo());
-      }
-    }
-    return workerInfoList;
   }
 
   @Override
@@ -329,15 +322,85 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public List<WorkerInfo> getLostWorkersInfoList() {
-    List<WorkerInfo> ret = new ArrayList<>(mLostWorkers.size());
-    for (MasterWorkerInfo worker : mLostWorkers) {
+  public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
+    List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
+    for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
-        ret.add(worker.generateClientWorkerInfo());
+        workerInfoList.add(worker.generateWorkerInfo(null, true));
       }
     }
-    Collections.sort(ret, new WorkerInfo.LastContactSecComparator());
-    return ret;
+    return workerInfoList;
+  }
+
+  @Override
+  public List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
+    List<WorkerInfo> workerInfoList = new ArrayList<>(mLostWorkers.size());
+    for (MasterWorkerInfo worker : mLostWorkers) {
+      synchronized (worker) {
+        workerInfoList.add(worker.generateWorkerInfo(null, false));
+      }
+    }
+    Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
+    return workerInfoList;
+  }
+
+  @Override
+  public List<WorkerInfo> getWorkerReport(GetWorkerReportOptions options)
+      throws UnavailableException, InvalidArgumentException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
+
+    Set<MasterWorkerInfo> selectedLiveWorkers = new HashSet<>();
+    Set<MasterWorkerInfo> selectedLostWorkers = new HashSet<>();
+    WorkerRange workerRange = options.getWorkerRange();
+    switch (workerRange) {
+      case ALL:
+        selectedLiveWorkers.addAll(mWorkers);
+        selectedLostWorkers.addAll(mLostWorkers);
+        break;
+      case LIVE:
+        selectedLiveWorkers.addAll(mWorkers);
+        break;
+      case LOST:
+        selectedLostWorkers.addAll(mLostWorkers);
+        break;
+      case SPECIFIED:
+        Set<String> addresses = options.getAddresses();
+        Set<String> workerNames = new HashSet<>();
+
+        selectedLiveWorkers = selectInfoByAddress(addresses, mWorkers, workerNames);
+        selectedLostWorkers = selectInfoByAddress(addresses, mLostWorkers, workerNames);
+
+        if (!addresses.isEmpty()) {
+          String info = String.format("Unrecognized worker names: %s%n"
+                  + "Supported worker names: %s%n",
+              addresses.toString(), workerNames.toString());
+          throw new InvalidArgumentException(info);
+        }
+        break;
+      default:
+        throw new InvalidArgumentException("Unrecognized worker range: " + workerRange);
+    }
+
+    List<WorkerInfo> workerInfoList = new ArrayList<>();
+    for (MasterWorkerInfo worker : selectedLiveWorkers) {
+      synchronized (worker) {
+        workerInfoList.add(worker.generateWorkerInfo(options.getFieldRange(), true));
+      }
+    }
+    for (MasterWorkerInfo worker : selectedLostWorkers) {
+      synchronized (worker) {
+        workerInfoList.add(worker.generateWorkerInfo(options.getFieldRange(), false));
+      }
+    }
+    return workerInfoList;
   }
 
   @Override
@@ -389,15 +452,25 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public void validateBlocks(Function<Long, Boolean> validator, boolean repair)
       throws UnavailableException {
-    List<Long> invalidBlocks = new ArrayList<>();
-    for (long blockId : mBlocks.keySet()) {
-      if (!validator.apply(blockId)) {
-        invalidBlocks.add(blockId);
+    List<Long> invalidBlocks =
+        mBlocks.keySet().stream().filter((blockId) -> !validator.apply(blockId))
+            .collect(Collectors.toList());
+    if (!invalidBlocks.isEmpty()) {
+      long limit = 100;
+      List<Long> loggedBlocks = invalidBlocks.stream().limit(limit).collect(Collectors.toList());
+      LOG.warn("Found {} orphan blocks without corresponding file metadata.", invalidBlocks.size());
+      if (invalidBlocks.size() > limit) {
+        LOG.warn("The first {} orphan blocks include {}.", limit, loggedBlocks);
+      } else {
+        LOG.warn("The orphan blocks include {}.", loggedBlocks);
       }
-    }
-    if (repair && !invalidBlocks.isEmpty()) {
-      LOG.warn("Deleting {} invalid blocks.", invalidBlocks.size());
-      removeBlocks(invalidBlocks, true);
+      if (repair) {
+        LOG.warn("Deleting {} orphan blocks.", invalidBlocks.size());
+        removeBlocks(invalidBlocks, true);
+      } else {
+        LOG.warn("Restart Alluxio master with {}=true to delete the blocks and repair the system.",
+            PropertyKey.Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED);
+      }
     }
   }
 
@@ -831,6 +904,43 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   /**
+   * Selects the MasterWorkerInfo from workerInfoSet whose host or related IP address
+   * exists in addresses.
+   *
+   * @param addresses the address set that user passed in
+   * @param workerInfoSet the MasterWorkerInfo set to select info from
+   * @param workerNames the supported worker names
+   */
+  private Set<MasterWorkerInfo> selectInfoByAddress(Set<String> addresses,
+      Set<MasterWorkerInfo> workerInfoSet, Set<String> workerNames) {
+    return workerInfoSet.stream().filter(info -> {
+      String host = info.getWorkerAddress().getHost();
+      workerNames.add(host);
+
+      String ip = null;
+      try {
+        ip = NetworkAddressUtils.resolveIpAddress(host);
+        workerNames.add(ip);
+      } catch (UnknownHostException e) {
+        // The host may already be an IP address
+      }
+
+      if (addresses.contains(host)) {
+        addresses.remove(host);
+        return true;
+      }
+
+      if (ip != null) {
+        if (addresses.contains(ip)) {
+          addresses.remove(ip);
+          return true;
+        }
+      }
+      return false;
+    }).collect(Collectors.toSet());
+  }
+
+  /**
    * Class that contains metrics related to BlockMaster.
    */
   public static final class Metrics {
@@ -838,8 +948,15 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     public static final String CAPACITY_USED = "CapacityUsed";
     public static final String CAPACITY_FREE = "CapacityFree";
     public static final String WORKERS = "Workers";
+    public static final String TIER = "Tier";
 
-    private static void registerGauges(final BlockMaster master) {
+    /**
+     * Registers metric gauges.
+     *
+     * @param master the block master handle
+     */
+    @VisibleForTesting
+    public static void registerGauges(final BlockMaster master) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_TOTAL),
           new Gauge<Long>() {
             @Override
@@ -863,6 +980,33 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
               return master.getCapacityBytes() - master.getUsedBytes();
             }
           });
+
+      for (int i = 0; i < master.getGlobalStorageTierAssoc().size(); i++) {
+        String alias = master.getGlobalStorageTierAssoc().getAlias(i);
+        MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getMasterMetricName(CAPACITY_TOTAL + TIER + alias), new Gauge<Long>() {
+              @Override
+              public Long getValue() {
+                return master.getTotalBytesOnTiers().getOrDefault(alias, 0L);
+              }
+            });
+
+        MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getMasterMetricName(CAPACITY_USED + TIER + alias), new Gauge<Long>() {
+              @Override
+              public Long getValue() {
+                return master.getUsedBytesOnTiers().getOrDefault(alias, 0L);
+              }
+            });
+        MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getMasterMetricName(CAPACITY_FREE + TIER + alias), new Gauge<Long>() {
+              @Override
+              public Long getValue() {
+                return master.getTotalBytesOnTiers().getOrDefault(alias, 0L)
+                    - master.getUsedBytesOnTiers().getOrDefault(alias, 0L);
+              }
+            });
+      }
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(WORKERS),
           new Gauge<Integer>() {

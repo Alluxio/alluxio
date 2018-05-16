@@ -23,16 +23,6 @@ struct BlockMasterInfo {
   7: map<string, i64> usedBytesOnTiers
 }
 
-struct WorkerInfo {
-  1: i64 id
-  2: common.WorkerNetAddress address
-  3: i32 lastContactSec
-  4: string state
-  5: i64 capacityBytes
-  6: i64 usedBytes
-  7: i64 startTimeMs
-}
-
 struct GetBlockInfoTOptions {}
 struct GetBlockInfoTResponse {
   1: common.BlockInfo blockInfo
@@ -56,7 +46,46 @@ struct GetUsedBytesTResponse {
   1: i64 bytes
 }
 
+enum WorkerRange {
+  ALL
+  LIVE
+  LOST
+  SPECIFIED
+}
+
+enum WorkerInfoField {
+  ADDRESS
+  CAPACITY_BYTES
+  CAPACITY_BYTES_ON_TIERS
+  ID
+  LAST_CONTACT_SEC
+  START_TIME_MS
+  STATE
+  USED_BYTES
+  USED_BYTES_ON_TIERS
+}
+
+struct WorkerInfo {
+  1: i64 id
+  2: common.WorkerNetAddress address
+  3: i32 lastContactSec
+  4: string state
+  5: i64 capacityBytes
+  6: i64 usedBytes
+  7: i64 startTimeMs
+  8: map<string, i64> capacityBytesOnTiers;
+  9: map<string, i64> usedBytesOnTiers;
+}
+
+struct GetWorkerReportTOptions {
+  /** addresses are only valid when workerRange is SPECIFIED */
+  1: optional set<string> addresses
+  2: optional set<WorkerInfoField>  fieldRange
+  3: optional WorkerRange workerRange
+}
+
 struct GetWorkerInfoListTOptions {}
+
 struct GetWorkerInfoListTResponse {
   1: list<WorkerInfo> workerInfoList
 }
@@ -101,6 +130,13 @@ service BlockMasterClientService extends common.AlluxioService {
    */
   GetWorkerInfoListTResponse getWorkerInfoList(
     /** the method options */ 1: GetWorkerInfoListTOptions options,
+  ) throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns a list of workers information for report CLI.
+   */
+  GetWorkerInfoListTResponse getWorkerReport(
+    /** the method options */ 1: GetWorkerReportTOptions options,
   ) throws (1: exception.AlluxioTException e)
 }
 

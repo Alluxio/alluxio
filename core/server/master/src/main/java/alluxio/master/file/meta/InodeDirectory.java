@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -89,6 +90,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the read-locked inode with the given name, or null if there is no such child
    * @throws InvalidPathException if the path to the child is invalid
    */
+  @Nullable
   public Inode<?> getChildReadLock(String name, InodeLockList lockList) throws
       InvalidPathException {
     while (true) {
@@ -112,6 +114,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the write-locked inode with the given name, or null if there is no such child
    * @throws InvalidPathException if the path to the child is invalid
    */
+  @Nullable
   public Inode<?> getChildWriteLock(String name, InodeLockList lockList) throws
       InvalidPathException {
     while (true) {

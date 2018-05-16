@@ -12,6 +12,8 @@ alluxio.user.block.worker.client.pool.gc.threshold:
   'A block worker client is closed if it has been idle for more than this threshold.'
 alluxio.user.block.worker.client.pool.size.max:
   'The maximum number of block worker clients cached in the block worker client pool.'
+alluxio.user.block.worker.client.read.retry:
+  'The maximum number of workers to retry before the client gives up on  reading a block'
 alluxio.user.block.worker.client.threads:
   'The number of threads used by a block worker client pool for heartbeating to a worker. Increase this value if worker failures affect client connections to healthy workers.'
 alluxio.user.date.format.pattern:
@@ -84,6 +86,8 @@ alluxio.user.network.netty.writer.packet.size.bytes:
   'When a client writes to a remote worker, the maximum packet size.'
 alluxio.user.rpc.retry.base.sleep:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the base time in the exponential backoff.'
+alluxio.user.rpc.retry.max.duration:
+  'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum duration to retry for before giving up.'
 alluxio.user.rpc.retry.max.num.retry:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum number of retries.'
 alluxio.user.rpc.retry.max.sleep:
@@ -93,7 +97,7 @@ alluxio.user.short.circuit.enabled:
 alluxio.user.ufs.block.read.concurrency.max:
   'The maximum concurrent readers for one UFS block on one Block Worker.'
 alluxio.user.ufs.block.read.location.policy:
-  'The policy block workers follow for reading UFS blocks.'
+  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Builtin choices: [<a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.file.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstPolicy.html">alluxio.client.file.policy.LocalFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/MostAvailableFirstPolicy.html">alluxio.client.file.policy.MostAvailableFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/RoundRobinPolicy.html">alluxio.client.file.policy.RoundRobinPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/SpecificHostPolicy.html">alluxio.client.file.policy.SpecificHostPolicy</a>].'
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
   'When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.'
 alluxio.user.ufs.delegation.read.buffer.size.bytes:

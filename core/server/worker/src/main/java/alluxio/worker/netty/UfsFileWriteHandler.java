@@ -24,6 +24,8 @@ import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -47,6 +49,7 @@ import javax.annotation.concurrent.NotThreadSafe;
         + "see more description in https://sourceforge.net/p/findbugs/bugs/1242/")
 @NotThreadSafe
 public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWriteRequestContext> {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsFileWriteHandler.class);
   private final UfsManager mUfsManager;
 
   /**
@@ -111,7 +114,21 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       }
       Preconditions.checkState(context.getOutputStream() != null);
       context.getOutputStream().close();
+      CreateOptions createOptions = context.getCreateOptions();
+      if (createOptions != null) {
+        try {
+          // Set the owner/group of the file to the correct owner.
+          context.getUfsResource().get()
+              .setOwner(context.getRequest().getUfsPath(), createOptions.getOwner(),
+                  createOptions.getGroup());
+        } catch (IOException e) {
+          LOG.warn("Failed to update ownership for ufs path: {} owner: {} group: {} error: {}",
+              context.getRequest().getUfsPath(), createOptions.getOwner(), createOptions.getGroup(),
+              e.toString());
+        }
+      }
       context.setOutputStream(null);
+      context.setCreateOptions(null);
       context.getUfsResource().close();
     }
 
@@ -126,6 +143,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
         context.getOutputStream().close();
         context.getUfsResource().get().deleteFile(request.getUfsPath());
         context.setOutputStream(null);
+        context.setCreateOptions(null);
         context.getUfsResource().close();
       }
     }
@@ -155,10 +173,12 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource();
       context.setUfsResource(ufsResource);
       UnderFileSystem ufs = ufsResource.get();
-      context.setOutputStream(ufs.create(request.getUfsPath(),
+      CreateOptions createOptions =
           CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
               .setGroup(createUfsFileOptions.getGroup())
-              .setMode(new Mode((short) createUfsFileOptions.getMode()))));
+              .setMode(new Mode((short) createUfsFileOptions.getMode()));
+      context.setOutputStream(ufs.create(request.getUfsPath(), createOptions));
+      context.setCreateOptions(createOptions);
       String ufsString = MetricsSystem.escape(ufsClient.getUfsMountPointUri());
       String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsString);
       Counter counter = MetricsSystem.workerCounter(metricName);

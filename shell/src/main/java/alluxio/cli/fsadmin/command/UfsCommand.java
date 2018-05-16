@@ -12,11 +12,11 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.AlluxioURI;
-import alluxio.cli.AbstractCommand;
+import alluxio.cli.Command;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.master.MasterClientConfig;
 import alluxio.underfs.UnderFileSystem;
@@ -34,7 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Update attributes for an existing mount point.
  */
 @ThreadSafe
-public final class UfsCommand extends AbstractCommand {
+public final class UfsCommand implements Command {
   private FileSystemMasterClient mMasterClient;
   private static final Option MODE_OPTION =
       Option.builder()
@@ -57,8 +57,8 @@ public final class UfsCommand extends AbstractCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override
@@ -108,13 +108,5 @@ public final class UfsCommand extends AbstractCommand {
   @Override
   public String getDescription() {
     return "Update attributes for a ufs path.";
-  }
-
-  @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length != 1) {
-      throw new InvalidArgumentException(
-          ExceptionMessage.INVALID_ARGS_GENERIC.getMessage(getCommandName()));
-    }
   }
 }

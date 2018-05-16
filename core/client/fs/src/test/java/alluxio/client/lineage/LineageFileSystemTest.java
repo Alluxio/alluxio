@@ -11,6 +11,10 @@
 
 package alluxio.client.lineage;
 
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
@@ -27,7 +31,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -54,13 +58,13 @@ public final class LineageFileSystemTest {
     mLineageContext = PowerMockito.mock(LineageContext.class);
 
     FileSystemContext fileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
+    when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
 
     FileSystemMasterClient
         fileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    Mockito.when(fileSystemContext.acquireMasterClient()).thenReturn(fileSystemMasterClient);
-    Mockito.when(fileSystemMasterClient
-        .getStatus(Mockito.any(AlluxioURI.class), Mockito.any(GetStatusOptions.class)))
+    when(fileSystemContext.acquireMasterClient()).thenReturn(fileSystemMasterClient);
+    when(fileSystemMasterClient
+        .getStatus(any(AlluxioURI.class), any(GetStatusOptions.class)))
         .thenReturn(new URIStatus(new FileInfo()));
 
     mAlluxioLineageFileSystem = LineageFileSystem.get(fileSystemContext, mLineageContext);
@@ -72,7 +76,7 @@ public final class LineageFileSystemTest {
   @Test
   public void getLineageOutStream() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
-    Mockito.when(
+    when(
         mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0, TtlAction.FREE))
         .thenReturn(1L);
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE)
@@ -80,7 +84,7 @@ public final class LineageFileSystemTest {
     FileOutStream outStream = mAlluxioLineageFileSystem.createFile(path, options);
     Assert.assertTrue(outStream instanceof LineageFileOutStream);
     // verify client is released
-    Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
+    verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
 
   /**
@@ -89,7 +93,7 @@ public final class LineageFileSystemTest {
   @Test
   public void getDummyOutStream() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
-    Mockito.when(
+    when(
         mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0, TtlAction.DELETE))
         .thenReturn(-1L);
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE)
@@ -97,7 +101,7 @@ public final class LineageFileSystemTest {
     FileOutStream outStream = mAlluxioLineageFileSystem.createFile(path, options);
     Assert.assertTrue(outStream instanceof DummyFileOutputStream);
     // verify client is released
-    Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
+    verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
 
   /**
@@ -106,8 +110,7 @@ public final class LineageFileSystemTest {
   @Test
   public void getNonLineageStream() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
-    Mockito
-        .when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0,
+    when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0,
             TtlAction.DELETE))
         .thenThrow(new NotFoundException("lineage does not exist"));
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE)
@@ -117,7 +120,7 @@ public final class LineageFileSystemTest {
     Assert.assertFalse(outStream instanceof LineageFileOutStream);
     Assert.assertFalse(outStream instanceof DummyFileOutputStream);
     // verify client is released
-    Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
+    verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
 
   /**
@@ -127,8 +130,8 @@ public final class LineageFileSystemTest {
   public void reportLostFile() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
     mAlluxioLineageFileSystem.reportLostFile(path);
-    Mockito.verify(mLineageMasterClient).reportLostFile("test");
+    verify(mLineageMasterClient).reportLostFile("test");
     // verify client is released
-    Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
+    verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
 }

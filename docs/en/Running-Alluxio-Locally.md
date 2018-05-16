@@ -13,9 +13,7 @@ priority: 1
 
 The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 8 or above) installed.
 
-Download the binary distribution of Alluxio {{site.ALLUXIO_RELEASED_VERSION}}:
-
-{% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
+[Download](https://alluxio.org/download) the binary distribution of Alluxio {{site.ALLUXIO_RELEASED_VERSION}}
 
 To run in standalone mode, do the following:
 

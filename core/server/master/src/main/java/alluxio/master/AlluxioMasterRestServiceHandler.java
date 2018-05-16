@@ -27,9 +27,7 @@ import alluxio.util.LogUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
-import alluxio.wire.LogInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -41,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -63,6 +60,7 @@ import javax.ws.rs.core.Response;
 @Path(AlluxioMasterRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioMasterRestServiceHandler {
+
   public static final String SERVICE_PREFIX = "master";
 
   // endpoints
@@ -164,12 +162,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   @Deprecated
   public Response getConfiguration() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, String>>() {
-      @Override
-      public Map<String, String> call() throws Exception {
-        return getConfigurationInternal(true);
-      }
-    });
+    return RestUtils.call(() -> getConfigurationInternal(true));
   }
 
   /**
@@ -183,12 +176,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getMetrics() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
-      @Override
-      public Map<String, Long> call() throws Exception {
-        return getMetricsInternal();
-      }
-    });
+    return RestUtils.call(() -> getMetricsInternal());
   }
 
   /**
@@ -202,12 +190,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return mMasterProcess.getRpcAddress().toString();
-      }
-    });
+    return RestUtils.call(() -> mMasterProcess.getRpcAddress().toString());
   }
 
   /**
@@ -240,12 +223,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mMasterProcess.getUptimeMs();
-      }
-    });
+    return RestUtils.call(() -> mMasterProcess.getUptimeMs());
   }
 
   /**
@@ -259,12 +237,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return RuntimeConstants.VERSION;
-      }
-    });
+    return RestUtils.call(() -> RuntimeConstants.VERSION);
   }
 
   /**
@@ -278,12 +251,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getCapacityBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mBlockMaster.getCapacityBytes();
-      }
-    });
+    return RestUtils.call(() -> mBlockMaster.getCapacityBytes());
   }
 
   /**
@@ -297,12 +265,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUsedBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mBlockMaster.getUsedBytes();
-      }
-    });
+    return RestUtils.call(() -> mBlockMaster.getUsedBytes());
   }
 
   /**
@@ -316,12 +279,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getFreeBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes();
-      }
-    });
+    return RestUtils.call(() -> mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes());
   }
 
   /**
@@ -335,12 +293,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsCapacityBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL);
-      }
-    });
+    return RestUtils.call(() -> mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED));
   }
 
   /**
@@ -354,12 +307,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsUsedBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED);
-      }
-    });
+    return RestUtils.call(() -> mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED));
   }
 
   /**
@@ -373,12 +321,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsFreeBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_FREE);
-      }
-    });
+    return RestUtils.call(() -> mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_FREE));
   }
 
   private Comparator<String> getTierAliasComparator() {
@@ -412,15 +355,12 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getCapacityBytesOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
-      @Override
-      public Map<String, Long> call() throws Exception {
-        SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
-        for (Map.Entry<String, Long> tierBytes : mBlockMaster.getTotalBytesOnTiers().entrySet()) {
-          capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
-        }
-        return capacityBytesOnTiers;
+    return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
+      SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
+      for (Map.Entry<String, Long> tierBytes : mBlockMaster.getTotalBytesOnTiers().entrySet()) {
+        capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
       }
+      return capacityBytesOnTiers;
     });
   }
 
@@ -436,15 +376,12 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getUsedBytesOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
-      @Override
-      public Map<String, Long> call() throws Exception {
-        SortedMap<String, Long> usedBytesOnTiers = new TreeMap<>(getTierAliasComparator());
-        for (Map.Entry<String, Long> tierBytes : mBlockMaster.getUsedBytesOnTiers().entrySet()) {
-          usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
-        }
-        return usedBytesOnTiers;
+    return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
+      SortedMap<String, Long> usedBytesOnTiers = new TreeMap<>(getTierAliasComparator());
+      for (Map.Entry<String, Long> tierBytes : mBlockMaster.getUsedBytesOnTiers().entrySet()) {
+        usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
       }
+      return usedBytesOnTiers;
     });
   }
 
@@ -459,12 +396,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Integer")
   @Deprecated
   public Response getWorkerCount() {
-    return RestUtils.call(new RestUtils.RestCallable<Integer>() {
-      @Override
-      public Integer call() throws Exception {
-        return mBlockMaster.getWorkerCount();
-      }
-    });
+    return RestUtils.call(()->mBlockMaster.getWorkerCount());
   }
 
   /**
@@ -478,12 +410,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.List<alluxio.wire.WorkerInfo>")
   @Deprecated
   public Response getWorkerInfoList() {
-    return RestUtils.call(new RestUtils.RestCallable<List<WorkerInfo>>() {
-      @Override
-      public List<WorkerInfo> call() throws Exception {
-        return mBlockMaster.getWorkerInfoList();
-      }
-    });
+    return RestUtils.call(()-> mBlockMaster.getWorkerInfoList());
   }
 
   private Capacity getCapacityInternal() {
@@ -492,19 +419,11 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    Set<Map.Entry<String, String>> properties = Configuration.toMap().entrySet();
-    SortedMap<String, String> configuration = new TreeMap<>();
-    for (Map.Entry<String, String> entry : properties) {
-      String key = entry.getKey();
-      if (PropertyKey.isValid(key)) {
-        if (raw) {
-          configuration.put(key, entry.getValue());
-        } else {
-          configuration.put(key, Configuration.get(PropertyKey.fromString(key)));
-        }
-      }
+    if (raw) {
+      return new TreeMap<>(Configuration.toRawMap());
+    } else {
+      return new TreeMap<>(Configuration.toMap());
     }
-    return configuration;
   }
 
   private Map<String, Long> getMetricsInternal() {
@@ -574,11 +493,6 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.LogInfo")
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName, @QueryParam
       (LOG_ARGUMENT_LEVEL) final String level) {
-    return RestUtils.call(new RestUtils.RestCallable<LogInfo>() {
-      @Override
-      public LogInfo call() throws Exception {
-        return LogUtils.setLogLevel(logName, level);
-      }
-    });
+    return RestUtils.call(() -> LogUtils.setLogLevel(logName, level));
   }
 }

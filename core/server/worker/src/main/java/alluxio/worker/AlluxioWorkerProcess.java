@@ -18,7 +18,9 @@ import alluxio.RuntimeConstants;
 import alluxio.ServiceUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.ChannelType;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
@@ -26,6 +28,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.WebServer;
@@ -52,6 +55,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -76,6 +80,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private boolean mIsServingRPC = false;
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
+  private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
+      MetricsSystem.METRIC_REGISTRY);
 
   /** The worker registry. */
   private WorkerRegistry mRegistry;
@@ -141,8 +147,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // Setup Thrift server
       mTransportProvider = TransportProvider.Factory.create();
       mThriftServerSocket = createThriftServerSocket();
-      int rpcPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
-      String rpcHost = NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getInetAddress()
+      int rpcPort = ThriftUtils.getThriftPort(mThriftServerSocket);
+      String rpcHost = ThriftUtils.getThriftSocket(mThriftServerSocket).getInetAddress()
           .getHostAddress();
       mRpcAddress = new InetSocketAddress(rpcHost, rpcPort);
       mThriftServer = createThriftServer();
@@ -151,9 +157,14 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mDataServer = DataServer.Factory
           .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
 
+      // Setup domain socket data server
       if (isDomainSocketEnabled()) {
         String domainSocketPath =
             Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+        if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
+          domainSocketPath =
+              PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
+        }
         LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
         mDomainSocketDataServer =
             DataServer.Factory.create(new DomainSocketAddress(domainSocketPath), this);
@@ -233,6 +244,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     // Start serving the web server, this will not block.
     mWebServer.addHandler(mMetricsServlet.getHandler());
+    mWebServer.addHandler(mPMetricsServlet.getHandler());
     mWebServer.start();
 
     // Start monitor jvm

@@ -39,8 +39,8 @@ Optional arguments:
 PERMISSION_DENIED_MESSAGE="
 Create folder failed because of Alluxio permission denied.
 
-Please use \"<ALLUXIO_HOME>/bin/alluxio mkdir /alluxioTestFolder\" to create the test folder
-and use \"<ALLUXIO_HOME>/bin/alluxio chmod 777 /alluxioTestFolder\" to change the folder permission.
+Please use \"<ALLUXIO_HOME>/bin/alluxio fs mkdir /alluxioTestFolder\" to create the test folder
+and use \"<ALLUXIO_HOME>/bin/alluxio fs chmod 777 /alluxioTestFolder\" to change the folder permission.
 
 Please rerun the Hive integration checker."
 

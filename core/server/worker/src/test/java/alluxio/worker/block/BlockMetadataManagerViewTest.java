@@ -15,6 +15,8 @@ import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -30,7 +32,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.Collections;
@@ -64,7 +65,7 @@ public final class BlockMetadataManagerViewTest {
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mMetaManagerView = Mockito.spy(new BlockMetadataManagerView(mMetaManager,
+    mMetaManagerView = spy(new BlockMetadataManagerView(mMetaManager,
         new HashSet<Long>(), new HashSet<Long>()));
   }
 
@@ -163,20 +164,20 @@ public final class BlockMetadataManagerViewTest {
     assertTrue(mMetaManagerView.isBlockEvictable(TEST_BLOCK_ID));
 
     // Lock this block, expect null result
-    Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
-    Mockito.when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(true);
+    when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
+    when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(true);
     assertNull(mMetaManagerView.getBlockMeta(TEST_BLOCK_ID));
     assertFalse(mMetaManagerView.isBlockEvictable(TEST_BLOCK_ID));
 
     // Pin this block, expect null result
-    Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(true);
-    Mockito.when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
+    when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(true);
+    when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
     assertNull(mMetaManagerView.getBlockMeta(TEST_BLOCK_ID));
     assertFalse(mMetaManagerView.isBlockEvictable(TEST_BLOCK_ID));
 
     // No Pin or lock on this block, expect block meta found
-    Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
-    Mockito.when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
+    when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
+    when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
     assertEquals(blockMeta, mMetaManagerView.getBlockMeta(TEST_BLOCK_ID));
     assertTrue(mMetaManagerView.isBlockEvictable(TEST_BLOCK_ID));
   }

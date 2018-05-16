@@ -298,6 +298,15 @@ public final class MetricsSystem {
   }
 
   /**
+   * Resets the metric registry and removes all the metrics.
+   */
+  public static void clearAllMetrics() {
+    for (String name : METRIC_REGISTRY.getNames()) {
+      METRIC_REGISTRY.remove(name);
+    }
+  }
+
+  /**
    * Disallows any explicit initialization.
    */
   private MetricsSystem() {

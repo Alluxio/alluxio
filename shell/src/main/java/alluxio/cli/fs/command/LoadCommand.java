@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.cli.CommandUtils;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -21,7 +22,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.io.Closer;
@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Loads a file or directory in Alluxio space, making it resident in Alluxio.
  */
 @ThreadSafe
-public final class LoadCommand extends WithWildCardPathCommand {
+public final class LoadCommand extends AbstractFileSystemCommand {
   private static final Option LOCAL_OPTION =
       Option.builder()
           .longOpt("local")
@@ -68,8 +68,18 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    load(path, cl.hasOption(LOCAL_OPTION.getLongOpt()));
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    load(plainPath, cl.hasOption(LOCAL_OPTION.getLongOpt()));
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path, cl);
+
+    return 0;
   }
 
   /**
@@ -126,10 +136,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length < 1) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-          .getMessage(getCommandName(), 1, args.length));
-    }
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 }

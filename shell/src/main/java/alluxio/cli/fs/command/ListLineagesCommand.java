@@ -11,9 +11,11 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
 import alluxio.client.lineage.LineageContext;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.LineageInfo;
 
 import org.apache.commons.cli.CommandLine;
@@ -44,8 +46,8 @@ public final class ListLineagesCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 0;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 0);
   }
 
   @Override

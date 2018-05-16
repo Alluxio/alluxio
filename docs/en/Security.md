@@ -57,7 +57,7 @@ This mode is currently experimental and should only be used in tests.
 
 ## Authorization
 
-Alluxio file system implements a permissions model for directories and files similar as the POSIX
+Alluxio file system implements a permissions model for directories and files similar to the POSIX
  permission model.
 
 Each file and directory is associated with:
@@ -67,7 +67,7 @@ Each file and directory is associated with:
 mapping](#user-group-mapping).
 3. permissions
 
-The permissions has three parts:
+The permissions have three parts:
 
 1. owner permission defines the access privileges of the file owner
 2. group permission defines the access privileges of the owning group
@@ -124,6 +124,48 @@ The owner, group, and permissions can be changed by two ways:
 
 The owner can only be changed by super user.
 The group and permission can only be changed by super user and file owner.
+
+## Impersonation
+Alluxio supports user impersonation in order for a user to access Alluxio on the behalf of another user.
+This can be useful if an Alluxio client is part of a service which provides access to Alluxio for many
+different users. In this scenario, the Alluxio client can be configured to connect to Alluxio servers
+with a particular user (the connection user), but act on behalf of other users (impersonation users).
+In order to configure Alluxio for impersonation, client and master configuration are required.
+
+### Master Configuration
+In order to enable a particular user to impersonate other users, the Alluxio master must be configured
+to allow that ability. 
+The master configuration properties are: `alluxio.master.security.impersonation.<USERNAME>.users` and
+`alluxio.master.security.impersonation.<USERNAME>.groups`.
+
+For `alluxio.master.security.impersonation.<USERNAME>.users`, you can specify the comma-separated list
+of users that the `<USERNAME>` is allowed to impersonate. The wildcard `*` can be used to indicate that
+the user can impersonate any other user. Here are some examples.
+
+- `alluxio.master.security.impersonation.alluxio_user.users=user1,user2`
+    - This means the Alluxio user `alluxio_user` is allowed to impersonate the users `user1` and `user2`.
+- `alluxio.master.security.impersonation.client.users=*`
+    - This means the Alluxio user `client` is allowed to impersonate any user.
+
+For `alluxio.master.security.impersonation.<USERNAME>.users`, you can specify the comma-separated groups
+of users that the `<USERNAME>` is allowed to impersonate. The wildcard `*` can be used to indicate that
+the user can impersonate any other user. Here are some examples.
+
+- `alluxio.master.security.impersonation.alluxio_user.groups=group1,group2`
+    - This means the Alluxio user `alluxio_user` is allowed to impersonate any users from groups `group1` and `group2`.
+- `alluxio.master.security.impersonation.client.groups=*`
+    - This means the Alluxio user `client` is allowed to impersonate any user.
+
+In order to enable impersonation for some user `alluxio_user`, at least 1 of
+`alluxio.master.security.impersonation.<USERNAME>.users` and `alluxio.master.security.impersonation.<USERNAME>.groups`
+must be set (replace `<USERNAME>` with `alluxio_user`). Both parameters are allowed to be set for the same user.
+
+### Client Configuration
+If the master enables impersonation for particular users, the client must also be configured to
+impersonate other users. This is configured with the parameter: `alluxio.security.login.impersonation.username` .
+This informs the Alluxio client to connect as usual, but impersonate as a different user. If the
+Hadoop compatible Alluxio client is used, a special value of `_HDFS_USER_` can be specified to informed
+the Alluxio client to impersonate the same user as the HDFS client.
 
 ## Auditing
 Alluxio supports audit logging to allow system administrators to track users' access to file metadata.
@@ -182,6 +224,6 @@ disk encryption.
 ## Deployment
 
 It is recommended to start Alluxio master and workers by one same user. Alluxio cluster service
-composes of master and workers. Every worker needs to RPC with master for some file operations.
+composes of master and workers. Every worker needs to communicate with the master via RPC to perform some file operations.
 If the user of a worker is not the same as the master's, the file operations may fail because of
 permission check.

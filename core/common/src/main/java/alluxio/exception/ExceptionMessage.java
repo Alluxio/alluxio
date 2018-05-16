@@ -118,7 +118,11 @@ public enum ExceptionMessage {
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
+  DELETE_FAILED_DIR_NONEMPTY("Directory not empty"),
   DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
+  DELETE_FAILED_UFS_DIR("UFS delete dir failed"),
+  DELETE_FAILED_UFS_FILE("UFS delete file failed"),
+  DELETE_FAILED_UFS_NOT_IN_SYNC("UFS dir not in sync. Sync UFS, or delete with unchecked flag."),
   DELETE_FAILED_DIRECTORY_NOT_IN_SYNC(
       "Cannot delete {0} because the UFS has contents not loaded into Alluxio. Sync Alluxio with "
           + "UFS or run delete with unchecked flag to forcibly delete"),
@@ -173,6 +177,7 @@ public enum ExceptionMessage {
   INVALID_ARGS_NULL("Null args for command {0}"),
   INVALID_ARGS_NUM("Command {0} takes {1} arguments, not {2}"),
   INVALID_ARGS_NUM_INSUFFICIENT("Command {0} requires at least {1} arguments ({2} provided)"),
+  INVALID_ARGS_NUM_TOO_MANY("Command {0} requires at most {1} arguments ({2} provided)"),
   INVALID_ARGS_SORT_FIELD("Invalid sort option ‘{0}’ for --sort"),
 
   // extension shell
@@ -214,6 +219,10 @@ public enum ExceptionMessage {
   // security
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
+  IMPERSONATION_NOT_CONFIGURED(
+      "User {0} is not configured for any impersonation. impersonationUser: {1}"),
+  IMPERSONATION_GROUPS_FAILED("Failed to get groups for impersonationUser {0}. user: {1}"),
+  IMPERSONATION_DENIED("User {0} is not configured to impersonate {1}"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   INVALID_MODE("Invalid mode {0}"),
   INVALID_MODE_SEGMENT("Invalid mode {0} - contains invalid segment {1}"),

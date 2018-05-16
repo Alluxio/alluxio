@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package cmd
 
 import (
@@ -22,9 +33,9 @@ var (
 		Runner: cmdline.RunnerFunc(single),
 	}
 
-	hadoopDistributionFlag  string
-	targetFlag              string
-	mvnArgsFlag             string
+	hadoopDistributionFlag string
+	targetFlag             string
+	mvnArgsFlag            string
 
 	webappDir = "core/server/common/src/main/webapp"
 	webappWar = "assembly/webapp.war"
@@ -95,7 +106,7 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 }
 
 func includeYarnIntegration(hadoopVersion version) bool {
-	return hadoopVersion.major >= 2 && hadoopVersion.minor >= 4;
+	return hadoopVersion.major >= 2 && hadoopVersion.minor >= 4
 }
 
 func getVersion() (string, error) {
@@ -130,6 +141,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/bin/alluxio-master.sh",
 		"integration/docker/bin/alluxio-proxy.sh",
 		"integration/docker/bin/alluxio-worker.sh",
+		"integration/docker/conf/alluxio-site.properties.template",
+		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/fuse/bin/alluxio-fuse",
 		"integration/kubernetes/alluxio-journal-volume.yaml.template",
 		"integration/kubernetes/alluxio-master.yaml.template",
@@ -162,7 +175,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	}
 	for _, path := range pathsToCopy {
 		mkdir(filepath.Join(dstPath, filepath.Dir(path)))
-		run(fmt.Sprintf("adding %v", path), "mv", path, filepath.Join(dstPath, path))
+		run(fmt.Sprintf("adding %v", path), "cp", path, filepath.Join(dstPath, path))
 	}
 
 	// Create empty directories for default UFS and Docker integration.

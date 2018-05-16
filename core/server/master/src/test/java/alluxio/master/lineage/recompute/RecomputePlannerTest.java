@@ -12,6 +12,8 @@
 package alluxio.master.lineage.recompute;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
@@ -25,7 +27,6 @@ import alluxio.master.lineage.meta.LineageStore;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 
@@ -45,8 +46,8 @@ public final class RecomputePlannerTest {
   public void before() {
     mLineageStore = new LineageStore(new LineageIdGenerator());
     mJob = new CommandLineJob("test", new JobConf("output"));
-    mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
-    Mockito.when(mFileSystemMaster.getFileSystemMasterView())
+    mFileSystemMaster = mock(FileSystemMaster.class);
+    when(mFileSystemMaster.getFileSystemMasterView())
         .thenReturn(new FileSystemMasterView(mFileSystemMaster));
     mPlanner = new RecomputePlanner(mLineageStore, mFileSystemMaster);
   }
@@ -58,9 +59,9 @@ public final class RecomputePlannerTest {
   public void oneLineage() throws Exception {
     long l1 = mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
     mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
-    Mockito.when(mFileSystemMaster.getPersistenceState(1L))
+    when(mFileSystemMaster.getPersistenceState(1L))
         .thenReturn(PersistenceState.NOT_PERSISTED);
-    Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L));
+    when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L));
     RecomputePlan plan = mPlanner.plan();
     assertEquals(1, plan.getLineageToRecompute().size());
     assertEquals(l1, plan.getLineageToRecompute().get(0).getId());
@@ -73,11 +74,11 @@ public final class RecomputePlannerTest {
   public void twoLostLineages() throws Exception {
     long l1 = mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
-    Mockito.when(mFileSystemMaster.getPersistenceState(1L))
+    when(mFileSystemMaster.getPersistenceState(1L))
         .thenReturn(PersistenceState.NOT_PERSISTED);
-    Mockito.when(mFileSystemMaster.getPersistenceState(2L))
+    when(mFileSystemMaster.getPersistenceState(2L))
         .thenReturn(PersistenceState.NOT_PERSISTED);
-    Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L, 2L));
+    when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L, 2L));
     RecomputePlan plan = mPlanner.plan();
     assertEquals(2, plan.getLineageToRecompute().size());
     assertEquals(l1, plan.getLineageToRecompute().get(0).getId());
@@ -90,9 +91,9 @@ public final class RecomputePlannerTest {
   @Test
   public void oneCheckointedLineage() throws Exception {
     mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
-    Mockito.when(mFileSystemMaster.getPersistenceState(1L))
+    when(mFileSystemMaster.getPersistenceState(1L))
         .thenReturn(PersistenceState.PERSISTED);
-    Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L));
+    when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L));
     RecomputePlan plan = mPlanner.plan();
     assertEquals(0, plan.getLineageToRecompute().size());
   }
@@ -104,11 +105,11 @@ public final class RecomputePlannerTest {
   public void oneLostLineage() throws Exception {
     mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
-    Mockito.when(mFileSystemMaster.getPersistenceState(1L))
+    when(mFileSystemMaster.getPersistenceState(1L))
         .thenReturn(PersistenceState.NOT_PERSISTED);
-    Mockito.when(mFileSystemMaster.getPersistenceState(2L))
+    when(mFileSystemMaster.getPersistenceState(2L))
         .thenReturn(PersistenceState.NOT_PERSISTED);
-    Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(2L));
+    when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(2L));
     RecomputePlan plan = mPlanner.plan();
     assertEquals(1, plan.getLineageToRecompute().size());
     assertEquals(l2, plan.getLineageToRecompute().get(0).getId());

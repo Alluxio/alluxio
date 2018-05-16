@@ -13,12 +13,14 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
@@ -34,7 +36,12 @@ import javax.annotation.concurrent.ThreadSafe;
  * Prints the file's last n bytes (by default, 1KB) to the console.
  */
 @ThreadSafe
-public final class TailCommand extends WithWildCardPathCommand {
+public final class TailCommand extends AbstractFileSystemCommand {
+  private static final Option BYTES_OPTION = Option.builder("c")
+      .required(false)
+      .numberOfArgs(1)
+      .desc("number of bytes (e.g., 1024, 4KB)")
+      .build();
 
   /**
    * @param fs the filesystem of Alluxio
@@ -49,7 +56,8 @@ public final class TailCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
     int numOfBytes = Constants.KB;
     if (cl.hasOption('c')) {
@@ -78,8 +86,16 @@ public final class TailCommand extends WithWildCardPathCommand {
   }
 
   @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path, cl);
+    return 0;
+  }
+
+  @Override
   public String getUsage() {
-    return "tail -c <number of bytes> <path>";
+    return "tail [-c <bytes>] <path>";
   }
 
   @Override
@@ -88,9 +104,12 @@ public final class TailCommand extends WithWildCardPathCommand {
   }
 
   @Override
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
+  }
+
+  @Override
   public Options getOptions() {
-    Option bytesOption =
-        Option.builder("c").required(false).numberOfArgs(1).desc("user specified option").build();
-    return new Options().addOption(bytesOption);
+    return new Options().addOption(BYTES_OPTION);
   }
 }

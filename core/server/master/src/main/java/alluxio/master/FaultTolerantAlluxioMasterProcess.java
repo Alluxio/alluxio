@@ -14,7 +14,6 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.master.PrimarySelector.State;
-import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.util.CommonUtils;
@@ -70,50 +69,47 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
 
     while (!Thread.interrupted()) {
-      if (mServingThread == null) {
-        // We are in secondary mode. Nothing to do until we become the primary.
-        mLeaderSelector.waitForState(State.PRIMARY);
-        LOG.info("Transitioning from secondary to primary");
-        AbstractJournalSystem.ALLOW_JOURNAL_MODIFY.set(true);
-        mJournalSystem.setMode(Mode.PRIMARY);
-        stopMasters();
-        LOG.info("Secondary stopped");
-        startMasters(true);
-        mServingThread = new Thread(() -> {
-          try {
-            startServing(" (gained leadership)", " (lost leadership)");
-          } catch (Throwable t) {
-            Throwable root = ExceptionUtils.getRootCause(t);
-            if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
-              return;
-            }
-            LOG.error("Exception thrown in main serving thread. System exiting.", t);
-            System.exit(-1);
+      startMasters(false);
+      LOG.info("Secondary started");
+      mLeaderSelector.waitForState(State.PRIMARY);
+      mJournalSystem.setMode(Mode.PRIMARY);
+      stopMasters();
+      LOG.info("Secondary stopped");
+
+      startMasters(true);
+      mServingThread = new Thread(() -> {
+        try {
+          startServing(" (gained leadership)", " (lost leadership)");
+        } catch (Throwable t) {
+          Throwable root = ExceptionUtils.getRootCause(t);
+          if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
+            return;
           }
-        }, "MasterServingThread");
-        mServingThread.start();
-        LOG.info("Primary started");
-      } else {
-        // We are in primary mode. Nothing to do until we become the secondary.
-        mLeaderSelector.waitForState(State.SECONDARY);
-        LOG.info("Transitioning from primary to secondary");
-        AbstractJournalSystem.ALLOW_JOURNAL_MODIFY.set(false);
-        stopServing();
-        mServingThread.join(mServingThreadTimeoutMs);
-        if (mServingThread.isAlive()) {
-          LOG.error(
-              "Failed to stop serving thread after {}ms. Printing serving thread stack trace "
-                  + "and exiting.\n{}",
-              mServingThreadTimeoutMs, ThreadUtils.formatStackTrace(mServingThread));
+          LOG.error("Exception thrown in main serving thread. System exiting.", t);
           System.exit(-1);
         }
-        mServingThread = null;
-        stopMasters();
-        mJournalSystem.setMode(Mode.SECONDARY);
-        LOG.info("Primary stopped");
-        startMasters(false);
-        LOG.info("Secondary started");
+      }, "MasterServingThread");
+      mServingThread.start();
+      waitForReady();
+      LOG.info("Primary started");
+      mLeaderSelector.waitForState(State.SECONDARY);
+      stopServing();
+      // Put the journal in secondary mode ASAP to avoid interfering with the new primary. This must
+      // happen after stopServing because downgrading the journal system will reset master state,
+      // which could cause NPEs for outstanding RPC threads. We need to first close all client
+      // sockets in stopServing so that clients don't see NPEs.
+      mJournalSystem.setMode(Mode.SECONDARY);
+      mServingThread.join(mServingThreadTimeoutMs);
+      if (mServingThread.isAlive()) {
+        LOG.error(
+            "Failed to stop serving thread after {}ms. Printing serving thread stack trace "
+                + "and exiting.\n{}",
+            mServingThreadTimeoutMs, ThreadUtils.formatStackTrace(mServingThread));
+        System.exit(-1);
       }
+      mServingThread = null;
+      stopMasters();
+      LOG.info("Primary stopped");
     }
   }
 

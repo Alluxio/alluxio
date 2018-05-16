@@ -12,10 +12,10 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.MountPointInfo;
 
@@ -60,8 +60,6 @@ public final class MountCommand extends AbstractFileSystemCommand {
           .valueSeparator('=')
           .desc("options associated with this mount point")
           .build();
-  private static final String LEFT_ALIGN_FORMAT = "%-60s %-3s %-20s (%s, capacity=%d,"
-          + " used bytes=%d, %sread-only, %sshared, ";
 
   /**
    * @param fs the filesystem of Alluxio
@@ -76,11 +74,6 @@ public final class MountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 2;
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
         .addOption(OPTION_OPTION);
@@ -91,16 +84,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     if (args.length == 0) {
       Map<String, MountPointInfo> mountTable = mFileSystem.getMountTable();
-      for (Map.Entry<String, MountPointInfo> entry :
-              mountTable.entrySet()) {
-        String mMountPoint = entry.getKey();
-        MountPointInfo mountPointInfo = entry.getValue();
-        System.out.format(LEFT_ALIGN_FORMAT, mountPointInfo.getUfsUri(), "on", mMountPoint,
-                mountPointInfo.getUfsType(), mountPointInfo.getUfsCapacityBytes(),
-                mountPointInfo.getUfsUsedBytes(), mountPointInfo.getReadOnly() ? "" : "not ",
-                mountPointInfo.getShared() ? "" : "not ");
-        System.out.println("properties=" + mountPointInfo.getProperties() + ")");
-      }
+      UfsCommand.printMountInfo(mountTable);
       return 0;
     }
     AlluxioURI alluxioPath = new AlluxioURI(args[0]);
@@ -133,10 +117,10 @@ public final class MountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length != 2 && args.length != 0) {
-      throw new InvalidArgumentException(
-          ExceptionMessage.INVALID_ARGS_GENERIC.getMessage(getCommandName()));
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    if (cl.getArgs().length != 2 && cl.getArgs().length != 0) {
+      throw new InvalidArgumentException("Command mount takes 0 or 2 arguments, not " + cl
+          .getArgs().length);
     }
   }
 }

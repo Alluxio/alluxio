@@ -11,6 +11,13 @@
 
 package alluxio.worker.block;
 
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.any;
+
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
@@ -33,7 +40,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -78,12 +84,12 @@ public final class UnderFileSystemBlockReaderTest {
     BufferUtils.writeBufferToFile(testFilePath, buffer);
 
     mAlluxioBlockStore = new TieredBlockStore();
-    mUfsManager = Mockito.mock(UfsManager.class);
+    mUfsManager = mock(UfsManager.class);
     mUfsInstreamManager = new UfsInputStreamManager();
     UfsClient ufsClient = new UfsClient(
         Suppliers.ofInstance(UnderFileSystem.Factory.create(testFilePath)),
         new AlluxioURI(testFilePath));
-    Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(ufsClient);
+    when(mUfsManager.get(anyLong())).thenReturn(ufsClient);
 
     mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(10)
         .setBlockSize(TEST_BLOCK_SIZE).setOffsetInFile(TEST_BLOCK_SIZE).setUfsPath(testFilePath)
@@ -166,10 +172,10 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Test
   public void readFullBlockRequestSpaceError() throws Exception {
-    BlockStore errorThrowingBlockStore = Mockito.spy(mAlluxioBlockStore);
-    Mockito.doThrow(new WorkerOutOfSpaceException("Ignored"))
+    BlockStore errorThrowingBlockStore = spy(mAlluxioBlockStore);
+    doThrow(new WorkerOutOfSpaceException("Ignored"))
         .when(errorThrowingBlockStore)
-        .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
+        .requestSpace(anyLong(), anyLong(), anyLong());
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0,
         errorThrowingBlockStore, mUfsManager, mUfsInstreamManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
@@ -180,10 +186,10 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Test
   public void readFullBlockRequestCreateBlockError() throws Exception {
-    BlockStore errorThrowingBlockStore = Mockito.spy(mAlluxioBlockStore);
-    Mockito.doThrow(new WorkerOutOfSpaceException("Ignored")).when(errorThrowingBlockStore)
-        .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(BlockStoreLocation.class),
-            Mockito.anyLong());
+    BlockStore errorThrowingBlockStore = spy(mAlluxioBlockStore);
+    doThrow(new WorkerOutOfSpaceException("Ignored")).when(errorThrowingBlockStore)
+        .createBlock(anyLong(), anyLong(), any(BlockStoreLocation.class),
+            anyLong());
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0,
         errorThrowingBlockStore, mUfsManager, mUfsInstreamManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);

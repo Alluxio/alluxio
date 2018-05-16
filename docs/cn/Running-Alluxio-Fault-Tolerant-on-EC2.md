@@ -24,9 +24,7 @@ priority: 4
 
 **安装Alluxio**
 
-下载Alluxio到本地，并解压：
-
-{% include Common-Commands/download-alluxio.md %}
+下载[Alluxio](https://alluxio.org/download)到本地，并解压。
 
 **安装python库依赖**
 

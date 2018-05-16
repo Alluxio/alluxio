@@ -12,15 +12,15 @@ priority: 2
 ## Running Alluxio with a Single Master
 
 The simplest way to deploy Alluxio on a cluster is to use one master. However, this single master becomes
-the single point of failure (SPOF) in an Alluxio cluster: if that machine or process became unavailable, 
-the cluster as a whole would be unavailable. We highly recommend running Alluxio masters in 
+the single point of failure (SPOF) in an Alluxio cluster: if that machine or process became unavailable,
+the cluster as a whole would be unavailable. We highly recommend running Alluxio masters in
 [High Availability](#running-alluxio-with-high-availability) mode in production.
 
 ### Download Alluxio
 
 To deploy Alluxio in a cluster, first download the Alluxio tar file, and extract it in every node.
-
-{% include Running-Alluxio-on-a-Cluster/download-extract-Alluxio-tar.md %}
+To deploy Alluxio in a cluster, first [download](https://alluxio.org/download) the Alluxio tar file, and
+extract it in every node.
 
 ### Configure Alluxio
 
@@ -65,8 +65,8 @@ log in the directory `alluxio/logs`, or run a sample program:
 ## Running Alluxio with High Availability
 
 High availability in Alluxio is based upon a multi-master approach, where multiple master processes
-are running in the system. One of these processes is elected the leader and is used by all workers 
-and clients as the primary point of contact. The other masters act as standby, and use the shared 
+are running in the system. One of these processes is elected the leader and is used by all workers
+and clients as the primary point of contact. The other masters act as standby, and use the shared
 journal to ensure that they maintain the same file system metadata as the leader. A standby master can
  rapidly take over in the event of the leader failing.
 

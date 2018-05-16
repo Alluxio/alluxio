@@ -208,6 +208,13 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
              alluxio worker)
 ```
 
+By default, short-circuit operations between the Alluxio client and worker are enabled if the client
+hostname matches the worker hostname. This may not be true if the client is running as part of a container
+with virtual networking. In such a scenario, when starting the workers, set the following properties to
+use filesystem inspection instead: `ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain`
+and `ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true`. Short-circuit writes are then enabled if
+the worker UUID is located on the client filesystem.
+
 # FUSE
 
 To use FUSE, you need to build a docker image with FUSE enabled:

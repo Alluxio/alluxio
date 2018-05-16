@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -31,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Prints the file's contents to the console.
  */
 @ThreadSafe
-public final class CatCommand extends WithWildCardPathCommand {
+public final class CatCommand extends AbstractFileSystemCommand {
 
   /**
    * @param fs the filesystem of Alluxio
@@ -46,7 +47,8 @@ public final class CatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
 
     if (status.isFolder()) {
@@ -74,10 +76,15 @@ public final class CatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length < 1) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-          .getMessage(getCommandName(), 1, args.length));
-    }
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+  }
+
+  @Override
+  public int run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
+    runWildCardCmd(new AlluxioURI(args[0]), cl);
+
+    return 0;
   }
 }

@@ -45,6 +45,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   private static final org.apache.thrift.protocol.TField UP_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("upTimeMs", org.apache.thrift.protocol.TType.I64, (short)5);
   private static final org.apache.thrift.protocol.TField VERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("version", org.apache.thrift.protocol.TType.STRING, (short)6);
   private static final org.apache.thrift.protocol.TField WEB_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("webPort", org.apache.thrift.protocol.TType.I32, (short)7);
+  private static final org.apache.thrift.protocol.TField ZOOKEEPER_ADDRESSES_FIELD_DESC = new org.apache.thrift.protocol.TField("zookeeperAddresses", org.apache.thrift.protocol.TType.LIST, (short)8);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -59,6 +60,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   private long upTimeMs; // required
   private String version; // required
   private int webPort; // required
+  private List<String> zookeeperAddresses; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -68,7 +70,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     START_TIME_MS((short)4, "startTimeMs"),
     UP_TIME_MS((short)5, "upTimeMs"),
     VERSION((short)6, "version"),
-    WEB_PORT((short)7, "webPort");
+    WEB_PORT((short)7, "webPort"),
+    ZOOKEEPER_ADDRESSES((short)8, "zookeeperAddresses");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -97,6 +100,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
           return VERSION;
         case 7: // WEB_PORT
           return WEB_PORT;
+        case 8: // ZOOKEEPER_ADDRESSES
+          return ZOOKEEPER_ADDRESSES;
         default:
           return null;
       }
@@ -160,6 +165,9 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.WEB_PORT, new org.apache.thrift.meta_data.FieldMetaData("webPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.ZOOKEEPER_ADDRESSES, new org.apache.thrift.meta_data.FieldMetaData("zookeeperAddresses", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(MasterInfo.class, metaDataMap);
   }
@@ -174,7 +182,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     long startTimeMs,
     long upTimeMs,
     String version,
-    int webPort)
+    int webPort,
+    List<String> zookeeperAddresses)
   {
     this();
     this.masterAddress = masterAddress;
@@ -189,6 +198,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     this.version = version;
     this.webPort = webPort;
     setWebPortIsSet(true);
+    this.zookeeperAddresses = zookeeperAddresses;
   }
 
   /**
@@ -207,6 +217,10 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       this.version = other.version;
     }
     this.webPort = other.webPort;
+    if (other.isSetZookeeperAddresses()) {
+      List<String> __this__zookeeperAddresses = new ArrayList<String>(other.zookeeperAddresses);
+      this.zookeeperAddresses = __this__zookeeperAddresses;
+    }
   }
 
   public MasterInfo deepCopy() {
@@ -227,6 +241,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     this.version = null;
     setWebPortIsSet(false);
     this.webPort = 0;
+    this.zookeeperAddresses = null;
   }
 
   public String getMasterAddress() {
@@ -392,6 +407,45 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __WEBPORT_ISSET_ID, value);
   }
 
+  public int getZookeeperAddressesSize() {
+    return (this.zookeeperAddresses == null) ? 0 : this.zookeeperAddresses.size();
+  }
+
+  public java.util.Iterator<String> getZookeeperAddressesIterator() {
+    return (this.zookeeperAddresses == null) ? null : this.zookeeperAddresses.iterator();
+  }
+
+  public void addToZookeeperAddresses(String elem) {
+    if (this.zookeeperAddresses == null) {
+      this.zookeeperAddresses = new ArrayList<String>();
+    }
+    this.zookeeperAddresses.add(elem);
+  }
+
+  public List<String> getZookeeperAddresses() {
+    return this.zookeeperAddresses;
+  }
+
+  public MasterInfo setZookeeperAddresses(List<String> zookeeperAddresses) {
+    this.zookeeperAddresses = zookeeperAddresses;
+    return this;
+  }
+
+  public void unsetZookeeperAddresses() {
+    this.zookeeperAddresses = null;
+  }
+
+  /** Returns true if field zookeeperAddresses is set (has been assigned a value) and false otherwise */
+  public boolean isSetZookeeperAddresses() {
+    return this.zookeeperAddresses != null;
+  }
+
+  public void setZookeeperAddressesIsSet(boolean value) {
+    if (!value) {
+      this.zookeeperAddresses = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case MASTER_ADDRESS:
@@ -450,6 +504,14 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       }
       break;
 
+    case ZOOKEEPER_ADDRESSES:
+      if (value == null) {
+        unsetZookeeperAddresses();
+      } else {
+        setZookeeperAddresses((List<String>)value);
+      }
+      break;
+
     }
   }
 
@@ -476,6 +538,9 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     case WEB_PORT:
       return getWebPort();
 
+    case ZOOKEEPER_ADDRESSES:
+      return getZookeeperAddresses();
+
     }
     throw new IllegalStateException();
   }
@@ -501,6 +566,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       return isSetVersion();
     case WEB_PORT:
       return isSetWebPort();
+    case ZOOKEEPER_ADDRESSES:
+      return isSetZookeeperAddresses();
     }
     throw new IllegalStateException();
   }
@@ -581,6 +648,15 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         return false;
     }
 
+    boolean this_present_zookeeperAddresses = true && this.isSetZookeeperAddresses();
+    boolean that_present_zookeeperAddresses = true && that.isSetZookeeperAddresses();
+    if (this_present_zookeeperAddresses || that_present_zookeeperAddresses) {
+      if (!(this_present_zookeeperAddresses && that_present_zookeeperAddresses))
+        return false;
+      if (!this.zookeeperAddresses.equals(that.zookeeperAddresses))
+        return false;
+    }
+
     return true;
   }
 
@@ -622,6 +698,11 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     list.add(present_webPort);
     if (present_webPort)
       list.add(webPort);
+
+    boolean present_zookeeperAddresses = true && (isSetZookeeperAddresses());
+    list.add(present_zookeeperAddresses);
+    if (present_zookeeperAddresses)
+      list.add(zookeeperAddresses);
 
     return list.hashCode();
   }
@@ -704,6 +785,16 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetZookeeperAddresses()).compareTo(other.isSetZookeeperAddresses());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetZookeeperAddresses()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.zookeeperAddresses, other.zookeeperAddresses);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -758,6 +849,14 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     if (!first) sb.append(", ");
     sb.append("webPort:");
     sb.append(this.webPort);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("zookeeperAddresses:");
+    if (this.zookeeperAddresses == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.zookeeperAddresses);
+    }
     first = false;
     sb.append(")");
     return sb.toString();
@@ -860,6 +959,24 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 8: // ZOOKEEPER_ADDRESSES
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
+                struct.zookeeperAddresses = new ArrayList<String>(_list8.size);
+                String _elem9;
+                for (int _i10 = 0; _i10 < _list8.size; ++_i10)
+                {
+                  _elem9 = iprot.readString();
+                  struct.zookeeperAddresses.add(_elem9);
+                }
+                iprot.readListEnd();
+              }
+              struct.setZookeeperAddressesIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -900,6 +1017,18 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       oprot.writeFieldBegin(WEB_PORT_FIELD_DESC);
       oprot.writeI32(struct.webPort);
       oprot.writeFieldEnd();
+      if (struct.zookeeperAddresses != null) {
+        oprot.writeFieldBegin(ZOOKEEPER_ADDRESSES_FIELD_DESC);
+        {
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.zookeeperAddresses.size()));
+          for (String _iter11 : struct.zookeeperAddresses)
+          {
+            oprot.writeString(_iter11);
+          }
+          oprot.writeListEnd();
+        }
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -939,7 +1068,10 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       if (struct.isSetWebPort()) {
         optionals.set(6);
       }
-      oprot.writeBitSet(optionals, 7);
+      if (struct.isSetZookeeperAddresses()) {
+        optionals.set(7);
+      }
+      oprot.writeBitSet(optionals, 8);
       if (struct.isSetMasterAddress()) {
         oprot.writeString(struct.masterAddress);
       }
@@ -961,12 +1093,21 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       if (struct.isSetWebPort()) {
         oprot.writeI32(struct.webPort);
       }
+      if (struct.isSetZookeeperAddresses()) {
+        {
+          oprot.writeI32(struct.zookeeperAddresses.size());
+          for (String _iter12 : struct.zookeeperAddresses)
+          {
+            oprot.writeString(_iter12);
+          }
+        }
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, MasterInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(7);
+      BitSet incoming = iprot.readBitSet(8);
       if (incoming.get(0)) {
         struct.masterAddress = iprot.readString();
         struct.setMasterAddressIsSet(true);
@@ -994,6 +1135,19 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       if (incoming.get(6)) {
         struct.webPort = iprot.readI32();
         struct.setWebPortIsSet(true);
+      }
+      if (incoming.get(7)) {
+        {
+          org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.zookeeperAddresses = new ArrayList<String>(_list13.size);
+          String _elem14;
+          for (int _i15 = 0; _i15 < _list13.size; ++_i15)
+          {
+            _elem14 = iprot.readString();
+            struct.zookeeperAddresses.add(_elem14);
+          }
+        }
+        struct.setZookeeperAddressesIsSet(true);
       }
     }
   }

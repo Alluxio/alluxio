@@ -17,11 +17,10 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
-import alluxio.exception.status.UnimplementedException;
 import alluxio.grpc.FileSystemMasterServiceGrpc;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.ExponentialTimeBoundedRetry;
-import alluxio.security.authentication.TProtocols;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
@@ -39,7 +38,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
-import java.util.regex.Pattern;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
@@ -52,23 +51,10 @@ import javax.security.auth.Subject;
 public abstract class AbstractClient implements Client {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
 
-  /** The pattern of exception message when client and server transport frame sizes do not match. */
-  private static final Pattern FRAME_SIZE_EXCEPTION_PATTERN =
-      Pattern.compile("Frame size \\((\\d+)\\) larger than max length");
+  private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
-  private static final Duration MAX_RETRY_DURATION =
-      Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
-  private static final Duration BASE_SLEEP_MS =
-      Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
-  private static final Duration MAX_SLEEP_MS =
-      Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
-
-  /** The number of times to retry a particular RPC. */
-  protected static final int RPC_MAX_NUM_RETRY =
-      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY);
-
-  protected InetSocketAddress mAddress = null;
-  protected TProtocol mProtocol = null;
+  protected InetSocketAddress mAddress;
+  protected TProtocol mProtocol;
 
   protected FileSystemMasterServiceGrpc.FileSystemMasterServiceBlockingStub mBlockingStub;
   protected GrpcChannel mChannel;
@@ -99,10 +85,31 @@ public abstract class AbstractClient implements Client {
    * @param address the address
    */
   public AbstractClient(Subject subject, InetSocketAddress address) {
+    this(subject, address, defaultRetry());
+  }
+
+  private static Supplier<RetryPolicy> defaultRetry() {
+    Duration maxRetryDuration = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
+    Duration baseSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+    Duration maxSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+    return () -> ExponentialTimeBoundedRetry.builder().withMaxDuration(maxRetryDuration)
+        .withInitialSleep(baseSleepMs).withMaxSleep(maxSleepMs).build();
+  }
+
+  /**
+   * Creates a new client base.
+   *
+   * @param subject the parent subject, set to null if not present
+   * @param address the address
+   * @param retryPolicySupplier factory for retry policies to be used when performing RPCs
+   */
+  public AbstractClient(Subject subject, InetSocketAddress address,
+      Supplier<RetryPolicy> retryPolicySupplier) {
     mAddress = address;
+    mParentSubject = subject;
+    mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mTransportProvider = TransportProvider.Factory.create();
-    mParentSubject = subject;
     mChannel = GrpcChannelBuilder
         .forAddress("localhost", 50051)
         .usePlaintext(true)
@@ -179,9 +186,7 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    RetryPolicy retryPolicy =
-        ExponentialTimeBoundedRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
-            .withInitialSleep(BASE_SLEEP_MS).withMaxSleep(MAX_SLEEP_MS).build();
+    RetryPolicy retryPolicy = mRetryPolicySupplier.get();
     while (retryPolicy.attempt()) {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
@@ -191,14 +196,14 @@ public abstract class AbstractClient implements Client {
       try {
         mAddress = getAddress();
       } catch (UnavailableException e) {
-        LOG.warn("Failed to determine master RPC address ({}), retrying: {}",
-            retryPolicy.getAttemptCount(), e.toString());
+        LOG.warn("Failed to determine {} rpc address ({}): {}",
+            getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
 
-      mProtocol = TProtocols.createProtocol(
+      mProtocol = ThriftUtils.createThriftProtocol(
           mTransportProvider.getClientTransport(mParentSubject, mAddress), getServiceName());
       try {
         mProtocol.getTransport().open();
@@ -207,17 +212,7 @@ public abstract class AbstractClient implements Client {
         afterConnect();
         checkVersion(getClient(), getServiceVersion());
         return;
-      } catch (IOException e) {
-        if (e.getMessage() != null && FRAME_SIZE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
-          // See an error like "Frame size (67108864) larger than max length (16777216)!",
-          // pointing to the helper page.
-          String message = String.format("Failed to connect with %s @ %s: %s. "
-              + "This exception may be caused by incorrect network configuration. "
-              + "Please consult %s for common solutions to address this problem.",
-              getServiceName(), mAddress, e.getMessage(), RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
-          throw new UnimplementedException(message, e);
-        }
-      } catch (TTransportException e) {
+      } catch (IOException | TTransportException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         if (e.getCause() instanceof java.net.SocketTimeoutException) {
@@ -231,6 +226,11 @@ public abstract class AbstractClient implements Client {
       // TODO(peis): Consider closing the connection here as well.
     }
     // Reaching here indicates that we did not successfully connect.
+    if (mAddress == null) {
+      throw new UnavailableException(
+          String.format("Failed to determine address for %s after %s attempts", getServiceName(),
+              retryPolicy.getAttemptCount()));
+    }
     throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
         getServiceName(), mAddress, retryPolicy.getAttemptCount()));
   }
@@ -298,9 +298,7 @@ public abstract class AbstractClient implements Client {
    * @return the return value of the RPC call
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws AlluxioStatusException {
-    RetryPolicy retryPolicy =
-        ExponentialTimeBoundedRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
-            .withInitialSleep(BASE_SLEEP_MS).withMaxSleep(MAX_SLEEP_MS).build();
+    RetryPolicy retryPolicy = mRetryPolicySupplier.get();
     Exception ex = null;
     while (retryPolicy.attempt()) {
       if (mClosed) {
@@ -319,6 +317,7 @@ public abstract class AbstractClient implements Client {
       } catch (TException e) {
         ex = e;
       }
+      LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
       disconnect();
     }
     throw new UnavailableException("Failed after " + retryPolicy.getAttemptCount()
