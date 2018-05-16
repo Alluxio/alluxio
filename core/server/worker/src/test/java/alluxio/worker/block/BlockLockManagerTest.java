@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
@@ -40,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link BlockLockManager}.
@@ -84,6 +86,21 @@ public final class BlockLockManagerTest {
     long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     assertNotEquals(lockId1, lockId2);
+  }
+
+  /**
+   * Tests the {@link BlockLockManager#tryLockBlock(long, long, BlockLockType, long, TimeUnit)}
+   * method.
+   */
+  @Test
+  public void tryLockBlock() {
+    // Read-lock on can both get through
+    long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
+    long lockId2 = mLockManager
+        .tryLockBlock(TEST_SESSION_ID + 1, TEST_BLOCK_ID, BlockLockType.WRITE, 1000,
+            TimeUnit.MILLISECONDS);
+    assertNotEquals(lockId1, lockId2);
+    assertEquals(BlockLockManager.INVALID_LOCK_ID, lockId2);
   }
 
   /**
