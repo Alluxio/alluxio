@@ -11,8 +11,6 @@
 
 package alluxio.exception;
 
-import alluxio.thrift.AlluxioTException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -22,15 +20,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class AlluxioException extends Exception {
   private static final long serialVersionUID = 2243833925609642384L;
-
-  /**
-   * Constructs a {@link AlluxioException} with an exception type from a {@link AlluxioTException}.
-   *
-   * @param te the type of the exception
-   */
-  protected AlluxioException(AlluxioTException te) {
-    super(te.getMessage());
-  }
 
   /**
    * Constructs an {@link AlluxioException} with the given cause.
