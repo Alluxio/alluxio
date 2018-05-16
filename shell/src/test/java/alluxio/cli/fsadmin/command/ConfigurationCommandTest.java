@@ -11,7 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.cli.fsadmin.report.ConfigurationCommand;
+import alluxio.cli.fsadmin.command.report.ConfigurationCommand;
 import alluxio.client.MetaMasterClient;
 import alluxio.wire.ConfigProperty;
 

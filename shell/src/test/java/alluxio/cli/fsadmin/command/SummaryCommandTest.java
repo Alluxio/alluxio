@@ -11,7 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.cli.fsadmin.report.SummaryCommand;
+import alluxio.cli.fsadmin.command.report.SummaryCommand;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.util.CommonUtils;

@@ -11,7 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.cli.fsadmin.report.MetricsCommand;
+import alluxio.cli.fsadmin.command.report.MetricsCommand;
 import alluxio.client.MetaMasterClient;
 import alluxio.wire.MetricValue;
 

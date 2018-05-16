@@ -11,7 +11,7 @@
 
 package alluxio.client.cli.fsadmin.command;
 
-import alluxio.cli.fsadmin.report.CapacityCommand;
+import alluxio.cli.fsadmin.command.report.CapacityCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.util.FormatUtils;
 

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fsadmin.report;
+package alluxio.cli.fsadmin.command.report;
 
 import alluxio.cli.fsadmin.command.ReportCommand;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
@@ -54,7 +54,7 @@ public class CapacityCommand {
   private TreeMap<String, Map<String, String>> mCapacityTierInfoMap;
   private Map<String, Map<String, String>> mUsedTierInfoMap;
 
-   /**
+  /**
    * Creates a new instance of {@link CapacityCommand}.
    *
    * @param blockMasterClient client to connect to block master
@@ -286,7 +286,7 @@ public class CapacityCommand {
    * @return the formatted tier values of the input worker name
    */
   private static String getWorkerFormattedTierValues(Map<String, Map<String, String>> map,
-      String workerName) {
+                                                     String workerName) {
     return map.values().stream().map((tierMap)
         -> (String.format("%-14s", tierMap.getOrDefault(workerName, "-"))))
         .collect(Collectors.joining(""));

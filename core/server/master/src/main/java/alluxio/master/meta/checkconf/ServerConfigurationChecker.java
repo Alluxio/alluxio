@@ -39,7 +39,22 @@ public class ServerConfigurationChecker {
     PASSED, // do not have configuration errors and warnings
     WARN, // do not have configuration errors but have warnings
     FAILED, // have configuration errors
-    NOT_STARTED,
+    NOT_STARTED;
+
+    /**
+     * @return the thrift representation of this config status field
+     */
+    public alluxio.thrift.ConfigStatus toThrift() {
+      return alluxio.thrift.ConfigStatus.valueOf(name());
+    }
+
+    /**
+     * @param field the thrift representation of the configuration status field to create
+     * @return the wire type version of the configuration status field
+     */
+    public static Status fromThrift(alluxio.thrift.ConfigStatus field) {
+      return Status.valueOf(field.name());
+    }
   }
 
   /**

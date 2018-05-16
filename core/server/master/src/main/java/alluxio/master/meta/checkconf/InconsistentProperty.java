@@ -35,6 +35,16 @@ public class InconsistentProperty {
   public InconsistentProperty() {}
 
   /**
+   * Creates a new instance of {@link InconsistentProperty} from thrift representation.
+   *
+   * @param inconsistentProperty the thrift inconsistent property
+   */
+  protected InconsistentProperty(alluxio.thrift.InconsistentProperty inconsistentProperty) {
+    mName = inconsistentProperty.getName();
+    mValues = inconsistentProperty.getValues();
+  }
+
+  /**
    * @return the name of this property
    */
   public String getName() {
@@ -64,5 +74,13 @@ public class InconsistentProperty {
   public InconsistentProperty setValues(Map<String, List<String>> values) {
     mValues = values;
     return this;
+  }
+
+  /**
+   * @return an inconsistent property of thrift construct
+   */
+  public alluxio.thrift.InconsistentProperty toThrift() {
+    return new alluxio.thrift.InconsistentProperty()
+        .setName(mName).setValues(mValues);
   }
 }

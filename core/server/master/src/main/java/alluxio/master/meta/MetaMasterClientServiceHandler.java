@@ -16,8 +16,12 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
+import alluxio.master.meta.checkconf.InconsistentProperty;
+import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.GetConfigReportTOptions;
+import alluxio.thrift.GetConfigReportTResponse;
 import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetConfigurationTResponse;
 import alluxio.thrift.GetMasterInfoTOptions;
@@ -40,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -142,6 +147,32 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
         }
       }
       return new GetMetricsTResponse(metricsMap);
+    });
+  }
+
+  @Override
+  public GetConfigReportTResponse getConfigReport(final GetConfigReportTOptions options)
+      throws TException {
+    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigReportTResponse>) () -> {
+      ServerConfigurationChecker.ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
+
+      Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftErrors
+          = new HashMap<>();
+      for (Map.Entry<PropertyKey.Scope, List<InconsistentProperty>> entry :
+          report.getConfigErrors().entrySet()) {
+        thriftErrors.put(entry.getKey().toThrift(), entry.getValue().stream()
+            .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
+      }
+
+      Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftWarns
+          = new HashMap<>();
+      for (Map.Entry<PropertyKey.Scope, List<InconsistentProperty>> entry :
+          report.getConfigWarns().entrySet()) {
+        thriftErrors.put(entry.getKey().toThrift(), entry.getValue().stream()
+            .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
+      }
+      return new GetConfigReportTResponse().setErrors(thriftErrors)
+          .setWarns(thriftWarns).setStatus(report.getStatus().toThrift());
     });
   }
 }

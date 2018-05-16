@@ -112,6 +112,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public boolean contains(Scope scope) {
       return (mValue | scope.mValue) == mValue;
     }
+
+    /**
+     * @return the thrift representation of this scope field
+     */
+    public alluxio.thrift.Scope toThrift() {
+      return alluxio.thrift.Scope.valueOf(name());
+    }
+
+    /**
+     * @param field the thrift representation of the scope field to create
+     * @return the wire type version of the scope field
+     */
+    public static Scope fromThrift(alluxio.thrift.Scope field) {
+      return Scope.valueOf(field.name());
+    }
   }
 
   /**

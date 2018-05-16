@@ -11,7 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.cli.fsadmin.report.CapacityCommand;
+import alluxio.cli.fsadmin.command.report.CapacityCommand;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.wire.WorkerInfo;
