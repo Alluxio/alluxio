@@ -75,6 +75,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -384,15 +385,25 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public void validateBlocks(Function<Long, Boolean> validator, boolean repair)
       throws UnavailableException {
-    List<Long> invalidBlocks = new ArrayList<>();
-    for (long blockId : mBlocks.keySet()) {
-      if (!validator.apply(blockId)) {
-        invalidBlocks.add(blockId);
+    List<Long> invalidBlocks =
+        mBlocks.keySet().stream().filter((blockId) -> !validator.apply(blockId))
+            .collect(Collectors.toList());
+    if (!invalidBlocks.isEmpty()) {
+      long limit = 100;
+      List<Long> loggedBlocks = invalidBlocks.stream().limit(limit).collect(Collectors.toList());
+      LOG.warn("Found {} orphan blocks without corresponding file metadata.", invalidBlocks.size());
+      if (invalidBlocks.size() > limit) {
+        LOG.warn("The first {} orphan blocks include {}.", limit, loggedBlocks);
+      } else {
+        LOG.warn("The orphan blocks include {}.", loggedBlocks);
       }
-    }
-    if (repair && !invalidBlocks.isEmpty()) {
-      LOG.warn("Deleting {} invalid blocks.", invalidBlocks.size());
-      removeBlocks(invalidBlocks, true);
+      if (repair) {
+        LOG.warn("Deleting {} orphan blocks.", invalidBlocks.size());
+        removeBlocks(invalidBlocks, true);
+      } else {
+        LOG.warn("Restart Alluxio master with {}=true to delete the blocks and repair the system.",
+            PropertyKey.Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED);
+      }
     }
   }
 
