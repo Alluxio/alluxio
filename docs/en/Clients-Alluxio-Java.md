@@ -27,7 +27,7 @@ To obtain an Alluxio filesystem client in Java code, use:
 FileSystem fs = FileSystem.Factory.get();
 ```
 
-### Creating a File
+### Creating a File 
 
 All metadata operations as well as opening a file for reading or creating a file for writing are
 executed through the FileSystem object. Since Alluxio files are immutable once written, the
