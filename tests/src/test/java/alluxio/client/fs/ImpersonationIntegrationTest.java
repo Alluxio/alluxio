@@ -75,12 +75,10 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   @After
   public void after()  throws Exception{
     ConfigurationTestUtils.resetConfiguration();
-    FileSystemContext.INSTANCE.reset();
   }
 
   @Before
   public void before() throws Exception {
-    FileSystemContext.INSTANCE.reset();
     // Give the root dir 777, to write files as different users. This must be run as the user
     // that starts the master process
     FileSystem.Factory.get().setAttribute(new AlluxioURI("/"),

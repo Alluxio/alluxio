@@ -73,7 +73,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.metricsHeartbeat(FileSystemContext.INSTANCE.getId(),
+        mClient.metricsHeartbeat(FileSystemContext.get().getId(),
             NetworkAddressUtils.getClientHostName(), new MetricsHeartbeatTOptions(metrics));
         return null;
       }

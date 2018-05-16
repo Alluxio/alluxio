@@ -71,7 +71,7 @@ import javax.security.auth.Subject;
 public final class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
-  public static final FileSystemContext INSTANCE = create();
+  private static FileSystemContext INSTANCE;
 
   static {
     MetricsSystem.startSinks();
@@ -118,8 +118,20 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return the context
    */
-  public static FileSystemContext create() {
+  private static FileSystemContext create() {
     return create(null);
+  }
+
+  /**
+   * @return the instance of file system context
+   */
+  public static FileSystemContext get() {
+    if (INSTANCE == null) {
+      synchronized (FileSystemContext.class) {
+        INSTANCE = create();
+      }
+    }
+    return INSTANCE;
   }
 
   /**

@@ -34,7 +34,7 @@ public final class DummyFileOutputStream extends FileOutStream {
    * @param options the set of options specific to this operation
    */
   public DummyFileOutputStream(AlluxioURI path, OutStreamOptions options) throws IOException {
-    super(path, options, FileSystemContext.INSTANCE);
+    super(path, options, FileSystemContext.get());
   }
 
   @Override

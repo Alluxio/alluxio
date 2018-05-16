@@ -142,7 +142,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // org.apache.hadoop.fs.FileSystem.close may check the existence of certain temp files before
     // closing
     super.close();
-    if (mContext != null && mContext != FileSystemContext.INSTANCE) {
+    if (mContext != null && mContext != FileSystemContext.get()) {
       mContext.close();
     }
   }
@@ -418,6 +418,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *      org.apache.hadoop.conf.Configuration)
    */
   //@Override This doesn't exist in Hadoop 1.x, so cannot put {@literal @Override}.
+  @Override
   public abstract String getScheme();
 
   @Override
@@ -473,7 +474,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         } else {
           LOG.warn(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
               .getMessage(mUri.getHost() + ":" + mUri.getPort(),
-                  FileSystemContext.INSTANCE.getMasterAddress()));
+                  FileSystemContext.get().getMasterAddress()));
           sInitialized = false;
         }
       }
@@ -510,15 +511,15 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // These must be reset to pick up the change to the master address.
     // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
     LineageContext.INSTANCE.reset();
-    FileSystemContext.INSTANCE.reset();
+    FileSystemContext.get().reset();
 
     // Try to connect to master, if it fails, the provided uri is invalid.
-    FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient client = FileSystemContext.get().acquireMasterClient();
     try {
       client.connect();
       // Connected, initialize.
     } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(client);
+      FileSystemContext.get().releaseMasterClient(client);
     }
   }
 
@@ -531,7 +532,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mContext = FileSystemContext.create(subject);
       mFileSystem = FileSystem.Factory.get(mContext);
     } else {
-      mContext = FileSystemContext.INSTANCE;
+      mContext = FileSystemContext.get();
       mFileSystem = FileSystem.Factory.get();
     }
   }
@@ -543,7 +544,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private boolean checkMasterAddress() {
     InetSocketAddress masterAddress = null;
     try {
-      masterAddress = FileSystemContext.INSTANCE.getMasterAddress();
+      masterAddress = FileSystemContext.get().getMasterAddress();
     } catch (UnavailableException e) {
       LOG.warn("Failed to determine master RPC address: {}", e.toString());
       return false;
