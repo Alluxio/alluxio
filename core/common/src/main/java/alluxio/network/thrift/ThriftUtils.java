@@ -13,6 +13,7 @@ package alluxio.network.thrift;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnauthenticatedException;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
@@ -43,7 +44,8 @@ public final class ThriftUtils {
    * @param serviceName the service to communicate with
    * @return a Thrift protocol for communicating with the given service through the transport
    */
-  public static TProtocol createThriftProtocol(TTransport transport, String serviceName) {
+  public static TProtocol createThriftProtocol(TTransport transport, String serviceName)
+      throws UnauthenticatedException {
     TProtocol binaryProtocol = new TBinaryProtocol(transport);
     TProtocol multiplexedProtocol = new TMultiplexedProtocol(binaryProtocol, serviceName);
     return multiplexedProtocol;
