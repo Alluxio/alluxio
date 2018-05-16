@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 // TODO(peis): Migrate this class to a set of static functions.
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public class DefaultPermissionChecker implements PermissionChecker{
+public class DefaultPermissionChecker implements PermissionChecker {
   /** The file system inode structure. */
   private final InodeTree mInodeTree;
 
@@ -63,17 +63,6 @@ public class DefaultPermissionChecker implements PermissionChecker{
     mInodePermissionChecker = InodePermissionChecker.create();
   }
 
-  /**
-   * Checks whether a user has permission to perform a specific action on the parent of the given
-   * path; if parent directory does not exist, treats the closest ancestor directory of the path as
-   * its parent and checks permission on it. This check will pass if the path is invalid, or path
-   * has no parent (e.g., root).
-   *
-   * @param bits bits that capture the action {@link Mode.Bits} by user
-   * @param inodePath the path to check permission on
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
-   */
   @Override
   public void checkParentPermission(Mode.Bits bits, LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
@@ -101,15 +90,6 @@ public class DefaultPermissionChecker implements PermissionChecker{
     checkInodeList(user, groups, bits, inodePath.getUri().getPath(), inodeList, false);
   }
 
-  /**
-   * Checks whether a user has permission to perform a specific action on a path. This check will
-   * pass if the path is invalid.
-   *
-   * @param bits bits that capture the action {@link Mode.Bits} by user
-   * @param inodePath the path to check permission on
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
-   */
   @Override
   public void checkPermission(Mode.Bits bits, LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
@@ -127,12 +107,6 @@ public class DefaultPermissionChecker implements PermissionChecker{
     checkInodeList(user, groups, bits, inodePath.getUri().getPath(), inodeList, false);
   }
 
-  /**
-   * Gets the permission to access inodePath for the current client user.
-   *
-   * @param inodePath the inode path
-   * @return the permission
-   */
   @Override
   public Mode.Bits getPermission(LockedInodePath inodePath) {
     if (!mPermissionCheckEnabled) {
@@ -151,15 +125,6 @@ public class DefaultPermissionChecker implements PermissionChecker{
     }
   }
 
-  /**
-   * Checks whether a user has permission to edit the attribute of a given path.
-   *
-   * @param inodePath the path to check permission on
-   * @param superuserRequired indicates whether it requires to be the superuser
-   * @param ownerRequired indicates whether it requires to be the owner of this path
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
-   */
   @Override
   public void checkSetAttributePermission(LockedInodePath inodePath, boolean superuserRequired,
       boolean ownerRequired) throws AccessControlException, InvalidPathException {
