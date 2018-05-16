@@ -918,7 +918,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         if (inode.isDirectory()
             && listStatusOptions.getLoadMetadataType() != LoadMetadataType.Always) {
           if (listStatusOptions.isRecursive()
-            && ((InodeDirectory) inode).isDescendantLoaded()) {
+              && ((InodeDirectory) inode).isDescendantLoaded()) {
             loadMetadataOptions.setLoadDescendantType(DescendantType.NONE);
           }
 

@@ -954,7 +954,8 @@ public final class FileSystemMasterTest {
     }
 
     // Test with permissions
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setMode((short)0400).setRecursive(true));
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        SetAttributeOptions.defaults().setMode((short) 0400).setRecursive(true));
     try (Closeable r = new AuthenticatedUserRule("test_user1").toResource()) {
       // Test recursive listStatus
       infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusOptions.defaults()
