@@ -45,11 +45,11 @@ public class MetaMasterMasterService {
     /**
      * Returns a master id for the given master address.
      * 
-     * @param address the master address
+     * @param masterAddress the master address
      * 
      * @param options the method options
      */
-    public GetMasterIdTResponse getMasterId(alluxio.thrift.Address address, GetMasterIdTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public GetMasterIdTResponse getMasterId(alluxio.thrift.MasterAddress masterAddress, GetMasterIdTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Registers a master.
@@ -73,7 +73,7 @@ public class MetaMasterMasterService {
 
   public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
-    public void getMasterId(alluxio.thrift.Address address, GetMasterIdTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getMasterId(alluxio.thrift.MasterAddress masterAddress, GetMasterIdTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void registerMaster(long masterId, RegisterMasterTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -101,16 +101,16 @@ public class MetaMasterMasterService {
       super(iprot, oprot);
     }
 
-    public GetMasterIdTResponse getMasterId(alluxio.thrift.Address address, GetMasterIdTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetMasterIdTResponse getMasterId(alluxio.thrift.MasterAddress masterAddress, GetMasterIdTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_getMasterId(address, options);
+      send_getMasterId(masterAddress, options);
       return recv_getMasterId();
     }
 
-    public void send_getMasterId(alluxio.thrift.Address address, GetMasterIdTOptions options) throws org.apache.thrift.TException
+    public void send_getMasterId(alluxio.thrift.MasterAddress masterAddress, GetMasterIdTOptions options) throws org.apache.thrift.TException
     {
       getMasterId_args args = new getMasterId_args();
-      args.setAddress(address);
+      args.setMasterAddress(masterAddress);
       args.setOptions(options);
       sendBase("getMasterId", args);
     }
@@ -200,26 +200,26 @@ public class MetaMasterMasterService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void getMasterId(alluxio.thrift.Address address, GetMasterIdTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getMasterId(alluxio.thrift.MasterAddress masterAddress, GetMasterIdTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getMasterId_call method_call = new getMasterId_call(address, options, resultHandler, this, ___protocolFactory, ___transport);
+      getMasterId_call method_call = new getMasterId_call(masterAddress, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class getMasterId_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private alluxio.thrift.Address address;
+      private alluxio.thrift.MasterAddress masterAddress;
       private GetMasterIdTOptions options;
-      public getMasterId_call(alluxio.thrift.Address address, GetMasterIdTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public getMasterId_call(alluxio.thrift.MasterAddress masterAddress, GetMasterIdTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.address = address;
+        this.masterAddress = masterAddress;
         this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getMasterId", org.apache.thrift.protocol.TMessageType.CALL, 0));
         getMasterId_args args = new getMasterId_args();
-        args.setAddress(address);
+        args.setMasterAddress(masterAddress);
         args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
@@ -340,7 +340,7 @@ public class MetaMasterMasterService {
       public getMasterId_result getResult(I iface, getMasterId_args args) throws org.apache.thrift.TException {
         getMasterId_result result = new getMasterId_result();
         try {
-          result.success = iface.getMasterId(args.address, args.options);
+          result.success = iface.getMasterId(args.masterAddress, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -468,7 +468,7 @@ public class MetaMasterMasterService {
       }
 
       public void start(I iface, getMasterId_args args, org.apache.thrift.async.AsyncMethodCallback<GetMasterIdTResponse> resultHandler) throws TException {
-        iface.getMasterId(args.address, args.options,resultHandler);
+        iface.getMasterId(args.masterAddress, args.options,resultHandler);
       }
     }
 
@@ -591,7 +591,7 @@ public class MetaMasterMasterService {
   public static class getMasterId_args implements org.apache.thrift.TBase<getMasterId_args, getMasterId_args._Fields>, java.io.Serializable, Cloneable, Comparable<getMasterId_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getMasterId_args");
 
-    private static final org.apache.thrift.protocol.TField ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("address", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField MASTER_ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("masterAddress", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -600,7 +600,7 @@ public class MetaMasterMasterService {
       schemes.put(TupleScheme.class, new getMasterId_argsTupleSchemeFactory());
     }
 
-    private alluxio.thrift.Address address; // required
+    private alluxio.thrift.MasterAddress masterAddress; // required
     private GetMasterIdTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -608,7 +608,7 @@ public class MetaMasterMasterService {
       /**
        * the master address
        */
-      ADDRESS((short)1, "address"),
+      MASTER_ADDRESS((short)1, "masterAddress"),
       /**
        * the method options
        */
@@ -627,8 +627,8 @@ public class MetaMasterMasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // ADDRESS
-            return ADDRESS;
+          case 1: // MASTER_ADDRESS
+            return MASTER_ADDRESS;
           case 2: // OPTIONS
             return OPTIONS;
           default:
@@ -674,8 +674,8 @@ public class MetaMasterMasterService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("address", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, alluxio.thrift.Address.class)));
+      tmpMap.put(_Fields.MASTER_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("masterAddress", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, alluxio.thrift.MasterAddress.class)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetMasterIdTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -686,11 +686,11 @@ public class MetaMasterMasterService {
     }
 
     public getMasterId_args(
-      alluxio.thrift.Address address,
+      alluxio.thrift.MasterAddress masterAddress,
       GetMasterIdTOptions options)
     {
       this();
-      this.address = address;
+      this.masterAddress = masterAddress;
       this.options = options;
     }
 
@@ -698,8 +698,8 @@ public class MetaMasterMasterService {
      * Performs a deep copy on <i>other</i>.
      */
     public getMasterId_args(getMasterId_args other) {
-      if (other.isSetAddress()) {
-        this.address = new alluxio.thrift.Address(other.address);
+      if (other.isSetMasterAddress()) {
+        this.masterAddress = new alluxio.thrift.MasterAddress(other.masterAddress);
       }
       if (other.isSetOptions()) {
         this.options = new GetMasterIdTOptions(other.options);
@@ -712,37 +712,37 @@ public class MetaMasterMasterService {
 
     @Override
     public void clear() {
-      this.address = null;
+      this.masterAddress = null;
       this.options = null;
     }
 
     /**
      * the master address
      */
-    public alluxio.thrift.Address getAddress() {
-      return this.address;
+    public alluxio.thrift.MasterAddress getMasterAddress() {
+      return this.masterAddress;
     }
 
     /**
      * the master address
      */
-    public getMasterId_args setAddress(alluxio.thrift.Address address) {
-      this.address = address;
+    public getMasterId_args setMasterAddress(alluxio.thrift.MasterAddress masterAddress) {
+      this.masterAddress = masterAddress;
       return this;
     }
 
-    public void unsetAddress() {
-      this.address = null;
+    public void unsetMasterAddress() {
+      this.masterAddress = null;
     }
 
-    /** Returns true if field address is set (has been assigned a value) and false otherwise */
-    public boolean isSetAddress() {
-      return this.address != null;
+    /** Returns true if field masterAddress is set (has been assigned a value) and false otherwise */
+    public boolean isSetMasterAddress() {
+      return this.masterAddress != null;
     }
 
-    public void setAddressIsSet(boolean value) {
+    public void setMasterAddressIsSet(boolean value) {
       if (!value) {
-        this.address = null;
+        this.masterAddress = null;
       }
     }
 
@@ -778,11 +778,11 @@ public class MetaMasterMasterService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case ADDRESS:
+      case MASTER_ADDRESS:
         if (value == null) {
-          unsetAddress();
+          unsetMasterAddress();
         } else {
-          setAddress((alluxio.thrift.Address)value);
+          setMasterAddress((alluxio.thrift.MasterAddress)value);
         }
         break;
 
@@ -799,8 +799,8 @@ public class MetaMasterMasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case ADDRESS:
-        return getAddress();
+      case MASTER_ADDRESS:
+        return getMasterAddress();
 
       case OPTIONS:
         return getOptions();
@@ -816,8 +816,8 @@ public class MetaMasterMasterService {
       }
 
       switch (field) {
-      case ADDRESS:
-        return isSetAddress();
+      case MASTER_ADDRESS:
+        return isSetMasterAddress();
       case OPTIONS:
         return isSetOptions();
       }
@@ -837,12 +837,12 @@ public class MetaMasterMasterService {
       if (that == null)
         return false;
 
-      boolean this_present_address = true && this.isSetAddress();
-      boolean that_present_address = true && that.isSetAddress();
-      if (this_present_address || that_present_address) {
-        if (!(this_present_address && that_present_address))
+      boolean this_present_masterAddress = true && this.isSetMasterAddress();
+      boolean that_present_masterAddress = true && that.isSetMasterAddress();
+      if (this_present_masterAddress || that_present_masterAddress) {
+        if (!(this_present_masterAddress && that_present_masterAddress))
           return false;
-        if (!this.address.equals(that.address))
+        if (!this.masterAddress.equals(that.masterAddress))
           return false;
       }
 
@@ -862,10 +862,10 @@ public class MetaMasterMasterService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_address = true && (isSetAddress());
-      list.add(present_address);
-      if (present_address)
-        list.add(address);
+      boolean present_masterAddress = true && (isSetMasterAddress());
+      list.add(present_masterAddress);
+      if (present_masterAddress)
+        list.add(masterAddress);
 
       boolean present_options = true && (isSetOptions());
       list.add(present_options);
@@ -883,12 +883,12 @@ public class MetaMasterMasterService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetAddress()).compareTo(other.isSetAddress());
+      lastComparison = Boolean.valueOf(isSetMasterAddress()).compareTo(other.isSetMasterAddress());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetAddress()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.address, other.address);
+      if (isSetMasterAddress()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.masterAddress, other.masterAddress);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -923,11 +923,11 @@ public class MetaMasterMasterService {
       StringBuilder sb = new StringBuilder("getMasterId_args(");
       boolean first = true;
 
-      sb.append("address:");
-      if (this.address == null) {
+      sb.append("masterAddress:");
+      if (this.masterAddress == null) {
         sb.append("null");
       } else {
-        sb.append(this.address);
+        sb.append(this.masterAddress);
       }
       first = false;
       if (!first) sb.append(", ");
@@ -945,8 +945,8 @@ public class MetaMasterMasterService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
-      if (address != null) {
-        address.validate();
+      if (masterAddress != null) {
+        masterAddress.validate();
       }
       if (options != null) {
         options.validate();
@@ -987,11 +987,11 @@ public class MetaMasterMasterService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // ADDRESS
+            case 1: // MASTER_ADDRESS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.address = new alluxio.thrift.Address();
-                struct.address.read(iprot);
-                struct.setAddressIsSet(true);
+                struct.masterAddress = new alluxio.thrift.MasterAddress();
+                struct.masterAddress.read(iprot);
+                struct.setMasterAddressIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -1020,9 +1020,9 @@ public class MetaMasterMasterService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.address != null) {
-          oprot.writeFieldBegin(ADDRESS_FIELD_DESC);
-          struct.address.write(oprot);
+        if (struct.masterAddress != null) {
+          oprot.writeFieldBegin(MASTER_ADDRESS_FIELD_DESC);
+          struct.masterAddress.write(oprot);
           oprot.writeFieldEnd();
         }
         if (struct.options != null) {
@@ -1048,15 +1048,15 @@ public class MetaMasterMasterService {
       public void write(org.apache.thrift.protocol.TProtocol prot, getMasterId_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetAddress()) {
+        if (struct.isSetMasterAddress()) {
           optionals.set(0);
         }
         if (struct.isSetOptions()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
-        if (struct.isSetAddress()) {
-          struct.address.write(oprot);
+        if (struct.isSetMasterAddress()) {
+          struct.masterAddress.write(oprot);
         }
         if (struct.isSetOptions()) {
           struct.options.write(oprot);
@@ -1068,9 +1068,9 @@ public class MetaMasterMasterService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.address = new alluxio.thrift.Address();
-          struct.address.read(iprot);
-          struct.setAddressIsSet(true);
+          struct.masterAddress = new alluxio.thrift.MasterAddress();
+          struct.masterAddress.read(iprot);
+          struct.setMasterAddressIsSet(true);
         }
         if (incoming.get(1)) {
           struct.options = new GetMasterIdTOptions();
