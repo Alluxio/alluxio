@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 // TODO(peis): Migrate this class to a set of static functions.
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public final class DefaultPermissionChecker implements PermissionChecker{
+public class DefaultPermissionChecker implements PermissionChecker{
   /** The file system inode structure. */
   private final InodeTree mInodeTree;
 
