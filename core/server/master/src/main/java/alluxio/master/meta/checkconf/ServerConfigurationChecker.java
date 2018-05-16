@@ -111,7 +111,7 @@ public class ServerConfigurationChecker {
     mMasterStore = masterStore;
     mWorkerStore = workerStore;
     mConfigCheckReport = new ConfigCheckReport();
-    mMasterStore.registerRegenerateReportListener(this::regenerateReport);
+    mMasterStore.registerChangeListener(this::regenerateReport);
   }
 
   /**

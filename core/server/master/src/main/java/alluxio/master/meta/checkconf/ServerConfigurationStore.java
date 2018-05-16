@@ -120,7 +120,7 @@ public class ServerConfigurationStore {
    *
    * @param function the function to register
    */
-  public synchronized void registerRegenerateReportListener(Runnable function) {
+  public synchronized void registerChangeListener(Runnable function) {
     mChangeListeners.add(function);
   }
 }
