@@ -28,6 +28,8 @@ import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterContext;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.meta.checkconf.ServerConfigurationChecker;
+import alluxio.master.meta.checkconf.ServerConfigurationStore;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryUtils;
@@ -39,6 +41,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.Address;
 import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Preconditions;
@@ -72,7 +75,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
 
-  /** Indexes to help find master information in indexed set. */
+  // Master metadata management.
   private static final IndexDefinition<MasterInfo> ID_INDEX =
       new IndexDefinition<MasterInfo>(true) {
         @Override
@@ -80,11 +83,12 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           return o.getId();
         }
       };
-  private static final IndexDefinition<MasterInfo> HOSTNAME_INDEX =
+
+  private static final IndexDefinition<MasterInfo> ADDRESS_INDEX =
       new IndexDefinition<MasterInfo>(true) {
         @Override
         public Object getFieldValue(MasterInfo o) {
-          return o.getHostname();
+          return o.getAddress();
         }
       };
 
@@ -94,20 +98,25 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   /** The clock to use for determining the time. */
   private final Clock mClock = new SystemClock();
 
-  /** The master configuration checker. */
-  private final ServerConfigurationChecker mMasterConfigChecker = new ServerConfigurationChecker();
-  /** The worker configuration checker. */
-  private final ServerConfigurationChecker mWorkerConfigChecker = new ServerConfigurationChecker();
+  /** The master configuration store. */
+  private final ServerConfigurationStore mMasterConfigStore = new ServerConfigurationStore();
+  /** The worker configuration store. */
+  private final ServerConfigurationStore mWorkerConfigStore = new ServerConfigurationStore();
+  /** The server-side configuration checker. */
+  private final ServerConfigurationChecker mConfigChecker =
+      new ServerConfigurationChecker(mMasterConfigStore, mWorkerConfigStore);
 
   /** Keeps track of standby masters which are in communication with the leader master. */
   private final IndexedSet<MasterInfo> mMasters =
-      new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
+      new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
   /** Keeps track of standby masters which are no longer in communication with the leader master. */
   private final IndexedSet<MasterInfo> mLostMasters =
-      new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
+      new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
-  /** The hostname of this master. */
-  private final String mMasterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
+  /** The address of this master. */
+  private final Address mMasterAddress = new Address()
+      .setHost(Configuration.get(PropertyKey.MASTER_HOSTNAME))
+      .setRpcPort(Configuration.getInt(PropertyKey.MASTER_RPC_PORT));
 
   /** The connect address for the rpc server. */
   private final InetSocketAddress mRpcConnectAddress
@@ -188,8 +197,13 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   @Override
   public void start(Boolean isPrimary) throws IOException {
     super.start(isPrimary);
-    mWorkerConfigChecker.reset();
+    mWorkerConfigStore.reset();
+    mMasterConfigStore.reset();
     if (isPrimary) {
+      // Add the configuration of the current leader master
+      mMasterConfigStore.registerNewConf(mMasterAddress,
+          Configuration.getConfiguration(PropertyKey.Scope.MASTER));
+
       // The service that detects lost standby master nodes
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
@@ -201,7 +215,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           new MetaMasterMasterClient(MasterClientConfig.defaults());
       setMasterId(metaMasterClient);
       MetaMasterSync metaMasterSync =
-          new MetaMasterSync(mMasterId, mMasterHostname, metaMasterClient);
+          new MetaMasterSync(mMasterId, mMasterAddress, metaMasterClient);
       getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
           metaMasterSync, (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
       LOG.info("Standby master with id {} starts sending heartbeat to leader master.", mMasterId);
@@ -211,6 +225,11 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   @Override
   public void stop() throws IOException {
     super.stop();
+  }
+
+  @Override
+  public ServerConfigurationChecker.ConfigCheckReport getConfigCheckReport() {
+    return mConfigChecker.getConfigCheckReport();
   }
 
   @Override
@@ -230,22 +249,22 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public long getMasterId(String hostname) {
-    MasterInfo existingMaster = mMasters.getFirstByField(HOSTNAME_INDEX, hostname);
+  public long getMasterId(Address address) {
+    MasterInfo existingMaster = mMasters.getFirstByField(ADDRESS_INDEX, address);
     if (existingMaster != null) {
-      // This master hostname is already mapped to a master id.
+      // This master address is already mapped to a master id.
       long oldMasterId = existingMaster.getId();
-      LOG.warn("The master {} already exists as id {}.", hostname, oldMasterId);
+      LOG.warn("The master {} already exists as id {}.", address, oldMasterId);
       return oldMasterId;
     }
 
-    MasterInfo lostMaster = mLostMasters.getFirstByField(HOSTNAME_INDEX, hostname);
+    MasterInfo lostMaster = mLostMasters.getFirstByField(ADDRESS_INDEX, address);
     if (lostMaster != null) {
       // This is one of the lost masters
-      mMasterConfigChecker.lostNodeFound(lostMaster.getId());
+      mMasterConfigStore.lostNodeFound(lostMaster.getAddress());
       synchronized (lostMaster) {
-        long lostMasterId = lostMaster.getId();
-        LOG.warn("A lost master {} has requested its old id {}.", hostname, lostMasterId);
+        final long lostMasterId = lostMaster.getId();
+        LOG.warn("A lost master {} has requested its old id {}.", address, lostMasterId);
 
         // Update the timestamp of the master before it is considered an active master.
         lostMaster.updateLastUpdatedTimeMs();
@@ -257,11 +276,11 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
     // Generate a new master id.
     long masterId = IdUtils.getRandomNonNegativeLong();
-    while (!mMasters.add(new MasterInfo(masterId, hostname))) {
+    while (!mMasters.add(new MasterInfo(masterId, address))) {
       masterId = IdUtils.getRandomNonNegativeLong();
     }
 
-    LOG.info("getMasterId(): Hostname: {} id: {}", hostname, masterId);
+    LOG.info("getMasterId(): MasterAddress: {} id: {}", address, masterId);
     return masterId;
   }
 
@@ -314,7 +333,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
     List<ConfigProperty> configList = options.getConfigList().stream()
         .map(ConfigProperty::fromThrift).collect(Collectors.toList());
-    mMasterConfigChecker.registerNewConf(masterId, configList);
+    mMasterConfigStore.registerNewConf(master.getAddress(), configList);
 
     LOG.info("registerMaster(): master: {} options: {}", master, options);
   }
@@ -338,10 +357,10 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
           if (lastUpdate > masterTimeoutMs) {
             LOG.error("The master {}({}) timed out after {}ms without a heartbeat!", master.getId(),
-                master.getHostname(), lastUpdate);
+                master.getAddress(), lastUpdate);
             mLostMasters.add(master);
             mMasters.remove(master);
-            mMasterConfigChecker.handleNodeLost(master.getId());
+            mMasterConfigStore.handleNodeLost(master.getAddress());
           }
         }
       }
@@ -356,40 +375,40 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   /**
    * Updates the config checker when a lost worker becomes alive.
    *
-   * @param id the id of the worker
+   * @param address the address of the worker
    */
-  private void lostWorkerFoundHandler(long id) {
-    mWorkerConfigChecker.lostNodeFound(id);
+  private void lostWorkerFoundHandler(Address address) {
+    mWorkerConfigStore.lostNodeFound(address);
   }
 
   /**
    * Updates the config checker when a live worker becomes lost.
    *
-   * @param id the id of the worker
+   * @param address the address of the worker
    */
-  private void workerLostHandler(long id) {
-    mWorkerConfigChecker.handleNodeLost(id);
+  private void workerLostHandler(Address address) {
+    mWorkerConfigStore.handleNodeLost(address);
   }
 
   /**
    * Updates the config checker when a worker registers with configuration.
    *
-   * @param id the id of the worker
+   * @param address the address of the worker
    * @param configList the configuration of this worker
    */
-  private void registerNewWorkerConfHandler(long id, List<ConfigProperty> configList) {
-    mWorkerConfigChecker.registerNewConf(id, configList);
+  private void registerNewWorkerConfHandler(Address address, List<ConfigProperty> configList) {
+    mWorkerConfigStore.registerNewConf(address, configList);
   }
 
   /**
    * Sets the master id. This method should only be called when this master is a standby master.
    *
-   * @param metaMasterClient the meta master client to get id from
+   * @param metaMasterClient the meta master client to communicate with leader master
    */
   private void setMasterId(MetaMasterMasterClient metaMasterClient) {
     try {
       RetryUtils.retry("get master id",
-          () -> mMasterId.set(metaMasterClient.getId(mMasterHostname)),
+          () -> mMasterId.set(metaMasterClient.getId(mMasterAddress)),
           ExponentialTimeBoundedRetry.builder()
               .withMaxDuration(Duration
                   .ofMillis(Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY)))

@@ -51,6 +51,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.ConfigProperty;
@@ -169,14 +170,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /** Listeners to call when lost workers are found. */
-  private final BlockingQueue<Consumer<Long>> mLostWorkerFoundListeners
+  private final BlockingQueue<Consumer<Address>> mLostWorkerFoundListeners
       = new LinkedBlockingQueue<>();
 
   /** Listeners to call when workers are lost. */
-  private final BlockingQueue<Consumer<Long>> mWorkerLostListeners = new LinkedBlockingQueue<>();
+  private final BlockingQueue<Consumer<Address>> mWorkerLostListeners = new LinkedBlockingQueue<>();
 
   /** Listeners to call when a new worker registers. */
-  private final BlockingQueue<BiConsumer<Long, List<ConfigProperty>>> mWorkerRegisteredListeners
+  private final BlockingQueue<BiConsumer<Address, List<ConfigProperty>>> mWorkerRegisteredListeners
       = new LinkedBlockingQueue<>();
 
   /**
@@ -689,8 +690,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         lostWorker.updateLastUpdatedTimeMs();
         mWorkers.add(lostWorker);
         mLostWorkers.remove(lostWorker);
-        for (Consumer<Long> function : mLostWorkerFoundListeners) {
-          function.accept(lostWorker.getId());
+        for (Consumer<Address> function : mLostWorkerFoundListeners) {
+          WorkerNetAddress workerAddress = lostWorker.getWorkerAddress();
+          function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
         }
         return lostWorkerId;
       }
@@ -731,13 +733,15 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       processWorkerRemovedBlocks(worker, removedBlocks);
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
       processWorkerOrphanedBlocks(worker);
-      if (options.isSetConfigList()) {
-        List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
-            .stream().map(alluxio.wire.ConfigProperty::fromThrift)
-            .collect(Collectors.toList());
-        for (BiConsumer<Long, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
-          function.accept(workerId, wireConfigList);
-        }
+    }
+    if (options.isSetConfigList()) {
+      List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
+          .stream().map(alluxio.wire.ConfigProperty::fromThrift)
+          .collect(Collectors.toList());
+      for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
+        WorkerNetAddress workerAddress = worker.getWorkerAddress();
+        function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
+            wireConfigList);
       }
     }
 
@@ -911,8 +915,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
                 worker.getWorkerAddress(), lastUpdate);
             mLostWorkers.add(worker);
             mWorkers.remove(worker);
-            for (Consumer<Long> function : mWorkerLostListeners) {
-              function.accept(worker.getId());
+            for (Consumer<Address> function : mWorkerLostListeners) {
+              WorkerNetAddress workerAddress = worker.getWorkerAddress();
+              function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
             }
             processWorkerRemovedBlocks(worker, worker.getBlocks());
           }
@@ -964,17 +969,17 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public void registerLostWorkerFoundListener(Consumer<Long> function) {
+  public void registerLostWorkerFoundListener(Consumer<Address> function) {
     mLostWorkerFoundListeners.add(function);
   }
 
   @Override
-  public void registerWorkerLostListener(Consumer<Long> function) {
+  public void registerWorkerLostListener(Consumer<Address> function) {
     mWorkerLostListeners.add(function);
   }
 
   @Override
-  public void registerNewWorkerConfListener(BiConsumer<Long, List<ConfigProperty>> function) {
+  public void registerNewWorkerConfListener(BiConsumer<Address, List<ConfigProperty>> function) {
     mWorkerRegisteredListeners.add(function);
   }
 

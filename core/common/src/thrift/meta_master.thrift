@@ -103,10 +103,10 @@ service MetaMasterClientService extends common.AlluxioService {
   */
 service MetaMasterMasterService extends common.AlluxioService {
   /**
-   * Returns a master id for the given master hostname.
+   * Returns a master id for the given master address.
    */
   GetMasterIdTResponse getMasterId(
-    /** the master hostname */ 1: string hostname,
+    /** the master address */ 1: common.MasterAddress masterAddress,
     /** the method options */ 2: GetMasterIdTOptions options,
     )
     throws (1: exception.AlluxioTException e)

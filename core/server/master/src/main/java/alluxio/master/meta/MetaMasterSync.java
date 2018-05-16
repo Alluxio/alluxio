@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.MetaCommand;
+import alluxio.wire.Address;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +44,8 @@ public final class MetaMasterSync implements HeartbeatExecutor {
    */
   private final AtomicReference<Long> mMasterId;
 
-  /** The hostname of this standby master. */
-  private final String mMasterHostname;
+  /** The address of this standby master. */
+  private final Address mMasterAddress;
 
   /** Milliseconds between heartbeats before a timeout. */
   private final int mHeartbeatTimeoutMs;
@@ -59,14 +60,14 @@ public final class MetaMasterSync implements HeartbeatExecutor {
    * Creates a new instance of {@link MetaMasterSync}.
    *
    * @param masterId the master id
-   * @param masterHostname the master hostname
+   * @param masterAddress the master address
    * @param masterClient the meta master client
    */
   public MetaMasterSync(AtomicReference<Long>  masterId,
-      String masterHostname, MetaMasterMasterClient masterClient) throws IOException {
+      Address masterAddress, MetaMasterMasterClient masterClient) throws IOException {
     // TODO(lu) should avoid throw exception in Java constructor to avoid half-baked class instances
     mMasterId = masterId;
-    mMasterHostname = masterHostname;
+    mMasterAddress = masterAddress;
     mMasterClient = masterClient;
     mHeartbeatTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
 
@@ -130,7 +131,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
         break;
       // Leader master requests re-registration
       case Register:
-        mMasterId.set(mMasterClient.getId(mMasterHostname));
+        mMasterId.set(mMasterClient.getId(mMasterAddress));
         registerWithMaster();
         break;
       // Unknown request

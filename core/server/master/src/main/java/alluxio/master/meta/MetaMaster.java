@@ -13,8 +13,10 @@ package alluxio.master.meta;
 
 import alluxio.exception.status.NotFoundException;
 import alluxio.master.Master;
+import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.thrift.MetaCommand;
 import alluxio.thrift.RegisterMasterTOptions;
+import alluxio.wire.Address;
 import alluxio.wire.ConfigProperty;
 
 import java.net.InetSocketAddress;
@@ -26,6 +28,11 @@ import java.util.List;
 public interface MetaMaster extends Master {
 
   /**
+   * @return the server-side configuration checker report
+   */
+  ServerConfigurationChecker.ConfigCheckReport getConfigCheckReport();
+
+  /**
    * @return configuration information list
    */
   List<ConfigProperty> getConfiguration();
@@ -33,10 +40,10 @@ public interface MetaMaster extends Master {
   /**
    * Returns a master id for the given master, creating one if the master is new.
    *
-   * @param hostname the master hostname
+   * @param address the master hostname
    * @return the master id for this master
    */
-  long getMasterId(String hostname);
+  long getMasterId(Address address);
 
   /**
    * @return this master's rpc address
