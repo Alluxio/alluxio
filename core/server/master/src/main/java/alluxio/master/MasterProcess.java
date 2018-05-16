@@ -17,8 +17,10 @@ import alluxio.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.thrift.MetaCommand;
 import alluxio.thrift.RegisterMasterTOptions;
+import alluxio.wire.Address;
 import alluxio.wire.ConfigProperty;
 
 import java.net.InetSocketAddress;
@@ -95,15 +97,20 @@ public interface MasterProcess extends Process {
   /**
    * @return configuration information list
    */
-  List<ConfigProperty> getConfiguration();
+  List<ConfigProperty> getAlluxioConfiguration();
+
+  /**
+   * @return the server-side configuration checker report
+   */
+  ServerConfigurationChecker.ConfigCheckReport getConfigCheckReport();
 
   /**
    * Returns a master id for the given master, creating one if the master is new.
    *
-   * @param hostname the master hostname
+   * @param address the master {@link Address}
    * @return the master id for this master
    */
-  long getMasterId(String hostname);
+  long getMasterId(Address address);
 
   /**
    * A standby master periodically heartbeats with the leader master.

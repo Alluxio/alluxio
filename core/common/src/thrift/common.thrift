@@ -56,6 +56,14 @@ struct TieredIdentity {
 }
 
 /**
+ * Address information about masters.
+ */
+struct MasterAddress {
+  1: string host
+  2: i32 rpcPort
+}
+
+/**
  * Address information about workers.
  */
 struct WorkerNetAddress {

@@ -68,7 +68,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options)
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigurationTResponse>) ()
-        -> (new GetConfigurationTResponse(mMasterProcess.getConfiguration()
+        -> (new GetConfigurationTResponse(mMasterProcess.getAlluxioConfiguration()
         .stream()
         .map(configProperty -> (configProperty.toThrift()))
         .collect(Collectors.toList()))));

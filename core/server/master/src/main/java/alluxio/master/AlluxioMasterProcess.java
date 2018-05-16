@@ -30,7 +30,8 @@ import alluxio.master.meta.MetaMasterClientServiceHandler;
 import alluxio.master.meta.MasterInfo;
 import alluxio.master.meta.MetaMasterMasterClient;
 import alluxio.master.meta.MetaMasterSync;
-import alluxio.master.meta.ServerConfigurationChecker;
+import alluxio.master.meta.checkconf.ServerConfigurationChecker;
+import alluxio.master.meta.checkconf.ServerConfigurationStore;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -50,6 +51,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
+import alluxio.wire.Address;
 import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Function;
@@ -99,11 +101,11 @@ public class AlluxioMasterProcess implements MasterProcess {
         }
       };
 
-  private static final IndexDefinition<MasterInfo> HOSTNAME_INDEX =
+  private static final IndexDefinition<MasterInfo> ADDRESS_INDEX =
       new IndexDefinition<MasterInfo>(true) {
         @Override
         public Object getFieldValue(MasterInfo o) {
-          return o.getHostname();
+          return o.getAddress();
         }
       };
 
@@ -156,14 +158,20 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager;
 
+  /** The block master.*/
+  private final BlockMaster mBlockMaster;
+
   /** The clock to use for determining the time. */
   private final Clock mClock;
 
-  /** The master configuration checker. */
-  private final ServerConfigurationChecker mMasterConfigChecker;
+  /** The server-side configuration checker. */
+  private final ServerConfigurationChecker mConfigChecker;
 
-  /** The worker configuration checker. */
-  private final ServerConfigurationChecker mWorkerConfigChecker;
+  /** The master configuration record. */
+  private final ServerConfigurationStore mMasterConfigStore;
+
+  /** The worker configuration record. */
+  private final ServerConfigurationStore mWorkerConfigStore;
 
   /** A factory for creating executor services when they are needed. */
   private ExecutorServiceFactory mExecutorServiceFactory;
@@ -171,8 +179,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The executor used for running maintenance threads for the meta master. */
   private ExecutorService mExecutorService;
 
-  /** The hostname of this master. */
-  private String mMasterHostname;
+  /** The address of this master. */
+  private Address mMasterAddress;
 
   /** The master ID for this master. */
   private AtomicReference<Long> mMasterId;
@@ -185,10 +193,10 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** Keeps track of standby masters which are in communication with the leader master. */
   private final IndexedSet<MasterInfo> mMasters =
-      new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
+      new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
   /** Keeps track of standby masters which are no longer in communication with the leader master. */
   private final IndexedSet<MasterInfo> mLostMasters =
-      new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
+      new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -239,20 +247,23 @@ public class AlluxioMasterProcess implements MasterProcess {
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
 
       // Create config checker
-      mMasterConfigChecker = new ServerConfigurationChecker();
-      mWorkerConfigChecker = new ServerConfigurationChecker();
+      mMasterConfigStore = new ServerConfigurationStore();
+      mWorkerConfigStore = new ServerConfigurationStore();
+      mConfigChecker = new ServerConfigurationChecker(mMasterConfigStore, mWorkerConfigStore);
+
       mClock = new SystemClock();
       mExecutorServiceFactory = ExecutorServiceFactories
           .fixedThreadPoolExecutorServiceFactory(Constants.META_MASTER_NAME, 2);
       mMetaMasterClient = new MetaMasterMasterClient(MasterClientConfig.defaults());
-      mMasterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
+      mMasterAddress = new Address()
+          .setHost(Configuration.get(PropertyKey.MASTER_HOSTNAME)).setRpcPort(mPort);
       mMasterId = new AtomicReference<>(-1L);
 
       // Register listeners for BlockMaster to interact with config checker
-      BlockMaster blockMaster = mRegistry.get(BlockMaster.class);
-      blockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
-      blockMaster.registerWorkerLostListener(this::workerLostHandler);
-      blockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
+      mBlockMaster = mRegistry.get(BlockMaster.class);
+      mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
+      mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
+      mBlockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -298,7 +309,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public List<ConfigProperty> getConfiguration() {
+  public List<ConfigProperty> getAlluxioConfiguration() {
     List<ConfigProperty> configInfoList = new ArrayList<>();
     String alluxioConfPrefix = "alluxio";
     for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
@@ -314,22 +325,27 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public long getMasterId(String hostname) {
-    MasterInfo existingMaster = mMasters.getFirstByField(HOSTNAME_INDEX, hostname);
+  public ServerConfigurationChecker.ConfigCheckReport getConfigCheckReport() {
+    return mConfigChecker.getConfigCheckReport();
+  }
+
+  @Override
+  public long getMasterId(Address address) {
+    MasterInfo existingMaster = mMasters.getFirstByField(ADDRESS_INDEX, address);
     if (existingMaster != null) {
-      // This master hostname is already mapped to a master id.
+      // This master address is already mapped to a master id.
       long oldMasterId = existingMaster.getId();
-      LOG.warn("The master {} already exists as id {}.", hostname, oldMasterId);
+      LOG.warn("The master {} already exists as id {}.", address, oldMasterId);
       return oldMasterId;
     }
 
-    MasterInfo lostMaster = mLostMasters.getFirstByField(HOSTNAME_INDEX, hostname);
+    MasterInfo lostMaster = mLostMasters.getFirstByField(ADDRESS_INDEX, address);
     if (lostMaster != null) {
       // This is one of the lost masters
-      mMasterConfigChecker.lostNodeFound(lostMaster.getId());
+      mMasterConfigStore.lostNodeFound(lostMaster.getAddress());
       synchronized (lostMaster) {
         final long lostMasterId = lostMaster.getId();
-        LOG.warn("A lost master {} has requested its old id {}.", hostname, lostMasterId);
+        LOG.warn("A lost master {} has requested its old id {}.", address, lostMasterId);
 
         // Update the timestamp of the master before it is considered an active master.
         lostMaster.updateLastUpdatedTimeMs();
@@ -341,11 +357,11 @@ public class AlluxioMasterProcess implements MasterProcess {
 
     // Generate a new master id.
     long masterId = IdUtils.getRandomNonNegativeLong();
-    while (!mMasters.add(new MasterInfo(masterId, hostname))) {
+    while (!mMasters.add(new MasterInfo(masterId, address))) {
       masterId = IdUtils.getRandomNonNegativeLong();
     }
 
-    LOG.info("getMasterId(): Hostname: {} id: {}", hostname, masterId);
+    LOG.info("getMasterId(): MasterAddress: {} id: {}", address, masterId);
     return masterId;
   }
 
@@ -361,7 +377,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
     List<ConfigProperty> configList = options.getConfigList().stream()
         .map(ConfigProperty::fromThrift).collect(Collectors.toList());
-    mMasterConfigChecker.registerNewConf(masterId, configList);
+    mMasterConfigStore.registerNewConf(master.getAddress(), configList);
 
     LOG.info("registerMaster(): master: {} options: {}", master, options);
   }
@@ -415,8 +431,12 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startMasters(boolean isLeader) {
     try {
-      mWorkerConfigChecker.reset();
+      mMasterConfigStore.reset();
+      mWorkerConfigStore.reset();
       if (isLeader) {
+        // Add the configuration of the current leader master
+        mMasterConfigStore.registerNewConf(mMasterAddress,
+            Configuration.getConfiguration(PropertyKey.Scope.MASTER));
         mSafeModeManager.notifyPrimaryMasterStarted();
 
         stopExecutorService();
@@ -433,7 +453,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
         // Standby master should setup MetaMasterSync to communicate with the leader master
         setMasterId();
-        mMetaMasterSync = new MetaMasterSync(mMasterId, mMasterHostname, mMetaMasterClient);
+        mMetaMasterSync = new MetaMasterSync(mMasterId, mMasterAddress, mMetaMasterClient);
         mExecutorService.submit(new HeartbeatThread(HeartbeatContext.MASTER_SYNC, mMetaMasterSync,
             (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
         LOG.info("Standby master with id {} starts sending heartbeat to leader master.", mMasterId);
@@ -615,10 +635,10 @@ public class AlluxioMasterProcess implements MasterProcess {
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
           if (lastUpdate > masterTimeoutMs) {
             LOG.error("The master {}({}) timed out after {}ms without a heartbeat!", master.getId(),
-                master.getHostname(), lastUpdate);
+                master.getAddress(), lastUpdate);
             mLostMasters.add(master);
             mMasters.remove(master);
-            mMasterConfigChecker.handleNodeLost(master.getId());
+            mMasterConfigStore.handleNodeLost(master.getAddress());
           }
         }
       }
@@ -633,29 +653,29 @@ public class AlluxioMasterProcess implements MasterProcess {
   /**
    * Updates the config checker when a lost worker becomes alive.
    *
-   * @param id the id of the worker
+   * @param address the address of the worker
    */
-  private void lostWorkerFoundHandler(long id) {
-    mWorkerConfigChecker.lostNodeFound(id);
+  private void lostWorkerFoundHandler(Address address) {
+    mWorkerConfigStore.lostNodeFound(address);
   }
 
   /**
    * Updates the config checker when a live worker becomes lost.
    *
-   * @param id the id of the worker
+   * @param address the address of the worker
    */
-  private void workerLostHandler(long id) {
-    mWorkerConfigChecker.handleNodeLost(id);
+  private void workerLostHandler(Address address) {
+    mWorkerConfigStore.handleNodeLost(address);
   }
 
   /**
    * Updates the config checker when a worker registers with configuration.
    *
-   * @param id the id of the worker
+   * @param address the address of the worker
    * @param configList the configuration of this worker
    */
-  private void registerNewWorkerConfHandler(long id, List<ConfigProperty> configList) {
-    mWorkerConfigChecker.registerNewConf(id, configList);
+  private void registerNewWorkerConfHandler(Address address, List<ConfigProperty> configList) {
+    mWorkerConfigStore.registerNewConf(address, configList);
   }
 
   /**
@@ -664,7 +684,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   private void setMasterId() {
     try {
       RetryUtils.retry("get master id",
-          () -> mMasterId.set(mMetaMasterClient.getId(mMasterHostname)),
+          () -> mMasterId.set(mMetaMasterClient.getId(mMasterAddress)),
           ExponentialTimeBoundedRetry.builder()
               .withMaxDuration(Duration
                   .ofMillis(Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY)))

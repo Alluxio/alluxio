@@ -19,6 +19,7 @@ import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
+import alluxio.master.meta.checkconf.ServerConfigurationChecker.ConfigCheckReport;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -206,6 +207,15 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     } else {
       request.setAttribute("inconsistentPaths", 0);
     }
+
+    ConfigCheckReport report = mMasterProcess.getConfigCheckReport();
+    request.setAttribute("configCheckStatus", report.getStatus());
+    request.setAttribute("configCheckErrors", report.getConfigErrors());
+    request.setAttribute("configCheckWarns", report.getConfigWarns());
+    request.setAttribute("configCheckErrorNum",
+        report.getConfigErrors().values().stream().mapToInt(List::size).sum());
+    request.setAttribute("configCheckWarnNum",
+        report.getConfigWarns().values().stream().mapToInt(List::size).sum());
 
     String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsRoot);

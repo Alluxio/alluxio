@@ -20,7 +20,9 @@ import alluxio.thrift.MasterHeartbeatTOptions;
 import alluxio.thrift.MetaCommand;
 import alluxio.thrift.MetaMasterMasterService;
 import alluxio.thrift.RegisterMasterTOptions;
+import alluxio.wire.Address;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.ThriftUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -69,14 +71,14 @@ public final class MetaMasterMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * Returns a master id for a master hostname.
+   * Returns a master id for a master address.
    *
-   * @param hostname the hostname to get a master id for
+   * @param address the address to get a master id for
    * @return a master id
    */
-  public synchronized long getId(final String hostname) throws IOException {
-    return retryRPC(() -> mClient.getMasterId(hostname, new GetMasterIdTOptions())
-        .getMasterId());
+  public synchronized long getId(final Address address) throws IOException {
+    return retryRPC(() -> mClient
+        .getMasterId(ThriftUtils.toThrift(address), new GetMasterIdTOptions()).getMasterId());
   }
 
   /**
