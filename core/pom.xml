@@ -25,7 +25,7 @@
   <modules>
     <module>client</module>
     <module>common</module>
-    <module>protobuf</module>
+    <module>transport</module>
     <module>server</module>
   </modules>
 
