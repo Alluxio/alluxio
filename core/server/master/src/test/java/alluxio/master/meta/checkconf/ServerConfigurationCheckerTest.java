@@ -30,14 +30,14 @@ import java.util.Random;
  * Unit tests for {@link ServerConfigurationChecker}.
  */
 public class ServerConfigurationCheckerTest {
-  private ServerConfigurationRecord mRecordOne;
-  private ServerConfigurationRecord mRecordTwo;
+  private ServerConfigurationStore mRecordOne;
+  private ServerConfigurationStore mRecordTwo;
   private ServerConfigurationChecker mConfigChecker;
 
   @Before
   public void before() {
-    mRecordOne = new ServerConfigurationRecord();
-    mRecordTwo = new ServerConfigurationRecord();
+    mRecordOne = new ServerConfigurationStore();
+    mRecordTwo = new ServerConfigurationStore();
     mConfigChecker = new ServerConfigurationChecker(mRecordOne, mRecordTwo);
   }
 
@@ -69,20 +69,20 @@ public class ServerConfigurationCheckerTest {
     // When records have nothing different, no errors or warns will be found
     mRecordOne.registerNewConf(addressOne, Arrays.asList(masterEnforceProp, workerWarnProp));
     mRecordTwo.registerNewConf(addressTwo, Arrays.asList(masterEnforceProp, workerWarnProp));
-    checkResults(0, 0, Status.PASSED, Status.PASSED, Status.PASSED);
+    checkResults(0, 0, Status.PASSED);
 
     // When records have a wrong warn property, checker should be able to find config warns
     ConfigProperty wrongWorkerWarnProp = new ConfigProperty().setName(workerWarnProp.getName())
         .setSource(workerWarnProp.getSource()).setValue("WrongValue");
     mRecordOne.registerNewConf(addressOne, Arrays.asList(masterEnforceProp, wrongWorkerWarnProp));
-    checkResults(0, 1, Status.PASSED, Status.WARN, Status.WARN);
+    checkResults(0, 1, Status.WARN);
 
     // When records have a wrong enforce property, checker should be able to find config errors
     ConfigProperty wrongMasterEnforceProp = new ConfigProperty()
         .setName(masterEnforceProp.getName())
         .setSource(masterEnforceProp.getSource()).setValue("WrongValue");
     mRecordTwo.registerNewConf(addressTwo, Arrays.asList(wrongMasterEnforceProp, workerWarnProp));
-    checkResults(1, 1, Status.FAILED, Status.WARN, Status.FAILED);
+    checkResults(1, 1, Status.FAILED);
 
     ConfigProperty wrongServerEnforceProp = new ConfigProperty()
         .setName(serverEnforceProp.getName())
@@ -91,7 +91,7 @@ public class ServerConfigurationCheckerTest {
         Arrays.asList(masterEnforceProp, workerWarnProp, serverEnforceProp));
     mRecordTwo.registerNewConf(addressTwo,
         Arrays.asList(masterEnforceProp, workerWarnProp, wrongServerEnforceProp));
-    checkResults(1, 0, Status.FAILED, Status.FAILED, Status.FAILED);
+    checkResults(1, 0, Status.FAILED);
   }
 
   /**
@@ -99,18 +99,14 @@ public class ServerConfigurationCheckerTest {
    *
    * @param expectedErrorNum the expected error number
    * @param expectedWarnNum the expected warning number
-   * @param expectedMasterStatus the expected master config check status
-   * @param expectedWorkerStatus the expected worker config check status
-   * @param expectedOverallStatus the expected overall config check status
+   * @param expectedStatus the expected config check status
    */
   private void checkResults(int expectedErrorNum, int expectedWarnNum,
-      Status expectedMasterStatus, Status expectedWorkerStatus, Status expectedOverallStatus) {
+      Status expectedStatus) {
     mConfigChecker.regenerateReport();
     ServerConfigurationChecker.ConfigCheckReport report = mConfigChecker.getConfigCheckReport();
     assertEquals(expectedErrorNum, report.getConfigErrors().size());
     assertEquals(expectedWarnNum, report.getConfigWarns().size());
-    assertEquals(expectedMasterStatus, report.getConfigStatus().get(Scope.MASTER));
-    assertEquals(expectedWorkerStatus, report.getConfigStatus().get(Scope.WORKER));
-    assertEquals(expectedOverallStatus, report.getReportStatus());
+    assertEquals(expectedStatus, report.getStatus());
   }
 }

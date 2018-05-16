@@ -106,7 +106,7 @@ service MetaMasterMasterService extends common.AlluxioService {
    * Returns a master id for the given master address.
    */
   GetMasterIdTResponse getMasterId(
-    /** the master address */ 1: common.MasterAddress masterAddress,
+    /** the master address */ 1: common.Address address,
     /** the method options */ 2: GetMasterIdTOptions options,
     )
     throws (1: exception.AlluxioTException e)

@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.MetaCommand;
-import alluxio.wire.MasterAddress;
+import alluxio.wire.Address;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   private final AtomicReference<Long> mMasterId;
 
   /** The address of this standby master. */
-  private final MasterAddress mMasterAddress;
+  private final Address mMasterAddress;
 
   /** Milliseconds between heartbeats before a timeout. */
   private final int mHeartbeatTimeoutMs;
@@ -64,7 +64,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
    * @param masterClient the meta master client
    */
   public MetaMasterSync(AtomicReference<Long>  masterId,
-      MasterAddress masterAddress, MetaMasterMasterClient masterClient) throws IOException {
+      Address masterAddress, MetaMasterMasterClient masterClient) throws IOException {
     // TODO(lu) should avoid throw exception in Java constructor to avoid half-baked class instances
     mMasterId = masterId;
     mMasterAddress = masterAddress;

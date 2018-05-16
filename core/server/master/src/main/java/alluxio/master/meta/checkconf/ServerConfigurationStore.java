@@ -17,37 +17,39 @@ import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Preconditions;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class is responsible for recording server-side configuration.
  */
-public class ServerConfigurationRecord {
+@ThreadSafe
+public class ServerConfigurationStore {
   /** Map from a node address to its configuration. */
   private final Map<Address, List<ConfigRecord>> mConfMap;
   /** Set that contains the addresses of lost nodes. */
   private final Set<Address> mLostNodes;
 
-  /** Listeners to call when needs to check configuration. */
-  private final BlockingQueue<Runnable> mRegenerateReportListeners = new LinkedBlockingQueue<>();
+  /** Listeners to call when this store has any changes. */
+  private final List<Runnable> mChangeListeners = new ArrayList<>();
 
   /**
-   * Constructs a new {@link ServerConfigurationRecord}.
+   * Constructs a new {@link ServerConfigurationStore}.
    */
-  public ServerConfigurationRecord() {
+  public ServerConfigurationStore() {
     mConfMap = new HashMap<>();
     mLostNodes = new HashSet<>();
   }
 
   /**
-   * Resets the default {@link ServerConfigurationRecord}.
+   * Resets the default {@link ServerConfigurationStore}.
    */
   public synchronized void reset() {
     mConfMap.clear();
@@ -68,7 +70,7 @@ public class ServerConfigurationRecord {
         .setKey(PropertyKey.fromString(c.getName())).setSource(c.getSource())
         .setValue(c.getValue())).collect(Collectors.toList()));
     mLostNodes.remove(address);
-    for (Runnable function : mRegenerateReportListeners) {
+    for (Runnable function : mChangeListeners) {
       function.run();
     }
   }
@@ -81,7 +83,7 @@ public class ServerConfigurationRecord {
   public synchronized void handleNodeLost(Address address) {
     Preconditions.checkNotNull(address, "address should not be null");
     mLostNodes.add(address);
-    for (Runnable function : mRegenerateReportListeners) {
+    for (Runnable function : mChangeListeners) {
       function.run();
     }
   }
@@ -94,7 +96,7 @@ public class ServerConfigurationRecord {
   public synchronized void lostNodeFound(Address address) {
     Preconditions.checkNotNull(address, "address should not be null");
     mLostNodes.remove(address);
-    for (Runnable function : mRegenerateReportListeners) {
+    for (Runnable function : mChangeListeners) {
       function.run();
     }
   }
@@ -114,11 +116,11 @@ public class ServerConfigurationRecord {
   }
 
   /**
-   * Registers callback functions to use when needs to regenerate config check report.
+   * Registers callback functions to use when this store has any changes.
    *
    * @param function the function to register
    */
-  public void registerRegenerateReportListener(Runnable function) {
-    mRegenerateReportListeners.add(function);
+  public synchronized void registerRegenerateReportListener(Runnable function) {
+    mChangeListeners.add(function);
   }
 }

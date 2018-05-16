@@ -22,17 +22,17 @@ import java.util.Map;
  * The ConsistencyCheckLevel of key B is WARN and its Scope is SERVER,
  * so this property is recommended to be consistent in all master and worker nodes.
  */
-public class WrongProperty {
-  /** The name of the property that has errors/warnings.*/
+public class InconsistentProperty {
+  /** The name of the property that has errors/warnings. */
   private String mName;
   /**
    * Record the values and corresponding hostnames. */
   private Map<String, List<String>> mValues;
 
   /**
-   * Creates a new instance of {@link WrongProperty}.
+   * Creates a new instance of {@link InconsistentProperty}.
    */
-  public WrongProperty() {}
+  public InconsistentProperty() {}
 
   /**
    * @return the name of this property
@@ -50,18 +50,18 @@ public class WrongProperty {
 
   /**
    * @param name the property name
-   * @return the wrong property
+   * @return the inconsistent property
    */
-  public WrongProperty setName(String name) {
+  public InconsistentProperty setName(String name) {
     mName = name;
     return this;
   }
 
   /**
    * @param values the values to use
-   * @return the wrong property
+   * @return the inconsistent property
    */
-  public WrongProperty setValues(Map<String, List<String>> values) {
+  public InconsistentProperty setValues(Map<String, List<String>> values) {
     mValues = values;
     return this;
   }

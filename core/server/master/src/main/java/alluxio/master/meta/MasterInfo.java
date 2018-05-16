@@ -11,7 +11,7 @@
 
 package alluxio.master.meta;
 
-import alluxio.wire.MasterAddress;
+import alluxio.wire.Address;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -29,7 +29,7 @@ public final class MasterInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterInfo.class);
 
   /** Master's address. */
-  private final MasterAddress mMasterAddress;
+  private final Address mAddress;
   /** The id of the master. */
   private final long mId;
   /** Master's last updated time in ms. */
@@ -38,11 +38,11 @@ public final class MasterInfo {
   /**
    * Creates a new instance of {@link MasterInfo}.
    *
-   * @param id       the master id to use
-   * @param masterAddress the master address to use
+   * @param id the master id to use
+   * @param address the master address to use
    */
-  public MasterInfo(long id, MasterAddress masterAddress) {
-    mMasterAddress = Preconditions.checkNotNull(masterAddress, "address");
+  public MasterInfo(long id, Address address) {
+    mAddress = Preconditions.checkNotNull(address, "address");
     mId = id;
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
@@ -50,8 +50,8 @@ public final class MasterInfo {
   /**
    * @return the master's address
    */
-  public MasterAddress getMasterAddress() {
-    return mMasterAddress;
+  public Address getAddress() {
+    return mAddress;
   }
 
   /**
@@ -70,7 +70,7 @@ public final class MasterInfo {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("id", mId).add("address", mMasterAddress)
+    return Objects.toStringHelper(this).add("id", mId).add("address", mAddress)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).toString();
   }
 

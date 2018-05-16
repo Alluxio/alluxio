@@ -26,9 +26,9 @@ import java.util.Map;
  */
 public class ServerConfigurationChecker {
   /** Contain all the master configuration information. */
-  private final ServerConfigurationRecord mMasterRecord;
+  private final ServerConfigurationStore mMasterStore;
   /** Contain all the worker configuration information. */
-  private final ServerConfigurationRecord mWorkerRecord;
+  private final ServerConfigurationStore mWorkerStore;
   /** Contain the checker results. */
   private ConfigCheckReport mConfigCheckReport;
 
@@ -49,22 +49,11 @@ public class ServerConfigurationChecker {
    */
   public static final class ConfigCheckReport {
     /** Record the configuration errors. */
-    private final Map<Scope, List<WrongProperty>> mConfigErrors;
+    private final Map<Scope, List<InconsistentProperty>> mConfigErrors;
     /** Record the configuration warnings. */
-    private final Map<Scope, List<WrongProperty>> mConfigWarns;
-    /**
-     * Record the status of masters and workers.
-     * Scope here includes MASTER and WORKER and their corresponding Statuses represent
-     * whether errors/warnings exist in masters/workers.
-     */
-    private final Map<Scope, Status> mConfigStatus;
-    /**
-     *  Record the overall status of config check report.
-     *  If any errors (Status = FAILED) exist in Configuration status, the Status here
-     *  will be FAILED, else if any warnings exist, the Status will be WARN.
-     *  If no errors or warnings exist, the Status will be PASSED.
-     */
-    private final Status mReportStatus;
+    private final Map<Scope, List<InconsistentProperty>> mConfigWarns;
+    /** Record the overall status of config check report. */
+    private final Status mStatus;
 
     /**
      * Creates a new instance of {@link ConfigCheckReport}.
@@ -72,10 +61,7 @@ public class ServerConfigurationChecker {
     private ConfigCheckReport() {
       mConfigErrors = new HashMap<>();
       mConfigWarns = new HashMap<>();
-      mConfigStatus = new HashMap<>();
-      mConfigStatus.put(Scope.MASTER, Status.NOT_STARTED);
-      mConfigStatus.put(Scope.WORKER, Status.NOT_STARTED);
-      mReportStatus = Status.NOT_STARTED;
+      mStatus = Status.NOT_STARTED;
     }
 
     /**
@@ -83,59 +69,49 @@ public class ServerConfigurationChecker {
      *
      * @param configErrors the configuration errors
      * @param configWarns the configuration warnings
-     * @param configStatus the configuration status
-     * @param reportStatus the overall report status
+     * @param status the overall report status
      */
-    private ConfigCheckReport(Map<Scope, List<WrongProperty>> configErrors,
-        Map<Scope, List<WrongProperty>> configWarns, Map<Scope, Status> configStatus,
-        Status reportStatus) {
+    private ConfigCheckReport(Map<Scope, List<InconsistentProperty>> configErrors,
+        Map<Scope, List<InconsistentProperty>> configWarns, Status status) {
       mConfigErrors = configErrors;
       mConfigWarns = configWarns;
-      mConfigStatus = configStatus;
-      mReportStatus = reportStatus;
+      mStatus = status;
     }
 
     /**
      * @return a map of configuration errors
      */
-    public Map<Scope, List<WrongProperty>> getConfigErrors() {
+    public Map<Scope, List<InconsistentProperty>> getConfigErrors() {
       return mConfigErrors;
     }
 
     /**
      * @return a map of configuration warnings
      */
-    public Map<Scope, List<WrongProperty>> getConfigWarns() {
+    public Map<Scope, List<InconsistentProperty>> getConfigWarns() {
       return mConfigWarns;
-    }
-
-    /**
-     * @return the status of the configuration checker results
-     */
-    public Map<Scope, Status> getConfigStatus() {
-      return mConfigStatus;
     }
 
     /**
      * @return the overall report status
      */
-    public Status getReportStatus() {
-      return mReportStatus;
+    public Status getStatus() {
+      return mStatus;
     }
   }
 
   /**
    * Constructs a new {@link ServerConfigurationChecker}.
    *
-   * @param masterRecord master configuration record
-   * @param workerRecord worker configuration record
+   * @param masterStore master configuration store
+   * @param workerStore worker configuration store
    */
-  public ServerConfigurationChecker(ServerConfigurationRecord masterRecord,
-      ServerConfigurationRecord workerRecord) {
-    mMasterRecord = masterRecord;
-    mWorkerRecord = workerRecord;
+  public ServerConfigurationChecker(ServerConfigurationStore masterStore,
+      ServerConfigurationStore workerStore) {
+    mMasterStore = masterStore;
+    mWorkerStore = workerStore;
     mConfigCheckReport = new ConfigCheckReport();
-    mMasterRecord.registerRegenerateReportListener(this::regenerateReport);
+    mMasterStore.registerRegenerateReportListener(this::regenerateReport);
   }
 
   /**
@@ -146,62 +122,30 @@ public class ServerConfigurationChecker {
     Map<PropertyKey, Map<String, List<String>>> confMap = generateConfMap();
 
     // Update the errors and warnings configuration
-    Map<Scope, List<WrongProperty>> confErrors = new HashMap<>();
-    Map<Scope, List<WrongProperty>> confWarns = new HashMap<>();
+    Map<Scope, List<InconsistentProperty>> confErrors = new HashMap<>();
+    Map<Scope, List<InconsistentProperty>> confWarns = new HashMap<>();
 
     for (Map.Entry<PropertyKey, Map<String, List<String>>> entry : confMap.entrySet()) {
       if (entry.getValue().size() >= 2) {
         PropertyKey key = entry.getKey();
-        WrongProperty wrongProperty = new WrongProperty()
+        InconsistentProperty inconsistentProperty = new InconsistentProperty()
             .setName(key.getName()).setValues(entry.getValue());
         Scope scope = key.getScope().equals(Scope.ALL) ? Scope.SERVER : key.getScope();
         if (entry.getKey().getConsistencyLevel().equals(ConsistencyCheckLevel.ENFORCE)) {
           confErrors.putIfAbsent(scope, new ArrayList<>());
-          confErrors.get(scope).add(wrongProperty);
+          confErrors.get(scope).add(inconsistentProperty);
         } else {
           confWarns.putIfAbsent(scope, new ArrayList<>());
-          confWarns.get(scope).add(wrongProperty);
+          confWarns.get(scope).add(inconsistentProperty);
         }
       }
     }
 
     // Update configuration status
-    Map<Scope, Status> configStatus = new HashMap<>();
-    Status masterStatus = Status.PASSED;
-    Status workerStatus = Status.PASSED;
+    Status status = confErrors.values().stream().anyMatch(a -> a.size() > 0) ? Status.FAILED
+        : confWarns.values().stream().anyMatch(a -> a.size() > 0) ? Status.WARN : Status.PASSED;
 
-    for (Map.Entry<Scope, List<WrongProperty>> entry : confWarns.entrySet()) {
-      if (entry.getValue().size() > 0) {
-        Scope scope = entry.getKey();
-        if (scope.contains(Scope.MASTER)) {
-          masterStatus = Status.WARN;
-        }
-        if (scope.contains(Scope.WORKER)) {
-          workerStatus = Status.WARN;
-        }
-      }
-    }
-    for (Map.Entry<Scope, List<WrongProperty>> entry : confErrors.entrySet()) {
-      if (entry.getValue().size() > 0) {
-        Scope scope = entry.getKey();
-        if (scope.contains(Scope.MASTER)) {
-          masterStatus = Status.FAILED;
-        }
-        if (scope.contains(Scope.WORKER)) {
-          workerStatus = Status.FAILED;
-        }
-      }
-    }
-
-    configStatus.put(Scope.MASTER, masterStatus);
-    configStatus.put(Scope.WORKER, workerStatus);
-
-    Status reportStatus =
-        (masterStatus.equals(Status.FAILED) || workerStatus.equals(Status.FAILED))
-        ? Status.FAILED : (masterStatus.equals(Status.WARN) || workerStatus.equals(Status.WARN))
-        ? Status.WARN : Status.PASSED;
-
-    mConfigCheckReport = new ConfigCheckReport(confErrors, confWarns, configStatus, reportStatus);
+    mConfigCheckReport = new ConfigCheckReport(confErrors, confWarns, status);
   }
 
   /**
@@ -219,8 +163,8 @@ public class ServerConfigurationChecker {
    */
   private Map<PropertyKey, Map<String, List<String>>> generateConfMap() {
     Map<PropertyKey, Map<String, List<String>>> confMap = new HashMap<>();
-    fillConfMap(confMap, mMasterRecord.getConfMap());
-    fillConfMap(confMap, mWorkerRecord.getConfMap());
+    fillConfMap(confMap, mMasterStore.getConfMap());
+    fillConfMap(confMap, mWorkerStore.getConfMap());
     return confMap;
   }
 
@@ -237,7 +181,7 @@ public class ServerConfigurationChecker {
       String addressStr = String.format("%s:%s", address.getHost(), address.getRpcPort());
       for (ConfigRecord conf : record.getValue()) {
         PropertyKey key = conf.getKey();
-        if (key.getConsistencyLevel().equals(ConsistencyCheckLevel.IGNORE)) {
+        if (key.getConsistencyLevel() == ConsistencyCheckLevel.IGNORE) {
           continue;
         }
         String value = conf.getValue();

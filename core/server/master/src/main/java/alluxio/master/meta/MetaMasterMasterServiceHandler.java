@@ -16,12 +16,12 @@ import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterProcess;
+import alluxio.thrift.Address;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetMasterIdTOptions;
 import alluxio.thrift.GetMasterIdTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
-import alluxio.thrift.MasterAddress;
 import alluxio.thrift.MasterHeartbeatTOptions;
 import alluxio.thrift.MasterHeartbeatTResponse;
 import alluxio.thrift.MetaMasterMasterService;
@@ -58,19 +58,19 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
   }
 
   @Override
-  public GetMasterIdTResponse getMasterId(final MasterAddress masterAddress,
+  public GetMasterIdTResponse getMasterId(final Address address,
       GetMasterIdTOptions options) throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetMasterIdTResponse>() {
       @Override
       public GetMasterIdTResponse call() throws AlluxioException {
         return new GetMasterIdTResponse(mMasterProcess
-            .getMasterId(ThriftUtils.fromThrift(masterAddress)));
+            .getMasterId(ThriftUtils.fromThrift(address)));
       }
 
       @Override
       public String toString() {
         return String
-            .format("getMasterId: masterAddress=%s, options=%s", masterAddress, options);
+            .format("getMasterId: address=%s, options=%s", address, options);
       }
     });
   }

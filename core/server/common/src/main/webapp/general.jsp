@@ -195,11 +195,11 @@
                   <tr>
                     <th colspan="3"> <font color="red">Errors (those properties are required to be same)</font></th>
                   </tr>
-                  <% for (Map.Entry<Scope, List<WrongProperty>> error : ((Map<Scope, List<WrongProperty>>) request.getAttribute("configCheckErrors")).entrySet()) { %>
-                    <% for (WrongProperty wrongProperty: error.getValue()) { %>
+                  <% for (Map.Entry<Scope, List<InconsistentProperty>> error : ((Map<Scope, List<InconsistentProperty>>) request.getAttribute("configCheckErrors")).entrySet()) { %>
+                    <% for (InconsistentProperty inconsistentProperty: error.getValue()) { %>
                       <% String scope = error.getKey().toString(); %>
-                      <% String name = wrongProperty.getName(); %>
-                      <% for (Map.Entry<String, List<String>> entry : wrongProperty.getValues().entrySet()) { %>
+                      <% String name = inconsistentProperty.getName(); %>
+                      <% for (Map.Entry<String, List<String>> entry : inconsistentProperty.getValues().entrySet()) { %>
                         <tr>
                           <th class="span2"><font color="red"><%= scope %></font></th>
                           <th class="span4"><font color="red"><%= name %></font></th>
@@ -216,11 +216,11 @@
                   <tr>
                     <th colspan="3">Warnings (those properties are recommended to be same)</th>
                   </tr>
-                  <% for (Map.Entry<Scope, List<WrongProperty>> warn : ((Map<Scope, List<WrongProperty>>) request.getAttribute("configCheckWarns")).entrySet()) { %>
-                    <% for (WrongProperty wrongProperty: warn.getValue()) { %>
+                  <% for (Map.Entry<Scope, List<InconsistentProperty>> warn : ((Map<Scope, List<InconsistentProperty>>) request.getAttribute("configCheckWarns")).entrySet()) { %>
+                    <% for (InconsistentProperty inconsistentProperty: warn.getValue()) { %>
                       <% String scope = warn.getKey().toString(); %>
-                      <% String name = wrongProperty.getName(); %>
-                      <% for (Map.Entry<String, List<String>> entry : wrongProperty.getValues().entrySet()) { %>
+                      <% String name = inconsistentProperty.getName(); %>
+                      <% for (Map.Entry<String, List<String>> entry : inconsistentProperty.getValues().entrySet()) { %>
                         <tr>
                           <th class="span2"><%= scope %></th>
                           <th class="span4"><%= name %></th>

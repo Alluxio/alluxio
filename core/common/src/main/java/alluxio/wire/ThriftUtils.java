@@ -116,11 +116,11 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
-   * @param masterAddress the thrift representation of a master address
-   * @return wire representation of the master address
+   * @param address the thrift representation of an address
+   * @return wire representation of the address
    */
-  public static MasterAddress fromThrift(alluxio.thrift.MasterAddress masterAddress) {
-    return new MasterAddress(masterAddress);
+  public static Address fromThrift(alluxio.thrift.Address address) {
+    return new Address(address);
   }
 
   /**
@@ -256,11 +256,11 @@ public final class ThriftUtils {
   /**
    * Converts a wire type to a thrift type.
    *
-   * @param masterAddress the wire representation of a master address
-   * @return thrift representation of the master address
+   * @param address the wire representation of an address
+   * @return thrift representation of the address
    */
-  public static alluxio.thrift.MasterAddress toThrift(MasterAddress masterAddress) {
-    return masterAddress.toThrift();
+  public static alluxio.thrift.Address toThrift(Address address) {
+    return address.toThrift();
   }
 
   /**

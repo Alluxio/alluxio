@@ -20,8 +20,8 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.thrift.MetaCommand;
 import alluxio.thrift.RegisterMasterTOptions;
+import alluxio.wire.Address;
 import alluxio.wire.ConfigProperty;
-import alluxio.wire.MasterAddress;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -107,10 +107,10 @@ public interface MasterProcess extends Process {
   /**
    * Returns a master id for the given master, creating one if the master is new.
    *
-   * @param masterAddress the master {@link MasterAddress}
+   * @param address the master {@link Address}
    * @return the master id for this master
    */
-  long getMasterId(MasterAddress masterAddress);
+  long getMasterId(Address address);
 
   /**
    * A standby master periodically heartbeats with the leader master.

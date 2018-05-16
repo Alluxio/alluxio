@@ -209,7 +209,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     ConfigCheckReport report = mMasterProcess.getConfigCheckReport();
-    request.setAttribute("configCheckStatus", report.getReportStatus());
+    request.setAttribute("configCheckStatus", report.getStatus());
     request.setAttribute("configCheckErrors", report.getConfigErrors());
     request.setAttribute("configCheckWarns", report.getConfigWarns());
     request.setAttribute("configCheckErrorNum",

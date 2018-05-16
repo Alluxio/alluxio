@@ -56,9 +56,9 @@ struct TieredIdentity {
 }
 
 /**
- * Address information about masters.
+ * Address information.
  */
-struct MasterAddress {
+struct Address {
   1: string host
   2: i32 rpcPort
 }

@@ -30,9 +30,9 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Unit tests for {@link ServerConfigurationRecord}.
+ * Unit tests for {@link ServerConfigurationStore}.
  */
-public class ServerConfigurationRecordTest {
+public class ServerConfigurationStoreTest {
   private List<ConfigProperty> mConfigListOne;
   private List<ConfigProperty> mConfigListTwo;
   private Address mAddressOne;
@@ -57,9 +57,9 @@ public class ServerConfigurationRecordTest {
 
   @Test
   public void registerNewConf() {
-    ServerConfigurationRecord configRecord = createConfigRecord();
+    ServerConfigurationStore configStore = createConfigStore();
 
-    Map<Address, List<ConfigRecord>> confMap = configRecord.getConfMap();
+    Map<Address, List<ConfigRecord>> confMap = configStore.getConfMap();
 
     assertTrue(confMap.containsKey(mAddressOne));
     assertTrue(confMap.containsKey(mAddressTwo));
@@ -67,11 +67,11 @@ public class ServerConfigurationRecordTest {
 
   @Test
   public void detectNodeLost() {
-    ServerConfigurationRecord configRecord = createConfigRecord();
+    ServerConfigurationStore configStore = createConfigStore();
 
-    configRecord.handleNodeLost(mAddressOne);
+    configStore.handleNodeLost(mAddressOne);
 
-    Map<Address, List<ConfigRecord>> confMap = configRecord.getConfMap();
+    Map<Address, List<ConfigRecord>> confMap = configStore.getConfMap();
 
     assertFalse(confMap.containsKey(mAddressOne));
     assertTrue(confMap.containsKey(mAddressTwo));
@@ -79,29 +79,29 @@ public class ServerConfigurationRecordTest {
 
   @Test
   public void lostNodeFound() {
-    ServerConfigurationRecord configRecord = createConfigRecord();
+    ServerConfigurationStore configStore = createConfigStore();
 
-    configRecord.handleNodeLost(mAddressOne);
-    configRecord.handleNodeLost(mAddressTwo);
+    configStore.handleNodeLost(mAddressOne);
+    configStore.handleNodeLost(mAddressTwo);
 
-    Map<Address, List<ConfigRecord>> confMap = configRecord.getConfMap();
+    Map<Address, List<ConfigRecord>> confMap = configStore.getConfMap();
     assertFalse(confMap.containsKey(mAddressOne));
     assertFalse(confMap.containsKey(mAddressTwo));
 
-    configRecord.lostNodeFound(mAddressTwo);
-    confMap = configRecord.getConfMap();
+    configStore.lostNodeFound(mAddressTwo);
+    confMap = configStore.getConfMap();
 
     assertFalse(confMap.containsKey(mAddressOne));
     assertTrue(confMap.containsKey(mAddressTwo));
   }
 
   /**
-   * @return a config record with two conf registered
+   * @return a config store with two conf registered
    */
-  private ServerConfigurationRecord createConfigRecord() {
-    ServerConfigurationRecord configRecord = new ServerConfigurationRecord();
-    configRecord.registerNewConf(mAddressOne, mConfigListOne);
-    configRecord.registerNewConf(mAddressTwo, mConfigListTwo);
-    return configRecord;
+  private ServerConfigurationStore createConfigStore() {
+    ServerConfigurationStore configStore = new ServerConfigurationStore();
+    configStore.registerNewConf(mAddressOne, mConfigListOne);
+    configStore.registerNewConf(mAddressTwo, mConfigListTwo);
+    return configStore;
   }
 }

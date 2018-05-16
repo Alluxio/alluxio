@@ -45,6 +45,16 @@ public final class Address implements Serializable {
   }
 
   /**
+   * Creates a new instance of {@link Address} from thrift representation.
+   *
+   * @param address the thrift address
+   */
+  protected Address(alluxio.thrift.Address address) {
+    mHost = address.getHost();
+    mRpcPort = address.getRpcPort();
+  }
+
+  /**
    * @return the host of this node
    */
   public String getHost() {
@@ -74,6 +84,14 @@ public final class Address implements Serializable {
   public Address setRpcPort(int rpcPort) {
     mRpcPort = rpcPort;
     return this;
+  }
+
+  /**
+   * @return a address of thrift construct
+   */
+  protected alluxio.thrift.Address toThrift() {
+    return new alluxio.thrift.Address()
+        .setHost(mHost).setRpcPort(mRpcPort);
   }
 
   @Override
