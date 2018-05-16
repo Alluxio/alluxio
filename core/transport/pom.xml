@@ -19,7 +19,7 @@
   </parent>
   <artifactId>alluxio-core-transport</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Core - Protobuf</name>
+  <name>Alluxio Core - Transport</name>
   <description>Protobuf shared in Alluxio core modules</description>
 
   <properties>
@@ -30,7 +30,7 @@
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
     <failIfNoTests>false</failIfNoTests>
     <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
-    <shading.prefix>alluxio.core.protobuf</shading.prefix>
+    <shading.prefix>alluxio.core.transport</shading.prefix>
   </properties>
 
   <dependencies>
