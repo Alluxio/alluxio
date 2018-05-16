@@ -65,6 +65,7 @@ public final class LineageMasterTest {
   private Job mJob;
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
+  private long mStartTimeMs;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -80,10 +81,11 @@ public final class LineageMasterTest {
     mFileSystemMaster = mock(FileSystemMaster.class);
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mSafeModeManager = new DefaultSafeModeManager();
+    mStartTimeMs = System.currentTimeMillis();
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
     mLineageMaster = new DefaultLineageMaster(mFileSystemMaster,
-        new MasterContext(journalSystem, mSafeModeManager),
+        new MasterContext(journalSystem, mSafeModeManager, mStartTimeMs),
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(LineageMaster.class, mLineageMaster);
     mJob = new CommandLineJob("test", new JobConf("output"));

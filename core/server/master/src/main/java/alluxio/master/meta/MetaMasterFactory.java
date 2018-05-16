@@ -9,13 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.block;
+package alluxio.master.meta;
 
 import alluxio.Constants;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
+import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalSystem;
 
 import com.google.common.base.Preconditions;
@@ -25,16 +26,16 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory to create a {@link BlockMaster} instance.
+ * Factory to create a {@link MetaMaster} instance.
  */
 @ThreadSafe
-public final class BlockMasterFactory implements MasterFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockMasterFactory.class);
+public final class MetaMasterFactory implements MasterFactory {
+  private static final Logger LOG = LoggerFactory.getLogger(MetaMasterFactory.class);
 
   /**
-   * Constructs a new {@link BlockMasterFactory}.
+   * Constructs a new {@link MetaMasterFactory}.
    */
-  public BlockMasterFactory() {}
+  public MetaMasterFactory() {}
 
   @Override
   public boolean isEnabled() {
@@ -43,17 +44,17 @@ public final class BlockMasterFactory implements MasterFactory {
 
   @Override
   public String getName() {
-    return Constants.BLOCK_MASTER_NAME;
+    return Constants.META_MASTER_NAME;
   }
 
   @Override
-  public BlockMaster create(MasterRegistry registry, JournalSystem journalFactory,
+  public MetaMaster create(MasterRegistry registry, JournalSystem journalFactory,
       SafeModeManager safeModeManager, long startTimeMs) {
     Preconditions.checkArgument(journalFactory != null, "journal");
-    LOG.info("Creating {} ", BlockMaster.class.getName());
-    BlockMaster master = new DefaultBlockMaster(new MasterContext(journalFactory,
-        safeModeManager, startTimeMs));
-    registry.add(BlockMaster.class, master);
-    return master;
+    LOG.info("Creating {} ", MetaMaster.class.getName());
+    MetaMaster metaMaster = new DefaultMetaMaster(registry.get(BlockMaster.class),
+        new MasterContext(journalFactory, safeModeManager, startTimeMs));
+    registry.add(MetaMaster.class, metaMaster);
+    return metaMaster;
   }
 }

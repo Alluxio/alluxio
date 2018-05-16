@@ -51,12 +51,12 @@ public final class LineageMasterFactory implements MasterFactory {
 
   @Override
   public LineageMaster create(MasterRegistry registry, JournalSystem journalSystem,
-      SafeModeManager safeModeManager) {
+      SafeModeManager safeModeManager, long startTimeMs) {
     Preconditions.checkArgument(journalSystem != null, "journal system may not be null");
     LOG.info("Creating {} ", LineageMaster.class.getName());
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
     LineageMaster lineageMaster = new DefaultLineageMaster(fileSystemMaster,
-        new MasterContext(journalSystem, safeModeManager));
+        new MasterContext(journalSystem, safeModeManager, startTimeMs));
     registry.add(LineageMaster.class, lineageMaster);
     return lineageMaster;
   }

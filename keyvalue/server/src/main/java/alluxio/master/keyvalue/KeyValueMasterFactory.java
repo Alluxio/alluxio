@@ -51,13 +51,13 @@ public final class KeyValueMasterFactory implements MasterFactory {
 
   @Override
   public KeyValueMaster create(MasterRegistry registry, JournalSystem journalSystem,
-      SafeModeManager safeModeManager) {
+      SafeModeManager safeModeManager, long startTimeMs) {
     Preconditions.checkNotNull(journalSystem, "journalSystem");
     LOG.info("Creating {} ", KeyValueMaster.class.getName());
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
     DefaultKeyValueMaster keyValueMaster =
         new DefaultKeyValueMaster(fileSystemMaster,
-            new MasterContext(journalSystem, safeModeManager));
+            new MasterContext(journalSystem, safeModeManager, startTimeMs));
     registry.add(KeyValueMaster.class, keyValueMaster);
     return keyValueMaster;
   }
