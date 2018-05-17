@@ -11,7 +11,7 @@
 
 package alluxio.collections;
 
-import alluxio.util.CommonUtils;
+import alluxio.util.SleepUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -335,7 +335,7 @@ public class IndexedSetConcurrencyTest {
       futures.add(mThreadPool.submit(task));
     }
 
-    CommonUtils.sleepMs(TEST_CASE_DURATION_MS);
+    SleepUtils.sleepMs(TEST_CASE_DURATION_MS);
     mStopThreads.set(true);
     for (Future<?> future : futures) {
       future.get();
@@ -388,7 +388,7 @@ public class IndexedSetConcurrencyTest {
       futures.add(mThreadPool.submit(new ConcurrentClear(barrier)));
     }
 
-    CommonUtils.sleepMs(TEST_CASE_DURATION_MS);
+    SleepUtils.sleepMs(TEST_CASE_DURATION_MS);
     mStopThreads.set(true);
     for (Future<?> future : futures) {
       future.get();
@@ -408,7 +408,7 @@ public class IndexedSetConcurrencyTest {
       futures.add(mThreadPool.submit(new ConcurrentAddWithCheck(barrier)));
     }
 
-    CommonUtils.sleepMs(TEST_CASE_DURATION_MS);
+    SleepUtils.sleepMs(TEST_CASE_DURATION_MS);
     mStopThreads.set(true);
     for (Future<?> future : futures) {
       future.get();
@@ -455,7 +455,7 @@ public class IndexedSetConcurrencyTest {
       futures.add(mThreadPool.submit(new ConcurrentClear(barrier)));
     }
 
-    CommonUtils.sleepMs(TEST_CASE_DURATION_MS);
+    SleepUtils.sleepMs(TEST_CASE_DURATION_MS);
     mStopThreads.set(true);
     for (Future<?> future : futures) {
       future.get();

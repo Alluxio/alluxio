@@ -171,7 +171,8 @@ public final class CommonUtils {
    * @param timeMs sleep duration in milliseconds
    */
   public static void sleepMs(long timeMs) {
-    sleepMs(null, timeMs);
+    // TODO(adit): remove this wrapper
+    SleepUtils.sleepMs(timeMs);
   }
 
   /**
@@ -185,14 +186,8 @@ public final class CommonUtils {
    * @param timeMs sleep duration in milliseconds
    */
   public static void sleepMs(Logger logger, long timeMs) {
-    try {
-      Thread.sleep(timeMs);
-    } catch (InterruptedException e) {
-      if (logger != null) {
-        logger.warn(e.getMessage(), e);
-      }
-      Thread.currentThread().interrupt();
-    }
+    // TODO(adit): remove this wrapper
+    SleepUtils.sleepMs(logger, timeMs);
   }
 
   /**

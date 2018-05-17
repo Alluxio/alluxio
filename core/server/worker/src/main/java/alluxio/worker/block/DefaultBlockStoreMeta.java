@@ -19,7 +19,6 @@ import alluxio.worker.block.meta.StorageTier;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;

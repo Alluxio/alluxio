@@ -37,7 +37,6 @@ import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.UnmountTOptions;
-import alluxio.wire.ProtoUtils;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
