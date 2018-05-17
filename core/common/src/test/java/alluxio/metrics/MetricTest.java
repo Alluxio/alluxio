@@ -31,6 +31,13 @@ public class MetricTest {
     checkEquality(metric, other);
   }
 
+  @Test
+  public void testFullNameParsing() {
+    String fullName = "client.192_1_1_1:A.metric-tag1:A-tag2:B";
+    Metric metric = Metric.from(fullName, 1);
+    assertEquals(fullName, metric.getFullMetricName());
+  }
+
   public void checkEquality(Metric a, Metric b) {
     assertEquals(a.getName(), b.getName());
     assertEquals(a.getInstanceType(), b.getInstanceType());

@@ -15,6 +15,9 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * A metric of a given instance. The instance can be master, worker, or client.
@@ -28,6 +31,7 @@ public final class Metric implements Serializable {
   private final String mName;
   private final Long mValue;
   private String mInstanceId;
+  private final Map<String, String> mTags;
 
   /**
    * Constructs a {@link Metric} instance.
@@ -58,6 +62,7 @@ public final class Metric implements Serializable {
     mInstanceId = id;
     mName = name;
     mValue = value;
+    mTags = new LinkedHashMap<>();
   }
 
   /**
@@ -65,6 +70,16 @@ public final class Metric implements Serializable {
    */
   public MetricsSystem.InstanceType getInstanceType() {
     return mInstanceType;
+  }
+
+  /**
+   * Adds a new tag. If the tag name already exists, it will be replaced.
+   *
+   * @param name the tag name
+   * @param value the tag value
+   */
+  public void addTag(String name, String value) {
+    mTags.put(name, value);
   }
 
   /**
@@ -96,6 +111,13 @@ public final class Metric implements Serializable {
   }
 
   /**
+   * @return the tags
+   */
+  public Map<String, String> getTags() {
+    return mTags;
+  }
+
+  /**
    * Sets the instance id.
    *
    * @param instanceId the instance id;
@@ -116,17 +138,18 @@ public final class Metric implements Serializable {
     return Objects.equal(mHostname, metric.mHostname)
         && Objects.equal(mInstanceType, metric.mInstanceType)
         && Objects.equal(mInstanceId, metric.mInstanceId) && Objects.equal(mName, metric.mName)
-        && Objects.equal(mValue, metric.mValue);
+        && Objects.equal(mValue, metric.mValue)
+        && Objects.equal(mTags, metric.mTags);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mHostname, mInstanceType, mInstanceId, mValue, mName);
+    return Objects.hashCode(mHostname, mInstanceType, mInstanceId, mValue, mName, mTags);
   }
 
   /**
    * @return the fully qualified metric name, which is of pattern
-   *         instance.[hostname-id:instanceId.]value
+   *         instance.[hostname-id:instanceId.]name[-tagName:tagValue]*
    */
   public String getFullMetricName() {
     StringBuilder sb = new StringBuilder();
@@ -140,6 +163,9 @@ public final class Metric implements Serializable {
     }
 
     sb.append(mName);
+    for (Entry<String, String> entry : mTags.entrySet()) {
+      sb.append("-" + entry.getKey() + ":" + entry.getValue());
+    }
     return sb.toString();
   }
 
@@ -153,6 +179,7 @@ public final class Metric implements Serializable {
     metric.setName(mName);
     metric.setInstanceId(mInstanceId);
     metric.setValue(mValue);
+    metric.setTags(mTags);
     return metric;
   }
 
@@ -181,7 +208,15 @@ public final class Metric implements Serializable {
     }
     MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.fromString(pieces[0]);
     String name = MetricsSystem.stripInstanceAndHost(fullName);
-    return new Metric(instance, hostname, id, name, value);
+    // parse tags
+    pieces = name.split("-");
+    name = pieces[0];
+    Metric metric = new Metric(instance, hostname, id, name, value);
+    for (int i = 1; i < pieces.length; i++) {
+      String[] parts = pieces[i].split(":");
+      metric.addTag(parts[0], parts[1]);
+    }
+    return metric;
   }
 
   /**
@@ -199,6 +234,6 @@ public final class Metric implements Serializable {
   public String toString() {
     return Objects.toStringHelper(this).add("instanceType", mInstanceType)
         .add("hostname", mHostname).add("instanceId", mInstanceId).add("name", mName)
-        .add("value", mValue).toString();
+        .add("value", mValue).add("tags", mTags).toString();
   }
 }
