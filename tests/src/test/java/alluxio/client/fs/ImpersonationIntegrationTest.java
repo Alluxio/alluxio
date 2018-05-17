@@ -73,7 +73,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
               CustomGroupMapping.class.getName()).build();
 
   @After
-  public void after()  throws Exception{
+  public void after() throws Exception {
     ConfigurationTestUtils.resetConfiguration();
   }
 
