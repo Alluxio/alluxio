@@ -197,7 +197,7 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(REPORT_LOST_FILE)
   @ReturnType("java.lang.Void")
   public Response reportLostFile(@QueryParam("path") final String path) {
-	return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
+return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       mLineageMaster.reportLostFile(path);
       return null;
