@@ -1100,6 +1100,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("Whether the system should delete orphaned blocks found during the "
               + "periodic integrity check. This is an experimental feature.")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
       new Builder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)
@@ -1139,6 +1140,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "long for the thrift serving thread to stop before giving up and shutting down "
               + "the server")
           .setIsHidden(true)
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
@@ -1147,6 +1149,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "(blocks having no corresponding files but still taking system resource due to "
               + "various system failures). Orphaned blocks will be deleted during master startup "
               + "if this property is true. This property is available since 1.7.1")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)
@@ -1565,6 +1568,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           // Leaving this hidden for now until we sort out how it should interact with
           // WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS.
           .setIsHidden(true)
+          .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.WORKER_NETWORK_NETTY_CHANNEL)
@@ -2790,18 +2794,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(1)
           .setDescription("The number of CPUs to run an Alluxio worker for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey INTEGRATION_WORKER_RESOURCE_MEM =
       new Builder(Name.INTEGRATION_WORKER_RESOURCE_MEM)
           .setDefaultValue("1024MB")
           .setDescription("The amount of memory to run an Alluxio worker for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey INTEGRATION_YARN_WORKERS_PER_HOST_MAX =
       new Builder(Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX)
           .setDefaultValue(1)
           .setDescription("The number of workers to run on an Alluxio host for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
           .build();
 
   //

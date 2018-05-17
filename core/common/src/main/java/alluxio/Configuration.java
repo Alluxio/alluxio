@@ -66,6 +66,7 @@ public final class Configuration {
 
   /** The source of a configuration property. */
   public enum Source {
+    CLUSTER_DEFAULT,
     DEFAULT,
     HADOOP_CONF,
     SITE_PROPERTY,
@@ -87,13 +88,20 @@ public final class Configuration {
     init();
   }
 
+  static void init() {
+    init(null);
+  }
+
   /**
    * Initializes the default {@link Configuration}.
    *
    * The order of preference is (1) system properties, (2) properties in the specified file, (3)
    * default property values.
    */
-  static void init() {
+  static void init(Properties clusterProps) {
+    // Load cluster default
+    merge(clusterProps, Source.CLUSTER_DEFAULT);
+
     // Load system properties
     Properties systemProps = new Properties();
     systemProps.putAll(System.getProperties());
@@ -120,6 +128,7 @@ public final class Configuration {
       }
       if (siteProps != null) {
         // Update site properties and system properties in order
+        merge(clusterProps, Source.CLUSTER_DEFAULT);
         merge(siteProps, Source.SITE_PROPERTY);
         merge(systemProps, Source.SYSTEM_PROPERTY);
       }

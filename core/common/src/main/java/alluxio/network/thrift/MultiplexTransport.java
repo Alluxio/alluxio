@@ -1,7 +1,5 @@
 package alluxio.network.thrift;
 
-import alluxio.util.ThreadUtils;
-
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
@@ -12,8 +10,11 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-public class SwitchingTransport extends TTransport {
-  private static final Logger LOG = LoggerFactory.getLogger(SwitchingTransport.class);
+/**
+ * A transport that is the wrapper of two different types of transports.
+ */
+public abstract class MultiplexTransport extends TTransport {
+  private static final Logger LOG = LoggerFactory.getLogger(MultiplexTransport.class);
 
   /** Transport underlying this one. */
   protected TTransport mUnderlyingTransport;
@@ -21,9 +22,14 @@ public class SwitchingTransport extends TTransport {
 
   protected static final int TYPE_BYTES = 1;
 
+  /**
+   * Type of the transport.
+   */
   public enum TransportType {
+    /** transport for bootstrap. */
     BOOTSTRAP((byte) 0x01),
-    NORMAL((byte) 0x02);
+    /** transport for common communication. */
+    FINAL((byte) 0x02);
     private final byte value;
     private static final Map<Byte, TransportType> reverseMap = new HashMap<>();
 
@@ -47,25 +53,13 @@ public class SwitchingTransport extends TTransport {
     }
   }
 
-  public SwitchingTransport(TTransport baseTransport) {
+  public MultiplexTransport(TTransport baseTransport) {
     mUnderlyingTransport = baseTransport;
   }
 
   @Override
   public boolean isOpen() {
     return mUnderlyingTransport.isOpen() && mTransport != null && mTransport.isOpen();
-  }
-
-  /**
-   * Opens the underlying transport if it's not already open and then performs
-   */
-  @Override
-  public void open() throws TTransportException {
-    LOG.info("transport open tracestack: {}", ThreadUtils.formatStackTrace(Thread.currentThread()));
-    if (mTransport != null && mTransport.isOpen()) {
-      throw new TTransportException("transport is already open");
-    }
-    mTransport.open();
   }
 
   @Override
@@ -90,5 +84,14 @@ public class SwitchingTransport extends TTransport {
     }
     mTransport.write(buf, off, len);
   }
+
+  @Override
+  public void flush() throws TTransportException {
+    if (!isOpen()) {
+      throw new TTransportException("transport is not open");
+    }
+    mTransport.flush();
+  }
+
 
 }

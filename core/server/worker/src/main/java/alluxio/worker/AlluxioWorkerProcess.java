@@ -20,6 +20,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.ChannelType;
+import alluxio.network.thrift.MultiplexServerTransport;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UfsManager;
@@ -327,16 +328,17 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
 
     // Return a TTransportFactory based on the authentication type
-    TTransportFactory tTransportFactory;
+    TTransportFactory transportFactory;
     try {
       String serverName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC);
-      tTransportFactory = mTransportProvider.getServerTransportFactory(serverName);
+      transportFactory = new MultiplexServerTransport.Factory(mTransportProvider
+          .getServerTransportFactory(serverName));
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
     TThreadPoolServer.Args args = new TThreadPoolServer.Args(mThriftServerSocket)
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
-        .transportFactory(tTransportFactory)
+        .transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
     if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
       args.stopTimeoutVal = 0;

@@ -17,17 +17,22 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
+import alluxio.network.thrift.MultiplexClientTransport;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.thrift.MetaMasterClientService;
+import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +40,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
@@ -48,6 +57,7 @@ import javax.security.auth.Subject;
 public abstract class AbstractClient implements Client {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
 
+  private static AtomicBoolean sHandshakeComplete = new AtomicBoolean(false);
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
   protected InetSocketAddress mAddress;
@@ -70,6 +80,7 @@ public abstract class AbstractClient implements Client {
   /** Handler to the transport provider according to the authentication type. */
   protected final TransportProvider mTransportProvider;
 
+  private TTransport mTransport;
   private final Subject mParentSubject;
 
   /**
@@ -166,6 +177,57 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
+   * Handshakes with meta master
+   */
+  public synchronized void handshake() throws AlluxioStatusException {
+    if (isConnected() || sHandshakeComplete.get()) {
+      return;
+    }
+    mAddress = getAddress();
+    LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
+        RuntimeConstants.VERSION, mAddress);
+    // A plain socket transport to bootstrap
+    TTransport baseTransport = ThriftUtils.createThriftSocket(mAddress);
+    TTransport transport = new MultiplexClientTransport(baseTransport);
+    TProtocol protocol = ThriftUtils.createThriftProtocol(transport,
+        Constants.META_MASTER_SERVICE_NAME);
+    List<ConfigProperty> clusterConfig;
+    try {
+      transport.open();
+      MetaMasterClientService.Client client = new MetaMasterClientService.Client(protocol);
+      clusterConfig = client.getConfiguration(new GetConfigurationTOptions())
+          .getConfigList()
+          .stream()
+          .map(ConfigProperty::fromThrift)
+          .collect(Collectors.toList());
+    } catch (TTransportException e) {
+      LOG.error("TTransportException", e);
+      throw new UnavailableException("TTransportException" + e, e);
+    } catch (TException e) {
+      LOG.error("TTransportException", e);
+      throw new UnavailableException("TransportException" + e, e);
+    } finally {
+      transport.close();
+    }
+    // merge cluster default into Configuration
+    Properties clusterProps = new Properties();
+    for (ConfigProperty property : clusterConfig) {
+      String name = property.getName();
+      if (PropertyKey.isValid(name)) {
+        PropertyKey key = PropertyKey.fromString(name);
+        if (key.getScope().contains(PropertyKey.Scope.CLIENT)
+            || key.getScope().contains(PropertyKey.Scope.ALL)) {
+          clusterProps.put(key, property.getValue());
+          LOG.error("{} ({}) -> {}", key, key.getScope(), property.getValue());
+        }
+      }
+    }
+    Configuration.init(clusterProps);
+    // This needs to be the last
+    sHandshakeComplete.set(false);
+  }
+
+  /**
    * Connects with the remote.
    */
   public synchronized void connect() throws AlluxioStatusException {
@@ -192,10 +254,14 @@ public abstract class AbstractClient implements Client {
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
 
-      mProtocol = ThriftUtils.createThriftProtocol(
-          mTransportProvider.getClientTransport(mParentSubject, mAddress), getServiceName());
+      // The plain socket transport
+      TTransport baseTransport = ThriftUtils.createThriftSocket(mAddress);
+      mTransport = new MultiplexClientTransport(
+          mTransportProvider.getClientTransport(mParentSubject, baseTransport), baseTransport
+      );
+      mProtocol = ThriftUtils.createThriftProtocol(mTransport, getServiceName());
       try {
-        mProtocol.getTransport().open();
+        mTransport.open();
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
         mConnected = true;
         afterConnect();
@@ -292,6 +358,9 @@ public abstract class AbstractClient implements Client {
     while (retryPolicy.attempt()) {
       if (mClosed) {
         throw new FailedPreconditionException("Client is closed");
+      }
+      if (!sHandshakeComplete.get()) {
+        handshake();
       }
       connect();
       try {
