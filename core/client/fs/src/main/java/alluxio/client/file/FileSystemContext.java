@@ -71,7 +71,7 @@ import javax.security.auth.Subject;
 public final class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
-  private static FileSystemContext INSTANCE;
+  private static FileSystemContext sInstance;
 
   static {
     MetricsSystem.startSinks();
@@ -116,22 +116,22 @@ public final class FileSystemContext implements Closeable {
   private final Subject mParentSubject;
 
   /**
+   * @return the instance of file system context
+   */
+  public static FileSystemContext get() {
+    if (sInstance == null) {
+      synchronized (FileSystemContext.class) {
+        sInstance = create();
+      }
+    }
+    return sInstance;
+  }
+
+  /**
    * @return the context
    */
   private static FileSystemContext create() {
     return create(null);
-  }
-
-  /**
-   * @return the instance of file system context
-   */
-  public static FileSystemContext get() {
-    if (INSTANCE == null) {
-      synchronized (FileSystemContext.class) {
-        INSTANCE = create();
-      }
-    }
-    return INSTANCE;
   }
 
   /**
@@ -430,7 +430,7 @@ public final class FileSystemContext implements Closeable {
             @Override
             public Long getValue() {
               long ret = 0;
-              for (NettyChannelPool pool : INSTANCE.mNettyChannelPools.values()) {
+              for (NettyChannelPool pool : sInstance.mNettyChannelPools.values()) {
                 ret += pool.size();
               }
               return ret;
