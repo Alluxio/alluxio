@@ -18,7 +18,7 @@
     <div class="accordion-group">
       <div class="accordion-heading">
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
-          <h4>Total Bytes Read</h4>
+          <h4>Total Read Size</h4>
         </a>
       </div>
       <div id="data4" class="accordion-body collapse in">

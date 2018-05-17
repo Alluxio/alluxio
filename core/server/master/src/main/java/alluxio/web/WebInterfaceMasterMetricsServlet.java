@@ -16,6 +16,7 @@ import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
+import alluxio.util.FormatUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
@@ -144,7 +145,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
         .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO))
         .getValue();
 
-    request.setAttribute("totalBytesReadLocal", bytesReadLocal);
-    request.setAttribute("totalBytesReadRemote", 100 - bytesReadRemote);
+    request.setAttribute("totalBytesReadLocal", FormatUtils.getSizeFromBytes(bytesReadLocal));
+    request.setAttribute("totalBytesReadRemote", FormatUtils.getSizeFromBytes(bytesReadRemote));
   }
 }
