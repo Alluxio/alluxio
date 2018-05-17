@@ -40,20 +40,6 @@ public final class BlockInfo implements Serializable {
   public BlockInfo() {}
 
   /**
-   * Creates a new instance of {@link BlockInfo} from a thrift representation.
-   *
-   * @param blockInfo the thrift representation of a block information
-   */
-  protected BlockInfo(alluxio.thrift.BlockInfo blockInfo) {
-    mBlockId = blockInfo.getBlockId();
-    mLength = blockInfo.getLength();
-    mLocations = new ArrayList<>();
-    for (alluxio.thrift.BlockLocation location : blockInfo.getLocations()) {
-      mLocations.add(new BlockLocation(location));
-    }
-  }
-
-  /**
    * Creates a new instance of {@link BlockInfo} from a proto representation.
    *
    * @param blockInfo the proto representation of a block information
@@ -115,17 +101,6 @@ public final class BlockInfo implements Serializable {
     return this;
   }
 
-  /**
-   * @return thrift representation of the block information
-   */
-  protected alluxio.thrift.BlockInfo toThrift() {
-    List<alluxio.thrift.BlockLocation> locations = new ArrayList<>();
-    for (BlockLocation location : mLocations) {
-      locations.add(location.toThrift());
-    }
-    return new alluxio.thrift.BlockInfo(mBlockId, mLength, locations);
-  }
-  
   /**
    * @return proto representation of the block information
    */

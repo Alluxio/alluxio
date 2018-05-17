@@ -44,23 +44,6 @@ public final class WorkerInfo implements Serializable {
   public WorkerInfo() {}
 
   /**
-   * Creates a new instance of {@link WorkerInfo} from a thrift representation.
-   *
-   * @param workerInfo the thrift representation of a worker information
-   */
-  protected WorkerInfo(alluxio.thrift.WorkerInfo workerInfo) {
-    mId = workerInfo.getId();
-    mAddress = new WorkerNetAddress(workerInfo.getAddress());
-    mLastContactSec = workerInfo.getLastContactSec();
-    mState = workerInfo.getState();
-    mCapacityBytes = workerInfo.getCapacityBytes();
-    mUsedBytes = workerInfo.getUsedBytes();
-    mStartTimeMs = workerInfo.getStartTimeMs();
-    mCapacityBytesOnTiers = workerInfo.getCapacityBytesOnTiers();
-    mUsedBytesOnTiers = workerInfo.getUsedBytesOnTiers();
-  }
-
-  /**
    * @return the worker id
    */
   public long getId() {
@@ -204,14 +187,6 @@ public final class WorkerInfo implements Serializable {
   public WorkerInfo setUsedBytesOnTiers(Map<String, Long> usedBytesOnTiers) {
     mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
     return this;
-  }
-
-  /**
-   * @return thrift representation of the worker information
-   */
-  protected alluxio.thrift.WorkerInfo toThrift() {
-    return new alluxio.thrift.WorkerInfo(mId, mAddress.toThrift(), mLastContactSec,
-        mState, mCapacityBytes, mUsedBytes, mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers);
   }
 
   @Override

@@ -48,26 +48,6 @@ public final class WorkerNetAddress implements Serializable {
    *
    * @param workerNetAddress the thrift net address
    */
-  protected WorkerNetAddress(alluxio.thrift.WorkerNetAddress workerNetAddress) {
-    mHost = workerNetAddress.getHost();
-    mRpcPort = workerNetAddress.getRpcPort();
-    mDataPort = workerNetAddress.getDataPort();
-    mWebPort = workerNetAddress.getWebPort();
-    mDomainSocketPath = workerNetAddress.getDomainSocketPath();
-    mTieredIdentity = TieredIdentity.fromThrift(workerNetAddress.getTieredIdentity());
-    if (mTieredIdentity == null) {
-      // This means the worker is pre-1.7.0. We handle this in post-1.7.0 clients by filling out
-      // the tiered identity using the hostname field.
-      mTieredIdentity =
-          new TieredIdentity(Arrays.asList(new LocalityTier(Constants.LOCALITY_NODE, mHost)));
-    }
-  }
-
-  /**
-   * Creates a new instance of {@link WorkerNetAddress} from thrift representation.
-   *
-   * @param workerNetAddress the thrift net address
-   */
   protected WorkerNetAddress(alluxio.grpc.WorkerNetAddress workerNetAddress) {
     mHost = workerNetAddress.getHost();
     mRpcPort = workerNetAddress.getRpcPort();
@@ -181,22 +161,6 @@ public final class WorkerNetAddress implements Serializable {
   public WorkerNetAddress setTieredIdentity(TieredIdentity tieredIdentity) {
     mTieredIdentity = tieredIdentity;
     return this;
-  }
-
-  /**
-   * @return a net address of thrift construct
-   */
-  protected alluxio.thrift.WorkerNetAddress toThrift() {
-    alluxio.thrift.WorkerNetAddress address = new alluxio.thrift.WorkerNetAddress();
-    address.setHost(mHost);
-    address.setRpcPort(mRpcPort);
-    address.setDataPort(mDataPort);
-    address.setWebPort(mWebPort);
-    address.setDomainSocketPath(mDomainSocketPath);
-    if (mTieredIdentity != null) {
-      address.setTieredIdentity(mTieredIdentity.toThrift());
-    }
-    return address;
   }
 
   /**

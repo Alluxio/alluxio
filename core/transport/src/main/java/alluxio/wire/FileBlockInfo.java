@@ -41,24 +41,6 @@ public final class FileBlockInfo implements Serializable {
   public FileBlockInfo() {}
 
   /**
-   * Creates a new instance of {@link FileBlockInfo} from a thrift representation.
-   *
-   * @param fileBlockInfo the thrift representation of a file block information
-   */
-  protected FileBlockInfo(alluxio.thrift.FileBlockInfo fileBlockInfo) {
-    mBlockInfo = new BlockInfo(fileBlockInfo.getBlockInfo());
-    mOffset = fileBlockInfo.getOffset();
-    if (fileBlockInfo.getUfsStringLocationsSize() != 0) {
-      mUfsLocations = new ArrayList<>(fileBlockInfo.getUfsStringLocations());
-    } else if (fileBlockInfo.getUfsLocationsSize() != 0) {
-      for (alluxio.thrift.WorkerNetAddress address : fileBlockInfo.getUfsLocations()) {
-        mUfsLocations
-            .add(HostAndPort.fromParts(address.getHost(), address.getDataPort()).toString());
-      }
-    }
-  }
-
-  /**
    * Creates a new instance of {@link FileBlockInfo} from a proto representation.
    *
    * @param fileBlockInfo the proto representation of a file block information
@@ -124,20 +106,6 @@ public final class FileBlockInfo implements Serializable {
     Preconditions.checkNotNull(ufsLocations, "ufsLocations");
     mUfsLocations = new ArrayList<>(ufsLocations);
     return this;
-  }
-
-  /**
-   * @return thrift representation of the file block information
-   */
-  protected alluxio.thrift.FileBlockInfo toThrift() {
-    List<alluxio.thrift.WorkerNetAddress> ufsLocations = new ArrayList<>();
-    for (String ufsLocation : mUfsLocations) {
-      HostAndPort address = HostAndPort.fromString(ufsLocation);
-      ufsLocations.add(new alluxio.thrift.WorkerNetAddress().setHost(address.getHostText())
-          .setDataPort(address.getPortOrDefault(-1)));
-    }
-    return new alluxio.thrift.FileBlockInfo(mBlockInfo.toThrift(), mOffset, ufsLocations,
-        mUfsLocations);
   }
 
   /**

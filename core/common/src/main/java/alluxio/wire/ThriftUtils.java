@@ -30,7 +30,8 @@ public final class ThriftUtils {
    * @return wire representation of the block information
    */
   public static BlockInfo fromThrift(alluxio.thrift.BlockInfo blockInfo) {
-    return new BlockInfo(blockInfo);
+    return null;
+//    return new BlockInfo(blockInfo);
   }
 
   /**
@@ -50,7 +51,8 @@ public final class ThriftUtils {
    * @return wire representation of the block location
    */
   public static BlockLocation fromThrift(alluxio.thrift.BlockLocation blockLocation) {
-    return new BlockLocation(blockLocation);
+    return null;
+//    return new BlockLocation(blockLocation);
   }
 
   /**
@@ -70,7 +72,8 @@ public final class ThriftUtils {
    * @return wire representation of the file block information
    */
   public static FileBlockInfo fromThrift(alluxio.thrift.FileBlockInfo fileBlockInfo) {
-    return new FileBlockInfo(fileBlockInfo);
+    return null;
+//    return new FileBlockInfo(fileBlockInfo);
   }
 
   /**
@@ -80,7 +83,8 @@ public final class ThriftUtils {
    * @return wire representation of the file information
    */
   public static FileInfo fromThrift(alluxio.thrift.FileInfo fileInfo) {
-    return new FileInfo(fileInfo);
+    return null;
+//    return new FileInfo(fileInfo);
   }
 
   /**
@@ -130,7 +134,8 @@ public final class ThriftUtils {
    * @return {@link TtlAction} equivalent
    */
   public static TtlAction fromThrift(TTtlAction tTtlAction) {
-    return TtlAction.fromThrift(tTtlAction);
+    return null;
+//    return TtlAction.fromThrift(tTtlAction);
   }
 
   /**
@@ -140,7 +145,8 @@ public final class ThriftUtils {
    * @return wire representation of the worker information
    */
   public static WorkerInfo fromThrift(alluxio.thrift.WorkerInfo workerInfo) {
-    return new WorkerInfo(workerInfo);
+    return null;
+//    return new WorkerInfo(workerInfo);
   }
 
   /**
@@ -150,7 +156,8 @@ public final class ThriftUtils {
    * @return wire representation of the worker net address
    */
   public static WorkerNetAddress fromThrift(alluxio.thrift.WorkerNetAddress workerNetAddress) {
-    return new WorkerNetAddress(workerNetAddress);
+    return null;
+//    return new WorkerNetAddress(workerNetAddress);
   }
 
   /**
@@ -160,7 +167,8 @@ public final class ThriftUtils {
    * @return thrift representation of the block information
    */
   public static alluxio.thrift.BlockInfo toThrift(BlockInfo blockInfo) {
-    return blockInfo.toThrift();
+    return null;
+//    return blockInfo.toThrift();
   }
 
   /**
@@ -170,7 +178,8 @@ public final class ThriftUtils {
    * @return thrift representation of the block location
    */
   public static alluxio.thrift.BlockLocation toThrift(BlockLocation blockLocation) {
-    return blockLocation.toThrift();
+    return null;
+//    return blockLocation.toThrift();
   }
 
   /**
@@ -200,7 +209,8 @@ public final class ThriftUtils {
    * @return thrift representation of the command-line job information
    */
   public static alluxio.thrift.FileBlockInfo toThrift(FileBlockInfo fileBlockInfo) {
-    return fileBlockInfo.toThrift();
+    return null;
+//    return fileBlockInfo.toThrift();
   }
 
   /**
@@ -210,7 +220,8 @@ public final class ThriftUtils {
    * @return thrift representation of the file information
    */
   public static alluxio.thrift.FileInfo toThrift(FileInfo fileInfo) {
-    return fileInfo.toThrift();
+    return null;
+//    return fileInfo.toThrift();
   }
 
   /**
@@ -260,7 +271,8 @@ public final class ThriftUtils {
    * @return thrift representation of the worker information
    */
   public static alluxio.thrift.WorkerInfo toThrift(WorkerInfo workerInfo) {
-    return workerInfo.toThrift();
+    return null;
+//    return workerInfo.toThrift();
   }
 
   /**
@@ -270,7 +282,8 @@ public final class ThriftUtils {
    * @return {@link TTtlAction} equivalent
    */
   public static TTtlAction toThrift(TtlAction ttlAction) {
-    return TtlAction.toThrift(ttlAction);
+    return null;
+//    return TtlAction.toThrift(ttlAction);
   }
 
   /**
@@ -280,7 +293,8 @@ public final class ThriftUtils {
    * @return thrift representation of the worker net address
    */
   public static alluxio.thrift.WorkerNetAddress toThrift(WorkerNetAddress workerNetAddress) {
-    return workerNetAddress.toThrift();
+    return null;
+//    return workerNetAddress.toThrift();
   }
 }
 

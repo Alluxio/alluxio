@@ -11,23 +11,18 @@
 
 package alluxio.wire;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
-import alluxio.util.network.NetworkAddressUtils;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+// TODO(adit): do we need jackson annotations?
+//import com.fasterxml.jackson.annotation.JsonCreator;
+//import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.io.Serializable;
-import java.net.UnknownHostException;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -45,8 +40,9 @@ public final class TieredIdentity implements Serializable {
   /**
    * @param tiers the tiers of the tier identity
    */
-  @JsonCreator
-  public TieredIdentity(@JsonProperty("tiers") List<LocalityTier> tiers) {
+  //@JsonCreator
+  //public TieredIdentity(@JsonProperty("tiers") List<LocalityTier> tiers) {
+  public TieredIdentity(List<LocalityTier> tiers) {
     mTiers = ImmutableList.copyOf(Preconditions.checkNotNull(tiers, "tiers"));
   }
 
@@ -63,15 +59,6 @@ public final class TieredIdentity implements Serializable {
    */
   public LocalityTier getTier(int i) {
     return mTiers.get(i);
-  }
-
-  /**
-   * @return a Thrift representation
-   */
-  public alluxio.thrift.TieredIdentity toThrift() {
-    return new alluxio.thrift.TieredIdentity(mTiers.stream()
-        .map(LocalityTier::toThrift).collect(Collectors.toList())
-    );
   }
 
   /**
@@ -94,40 +81,6 @@ public final class TieredIdentity implements Serializable {
     return alluxio.grpc.TieredIdentity.newBuilder()
         .addAllTiers(mTiers.stream().map(LocalityTier::toProto).collect(Collectors.toList()))
         .build();
-  }
-
-  /**
-   * @param tieredIdentity a Thrift tiered identity
-   * @return the corresponding wire type tiered identity
-   */
-  @Nullable
-  public static TieredIdentity fromThrift(alluxio.thrift.TieredIdentity tieredIdentity) {
-    if (tieredIdentity == null) {
-      return null;
-    }
-    return new TieredIdentity(tieredIdentity.getTiers().stream()
-        .map(LocalityTier::fromThrift).collect(Collectors.toList()));
-  }
-
-  /**
-   * @param identities the tiered identities to compare to
-   * @return the identity closest to this one. If none of the identities match, the first identity
-   *         is returned
-   */
-  public Optional<TieredIdentity> nearest(List<TieredIdentity> identities) {
-    if (identities.isEmpty()) {
-      return Optional.empty();
-    }
-    for (LocalityTier tier : mTiers) {
-      for (TieredIdentity identity : identities) {
-        for (LocalityTier otherTier : identity.mTiers) {
-          if (tier != null && tier.matches(otherTier)) {
-            return Optional.of(identity);
-          }
-        }
-      }
-    }
-    return Optional.of(identities.get(0));
   }
 
   /**
@@ -176,9 +129,10 @@ public final class TieredIdentity implements Serializable {
      * @param tierName the name of the tier
      * @param value the value of the tier
      */
-    @JsonCreator
-    public LocalityTier(@JsonProperty("tierName") String tierName,
-        @JsonProperty("value") @Nullable String value) {
+    //@JsonCreator
+    //public LocalityTier(@JsonProperty("tierName") String tierName,
+    //    @JsonProperty("value") @Nullable String value) {
+    public LocalityTier(String tierName, @Nullable String value) {
       mTierName = Preconditions.checkNotNull(tierName, "tierName");
       mValue = value;
     }
@@ -199,21 +153,6 @@ public final class TieredIdentity implements Serializable {
     }
 
     /**
-     * @return a Thrift representation
-     */
-    public alluxio.thrift.LocalityTier toThrift() {
-      return new alluxio.thrift.LocalityTier(mTierName, mValue);
-    }
-
-    /**
-     * @param localityTier a Thrift locality tier
-     * @return the corresponding wire type locality tier
-     */
-    public static LocalityTier fromThrift(alluxio.thrift.LocalityTier localityTier) {
-      return new LocalityTier(localityTier.getTierName(), localityTier.getValue());
-    }
-    
-    /**
      * @return a Proto representation
      */
     public alluxio.grpc.LocalityTier toProto() {
@@ -226,42 +165,6 @@ public final class TieredIdentity implements Serializable {
      */
     public static LocalityTier fromProto(alluxio.grpc.LocalityTier localityTier) {
       return new LocalityTier(localityTier.getTierName(), localityTier.getValue());
-    }
-    
-    /**
-     * Locality comparison for wire type locality tiers, two locality tiers matches if both name
-     * and values are equal, or for the "node" tier, if the node names resolve to the same
-     * IP address.
-     *
-     * @param otherTier a wire type locality tier to compare to
-     * @return true if the wire type locality tier matches the given tier
-     */
-    public boolean matches(LocalityTier otherTier) {
-      String otherTierName = otherTier.getTierName();
-      if (!mTierName.equals(otherTierName)) {
-        return false;
-      }
-      String otherTierValue = otherTier.getValue();
-      if (mValue != null && mValue.equals(otherTierValue)) {
-        return true;
-      }
-      // For node tiers, attempt to resolve hostnames to IP addresses, this avoids common
-      // misconfiguration errors where a worker is using one hostname and the client is using
-      // another.
-      if (Configuration.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP)) {
-        if (Constants.LOCALITY_NODE.equals(mTierName)) {
-          try {
-            String tierIpAddress = NetworkAddressUtils.resolveIpAddress(mValue);
-            String otherTierIpAddress = NetworkAddressUtils.resolveIpAddress(otherTierValue);
-            if (tierIpAddress != null && tierIpAddress.equals(otherTierIpAddress)) {
-              return true;
-            }
-          } catch (UnknownHostException e) {
-            return false;
-          }
-        }
-      }
-      return false;
     }
 
     @Override

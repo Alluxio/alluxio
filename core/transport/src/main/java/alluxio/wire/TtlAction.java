@@ -12,7 +12,6 @@
 package alluxio.wire;
 
 import alluxio.annotation.PublicApi;
-import alluxio.thrift.TTtlAction;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -33,46 +32,6 @@ public enum TtlAction {
    * Indicates that the file should be freed (i.e. deleted in Alluxio but not in UFS).
    */
   FREE;
-
-  /**
-   * Converts thrift type to wire type.
-   *
-   * @param tTtlAction {@link TTtlAction}
-   * @return {@link TtlAction} equivalent
-   */
-  public static TtlAction fromThrift(TTtlAction tTtlAction) {
-    if (tTtlAction == null) {
-      return TtlAction.DELETE;
-    }
-    switch (tTtlAction) {
-      case Delete:
-        return TtlAction.DELETE;
-      case Free:
-        return TtlAction.FREE;
-      default:
-        throw new IllegalStateException("Unrecognized thrift ttl action: " + tTtlAction);
-    }
-  }
-
-  /**
-   * Converts wire type to thrift type.
-   *
-   * @param ttlAction {@link TtlAction}
-   * @return {@link TTtlAction} equivalent
-   */
-  public static TTtlAction toThrift(TtlAction ttlAction) {
-    if (ttlAction == null) {
-      return TTtlAction.Delete;
-    }
-    switch (ttlAction) {
-      case DELETE:
-        return TTtlAction.Delete;
-      case FREE:
-        return TTtlAction.Free;
-      default:
-        throw new IllegalStateException("Unrecognized ttl action: " + ttlAction);
-    }
-  }
 
   /**
    * Converts thrift type to wire type.
