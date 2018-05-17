@@ -20,6 +20,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -87,6 +88,18 @@ public final class CommonUtils {
     }
     // Use existing random instead of ThreadLocal because contention is not expected to be high.
     return TMP_DIRS.get(RANDOM.nextInt(TMP_DIRS.size()));
+  }
+
+  /**
+   * @param storageDir the root of a storage directory in tiered storage
+   *
+   * @return the worker data folder path after each storage directory, the final path will be like
+   * "/mnt/ramdisk/alluxioworker" for storage dir "/mnt/ramdisk" by appending
+   * {@link PropertyKey#WORKER_DATA_FOLDER).
+   */
+  public static String getWorkerDataDirectory(String storageDir) {
+    return PathUtils.concatPath(
+        storageDir.trim(), Configuration.get(PropertyKey.WORKER_DATA_FOLDER));
   }
 
   /**
