@@ -12,6 +12,7 @@
 package alluxio.security.authorization;
 
 import alluxio.proto.journal.File;
+import alluxio.thrift.TAclAction;
 
 /**
  * Actions to be controlled in {@link AccessControlList}.
@@ -64,6 +65,39 @@ public enum AclAction {
         return File.AclAction.EXECUTE;
       default:
         throw new IllegalStateException("Unknown acl action: " + action);
+    }
+  }
+
+  /**
+   * @param tAction the thrift representation
+   * @return the {@link AclAction} created from the thrift representation
+   */
+  public static AclAction fromThrift(TAclAction tAction) {
+    switch (tAction) {
+      case Read:
+        return READ;
+      case Write:
+        return WRITE;
+      case Execute:
+        return EXECUTE;
+      default:
+        throw new IllegalStateException("Unknown TAclACtion: " + tAction);
+    }
+  }
+
+  /**
+   * @return the thrift representation of this enum
+   */
+  public TAclAction toThrift() {
+    switch (this) {
+      case READ:
+        return TAclAction.Read;
+      case WRITE:
+        return TAclAction.Write;
+      case EXECUTE:
+        return TAclAction.Execute;
+      default:
+        throw new IllegalStateException("Unknown acl action: " + this);
     }
   }
 }

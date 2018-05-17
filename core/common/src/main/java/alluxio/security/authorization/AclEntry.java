@@ -11,6 +11,9 @@
 
 package alluxio.security.authorization;
 
+import alluxio.thrift.TAclAction;
+import alluxio.thrift.TAclEntry;
+
 import com.google.common.base.Objects;
 
 /**
@@ -84,6 +87,51 @@ public final class AclEntry {
         .add("subject", mSubject)
         .add("actions", mActions)
         .toString();
+  }
+
+  /**
+   * @return the string representation for the CLI
+   */
+  public String toCliString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(mType.toCliString());
+    sb.append(":");
+    if (mType != AclEntryType.OWNING_USER) {
+      sb.append(mSubject);
+    }
+    sb.append(":");
+    sb.append(mActions.toCliString());
+
+    return sb.toString();
+  }
+
+  /**
+   * @param tEntry the thrift representation
+   * @return the {@link AclEntry} instance created from the thrift representation
+   */
+  public static AclEntry fromThrift(TAclEntry tEntry) {
+    AclEntry.Builder builder = new AclEntry.Builder();
+    builder.setType(AclEntryType.fromThrift(tEntry.getType()));
+    builder.setSubject(tEntry.getSubject());
+    if (tEntry.isSetActions()) {
+      for (TAclAction tAction : tEntry.getActions()) {
+
+        builder.addAction(AclAction.fromThrift(tAction));
+      }
+    }
+    return builder.build();
+  }
+
+  /**
+   * @return the thrift representation of this instance
+   */
+  public TAclEntry toThrift() {
+    TAclEntry tAclEntry = new TAclEntry();
+    tAclEntry.setType(mType.toThrift());
+    for (AclAction action : mActions.getActions()) {
+      tAclEntry.addToActions(action.toThrift());
+    }
+    return tAclEntry;
   }
 
   /**

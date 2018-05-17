@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
@@ -40,6 +41,13 @@ public class URIStatus {
    */
   public URIStatus(FileInfo info) {
     mInfo = Preconditions.checkNotNull(info, "Cannot create a URIStatus from a null FileInfo");
+  }
+
+  /**
+   * @return the ACLs for this path, mutable
+   */
+  public AccessControlList getAcl() {
+    return mInfo.getAcl();
   }
 
   /**

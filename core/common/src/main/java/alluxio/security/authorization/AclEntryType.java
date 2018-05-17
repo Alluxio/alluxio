@@ -11,6 +11,8 @@
 
 package alluxio.security.authorization;
 
+import alluxio.thrift.TAclEntryType;
+
 /**
  * Types of entries in {@link AccessControlList}.
  */
@@ -20,5 +22,70 @@ public enum AclEntryType {
   OWNING_GROUP,
   NAMED_GROUP,
   MASK,
-  OTHER
+  OTHER;
+
+  /**
+   * @return the string representation for the CLI
+   */
+  public String toCliString() {
+    switch (this) {
+      case OWNING_USER:
+      case NAMED_USER:
+        return "user";
+      case OWNING_GROUP:
+      case NAMED_GROUP:
+        return "group";
+      case MASK:
+        return "mask";
+      case OTHER:
+        return "other";
+      default:
+        throw new IllegalStateException("Unknown AclEntryType: " + this);
+    }
+  }
+
+  /**
+   * @param tAclEntryType the thrift representation
+   * @return the {@link AclEntryType} created from the thrift representation
+   */
+  public static AclEntryType fromThrift(TAclEntryType tAclEntryType) {
+    switch (tAclEntryType) {
+      case Owner:
+        return OWNING_USER;
+      case NamedUser:
+        return NAMED_USER;
+      case OwningGroup:
+        return OWNING_GROUP;
+      case NamedGroup:
+        return NAMED_GROUP;
+      case Mask:
+        return MASK;
+      case Other:
+        return OTHER;
+      default:
+        throw new IllegalStateException("Unknown TAclEntryType: " + tAclEntryType);
+    }
+  }
+
+  /**
+   * @return the thrift representation of this enum
+   */
+  public TAclEntryType toThrift() {
+    switch (this) {
+      case OWNING_USER:
+        return TAclEntryType.Owner;
+      case NAMED_USER:
+        return TAclEntryType.NamedUser;
+      case OWNING_GROUP:
+        return TAclEntryType.OwningGroup;
+      case NAMED_GROUP:
+        return TAclEntryType.NamedGroup;
+      case MASK:
+        return TAclEntryType.Mask;
+      case OTHER:
+        return TAclEntryType.Other;
+      default:
+        throw new IllegalStateException("Unknown AclEntryType: " + this);
+    }
+  }
 }

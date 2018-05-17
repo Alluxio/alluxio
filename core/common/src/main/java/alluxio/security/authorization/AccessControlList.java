@@ -12,7 +12,10 @@
 package alluxio.security.authorization;
 
 import alluxio.proto.journal.File;
+import alluxio.thrift.TAcl;
+import alluxio.thrift.TAclEntry;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
@@ -149,12 +152,12 @@ public final class AccessControlList {
       }
     }
     builder.add(new AclEntry.Builder()
-        .setType(AclEntryType.OTHER)
-        .setActions(mOtherActions)
-        .build());
-    builder.add(new AclEntry.Builder()
         .setType(AclEntryType.MASK)
         .setActions(mMaskActions)
+        .build());
+    builder.add(new AclEntry.Builder()
+        .setType(AclEntryType.OTHER)
+        .setActions(mOtherActions)
         .build());
     return builder.build();
   }
@@ -295,6 +298,43 @@ public final class AccessControlList {
     return new AclActions(mOtherActions);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof AccessControlList)) {
+      return false;
+    }
+    AccessControlList that = (AccessControlList) o;
+    return mOwningUser.equals(that.mOwningUser)
+        && mOwningGroup.equals(that.mOwningGroup)
+        && mUserActions.equals(that.mUserActions)
+        && mGroupActions.equals(that.mGroupActions)
+        && mMaskActions.equals(that.mMaskActions)
+        && mOtherActions.equals(that.mOtherActions);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mOwningUser, mOwningGroup, mUserActions, mGroupActions, mMaskActions,
+        mOtherActions);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    for (AclEntry entry : getEntries()) {
+      sb.append(entry.toCliString());
+      sb.append("\n");
+    }
+    if (sb.length() > 0) {
+      // remove the last newline
+      sb.deleteCharAt(sb.length() - 1);
+    }
+    return sb.toString();
+  }
+
   private void setOwningUserEntry(AclEntry entry) {
     setOwningUser(entry.getSubject());
     mUserActions.put(OWNING_USER_KEY, entry.getActions());
@@ -394,5 +434,35 @@ public final class AccessControlList {
       builder.addGroupActions(namedActions);
     }
     return builder.build();
+  }
+
+  /**
+   * @param tAcl the thrift representation
+   * @return the {@link AccessControlList} instance created from the thrift representation
+   */
+  public static AccessControlList fromThrift(TAcl tAcl) {
+    AccessControlList acl = new AccessControlList();
+    acl.setOwningUser(tAcl.getOwner());
+    acl.setOwningGroup(tAcl.getOwningGroup());
+
+    if (tAcl.isSetEntries()) {
+      for (TAclEntry tEntry : tAcl.getEntries()) {
+        acl.setEntry(AclEntry.fromThrift(tEntry));
+      }
+    }
+    return acl;
+  }
+
+  /**
+   * @return the thrift representation of this object
+   */
+  public TAcl toThrift() {
+    TAcl tAcl = new TAcl();
+    tAcl.setOwner(getOwningUser());
+    tAcl.setOwningGroup(getOwningGroup());
+    for (AclEntry entry : getEntries()) {
+      tAcl.addToEntries(entry.toThrift());
+    }
+    return tAcl;
   }
 }
