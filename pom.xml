@@ -1348,7 +1348,7 @@
       </build>
     </profile>
     <profile>
-      <id>generate-docs</id>
+      <id>generateDocs</id>
       <build>
         <plugins>
           <plugin>
