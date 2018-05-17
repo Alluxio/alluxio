@@ -64,6 +64,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final org.apache.thrift.protocol.TField MOUNT_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mountId", org.apache.thrift.protocol.TType.I64, (short)25);
   private static final org.apache.thrift.protocol.TField IN_ALLUXIO_PERCENTAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("inAlluxioPercentage", org.apache.thrift.protocol.TType.I32, (short)26);
   private static final org.apache.thrift.protocol.TField UFS_FINGERPRINT_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsFingerprint", org.apache.thrift.protocol.TType.STRING, (short)27);
+  private static final org.apache.thrift.protocol.TField ACL_FIELD_DESC = new org.apache.thrift.protocol.TField("acl", org.apache.thrift.protocol.TType.STRUCT, (short)28);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -97,6 +98,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private long mountId; // required
   private int inAlluxioPercentage; // required
   private String ufsFingerprint; // required
+  private TAcl acl; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -129,7 +131,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     TTL_ACTION((short)24, "ttlAction"),
     MOUNT_ID((short)25, "mountId"),
     IN_ALLUXIO_PERCENTAGE((short)26, "inAlluxioPercentage"),
-    UFS_FINGERPRINT((short)27, "ufsFingerprint");
+    UFS_FINGERPRINT((short)27, "ufsFingerprint"),
+    ACL((short)28, "acl");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -196,6 +199,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           return IN_ALLUXIO_PERCENTAGE;
         case 27: // UFS_FINGERPRINT
           return UFS_FINGERPRINT;
+        case 28: // ACL
+          return ACL;
         default:
           return null;
       }
@@ -310,6 +315,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.UFS_FINGERPRINT, new org.apache.thrift.meta_data.FieldMetaData("ufsFingerprint", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.ACL, new org.apache.thrift.meta_data.FieldMetaData("acl", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, TAcl.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileInfo.class, metaDataMap);
   }
@@ -343,7 +350,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     alluxio.thrift.TTtlAction ttlAction,
     long mountId,
     int inAlluxioPercentage,
-    String ufsFingerprint)
+    String ufsFingerprint,
+    TAcl acl)
   {
     this();
     this.fileId = fileId;
@@ -388,6 +396,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.inAlluxioPercentage = inAlluxioPercentage;
     setInAlluxioPercentageIsSet(true);
     this.ufsFingerprint = ufsFingerprint;
+    this.acl = acl;
   }
 
   /**
@@ -446,6 +455,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     if (other.isSetUfsFingerprint()) {
       this.ufsFingerprint = other.ufsFingerprint;
     }
+    if (other.isSetAcl()) {
+      this.acl = new TAcl(other.acl);
+    }
   }
 
   public FileInfo deepCopy() {
@@ -496,6 +508,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     setInAlluxioPercentageIsSet(false);
     this.inAlluxioPercentage = 0;
     this.ufsFingerprint = null;
+    this.acl = null;
   }
 
   public long getFileId() {
@@ -1144,6 +1157,30 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     }
   }
 
+  public TAcl getAcl() {
+    return this.acl;
+  }
+
+  public FileInfo setAcl(TAcl acl) {
+    this.acl = acl;
+    return this;
+  }
+
+  public void unsetAcl() {
+    this.acl = null;
+  }
+
+  /** Returns true if field acl is set (has been assigned a value) and false otherwise */
+  public boolean isSetAcl() {
+    return this.acl != null;
+  }
+
+  public void setAclIsSet(boolean value) {
+    if (!value) {
+      this.acl = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case FILE_ID:
@@ -1354,6 +1391,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       break;
 
+    case ACL:
+      if (value == null) {
+        unsetAcl();
+      } else {
+        setAcl((TAcl)value);
+      }
+      break;
+
     }
   }
 
@@ -1437,6 +1482,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     case UFS_FINGERPRINT:
       return getUfsFingerprint();
 
+    case ACL:
+      return getAcl();
+
     }
     throw new IllegalStateException();
   }
@@ -1500,6 +1548,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       return isSetInAlluxioPercentage();
     case UFS_FINGERPRINT:
       return isSetUfsFingerprint();
+    case ACL:
+      return isSetAcl();
     }
     throw new IllegalStateException();
   }
@@ -1751,6 +1801,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return false;
     }
 
+    boolean this_present_acl = true && this.isSetAcl();
+    boolean that_present_acl = true && that.isSetAcl();
+    if (this_present_acl || that_present_acl) {
+      if (!(this_present_acl && that_present_acl))
+        return false;
+      if (!this.acl.equals(that.acl))
+        return false;
+    }
+
     return true;
   }
 
@@ -1887,6 +1946,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     list.add(present_ufsFingerprint);
     if (present_ufsFingerprint)
       list.add(ufsFingerprint);
+
+    boolean present_acl = true && (isSetAcl());
+    list.add(present_acl);
+    if (present_acl)
+      list.add(acl);
 
     return list.hashCode();
   }
@@ -2159,6 +2223,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetAcl()).compareTo(other.isSetAcl());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetAcl()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.acl, other.acl);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -2322,6 +2396,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       sb.append(this.ufsFingerprint);
     }
     first = false;
+    if (!first) sb.append(", ");
+    sb.append("acl:");
+    if (this.acl == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.acl);
+    }
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -2329,6 +2411,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (acl != null) {
+      acl.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -2466,13 +2551,13 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           case 13: // BLOCK_IDS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list32 = iprot.readListBegin();
-                struct.blockIds = new ArrayList<Long>(_list32.size);
-                long _elem33;
-                for (int _i34 = 0; _i34 < _list32.size; ++_i34)
+                org.apache.thrift.protocol.TList _list48 = iprot.readListBegin();
+                struct.blockIds = new ArrayList<Long>(_list48.size);
+                long _elem49;
+                for (int _i50 = 0; _i50 < _list48.size; ++_i50)
                 {
-                  _elem33 = iprot.readI64();
-                  struct.blockIds.add(_elem33);
+                  _elem49 = iprot.readI64();
+                  struct.blockIds.add(_elem49);
                 }
                 iprot.readListEnd();
               }
@@ -2548,14 +2633,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           case 23: // FILE_BLOCK_INFOS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list35 = iprot.readListBegin();
-                struct.fileBlockInfos = new ArrayList<FileBlockInfo>(_list35.size);
-                FileBlockInfo _elem36;
-                for (int _i37 = 0; _i37 < _list35.size; ++_i37)
+                org.apache.thrift.protocol.TList _list51 = iprot.readListBegin();
+                struct.fileBlockInfos = new ArrayList<FileBlockInfo>(_list51.size);
+                FileBlockInfo _elem52;
+                for (int _i53 = 0; _i53 < _list51.size; ++_i53)
                 {
-                  _elem36 = new FileBlockInfo();
-                  _elem36.read(iprot);
-                  struct.fileBlockInfos.add(_elem36);
+                  _elem52 = new FileBlockInfo();
+                  _elem52.read(iprot);
+                  struct.fileBlockInfos.add(_elem52);
                 }
                 iprot.readListEnd();
               }
@@ -2592,6 +2677,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.ufsFingerprint = iprot.readString();
               struct.setUfsFingerprintIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 28: // ACL
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.acl = new TAcl();
+              struct.acl.read(iprot);
+              struct.setAclIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -2657,9 +2751,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         oprot.writeFieldBegin(BLOCK_IDS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.blockIds.size()));
-          for (long _iter38 : struct.blockIds)
+          for (long _iter54 : struct.blockIds)
           {
-            oprot.writeI64(_iter38);
+            oprot.writeI64(_iter54);
           }
           oprot.writeListEnd();
         }
@@ -2699,9 +2793,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         oprot.writeFieldBegin(FILE_BLOCK_INFOS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.fileBlockInfos.size()));
-          for (FileBlockInfo _iter39 : struct.fileBlockInfos)
+          for (FileBlockInfo _iter55 : struct.fileBlockInfos)
           {
-            _iter39.write(oprot);
+            _iter55.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -2721,6 +2815,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.ufsFingerprint != null) {
         oprot.writeFieldBegin(UFS_FINGERPRINT_FIELD_DESC);
         oprot.writeString(struct.ufsFingerprint);
+        oprot.writeFieldEnd();
+      }
+      if (struct.acl != null) {
+        oprot.writeFieldBegin(ACL_FIELD_DESC);
+        struct.acl.write(oprot);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -2819,7 +2918,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetUfsFingerprint()) {
         optionals.set(25);
       }
-      oprot.writeBitSet(optionals, 26);
+      if (struct.isSetAcl()) {
+        optionals.set(26);
+      }
+      oprot.writeBitSet(optionals, 27);
       if (struct.isSetFileId()) {
         oprot.writeI64(struct.fileId);
       }
@@ -2859,9 +2961,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetBlockIds()) {
         {
           oprot.writeI32(struct.blockIds.size());
-          for (long _iter40 : struct.blockIds)
+          for (long _iter56 : struct.blockIds)
           {
-            oprot.writeI64(_iter40);
+            oprot.writeI64(_iter56);
           }
         }
       }
@@ -2892,9 +2994,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetFileBlockInfos()) {
         {
           oprot.writeI32(struct.fileBlockInfos.size());
-          for (FileBlockInfo _iter41 : struct.fileBlockInfos)
+          for (FileBlockInfo _iter57 : struct.fileBlockInfos)
           {
-            _iter41.write(oprot);
+            _iter57.write(oprot);
           }
         }
       }
@@ -2910,12 +3012,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetUfsFingerprint()) {
         oprot.writeString(struct.ufsFingerprint);
       }
+      if (struct.isSetAcl()) {
+        struct.acl.write(oprot);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, FileInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(26);
+      BitSet incoming = iprot.readBitSet(27);
       if (incoming.get(0)) {
         struct.fileId = iprot.readI64();
         struct.setFileIdIsSet(true);
@@ -2966,13 +3071,13 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       if (incoming.get(12)) {
         {
-          org.apache.thrift.protocol.TList _list42 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-          struct.blockIds = new ArrayList<Long>(_list42.size);
-          long _elem43;
-          for (int _i44 = 0; _i44 < _list42.size; ++_i44)
+          org.apache.thrift.protocol.TList _list58 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.blockIds = new ArrayList<Long>(_list58.size);
+          long _elem59;
+          for (int _i60 = 0; _i60 < _list58.size; ++_i60)
           {
-            _elem43 = iprot.readI64();
-            struct.blockIds.add(_elem43);
+            _elem59 = iprot.readI64();
+            struct.blockIds.add(_elem59);
           }
         }
         struct.setBlockIdsIsSet(true);
@@ -3011,14 +3116,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       if (incoming.get(21)) {
         {
-          org.apache.thrift.protocol.TList _list45 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.fileBlockInfos = new ArrayList<FileBlockInfo>(_list45.size);
-          FileBlockInfo _elem46;
-          for (int _i47 = 0; _i47 < _list45.size; ++_i47)
+          org.apache.thrift.protocol.TList _list61 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.fileBlockInfos = new ArrayList<FileBlockInfo>(_list61.size);
+          FileBlockInfo _elem62;
+          for (int _i63 = 0; _i63 < _list61.size; ++_i63)
           {
-            _elem46 = new FileBlockInfo();
-            _elem46.read(iprot);
-            struct.fileBlockInfos.add(_elem46);
+            _elem62 = new FileBlockInfo();
+            _elem62.read(iprot);
+            struct.fileBlockInfos.add(_elem62);
           }
         }
         struct.setFileBlockInfosIsSet(true);
@@ -3038,6 +3143,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (incoming.get(25)) {
         struct.ufsFingerprint = iprot.readString();
         struct.setUfsFingerprintIsSet(true);
+      }
+      if (incoming.get(26)) {
+        struct.acl = new TAcl();
+        struct.acl.read(iprot);
+        struct.setAclIsSet(true);
       }
     }
   }
