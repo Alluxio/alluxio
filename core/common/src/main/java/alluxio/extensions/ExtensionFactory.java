@@ -13,6 +13,11 @@ package alluxio.extensions;
 
 import javax.annotation.Nullable;
 
+/**
+ * A factory class for creating instance of {@link T} based on configuration {@link S}.
+ * @param <T> The type of instance to be created
+ * @param <S> the type of configuration to be used when creating the extension
+ */
 public interface ExtensionFactory<T, S> {
   /**
    * Creates a new extension for the given path. An {@link IllegalArgumentException} is

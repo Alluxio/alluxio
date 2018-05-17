@@ -11,6 +11,16 @@
 
 package alluxio.extensions;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.util.ExtensionUtils;
+import alluxio.util.io.PathUtils;
+
+import com.google.common.base.Preconditions;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -26,16 +36,6 @@ import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.util.ExtensionUtils;
-import alluxio.util.io.PathUtils;
 
 /**
  * <p>
@@ -71,6 +71,8 @@ import alluxio.util.io.PathUtils;
  * priority. Factories registered this way will be registered at the start of the factories list so
  * will have the first opportunity to indicate whether they support a requested path.
  * </p>
+ * @param <T> The type of extension factory
+ * @param <S> the type of configuration to be used when creating the extension
  */
 @NotThreadSafe
 public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>, S> {
@@ -90,6 +92,11 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>, S> {
   private final Class<T> mFactoryClass;
   private boolean mInit = false;
 
+  /**
+   * Constructs a registry for loading extension of a particular type.
+   * @param factoryClass the type of the extension factory
+   * @param extensionPattern the pattern used to select libraries to be loaded
+   */
   public ExtensionFactoryRegistry(Class<T> factoryClass, String extensionPattern) {
     mFactoryClass = Preconditions.checkNotNull(factoryClass, "factoryClass");
     mExtensionPattern = extensionPattern;
