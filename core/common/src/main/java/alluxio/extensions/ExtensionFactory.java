@@ -24,7 +24,7 @@ public interface ExtensionFactory<T, S> {
    * thrown if this factory does not support extension for the given path or if the configuration
    * provided is insufficient to create a client.
    *
-   * @param path file path
+   * @param path file path for which the extension will be created
    * @param conf optional configuration object for the extension, may be null
    * @return the client
    */
@@ -34,7 +34,7 @@ public interface ExtensionFactory<T, S> {
    * Gets whether this factory supports the given path and thus whether calling the
    * {@link #create(String, S)} can succeed for this path.
    *
-   * @param path file path
+   * @param path file path for which the extension will be created
    * @param conf optional configuration object for the extension, may be null
    * @return true if the path is supported, false otherwise
    */

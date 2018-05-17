@@ -39,9 +39,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UnderFileSystemFactoryRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemFactoryRegistry.class);
-  private static final String EXTENSION_PATTERN = "alluxio-underfs-*.jar";
+  private static final String UFS_EXTENSION_PATTERN = "alluxio-underfs-*.jar";
   private static ExtensionFactoryRegistry<UnderFileSystemFactory, UnderFileSystemConfiguration>
-      sInstance;
+      sRegistryInstance;
 
   // prevent instantiation
   private UnderFileSystemFactoryRegistry() {}
@@ -57,7 +57,7 @@ public final class UnderFileSystemFactoryRegistry {
    * @return Read-only view of the available base factories
    */
   public static List<UnderFileSystemFactory> available() {
-    return sInstance.getAvailable();
+    return sRegistryInstance.getAvailable();
   }
 
   /**
@@ -101,12 +101,13 @@ public final class UnderFileSystemFactoryRegistry {
    */
   public static List<UnderFileSystemFactory> findAll(String path,
       UnderFileSystemConfiguration ufsConf) {
-    return sInstance.findAll(path, ufsConf);
+    return sRegistryInstance.findAll(path, ufsConf);
   }
 
   private static synchronized void init() {
-    if (sInstance == null) {
-      sInstance = new ExtensionFactoryRegistry<>(UnderFileSystemFactory.class, EXTENSION_PATTERN);
+    if (sRegistryInstance == null) {
+      sRegistryInstance = new ExtensionFactoryRegistry<>(UnderFileSystemFactory.class,
+          UFS_EXTENSION_PATTERN);
     }
   }
 
@@ -123,7 +124,7 @@ public final class UnderFileSystemFactoryRegistry {
    * @param factory factory to register
    */
   public static void register(UnderFileSystemFactory factory) {
-    sInstance.register(factory);
+    sRegistryInstance.register(factory);
   }
 
   /**
@@ -133,7 +134,7 @@ public final class UnderFileSystemFactoryRegistry {
    * </p>
    */
   public static synchronized void reset() {
-    sInstance.reset();
+    sRegistryInstance.reset();
   }
 
   /**
@@ -142,6 +143,6 @@ public final class UnderFileSystemFactoryRegistry {
    * @param factory factory to unregister
    */
   public static void unregister(UnderFileSystemFactory factory) {
-    sInstance.unregister(factory);
+    sRegistryInstance.unregister(factory);
   }
 }
