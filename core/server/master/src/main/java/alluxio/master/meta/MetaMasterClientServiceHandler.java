@@ -34,6 +34,7 @@ import alluxio.thrift.MasterInfo;
 import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.MetricValue;
+import alluxio.wire.ThriftUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -79,7 +80,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
       for (Map.Entry<PropertyKey.Scope, List<InconsistentProperty>> entry :
           report.getConfigErrors().entrySet()) {
         thriftErrors.put(entry.getKey().toThrift(), entry.getValue().stream()
-            .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
+            .map(ThriftUtils::toThrift).collect(Collectors.toList()));
       }
 
       Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftWarns
@@ -87,7 +88,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
       for (Map.Entry<PropertyKey.Scope, List<InconsistentProperty>> entry :
           report.getConfigWarns().entrySet()) {
         thriftWarns.put(entry.getKey().toThrift(), entry.getValue().stream()
-            .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
+            .map(ThriftUtils::toThrift).collect(Collectors.toList()));
       }
 
       return new GetConfigReportTResponse().setErrors(thriftErrors)

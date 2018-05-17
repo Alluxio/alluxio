@@ -60,7 +60,7 @@ public class ConfigurationCommand {
           + "(those properties are required to be same): ");
       printInfo(errors);
     }
-    
+
     Map<Scope, List<InconsistentProperty>> warnings = report.getConfigWarns();
     if (warnings.size() != 0) {
       mPrintStream.println("\nServer-side configuration warnings "

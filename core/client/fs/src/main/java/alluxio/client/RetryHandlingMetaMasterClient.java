@@ -92,13 +92,13 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
       for (Map.Entry<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> entry :
           response.getErrors().entrySet()) {
         wireErrors.put(Scope.fromThrift(entry.getKey()), entry.getValue().stream()
-            .map(InconsistentProperty::new).collect(Collectors.toList()));
+            .map(ThriftUtils::fromThrift).collect(Collectors.toList()));
       }
       Map<Scope, List<InconsistentProperty>> wireWarns = new HashMap<>();
       for (Map.Entry<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> entry :
           response.getWarns().entrySet()) {
         wireWarns.put(Scope.fromThrift(entry.getKey()), entry.getValue().stream()
-            .map(InconsistentProperty::new).collect(Collectors.toList()));
+            .map(ThriftUtils::fromThrift).collect(Collectors.toList()));
       }
       ConfigStatus status = ConfigStatus.fromThrift(response.getStatus());
       return new ConfigCheckReport(wireErrors, wireWarns, status);

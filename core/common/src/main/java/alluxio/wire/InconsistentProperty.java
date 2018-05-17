@@ -39,7 +39,7 @@ public class InconsistentProperty {
    *
    * @param inconsistentProperty the thrift inconsistent property
    */
-  public InconsistentProperty(alluxio.thrift.InconsistentProperty inconsistentProperty) {
+  protected InconsistentProperty(alluxio.thrift.InconsistentProperty inconsistentProperty) {
     mName = inconsistentProperty.getName();
     mValues = inconsistentProperty.getValues();
   }
@@ -79,7 +79,7 @@ public class InconsistentProperty {
   /**
    * @return an inconsistent property of thrift construct
    */
-  public alluxio.thrift.InconsistentProperty toThrift() {
+  protected alluxio.thrift.InconsistentProperty toThrift() {
     return new alluxio.thrift.InconsistentProperty()
         .setName(mName).setValues(mValues);
   }

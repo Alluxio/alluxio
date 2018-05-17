@@ -86,6 +86,17 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
+   * @param inconsistentProperty the thrift representation of an inconsistent property
+   * @return wire representation of the inconsistent property
+   */
+  public static InconsistentProperty fromThrift(
+      alluxio.thrift.InconsistentProperty inconsistentProperty) {
+    return new InconsistentProperty(inconsistentProperty);
+  }
+
+  /**
+   * Converts a thrift type to a wire type.
+   *
    * @param conf the thrift representation of a command-line job configuration
    * @return wire representation of the command-line job configuration
    */
@@ -221,6 +232,17 @@ public final class ThriftUtils {
    */
   public static alluxio.thrift.FileInfo toThrift(FileInfo fileInfo) {
     return fileInfo.toThrift();
+  }
+
+  /**
+   * Converts a wire type to a thrift type.
+   *
+   * @param inconsistentProperty the wire representation of an inconsistent property
+   * @return thrift representation of the inconsistent property
+   */
+  public static alluxio.thrift.InconsistentProperty toThrift(
+      InconsistentProperty inconsistentProperty) {
+    return inconsistentProperty.toThrift();
   }
 
   /**

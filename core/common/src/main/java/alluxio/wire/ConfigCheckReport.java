@@ -44,7 +44,7 @@ public class ConfigCheckReport {
    *
    * @param configErrors the configuration errors
    * @param configWarns the configuration warnings
-   * @param ConfigStatus the overall report ConfigStatus
+   * @param ConfigStatus the overall configuration report status
    */
   public ConfigCheckReport(Map<Scope, List<InconsistentProperty>> configErrors,
       Map<Scope, List<InconsistentProperty>> configWarns, ConfigStatus ConfigStatus) {
@@ -84,7 +84,7 @@ public class ConfigCheckReport {
     NOT_STARTED;
 
     /**
-     * @return the thrift representation of this config status field
+     * @return the thrift representation of this configuration status field
      */
     public alluxio.thrift.ConfigStatus toThrift() {
       return alluxio.thrift.ConfigStatus.valueOf(name());
