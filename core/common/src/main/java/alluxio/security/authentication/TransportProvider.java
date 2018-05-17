@@ -77,15 +77,11 @@ public interface TransportProvider {
   TTransport getClientTransport(InetSocketAddress serverAddress) throws UnauthenticatedException;
 
   /**
-   * Similar as {@link TransportProvider#getClientTransport(InetSocketAddress)} but it also
-   * specifies the {@link Subject} explicitly.
-   *
-   * @param subject the subject, set to null if not present
-   * @param serverAddress the server address which clients will connect to
+   * @param baseTransport the base transport (socket) to use for this client transport
    * @return a TTransport for client
    */
-  TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
-      throws UnauthenticatedException;
+  TTransport getClientTransport(Subject subject, TTransport baseTransport) throws
+      UnauthenticatedException;
 
   /**
    * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is
