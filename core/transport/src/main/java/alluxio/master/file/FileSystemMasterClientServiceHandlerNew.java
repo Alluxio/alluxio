@@ -18,6 +18,7 @@ import alluxio.grpc.FileSystemMasterServiceGrpc;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.master.file.options.GetStatusOptions;
+import alluxio.service.FileSystemMasterService;
 import alluxio.wire.ProtoUtils;
 
 import io.grpc.stub.StreamObserver;
@@ -35,14 +36,14 @@ public final class FileSystemMasterClientServiceHandlerNew
     extends FileSystemMasterServiceGrpc.FileSystemMasterServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandlerNew.class);
-  private final FileSystemMaster mFileSystemMaster;
+  private final FileSystemMasterService mFileSystemMaster;
 
   /**
    * Creates a new instance of {@link FileSystemMasterClientServiceHandlerNew}.
    *
    * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
    */
-  public FileSystemMasterClientServiceHandlerNew(FileSystemMaster fileSystemMaster) {
+  public FileSystemMasterClientServiceHandlerNew(FileSystemMasterService fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
   }
