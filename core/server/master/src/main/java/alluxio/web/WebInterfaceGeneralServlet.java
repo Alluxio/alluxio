@@ -212,7 +212,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
-    request.setAttribute("configCheckStatus", report.getStatus());
+    request.setAttribute("configCheckStatus", report.getConfigStatus());
     request.setAttribute("configCheckErrors", report.getConfigErrors());
     request.setAttribute("configCheckWarns", report.getConfigWarns());
     request.setAttribute("configCheckErrorNum",

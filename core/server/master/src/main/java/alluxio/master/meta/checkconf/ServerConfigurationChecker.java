@@ -16,7 +16,7 @@ import alluxio.PropertyKey.Scope;
 import alluxio.PropertyKey.ConsistencyCheckLevel;
 import alluxio.wire.Address;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigCheckReport.Status;
+import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.InconsistentProperty;
 
 import java.util.ArrayList;
@@ -77,8 +77,9 @@ public class ServerConfigurationChecker {
     }
 
     // Update configuration status
-    Status status = confErrors.values().stream().anyMatch(a -> a.size() > 0) ? Status.FAILED
-        : confWarns.values().stream().anyMatch(a -> a.size() > 0) ? Status.WARN : Status.PASSED;
+    ConfigStatus status = confErrors.values().stream().anyMatch(a -> a.size() > 0)
+        ? ConfigStatus.FAILED : confWarns.values().stream().anyMatch(a -> a.size() > 0)
+        ? ConfigStatus.WARN : ConfigStatus.PASSED;
 
     mConfigCheckReport = new ConfigCheckReport(confErrors, confWarns, status);
   }

@@ -127,7 +127,7 @@ service MetaMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-   * Returns server-side configuration checker report.
+   * Returns server-side configuration report.
    */
   GetConfigReportTResponse getConfigReport(
     /** the method options */ 1: GetConfigReportTOptions options,

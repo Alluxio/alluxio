@@ -96,10 +96,10 @@ public final class DoctorCommand implements Command {
 
       switch (command) {
         case ALL:
-          new ConfigurationCommand(mMetaMasterClient, mPrintStream).run();
-          break;
         case CONFIGURATION:
-          new ConfigurationCommand(mMetaMasterClient, mPrintStream).run();
+          ConfigurationCommand configurationCommand
+              = new ConfigurationCommand(mMetaMasterClient, mPrintStream);
+          configurationCommand.run();
           break;
         default:
           break;

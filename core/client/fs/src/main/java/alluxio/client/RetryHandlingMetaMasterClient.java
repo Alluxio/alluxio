@@ -24,7 +24,7 @@ import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMetricsTOptions;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigCheckReport.Status;
+import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.InconsistentProperty;
 import alluxio.wire.MasterInfo;
@@ -100,7 +100,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
         wireWarns.put(Scope.fromThrift(entry.getKey()), entry.getValue().stream()
             .map(InconsistentProperty::new).collect(Collectors.toList()));
       }
-      Status status = Status.fromThrift(response.getStatus());
+      ConfigStatus status = ConfigStatus.fromThrift(response.getStatus());
       return new ConfigCheckReport(wireErrors, wireWarns, status);
     });
   }

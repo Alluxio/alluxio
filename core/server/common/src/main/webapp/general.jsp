@@ -75,8 +75,8 @@
                 <tr>
                   <th>Server Configuration Check:</th>
                   <% ConfigCheckReport configReport = ((ConfigCheckReport) request.getAttribute("configCheckReport")); %>
-                  <% ConfigCheckReport.Status status = (ConfigCheckReport.Status) request.getAttribute("configCheckStatus");%>
-                  <% if (status.equals(ConfigCheckReport.Status.FAILED)) { %>
+                  <% ConfigCheckReport.ConfigStatus status = (ConfigCheckReport.ConfigStatus) request.getAttribute("configCheckStatus");%>
+                  <% if (status.equals(ConfigCheckReport.ConfigStatus.FAILED)) { %>
                     <th><font color="red"><%= status %><font color="red"></th>
                   <% } else { %>
                     <th><%= status %></th>

@@ -28,7 +28,7 @@ public class ConfigCheckReport {
   /** Record the configuration warnings. */
   private final Map<Scope, List<InconsistentProperty>> mConfigWarns;
   /** Record the overall status of config check report. */
-  private final Status mStatus;
+  private final ConfigStatus mConfigStatus;
 
   /**
    * Creates a new instance of {@link ConfigCheckReport}.
@@ -36,7 +36,7 @@ public class ConfigCheckReport {
   public ConfigCheckReport() {
     mConfigErrors = new HashMap<>();
     mConfigWarns = new HashMap<>();
-    mStatus = Status.NOT_STARTED;
+    mConfigStatus = ConfigStatus.NOT_STARTED;
   }
 
   /**
@@ -44,13 +44,13 @@ public class ConfigCheckReport {
    *
    * @param configErrors the configuration errors
    * @param configWarns the configuration warnings
-   * @param status the overall report status
+   * @param ConfigStatus the overall report ConfigStatus
    */
   public ConfigCheckReport(Map<Scope, List<InconsistentProperty>> configErrors,
-      Map<Scope, List<InconsistentProperty>> configWarns, Status status) {
+      Map<Scope, List<InconsistentProperty>> configWarns, ConfigStatus ConfigStatus) {
     mConfigErrors = configErrors;
     mConfigWarns = configWarns;
-    mStatus = status;
+    mConfigStatus = ConfigStatus;
   }
 
   /**
@@ -68,16 +68,16 @@ public class ConfigCheckReport {
   }
 
   /**
-   * @return the overall report status
+   * @return the overall configuration status
    */
-  public Status getStatus() {
-    return mStatus;
+  public ConfigStatus getConfigStatus() {
+    return mConfigStatus;
   }
 
   /**
-   * Status of the config check.
+   * Config status of the config check.
    */
-  public enum Status {
+  public enum ConfigStatus {
     PASSED, // do not have configuration errors and warnings
     WARN, // do not have configuration errors but have warnings
     FAILED, // have configuration errors
@@ -94,8 +94,8 @@ public class ConfigCheckReport {
      * @param field the thrift representation of the configuration status field to create
      * @return the wire type version of the configuration status field
      */
-    public static Status fromThrift(alluxio.thrift.ConfigStatus field) {
-      return Status.valueOf(field.name());
+    public static ConfigStatus fromThrift(alluxio.thrift.ConfigStatus field) {
+      return ConfigStatus.valueOf(field.name());
     }
   }
 }

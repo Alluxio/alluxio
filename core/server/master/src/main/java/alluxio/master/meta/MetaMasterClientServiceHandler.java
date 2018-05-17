@@ -91,7 +91,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
       }
 
       return new GetConfigReportTResponse().setErrors(thriftErrors)
-          .setWarns(thriftWarns).setStatus(report.getStatus().toThrift());
+          .setWarns(thriftWarns).setStatus(report.getConfigStatus().toThrift());
     });
   }
 

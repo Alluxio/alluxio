@@ -14,7 +14,7 @@ package alluxio.cli.fsadmin.command.doctor;
 import alluxio.PropertyKey.Scope;
 import alluxio.client.MetaMasterClient;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigCheckReport.Status;
+import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.InconsistentProperty;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class ConfigurationCommand {
   /**
    * Creates a new instance of {@link ConfigurationCommand}.
    *
-   * @param metaMasterClient client to get server-side configuration errors/warnings
+   * @param metaMasterClient client to get server-side configuration report information
    * @param printStream stream to print configuration errors/warnings to
    */
   public ConfigurationCommand(MetaMasterClient metaMasterClient, PrintStream printStream) {
@@ -41,24 +41,26 @@ public class ConfigurationCommand {
   }
 
   /**
-   * Runs report configuration command.
+   * Runs doctor configuration command.
    *
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
     ConfigCheckReport report = mMetaMasterClient.getConfigReport();
-    Status reportStatus = report.getStatus();
-    if (reportStatus.equals(Status.NOT_STARTED) || reportStatus.equals(Status.PASSED)) {
+    ConfigStatus configStatus = report.getConfigStatus();
+    if (configStatus.equals(ConfigStatus.NOT_STARTED) || configStatus.equals(ConfigStatus.PASSED)) {
       // No errors or warnings to show
-      mPrintStream.println("No configuration errors or warnings.");
+      mPrintStream.println("No server-side configuration errors or warnings.");
       return 0;
     }
+
     Map<Scope, List<InconsistentProperty>> errors = report.getConfigErrors();
     if (errors.size() != 0) {
       mPrintStream.println("Server-side configuration errors "
           + "(those properties are required to be same): ");
       printInfo(errors);
     }
+    
     Map<Scope, List<InconsistentProperty>> warnings = report.getConfigWarns();
     if (warnings.size() != 0) {
       mPrintStream.println("\nServer-side configuration warnings "
