@@ -13,7 +13,9 @@ package alluxio.web;
 
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.WorkerMetrics;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
@@ -98,6 +100,8 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("masterUnderfsCapacityFreePercentage",
         100 - masterUnderfsCapacityUsedPercentage);
 
+    populateClusterMetrics(request);
+
     Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
       @Override
       public boolean matches(String name, Metric metric) {
@@ -129,5 +133,18 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     }
 
     populateCounterValues(operations, rpcInvocationsUpdated, request);
+  }
+
+  private void populateClusterMetrics(HttpServletRequest request) throws IOException {
+    MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
+    Long bytesReadLocal = (Long) mr.getGauges()
+        .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL))
+        .getValue();
+    Long bytesReadRemote = (Long) mr.getGauges()
+        .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO))
+        .getValue();
+
+    request.setAttribute("totalBytesReadLocal", bytesReadLocal);
+    request.setAttribute("totalBytesReadRemote", 100 - bytesReadRemote);
   }
 }

@@ -18,6 +18,31 @@
     <div class="accordion-group">
       <div class="accordion-heading">
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+          <h4>Total Bytes Read</h4>
+        </a>
+      </div>
+      <div id="data4" class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <table class="table">
+            <tbody>
+              <tr>
+                <th>Short-circuit Read</th>
+                <th><%= request.getAttribute("totalBytesReadLocal") %></th>
+                <th>From Remote Instances</th>
+                <th><%= request.getAttribute("totalBytesReadRemote") %></th>
+              </tr>              
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row-fluid">
+  <div class="accordion span14" id="accordion4">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
           <h4>Logical Operations</h4>
         </a>
       </div>
