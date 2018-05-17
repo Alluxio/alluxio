@@ -11,10 +11,16 @@
 
 package alluxio.cli.fsadmin.command.doctor;
 
+import alluxio.PropertyKey.Scope;
 import alluxio.client.MetaMasterClient;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigCheckReport.Status;
+import alluxio.wire.InconsistentProperty;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Prints runtime configuration information.
@@ -40,7 +46,40 @@ public class ConfigurationCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-
+    ConfigCheckReport report = mMetaMasterClient.getConfigReport();
+    Status reportStatus = report.getStatus();
+    if (reportStatus.equals(Status.NOT_STARTED) || reportStatus.equals(Status.PASSED)) {
+      // No errors or warnings to show
+      return 0;
+    }
+    Map<Scope, List<InconsistentProperty>> errors = report.getConfigErrors();
+    if (errors.size() != 0) {
+      mPrintStream.println("Server-side configuration errors "
+          + "(those properties are required to be same): ");
+      printInfo(errors);
+    }
+    Map<Scope, List<InconsistentProperty>> warnings = report.getConfigWarns();
+    if (warnings.size() != 0) {
+      mPrintStream.println("Server-side configuration warnings "
+          + "(those properties are recommended to be same): ");
+      printInfo(errors);
+    }
     return 0;
+  }
+
+  /**
+   * Prints the configuration errors or warnings.
+   *
+   * @param info the errors or warnings to print
+   */
+  private void printInfo(Map<Scope, List<InconsistentProperty>> info) {
+    for (List<InconsistentProperty> list : info.values()) {
+      for (InconsistentProperty prop : list) {
+        for (Map.Entry<String, List<String>> entry : prop.getValues().entrySet()) {
+          mPrintStream.println(String.format("%-15s %-50s", prop.getName(),
+              String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()))));
+        }
+      }
+    }
   }
 }

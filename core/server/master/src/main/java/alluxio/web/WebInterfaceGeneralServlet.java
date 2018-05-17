@@ -20,10 +20,10 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.meta.MetaMaster;
-import alluxio.master.meta.checkconf.ServerConfigurationChecker.ConfigCheckReport;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+import alluxio.wire.ConfigCheckReport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

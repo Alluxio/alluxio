@@ -42,6 +42,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
+import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Preconditions;
@@ -228,7 +229,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public ServerConfigurationChecker.ConfigCheckReport getConfigCheckReport() {
+  public ConfigCheckReport getConfigCheckReport() {
     return mConfigChecker.getConfigCheckReport();
   }
 

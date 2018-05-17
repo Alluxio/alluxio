@@ -14,7 +14,7 @@
 <%@ page import="java.lang.*" %>
 <%@ page import="alluxio.web.*" %>
 <%@ page import="alluxio.PropertyKey.*" %>
-<%@ page import="alluxio.master.meta.checkconf.*" %>
+<%@ page import="alluxio.wire.*" %>
 
 <html>
 <head>
@@ -74,9 +74,9 @@
                 <% } %>
                 <tr>
                   <th>Server Configuration Check:</th>
-                  <% ServerConfigurationChecker.ConfigCheckReport configReport = ((ServerConfigurationChecker.ConfigCheckReport) request.getAttribute("configCheckReport")); %>
-                  <% ServerConfigurationChecker.Status status = (ServerConfigurationChecker.Status) request.getAttribute("configCheckStatus");%>
-                  <% if (status.equals(ServerConfigurationChecker.Status.FAILED)) { %>
+                  <% ConfigCheckReport configReport = ((ConfigCheckReport) request.getAttribute("configCheckReport")); %>
+                  <% ConfigCheckReport.Status status = (ConfigCheckReport.Status) request.getAttribute("configCheckStatus");%>
+                  <% if (status.equals(ConfigCheckReport.Status.FAILED)) { %>
                     <th><font color="red"><%= status %><font color="red"></th>
                   <% } else { %>
                     <th><%= status %></th>

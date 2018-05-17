@@ -13,14 +13,20 @@ package alluxio.client;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.PropertyKey.Scope;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.GetConfigReportTOptions;
+import alluxio.thrift.GetConfigReportTResponse;
 import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMetricsTOptions;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigCheckReport.Status;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.InconsistentProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 import alluxio.wire.MetricValue;
@@ -75,6 +81,28 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   @Override
   protected void afterConnect() {
     mClient = new MetaMasterClientService.Client(mProtocol);
+  }
+
+  @Override
+  public synchronized ConfigCheckReport getConfigReport() throws IOException {
+    return retryRPC(() -> {
+      GetConfigReportTResponse response = mClient.getConfigReport(new GetConfigReportTOptions());
+
+      Map<Scope, List<InconsistentProperty>> wireErrors = new HashMap<>();
+      for (Map.Entry<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> entry :
+          response.getErrors().entrySet()) {
+        wireErrors.put(Scope.fromThrift(entry.getKey()), entry.getValue().stream()
+            .map(InconsistentProperty::new).collect(Collectors.toList()));
+      }
+      Map<Scope, List<InconsistentProperty>> wireWarns = new HashMap<>();
+      for (Map.Entry<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> entry :
+          response.getWarns().entrySet()) {
+        wireWarns.put(Scope.fromThrift(entry.getKey()), entry.getValue().stream()
+            .map(InconsistentProperty::new).collect(Collectors.toList()));
+      }
+      Status status = Status.fromThrift(response.getStatus());
+      return new ConfigCheckReport(wireErrors, wireWarns, status);
+    });
   }
 
   @Override

@@ -15,8 +15,9 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.Scope;
-import alluxio.master.meta.checkconf.ServerConfigurationChecker.Status;
 import alluxio.wire.Address;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigCheckReport.Status;
 import alluxio.wire.ConfigProperty;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -91,7 +92,7 @@ public class ServerConfigurationCheckerTest {
         Arrays.asList(masterEnforceProp, workerWarnProp, serverEnforceProp));
     mRecordTwo.registerNewConf(addressTwo,
         Arrays.asList(masterEnforceProp, workerWarnProp, wrongServerEnforceProp));
-    checkResults(1, 0, Status.FAILED);
+    checkResults(1, 0, ConfigCheckReport.Status.FAILED);
   }
 
   /**
@@ -102,9 +103,9 @@ public class ServerConfigurationCheckerTest {
    * @param expectedStatus the expected config check status
    */
   private void checkResults(int expectedErrorNum, int expectedWarnNum,
-      Status expectedStatus) {
+      ConfigCheckReport.Status expectedStatus) {
     mConfigChecker.regenerateReport();
-    ServerConfigurationChecker.ConfigCheckReport report = mConfigChecker.getConfigCheckReport();
+    ConfigCheckReport report = mConfigChecker.getConfigCheckReport();
     assertEquals(expectedErrorNum, report.getConfigErrors().size());
     assertEquals(expectedWarnNum, report.getConfigWarns().size());
     assertEquals(expectedStatus, report.getStatus());

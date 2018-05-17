@@ -16,8 +16,8 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
-import alluxio.master.meta.checkconf.InconsistentProperty;
-import alluxio.master.meta.checkconf.ServerConfigurationChecker;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.InconsistentProperty;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetConfigReportTOptions;
@@ -66,6 +66,32 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   @Override
   public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
     return new GetServiceVersionTResponse(Constants.META_MASTER_CLIENT_SERVICE_VERSION);
+  }
+
+  @Override
+  public GetConfigReportTResponse getConfigReport(final GetConfigReportTOptions options)
+      throws TException {
+    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigReportTResponse>) () -> {
+      ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
+
+      Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftErrors
+          = new HashMap<>();
+      for (Map.Entry<PropertyKey.Scope, List<InconsistentProperty>> entry :
+          report.getConfigErrors().entrySet()) {
+        thriftErrors.put(entry.getKey().toThrift(), entry.getValue().stream()
+            .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
+      }
+
+      Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftWarns
+          = new HashMap<>();
+      for (Map.Entry<PropertyKey.Scope, List<InconsistentProperty>> entry :
+          report.getConfigWarns().entrySet()) {
+        thriftErrors.put(entry.getKey().toThrift(), entry.getValue().stream()
+            .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
+      }
+      return new GetConfigReportTResponse().setErrors(thriftErrors)
+          .setWarns(thriftWarns).setStatus(report.getStatus().toThrift());
+    });
   }
 
   @Override
@@ -147,32 +173,6 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
         }
       }
       return new GetMetricsTResponse(metricsMap);
-    });
-  }
-
-  @Override
-  public GetConfigReportTResponse getConfigReport(final GetConfigReportTOptions options)
-      throws TException {
-    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigReportTResponse>) () -> {
-      ServerConfigurationChecker.ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
-
-      Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftErrors
-          = new HashMap<>();
-      for (Map.Entry<PropertyKey.Scope, List<InconsistentProperty>> entry :
-          report.getConfigErrors().entrySet()) {
-        thriftErrors.put(entry.getKey().toThrift(), entry.getValue().stream()
-            .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
-      }
-
-      Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftWarns
-          = new HashMap<>();
-      for (Map.Entry<PropertyKey.Scope, List<InconsistentProperty>> entry :
-          report.getConfigWarns().entrySet()) {
-        thriftErrors.put(entry.getKey().toThrift(), entry.getValue().stream()
-            .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
-      }
-      return new GetConfigReportTResponse().setErrors(thriftErrors)
-          .setWarns(thriftWarns).setStatus(report.getStatus().toThrift());
     });
   }
 }

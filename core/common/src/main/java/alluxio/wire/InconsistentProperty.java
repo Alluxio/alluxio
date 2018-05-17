@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.meta.checkconf;
+package alluxio.wire;
 
 import java.util.List;
 import java.util.Map;
@@ -39,7 +39,7 @@ public class InconsistentProperty {
    *
    * @param inconsistentProperty the thrift inconsistent property
    */
-  protected InconsistentProperty(alluxio.thrift.InconsistentProperty inconsistentProperty) {
+  public InconsistentProperty(alluxio.thrift.InconsistentProperty inconsistentProperty) {
     mName = inconsistentProperty.getName();
     mValues = inconsistentProperty.getValues();
   }
