@@ -1347,5 +1347,36 @@
         </pluginManagement>
       </build>
     </profile>
+    <profile>
+      <id>generate-docs</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>exec-maven-plugin</artifactId>
+            <groupId>org.codehaus.mojo</groupId>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>Generate documentation</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>jekyll</executable>
+                  <arguments>
+                    <argument>build</argument>
+                    <argument>--source</argument>
+                    <argument>docs</argument>
+                    <argument>--destination</argument>
+                    <argument>docs/_site</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 </project>
