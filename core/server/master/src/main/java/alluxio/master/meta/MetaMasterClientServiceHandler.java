@@ -86,9 +86,10 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
           = new HashMap<>();
       for (Map.Entry<PropertyKey.Scope, List<InconsistentProperty>> entry :
           report.getConfigWarns().entrySet()) {
-        thriftErrors.put(entry.getKey().toThrift(), entry.getValue().stream()
+        thriftWarns.put(entry.getKey().toThrift(), entry.getValue().stream()
             .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
       }
+
       return new GetConfigReportTResponse().setErrors(thriftErrors)
           .setWarns(thriftWarns).setStatus(report.getStatus().toThrift());
     });

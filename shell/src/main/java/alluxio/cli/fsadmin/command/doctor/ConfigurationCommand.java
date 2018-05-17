@@ -50,6 +50,7 @@ public class ConfigurationCommand {
     Status reportStatus = report.getStatus();
     if (reportStatus.equals(Status.NOT_STARTED) || reportStatus.equals(Status.PASSED)) {
       // No errors or warnings to show
+      mPrintStream.println("No configuration errors or warnings.");
       return 0;
     }
     Map<Scope, List<InconsistentProperty>> errors = report.getConfigErrors();
@@ -60,9 +61,9 @@ public class ConfigurationCommand {
     }
     Map<Scope, List<InconsistentProperty>> warnings = report.getConfigWarns();
     if (warnings.size() != 0) {
-      mPrintStream.println("Server-side configuration warnings "
+      mPrintStream.println("\nServer-side configuration warnings "
           + "(those properties are recommended to be same): ");
-      printInfo(errors);
+      printInfo(warnings);
     }
     return 0;
   }
@@ -75,9 +76,11 @@ public class ConfigurationCommand {
   private void printInfo(Map<Scope, List<InconsistentProperty>> info) {
     for (List<InconsistentProperty> list : info.values()) {
       for (InconsistentProperty prop : list) {
+        String name = prop.getName();
         for (Map.Entry<String, List<String>> entry : prop.getValues().entrySet()) {
-          mPrintStream.println(String.format("%-15s %-50s", prop.getName(),
+          mPrintStream.println(String.format("%-35s %-50s", name,
               String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()))));
+          name = "";
         }
       }
     }
