@@ -199,7 +199,7 @@ func generateTarball(hadoopDistribution string) error {
 	run(fmt.Sprintf("copying source from %v to %v", repoPath, srcPath), "cp", "-R", repoPath+"/.", srcPath)
 
 	chdir(srcPath)
-	run("running git clean -fdx", "git", "clean", "-fdx")
+	// run("running git clean -fdx", "git", "clean", "-fdx")
 
 	version, err := getVersion()
 	if err != nil {
