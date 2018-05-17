@@ -11,6 +11,9 @@
 
 package alluxio.master.lineage.checkpoint;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.job.JobConf;
@@ -27,7 +30,6 @@ import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 
@@ -47,7 +49,7 @@ public final class CheckpointLatestPlannerTest {
   public void before() {
     mLineageStore = new LineageStore(new LineageIdGenerator());
     mJob = new CommandLineJob("test", new JobConf("output"));
-    mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
+    mFileSystemMaster = mock(FileSystemMaster.class);
     mPlanner = new CheckpointLatestPlanner(new LineageStoreView(mLineageStore),
         new FileSystemMasterView(mFileSystemMaster));
   }
@@ -67,16 +69,16 @@ public final class CheckpointLatestPlannerTest {
     long l2 =
         mLineageStore.createLineage(Lists.newArrayList(fileId1), Lists.newArrayList(fileId2), mJob);
 
-    Mockito.when(mFileSystemMaster.getPersistenceState(fileId1))
+    when(mFileSystemMaster.getPersistenceState(fileId1))
         .thenReturn(PersistenceState.NOT_PERSISTED);
-    Mockito.when(mFileSystemMaster.getPersistenceState(fileId2))
+    when(mFileSystemMaster.getPersistenceState(fileId2))
         .thenReturn(PersistenceState.NOT_PERSISTED);
     FileInfo fileInfo1 = new FileInfo();
     fileInfo1.setCompleted(true);
-    Mockito.when(mFileSystemMaster.getFileInfo(fileId1)).thenReturn(fileInfo1);
+    when(mFileSystemMaster.getFileInfo(fileId1)).thenReturn(fileInfo1);
     FileInfo fileInfo2 = new FileInfo();
     fileInfo2.setCompleted(false);
-    Mockito.when(mFileSystemMaster.getFileInfo(fileId2)).thenReturn(fileInfo2);
+    when(mFileSystemMaster.getFileInfo(fileId2)).thenReturn(fileInfo2);
 
     CheckpointPlan plan = mPlanner.generatePlan(new LineageStoreView(mLineageStore),
         new FileSystemMasterView(mFileSystemMaster));

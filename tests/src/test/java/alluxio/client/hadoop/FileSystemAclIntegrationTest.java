@@ -535,7 +535,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   public void swiftGetPermission() throws Exception {
     Assume.assumeTrue(UnderFileSystemUtils.isSwift(sUfs));
 
-    Path fileA = new Path("/objectfileA");
+    Path fileA = new Path("/swiftGetPermissionFile");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
