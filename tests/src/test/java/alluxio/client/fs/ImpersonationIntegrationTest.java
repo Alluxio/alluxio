@@ -93,13 +93,6 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "*"})
-  public void impersonationUsed() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
-    checkCreateFile(null, IMPERSONATION_USER);
-  }
-
-  @Test
-  @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "*"})
   public void impersonationNotUsed() throws Exception {
     Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, "");
     FileSystemContext context = FileSystemContext.create(null);
@@ -118,6 +111,13 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
         .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_HDFS_USER);
     // test using the hdfs subject
     checkCreateFile(createHdfsSubject(), HDFS_USER);
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "*"})
+  public void impersonationUsed() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
+    checkCreateFile(null, IMPERSONATION_USER);
   }
 
   @Test
