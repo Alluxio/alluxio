@@ -352,6 +352,8 @@ public final class AccessControlList {
    */
   public static AccessControlList fromProtoBuf(File.AccessControlList acl) {
     AccessControlList ret = new AccessControlList();
+    ret.setOwningUser(acl.getOwningUser());
+    ret.setOwningGroup(acl.getOwningGroup());
 
     for (File.NamedAclActions namedActions : acl.getUserActionsList()) {
       String name = namedActions.getName();

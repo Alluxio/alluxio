@@ -301,6 +301,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setOwner(options.getOwner())
         .setGroup(options.getGroup())
         .setMode(options.getMode().toShort())
+        .setAcl(options.getAcl())
         .setMountPoint(options.isMountPoint());
   }
 
