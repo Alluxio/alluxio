@@ -94,6 +94,9 @@ public class MetricsStore {
     }
     mWorkerMetrics.removeByField(HOSTNAME_ID_INDEX, hostname);
     for (Metric metric : metrics) {
+      if (metric.getHostname() == null) {
+        continue; // ignore metrics whose hostname is null
+      }
       mWorkerMetrics.add(metric);
     }
   }
@@ -114,9 +117,8 @@ public class MetricsStore {
     mClientMetrics.removeByField(HOSTNAME_ID_INDEX, getHostnameAndId(hostname, clientId));
     for (Metric metric : metrics) {
       if (metric.getHostname() == null) {
-        continue; // ignore metrics who hostname is null
+        continue; // ignore metrics whose hostname is null
       }
-      LOG.info(metric.toString());
       mClientMetrics.add(metric);
     }
   }

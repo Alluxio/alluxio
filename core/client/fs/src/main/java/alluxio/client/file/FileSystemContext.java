@@ -185,13 +185,14 @@ public final class FileSystemContext implements Closeable {
         new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
     mClosed.set(false);
-    // setup metrics master client sync
-    mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults()
-        .withSubject(mParentSubject).withMasterInquireClient(mMasterInquireClient));
-    mClientMasterSync = new ClientMasterSync(mMetricsMasterClient);
-    mExecutorService = Executors.newFixedThreadPool(1,
-        ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
+
     if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
+      // setup metrics master client sync
+      mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults()
+          .withSubject(mParentSubject).withMasterInquireClient(mMasterInquireClient));
+      mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, this);
+      mExecutorService = Executors.newFixedThreadPool(1,
+          ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
       mExecutorService
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
               (int) Configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
@@ -220,9 +221,12 @@ public final class FileSystemContext implements Closeable {
     mNettyChannelPools.clear();
 
     synchronized (this) {
-      ThreadUtils.shutdownAndAwaitTermination(mExecutorService);
-      mMetricsMasterClient.close();
-      mMetricsMasterClient = null;
+      if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
+        ThreadUtils.shutdownAndAwaitTermination(mExecutorService);
+        mMetricsMasterClient.close();
+        mMetricsMasterClient = null;
+        mClientMasterSync = null;
+      }
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
       mClosed.set(true);
@@ -419,7 +423,7 @@ public final class FileSystemContext implements Closeable {
       try {
         mClientMasterSync.heartbeat();
       } catch (InterruptedException e) {
-        LOG.error("Failed to heartbeat to the metrics master before exxit");
+        LOG.error("Failed to heartbeat to the metrics master before exit");
       }
     }
   }

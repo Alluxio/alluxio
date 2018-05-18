@@ -11,8 +11,6 @@
 
 package alluxio.client.metrics;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.Metric;
@@ -41,47 +39,32 @@ public final class ClientMasterSync implements HeartbeatExecutor {
 
   /** Client for communicating to metrics master. */
   private final MetricsMasterClient mMasterClient;
-
-  /** Milliseconds between heartbeats before a timeout. */
-  private final int mHeartbeatTimeoutMs;
-
-  /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
-  private long mLastSuccessfulHeartbeatMs;
+  private final FileSystemContext mContext;
 
   /**
    * Constructs a new {@link ClientMasterSync}.
    *
    * @param masterClient the master client
+   * @param context the filesystem context
    */
-  public ClientMasterSync(MetricsMasterClient masterClient) {
+  public ClientMasterSync(MetricsMasterClient masterClient, FileSystemContext context) {
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
-    mHeartbeatTimeoutMs =
-        (int) Configuration.getMs(PropertyKey.MASTER_METRICS_HEARTBEAT_TIMEOUT_MS);
-    mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
+    mContext = Preconditions.checkNotNull(context, "context");
   }
 
   @Override
   public void heartbeat() throws InterruptedException {
     List<alluxio.thrift.Metric> metrics = new ArrayList<>();
     for (Metric metric : MetricsSystem.allClientMetrics()) {
-      metric.setInstanceId(FileSystemContext.get().getId());
+      metric.setInstanceId(mContext.getId());
       metrics.add(metric.toThrift());
     }
     try {
       mMasterClient.heartbeat(metrics);
-      mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException e) {
       // An error occurred, log and ignore it or error if heartbeat timeout is reached
-      LOG.error("Failed to receive or execute master heartbeat command: {}", e);
+      LOG.error("Failed to heartbeat to the metrics master: {}", e);
       mMasterClient.disconnect();
-      if (mHeartbeatTimeoutMs > 0) {
-        if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs >= mHeartbeatTimeoutMs) {
-          if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-            throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
-          }
-          LOG.error("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
-        }
-      }
     }
   }
 
