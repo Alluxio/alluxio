@@ -12,10 +12,12 @@
 package alluxio.client;
 
 import alluxio.AbstractMasterClient;
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.ExportJournalTOptions;
 import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMetricsTOptions;
@@ -78,11 +80,19 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
+  public synchronized void exportJournal(AlluxioURI uri) throws IOException {
+    retryRPC(() -> {
+      mClient.exportJournal(new ExportJournalTOptions().setUri(uri.toString()));
+      return null;
+    });
+  }
+
+  @Override
   public synchronized List<ConfigProperty> getConfiguration() throws IOException {
-    return retryRPC(() -> (mClient.getConfiguration(new GetConfigurationTOptions())
+    return retryRPC(() -> mClient.getConfiguration(new GetConfigurationTOptions())
           .getConfigList().stream()
           .map(ConfigProperty::fromThrift)
-          .collect(Collectors.toList())));
+          .collect(Collectors.toList()));
   }
 
   @Override

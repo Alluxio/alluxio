@@ -12,6 +12,7 @@
 package alluxio.client.cli.fsadmin;
 
 import alluxio.cli.fsadmin.FileSystemAdminShell;
+import alluxio.cli.fsadmin.command.Context;
 import alluxio.client.cli.fs.AbstractShellIntegrationTest;
 import alluxio.master.LocalAlluxioCluster;
 
@@ -19,8 +20,9 @@ import org.junit.After;
 import org.junit.Before;
 
 public class AbstractFsAdminShellTest extends AbstractShellIntegrationTest {
-  public LocalAlluxioCluster mLocalAlluxioCluster = null;
-  public FileSystemAdminShell mFsAdminShell = null;
+  protected LocalAlluxioCluster mLocalAlluxioCluster = null;
+  protected FileSystemAdminShell mFsAdminShell = null;
+  protected Context mContext;
 
   @Before
   public final void before() throws Exception {

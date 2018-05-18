@@ -11,6 +11,7 @@
 
 package alluxio.client;
 
+import alluxio.AlluxioURI;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
@@ -27,6 +28,13 @@ import java.util.Set;
  * Interface for a meta master client.
  */
 public interface MetaMasterClient extends Closeable {
+  /**
+   * Exports a snapshot of the journal to the specified URI
+   *
+   * @param uri the URI to export to
+   */
+  void exportJournal(AlluxioURI uri) throws IOException;
+
   /**
    * Gets the runtime configuration information.
    *
