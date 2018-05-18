@@ -74,7 +74,6 @@ enum ConfigStatus {
   PASSED
   WARN
   FAILED
-  NOT_STARTED
 }
 
 enum Scope {
@@ -91,12 +90,16 @@ struct InconsistentProperty {
   2: map<string, list<string>> values
 }
 
-struct GetConfigReportTOptions {}
-
-struct GetConfigReportTResponse {
+struct ConfigCheckReport {
   1: map<Scope, list<InconsistentProperty>> errors
   2: map<Scope, list<InconsistentProperty>> warns
   3: ConfigStatus status
+}
+
+struct GetConfigReportTOptions {}
+
+struct GetConfigReportTResponse {
+  1: ConfigCheckReport report
 }
 
 /**

@@ -19,6 +19,7 @@ import alluxio.master.PollingMasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
@@ -47,32 +48,22 @@ public final class FileSystemAdminShellUtils {
   }
 
   /**
-   * @return whether master client service is running
+   * Checks if the master client service is running.
    */
-  public static boolean masterClientServiceIsRunning() {
-    // Check if Alluxio master and client services are running
+  public static void masterClientServiceIsRunning() throws IOException {
     try (CloseableResource<FileSystemMasterClient> client =
         FileSystemContext.INSTANCE.acquireMasterClientResource()) {
-      MasterInquireClient inquireClient = null;
       try {
         InetSocketAddress address = client.get().getAddress();
         List<InetSocketAddress> addresses = Arrays.asList(address);
-        inquireClient = new PollingMasterInquireClient(addresses, () ->
+        MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
             new ExponentialBackoffRetry(50, 100, 2));
-      } catch (UnavailableException e) {
-        System.err.println("Failed to get the leader master.");
-        System.err.println("Please check your Alluxio master status");
-        return false;
-      }
-      try {
         inquireClient.getPrimaryRpcAddress();
       } catch (UnavailableException e) {
-        System.err.println("The Alluxio leader master is not currently serving requests.");
-        System.err.println("Please check your Alluxio master status");
-        return false;
+        throw new IOException("The Alluxio leader master is not currently serving requests, "
+            + "please check you Alluxio master stauts.");
       }
     }
-    return true;
   }
 
   /**

@@ -15,13 +15,12 @@ import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
-import alluxio.cli.fsadmin.command.doctor.ConfigurationCommand;
+import alluxio.cli.fsadmin.doctor.ConfigurationCommand;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.master.MasterClientConfig;
 
-import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -34,7 +33,6 @@ import java.io.PrintStream;
  */
 public final class DoctorCommand implements Command {
   public static final String HELP_OPTION_NAME = "h";
-  private final Closer mCloser;
   private final MetaMasterClient mMetaMasterClient;
   private final PrintStream mPrintStream;
 
@@ -54,9 +52,7 @@ public final class DoctorCommand implements Command {
    * Creates a new instance of {@link DoctorCommand}.
    */
   public DoctorCommand() {
-    MasterClientConfig config = MasterClientConfig.defaults();
-    mCloser = Closer.create();
-    mMetaMasterClient = mCloser.register(new RetryHandlingMetaMasterClient(config));
+    mMetaMasterClient = new RetryHandlingMetaMasterClient(MasterClientConfig.defaults());
     mPrintStream = System.out;
   }
 
@@ -76,11 +72,9 @@ public final class DoctorCommand implements Command {
         return 0;
       }
 
-      if (!FileSystemAdminShellUtils.masterClientServiceIsRunning()) {
-        return 1;
-      }
+      FileSystemAdminShellUtils.masterClientServiceIsRunning();
 
-      // Get the report category
+      // Get the doctor category
       Command command = Command.ALL;
       if (args.length == 1) {
         switch (args[0]) {
@@ -96,16 +90,18 @@ public final class DoctorCommand implements Command {
 
       switch (command) {
         case ALL:
+          new ConfigurationCommand(mMetaMasterClient, mPrintStream).run();
+          // TODO(lu) add other Alluxio errors and warnings
+          break;
         case CONFIGURATION:
-          ConfigurationCommand configurationCommand
-              = new ConfigurationCommand(mMetaMasterClient, mPrintStream);
-          configurationCommand.run();
+          new ConfigurationCommand(mMetaMasterClient, mPrintStream).run();
           break;
         default:
           break;
       }
     } finally {
-      mCloser.close();
+      mMetaMasterClient.close();
+      mPrintStream.close();
     }
     return 0;
   }
@@ -119,7 +115,7 @@ public final class DoctorCommand implements Command {
   public String getDescription() {
     return "Show Alluxio errors and warnings.\n"
         + "Where [category] is an optional argument. If no arguments are passed in, "
-        + "all the errors/warnings will be printed out.\n"
+        + "all categories of errors/warnings will be printed out.\n"
         + "[category] can be one of the following:\n"
         + "    configuration    server-side configuration errors/warnings\n";
   }

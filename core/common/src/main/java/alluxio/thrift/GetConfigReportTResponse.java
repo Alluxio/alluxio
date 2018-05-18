@@ -38,9 +38,7 @@ import org.slf4j.LoggerFactory;
 public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConfigReportTResponse, GetConfigReportTResponse._Fields>, java.io.Serializable, Cloneable, Comparable<GetConfigReportTResponse> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("GetConfigReportTResponse");
 
-  private static final org.apache.thrift.protocol.TField ERRORS_FIELD_DESC = new org.apache.thrift.protocol.TField("errors", org.apache.thrift.protocol.TType.MAP, (short)1);
-  private static final org.apache.thrift.protocol.TField WARNS_FIELD_DESC = new org.apache.thrift.protocol.TField("warns", org.apache.thrift.protocol.TType.MAP, (short)2);
-  private static final org.apache.thrift.protocol.TField STATUS_FIELD_DESC = new org.apache.thrift.protocol.TField("status", org.apache.thrift.protocol.TType.I32, (short)3);
+  private static final org.apache.thrift.protocol.TField REPORT_FIELD_DESC = new org.apache.thrift.protocol.TField("report", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -48,19 +46,11 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
     schemes.put(TupleScheme.class, new GetConfigReportTResponseTupleSchemeFactory());
   }
 
-  private Map<Scope,List<InconsistentProperty>> errors; // required
-  private Map<Scope,List<InconsistentProperty>> warns; // required
-  private ConfigStatus status; // required
+  private ConfigCheckReport report; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    ERRORS((short)1, "errors"),
-    WARNS((short)2, "warns"),
-    /**
-     * 
-     * @see ConfigStatus
-     */
-    STATUS((short)3, "status");
+    REPORT((short)1, "report");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -75,12 +65,8 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // ERRORS
-          return ERRORS;
-        case 2: // WARNS
-          return WARNS;
-        case 3: // STATUS
-          return STATUS;
+        case 1: // REPORT
+          return REPORT;
         default:
           return null;
       }
@@ -124,18 +110,8 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.ERRORS, new org.apache.thrift.meta_data.FieldMetaData("errors", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
-            new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, Scope.class), 
-            new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-                new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, InconsistentProperty.class)))));
-    tmpMap.put(_Fields.WARNS, new org.apache.thrift.meta_data.FieldMetaData("warns", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
-            new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, Scope.class), 
-            new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-                new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, InconsistentProperty.class)))));
-    tmpMap.put(_Fields.STATUS, new org.apache.thrift.meta_data.FieldMetaData("status", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, ConfigStatus.class)));
+    tmpMap.put(_Fields.REPORT, new org.apache.thrift.meta_data.FieldMetaData("report", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ConfigCheckReport.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(GetConfigReportTResponse.class, metaDataMap);
   }
@@ -144,58 +120,18 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
   }
 
   public GetConfigReportTResponse(
-    Map<Scope,List<InconsistentProperty>> errors,
-    Map<Scope,List<InconsistentProperty>> warns,
-    ConfigStatus status)
+    ConfigCheckReport report)
   {
     this();
-    this.errors = errors;
-    this.warns = warns;
-    this.status = status;
+    this.report = report;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public GetConfigReportTResponse(GetConfigReportTResponse other) {
-    if (other.isSetErrors()) {
-      Map<Scope,List<InconsistentProperty>> __this__errors = new HashMap<Scope,List<InconsistentProperty>>(other.errors.size());
-      for (Map.Entry<Scope, List<InconsistentProperty>> other_element : other.errors.entrySet()) {
-
-        Scope other_element_key = other_element.getKey();
-        List<InconsistentProperty> other_element_value = other_element.getValue();
-
-        Scope __this__errors_copy_key = other_element_key;
-
-        List<InconsistentProperty> __this__errors_copy_value = new ArrayList<InconsistentProperty>(other_element_value.size());
-        for (InconsistentProperty other_element_value_element : other_element_value) {
-          __this__errors_copy_value.add(new InconsistentProperty(other_element_value_element));
-        }
-
-        __this__errors.put(__this__errors_copy_key, __this__errors_copy_value);
-      }
-      this.errors = __this__errors;
-    }
-    if (other.isSetWarns()) {
-      Map<Scope,List<InconsistentProperty>> __this__warns = new HashMap<Scope,List<InconsistentProperty>>(other.warns.size());
-      for (Map.Entry<Scope, List<InconsistentProperty>> other_element : other.warns.entrySet()) {
-
-        Scope other_element_key = other_element.getKey();
-        List<InconsistentProperty> other_element_value = other_element.getValue();
-
-        Scope __this__warns_copy_key = other_element_key;
-
-        List<InconsistentProperty> __this__warns_copy_value = new ArrayList<InconsistentProperty>(other_element_value.size());
-        for (InconsistentProperty other_element_value_element : other_element_value) {
-          __this__warns_copy_value.add(new InconsistentProperty(other_element_value_element));
-        }
-
-        __this__warns.put(__this__warns_copy_key, __this__warns_copy_value);
-      }
-      this.warns = __this__warns;
-    }
-    if (other.isSetStatus()) {
-      this.status = other.status;
+    if (other.isSetReport()) {
+      this.report = new ConfigCheckReport(other.report);
     }
   }
 
@@ -205,136 +141,40 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
 
   @Override
   public void clear() {
-    this.errors = null;
-    this.warns = null;
-    this.status = null;
+    this.report = null;
   }
 
-  public int getErrorsSize() {
-    return (this.errors == null) ? 0 : this.errors.size();
+  public ConfigCheckReport getReport() {
+    return this.report;
   }
 
-  public void putToErrors(Scope key, List<InconsistentProperty> val) {
-    if (this.errors == null) {
-      this.errors = new HashMap<Scope,List<InconsistentProperty>>();
-    }
-    this.errors.put(key, val);
-  }
-
-  public Map<Scope,List<InconsistentProperty>> getErrors() {
-    return this.errors;
-  }
-
-  public GetConfigReportTResponse setErrors(Map<Scope,List<InconsistentProperty>> errors) {
-    this.errors = errors;
+  public GetConfigReportTResponse setReport(ConfigCheckReport report) {
+    this.report = report;
     return this;
   }
 
-  public void unsetErrors() {
-    this.errors = null;
+  public void unsetReport() {
+    this.report = null;
   }
 
-  /** Returns true if field errors is set (has been assigned a value) and false otherwise */
-  public boolean isSetErrors() {
-    return this.errors != null;
+  /** Returns true if field report is set (has been assigned a value) and false otherwise */
+  public boolean isSetReport() {
+    return this.report != null;
   }
 
-  public void setErrorsIsSet(boolean value) {
+  public void setReportIsSet(boolean value) {
     if (!value) {
-      this.errors = null;
-    }
-  }
-
-  public int getWarnsSize() {
-    return (this.warns == null) ? 0 : this.warns.size();
-  }
-
-  public void putToWarns(Scope key, List<InconsistentProperty> val) {
-    if (this.warns == null) {
-      this.warns = new HashMap<Scope,List<InconsistentProperty>>();
-    }
-    this.warns.put(key, val);
-  }
-
-  public Map<Scope,List<InconsistentProperty>> getWarns() {
-    return this.warns;
-  }
-
-  public GetConfigReportTResponse setWarns(Map<Scope,List<InconsistentProperty>> warns) {
-    this.warns = warns;
-    return this;
-  }
-
-  public void unsetWarns() {
-    this.warns = null;
-  }
-
-  /** Returns true if field warns is set (has been assigned a value) and false otherwise */
-  public boolean isSetWarns() {
-    return this.warns != null;
-  }
-
-  public void setWarnsIsSet(boolean value) {
-    if (!value) {
-      this.warns = null;
-    }
-  }
-
-  /**
-   * 
-   * @see ConfigStatus
-   */
-  public ConfigStatus getStatus() {
-    return this.status;
-  }
-
-  /**
-   * 
-   * @see ConfigStatus
-   */
-  public GetConfigReportTResponse setStatus(ConfigStatus status) {
-    this.status = status;
-    return this;
-  }
-
-  public void unsetStatus() {
-    this.status = null;
-  }
-
-  /** Returns true if field status is set (has been assigned a value) and false otherwise */
-  public boolean isSetStatus() {
-    return this.status != null;
-  }
-
-  public void setStatusIsSet(boolean value) {
-    if (!value) {
-      this.status = null;
+      this.report = null;
     }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case ERRORS:
+    case REPORT:
       if (value == null) {
-        unsetErrors();
+        unsetReport();
       } else {
-        setErrors((Map<Scope,List<InconsistentProperty>>)value);
-      }
-      break;
-
-    case WARNS:
-      if (value == null) {
-        unsetWarns();
-      } else {
-        setWarns((Map<Scope,List<InconsistentProperty>>)value);
-      }
-      break;
-
-    case STATUS:
-      if (value == null) {
-        unsetStatus();
-      } else {
-        setStatus((ConfigStatus)value);
+        setReport((ConfigCheckReport)value);
       }
       break;
 
@@ -343,14 +183,8 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case ERRORS:
-      return getErrors();
-
-    case WARNS:
-      return getWarns();
-
-    case STATUS:
-      return getStatus();
+    case REPORT:
+      return getReport();
 
     }
     throw new IllegalStateException();
@@ -363,12 +197,8 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
     }
 
     switch (field) {
-    case ERRORS:
-      return isSetErrors();
-    case WARNS:
-      return isSetWarns();
-    case STATUS:
-      return isSetStatus();
+    case REPORT:
+      return isSetReport();
     }
     throw new IllegalStateException();
   }
@@ -386,30 +216,12 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
     if (that == null)
       return false;
 
-    boolean this_present_errors = true && this.isSetErrors();
-    boolean that_present_errors = true && that.isSetErrors();
-    if (this_present_errors || that_present_errors) {
-      if (!(this_present_errors && that_present_errors))
+    boolean this_present_report = true && this.isSetReport();
+    boolean that_present_report = true && that.isSetReport();
+    if (this_present_report || that_present_report) {
+      if (!(this_present_report && that_present_report))
         return false;
-      if (!this.errors.equals(that.errors))
-        return false;
-    }
-
-    boolean this_present_warns = true && this.isSetWarns();
-    boolean that_present_warns = true && that.isSetWarns();
-    if (this_present_warns || that_present_warns) {
-      if (!(this_present_warns && that_present_warns))
-        return false;
-      if (!this.warns.equals(that.warns))
-        return false;
-    }
-
-    boolean this_present_status = true && this.isSetStatus();
-    boolean that_present_status = true && that.isSetStatus();
-    if (this_present_status || that_present_status) {
-      if (!(this_present_status && that_present_status))
-        return false;
-      if (!this.status.equals(that.status))
+      if (!this.report.equals(that.report))
         return false;
     }
 
@@ -420,20 +232,10 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_errors = true && (isSetErrors());
-    list.add(present_errors);
-    if (present_errors)
-      list.add(errors);
-
-    boolean present_warns = true && (isSetWarns());
-    list.add(present_warns);
-    if (present_warns)
-      list.add(warns);
-
-    boolean present_status = true && (isSetStatus());
-    list.add(present_status);
-    if (present_status)
-      list.add(status.getValue());
+    boolean present_report = true && (isSetReport());
+    list.add(present_report);
+    if (present_report)
+      list.add(report);
 
     return list.hashCode();
   }
@@ -446,32 +248,12 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetErrors()).compareTo(other.isSetErrors());
+    lastComparison = Boolean.valueOf(isSetReport()).compareTo(other.isSetReport());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetErrors()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.errors, other.errors);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetWarns()).compareTo(other.isSetWarns());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetWarns()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.warns, other.warns);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetStatus()).compareTo(other.isSetStatus());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetStatus()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.status, other.status);
+    if (isSetReport()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.report, other.report);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -496,27 +278,11 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
     StringBuilder sb = new StringBuilder("GetConfigReportTResponse(");
     boolean first = true;
 
-    sb.append("errors:");
-    if (this.errors == null) {
+    sb.append("report:");
+    if (this.report == null) {
       sb.append("null");
     } else {
-      sb.append(this.errors);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("warns:");
-    if (this.warns == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.warns);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("status:");
-    if (this.status == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.status);
+      sb.append(this.report);
     }
     first = false;
     sb.append(")");
@@ -526,6 +292,9 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (report != null) {
+      report.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -562,72 +331,11 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
           break;
         }
         switch (schemeField.id) {
-          case 1: // ERRORS
-            if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
-              {
-                org.apache.thrift.protocol.TMap _map60 = iprot.readMapBegin();
-                struct.errors = new HashMap<Scope,List<InconsistentProperty>>(2*_map60.size);
-                Scope _key61;
-                List<InconsistentProperty> _val62;
-                for (int _i63 = 0; _i63 < _map60.size; ++_i63)
-                {
-                  _key61 = alluxio.thrift.Scope.findByValue(iprot.readI32());
-                  {
-                    org.apache.thrift.protocol.TList _list64 = iprot.readListBegin();
-                    _val62 = new ArrayList<InconsistentProperty>(_list64.size);
-                    InconsistentProperty _elem65;
-                    for (int _i66 = 0; _i66 < _list64.size; ++_i66)
-                    {
-                      _elem65 = new InconsistentProperty();
-                      _elem65.read(iprot);
-                      _val62.add(_elem65);
-                    }
-                    iprot.readListEnd();
-                  }
-                  struct.errors.put(_key61, _val62);
-                }
-                iprot.readMapEnd();
-              }
-              struct.setErrorsIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 2: // WARNS
-            if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
-              {
-                org.apache.thrift.protocol.TMap _map67 = iprot.readMapBegin();
-                struct.warns = new HashMap<Scope,List<InconsistentProperty>>(2*_map67.size);
-                Scope _key68;
-                List<InconsistentProperty> _val69;
-                for (int _i70 = 0; _i70 < _map67.size; ++_i70)
-                {
-                  _key68 = alluxio.thrift.Scope.findByValue(iprot.readI32());
-                  {
-                    org.apache.thrift.protocol.TList _list71 = iprot.readListBegin();
-                    _val69 = new ArrayList<InconsistentProperty>(_list71.size);
-                    InconsistentProperty _elem72;
-                    for (int _i73 = 0; _i73 < _list71.size; ++_i73)
-                    {
-                      _elem72 = new InconsistentProperty();
-                      _elem72.read(iprot);
-                      _val69.add(_elem72);
-                    }
-                    iprot.readListEnd();
-                  }
-                  struct.warns.put(_key68, _val69);
-                }
-                iprot.readMapEnd();
-              }
-              struct.setWarnsIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 3: // STATUS
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.status = alluxio.thrift.ConfigStatus.findByValue(iprot.readI32());
-              struct.setStatusIsSet(true);
+          case 1: // REPORT
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.report = new ConfigCheckReport();
+              struct.report.read(iprot);
+              struct.setReportIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -647,49 +355,9 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.errors != null) {
-        oprot.writeFieldBegin(ERRORS_FIELD_DESC);
-        {
-          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.LIST, struct.errors.size()));
-          for (Map.Entry<Scope, List<InconsistentProperty>> _iter74 : struct.errors.entrySet())
-          {
-            oprot.writeI32(_iter74.getKey().getValue());
-            {
-              oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, _iter74.getValue().size()));
-              for (InconsistentProperty _iter75 : _iter74.getValue())
-              {
-                _iter75.write(oprot);
-              }
-              oprot.writeListEnd();
-            }
-          }
-          oprot.writeMapEnd();
-        }
-        oprot.writeFieldEnd();
-      }
-      if (struct.warns != null) {
-        oprot.writeFieldBegin(WARNS_FIELD_DESC);
-        {
-          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.LIST, struct.warns.size()));
-          for (Map.Entry<Scope, List<InconsistentProperty>> _iter76 : struct.warns.entrySet())
-          {
-            oprot.writeI32(_iter76.getKey().getValue());
-            {
-              oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, _iter76.getValue().size()));
-              for (InconsistentProperty _iter77 : _iter76.getValue())
-              {
-                _iter77.write(oprot);
-              }
-              oprot.writeListEnd();
-            }
-          }
-          oprot.writeMapEnd();
-        }
-        oprot.writeFieldEnd();
-      }
-      if (struct.status != null) {
-        oprot.writeFieldBegin(STATUS_FIELD_DESC);
-        oprot.writeI32(struct.status.getValue());
+      if (struct.report != null) {
+        oprot.writeFieldBegin(REPORT_FIELD_DESC);
+        struct.report.write(oprot);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -710,110 +378,23 @@ public class GetConfigReportTResponse implements org.apache.thrift.TBase<GetConf
     public void write(org.apache.thrift.protocol.TProtocol prot, GetConfigReportTResponse struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetErrors()) {
+      if (struct.isSetReport()) {
         optionals.set(0);
       }
-      if (struct.isSetWarns()) {
-        optionals.set(1);
-      }
-      if (struct.isSetStatus()) {
-        optionals.set(2);
-      }
-      oprot.writeBitSet(optionals, 3);
-      if (struct.isSetErrors()) {
-        {
-          oprot.writeI32(struct.errors.size());
-          for (Map.Entry<Scope, List<InconsistentProperty>> _iter78 : struct.errors.entrySet())
-          {
-            oprot.writeI32(_iter78.getKey().getValue());
-            {
-              oprot.writeI32(_iter78.getValue().size());
-              for (InconsistentProperty _iter79 : _iter78.getValue())
-              {
-                _iter79.write(oprot);
-              }
-            }
-          }
-        }
-      }
-      if (struct.isSetWarns()) {
-        {
-          oprot.writeI32(struct.warns.size());
-          for (Map.Entry<Scope, List<InconsistentProperty>> _iter80 : struct.warns.entrySet())
-          {
-            oprot.writeI32(_iter80.getKey().getValue());
-            {
-              oprot.writeI32(_iter80.getValue().size());
-              for (InconsistentProperty _iter81 : _iter80.getValue())
-              {
-                _iter81.write(oprot);
-              }
-            }
-          }
-        }
-      }
-      if (struct.isSetStatus()) {
-        oprot.writeI32(struct.status.getValue());
+      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetReport()) {
+        struct.report.write(oprot);
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, GetConfigReportTResponse struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
-        {
-          org.apache.thrift.protocol.TMap _map82 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.LIST, iprot.readI32());
-          struct.errors = new HashMap<Scope,List<InconsistentProperty>>(2*_map82.size);
-          Scope _key83;
-          List<InconsistentProperty> _val84;
-          for (int _i85 = 0; _i85 < _map82.size; ++_i85)
-          {
-            _key83 = alluxio.thrift.Scope.findByValue(iprot.readI32());
-            {
-              org.apache.thrift.protocol.TList _list86 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-              _val84 = new ArrayList<InconsistentProperty>(_list86.size);
-              InconsistentProperty _elem87;
-              for (int _i88 = 0; _i88 < _list86.size; ++_i88)
-              {
-                _elem87 = new InconsistentProperty();
-                _elem87.read(iprot);
-                _val84.add(_elem87);
-              }
-            }
-            struct.errors.put(_key83, _val84);
-          }
-        }
-        struct.setErrorsIsSet(true);
-      }
-      if (incoming.get(1)) {
-        {
-          org.apache.thrift.protocol.TMap _map89 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.LIST, iprot.readI32());
-          struct.warns = new HashMap<Scope,List<InconsistentProperty>>(2*_map89.size);
-          Scope _key90;
-          List<InconsistentProperty> _val91;
-          for (int _i92 = 0; _i92 < _map89.size; ++_i92)
-          {
-            _key90 = alluxio.thrift.Scope.findByValue(iprot.readI32());
-            {
-              org.apache.thrift.protocol.TList _list93 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-              _val91 = new ArrayList<InconsistentProperty>(_list93.size);
-              InconsistentProperty _elem94;
-              for (int _i95 = 0; _i95 < _list93.size; ++_i95)
-              {
-                _elem94 = new InconsistentProperty();
-                _elem94.read(iprot);
-                _val91.add(_elem94);
-              }
-            }
-            struct.warns.put(_key90, _val91);
-          }
-        }
-        struct.setWarnsIsSet(true);
-      }
-      if (incoming.get(2)) {
-        struct.status = alluxio.thrift.ConfigStatus.findByValue(iprot.readI32());
-        struct.setStatusIsSet(true);
+        struct.report = new ConfigCheckReport();
+        struct.report.read(iprot);
+        struct.setReportIsSet(true);
       }
     }
   }

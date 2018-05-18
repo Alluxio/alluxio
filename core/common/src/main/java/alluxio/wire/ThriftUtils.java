@@ -66,6 +66,16 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
+   * @param report the thrift representation of a configuration check report
+   * @return wire representation of the configuration check report
+   */
+  public static ConfigCheckReport fromThrift(alluxio.thrift.ConfigCheckReport report) {
+    return new ConfigCheckReport(report);
+  }
+
+  /**
+   * Converts a thrift type to a wire type.
+   *
    * @param fileBlockInfo the thrift representation of a file block information
    * @return wire representation of the file block information
    */
@@ -212,6 +222,16 @@ public final class ThriftUtils {
    */
   public static alluxio.thrift.CommandLineJobInfo toThrift(CommandLineJobInfo jobInfo) {
     return jobInfo.toThrift();
+  }
+
+  /**
+   * Converts a wire type to a thrift type.
+   *
+   * @param report the wire representation of a configuration check report
+   * @return thrift representation of the configuration check report
+   */
+  public static alluxio.thrift.ConfigCheckReport toThrift(ConfigCheckReport report) {
+    return report.toThrift();
   }
 
   /**

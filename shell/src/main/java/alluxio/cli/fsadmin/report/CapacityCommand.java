@@ -9,10 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fsadmin.command.report;
+package alluxio.cli.fsadmin.report;
 
-import alluxio.cli.fsadmin.command.ReportCommand;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
+import alluxio.cli.fsadmin.command.ReportCommand;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;

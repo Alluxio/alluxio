@@ -9,13 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fsadmin.command.doctor;
+package alluxio.cli.fsadmin.doctor;
 
-import alluxio.PropertyKey.Scope;
 import alluxio.client.MetaMasterClient;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.InconsistentProperty;
+import alluxio.wire.Scope;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -48,7 +48,7 @@ public class ConfigurationCommand {
   public int run() throws IOException {
     ConfigCheckReport report = mMetaMasterClient.getConfigReport();
     ConfigStatus configStatus = report.getConfigStatus();
-    if (configStatus.equals(ConfigStatus.NOT_STARTED) || configStatus.equals(ConfigStatus.PASSED)) {
+    if (configStatus.equals(ConfigStatus.PASSED)) {
       // No errors or warnings to show
       mPrintStream.println("No server-side configuration errors or warnings.");
       return 0;
@@ -58,31 +58,31 @@ public class ConfigurationCommand {
     if (errors.size() != 0) {
       mPrintStream.println("Server-side configuration errors "
           + "(those properties are required to be same): ");
-      printInfo(errors);
+      printInconsistentProperties(errors);
     }
 
     Map<Scope, List<InconsistentProperty>> warnings = report.getConfigWarns();
     if (warnings.size() != 0) {
       mPrintStream.println("\nServer-side configuration warnings "
           + "(those properties are recommended to be same): ");
-      printInfo(warnings);
+      printInconsistentProperties(warnings);
     }
     return 0;
   }
 
   /**
-   * Prints the configuration errors or warnings.
+   * Prints the inconsistent properties in server-side configuration.
    *
-   * @param info the errors or warnings to print
+   * @param inconsistentProperties the inconsistent properties to print
    */
-  private void printInfo(Map<Scope, List<InconsistentProperty>> info) {
-    for (List<InconsistentProperty> list : info.values()) {
+  private void printInconsistentProperties(
+      Map<Scope, List<InconsistentProperty>> inconsistentProperties) {
+    for (List<InconsistentProperty> list : inconsistentProperties.values()) {
       for (InconsistentProperty prop : list) {
-        String name = prop.getName();
+        mPrintStream.println("key: " + prop.getName());
         for (Map.Entry<String, List<String>> entry : prop.getValues().entrySet()) {
-          mPrintStream.println(String.format("%-35s %-50s", name,
-              String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()))));
-          name = "";
+          mPrintStream.println("    value:" + String.format("%s (%s)", entry.getKey(),
+              String.join(", ", entry.getValue())));
         }
       }
     }

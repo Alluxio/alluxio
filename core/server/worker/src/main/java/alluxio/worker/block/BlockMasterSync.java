@@ -23,6 +23,7 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.Command;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.Scope;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
@@ -114,7 +115,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
-    List<ConfigProperty> configList = Configuration.getConfiguration(PropertyKey.Scope.WORKER);
+    List<ConfigProperty> configList = Configuration.getConfiguration(Scope.WORKER);
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
         storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList(), configList);

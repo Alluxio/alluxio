@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.MetaCommand;
 import alluxio.wire.Address;
+import alluxio.wire.Scope;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +82,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
    */
   private void registerWithMaster() throws IOException {
     mMasterClient.register(mMasterId.get(),
-        Configuration.getConfiguration(PropertyKey.Scope.MASTER));
+        Configuration.getConfiguration(Scope.MASTER));
   }
 
   /**

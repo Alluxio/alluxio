@@ -14,8 +14,7 @@ import org.apache.thrift.TEnum;
 public enum ConfigStatus implements org.apache.thrift.TEnum {
   PASSED(0),
   WARN(1),
-  FAILED(2),
-  NOT_STARTED(3);
+  FAILED(2);
 
   private final int value;
 
@@ -42,8 +41,6 @@ public enum ConfigStatus implements org.apache.thrift.TEnum {
         return WARN;
       case 2:
         return FAILED;
-      case 3:
-        return NOT_STARTED;
       default:
         return null;
     }

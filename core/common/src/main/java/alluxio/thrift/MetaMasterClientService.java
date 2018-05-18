@@ -64,7 +64,7 @@ public class MetaMasterClientService {
     public GetMetricsTResponse getMetrics(GetMetricsTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
-     * Returns server-side configuration checker report.
+     * Returns server-side configuration report.
      * 
      * @param options the method options
      */

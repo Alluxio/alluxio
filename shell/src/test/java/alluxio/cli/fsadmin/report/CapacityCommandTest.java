@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fsadmin.command;
+package alluxio.cli.fsadmin.report;
 
-import alluxio.cli.fsadmin.command.report.CapacityCommand;
+import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.wire.WorkerInfo;

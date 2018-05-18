@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fsadmin.command.report;
+package alluxio.cli.fsadmin.report;
 
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.util.FormatUtils;

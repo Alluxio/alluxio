@@ -14,11 +14,11 @@ package alluxio.master.meta.checkconf;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.PropertyKey;
-import alluxio.PropertyKey.Scope;
 import alluxio.wire.Address;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.Scope;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Before;

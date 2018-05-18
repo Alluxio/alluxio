@@ -16,8 +16,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
-import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.InconsistentProperty;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetConfigReportTOptions;
@@ -45,7 +43,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -72,28 +69,8 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   @Override
   public GetConfigReportTResponse getConfigReport(final GetConfigReportTOptions options)
       throws TException {
-    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigReportTResponse>) () -> {
-      ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
-
-      Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftErrors
-          = new HashMap<>();
-      for (Map.Entry<PropertyKey.Scope, List<InconsistentProperty>> entry :
-          report.getConfigErrors().entrySet()) {
-        thriftErrors.put(entry.getKey().toThrift(), entry.getValue().stream()
-            .map(ThriftUtils::toThrift).collect(Collectors.toList()));
-      }
-
-      Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftWarns
-          = new HashMap<>();
-      for (Map.Entry<PropertyKey.Scope, List<InconsistentProperty>> entry :
-          report.getConfigWarns().entrySet()) {
-        thriftWarns.put(entry.getKey().toThrift(), entry.getValue().stream()
-            .map(ThriftUtils::toThrift).collect(Collectors.toList()));
-      }
-
-      return new GetConfigReportTResponse().setErrors(thriftErrors)
-          .setWarns(thriftWarns).setStatus(report.getConfigStatus().toThrift());
-    });
+    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigReportTResponse>) ()
+        -> new GetConfigReportTResponse(ThriftUtils.toThrift(mMetaMaster.getConfigCheckReport())));
   }
 
   @Override

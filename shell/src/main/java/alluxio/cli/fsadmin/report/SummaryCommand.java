@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fsadmin.command.report;
+package alluxio.cli.fsadmin.report;
 
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.client.block.BlockMasterClient;
@@ -51,8 +51,8 @@ public class SummaryCommand {
    * @param printStream stream to print summary information to
    */
   public SummaryCommand(MetaMasterClient metaMasterClient,
-      BlockMasterClient blockMasterClient,
-      PrintStream printStream) {
+                        BlockMasterClient blockMasterClient,
+                        PrintStream printStream) {
     mMetaMasterClient = metaMasterClient;
     mBlockMasterClient = blockMasterClient;
     mPrintStream = printStream;

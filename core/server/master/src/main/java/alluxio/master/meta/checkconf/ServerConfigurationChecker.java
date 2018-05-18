@@ -12,12 +12,12 @@
 package alluxio.master.meta.checkconf;
 
 import alluxio.PropertyKey;
-import alluxio.PropertyKey.Scope;
 import alluxio.PropertyKey.ConsistencyCheckLevel;
 import alluxio.wire.Address;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.InconsistentProperty;
+import alluxio.wire.Scope;
 
 import java.util.ArrayList;
 import java.util.HashMap;

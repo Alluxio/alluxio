@@ -14,11 +14,11 @@ package alluxio.cli.fsadmin.command;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
-import alluxio.cli.fsadmin.command.report.CapacityCommand;
-import alluxio.cli.fsadmin.command.report.ConfigurationCommand;
-import alluxio.cli.fsadmin.command.report.MetricsCommand;
-import alluxio.cli.fsadmin.command.report.SummaryCommand;
-import alluxio.cli.fsadmin.command.report.UfsCommand;
+import alluxio.cli.fsadmin.report.CapacityCommand;
+import alluxio.cli.fsadmin.report.ConfigurationCommand;
+import alluxio.cli.fsadmin.report.MetricsCommand;
+import alluxio.cli.fsadmin.report.SummaryCommand;
+import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
@@ -152,9 +152,7 @@ public final class ReportCommand implements Command {
         }
       }
 
-      if (!FileSystemAdminShellUtils.masterClientServiceIsRunning()) {
-        return 1;
-      }
+      FileSystemAdminShellUtils.masterClientServiceIsRunning();
 
       switch (command) {
         case CAPACITY:

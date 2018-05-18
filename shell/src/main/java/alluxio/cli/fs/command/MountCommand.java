@@ -12,7 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.cli.fsadmin.command.report.UfsCommand;
+import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
