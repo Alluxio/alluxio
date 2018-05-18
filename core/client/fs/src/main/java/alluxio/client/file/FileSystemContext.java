@@ -167,8 +167,9 @@ public final class FileSystemContext implements Closeable {
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
     mId = IdUtils.createFileSystemContextId();
-    LOG.info(
-        "Created filesystem context with id {}. This ID will be used for identifying the information aggregated by the master, such as metrics",
+    LOG.info("Created filesystem context with id {}."
+        + " This ID will be used for identifying the information "
+        + "aggregated by the master, such as metrics",
         mId);
     mClosed = new AtomicBoolean(false);
   }
