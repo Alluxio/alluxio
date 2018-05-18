@@ -21,6 +21,7 @@ import alluxio.thrift.Command;
 import alluxio.thrift.CommitBlockTOptions;
 import alluxio.thrift.GetWorkerIdTOptions;
 import alluxio.thrift.RegisterWorkerTOptions;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -29,6 +30,7 @@ import org.apache.thrift.TException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -137,18 +139,20 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used bytes
    * @param currentBlocksOnTiers mapping from storage tier alias to the list of list of blocks
+   * @param configList a list of configurations
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
   public synchronized void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-      final Map<String, List<Long>> currentBlocksOnTiers) throws IOException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.registerWorker(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
-            currentBlocksOnTiers, new RegisterWorkerTOptions());
-        return null;
-      }
+      final Map<String, List<Long>> currentBlocksOnTiers,
+      final List<ConfigProperty> configList) throws IOException {
+    retryRPC(() -> {
+      RegisterWorkerTOptions options = new RegisterWorkerTOptions();
+      options.setConfigList(configList.stream()
+          .map(ConfigProperty::toThrift).collect(Collectors.toList()));
+      mClient.registerWorker(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+          currentBlocksOnTiers, options);
+      return null;
     });
   }
 }

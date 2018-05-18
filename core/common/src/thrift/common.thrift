@@ -30,6 +30,12 @@ enum CommandType {
   Persist = 5,  // Ask the worker to persist a file for lineage
 }
 
+struct ConfigProperty {
+  1: string name
+  2: string source
+  3: string value
+}
+
 enum TTtlAction {
   Delete = 0, // Delete the file after TTL expires.
   Free = 1,   // Free the file after TTL expires.
@@ -47,6 +53,14 @@ struct LocalityTier {
 
 struct TieredIdentity {
   1: list<LocalityTier> tiers
+}
+
+/**
+ * Address information about masters.
+ */
+struct MasterAddress {
+  1: string host
+  2: i32 rpcPort
 }
 
 /**

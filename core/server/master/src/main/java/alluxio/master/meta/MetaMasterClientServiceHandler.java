@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.master.meta;
 
 import alluxio.Configuration;
 import alluxio.Constants;
@@ -49,13 +49,13 @@ import java.util.stream.Collectors;
 public final class MetaMasterClientServiceHandler implements MetaMasterClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterClientServiceHandler.class);
 
-  private final MasterProcess mMasterProcess;
+  private final MetaMaster mMetaMaster;
 
   /**
-   * @param masterProcess the Alluxio master process
+   * @param metaMaster the Alluxio meta master
    */
-  MetaMasterClientServiceHandler(MasterProcess masterProcess) {
-    mMasterProcess = masterProcess;
+  public MetaMasterClientServiceHandler(MetaMaster metaMaster) {
+    mMetaMaster = metaMaster;
   }
 
   @Override
@@ -67,7 +67,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options)
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigurationTResponse>) ()
-        -> (new GetConfigurationTResponse(mMasterProcess.getConfiguration()
+        -> (new GetConfigurationTResponse(mMetaMaster.getConfiguration()
         .stream()
         .map(configProperty -> (configProperty.toThrift()))
         .collect(Collectors.toList()))));
@@ -82,25 +82,25 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
           : Arrays.asList(MasterInfoField.values())) {
         switch (field) {
           case MASTER_ADDRESS:
-            info.setMasterAddress(mMasterProcess.getRpcAddress().toString());
+            info.setMasterAddress(mMetaMaster.getRpcAddress().toString());
             break;
           case RPC_PORT:
-            info.setRpcPort(mMasterProcess.getRpcAddress().getPort());
+            info.setRpcPort(mMetaMaster.getRpcAddress().getPort());
             break;
           case SAFE_MODE:
-            info.setSafeMode(mMasterProcess.isInSafeMode());
+            info.setSafeMode(mMetaMaster.isInSafeMode());
             break;
           case START_TIME_MS:
-            info.setStartTimeMs(mMasterProcess.getStartTimeMs());
+            info.setStartTimeMs(mMetaMaster.getStartTimeMs());
             break;
           case UP_TIME_MS:
-            info.setUpTimeMs(mMasterProcess.getUptimeMs());
+            info.setUpTimeMs(mMetaMaster.getUptimeMs());
             break;
           case VERSION:
             info.setVersion(RuntimeConstants.VERSION);
             break;
           case WEB_PORT:
-            info.setWebPort(mMasterProcess.getWebAddress().getPort());
+            info.setWebPort(mMetaMaster.getWebPort());
             break;
           case ZOOKEEPER_ADDRESSES:
             if (Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {

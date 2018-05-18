@@ -3,15 +3,9 @@ namespace java alluxio.thrift
 include "common.thrift"
 include "exception.thrift"
 
-struct ConfigProperty {
-  1: string name
-  2: string source
-  3: string value
-}
-
 struct GetConfigurationTOptions{}
 struct GetConfigurationTResponse{
-  1: list<ConfigProperty> configList
+  1: list<common.ConfigProperty> configList
 }
 
 enum MasterInfoField {
@@ -36,6 +30,17 @@ struct MasterInfo {
  8: list<string> zookeeperAddresses // Null means zookeeper is not enabled
 }
 
+enum MetaCommand {
+  Unknown = 0,
+  Nothing = 1,
+  Register = 2, // Ask the standby master to re-register.
+}
+
+struct GetMasterIdTOptions {}
+struct GetMasterIdTResponse {
+  1: i64 masterId
+}
+
 struct GetMasterInfoTOptions {
   1: set<MasterInfoField> filter
 }
@@ -49,11 +54,21 @@ struct GetMetricsTResponse {
   1: map<string, MetricValue> metricsMap
 }
 
+struct MasterHeartbeatTOptions {}
+struct MasterHeartbeatTResponse {
+  1: MetaCommand command
+}
+
 // This type is used as a union, only one of doubleValue or longValue should be set
 struct MetricValue {
   1: optional double doubleValue;
   2: optional i64 longValue;
 }
+
+struct RegisterMasterTOptions {
+  1: list<common.ConfigProperty> configList
+}
+struct RegisterMasterTResponse {}
 
 /**
   * This interface contains meta master service endpoints for Alluxio clients.
@@ -79,6 +94,38 @@ service MetaMasterClientService extends common.AlluxioService {
    */
   GetMetricsTResponse getMetrics(
     /** the method options */ 1: GetMetricsTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+}
+
+/**
+  * This interface contains meta master service endpoints for Alluxio standby masters.
+  */
+service MetaMasterMasterService extends common.AlluxioService {
+  /**
+   * Returns a master id for the given master address.
+   */
+  GetMasterIdTResponse getMasterId(
+    /** the master address */ 1: common.MasterAddress masterAddress,
+    /** the method options */ 2: GetMasterIdTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Registers a master.
+   */
+  RegisterMasterTResponse registerMaster(
+    /** the id of the master */  1: i64 masterId,
+    /** the method options */ 2: RegisterMasterTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Periodic standby master heartbeat to indicate the master is lost or not.
+   */
+  MasterHeartbeatTResponse masterHeartbeat(
+    /** the id of the master */ 1: i64 masterId,
+    /** the method options */ 2: MasterHeartbeatTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 }
