@@ -44,23 +44,6 @@ public final class WorkerInfo implements Serializable {
   public WorkerInfo() {}
 
   /**
-   * Creates a new instance of {@link WorkerInfo} from a thrift representation.
-   *
-   * @param workerInfo the thrift representation of a worker information
-   */
-  protected WorkerInfo(alluxio.thrift.WorkerInfo workerInfo) {
-    mId = workerInfo.getId();
-    mAddress = new WorkerNetAddress(workerInfo.getAddress());
-    mLastContactSec = workerInfo.getLastContactSec();
-    mState = workerInfo.getState();
-    mCapacityBytes = workerInfo.getCapacityBytes();
-    mUsedBytes = workerInfo.getUsedBytes();
-    mStartTimeMs = workerInfo.getStartTimeMs();
-    mCapacityBytesOnTiers = workerInfo.getCapacityBytesOnTiers();
-    mUsedBytesOnTiers = workerInfo.getUsedBytesOnTiers();
-  }
-
-  /**
    * @return the worker id
    */
   public long getId() {
@@ -209,9 +192,28 @@ public final class WorkerInfo implements Serializable {
   /**
    * @return thrift representation of the worker information
    */
-  protected alluxio.thrift.WorkerInfo toThrift() {
+  public  alluxio.thrift.WorkerInfo toThrift() {
     return new alluxio.thrift.WorkerInfo(mId, mAddress.toThrift(), mLastContactSec,
         mState, mCapacityBytes, mUsedBytes, mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers);
+  }
+
+  /**
+   * Creates a new instance of {@link WorkerInfo} from a thrift representation.
+   *
+   * @param workerInfo the thrift representation of a worker information
+   * @return the instance
+   */
+  public static WorkerInfo fromThrift(alluxio.thrift.WorkerInfo workerInfo) {
+    return new WorkerInfo()
+        .setAddress(WorkerNetAddress.fromThrift(workerInfo.getAddress()))
+        .setCapacityBytes(workerInfo.getCapacityBytes())
+        .setCapacityBytesOnTiers(workerInfo.getCapacityBytesOnTiers())
+        .setId(workerInfo.getId())
+        .setLastContactSec(workerInfo.getLastContactSec())
+        .setStartTimeMs(workerInfo.getStartTimeMs())
+        .setState(workerInfo.getState())
+        .setUsedBytes(workerInfo.getUsedBytes())
+        .setUsedBytesOnTiers(workerInfo.getUsedBytesOnTiers());
   }
 
   @Override

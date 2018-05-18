@@ -23,7 +23,6 @@ import alluxio.thrift.LineageMasterClientService;
 import alluxio.thrift.ReinitializeFileTOptions;
 import alluxio.thrift.ReportLostFileTOptions;
 import alluxio.wire.LineageInfo;
-import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
 import org.apache.thrift.TException;
@@ -87,7 +86,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
       @Override
       public Long call() throws TException {
         return mClient.createLineage(inputFiles, outputFiles,
-            ThriftUtils.toThrift(job.generateCommandLineJobInfo()), new CreateLineageTOptions())
+            job.generateCommandLineJobInfo().toThrift(), new CreateLineageTOptions())
             .getId();
       }
     });
@@ -124,7 +123,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.reinitializeFile(path, blockSizeBytes, ttl, ThriftUtils.toThrift(ttlAction),
+        return mClient.reinitializeFile(path, blockSizeBytes, ttl, TtlAction.toThrift(ttlAction),
             new ReinitializeFileTOptions()).getId();
       }
     });
@@ -142,7 +141,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
         List<LineageInfo> result = new ArrayList<>();
         for (alluxio.thrift.LineageInfo lineageInfo : mClient
             .getLineageInfoList(new GetLineageInfoListTOptions()).getLineageInfoList()) {
-          result.add(ThriftUtils.fromThrift(lineageInfo));
+          result.add(LineageInfo.fromThrift(lineageInfo));
         }
         return result;
       }
