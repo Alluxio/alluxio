@@ -1018,7 +1018,8 @@ public final class FileSystemMasterTest {
     FileUtils.createFile(Paths.get(mUnderFS).resolve("nested/test/ufsnestedfile1").toString());
     infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusOptions.defaults()
         .setLoadMetadataType(LoadMetadataType.Once).setRecursive(true));
-    // 2 sets of files, 2 files inserted at root, 2 directories nested and test, 1 file ufsnestedfile1
+    // 2 sets of files, 2 files inserted at root, 2 directories nested and test,
+    // 1 file ufsnestedfile1
     assertEquals(files + files +  2 + 2 + 1 , infos.size());
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("nested/test/ufsnestedfile2").toString());
