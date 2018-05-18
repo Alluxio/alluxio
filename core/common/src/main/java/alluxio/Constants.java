@@ -145,6 +145,14 @@ public final class Constants {
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
   public static final short INVALID_MODE = -1;
   public static final String IMPERSONATION_HDFS_USER = "_HDFS_USER_";
+  public static final String MODE_BITS_NONE = "---";
+  public static final String MODE_BITS_EXECUTE = "--x";
+  public static final String MODE_BITS_WRITE = "-w-";
+  public static final String MODE_BITS_WRITE_EXECUTE = "-wx";
+  public static final String MODE_BITS_READ = "r--";
+  public static final String MODE_BITS_READ_EXECUTE = "r-x";
+  public static final String MODE_BITS_READ_WRITE = "rw-";
+  public static final String MODE_BITS_ALL = "rwx";
 
   // Specific tier write
   public static final int FIRST_TIER = 0;

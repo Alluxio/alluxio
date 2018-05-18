@@ -24,6 +24,11 @@ public enum AclEntryType {
   MASK,
   OTHER;
 
+  public static final String USER_COMPONENT = "user";
+  public static final String GROUP_COMPONENT = "group";
+  public static final String MASK_COMPONENT = "mask";
+  public static final String OTHER_COMPONENT = "other";
+
   /**
    * @return the string representation for the CLI
    */
@@ -31,14 +36,14 @@ public enum AclEntryType {
     switch (this) {
       case OWNING_USER:
       case NAMED_USER:
-        return "user";
+        return USER_COMPONENT;
       case OWNING_GROUP:
       case NAMED_GROUP:
-        return "group";
+        return GROUP_COMPONENT;
       case MASK:
-        return "mask";
+        return MASK_COMPONENT;
       case OTHER:
-        return "other";
+        return OTHER_COMPONENT;
       default:
         throw new IllegalStateException("Unknown AclEntryType: " + this);
     }

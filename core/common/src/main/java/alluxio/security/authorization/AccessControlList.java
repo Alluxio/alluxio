@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -321,22 +322,7 @@ public final class AccessControlList {
         mOtherActions);
   }
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    for (AclEntry entry : getEntries()) {
-      sb.append(entry.toCliString());
-      sb.append("\n");
-    }
-    if (sb.length() > 0) {
-      // remove the last newline
-      sb.deleteCharAt(sb.length() - 1);
-    }
-    return sb.toString();
-  }
-
   private void setOwningUserEntry(AclEntry entry) {
-    setOwningUser(entry.getSubject());
     mUserActions.put(OWNING_USER_KEY, entry.getActions());
   }
 
@@ -345,7 +331,6 @@ public final class AccessControlList {
   }
 
   private void setOwningGroupEntry(AclEntry entry) {
-    setOwningGroup(entry.getSubject());
     mGroupActions.put(OWNING_GROUP_KEY, entry.getActions());
   }
 
@@ -464,5 +449,39 @@ public final class AccessControlList {
       tAcl.addToEntries(entry.toThrift());
     }
     return tAcl;
+  }
+
+  /**
+   * @param tAcl the thrift representation
+   * @return the {@link AccessControlList} instance created from the thrift representation
+   */
+  /**
+   *
+   * @param owner the owner
+   * @param owningGroup the owning group
+   * @param stringEntries the list of string representations of the entries
+   * @return the {@link AccessControlList} instance
+   */
+  public static AccessControlList fromStringEntries(String owner, String owningGroup,
+      List<String> stringEntries) {
+    AccessControlList acl = new AccessControlList();
+    acl.setOwningUser(owner);
+    acl.setOwningGroup(owningGroup);
+
+    for (String stringEntry : stringEntries) {
+      acl.setEntry(AclEntry.fromCliString(stringEntry));
+    }
+    return acl;
+  }
+
+  /**
+   * @return the list of string entries
+   */
+  public List<String> toStringEntries() {
+    List<String> entries = new ArrayList<>();
+    for (AclEntry entry : getEntries()) {
+      entries.add(entry.toCliString());
+    }
+    return entries;
   }
 }

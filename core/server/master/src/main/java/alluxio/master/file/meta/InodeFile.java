@@ -89,7 +89,7 @@ public final class InodeFile extends Inode<InodeFile> {
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(false);
     ret.setUfsFingerprint(getUfsFingerprint());
-    ret.setAcl(mAcl);
+    ret.setAclEntries(mAcl.toStringEntries());
     return ret;
   }
 

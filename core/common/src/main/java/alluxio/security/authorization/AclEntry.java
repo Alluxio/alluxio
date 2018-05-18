@@ -16,6 +16,10 @@ import alluxio.thrift.TAclEntry;
 
 import com.google.common.base.Objects;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * An entry in {@link AccessControlList}.
  */
@@ -96,13 +100,76 @@ public final class AclEntry {
     StringBuilder sb = new StringBuilder();
     sb.append(mType.toCliString());
     sb.append(":");
-    if (mType != AclEntryType.OWNING_USER) {
+    if (mType == AclEntryType.NAMED_USER || mType == AclEntryType.NAMED_GROUP) {
       sb.append(mSubject);
     }
     sb.append(":");
     sb.append(mActions.toCliString());
 
     return sb.toString();
+  }
+
+  /**
+   * @param stringEntry the CLI string representation
+   * @return the {@link AclEntry} instance created from the CLI string representation
+   */
+  public static AclEntry fromCliString(String stringEntry) {
+    if (stringEntry == null) {
+      throw new IllegalArgumentException("Input string is null");
+    }
+    List<String> components = Arrays.stream(stringEntry.split(":")).map(String::trim).collect(
+        Collectors.toList());
+    if (components.size() != 3) {
+      throw new IllegalArgumentException("Unexpected components: " + stringEntry);
+    }
+
+    AclEntry.Builder builder = new AclEntry.Builder();
+    String type = components.get(0);
+    String subject = components.get(1);
+    String actions = components.get(2);
+
+    if (type.isEmpty()) {
+      throw new IllegalArgumentException("ACL entry type is empty: " + stringEntry);
+    }
+    switch (type) {
+      case AclEntryType.USER_COMPONENT:
+        if (subject.isEmpty()) {
+          builder.setType(AclEntryType.OWNING_USER);
+        } else {
+          builder.setType(AclEntryType.NAMED_USER);
+        }
+        break;
+      case AclEntryType.GROUP_COMPONENT:
+        if (subject.isEmpty()) {
+          builder.setType(AclEntryType.OWNING_GROUP);
+        } else {
+          builder.setType(AclEntryType.NAMED_GROUP);
+        }
+        break;
+      case AclEntryType.MASK_COMPONENT:
+        if (!subject.isEmpty()) {
+          throw new IllegalArgumentException("Subject for mask type must be empty: " + stringEntry);
+        }
+        builder.setType(AclEntryType.MASK);
+        break;
+      case AclEntryType.OTHER_COMPONENT:
+        if (!subject.isEmpty()) {
+          throw new IllegalArgumentException(
+              "Subject for other type must be empty: " + stringEntry);
+        }
+        builder.setType(AclEntryType.OTHER);
+        break;
+      default:
+        throw new IllegalArgumentException("Unexpected ACL entry type: " + stringEntry);
+    }
+
+    builder.setSubject(subject);
+
+    Mode.Bits bits = Mode.Bits.fromString(actions);
+    for (AclAction action : bits.toAclActions()) {
+      builder.addAction(action);
+    }
+    return builder.build();
   }
 
   /**
@@ -128,6 +195,7 @@ public final class AclEntry {
   public TAclEntry toThrift() {
     TAclEntry tAclEntry = new TAclEntry();
     tAclEntry.setType(mType.toThrift());
+    tAclEntry.setSubject(mSubject);
     for (AclAction action : mActions.getActions()) {
       tAclEntry.addToActions(action.toThrift());
     }
