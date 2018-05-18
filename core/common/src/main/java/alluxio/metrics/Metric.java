@@ -153,7 +153,8 @@ public final class Metric implements Serializable {
 
   /**
    * @return the fully qualified metric name, which is of pattern
-   *         instance.[hostname-id:instanceId.]name[.tagName:tagValue]*, where the tags are appended at the end
+   *         instance.[hostname-id:instanceId.]name[.tagName:tagValue]*, where the tags are appended
+   *         at the end
    */
   public String getFullMetricName() {
     StringBuilder sb = new StringBuilder();
@@ -219,8 +220,8 @@ public final class Metric implements Serializable {
 
     String hostname = null;
     String id = null;
-    String name= null;
-    int tagStartIdx=0;
+    String name = null;
+    int tagStartIdx = 0;
     // Master or cluster metrics don't have hostname included.
     if (pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
         || pieces[0].equals(MetricsSystem.CLUSTER.toCharArray())) {
