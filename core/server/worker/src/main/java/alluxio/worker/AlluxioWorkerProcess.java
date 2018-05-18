@@ -20,6 +20,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.ChannelType;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
@@ -146,8 +147,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // Setup Thrift server
       mTransportProvider = TransportProvider.Factory.create();
       mThriftServerSocket = createThriftServerSocket();
-      int rpcPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
-      String rpcHost = NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getInetAddress()
+      int rpcPort = ThriftUtils.getThriftPort(mThriftServerSocket);
+      String rpcHost = ThriftUtils.getThriftSocket(mThriftServerSocket).getInetAddress()
           .getHostAddress();
       mRpcAddress = new InetSocketAddress(rpcHost, rpcPort);
       mThriftServer = createThriftServer();

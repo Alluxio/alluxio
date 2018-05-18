@@ -16,9 +16,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.User;
 
-import org.apache.thrift.transport.TSocket;
-
-import java.net.InetSocketAddress;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -30,17 +27,6 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class TransportProviderUtils {
-
-  /**
-   * Creates a new Thrift socket that will connect to the given address.
-   *
-   * @param address The given address to connect
-   * @param timeoutMs the timeout in milliseconds
-   * @return An unconnected socket
-   */
-  public static TSocket createThriftSocket(InetSocketAddress address, int timeoutMs) {
-    return new TSocket(address.getHostName(), address.getPort(), timeoutMs);
-  }
 
   /**
    * @param subject the subject to use (can be null)
