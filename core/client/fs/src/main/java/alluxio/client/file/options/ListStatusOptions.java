@@ -68,7 +68,7 @@ public final class ListStatusOptions {
    * @return whether the command should recursively list the status of the underlying
    *         directories.
    */
-  public boolean getRecursive() {
+  public boolean isRecursive() {
     return mRecursive;
   }
 
