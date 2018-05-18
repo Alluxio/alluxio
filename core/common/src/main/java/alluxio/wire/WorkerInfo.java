@@ -225,12 +225,12 @@ public final class WorkerInfo implements Serializable {
       return false;
     }
     WorkerInfo that = (WorkerInfo) o;
-    return mId == that.mId && mAddress.equals(that.mAddress)
-        && mLastContactSec == that.mLastContactSec && mState.equals(that.mState)
+    return mId == that.mId && Objects.equal(mAddress, that.mAddress)
+        && mLastContactSec == that.mLastContactSec && Objects.equal(mState, that.mState)
         && mCapacityBytes == that.mCapacityBytes && mUsedBytes == that.mUsedBytes
         && mStartTimeMs == that.mStartTimeMs
-        && mCapacityBytesOnTiers.equals(that.mCapacityBytesOnTiers)
-        && mUsedBytesOnTiers.equals(that.mUsedBytesOnTiers);
+        && Objects.equal(mCapacityBytesOnTiers, that.mCapacityBytesOnTiers)
+        && Objects.equal(mUsedBytesOnTiers, that.mUsedBytesOnTiers);
   }
 
   /**

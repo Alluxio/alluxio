@@ -186,10 +186,10 @@ public final class BlockMasterInfo implements Serializable {
     }
     BlockMasterInfo that = (BlockMasterInfo) o;
     return mCapacityBytes == that.mCapacityBytes
-        && mCapacityBytesOnTiers.equals(that.mCapacityBytesOnTiers)
+        && Objects.equal(mCapacityBytesOnTiers, that.mCapacityBytesOnTiers)
         && mFreeBytes == that.mFreeBytes && mLiveWorkerNum == that.mLiveWorkerNum
         && mLostWorkerNum == that.mLostWorkerNum && mUsedBytes == that.mUsedBytes
-        && mUsedBytesOnTiers.equals(that.mUsedBytesOnTiers);
+        && Objects.equal(mUsedBytesOnTiers, that.mUsedBytesOnTiers);
   }
 
   @Override

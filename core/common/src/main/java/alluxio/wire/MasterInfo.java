@@ -204,10 +204,11 @@ public final class MasterInfo implements Serializable {
       return false;
     }
     MasterInfo that = (MasterInfo) o;
-    return mMasterAddress.equals(that.mMasterAddress) && mRpcPort == that.mRpcPort
+    return Objects.equal(mMasterAddress, that.mMasterAddress) && mRpcPort == that.mRpcPort
         && mSafeMode == that.mSafeMode && mStartTimeMs == that.mStartTimeMs
-        && mUpTimeMs == that.mUpTimeMs && mVersion.equals(that.mVersion)
-        && mWebPort == that.mWebPort && mZookeeperAddresses.equals(that.mZookeeperAddresses);
+        && mUpTimeMs == that.mUpTimeMs && Objects.equal(mVersion, that.mVersion)
+        && mWebPort == that.mWebPort
+        && Objects.equal(mZookeeperAddresses, that.mZookeeperAddresses);
   }
 
   @Override
