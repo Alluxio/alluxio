@@ -56,7 +56,7 @@ public class MetricsStore {
   private static String getHostnameAndId(String hostname, String id) {
     String str = hostname == null ? "" : hostname;
     str = str.replace('.', '_');
-    str += id == null ? "" : ":" + id;
+    str += (id == null ? "" : "-" + id);
     return str;
   }
 
@@ -92,7 +92,7 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    mWorkerMetrics.removeByField(HOSTNAME_ID_INDEX, hostname);
+    mWorkerMetrics.removeByField(HOSTNAME_ID_INDEX, getHostnameAndId(hostname, null));
     for (Metric metric : metrics) {
       mWorkerMetrics.add(metric);
     }
@@ -116,7 +116,6 @@ public class MetricsStore {
       if (metric.getHostname() == null) {
         continue; // ignore metrics who hostname is null
       }
-      LOG.info(metric.toString());
       mClientMetrics.add(metric);
     }
   }

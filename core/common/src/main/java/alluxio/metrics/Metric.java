@@ -139,16 +139,13 @@ public final class Metric implements Serializable {
       return false;
     }
     Metric metric = (Metric) other;
-    return Objects.equal(mHostname, metric.mHostname)
-        && Objects.equal(mInstanceType, metric.mInstanceType)
-        && Objects.equal(mInstanceId, metric.mInstanceId) && Objects.equal(mName, metric.mName)
-        && Objects.equal(mValue, metric.mValue)
-        && Objects.equal(mTags, metric.mTags);
+    return Objects.equal(getFullMetricName(), metric.getFullMetricName())
+        && Objects.equal(mValue, metric.mValue);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mHostname, mInstanceType, mInstanceId, mValue, mName, mTags);
+    return Objects.hashCode(getFullMetricName(), mValue);
   }
 
   /**
@@ -224,7 +221,7 @@ public final class Metric implements Serializable {
     int tagStartIdx = 0;
     // Master or cluster metrics don't have hostname included.
     if (pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
-        || pieces[0].equals(MetricsSystem.CLUSTER.toCharArray())) {
+        || pieces[0].equals(MetricsSystem.CLUSTER.toString())) {
       name = pieces[1];
       tagStartIdx = 2;
     } else {
@@ -262,8 +259,12 @@ public final class Metric implements Serializable {
    * @return the constructed metric
    */
   public static Metric from(alluxio.thrift.Metric metric) {
-    return new Metric(MetricsSystem.InstanceType.fromString(metric.getInstance()),
+    Metric created = new Metric(MetricsSystem.InstanceType.fromString(metric.getInstance()),
         metric.getHostname(), metric.getInstanceId(), metric.getName(), metric.getValue());
+    for (Entry<String, String> entry : metric.getTags().entrySet()) {
+      created.addTag(entry.getKey(), entry.getValue());
+    }
+    return created;
   }
 
   @Override

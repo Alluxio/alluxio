@@ -151,5 +151,16 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("totalBytesReadLocal", FormatUtils.getSizeFromBytes(bytesReadLocal));
     request.setAttribute("totalBytesReadRemote", FormatUtils.getSizeFromBytes(bytesReadRemote));
     request.setAttribute("totalBytesReadUfs", FormatUtils.getSizeFromBytes(bytesReadUfs));
+
+    long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs;
+    double cacheHitLocalPercentage =
+        (bytesReadTotal > 0) ? (100L * bytesReadLocal / bytesReadTotal) : 0;
+    double cacheHitRemotePercentage =
+        (bytesReadTotal > 0) ? (100L * bytesReadRemote / bytesReadTotal) : 0;
+    double cacheMissPercentage = (bytesReadTotal > 0) ? (100L * bytesReadUfs / bytesReadTotal) : 0;
+
+    request.setAttribute("cacheHitLocal", String.format("%.2f", cacheHitLocalPercentage));
+    request.setAttribute("cacheHitRemote", String.format("%.2f", cacheHitRemotePercentage));
+    request.setAttribute("cacheMiss", String.format("%.2f", cacheMissPercentage));
   }
 }
