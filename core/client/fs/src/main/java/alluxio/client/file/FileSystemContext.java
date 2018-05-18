@@ -89,8 +89,7 @@ public final class FileSystemContext implements Closeable {
   private MetricsMasterClient mMetricsMasterClient;
   private ClientMasterSync mClientMasterSync;
 
-  /** a UUID without hyphens. */
-  private final String mId;
+  private final long mId;
 
   // The netty data server channel pools.
   private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
@@ -245,7 +244,7 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return the unique id of the context
    */
-  public String getId() {
+  public long getId() {
     return mId;
   }
 

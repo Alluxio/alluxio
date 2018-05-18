@@ -45,15 +45,23 @@ public class MetricsStore {
     }
   };
 
-  private static final IndexDefinition<Metric> HOSTNAME_ID_INDEX =
+  private static final IndexDefinition<Metric> ID_INDEX =
       new IndexDefinition<Metric>(false) {
         @Override
         public Object getFieldValue(Metric o) {
-          return getHostnameAndId(o.getHostname(), o.getInstanceId());
+          return getFullInstanceId(o.getHostname(), o.getInstanceId());
         }
       };
 
-  private static String getHostnameAndId(String hostname, String id) {
+  /**
+   * Gets the full instance id of the concatenation of hostname and the id. The dots in the hostname
+   * replaced by underscores.
+   *
+   * @param hostname the hostname
+   * @param id the instance id
+   * @return the full instance id of hostname[:id]
+   */
+  private static String getFullInstanceId(String hostname, String id) {
     String str = hostname == null ? "" : hostname;
     str = str.replace('.', '_');
     str += id == null ? "" : ":" + id;
@@ -61,9 +69,9 @@ public class MetricsStore {
   }
 
   private final IndexedSet<Metric> mWorkerMetrics =
-      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, HOSTNAME_ID_INDEX);
+      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
   private final IndexedSet<Metric> mClientMetrics =
-      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, HOSTNAME_ID_INDEX);
+      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
 
   /**
    * Gets all the metrics by instance type. The supported instance types are worker and client.
@@ -92,7 +100,7 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    mWorkerMetrics.removeByField(HOSTNAME_ID_INDEX, hostname);
+    mWorkerMetrics.removeByField(ID_INDEX, hostname);
     for (Metric metric : metrics) {
       if (metric.getHostname() == null) {
         continue; // ignore metrics whose hostname is null
@@ -114,7 +122,7 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    mClientMetrics.removeByField(HOSTNAME_ID_INDEX, getHostnameAndId(hostname, clientId));
+    mClientMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, clientId));
     for (Metric metric : metrics) {
       if (metric.getHostname() == null) {
         continue; // ignore metrics whose hostname is null
