@@ -63,45 +63,40 @@ public final class DoctorCommand implements Command {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    try {
-      String[] args = cl.getArgs();
+    String[] args = cl.getArgs();
 
-      if (cl.hasOption(HELP_OPTION_NAME)) {
-        System.out.println(getUsage());
-        System.out.println(getDescription());
-        return 0;
-      }
+    if (cl.hasOption(HELP_OPTION_NAME)) {
+      System.out.println(getUsage());
+      System.out.println(getDescription());
+      return 0;
+    }
 
-      FileSystemAdminShellUtils.masterClientServiceIsRunning();
+    FileSystemAdminShellUtils.masterClientServiceIsRunning();
 
-      // Get the doctor category
-      Command command = Command.ALL;
-      if (args.length == 1) {
-        switch (args[0]) {
-          case "configuration":
-            command = Command.CONFIGURATION;
-            break;
-          default:
-            System.out.println(getUsage());
-            System.out.println(getDescription());
-            throw new InvalidArgumentException("doctor category is invalid.");
-        }
-      }
-
-      switch (command) {
-        case ALL:
-          // TODO(lu) add other Alluxio errors and warnings and separate from CONFIGURATION
-        case CONFIGURATION:
-          ConfigurationCommand configurationCommand
-              = new ConfigurationCommand(mMetaMasterClient, mPrintStream);
-          configurationCommand.run();
+    // Get the doctor category
+    Command command = Command.ALL;
+    if (args.length == 1) {
+      switch (args[0]) {
+        case "configuration":
+          command = Command.CONFIGURATION;
           break;
         default:
-          break;
+          System.out.println(getUsage());
+          System.out.println(getDescription());
+          throw new InvalidArgumentException("doctor category is invalid.");
       }
-    } finally {
-      mMetaMasterClient.close();
-      mPrintStream.close();
+    }
+
+    switch (command) {
+      case ALL:
+        // TODO(lu) add other Alluxio errors and warnings and separate from CONFIGURATION
+      case CONFIGURATION:
+        ConfigurationCommand configurationCommand
+            = new ConfigurationCommand(mMetaMasterClient, mPrintStream);
+        configurationCommand.run();
+        break;
+      default:
+        break;
     }
     return 0;
   }

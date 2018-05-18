@@ -26,14 +26,6 @@ import org.junit.Test;
  * Tests for report command.
  */
 public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest {
-  @Test
-  public void masterNotRunning() throws Exception {
-    mLocalAlluxioCluster.stopMasters();
-    mFsAdminShell.run("report");
-    String expected = "The Alluxio leader master is not currently serving requests.\n"
-        + "Please check your Alluxio master status\n";
-    Assert.assertEquals(expected, mErrOutput.toString());
-  }
 
   @Test
   public void reportCategoryInvalid() {

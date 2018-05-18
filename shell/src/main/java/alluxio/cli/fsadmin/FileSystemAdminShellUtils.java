@@ -49,19 +49,27 @@ public final class FileSystemAdminShellUtils {
 
   /**
    * Checks if the master client service is running.
+   * Throws an exception if fails to determine that the master client service is running.
    */
   public static void masterClientServiceIsRunning() throws IOException {
+    // Check if Alluxio master and client services are running
     try (CloseableResource<FileSystemMasterClient> client =
-        FileSystemContext.INSTANCE.acquireMasterClientResource()) {
+             FileSystemContext.INSTANCE.acquireMasterClientResource()) {
+      MasterInquireClient inquireClient = null;
       try {
         InetSocketAddress address = client.get().getAddress();
         List<InetSocketAddress> addresses = Arrays.asList(address);
-        MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
+        inquireClient = new PollingMasterInquireClient(addresses, () ->
             new ExponentialBackoffRetry(50, 100, 2));
+      } catch (UnavailableException e) {
+        throw new IOException("Failed to get the leader master, "
+            + "please check your Alluxio master status.");
+      }
+      try {
         inquireClient.getPrimaryRpcAddress();
       } catch (UnavailableException e) {
         throw new IOException("The Alluxio leader master is not currently serving requests, "
-            + "please check you Alluxio master stauts.");
+            + "please check your Alluxio master status.");
       }
     }
   }
