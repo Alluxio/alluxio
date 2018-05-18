@@ -121,7 +121,9 @@ public final class FileSystemContext implements Closeable {
   public static FileSystemContext get() {
     if (sInstance == null) {
       synchronized (FileSystemContext.class) {
-        sInstance = create();
+        if (sInstance == null) {
+          sInstance = create();
+        }
       }
     }
     return sInstance;
@@ -165,7 +167,9 @@ public final class FileSystemContext implements Closeable {
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
     mId = IdUtils.createFileSystemContextId();
-    LOG.info("Created filesystem context with id " + mId);
+    LOG.info(
+        "Created filesystem context with id {}. This ID will be used for identifying the information aggregated by the master, such as metrics",
+        mId);
     mClosed = new AtomicBoolean(false);
   }
 
@@ -430,7 +434,7 @@ public final class FileSystemContext implements Closeable {
             @Override
             public Long getValue() {
               long ret = 0;
-              for (NettyChannelPool pool : sInstance.mNettyChannelPools.values()) {
+              for (NettyChannelPool pool : get().mNettyChannelPools.values()) {
                 ret += pool.size();
               }
               return ret;
