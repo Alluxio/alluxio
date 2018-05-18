@@ -11,7 +11,6 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.Configuration;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 
@@ -93,7 +92,8 @@ public final class DoctorCommand implements Command {
         case ALL:
           // TODO(lu) add other Alluxio errors and warnings and separate from CONFIGURATION
         case CONFIGURATION:
-          ConfigurationCommand configurationCommand = new ConfigurationCommand(mMetaMasterClient, mPrintStream);
+          ConfigurationCommand configurationCommand
+              = new ConfigurationCommand(mMetaMasterClient, mPrintStream);
           configurationCommand.run();
           break;
         default:

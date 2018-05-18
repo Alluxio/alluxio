@@ -12,7 +12,6 @@
 --%>
 <%@ page import="java.util.*" %>
 <%@ page import="java.lang.*" %>
-<%@ page import="alluxio.PropertyKey.*" %>
 <%@ page import="alluxio.web.*" %>
 <%@ page import="alluxio.wire.*" %>
 
