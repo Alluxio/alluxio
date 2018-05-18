@@ -15,14 +15,15 @@ import alluxio.Constants;
 import alluxio.clock.SystemClock;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
+import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsAggregator;
 import alluxio.metrics.MetricsFilter;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.MetricsSystem.InstanceType;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.thrift.MetricsMasterClientService;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 
@@ -89,8 +90,12 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   }
 
   private void registerAggregators() {
+    // worker metrics
     addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
         WorkerMetrics.BYTES_READ_ALLUXIO));
+    // client metrics
+    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT,
+        ClientMetrics.BYTES_READ_LOCAL));
   }
 
   @Override
@@ -116,6 +121,8 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
+    services.put(Constants.METRICS_MASTER_CLIENT_SERVICE_NAME,
+        new MetricsMasterClientService.Processor<>(getMasterServiceHandler()));
     return services;
   }
 
@@ -125,7 +132,17 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   }
 
   @Override
-  public void putWorkerMetrics(InstanceType instance, String hostname, List<Metric> metrics) {
-    mMetricsStore.putWorkerMetrics(instance, hostname, metrics);
+  public void clientHeartbeat(String clientId, String hostname, List<Metric> metrics) {
+    mMetricsStore.putClientMetrics(hostname, clientId, metrics);
+  }
+
+  @Override
+  public MetricsMasterClientServiceHandler getMasterServiceHandler() {
+    return new MetricsMasterClientServiceHandler(this);
+  }
+
+  @Override
+  public void workerHeartbeat(String hostname, List<Metric> metrics) {
+    mMetricsStore.putWorkerMetrics(hostname, metrics);
   }
 }

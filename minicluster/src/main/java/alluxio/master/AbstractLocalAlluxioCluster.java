@@ -80,7 +80,7 @@ public abstract class AbstractLocalAlluxioCluster {
     setupTest();
     startMasters();
     // Reset the file system context to make sure the correct master RPC port is used.
-    FileSystemContext.INSTANCE.reset();
+    FileSystemContext.get().reset();
     startWorkers();
     startProxy();
 
@@ -196,9 +196,9 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   public void stop() throws Exception {
     stopFS();
-    ConfigurationTestUtils.resetConfiguration();
     reset();
     LoginUserTestUtils.resetLoginUser();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -308,7 +308,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * Resets the client pools to the original state.
    */
   protected void resetClientPools() throws IOException {
-    FileSystemContext.INSTANCE.reset();
+    FileSystemContext.get().reset();
   }
 
   /**

@@ -13,7 +13,6 @@ package alluxio.master.metrics;
 
 import alluxio.master.Master;
 import alluxio.metrics.Metric;
-import alluxio.metrics.MetricsSystem;
 
 import java.util.List;
 
@@ -23,12 +22,25 @@ import java.util.List;
  */
 public interface MetricsMaster extends Master  {
   /**
-   * Put the metrics from an instance with a hostname. If all the old metrics associated with this
-   * instance will be removed and then replaced by the latest.
+   * Handles the client's heartbeat request for metrics collection.
    *
-   * @param instance the instance type
+   * @param clientId the client id
+   * @param hostname the client hostname
+   * @param metrics client-side metrics
+   */
+  void clientHeartbeat(String clientId, String hostname, List<Metric> metrics);
+
+  /**
+   * @return the master service handler
+   */
+  MetricsMasterClientServiceHandler getMasterServiceHandler();
+
+  /**
+   * Handles the worker heartbeat and puts the metrics from an instance with a hostname. If all the
+   * old metrics associated with this instance will be removed and then replaced by the latest.
+   *
    * @param hostname the hostname of the instance
    * @param metrics the new worker metrics
    */
-  void putWorkerMetrics(MetricsSystem.InstanceType instance, String hostname, List<Metric> metrics);
+  void workerHeartbeat(String hostname, List<Metric> metrics);
 }

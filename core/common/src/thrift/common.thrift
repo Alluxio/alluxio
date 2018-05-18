@@ -27,8 +27,9 @@ struct BlockLocation {
 struct Metric {
   1: string instance
   2: string hostname
-  3: string name
-  4: i64 value
+  3: string instanceId
+  4: string name
+  5: i64 value
 }
 
 enum CommandType {

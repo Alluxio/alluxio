@@ -17,6 +17,9 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricsSystem.InstanceType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Set;
 
@@ -27,6 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class MetricsStore {
+  private static final Logger LOG = LoggerFactory.getLogger(MetricsStore.class);
   private static final IndexDefinition<Metric> FULL_NAME_INDEX = new IndexDefinition<Metric>(true) {
     @Override
     public Object getFieldValue(Metric o) {
@@ -41,15 +45,33 @@ public class MetricsStore {
     }
   };
 
-  private static final IndexDefinition<Metric> HOSTNAME_INDEX = new IndexDefinition<Metric>(false) {
-    @Override
-    public Object getFieldValue(Metric o) {
-      return o.getHostname();
-    }
-  };
+  private static final IndexDefinition<Metric> ID_INDEX =
+      new IndexDefinition<Metric>(false) {
+        @Override
+        public Object getFieldValue(Metric o) {
+          return getFullInstanceId(o.getHostname(), o.getInstanceId());
+        }
+      };
+
+  /**
+   * Gets the full instance id of the concatenation of hostname and the id. The dots in the hostname
+   * replaced by underscores.
+   *
+   * @param hostname the hostname
+   * @param id the instance id
+   * @return the full instance id of hostname[:id]
+   */
+  private static String getFullInstanceId(String hostname, String id) {
+    String str = hostname == null ? "" : hostname;
+    str = str.replace('.', '_');
+    str += id == null ? "" : ":" + id;
+    return str;
+  }
 
   private final IndexedSet<Metric> mWorkerMetrics =
-      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, HOSTNAME_INDEX);
+      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
+  private final IndexedSet<Metric> mClientMetrics =
+      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
 
   /**
    * Gets all the metrics by instance type. The supported instance types are worker and client.
@@ -60,28 +82,52 @@ public class MetricsStore {
   private IndexedSet<Metric> getMetricsByInstanceType(MetricsSystem.InstanceType instanceType) {
     if (instanceType == InstanceType.WORKER) {
       return mWorkerMetrics;
+    } else if (instanceType == InstanceType.CLIENT) {
+      return mClientMetrics;
     } else {
       throw new IllegalArgumentException("Unsupported instance type " + instanceType);
     }
   }
 
   /**
-   * Put the metrics from an instance with a hostname. If all the old metrics associated with this
+   * Put the metrics from a worker with a hostname. If all the old metrics associated with this
    * instance will be removed and then replaced by the latest.
    *
-   * @param instance the instance type
    * @param hostname the hostname of the instance
    * @param metrics the new worker metrics
    */
-  public synchronized void putWorkerMetrics(MetricsSystem.InstanceType instance, String hostname,
-      List<Metric> metrics) {
-    IndexedSet<Metric> set = getMetricsByInstanceType(instance);
-    set.removeByField(HOSTNAME_INDEX, hostname);
+  public synchronized void putWorkerMetrics(String hostname, List<Metric> metrics) {
+    if (metrics.isEmpty()) {
+      return;
+    }
+    mWorkerMetrics.removeByField(ID_INDEX, hostname);
     for (Metric metric : metrics) {
       if (metric.getHostname() == null) {
-        continue; // ignore metrics who hostname is null
+        continue; // ignore metrics whose hostname is null
       }
-      set.add(metric);
+      mWorkerMetrics.add(metric);
+    }
+  }
+
+  /**
+   * Put the metrics from a client with a hostname and a client id. If all the old metrics
+   * associated with this instance will be removed and then replaced by the latest.
+   *
+   * @param hostname the hostname of the client
+   * @param clientId the id of the client
+   * @param metrics the new metrics
+   */
+  public synchronized void putClientMetrics(String hostname, String clientId,
+      List<Metric> metrics) {
+    if (metrics.isEmpty()) {
+      return;
+    }
+    mClientMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, clientId));
+    for (Metric metric : metrics) {
+      if (metric.getHostname() == null) {
+        continue; // ignore metrics whose hostname is null
+      }
+      mClientMetrics.add(metric);
     }
   }
 
@@ -103,5 +149,6 @@ public class MetricsStore {
    */
   public synchronized void clear() {
     mWorkerMetrics.clear();
+    mClientMetrics.clear();
   }
 }

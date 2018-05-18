@@ -43,8 +43,9 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
 
   private static final org.apache.thrift.protocol.TField INSTANCE_FIELD_DESC = new org.apache.thrift.protocol.TField("instance", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField HOSTNAME_FIELD_DESC = new org.apache.thrift.protocol.TField("hostname", org.apache.thrift.protocol.TType.STRING, (short)2);
-  private static final org.apache.thrift.protocol.TField NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("name", org.apache.thrift.protocol.TType.STRING, (short)3);
-  private static final org.apache.thrift.protocol.TField VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("value", org.apache.thrift.protocol.TType.I64, (short)4);
+  private static final org.apache.thrift.protocol.TField INSTANCE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("instanceId", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("name", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("value", org.apache.thrift.protocol.TType.I64, (short)5);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -54,6 +55,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
 
   private String instance; // required
   private String hostname; // required
+  private String instanceId; // required
   private String name; // required
   private long value; // required
 
@@ -61,8 +63,9 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     INSTANCE((short)1, "instance"),
     HOSTNAME((short)2, "hostname"),
-    NAME((short)3, "name"),
-    VALUE((short)4, "value");
+    INSTANCE_ID((short)3, "instanceId"),
+    NAME((short)4, "name"),
+    VALUE((short)5, "value");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -81,9 +84,11 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
           return INSTANCE;
         case 2: // HOSTNAME
           return HOSTNAME;
-        case 3: // NAME
+        case 3: // INSTANCE_ID
+          return INSTANCE_ID;
+        case 4: // NAME
           return NAME;
-        case 4: // VALUE
+        case 5: // VALUE
           return VALUE;
         default:
           return null;
@@ -134,6 +139,8 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.HOSTNAME, new org.apache.thrift.meta_data.FieldMetaData("hostname", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.INSTANCE_ID, new org.apache.thrift.meta_data.FieldMetaData("instanceId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.NAME, new org.apache.thrift.meta_data.FieldMetaData("name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.VALUE, new org.apache.thrift.meta_data.FieldMetaData("value", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -148,12 +155,14 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
   public Metric(
     String instance,
     String hostname,
+    String instanceId,
     String name,
     long value)
   {
     this();
     this.instance = instance;
     this.hostname = hostname;
+    this.instanceId = instanceId;
     this.name = name;
     this.value = value;
     setValueIsSet(true);
@@ -170,6 +179,9 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     if (other.isSetHostname()) {
       this.hostname = other.hostname;
     }
+    if (other.isSetInstanceId()) {
+      this.instanceId = other.instanceId;
+    }
     if (other.isSetName()) {
       this.name = other.name;
     }
@@ -184,6 +196,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
   public void clear() {
     this.instance = null;
     this.hostname = null;
+    this.instanceId = null;
     this.name = null;
     setValueIsSet(false);
     this.value = 0;
@@ -234,6 +247,30 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
   public void setHostnameIsSet(boolean value) {
     if (!value) {
       this.hostname = null;
+    }
+  }
+
+  public String getInstanceId() {
+    return this.instanceId;
+  }
+
+  public Metric setInstanceId(String instanceId) {
+    this.instanceId = instanceId;
+    return this;
+  }
+
+  public void unsetInstanceId() {
+    this.instanceId = null;
+  }
+
+  /** Returns true if field instanceId is set (has been assigned a value) and false otherwise */
+  public boolean isSetInstanceId() {
+    return this.instanceId != null;
+  }
+
+  public void setInstanceIdIsSet(boolean value) {
+    if (!value) {
+      this.instanceId = null;
     }
   }
 
@@ -302,6 +339,14 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
       }
       break;
 
+    case INSTANCE_ID:
+      if (value == null) {
+        unsetInstanceId();
+      } else {
+        setInstanceId((String)value);
+      }
+      break;
+
     case NAME:
       if (value == null) {
         unsetName();
@@ -329,6 +374,9 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     case HOSTNAME:
       return getHostname();
 
+    case INSTANCE_ID:
+      return getInstanceId();
+
     case NAME:
       return getName();
 
@@ -350,6 +398,8 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
       return isSetInstance();
     case HOSTNAME:
       return isSetHostname();
+    case INSTANCE_ID:
+      return isSetInstanceId();
     case NAME:
       return isSetName();
     case VALUE:
@@ -389,6 +439,15 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
         return false;
     }
 
+    boolean this_present_instanceId = true && this.isSetInstanceId();
+    boolean that_present_instanceId = true && that.isSetInstanceId();
+    if (this_present_instanceId || that_present_instanceId) {
+      if (!(this_present_instanceId && that_present_instanceId))
+        return false;
+      if (!this.instanceId.equals(that.instanceId))
+        return false;
+    }
+
     boolean this_present_name = true && this.isSetName();
     boolean that_present_name = true && that.isSetName();
     if (this_present_name || that_present_name) {
@@ -423,6 +482,11 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     list.add(present_hostname);
     if (present_hostname)
       list.add(hostname);
+
+    boolean present_instanceId = true && (isSetInstanceId());
+    list.add(present_instanceId);
+    if (present_instanceId)
+      list.add(instanceId);
 
     boolean present_name = true && (isSetName());
     list.add(present_name);
@@ -461,6 +525,16 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     }
     if (isSetHostname()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.hostname, other.hostname);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetInstanceId()).compareTo(other.isSetInstanceId());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetInstanceId()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.instanceId, other.instanceId);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -518,6 +592,14 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
       sb.append("null");
     } else {
       sb.append(this.hostname);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("instanceId:");
+    if (this.instanceId == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.instanceId);
     }
     first = false;
     if (!first) sb.append(", ");
@@ -593,7 +675,15 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // NAME
+          case 3: // INSTANCE_ID
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.instanceId = iprot.readString();
+              struct.setInstanceIdIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 4: // NAME
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.name = iprot.readString();
               struct.setNameIsSet(true);
@@ -601,7 +691,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // VALUE
+          case 5: // VALUE
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.value = iprot.readI64();
               struct.setValueIsSet(true);
@@ -632,6 +722,11 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
       if (struct.hostname != null) {
         oprot.writeFieldBegin(HOSTNAME_FIELD_DESC);
         oprot.writeString(struct.hostname);
+        oprot.writeFieldEnd();
+      }
+      if (struct.instanceId != null) {
+        oprot.writeFieldBegin(INSTANCE_ID_FIELD_DESC);
+        oprot.writeString(struct.instanceId);
         oprot.writeFieldEnd();
       }
       if (struct.name != null) {
@@ -666,18 +761,24 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
       if (struct.isSetHostname()) {
         optionals.set(1);
       }
-      if (struct.isSetName()) {
+      if (struct.isSetInstanceId()) {
         optionals.set(2);
       }
-      if (struct.isSetValue()) {
+      if (struct.isSetName()) {
         optionals.set(3);
       }
-      oprot.writeBitSet(optionals, 4);
+      if (struct.isSetValue()) {
+        optionals.set(4);
+      }
+      oprot.writeBitSet(optionals, 5);
       if (struct.isSetInstance()) {
         oprot.writeString(struct.instance);
       }
       if (struct.isSetHostname()) {
         oprot.writeString(struct.hostname);
+      }
+      if (struct.isSetInstanceId()) {
+        oprot.writeString(struct.instanceId);
       }
       if (struct.isSetName()) {
         oprot.writeString(struct.name);
@@ -690,7 +791,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, Metric struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(4);
+      BitSet incoming = iprot.readBitSet(5);
       if (incoming.get(0)) {
         struct.instance = iprot.readString();
         struct.setInstanceIsSet(true);
@@ -700,10 +801,14 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
         struct.setHostnameIsSet(true);
       }
       if (incoming.get(2)) {
+        struct.instanceId = iprot.readString();
+        struct.setInstanceIdIsSet(true);
+      }
+      if (incoming.get(3)) {
         struct.name = iprot.readString();
         struct.setNameIsSet(true);
       }
-      if (incoming.get(3)) {
+      if (incoming.get(4)) {
         struct.value = iprot.readI64();
         struct.setValueIsSet(true);
       }
