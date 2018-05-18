@@ -101,6 +101,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
@@ -1799,9 +1800,6 @@ public final class FileSystemMasterTest {
     assertTrue(mExecutorService.isTerminated());
   }
 
-  /**
-   * Tests the {@link FileSystemMaster#workerHeartbeat(long, List)} method.
-   */
   @Test
   public void workerHeartbeat() throws Exception {
     long blockId = createFileWithSingleBlock(ROOT_FILE_URI);
@@ -1992,11 +1990,11 @@ public final class FileSystemMasterTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
+    MasterContext masterContext = new MasterContext(mJournalSystem, mSafeModeManager, new ReentrantLock());
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
-    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster,
-        new MasterContext(mJournalSystem, mSafeModeManager),
+    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();

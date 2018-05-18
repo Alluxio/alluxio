@@ -29,18 +29,17 @@ final class MasterUtils {
   /**
    * Creates all the masters and registers them to the master registry.
    *
-   * @param journalSystem the journal system to use for creating journals
    * @param registry the master registry
+   * @param context master context
    */
-  public static void createMasters(final JournalSystem journalSystem,
-      final MasterRegistry registry, final SafeModeManager safeModeManager) {
+  public static void createMasters(MasterRegistry registry, MasterContext context) {
     List<Callable<Void>> callables = new ArrayList<>();
     for (final MasterFactory factory : ServiceUtils.getMasterServiceLoader()) {
       callables.add(new Callable<Void>() {
         @Override
         public Void call() throws Exception {
           if (factory.isEnabled()) {
-            factory.create(registry, journalSystem, safeModeManager);
+            factory.create(registry, context);
           }
           return null;
         }

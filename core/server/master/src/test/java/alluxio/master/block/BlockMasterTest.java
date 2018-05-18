@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Unit tests for {@link BlockMaster}.
@@ -92,8 +93,9 @@ public class BlockMasterTest {
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster = new DefaultBlockMaster(new MasterContext(journalSystem, mSafeModeManager),
-        mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mBlockMaster = new DefaultBlockMaster(
+        new MasterContext(journalSystem, mSafeModeManager, new ReentrantLock()), mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
   }

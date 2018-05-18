@@ -17,7 +17,9 @@ import alluxio.PropertyKey;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.ExportJournalOptions;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.List;
@@ -28,6 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A master process in the Alluxio system.
  */
 public interface MasterProcess extends Process {
+
   /**
    * Factory for creating {@link MasterProcess}.
    */
@@ -51,9 +54,15 @@ public interface MasterProcess extends Process {
   }
 
   /**
+   * Exports the journal.
+   *
+   * @param options method options
+   */
+  void exportJournal(ExportJournalOptions options) throws IOException;
+
+  /**
    * @param clazz the class of the master to get
    * @param <T> the type of the master to get
-
    * @return the given master
    */
   <T extends Master> T getMaster(Class<T> clazz);

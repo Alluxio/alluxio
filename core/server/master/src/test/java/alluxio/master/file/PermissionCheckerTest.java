@@ -22,6 +22,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.DefaultSafeModeManager;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
@@ -57,6 +58,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Unit tests for {@link PermissionChecker}.
@@ -176,8 +178,8 @@ public final class PermissionCheckerTest {
     sRegistry = new MasterRegistry();
     sSafeModeManager = new DefaultSafeModeManager();
     JournalSystem journalSystem = new NoopJournalSystem();
-    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, journalSystem,
-        sSafeModeManager);
+    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry,
+        new MasterContext(journalSystem, sSafeModeManager, new ReentrantLock()));
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);

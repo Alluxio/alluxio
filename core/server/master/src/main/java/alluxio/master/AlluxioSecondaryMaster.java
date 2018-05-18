@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -47,7 +48,8 @@ public final class AlluxioSecondaryMaster implements Process {
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       // Create masters.
-      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
+      MasterUtils.createMasters(mRegistry,
+          new MasterContext(mJournalSystem, mSafeModeManager, new ReentrantLock()));
       // Check that journals of each service have been formatted.
       if (!mJournalSystem.isFormatted()) {
         throw new RuntimeException(

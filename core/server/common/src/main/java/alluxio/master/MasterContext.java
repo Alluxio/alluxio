@@ -15,20 +15,25 @@ import alluxio.master.journal.JournalSystem;
 
 import com.google.common.base.Preconditions;
 
+import java.util.concurrent.locks.Lock;
+
 /**
  * Stores context information for Alluxio masters.
  */
 public final class MasterContext {
   private final JournalSystem mJournalSystem;
   private final SafeModeManager mSafeModeManager;
+  private final Lock mStateLock;
 
   /**
    * @param journalSystem the journal system to use for tracking master operations
    * @param safeModeManager the manager for master safe mode
+   * @param stateLock a lock which must be held before modifying persistent state
    */
-  public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager) {
+  public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager, Lock stateLock) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mSafeModeManager = Preconditions.checkNotNull(safeModeManager, "safeModeManager");
+    mStateLock = Preconditions.checkNotNull(stateLock, "stateLock");
   }
 
   /**
@@ -43,5 +48,12 @@ public final class MasterContext {
    */
   public SafeModeManager getmSafeModeManager() {
     return mSafeModeManager;
+  }
+
+  /**
+   * @return the state lock
+   */
+  public Lock getStateLock() {
+    return mStateLock;
   }
 }

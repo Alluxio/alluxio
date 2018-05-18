@@ -30,6 +30,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.DefaultSafeModeManager;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
@@ -76,6 +77,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Unit test for {@link FileSystemMaster} when permission check is enabled by configure
@@ -192,9 +194,10 @@ public final class PermissionCheckTest {
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem = new NoopJournalSystem();
     mSafeModeManager = new DefaultSafeModeManager();
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
-    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, journalSystem,
-        mSafeModeManager);
+    MasterContext masterContext =
+        new MasterContext(journalSystem, mSafeModeManager, new ReentrantLock());
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
+    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
     mRegistry.start(true);
 
     createDirAndFileForTest();

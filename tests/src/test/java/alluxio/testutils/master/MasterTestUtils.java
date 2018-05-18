@@ -14,6 +14,7 @@ package alluxio.testutils.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.TestSafeModeManager;
@@ -28,6 +29,8 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
+
+import java.util.concurrent.locks.ReentrantLock;
 
 public class MasterTestUtils {
 
@@ -64,8 +67,10 @@ public class MasterTestUtils {
     MasterRegistry registry = new MasterRegistry();
     SafeModeManager safeModeManager = new TestSafeModeManager();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
-    new BlockMasterFactory().create(registry, journalSystem, safeModeManager);
-    new FileSystemMasterFactory().create(registry, journalSystem, safeModeManager);
+    MasterContext masterContext =
+        new MasterContext(journalSystem, safeModeManager, new ReentrantLock());
+    new BlockMasterFactory().create(registry, masterContext);
+    new FileSystemMasterFactory().create(registry, masterContext);
     journalSystem.start();
     journalSystem.setMode(isLeader ? Mode.PRIMARY : Mode.SECONDARY);
     registry.start(isLeader);

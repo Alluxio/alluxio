@@ -36,6 +36,12 @@ struct MasterInfo {
  8: list<string> zookeeperAddresses // Null means zookeeper is not enabled
 }
 
+struct ExportJournalTOptions {
+ 1: string uri
+}
+struct ExportJournalTResponse {
+}
+
 struct GetMasterInfoTOptions {
   1: set<MasterInfoField> filter
 }
@@ -59,6 +65,13 @@ struct MetricValue {
   * This interface contains meta master service endpoints for Alluxio clients.
   */
 service MetaMasterClientService extends common.AlluxioService {
+  /**
+   * Exports the journal to the specified URI
+   */
+  ExportJournalTResponse exportJournal(
+    /** the method options */ 1: ExportJournalTOptions options,
+    ) throws (1: exception.AlluxioTException e)
+
   /**
    * Returns a list of Alluxio runtime configuration information.
    */

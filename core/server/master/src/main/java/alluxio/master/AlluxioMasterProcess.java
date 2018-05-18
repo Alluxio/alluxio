@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -20,8 +21,10 @@ import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
+import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
@@ -30,6 +33,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.ExportJournalOptions;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -47,10 +51,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -70,6 +78,9 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The port for the RPC server. */
   private final int mPort;
+
+  /** A lock for which the read lock must be held before modifying persistent master state. */
+  private final ReadWriteLock mStateLock;
 
   /** The socket for thrift rpc server. */
   private TServerSocket mTServerSocket;
@@ -154,9 +165,43 @@ public class AlluxioMasterProcess implements MasterProcess {
       // Create masters.
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
-      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
+      mStateLock = new ReentrantReadWriteLock();
+      MasterUtils.createMasters(mRegistry,
+          new MasterContext(mJournalSystem, mSafeModeManager, mStateLock.readLock()));
     } catch (Exception e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void exportJournal(ExportJournalOptions options) throws IOException {
+    AlluxioURI uri = new AlluxioURI(options.getUri());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(uri.toString());
+    OutputStream out = ufs.create(uri.getPath());
+    mStateLock.writeLock().lock();
+    try {
+      for (Master master : mRegistry.getServers()) {
+        Iterator<JournalEntry> it = master.getJournalEntryIterator();
+        while (it.hasNext()) {
+          it.next().toBuilder().clearSequenceNumber().build().writeDelimitedTo(out);
+        }
+      }
+    } catch (Throwable t) {
+      try {
+        out.close();
+      } catch (Throwable t2) {
+        LOG.error("Failed to close snapshot stream to {}", uri.getPath(), t2);
+        t.addSuppressed(t2);
+      }
+      try {
+        ufs.deleteFile(uri.getPath());
+      } catch (Throwable t2) {
+        LOG.error("Failed to clean up partially-written snapshot at {}", uri.getPath(), t2);
+        t.addSuppressed(t2);
+      }
+      throw t;
+    } finally {
+      mStateLock.writeLock().unlock();
     }
   }
 
