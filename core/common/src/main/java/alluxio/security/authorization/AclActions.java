@@ -152,6 +152,13 @@ public final class AclActions {
   }
 
   /**
+   * @return the string representation for the CLI
+   */
+  public String toCliString() {
+    return toModeBits().toString();
+  }
+
+  /**
    * @return the representation of the permitted actions in the format of {@link Mode.Bits}
    */
   public Mode.Bits toModeBits() {

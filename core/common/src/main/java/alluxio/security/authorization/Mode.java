@@ -291,14 +291,14 @@ public final class Mode {
   @PublicApi
   @ThreadSafe
   public enum Bits {
-    NONE("---"),
-    EXECUTE("--x"),
-    WRITE("-w-"),
-    WRITE_EXECUTE("-wx"),
-    READ("r--"),
-    READ_EXECUTE("r-x"),
-    READ_WRITE("rw-"),
-    ALL("rwx"),
+    NONE(Constants.MODE_BITS_NONE),
+    EXECUTE(Constants.MODE_BITS_EXECUTE),
+    WRITE(Constants.MODE_BITS_WRITE),
+    WRITE_EXECUTE(Constants.MODE_BITS_WRITE_EXECUTE),
+    READ(Constants.MODE_BITS_READ),
+    READ_EXECUTE(Constants.MODE_BITS_READ_EXECUTE),
+    READ_WRITE(Constants.MODE_BITS_READ_WRITE),
+    ALL(Constants.MODE_BITS_ALL),
     ;
 
     /** String representation of the bits. */
@@ -319,6 +319,33 @@ public final class Mode {
      */
     public static Bits fromShort(short bits) {
       return SVALS[bits];
+    }
+
+    /**
+     * @param string the string representation
+     * @return the {@link Bits} instance
+     */
+    public static Bits fromString(String string) {
+      switch (string) {
+        case Constants.MODE_BITS_NONE:
+          return NONE;
+        case Constants.MODE_BITS_EXECUTE:
+          return EXECUTE;
+        case Constants.MODE_BITS_WRITE:
+          return WRITE;
+        case Constants.MODE_BITS_WRITE_EXECUTE:
+          return WRITE_EXECUTE;
+        case Constants.MODE_BITS_READ:
+          return READ;
+        case Constants.MODE_BITS_READ_EXECUTE:
+          return READ_EXECUTE;
+        case Constants.MODE_BITS_READ_WRITE:
+          return READ_WRITE;
+        case Constants.MODE_BITS_ALL:
+          return ALL;
+        default:
+          throw new IllegalArgumentException("Invalid mode string: " + string);
+      }
     }
 
     @Override

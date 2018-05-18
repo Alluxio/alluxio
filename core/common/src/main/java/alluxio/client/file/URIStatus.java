@@ -43,6 +43,13 @@ public class URIStatus {
   }
 
   /**
+   * @return the ACL entries for this path, mutable
+   */
+  public List<String> getAclEntries() {
+    return mInfo.getAclEntries();
+  }
+
+  /**
    * @return a list of block ids belonging to the file, empty for directories, immutable
    */
   public List<Long> getBlockIds() {

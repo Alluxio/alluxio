@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.Constants;
+import alluxio.security.authorization.AccessControlList;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -56,6 +57,8 @@ public final class FileInfo implements Serializable {
   private long mMountId;
   private int mInAlluxioPercentage;
   private String mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
+  // A list of String ACL entries, to support json serialization.
+  private ArrayList<String> mAclEntries = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -100,6 +103,10 @@ public final class FileInfo implements Serializable {
     mInAlluxioPercentage = fileInfo.getInAlluxioPercentage();
     if (fileInfo.isSetUfsFingerprint()) {
       mUfsFingerprint = fileInfo.getUfsFingerprint();
+    }
+    if (fileInfo.isSetAcl()) {
+      mAclEntries = new ArrayList<>();
+      mAclEntries.addAll(AccessControlList.fromThrift(fileInfo.getAcl()).toStringEntries());
     }
   }
 
@@ -283,6 +290,13 @@ public final class FileInfo implements Serializable {
    */
   public String getUfsFingerprint() {
     return mUfsFingerprint;
+  }
+
+  /**
+   * @return the ACL entries for this file
+   */
+  public List<String> getAclEntries() {
+    return mAclEntries;
   }
 
   /**
@@ -527,6 +541,16 @@ public final class FileInfo implements Serializable {
   }
 
   /**
+   * @param acl the ACL entries to use
+   * @return the file information
+   */
+  public FileInfo setAclEntries(List<String> acl) {
+    mAclEntries = new ArrayList<>();
+    mAclEntries.addAll(acl);
+    return this;
+  }
+
+  /**
    * @return thrift representation of the file information
    */
   protected alluxio.thrift.FileInfo toThrift() {
@@ -535,12 +559,14 @@ public final class FileInfo implements Serializable {
       fileBlockInfos.add(fileBlockInfo.toThrift());
     }
 
+    AccessControlList tAcl = AccessControlList.fromStringEntries(mOwner, mGroup, mAclEntries);
+
     alluxio.thrift.FileInfo info =
         new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, fileBlockInfos, ThriftUtils.toThrift(mTtlAction), mMountId,
-        mInAlluxioPercentage, mUfsFingerprint);
+        mInAlluxioPercentage, mUfsFingerprint, tAcl.toThrift());
     return info;
   }
 
@@ -564,7 +590,8 @@ public final class FileInfo implements Serializable {
         && mPersistenceState.equals(that.mPersistenceState) && mMountPoint == that.mMountPoint
         && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
-        && mUfsFingerprint.equals(that.mUfsFingerprint);
+        && mUfsFingerprint.equals(that.mUfsFingerprint)
+        && mAclEntries.equals(that.mAclEntries);
   }
 
   @Override
@@ -573,7 +600,7 @@ public final class FileInfo implements Serializable {
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction, mInAlluxioPercentage,
-        mUfsFingerprint);
+        mUfsFingerprint, mAclEntries);
   }
 
   @Override
@@ -589,6 +616,7 @@ public final class FileInfo implements Serializable {
         .add("fileBlockInfos", mFileBlockInfos)
         .add("mountId", mMountId).add("inAlluxioPercentage", mInAlluxioPercentage)
         .add("ufsFingerprint", mUfsFingerprint)
+        .add("aclEntries", mAclEntries)
         .toString();
   }
 }

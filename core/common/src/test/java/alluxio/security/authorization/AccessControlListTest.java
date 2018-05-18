@@ -50,18 +50,6 @@ public class AccessControlListTest {
     acl.setOwningGroup(OWNING_GROUP);
     Assert.assertEquals(OWNING_USER, acl.getOwningUser());
     Assert.assertEquals(OWNING_GROUP, acl.getOwningGroup());
-
-    acl = new AccessControlList();
-    acl.setEntry(new AclEntry.Builder()
-        .setType(AclEntryType.OWNING_USER)
-        .setSubject(OWNING_USER)
-        .build());
-    acl.setEntry(new AclEntry.Builder()
-        .setType(AclEntryType.OWNING_GROUP)
-        .setSubject(OWNING_GROUP)
-        .build());
-    Assert.assertEquals(OWNING_USER, acl.getOwningUser());
-    Assert.assertEquals(OWNING_GROUP, acl.getOwningGroup());
   }
 
   /**
@@ -75,6 +63,8 @@ public class AccessControlListTest {
     // other: ---
     // named user: rwx
     // named group: w-x
+    acl.setOwningUser(OWNING_USER);
+    acl.setOwningGroup(OWNING_GROUP);
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OWNING_USER).setSubject(OWNING_USER)
         .addAction(AclAction.READ).addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OWNING_GROUP).setSubject(OWNING_GROUP)
@@ -150,6 +140,8 @@ public class AccessControlListTest {
     // named user: r-x
     // named group: r--
     // named group 2: -wx
+    acl.setOwningUser(OWNING_USER);
+    acl.setOwningGroup(OWNING_GROUP);
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OWNING_USER).setSubject(OWNING_USER)
         .addAction(AclAction.READ).addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OWNING_GROUP).setSubject(OWNING_GROUP)

@@ -95,6 +95,33 @@ struct LoadMetadataTResponse {
   1: i64 id
 }
 
+enum TAclEntryType {
+  Owner = 0,
+  NamedUser = 1,
+  OwningGroup = 2,
+  NamedGroup = 3,
+  Mask = 4,
+  Other = 5,
+}
+
+enum TAclAction {
+  Read = 0,
+  Write = 1,
+  Execute = 2,
+}
+
+struct TAclEntry {
+  1: optional TAclEntryType type
+  2: optional string subject
+  3: optional list<TAclAction> actions
+}
+
+struct TAcl {
+  1: optional string owner
+  2: optional string owningGroup
+  3: optional list<TAclEntry> entries
+}
+
 /**
 * Contains the information of a block in a file. In addition to the BlockInfo, it includes the
 * offset in the file, and the under file system locations of the block replicas.
@@ -133,6 +160,7 @@ struct FileInfo {
   25: i64 mountId
   26: i32 inAlluxioPercentage
   27: string ufsFingerprint
+  28: TAcl acl
 }
 
 struct MountTOptions {

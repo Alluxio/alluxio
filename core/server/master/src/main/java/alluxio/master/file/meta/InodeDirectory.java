@@ -240,6 +240,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(isMountPoint());
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
+    ret.setAclEntries(mAcl.toStringEntries());
     return ret;
   }
 
@@ -300,6 +301,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setOwner(options.getOwner())
         .setGroup(options.getGroup())
         .setMode(options.getMode().toShort())
+        .setAcl(options.getAcl())
         .setMountPoint(options.isMountPoint());
   }
 
