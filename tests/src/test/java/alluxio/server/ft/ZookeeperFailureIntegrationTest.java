@@ -19,7 +19,7 @@ import alluxio.PropertyKey;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
-import alluxio.security.authentication.TProtocols;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.security.authentication.TransportProvider.Factory;
 import alluxio.testutils.AlluxioOperationThread;
@@ -114,7 +114,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     try {
       TransportProvider transportProvider = Factory.create();
       TProtocol protocol =
-          TProtocols.createProtocol(transportProvider.getClientTransport(address),
+          ThriftUtils.createThriftProtocol(transportProvider.getClientTransport(address),
               Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME);
       Client client = new Client(protocol);
       client.listStatus("/", new ListStatusTOptions());

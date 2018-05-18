@@ -401,7 +401,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST, ","));
 
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
-    mPermissionChecker = new PermissionChecker(mInodeTree);
+    mPermissionChecker = new DefaultPermissionChecker(mInodeTree);
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
     mUfsSyncPathCache = new UfsSyncPathCache();
