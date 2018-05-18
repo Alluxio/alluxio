@@ -30,6 +30,10 @@
                 <th><%= request.getAttribute("totalBytesReadLocal") %></th>
                 <th>From Remote Instances</th>
                 <th><%= request.getAttribute("totalBytesReadRemote") %></th>
+              </tr>
+			  <tr>
+                <th>Under Filesystem Read</th>
+                <th><%= request.getAttribute("totalBytesReadUfs") %></th>
               </tr>              
             </tbody>
           </table>

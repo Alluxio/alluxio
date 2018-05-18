@@ -22,7 +22,7 @@ import java.util.Random;
 /**
  * Tests {@link Metric}.
  */
-public class MetricTest {
+public final class MetricTest {
 
   @Test
   public void thrift() {
@@ -33,9 +33,15 @@ public class MetricTest {
 
   @Test
   public void testFullNameParsing() {
-    String fullName = "client.192_1_1_1:A.metric-tag1:A-tag2:B";
+    String fullName = "client.192_1_1_1|A.metric.tag1:A::/.tag2:B:/";
     Metric metric = Metric.from(fullName, 1);
     assertEquals(fullName, metric.getFullMetricName());
+  }
+
+  @Test
+  public void testMetricNameWithTags() {
+    assertEquals("metric.t1:v1.t2:v2:",
+        Metric.getMetricNameWithTags("metric", "t1", "v1", "t2", "v2:"));
   }
 
   public void checkEquality(Metric a, Metric b) {

@@ -20,6 +20,7 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.RPCProtoMessage;
@@ -179,7 +180,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
             AlluxioURI ufsMountPointUri =
                 ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
             String ufsString = MetricsSystem.escape(ufsMountPointUri);
-            String metricName = String.format("%s-Ufs:%s", WorkerMetrics.BYTES_READ_UFS, ufsString);
+            String metricName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_READ_UFS,
+                WorkerMetrics.UFS, ufsString);
             context.setBlockReader(reader);
             context.setCounter(MetricsSystem.workerCounter(metricName));
             return;

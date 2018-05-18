@@ -13,6 +13,8 @@ package alluxio.metrics;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -23,9 +25,11 @@ import java.util.Map.Entry;
  * A metric of a given instance. The instance can be master, worker, or client.
  */
 public final class Metric implements Serializable {
+  private static final Logger LOG = LoggerFactory.getLogger(Metric.class);
   private static final long serialVersionUID = -2236393414222298333L;
 
   private static final String ID_SEPARATOR = "-id:";
+  public static final String TAG_SEPARATOR = ":";
   private final MetricsSystem.InstanceType mInstanceType;
   private final String mHostname;
   private final String mName;
@@ -149,7 +153,7 @@ public final class Metric implements Serializable {
 
   /**
    * @return the fully qualified metric name, which is of pattern
-   *         instance.[hostname-id:instanceId.]name[-tagName:tagValue]*
+   *         instance.[hostname-id:instanceId.]name[.tagName:tagValue]*, where the tags are appended at the end
    */
   public String getFullMetricName() {
     StringBuilder sb = new StringBuilder();
@@ -164,7 +168,7 @@ public final class Metric implements Serializable {
 
     sb.append(mName);
     for (Entry<String, String> entry : mTags.entrySet()) {
-      sb.append("-" + entry.getKey() + ":" + entry.getValue());
+      sb.append('.' + entry.getKey() + TAG_SEPARATOR + entry.getValue());
     }
     return sb.toString();
   }
@@ -184,6 +188,25 @@ public final class Metric implements Serializable {
   }
 
   /**
+   * Gets the metric name with the appendix of tags. The returned name is of the pattern
+   * name[.tagName:tagValue]*.
+   *
+   * @param name the metric name
+   * @param tags the tag name and tag value pairs
+   * @return the name with the tags appended
+   */
+  public static String getMetricNameWithTags(String name, String... tags) {
+    Preconditions.checkArgument(tags.length % 2 == 0,
+        "The tag arguments should be tag name and tag value pairs");
+    StringBuilder sb = new StringBuilder();
+    sb.append(name);
+    for (int i = 0; i < tags.length; i += 2) {
+      sb.append('.' + tags[i] + TAG_SEPARATOR + tags[i + 1]);
+    }
+    return sb.toString();
+  }
+
+  /**
    * Creates the metric from the full name and the value.
    *
    * @param fullName the full name
@@ -196,8 +219,14 @@ public final class Metric implements Serializable {
 
     String hostname = null;
     String id = null;
+    String name= null;
+    int tagStartIdx=0;
     // Master or cluster metrics don't have hostname included.
-    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())) {
+    if (pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
+        || pieces[0].equals(MetricsSystem.CLUSTER.toCharArray())) {
+      name = pieces[1];
+      tagStartIdx = 2;
+    } else {
       if (pieces[1].contains(ID_SEPARATOR)) {
         String[] ids = pieces[1].split(ID_SEPARATOR);
         hostname = ids[0];
@@ -205,16 +234,22 @@ public final class Metric implements Serializable {
       } else {
         hostname = pieces[1];
       }
+      name = pieces[2];
+      tagStartIdx = 3;
     }
     MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.fromString(pieces[0]);
-    String name = MetricsSystem.stripInstanceAndHost(fullName);
-    // parse tags
-    pieces = name.split("-");
-    name = pieces[0];
     Metric metric = new Metric(instance, hostname, id, name, value);
-    for (int i = 1; i < pieces.length; i++) {
-      String[] parts = pieces[i].split(":");
-      metric.addTag(parts[0], parts[1]);
+
+    // parse tags
+    for (int i = tagStartIdx; i < pieces.length; i++) {
+      String tagStr = pieces[i];
+      if (!tagStr.contains(TAG_SEPARATOR)) {
+        LOG.warn("Unknown tag {}, the tag format should be tagname{}tagvalue", pieces[i],
+            TAG_SEPARATOR);
+        continue;
+      }
+      int tagSeparatorIdx = tagStr.indexOf(TAG_SEPARATOR);
+      metric.addTag(tagStr.substring(0, tagSeparatorIdx), tagStr.substring(tagSeparatorIdx + 1));
     }
     return metric;
   }

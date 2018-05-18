@@ -25,5 +25,7 @@ public final class WorkerMetrics {
   /** Total number of bytes read from UFS through this worker. */
   public static final String BYTES_READ_UFS = "BytesReadUfs";
 
+  public static final String UFS = "UFS";
+
   private WorkerMetrics() {} // prevent instantiation
 }
