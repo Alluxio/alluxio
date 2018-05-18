@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
-import java.util.Random;
 import java.util.UUID;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -97,6 +96,6 @@ public final class IdUtils {
    * @return a positive random long
    */
   public static long createFileSystemContextId() {
-    return Math.abs((new Random()).nextLong());
+    return Math.abs(sRandom.nextLong());
   }
 }
