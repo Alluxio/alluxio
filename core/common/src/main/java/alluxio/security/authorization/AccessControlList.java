@@ -454,10 +454,6 @@ public final class AccessControlList {
   }
 
   /**
-   * @param tAcl the thrift representation
-   * @return the {@link AccessControlList} instance created from the thrift representation
-   */
-  /**
    *
    * @param owner the owner
    * @param owningGroup the owning group

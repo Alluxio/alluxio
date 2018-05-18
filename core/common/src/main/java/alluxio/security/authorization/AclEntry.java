@@ -182,7 +182,6 @@ public final class AclEntry {
     builder.setSubject(tEntry.getSubject());
     if (tEntry.isSetActions()) {
       for (TAclAction tAction : tEntry.getActions()) {
-
         builder.addAction(AclAction.fromThrift(tAction));
       }
     }
