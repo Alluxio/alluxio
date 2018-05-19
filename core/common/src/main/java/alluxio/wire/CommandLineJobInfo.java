@@ -38,16 +38,6 @@ public final class CommandLineJobInfo implements Serializable {
   public CommandLineJobInfo() {}
 
   /**
-   * Creates a new instance of {@link CommandLineJobInfo} from a thrift representation.
-   *
-   * @param commandLineJobInfo the thrift representation of a lineage command-line job information
-   */
-  protected CommandLineJobInfo(alluxio.thrift.CommandLineJobInfo commandLineJobInfo) {
-    mCommand = commandLineJobInfo.getCommand();
-    mConf = new JobConfInfo(commandLineJobInfo.getConf());
-  }
-
-  /**
    * @return the command
    */
   public String getCommand() {
@@ -84,8 +74,20 @@ public final class CommandLineJobInfo implements Serializable {
   /**
    * @return thrift representation of the lineage command-line job information
    */
-  protected alluxio.thrift.CommandLineJobInfo toThrift() {
+  public alluxio.thrift.CommandLineJobInfo toThrift() {
     return new alluxio.thrift.CommandLineJobInfo(mCommand, mConf.toThrift());
+  }
+
+  /**
+   * Creates a new instance of {@link CommandLineJobInfo} from a thrift representation.
+   *
+   * @param info the thrift representation of a lineage command-line job information
+   *             @return the instance
+   */
+  public static CommandLineJobInfo fromThrift(alluxio.thrift.CommandLineJobInfo info) {
+    return new CommandLineJobInfo()
+        .setCommand(info.getCommand())
+        .setConf(JobConfInfo.fromThrift(info.getConf()));
   }
 
   @Override
