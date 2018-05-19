@@ -45,7 +45,8 @@ public final class Metric implements Serializable {
    * @param name the metric name
    * @param value the value
    */
-  public Metric(MetricsSystem.InstanceType instanceType, String hostname, String name, Double value) {
+  public Metric(MetricsSystem.InstanceType instanceType, String hostname, String name,
+      Double value) {
     this(instanceType, hostname, null, name, value);
   }
 
