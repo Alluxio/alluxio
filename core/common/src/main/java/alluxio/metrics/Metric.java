@@ -33,7 +33,7 @@ public final class Metric implements Serializable {
   private final MetricsSystem.InstanceType mInstanceType;
   private final String mHostname;
   private final String mName;
-  private final Long mValue;
+  private final Double mValue;
   private String mInstanceId;
   private final Map<String, String> mTags;
 
@@ -45,7 +45,7 @@ public final class Metric implements Serializable {
    * @param name the metric name
    * @param value the value
    */
-  public Metric(MetricsSystem.InstanceType instanceType, String hostname, String name, Long value) {
+  public Metric(MetricsSystem.InstanceType instanceType, String hostname, String name, Double value) {
     this(instanceType, hostname, null, name, value);
   }
 
@@ -59,7 +59,7 @@ public final class Metric implements Serializable {
    * @param value the value
    */
   public Metric(MetricsSystem.InstanceType instanceType, String hostname, String id, String name,
-      Long value) {
+      Double value) {
     Preconditions.checkNotNull(name);
     mInstanceType = instanceType;
     mHostname = hostname;
@@ -103,7 +103,7 @@ public final class Metric implements Serializable {
   /**
    * @return the metric value
    */
-  public long getValue() {
+  public double getValue() {
     return mValue;
   }
 
@@ -211,7 +211,7 @@ public final class Metric implements Serializable {
    * @param value the value
    * @return the created metric
    */
-  public static Metric from(String fullName, long value) {
+  public static Metric from(String fullName, double value) {
     String[] pieces = fullName.split("\\.");
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", fullName);
 

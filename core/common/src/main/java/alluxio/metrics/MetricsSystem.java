@@ -301,6 +301,10 @@ public final class MetricsSystem {
     return METRIC_REGISTRY.timer(getWorkerMetricName(name));
   }
 
+  /**
+   * @param name the meter name
+   * @return the meter
+   */
   public static Meter workerMeter(String name) {
     return METRIC_REGISTRY.meter(getWorkerMetricName(name));
   }
@@ -327,6 +331,14 @@ public final class MetricsSystem {
    */
   public static Counter clientCounter(String name) {
     return METRIC_REGISTRY.counter(getClientMetricName(name));
+  }
+
+  /**
+   * @param name the meter name
+   * @return the meter
+   */
+  public static Meter clientMeter(String name) {
+    return METRIC_REGISTRY.meter(getClientMetricName(name));
   }
 
   /**
@@ -383,6 +395,9 @@ public final class MetricsSystem {
     }
     for (Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
       metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount()));
+    }
+    for (Entry<String, Meter> entry : METRIC_REGISTRY.getMeters().entrySet()) {
+      metrics.add(Metric.from(entry.getKey(), entry.getValue().getOneMinuteRate()));
     }
     return metrics;
   }

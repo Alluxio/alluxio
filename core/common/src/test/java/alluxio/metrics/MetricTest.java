@@ -58,7 +58,7 @@ public final class MetricTest {
     MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.values()[idx];
     String hostname = CommonUtils.randomAlphaNumString(random.nextInt(10));
     String name = CommonUtils.randomAlphaNumString(random.nextInt(10));
-    long value = random.nextLong();
+    double value = random.nextLong();
     return new Metric(instance, hostname, name, value);
   }
 }

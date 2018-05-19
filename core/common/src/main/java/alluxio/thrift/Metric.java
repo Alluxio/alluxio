@@ -45,7 +45,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
   private static final org.apache.thrift.protocol.TField HOSTNAME_FIELD_DESC = new org.apache.thrift.protocol.TField("hostname", org.apache.thrift.protocol.TType.STRING, (short)2);
   private static final org.apache.thrift.protocol.TField INSTANCE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("instanceId", org.apache.thrift.protocol.TType.STRING, (short)3);
   private static final org.apache.thrift.protocol.TField NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("name", org.apache.thrift.protocol.TType.STRING, (short)4);
-  private static final org.apache.thrift.protocol.TField VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("value", org.apache.thrift.protocol.TType.I64, (short)5);
+  private static final org.apache.thrift.protocol.TField VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("value", org.apache.thrift.protocol.TType.DOUBLE, (short)5);
   private static final org.apache.thrift.protocol.TField TAGS_FIELD_DESC = new org.apache.thrift.protocol.TField("tags", org.apache.thrift.protocol.TType.MAP, (short)6);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -58,7 +58,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
   private String hostname; // required
   private String instanceId; // required
   private String name; // required
-  private long value; // required
+  private double value; // required
   private Map<String,String> tags; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -149,7 +149,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     tmpMap.put(_Fields.NAME, new org.apache.thrift.meta_data.FieldMetaData("name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.VALUE, new org.apache.thrift.meta_data.FieldMetaData("value", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.DOUBLE)));
     tmpMap.put(_Fields.TAGS, new org.apache.thrift.meta_data.FieldMetaData("tags", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
@@ -166,7 +166,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     String hostname,
     String instanceId,
     String name,
-    long value,
+    double value,
     Map<String,String> tags)
   {
     this();
@@ -214,7 +214,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     this.instanceId = null;
     this.name = null;
     setValueIsSet(false);
-    this.value = 0;
+    this.value = 0.0;
     this.tags = null;
   }
 
@@ -314,11 +314,11 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     }
   }
 
-  public long getValue() {
+  public double getValue() {
     return this.value;
   }
 
-  public Metric setValue(long value) {
+  public Metric setValue(double value) {
     this.value = value;
     setValueIsSet(true);
     return this;
@@ -410,7 +410,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
       if (value == null) {
         unsetValue();
       } else {
-        setValue((Long)value);
+        setValue((Double)value);
       }
       break;
 
@@ -788,8 +788,8 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
             }
             break;
           case 5: // VALUE
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.value = iprot.readI64();
+            if (schemeField.type == org.apache.thrift.protocol.TType.DOUBLE) {
+              struct.value = iprot.readDouble();
               struct.setValueIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -851,7 +851,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
         oprot.writeFieldEnd();
       }
       oprot.writeFieldBegin(VALUE_FIELD_DESC);
-      oprot.writeI64(struct.value);
+      oprot.writeDouble(struct.value);
       oprot.writeFieldEnd();
       if (struct.tags != null) {
         oprot.writeFieldBegin(TAGS_FIELD_DESC);
@@ -916,7 +916,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
         oprot.writeString(struct.name);
       }
       if (struct.isSetValue()) {
-        oprot.writeI64(struct.value);
+        oprot.writeDouble(struct.value);
       }
       if (struct.isSetTags()) {
         {
@@ -951,7 +951,7 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
         struct.setNameIsSet(true);
       }
       if (incoming.get(4)) {
-        struct.value = iprot.readI64();
+        struct.value = iprot.readDouble();
         struct.setValueIsSet(true);
       }
       if (incoming.get(5)) {

@@ -94,10 +94,17 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
     addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
         WorkerMetrics.BYTES_READ_ALLUXIO));
     addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
+        WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
         WorkerMetrics.BYTES_READ_UFS));
+    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
+        WorkerMetrics.BYTES_READ_UFS_THROUGHPUT));
+
     // client metrics
     addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT,
         ClientMetrics.BYTES_READ_LOCAL));
+    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT,
+        ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT));
   }
 
   @Override
