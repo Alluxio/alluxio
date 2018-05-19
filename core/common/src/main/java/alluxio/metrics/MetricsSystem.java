@@ -19,6 +19,7 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
@@ -298,6 +299,10 @@ public final class MetricsSystem {
    */
   public static Timer workerTimer(String name) {
     return METRIC_REGISTRY.timer(getWorkerMetricName(name));
+  }
+
+  public static Meter workerMeter(String name) {
+    return METRIC_REGISTRY.meter(getWorkerMetricName(name));
   }
 
   /**

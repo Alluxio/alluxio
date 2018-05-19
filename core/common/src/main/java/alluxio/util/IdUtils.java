@@ -93,9 +93,9 @@ public final class IdUtils {
   }
 
   /**
-   * @return a random UUID which does not have hyphens
+   * @return a positive random long
    */
-  public static String createFileSystemContextId() {
-    return UUID.randomUUID().toString().replace("-", "");
+  public static long createFileSystemContextId() {
+    return Math.abs(sRandom.nextLong());
   }
 }

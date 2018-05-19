@@ -941,14 +941,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_METRICS_HEARTBEAT_TIMEOUT_MS =
-      new Builder(Name.MASTER_METRICS_HEARTBEAT_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.master.metrics.heartbeat.timeout.ms"})
-          .setDefaultValue("5min")
-          .setDescription("The timeout value of metrics master's heartbeats.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey MASTER_HOSTNAME =
       new Builder(Name.MASTER_HOSTNAME)
           .setDescription("The hostname of Alluxio master.")
@@ -3065,8 +3057,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lineage.recompute.interval";
     public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
         "alluxio.master.lineage.recompute.log.path";
-    public static final String MASTER_METRICS_HEARTBEAT_TIMEOUT_MS =
-        "alluxio.mater.metrics.heartbeat.timeout";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
         "alluxio.master.periodic.block.integrity.check.repair";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =

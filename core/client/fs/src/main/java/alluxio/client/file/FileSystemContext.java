@@ -89,8 +89,7 @@ public final class FileSystemContext implements Closeable {
   private MetricsMasterClient mMetricsMasterClient;
   private ClientMasterSync mClientMasterSync;
 
-  /** a UUID without hyphens. */
-  private final String mId;
+  private final long mId;
 
   // The netty data server channel pools.
   private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
@@ -121,7 +120,9 @@ public final class FileSystemContext implements Closeable {
   public static FileSystemContext get() {
     if (sInstance == null) {
       synchronized (FileSystemContext.class) {
-        sInstance = create();
+        if (sInstance == null) {
+          sInstance = create();
+        }
       }
     }
     return sInstance;
@@ -165,7 +166,10 @@ public final class FileSystemContext implements Closeable {
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
     mId = IdUtils.createFileSystemContextId();
-    LOG.info("Created filesystem context with id " + mId);
+    LOG.info("Created filesystem context with id {}."
+        + " This ID will be used for identifying the information "
+        + "aggregated by the master, such as metrics",
+        mId);
     mClosed = new AtomicBoolean(false);
   }
 
@@ -180,13 +184,14 @@ public final class FileSystemContext implements Closeable {
         new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
     mClosed.set(false);
-    // setup metrics master client sync
-    mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults()
-        .withSubject(mParentSubject).withMasterInquireClient(mMasterInquireClient));
-    mClientMasterSync = new ClientMasterSync(mMetricsMasterClient);
-    mExecutorService = Executors.newFixedThreadPool(1,
-        ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
+
     if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
+      // setup metrics master client sync
+      mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults()
+          .withSubject(mParentSubject).withMasterInquireClient(mMasterInquireClient));
+      mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, this);
+      mExecutorService = Executors.newFixedThreadPool(1,
+          ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
       mExecutorService
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
               (int) Configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
@@ -215,9 +220,12 @@ public final class FileSystemContext implements Closeable {
     mNettyChannelPools.clear();
 
     synchronized (this) {
-      ThreadUtils.shutdownAndAwaitTermination(mExecutorService);
-      mMetricsMasterClient.close();
-      mMetricsMasterClient = null;
+      if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
+        ThreadUtils.shutdownAndAwaitTermination(mExecutorService);
+        mMetricsMasterClient.close();
+        mMetricsMasterClient = null;
+        mClientMasterSync = null;
+      }
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
       mClosed.set(true);
@@ -236,7 +244,7 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return the unique id of the context
    */
-  public String getId() {
+  public long getId() {
     return mId;
   }
 
@@ -414,7 +422,7 @@ public final class FileSystemContext implements Closeable {
       try {
         mClientMasterSync.heartbeat();
       } catch (InterruptedException e) {
-        LOG.error("Failed to heartbeat to the metrics master before exxit");
+        LOG.error("Failed to heartbeat to the metrics master before exit");
       }
     }
   }
@@ -430,7 +438,7 @@ public final class FileSystemContext implements Closeable {
             @Override
             public Long getValue() {
               long ret = 0;
-              for (NettyChannelPool pool : sInstance.mNettyChannelPools.values()) {
+              for (NettyChannelPool pool : get().mNettyChannelPools.values()) {
                 ret += pool.size();
               }
               return ret;

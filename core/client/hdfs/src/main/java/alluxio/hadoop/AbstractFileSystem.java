@@ -418,7 +418,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *      org.apache.hadoop.conf.Configuration)
    */
   //@Override This doesn't exist in Hadoop 1.x, so cannot put {@literal @Override}.
-  @Override
   public abstract String getScheme();
 
   @Override
