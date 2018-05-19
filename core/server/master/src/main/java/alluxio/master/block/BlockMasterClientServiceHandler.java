@@ -36,7 +36,6 @@ import alluxio.thrift.GetWorkerInfoListTOptions;
 import alluxio.thrift.GetWorkerInfoListTResponse;
 import alluxio.thrift.GetWorkerReportTOptions;
 import alluxio.thrift.WorkerInfo;
-import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
@@ -110,7 +109,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetBlockInfoTResponse>() {
       @Override
       public GetBlockInfoTResponse call() throws AlluxioException, AlluxioStatusException {
-        return new GetBlockInfoTResponse(ThriftUtils.toThrift(mBlockMaster.getBlockInfo(blockId)));
+        return new GetBlockInfoTResponse(mBlockMaster.getBlockInfo(blockId).toThrift());
       }
 
       @Override
@@ -163,7 +162,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetWorkerInfoListTResponse>) () -> {
       List<WorkerInfo> workerInfos = new ArrayList<>();
       for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
-        workerInfos.add(ThriftUtils.toThrift(workerInfo));
+        workerInfos.add(workerInfo.toThrift());
       }
       return new GetWorkerInfoListTResponse(workerInfos);
     });
@@ -179,7 +178,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
         List<WorkerInfo> workerInfos = new ArrayList<>();
         for (alluxio.wire.WorkerInfo workerInfo :
             mBlockMaster.getWorkerReport(new GetWorkerReportOptions(options))) {
-          workerInfos.add(ThriftUtils.toThrift(workerInfo));
+          workerInfos.add(workerInfo.toThrift());
         }
         return new GetWorkerInfoListTResponse(workerInfos);
       }
