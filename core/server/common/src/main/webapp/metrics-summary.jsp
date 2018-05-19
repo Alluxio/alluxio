@@ -56,13 +56,13 @@
             <tbody>
               <tr>
                 <th>Short-circuit Read</th>
-                <th><%= request.getAttribute("totalBytesReadLocal") %></th>
+                <th><%= request.getAttribute("totalBytesReadLocalThroughput") %></th>
                 <th>From Remote Instances</th>
                 <th><%= request.getAttribute("totalBytesReadRemoteThroughput") %></th>
               </tr>
 			  <tr>
                 <th>Under Filesystem Read</th>
-                <th><%= request.getAttribute("totalBytesReadUfs") %></th>
+                <th><%= request.getAttribute("totalBytesReadUfsThroughput") %></th>
               </tr>              
             </tbody>
           </table>

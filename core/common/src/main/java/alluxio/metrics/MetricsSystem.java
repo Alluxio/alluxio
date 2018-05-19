@@ -382,12 +382,11 @@ public final class MetricsSystem {
     for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
       if (entry.getKey().startsWith(instanceType.toString())) {
         Object value = entry.getValue().getValue();
-        if (!(value instanceof Integer) && !(value instanceof Long)) {
+        if (!(value instanceof Number)) {
           LOG.warn(
               "The value of metric {} of type {} is not sent to metrics master,"
-                  + " only metrics value of type integer or long can be collected",
+                  + " only metrics value of number can be collected",
               entry.getKey(), entry.getValue().getClass().getSimpleName());
-          // skip the metrics not of integer/long types
           continue;
         }
         metrics.add(Metric.from(entry.getKey(), ((Number) value).longValue()));
