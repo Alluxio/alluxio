@@ -474,6 +474,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         });
       } else {
         Thread.sleep(1000);
+        status = mFileSystem.getStatus(uri);
         Assert.assertEquals(0, status.getInAlluxioPercentage());
       }
     }
@@ -498,6 +499,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       URIStatus status = mFileSystem.getStatus(uri);
       is.seek(status.getBlockSizeBytes() + 1);
       is.read();
+      status = mFileSystem.getStatus(uri);
       Assert.assertEquals(0, status.getInAlluxioPercentage());
       is.close();
       if (readType.isCache()) {
@@ -521,6 +523,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         });
       } else {
         Thread.sleep(1000);
+        status = mFileSystem.getStatus(uri);
         Assert.assertEquals(0, status.getInAlluxioPercentage());
       }
     }
@@ -568,6 +571,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         });
       } else {
         Thread.sleep(1000);
+        status = mFileSystem.getStatus(uri);
         Assert.assertEquals(0, status.getInAlluxioPercentage());
       }
       is.close();
