@@ -29,7 +29,6 @@ public final class DataByteBuffer implements DataBuffer {
   private final long mLength;
 
   /**
-   *
    * @param buffer The ByteBuffer representing the data
    * @param length The length of the ByteBuffer
    */
