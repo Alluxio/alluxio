@@ -93,9 +93,12 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       waitForReady();
       LOG.info("Primary started");
       mLeaderSelector.waitForState(State.SECONDARY);
-      // Put the journal in secondary mode ASAP to avoid interfering with the new primary.
-      mJournalSystem.setMode(Mode.SECONDARY);
       stopServing();
+      // Put the journal in secondary mode ASAP to avoid interfering with the new primary. This must
+      // happen after stopServing because downgrading the journal system will reset master state,
+      // which could cause NPEs for outstanding RPC threads. We need to first close all client
+      // sockets in stopServing so that clients don't see NPEs.
+      mJournalSystem.setMode(Mode.SECONDARY);
       mServingThread.join(mServingThreadTimeoutMs);
       if (mServingThread.isAlive()) {
         LOG.error(

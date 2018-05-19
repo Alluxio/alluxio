@@ -33,7 +33,7 @@ public class WorkerInfoTest {
   @Test
   public void thrift() {
     WorkerInfo workerInfo = createRandom();
-    WorkerInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(workerInfo));
+    WorkerInfo other = WorkerInfo.fromThrift(workerInfo.toThrift());
     checkEquality(workerInfo, other);
   }
 

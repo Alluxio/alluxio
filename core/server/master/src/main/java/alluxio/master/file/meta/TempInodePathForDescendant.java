@@ -21,9 +21,9 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class represents a temporary {@link LockedInodePath}. This {@link LockedInodePath} will
- * not unlock the inodes on close. This {@link LockedInodePath} can set any descendant (does not
- * have to be immediate).
+ * This class represents a temporary {@link LockedInodePath}. This {@link LockedInodePath} can set
+ * any descendant (does not have to be immediate). This {@link LockedInodePath} has its own lock
+ * list and will only unlock its own lock list when closed.
  *
  * This is useful for being able to pass in descendant inodes to methods which require a
  * {@link LockedInodePath}, without having to re-traverse the inode tree, and re-acquire locks.
@@ -41,9 +41,11 @@ public final class TempInodePathForDescendant extends LockedInodePath {
    *
    * @param inodePath the {@link LockedInodePath} to create the temporary path from
    */
-  public TempInodePathForDescendant(LockedInodePath inodePath) {
-    super(inodePath);
-    mDescendantUri = new AlluxioURI(inodePath.mUri.toString());
+  public TempInodePathForDescendant(LockedInodePath inodePath)
+      throws InvalidPathException {
+    super(inodePath.mUri, inodePath.mInodes, new InodeLockList(), inodePath.mLockMode);
+
+    mDescendantUri = new AlluxioURI(inodePath.getUri().toString());
     mDescendantInode = null;
   }
 
@@ -122,10 +124,5 @@ public final class TempInodePathForDescendant extends LockedInodePath {
       return super.fullPathExists();
     }
     return true;
-  }
-
-  @Override
-  public synchronized void close() {
-    // nothing to close
   }
 }

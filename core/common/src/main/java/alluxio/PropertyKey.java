@@ -901,6 +901,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
+      new Builder(Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL)
+          .setDefaultValue("10min")
+          .setDescription("Interval for removing closed client sockets from internal tracking.")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.MASTER_CONNECTION_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.master.connection.timeout.ms"})
@@ -2678,6 +2686,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey SECURITY_LOGIN_IMPERSONATION_USERNAME =
+      new Builder(Name.SECURITY_LOGIN_IMPERSONATION_USERNAME).setDescription(String.format(
+          "When %s is set to SIMPLE or CUSTOM, user application uses this property to indicate "
+              + "the IMPERSONATED user requesting Alluxio service. If it is not set explicitly, "
+              + "impersonation will not be used. A special value of '%s' can be specified to "
+              + "impersonate the hadoop client user.",
+          SECURITY_AUTHENTICATION_TYPE, Constants.IMPERSONATION_HDFS_USER))
+          .setDefaultValue(Constants.IMPERSONATION_HDFS_USER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey SECURITY_LOGIN_USERNAME =
       new Builder(Name.SECURITY_LOGIN_USERNAME)
           .setDescription("When alluxio.security.authentication.type is set to SIMPLE or "
@@ -2988,6 +3007,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
         "alluxio.master.audit.logging.queue.capacity";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
+    public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
+        "alluxio.master.client.socket.cleanup.interval";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
@@ -3337,6 +3358,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.security.group.mapping.cache.timeout";
     public static final String SECURITY_GROUP_MAPPING_CLASS =
         "alluxio.security.group.mapping.class";
+    public static final String SECURITY_LOGIN_IMPERSONATION_USERNAME =
+        "alluxio.security.login.impersonation.username";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
 
     //
@@ -3361,6 +3384,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @ThreadSafe
   public enum Template {
     LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
+    MASTER_IMPERSONATION_GROUPS_OPTION("alluxio.master.security.impersonation.%s.groups",
+        "alluxio.master.security.impersonation.(\\w+).groups"),
+    MASTER_IMPERSONATION_USERS_OPTION("alluxio.master.security.impersonation.%s.users",
+        "alluxio.master.security.impersonation.(\\w+).users"),
     MASTER_JOURNAL_UFS_OPTION("alluxio.master.journal.ufs.option",
         "alluxio\\.master\\.journal\\.ufs\\.option"),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",

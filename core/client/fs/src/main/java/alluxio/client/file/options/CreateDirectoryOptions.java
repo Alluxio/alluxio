@@ -19,7 +19,6 @@ import alluxio.client.WriteType;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.wire.CommonOptions;
-import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -225,7 +224,7 @@ public final class CreateDirectoryOptions {
     options.setAllowExists(mAllowExists);
     options.setRecursive(mRecursive);
     options.setTtl(mTtl);
-    options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
+    options.setTtlAction(TtlAction.toThrift(mTtlAction));
     options.setPersisted(mWriteType.isThrough());
     if (mMode != null) {
       options.setMode(mMode.toShort());

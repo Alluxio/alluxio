@@ -20,6 +20,7 @@ import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
@@ -36,7 +37,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
-import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
@@ -72,7 +72,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   private final int mPort;
 
   /** The socket for thrift rpc server. */
-  private TServerSocket mTServerSocket;
+  private TServerSocket mRpcServerSocket;
 
   /** The transport provider to create thrift server transport. */
   private final TransportProvider mTransportProvider;
@@ -139,9 +139,9 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
 
       mTransportProvider = TransportProvider.Factory.create();
-      mTServerSocket = new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC),
-          (int) Configuration.getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS));
-      mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
+      mRpcServerSocket = ThriftUtils.createThriftServerSocket(
+          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC));
+      mPort = ThriftUtils.getThriftPort(mRpcServerSocket);
       // reset master rpc port
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC);
@@ -367,20 +367,20 @@ public class AlluxioMasterProcess implements MasterProcess {
     }
 
     try {
-      if (mTServerSocket != null) {
-        mTServerSocket.close();
+      if (mRpcServerSocket == null) {
+        mRpcServerSocket = ThriftUtils.createThriftServerSocket(mRpcBindAddress);
       }
-      mTServerSocket = new TServerSocket(mRpcBindAddress,
-          (int) Configuration.getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS));
     } catch (TTransportException e) {
       throw new RuntimeException(e);
     }
     // create master thrift service with the multiplexed processor.
-    Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
-        .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
-        .protocolFactory(new TBinaryProtocol.Factory(true, true));
-
-    args.stopTimeoutVal = (int) Configuration.getMs(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT);
+    Args args = new TThreadPoolServer.Args(mRpcServerSocket)
+        .maxWorkerThreads(mMaxWorkerThreads)
+        .minWorkerThreads(mMinWorkerThreads)
+        .processor(processor)
+        .transportFactory(transportFactory)
+        .protocolFactory(ThriftUtils.createThriftProtocolFactory())
+        .stopTimeoutVal((int) Configuration.getMs(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT));
     mThriftServer = new TThreadPoolServer(args);
 
     // start thrift rpc server
@@ -398,9 +398,9 @@ public class AlluxioMasterProcess implements MasterProcess {
       mThriftServer.stop();
       mThriftServer = null;
     }
-    if (mTServerSocket != null) {
-      mTServerSocket.close();
-      mTServerSocket = null;
+    if (mRpcServerSocket != null) {
+      mRpcServerSocket.close();
+      mRpcServerSocket = null;
     }
     if (mJvmPauseMonitor != null) {
       mJvmPauseMonitor.stop();
