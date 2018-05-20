@@ -220,5 +220,5 @@ If you want to share the S3 mount point with other users in Alluxio namespace, y
 
 ### Permission change
 
-'chown', 'chgrp', and 'chmod' of Alluxio directories and files do NOT propagate to the underlying
+`chown`, `chgrp`, and `chmod` of Alluxio directories and files do NOT propagate to the underlying
 S3 buckets nor objects.
