@@ -396,9 +396,9 @@ public final class MetricsSystem {
       metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount()));
     }
     for (Entry<String, Meter> entry : METRIC_REGISTRY.getMeters().entrySet()) {
-      // TODO: From Meter's implementation, getOneMinuteRate can only report at rate of at least
-      // seconds. if the client's duration is too short (i.e. < 1s), then getOneMinuteRate would
-      // return 0
+      // TODO(yupeng): From Meter's implementation, getOneMinuteRate can only report at rate of at
+      // least seconds. if the client's duration is too short (i.e. < 1s), then getOneMinuteRate
+      // would return 0
       metrics.add(Metric.from(entry.getKey(), entry.getValue().getOneMinuteRate()));
     }
     return metrics;
