@@ -11,6 +11,8 @@
 
 package alluxio.metrics;
 
+import alluxio.underfs.Fingerprint.Tag;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

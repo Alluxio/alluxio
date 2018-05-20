@@ -183,11 +183,11 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
                 ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
             String ufsString = MetricsSystem.escape(ufsMountPointUri);
             String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_READ_UFS,
-                WorkerMetrics.UFS, ufsString);
+                WorkerMetrics.TAG_UFS, ufsString);
             context.setBlockReader(reader);
             context.setCounter(MetricsSystem.workerCounter(counterName));
             String meterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT,
-                WorkerMetrics.UFS, ufsString);
+                WorkerMetrics.TAG_UFS, ufsString);
             context.setMeter(MetricsSystem.workerMeter(meterName));
             return;
           } catch (Exception e) {

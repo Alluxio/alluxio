@@ -27,7 +27,8 @@ public final class WorkerMetrics {
   public static final String BYTES_READ_UFS = "BytesReadUfs";
   public static final String BYTES_READ_UFS_THROUGHPUT = "BytesReadUfsThroughput";
 
-  public static final String UFS = "UFS";
+  // Tags
+  public static final String TAG_UFS = "UFS";
 
   private WorkerMetrics() {} // prevent instantiation
 }
