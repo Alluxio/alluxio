@@ -57,9 +57,11 @@ mount_fuse() {
   echo "Starting alluxio-fuse on local host."
   local mount_point=$1
   local alluxio_root=$2
+  local mode=$3
   (nohup "${JAVA}" -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
     -o big_writes \
+    -o ${mode} \
     -m ${mount_point} \
     -r ${alluxio_root} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
   # sleep: workaround to let the bg java process exit on errors, if any
@@ -114,15 +116,50 @@ fi
 
 case $1 in
   mount)
-    if [[ $# -eq 2 ]]; then
-      mount_fuse $2 /
+    mode=""
+
+    mode_set=false
+    for i in $@; do
+      case ${i} in
+        -o)
+          mode_set=true
+        ;;
+        *)
+          if [[ $mode_set = "true" ]]; then
+            mode=$i
+            break
+          fi
+        ;;
+      esac
+    done
+
+    if [[ "$mode" = "" ]]; then
+      mode=ro
+    fi
+
+    if [[ "$mode" != "ro" && "$mode" != "rw" ]]; then
+      echo -e "Usage\n\t$0 mount mount_point [alluxio_path] [-o <ro/rw>]\
+        \n\t alluxio_path is default to root\
+        \n\t -o is default to ro(readonly)" >&2
+      exit 1
+    fi
+
+    old_ifs="$IFS"
+    IFS=" "
+    args=(`echo $@ | awk 'BEGIN { ORS=" " }; {for(i=1;i<=NF;i++){ if($i != "-o" && $i != "ro" && $i != "rw" ) print $i}}'`)
+    IFS="$old_ifs"
+
+    if [[ ${#args[@]} -eq 2 ]]; then
+      echo "mount_fuse ${args[1]} / $mode"
       exit $?
     fi
-    if [[ $# -eq 3 ]]; then
-      mount_fuse $2 $3
+    if [[ ${#args[@]} -eq 3 ]]; then
+      echo "mount_fuse ${args[1]} ${args[2]} $mode"
       exit $?
     fi
-    echo -e "Usage\n\t$0 mount mount_point [alluxio_path]\n\t alluxio_path is default to root" >&2
+    echo -e "Usage\n\t$0 mount mount_point [alluxio_path] [-o <ro/rw>]\
+      \n\t alluxio_path is default to root\
+      \n\t -o is default to ro(readonly)" >&2
     exit 1
     ;;
   umount)    
