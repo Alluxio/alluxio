@@ -35,6 +35,8 @@ public final class Metric implements Serializable {
   private final String mName;
   private final Double mValue;
   private String mInstanceId;
+  // TODO(yupeng): consider a dedicated data structure for tag, when more functionality are added to
+  // tags in the future
   private final Map<String, String> mTags;
 
   /**
