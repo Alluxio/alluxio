@@ -246,14 +246,8 @@ public final class MetricsSystem {
   }
 
   /**
-<<<<<<< HEAD
-   * Util function to remove get the metrics name without instance and host.
-   *
-||||||| merged common ancestors
-   * Util function to remove get the metrics name without instance and host.
-=======
    * Removes the instance and host from the given metric name, returning the result.
->>>>>>> upstream/master
+   *
    * @param metricsName the long metrics name with instance and host name
    * @return the metrics name without instance and host name
    */
