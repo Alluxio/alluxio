@@ -120,6 +120,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.ListOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
@@ -2519,7 +2520,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
 
         if (options.getLoadDescendantType() != DescendantType.NONE) {
-          UfsStatus[] children = ufs.listStatus(ufsUri.toString());
+          ListOptions listOptions = ListOptions.defaults();
+          if (options.getLoadDescendantType() == DescendantType.ALL) {
+            listOptions.setRecursive(true);
+          } else {
+            listOptions.setRecursive(false);
+          }
+          UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
           for (UfsStatus childStatus : children) {
             if (PathUtils.isTemporaryFileName(childStatus.getName())) {
               continue;
@@ -2532,14 +2539,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             }
             try (TempInodePathForChild tempInodePath =
                 new TempInodePathForChild(inodePath, childStatus.getName())) {
-              DescendantType loadDescendantType =
-                  (options.getLoadDescendantType() == DescendantType.ONE) ? DescendantType.NONE :
-                      DescendantType.ALL;
               LoadMetadataOptions loadMetadataOptions =
-                  LoadMetadataOptions.defaults().setLoadDescendantType(loadDescendantType)
+                  LoadMetadataOptions.defaults().setLoadDescendantType(DescendantType.NONE)
                       .setCreateAncestors(false).setUfsStatus(childStatus);
+              // In what order is ufs status returned? matters for setCreateAncestor
               loadMetadataAndJournal(rpcContext, tempInodePath, loadMetadataOptions);
+
+              if (options.getLoadDescendantType() == DescendantType.ALL
+                  && tempInodePath.getInode().isDirectory()) {
+                InodeDirectory inodeDirectory = (InodeDirectory) tempInodePath.getInode();
+                inodeDirectory.setDirectChildrenLoaded(true);
+              }
             }
+
           }
           inode.setDirectChildrenLoaded(true);
         }
