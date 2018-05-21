@@ -540,7 +540,6 @@ public final class FileInfo implements Serializable {
         .setInAlluxioPercentage(info.getInAlluxioPercentage())
         .setUfsFingerprint(info.isSetUfsFingerprint() ? info.getUfsFingerprint()
             : Constants.INVALID_UFS_FINGERPRINT);
-
   }
 
   @Override
