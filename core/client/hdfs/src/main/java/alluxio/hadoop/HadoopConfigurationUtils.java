@@ -13,6 +13,7 @@ package alluxio.hadoop;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.conf.Source;
 
 import org.apache.hadoop.io.DefaultStringifier;
 import org.slf4j.Logger;
@@ -71,7 +72,7 @@ public final class HadoopConfigurationUtils {
     LOG.info("Loading Alluxio properties from Hadoop configuration: {}", alluxioConfProperties);
     // Merge the relevant Hadoop configuration into Alluxio's configuration.
     // TODO(jiri): support multiple client configurations (ALLUXIO-2034)
-    Configuration.merge(alluxioConfProperties, Configuration.Source.HADOOP_CONF);
+    Configuration.merge(alluxioConfProperties, Source.HADOOP_CONF);
     Configuration.validate();
   }
 }

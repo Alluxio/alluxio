@@ -13,6 +13,7 @@ package alluxio.cli;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -142,8 +143,8 @@ public final class GetConf {
           String value = ConfigurationUtils.valueAsString(entry.getValue());
           output.append(String.format("%s=%s", key, value));
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
-            Configuration.Source source = Configuration.getSource(PropertyKey.fromString(key));
-            if (source == Configuration.Source.SITE_PROPERTY) {
+            Source source = Configuration.getSource(PropertyKey.fromString(key));
+            if (source == Source.SITE_PROPERTY) {
               output.append(String.format(" (%s: %s)", source.name(),
                   Configuration.getSitePropertiesFile()));
             } else {
@@ -164,8 +165,8 @@ public final class GetConf {
           System.out.println("");
         } else {
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
-            Configuration.Source source = Configuration.getSource(key);
-            if (source == Configuration.Source.SITE_PROPERTY) {
+            Source source = Configuration.getSource(key);
+            if (source == Source.SITE_PROPERTY) {
               System.out.println(String.format("%s: %s", source.name(),
                   Configuration.getSitePropertiesFile()));
             } else {

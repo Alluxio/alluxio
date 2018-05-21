@@ -30,6 +30,7 @@ import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.client.lineage.LineageContext;
 import alluxio.client.lineage.LineageFileSystem;
+import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -75,8 +76,8 @@ public interface FileSystem {
         for (Map.Entry<String, String> entry : keyValueSet.entrySet()) {
           String key = entry.getKey();
           String value = entry.getValue();
-          Configuration.Source source = Configuration.getSource(PropertyKey.fromString(key));
-          if (source == Configuration.Source.SITE_PROPERTY) {
+          Source source = Configuration.getSource(PropertyKey.fromString(key));
+          if (source == Source.SITE_PROPERTY) {
             LOG.debug("{}={} ({}: {})",
                 key, value, source.name(), Configuration.getSitePropertiesFile());
           } else {

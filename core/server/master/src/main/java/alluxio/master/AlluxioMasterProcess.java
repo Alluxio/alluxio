@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.conf.Source;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.metrics.MetricsSystem;
@@ -208,9 +209,9 @@ public class AlluxioMasterProcess implements MasterProcess {
       String value = entry.getValue();
       if (key.startsWith(alluxioConfPrefix)) {
         PropertyKey propertyKey = PropertyKey.fromString(key);
-        Configuration.Source source = Configuration.getSource(propertyKey);
+        Source source = Configuration.getSource(propertyKey);
         String sourceStr;
-        if (source == Configuration.Source.SITE_PROPERTY) {
+        if (source == Source.SITE_PROPERTY) {
           sourceStr =
               String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
         } else {
