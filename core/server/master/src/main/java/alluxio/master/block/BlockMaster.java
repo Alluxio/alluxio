@@ -18,6 +18,7 @@ import alluxio.exception.NoWorkerException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
+import alluxio.metrics.Metric;
 import alluxio.thrift.Command;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
@@ -174,10 +175,12 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param usedBytesOnTiers a mapping from tier alias to the used bytes
    * @param removedBlockIds a list of block ids removed from this worker
    * @param addedBlocksOnTiers a mapping from tier alias to the added blocks
+   * @param metrics worker metrics
    * @return an optional command for the worker to execute
    */
   Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers);
+      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers,
+      List<Metric> metrics);
 
   /**
    * @return the block ids of lost blocks in Alluxio
