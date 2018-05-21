@@ -992,9 +992,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               InodeTree.LockMode.READ)) {
             listStatusInternal(childInodePath, auditContext,
                 nextDescendantType, statusList);
-          } catch (Exception e) {
-            LOG.debug("ListStatus failed for path {}", mInodeTree.getPath(child).getPath(), e);
-            continue;
+          } catch (FileDoesNotExistException e) {
+            LOG.debug("ListStatus failed for path {} because file does not exist",
+                mInodeTree.getPath(child).getPath(), e);
+          } catch (UnavailableException e) {
+            LOG.debug("ListStatus failed for path {} because service is not available",
+                mInodeTree.getPath(child).getPath(), e);
+          } catch (AccessControlException e) {
+            LOG.debug("ListStatus failed for path {} because user does not have access",
+                mInodeTree.getPath(child).getPath(), e);
           }
         }
       }

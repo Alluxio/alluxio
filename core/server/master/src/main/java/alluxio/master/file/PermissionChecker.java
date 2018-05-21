@@ -43,7 +43,6 @@ public interface PermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-
   void checkPermission(Mode.Bits bits, LockedInodePath inodePath)
       throws AccessControlException;
 
