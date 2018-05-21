@@ -21,6 +21,14 @@ public final class WorkerMetrics {
    * reads.
    */
   public static final String BYTES_READ_ALLUXIO = "BytesReadAlluxio";
+  public static final String BYTES_READ_ALLUXIO_THROUGHPUT = "BytesReadAlluxioThroughput";
+
+  /** Total number of bytes read from UFS through this worker. */
+  public static final String BYTES_READ_UFS = "BytesReadUfs";
+  public static final String BYTES_READ_UFS_THROUGHPUT = "BytesReadUfsThroughput";
+
+  // Tags
+  public static final String TAG_UFS = "UFS";
 
   private WorkerMetrics() {} // prevent instantiation
 }

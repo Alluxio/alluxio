@@ -25,7 +25,7 @@ import java.util.Set;
 
 /**
  * An aggregator that sums the metric values from all the metrics of a given instance type and
- * metric name. The aggregated metric will have name of pattern cluster.metric_name
+ * metric name. The aggregated metric will have name of pattern cluster.metric_name.
  */
 public class SumInstancesAggregator implements MetricsAggregator {
   private final MetricsSystem.InstanceType mInstanceType;

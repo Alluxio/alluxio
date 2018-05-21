@@ -9,17 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.metrics;
 
 /**
- * Metrics of an Alluxio worker.
+ * Metrics of an Alluxio client.
  */
-public final class AlluxioWorkerMetrics {
-  /**
-   * Total number of bytes read from Alluxio storage through this worker. This does not include UFS
-   * reads.
-   */
-  public static final String BYTES_READ_ALLUXIO = "BytesReadAlluxio";
+public final class ClientMetrics {
+  /** Total number of bytes short-circuit read from local storage. */
+  public static final String BYTES_READ_LOCAL = "BytesReadLocal";
+  public static final String BYTES_READ_LOCAL_THROUGHPUT = "BytesReadLocalThroughput";
 
-  private AlluxioWorkerMetrics() {} // prevent unintentional instantiation
+  private ClientMetrics() {} // prevent instantiation
 }

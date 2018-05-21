@@ -21,7 +21,6 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.Metric;
-import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.Command;
 import alluxio.util.ThreadFactoryUtils;

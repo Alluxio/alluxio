@@ -2369,6 +2369,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_METRICS_COLLECTION_ENABLED =
+      new Builder(Name.USER_METRICS_COLLECTION_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Enable collecting the client-side metrics and hearbeat them to master")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METRICS_HEARTBEAT_INTERVAL_MS =
+      new Builder(Name.USER_METRICS_HEARTBEAT_INTERVAL_MS)
+          .setAlias(new String[]{"alluxio.user.heartbeat.interval.ms"})
+          .setDefaultValue("3sec")
+          .setDescription("The time period of client master hearbeat to "
+              + "send the client-side metrics.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
           .setDescription("Type of netty channels.")
@@ -3285,6 +3301,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.local.reader.packet.size.bytes";
     public static final String USER_LOCAL_WRITER_PACKET_SIZE_BYTES =
         "alluxio.user.local.writer.packet.size.bytes";
+    public static final String USER_METRICS_COLLECTION_ENABLED =
+        "alluxio.user.metrics.collection.enabled";
+    public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
+        "alluxio.user.metrics.heartbeat.interval";
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
     public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
         "alluxio.user.network.netty.timeout";

@@ -80,7 +80,7 @@ public class RemoteBlockReader implements BlockReader {
     if (mInputStream == null || mInputStream.remaining() <= 0) {
       return -1;
     }
-    int bytesToRead = (int) Math.min((long) buf.writableBytes(), mInputStream.remaining());
+    int bytesToRead = (int) Math.min(buf.writableBytes(), mInputStream.remaining());
     return buf.writeBytes(mInputStream, bytesToRead);
   }
 
@@ -107,7 +107,7 @@ public class RemoteBlockReader implements BlockReader {
     }
     WorkerNetAddress address = new WorkerNetAddress().setHost(mDataSource.getHostName())
         .setDataPort(mDataSource.getPort());
-    mInputStream = BlockInStream.createRemoteBlockInStream(FileSystemContext.INSTANCE, mBlockId,
+    mInputStream = BlockInStream.createRemoteBlockInStream(FileSystemContext.get(), mBlockId,
         address, BlockInStream.BlockInStreamSource.REMOTE, mBlockSize, mUfsOptions);
     mChannel = Channels.newChannel(mInputStream);
   }

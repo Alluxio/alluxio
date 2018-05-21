@@ -43,8 +43,10 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
 
   private static final org.apache.thrift.protocol.TField INSTANCE_FIELD_DESC = new org.apache.thrift.protocol.TField("instance", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField HOSTNAME_FIELD_DESC = new org.apache.thrift.protocol.TField("hostname", org.apache.thrift.protocol.TType.STRING, (short)2);
-  private static final org.apache.thrift.protocol.TField NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("name", org.apache.thrift.protocol.TType.STRING, (short)3);
-  private static final org.apache.thrift.protocol.TField VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("value", org.apache.thrift.protocol.TType.I64, (short)4);
+  private static final org.apache.thrift.protocol.TField INSTANCE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("instanceId", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("name", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("value", org.apache.thrift.protocol.TType.DOUBLE, (short)5);
+  private static final org.apache.thrift.protocol.TField TAGS_FIELD_DESC = new org.apache.thrift.protocol.TField("tags", org.apache.thrift.protocol.TType.MAP, (short)6);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -54,15 +56,19 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
 
   private String instance; // required
   private String hostname; // required
+  private String instanceId; // required
   private String name; // required
-  private long value; // required
+  private double value; // required
+  private Map<String,String> tags; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     INSTANCE((short)1, "instance"),
     HOSTNAME((short)2, "hostname"),
-    NAME((short)3, "name"),
-    VALUE((short)4, "value");
+    INSTANCE_ID((short)3, "instanceId"),
+    NAME((short)4, "name"),
+    VALUE((short)5, "value"),
+    TAGS((short)6, "tags");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -81,10 +87,14 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
           return INSTANCE;
         case 2: // HOSTNAME
           return HOSTNAME;
-        case 3: // NAME
+        case 3: // INSTANCE_ID
+          return INSTANCE_ID;
+        case 4: // NAME
           return NAME;
-        case 4: // VALUE
+        case 5: // VALUE
           return VALUE;
+        case 6: // TAGS
+          return TAGS;
         default:
           return null;
       }
@@ -134,10 +144,16 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.HOSTNAME, new org.apache.thrift.meta_data.FieldMetaData("hostname", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.INSTANCE_ID, new org.apache.thrift.meta_data.FieldMetaData("instanceId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.NAME, new org.apache.thrift.meta_data.FieldMetaData("name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.VALUE, new org.apache.thrift.meta_data.FieldMetaData("value", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.DOUBLE)));
+    tmpMap.put(_Fields.TAGS, new org.apache.thrift.meta_data.FieldMetaData("tags", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Metric.class, metaDataMap);
   }
@@ -148,15 +164,19 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
   public Metric(
     String instance,
     String hostname,
+    String instanceId,
     String name,
-    long value)
+    double value,
+    Map<String,String> tags)
   {
     this();
     this.instance = instance;
     this.hostname = hostname;
+    this.instanceId = instanceId;
     this.name = name;
     this.value = value;
     setValueIsSet(true);
+    this.tags = tags;
   }
 
   /**
@@ -170,10 +190,17 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     if (other.isSetHostname()) {
       this.hostname = other.hostname;
     }
+    if (other.isSetInstanceId()) {
+      this.instanceId = other.instanceId;
+    }
     if (other.isSetName()) {
       this.name = other.name;
     }
     this.value = other.value;
+    if (other.isSetTags()) {
+      Map<String,String> __this__tags = new HashMap<String,String>(other.tags);
+      this.tags = __this__tags;
+    }
   }
 
   public Metric deepCopy() {
@@ -184,9 +211,11 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
   public void clear() {
     this.instance = null;
     this.hostname = null;
+    this.instanceId = null;
     this.name = null;
     setValueIsSet(false);
-    this.value = 0;
+    this.value = 0.0;
+    this.tags = null;
   }
 
   public String getInstance() {
@@ -237,6 +266,30 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     }
   }
 
+  public String getInstanceId() {
+    return this.instanceId;
+  }
+
+  public Metric setInstanceId(String instanceId) {
+    this.instanceId = instanceId;
+    return this;
+  }
+
+  public void unsetInstanceId() {
+    this.instanceId = null;
+  }
+
+  /** Returns true if field instanceId is set (has been assigned a value) and false otherwise */
+  public boolean isSetInstanceId() {
+    return this.instanceId != null;
+  }
+
+  public void setInstanceIdIsSet(boolean value) {
+    if (!value) {
+      this.instanceId = null;
+    }
+  }
+
   public String getName() {
     return this.name;
   }
@@ -261,11 +314,11 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     }
   }
 
-  public long getValue() {
+  public double getValue() {
     return this.value;
   }
 
-  public Metric setValue(long value) {
+  public Metric setValue(double value) {
     this.value = value;
     setValueIsSet(true);
     return this;
@@ -282,6 +335,41 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
 
   public void setValueIsSet(boolean value) {
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __VALUE_ISSET_ID, value);
+  }
+
+  public int getTagsSize() {
+    return (this.tags == null) ? 0 : this.tags.size();
+  }
+
+  public void putToTags(String key, String val) {
+    if (this.tags == null) {
+      this.tags = new HashMap<String,String>();
+    }
+    this.tags.put(key, val);
+  }
+
+  public Map<String,String> getTags() {
+    return this.tags;
+  }
+
+  public Metric setTags(Map<String,String> tags) {
+    this.tags = tags;
+    return this;
+  }
+
+  public void unsetTags() {
+    this.tags = null;
+  }
+
+  /** Returns true if field tags is set (has been assigned a value) and false otherwise */
+  public boolean isSetTags() {
+    return this.tags != null;
+  }
+
+  public void setTagsIsSet(boolean value) {
+    if (!value) {
+      this.tags = null;
+    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
@@ -302,6 +390,14 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
       }
       break;
 
+    case INSTANCE_ID:
+      if (value == null) {
+        unsetInstanceId();
+      } else {
+        setInstanceId((String)value);
+      }
+      break;
+
     case NAME:
       if (value == null) {
         unsetName();
@@ -314,7 +410,15 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
       if (value == null) {
         unsetValue();
       } else {
-        setValue((Long)value);
+        setValue((Double)value);
+      }
+      break;
+
+    case TAGS:
+      if (value == null) {
+        unsetTags();
+      } else {
+        setTags((Map<String,String>)value);
       }
       break;
 
@@ -329,11 +433,17 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     case HOSTNAME:
       return getHostname();
 
+    case INSTANCE_ID:
+      return getInstanceId();
+
     case NAME:
       return getName();
 
     case VALUE:
       return getValue();
+
+    case TAGS:
+      return getTags();
 
     }
     throw new IllegalStateException();
@@ -350,10 +460,14 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
       return isSetInstance();
     case HOSTNAME:
       return isSetHostname();
+    case INSTANCE_ID:
+      return isSetInstanceId();
     case NAME:
       return isSetName();
     case VALUE:
       return isSetValue();
+    case TAGS:
+      return isSetTags();
     }
     throw new IllegalStateException();
   }
@@ -389,6 +503,15 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
         return false;
     }
 
+    boolean this_present_instanceId = true && this.isSetInstanceId();
+    boolean that_present_instanceId = true && that.isSetInstanceId();
+    if (this_present_instanceId || that_present_instanceId) {
+      if (!(this_present_instanceId && that_present_instanceId))
+        return false;
+      if (!this.instanceId.equals(that.instanceId))
+        return false;
+    }
+
     boolean this_present_name = true && this.isSetName();
     boolean that_present_name = true && that.isSetName();
     if (this_present_name || that_present_name) {
@@ -404,6 +527,15 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
       if (!(this_present_value && that_present_value))
         return false;
       if (this.value != that.value)
+        return false;
+    }
+
+    boolean this_present_tags = true && this.isSetTags();
+    boolean that_present_tags = true && that.isSetTags();
+    if (this_present_tags || that_present_tags) {
+      if (!(this_present_tags && that_present_tags))
+        return false;
+      if (!this.tags.equals(that.tags))
         return false;
     }
 
@@ -424,6 +556,11 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     if (present_hostname)
       list.add(hostname);
 
+    boolean present_instanceId = true && (isSetInstanceId());
+    list.add(present_instanceId);
+    if (present_instanceId)
+      list.add(instanceId);
+
     boolean present_name = true && (isSetName());
     list.add(present_name);
     if (present_name)
@@ -433,6 +570,11 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     list.add(present_value);
     if (present_value)
       list.add(value);
+
+    boolean present_tags = true && (isSetTags());
+    list.add(present_tags);
+    if (present_tags)
+      list.add(tags);
 
     return list.hashCode();
   }
@@ -465,6 +607,16 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetInstanceId()).compareTo(other.isSetInstanceId());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetInstanceId()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.instanceId, other.instanceId);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = Boolean.valueOf(isSetName()).compareTo(other.isSetName());
     if (lastComparison != 0) {
       return lastComparison;
@@ -481,6 +633,16 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     }
     if (isSetValue()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.value, other.value);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetTags()).compareTo(other.isSetTags());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetTags()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.tags, other.tags);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -521,6 +683,14 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     }
     first = false;
     if (!first) sb.append(", ");
+    sb.append("instanceId:");
+    if (this.instanceId == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.instanceId);
+    }
+    first = false;
+    if (!first) sb.append(", ");
     sb.append("name:");
     if (this.name == null) {
       sb.append("null");
@@ -531,6 +701,14 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
     if (!first) sb.append(", ");
     sb.append("value:");
     sb.append(this.value);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("tags:");
+    if (this.tags == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.tags);
+    }
     first = false;
     sb.append(")");
     return sb.toString();
@@ -593,7 +771,15 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // NAME
+          case 3: // INSTANCE_ID
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.instanceId = iprot.readString();
+              struct.setInstanceIdIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 4: // NAME
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.name = iprot.readString();
               struct.setNameIsSet(true);
@@ -601,10 +787,30 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // VALUE
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.value = iprot.readI64();
+          case 5: // VALUE
+            if (schemeField.type == org.apache.thrift.protocol.TType.DOUBLE) {
+              struct.value = iprot.readDouble();
               struct.setValueIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 6: // TAGS
+            if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
+              {
+                org.apache.thrift.protocol.TMap _map8 = iprot.readMapBegin();
+                struct.tags = new HashMap<String,String>(2*_map8.size);
+                String _key9;
+                String _val10;
+                for (int _i11 = 0; _i11 < _map8.size; ++_i11)
+                {
+                  _key9 = iprot.readString();
+                  _val10 = iprot.readString();
+                  struct.tags.put(_key9, _val10);
+                }
+                iprot.readMapEnd();
+              }
+              struct.setTagsIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -634,14 +840,32 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
         oprot.writeString(struct.hostname);
         oprot.writeFieldEnd();
       }
+      if (struct.instanceId != null) {
+        oprot.writeFieldBegin(INSTANCE_ID_FIELD_DESC);
+        oprot.writeString(struct.instanceId);
+        oprot.writeFieldEnd();
+      }
       if (struct.name != null) {
         oprot.writeFieldBegin(NAME_FIELD_DESC);
         oprot.writeString(struct.name);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldBegin(VALUE_FIELD_DESC);
-      oprot.writeI64(struct.value);
+      oprot.writeDouble(struct.value);
       oprot.writeFieldEnd();
+      if (struct.tags != null) {
+        oprot.writeFieldBegin(TAGS_FIELD_DESC);
+        {
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.tags.size()));
+          for (Map.Entry<String, String> _iter12 : struct.tags.entrySet())
+          {
+            oprot.writeString(_iter12.getKey());
+            oprot.writeString(_iter12.getValue());
+          }
+          oprot.writeMapEnd();
+        }
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -666,31 +890,50 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
       if (struct.isSetHostname()) {
         optionals.set(1);
       }
-      if (struct.isSetName()) {
+      if (struct.isSetInstanceId()) {
         optionals.set(2);
       }
-      if (struct.isSetValue()) {
+      if (struct.isSetName()) {
         optionals.set(3);
       }
-      oprot.writeBitSet(optionals, 4);
+      if (struct.isSetValue()) {
+        optionals.set(4);
+      }
+      if (struct.isSetTags()) {
+        optionals.set(5);
+      }
+      oprot.writeBitSet(optionals, 6);
       if (struct.isSetInstance()) {
         oprot.writeString(struct.instance);
       }
       if (struct.isSetHostname()) {
         oprot.writeString(struct.hostname);
       }
+      if (struct.isSetInstanceId()) {
+        oprot.writeString(struct.instanceId);
+      }
       if (struct.isSetName()) {
         oprot.writeString(struct.name);
       }
       if (struct.isSetValue()) {
-        oprot.writeI64(struct.value);
+        oprot.writeDouble(struct.value);
+      }
+      if (struct.isSetTags()) {
+        {
+          oprot.writeI32(struct.tags.size());
+          for (Map.Entry<String, String> _iter13 : struct.tags.entrySet())
+          {
+            oprot.writeString(_iter13.getKey());
+            oprot.writeString(_iter13.getValue());
+          }
+        }
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, Metric struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(4);
+      BitSet incoming = iprot.readBitSet(6);
       if (incoming.get(0)) {
         struct.instance = iprot.readString();
         struct.setInstanceIsSet(true);
@@ -700,12 +943,31 @@ public class Metric implements org.apache.thrift.TBase<Metric, Metric._Fields>, 
         struct.setHostnameIsSet(true);
       }
       if (incoming.get(2)) {
+        struct.instanceId = iprot.readString();
+        struct.setInstanceIdIsSet(true);
+      }
+      if (incoming.get(3)) {
         struct.name = iprot.readString();
         struct.setNameIsSet(true);
       }
-      if (incoming.get(3)) {
-        struct.value = iprot.readI64();
+      if (incoming.get(4)) {
+        struct.value = iprot.readDouble();
         struct.setValueIsSet(true);
+      }
+      if (incoming.get(5)) {
+        {
+          org.apache.thrift.protocol.TMap _map14 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.tags = new HashMap<String,String>(2*_map14.size);
+          String _key15;
+          String _val16;
+          for (int _i17 = 0; _i17 < _map14.size; ++_i17)
+          {
+            _key15 = iprot.readString();
+            _val16 = iprot.readString();
+            struct.tags.put(_key15, _val16);
+          }
+        }
+        struct.setTagsIsSet(true);
       }
     }
   }

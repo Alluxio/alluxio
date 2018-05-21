@@ -72,7 +72,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
               CustomGroupMapping.class.getName()).build();
 
   @After
-  public void after() {
+  public void after() throws Exception {
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -88,13 +88,6 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   public static void beforeClass() {
     GROUPS.put(IMPERSONATION_USER, IMPERSONATION_GROUP1 + "," + IMPERSONATION_GROUP2);
     GROUPS.put(HDFS_USER, HDFS_GROUP1 + "," + HDFS_GROUP2);
-  }
-
-  @Test
-  @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "*"})
-  public void impersonationUsed() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
-    checkCreateFile(null, IMPERSONATION_USER);
   }
 
   @Test
@@ -117,6 +110,13 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
         .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_HDFS_USER);
     // test using the hdfs subject
     checkCreateFile(createHdfsSubject(), HDFS_USER);
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "*"})
+  public void impersonationUsed() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
+    checkCreateFile(null, IMPERSONATION_USER);
   }
 
   @Test
