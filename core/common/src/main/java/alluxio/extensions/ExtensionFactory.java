@@ -22,11 +22,11 @@ public interface ExtensionFactory<T, S> {
   /**
    * Creates a new extension for the given path. An {@link IllegalArgumentException} is
    * thrown if this factory does not support extension for the given path or if the configuration
-   * provided is insufficient to create a client.
+   * provided is insufficient to create an extension.
    *
    * @param path file path with scheme for which the extension will be created
    * @param conf optional configuration object for the extension, may be null
-   * @return the client
+   * @return the new extension
    */
   T create(String path, @Nullable S conf);
 
