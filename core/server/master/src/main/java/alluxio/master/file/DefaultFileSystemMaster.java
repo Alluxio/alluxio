@@ -974,6 +974,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Inode<?> inode = currInodePath.getInode();
     if (inode.isDirectory()) {
       try {
+        // TODO(david): Return the error message when we do not have permission
         mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, currInodePath);
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
