@@ -17,6 +17,7 @@ package alluxio.metrics;
 public final class ClientMetrics {
   /** Total number of bytes short-circuit read from local storage. */
   public static final String BYTES_READ_LOCAL = "BytesReadLocal";
+  public static final String BYTES_READ_LOCAL_THROUGHPUT = "BytesReadLocalThroughput";
 
   private ClientMetrics() {} // prevent instantiation
 }

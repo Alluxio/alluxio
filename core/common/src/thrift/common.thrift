@@ -29,7 +29,8 @@ struct Metric {
   2: string hostname
   3: string instanceId
   4: string name
-  5: i64 value
+  5: double value
+  6: map<string,string> tags
 }
 
 enum CommandType {

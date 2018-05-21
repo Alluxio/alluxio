@@ -20,6 +20,7 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.RPCProtoMessage;
@@ -158,9 +159,11 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
           try {
             BlockReader reader =
                 mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
-            String metricName = WorkerMetrics.BYTES_READ_ALLUXIO;
+            String counterName = WorkerMetrics.BYTES_READ_ALLUXIO;
             context.setBlockReader(reader);
-            context.setCounter(MetricsSystem.workerCounter(metricName));
+            context.setCounter(MetricsSystem.workerCounter(counterName));
+            String meterName = WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT;
+            context.setMeter(MetricsSystem.workerMeter(meterName));
             mWorker.accessBlock(request.getSessionId(), request.getId());
             ((FileChannel) reader.getChannel()).position(request.getStart());
             return;
@@ -179,9 +182,13 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
             AlluxioURI ufsMountPointUri =
                 ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
             String ufsString = MetricsSystem.escape(ufsMountPointUri);
-            String metricName = String.format("BytesReadUfs-Ufs:%s", ufsString);
+            String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_READ_UFS,
+                WorkerMetrics.TAG_UFS, ufsString);
             context.setBlockReader(reader);
-            context.setCounter(MetricsSystem.workerCounter(metricName));
+            context.setCounter(MetricsSystem.workerCounter(counterName));
+            String meterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT,
+                WorkerMetrics.TAG_UFS, ufsString);
+            context.setMeter(MetricsSystem.workerMeter(meterName));
             return;
           } catch (Exception e) {
             // TODO(binfan): remove the closeUfsBlock here as the exception will be handled in

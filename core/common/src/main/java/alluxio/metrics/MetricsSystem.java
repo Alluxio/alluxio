@@ -19,6 +19,7 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
@@ -301,6 +302,14 @@ public final class MetricsSystem {
   }
 
   /**
+   * @param name the meter name
+   * @return the meter
+   */
+  public static Meter workerMeter(String name) {
+    return METRIC_REGISTRY.meter(getWorkerMetricName(name));
+  }
+
+  /**
    * @param name the metric name
    * @return the counter
    */
@@ -322,6 +331,14 @@ public final class MetricsSystem {
    */
   public static Counter clientCounter(String name) {
     return METRIC_REGISTRY.counter(getClientMetricName(name));
+  }
+
+  /**
+   * @param name the meter name
+   * @return the meter
+   */
+  public static Meter clientMeter(String name) {
+    return METRIC_REGISTRY.meter(getClientMetricName(name));
   }
 
   /**
@@ -365,12 +382,11 @@ public final class MetricsSystem {
     for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
       if (entry.getKey().startsWith(instanceType.toString())) {
         Object value = entry.getValue().getValue();
-        if (!(value instanceof Integer) && !(value instanceof Long)) {
+        if (!(value instanceof Number)) {
           LOG.warn(
               "The value of metric {} of type {} is not sent to metrics master,"
-                  + " only metrics value of type integer or long can be collected",
+                  + " only metrics value of number can be collected",
               entry.getKey(), entry.getValue().getClass().getSimpleName());
-          // skip the metrics not of integer/long types
           continue;
         }
         metrics.add(Metric.from(entry.getKey(), ((Number) value).longValue()));
@@ -378,6 +394,12 @@ public final class MetricsSystem {
     }
     for (Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
       metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount()));
+    }
+    for (Entry<String, Meter> entry : METRIC_REGISTRY.getMeters().entrySet()) {
+      // TODO(yupeng): From Meter's implementation, getOneMinuteRate can only report at rate of at
+      // least seconds. if the client's duration is too short (i.e. < 1s), then getOneMinuteRate
+      // would return 0
+      metrics.add(Metric.from(entry.getKey(), entry.getValue().getOneMinuteRate()));
     }
     return metrics;
   }

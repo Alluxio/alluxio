@@ -64,7 +64,7 @@ public class MetricsStore {
   private static String getFullInstanceId(String hostname, String id) {
     String str = hostname == null ? "" : hostname;
     str = str.replace('.', '_');
-    str += id == null ? "" : ":" + id;
+    str += (id == null ? "" : "-" + id);
     return str;
   }
 
@@ -100,7 +100,7 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    mWorkerMetrics.removeByField(ID_INDEX, hostname);
+    mWorkerMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, null));
     for (Metric metric : metrics) {
       if (metric.getHostname() == null) {
         continue; // ignore metrics whose hostname is null

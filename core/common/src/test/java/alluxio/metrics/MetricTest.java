@@ -22,7 +22,7 @@ import java.util.Random;
 /**
  * Tests {@link Metric}.
  */
-public class MetricTest {
+public final class MetricTest {
 
   @Test
   public void thrift() {
@@ -31,10 +31,23 @@ public class MetricTest {
     checkEquality(metric, other);
   }
 
+  @Test
+  public void testFullNameParsing() {
+    String fullName = "client.192_1_1_1|A.metric.tag1:A::/.tag2:B:/";
+    Metric metric = Metric.from(fullName, 1);
+    assertEquals(fullName, metric.getFullMetricName());
+  }
+
+  @Test
+  public void testMetricNameWithTags() {
+    assertEquals("metric.t1:v1.t2:v2:",
+        Metric.getMetricNameWithTags("metric", "t1", "v1", "t2", "v2:"));
+  }
+
   public void checkEquality(Metric a, Metric b) {
     assertEquals(a.getName(), b.getName());
     assertEquals(a.getInstanceType(), b.getInstanceType());
-    assertEquals(a.getValue(), b.getValue());
+    assertEquals(a.getValue(), b.getValue(), 1e-15);
     assertEquals(a.getHostname(), b.getHostname());
     assertEquals(a.getFullMetricName(), b.getFullMetricName());
   }
@@ -45,7 +58,7 @@ public class MetricTest {
     MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.values()[idx];
     String hostname = CommonUtils.randomAlphaNumString(random.nextInt(10));
     String name = CommonUtils.randomAlphaNumString(random.nextInt(10));
-    long value = random.nextLong();
+    double value = random.nextLong();
     return new Metric(instance, hostname, name, value);
   }
 }
