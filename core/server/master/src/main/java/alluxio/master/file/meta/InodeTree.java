@@ -1068,7 +1068,7 @@ public class InodeTree implements JournalEntryIterable {
                 status = ufs.getStatus(ufsUri);
               } catch (Exception e) {
                 throw new IOException(String.format("Cannot sync UFS directory %s: %s.", ufsUri,
-                    e.getMessage()), e);
+                    e.toString()), e);
               }
               if (status.isFile()) {
                 throw new InvalidPathException(String.format(
