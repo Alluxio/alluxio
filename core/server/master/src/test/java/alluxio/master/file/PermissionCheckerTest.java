@@ -214,7 +214,7 @@ public final class PermissionCheckerTest {
   @Before
   public void before() throws Exception {
     AuthenticatedClientUser.remove();
-    mPermissionChecker = new PermissionChecker(sTree);
+    mPermissionChecker = new DefaultPermissionChecker(sTree);
   }
 
   /**

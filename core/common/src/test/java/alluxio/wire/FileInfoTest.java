@@ -34,7 +34,7 @@ public class FileInfoTest {
   @Test
   public void thrift() {
     FileInfo fileInfo = createRandom();
-    FileInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(fileInfo));
+    FileInfo other = FileInfo.fromThrift(fileInfo.toThrift());
     checkEquality(fileInfo, other);
   }
 

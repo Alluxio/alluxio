@@ -11,6 +11,8 @@
 
 package alluxio.master.block;
 
+import static alluxio.wire.WorkerNetAddress.fromThrift;
+
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
@@ -28,7 +30,6 @@ import alluxio.thrift.GetWorkerIdTResponse;
 import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.thrift.RegisterWorkerTResponse;
 import alluxio.thrift.WorkerNetAddress;
-import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
 import jersey.repackaged.com.google.common.collect.Lists;
@@ -119,7 +120,7 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
       @Override
       public GetWorkerIdTResponse call() throws AlluxioException {
         return new GetWorkerIdTResponse(
-            mBlockMaster.getWorkerId(ThriftUtils.fromThrift((workerNetAddress))));
+            mBlockMaster.getWorkerId(fromThrift(workerNetAddress)));
       }
 
       @Override

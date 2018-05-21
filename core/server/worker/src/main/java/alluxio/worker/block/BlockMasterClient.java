@@ -22,7 +22,6 @@ import alluxio.thrift.CommitBlockTOptions;
 import alluxio.thrift.GetWorkerIdTOptions;
 import alluxio.thrift.Metric;
 import alluxio.thrift.RegisterWorkerTOptions;
-import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.apache.thrift.TException;
@@ -103,7 +102,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.getWorkerId(ThriftUtils.toThrift(address), new GetWorkerIdTOptions())
+        return mClient.getWorkerId(address.toThrift(), new GetWorkerIdTOptions())
             .getWorkerId();
       }
     });
