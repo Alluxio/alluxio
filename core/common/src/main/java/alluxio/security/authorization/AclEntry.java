@@ -110,6 +110,16 @@ public final class AclEntry {
   }
 
   /**
+   * Creates an {@link AclEntry} from a string. The possible string inputs are:
+   * Owning User: user::[rwx]
+   * Named User: user:[user name]:[rwx]
+   * Owning Group: group::[rwx]
+   * Named Group: group:[group name]:[rwx]
+   * Mask: mask::[rwx]
+   * Other: other::[rwx]
+   *
+   * [rwx]: all combinations are possible ('---' to 'rwx')
+   *
    * @param stringEntry the CLI string representation
    * @return the {@link AclEntry} instance created from the CLI string representation
    */
