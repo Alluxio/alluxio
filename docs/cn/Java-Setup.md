@@ -8,7 +8,7 @@ title: Java安装
 
 ## Mac OSX
 
-1.  从[Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)下载Java JDK 8。
+1.  从[Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)下载Java JDK 8 或以上版本。
 2.  从浏览器的下载窗口或者文件浏览器中双击.dmg文件来启动它。
 3.  查找窗口中名为.pkg的文件。双击安装包图标启动**安装**程序。
 4.  安装程序会显示**Introduction**窗口。点击**Continue**。
@@ -18,7 +18,7 @@ title: Java安装
 
 ## Linux
 
-1.  从[Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)下载Java JDK 8。
+1.  从[Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)下载Java JDK 8 或以上版本。
 2.  将目录转换到JDK将要安装的位置。将.tar.gz压缩包移动到当前目录。
 3.  解压压缩包，安装JDK。
 
