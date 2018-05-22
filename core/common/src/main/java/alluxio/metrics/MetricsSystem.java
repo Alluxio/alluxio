@@ -53,7 +53,9 @@ public final class MetricsSystem {
    * An enum of supported instance type.
    */
   public enum InstanceType {
-    MASTER("master"), WORKER("worker"), CLIENT("client");
+    MASTER("master"),
+    WORKER("worker"),
+    CLIENT("client");
 
     private String mValue;
 
