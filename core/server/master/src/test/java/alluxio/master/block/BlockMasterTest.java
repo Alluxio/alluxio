@@ -69,6 +69,7 @@ public class BlockMasterTest {
   private ManualClock mClock;
   private ExecutorService mExecutorService;
   private SafeModeManager mSafeModeManager;
+  private long mStartTimeMs;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -89,11 +90,13 @@ public class BlockMasterTest {
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
+    mStartTimeMs = System.currentTimeMillis();
     JournalSystem journalSystem = new NoopJournalSystem();
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster = new DefaultBlockMaster(new MasterContext(journalSystem, mSafeModeManager),
+    mBlockMaster = new DefaultBlockMaster(
+        new MasterContext(journalSystem, mSafeModeManager, mStartTimeMs),
         mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);

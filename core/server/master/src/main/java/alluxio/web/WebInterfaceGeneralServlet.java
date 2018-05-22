@@ -19,6 +19,7 @@ import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
+import alluxio.master.meta.MetaMaster;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker.ConfigCheckReport;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -111,6 +112,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   private static final long serialVersionUID = 2335205655766736309L;
 
   private final transient MasterProcess mMasterProcess;
+  private final transient MetaMaster mMetaMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceGeneralServlet}.
@@ -119,6 +121,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    */
   public WebInterfaceGeneralServlet(MasterProcess masterProcess) {
     mMasterProcess = masterProcess;
+    mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
   }
 
   /**
@@ -181,9 +184,9 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("masterNodeAddress", mMasterProcess.getRpcAddress().toString());
 
     request.setAttribute("uptime", CommonUtils
-        .convertMsToClockTime(System.currentTimeMillis() - mMasterProcess.getStartTimeMs()));
+        .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()));
 
-    request.setAttribute("startTime", CommonUtils.convertMsToDate(mMasterProcess.getStartTimeMs()));
+    request.setAttribute("startTime", CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()));
 
     request.setAttribute("version", RuntimeConstants.VERSION);
 
@@ -208,7 +211,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("inconsistentPaths", 0);
     }
 
-    ConfigCheckReport report = mMasterProcess.getConfigCheckReport();
+    ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
     request.setAttribute("configCheckStatus", report.getStatus());
     request.setAttribute("configCheckErrors", report.getConfigErrors());
     request.setAttribute("configCheckWarns", report.getConfigWarns());

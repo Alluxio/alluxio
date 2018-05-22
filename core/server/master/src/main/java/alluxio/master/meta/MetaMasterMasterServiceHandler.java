@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.master.MasterProcess;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetMasterIdTOptions;
 import alluxio.thrift.GetMasterIdTResponse;
@@ -41,15 +40,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class MetaMasterMasterServiceHandler implements MetaMasterMasterService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterMasterServiceHandler.class);
 
-  private final MasterProcess mMasterProcess;
+  private final MetaMaster mMetaMaster;
 
   /**
    * Creates a new instance of {@link MetaMasterMasterServiceHandler}.
    *
-   * @param masterProcess the Alluxio master process
+   * @param metaMaster the Alluxio meta master
    */
-  MetaMasterMasterServiceHandler(MasterProcess masterProcess) {
-    mMasterProcess = masterProcess;
+  MetaMasterMasterServiceHandler(MetaMaster metaMaster) {
+    mMetaMaster = metaMaster;
   }
 
   @Override
@@ -63,7 +62,7 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetMasterIdTResponse>() {
       @Override
       public GetMasterIdTResponse call() throws AlluxioException {
-        return new GetMasterIdTResponse(mMasterProcess
+        return new GetMasterIdTResponse(mMetaMaster
             .getMasterId(ThriftUtils.fromThrift(address)));
       }
 
@@ -82,7 +81,7 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<MasterHeartbeatTResponse>() {
       @Override
       public MasterHeartbeatTResponse call() throws AlluxioException {
-        return new MasterHeartbeatTResponse(mMasterProcess.masterHeartbeat(masterId));
+        return new MasterHeartbeatTResponse(mMetaMaster.masterHeartbeat(masterId));
       }
 
       @Override
@@ -98,7 +97,7 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
     return RpcUtils.call(LOG, new RpcUtils.RpcCallableThrowsIOException<RegisterMasterTResponse>() {
       @Override
       public RegisterMasterTResponse call() throws AlluxioException, AlluxioStatusException {
-        mMasterProcess.masterRegister(masterId, options);
+        mMetaMaster.masterRegister(masterId, options);
         return new RegisterMasterTResponse();
       }
 

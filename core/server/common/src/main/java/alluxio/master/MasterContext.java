@@ -21,14 +21,18 @@ import com.google.common.base.Preconditions;
 public final class MasterContext {
   private final JournalSystem mJournalSystem;
   private final SafeModeManager mSafeModeManager;
+  private final long mStartTimeMs;
 
   /**
    * @param journalSystem the journal system to use for tracking master operations
    * @param safeModeManager the manager for master safe mode
+   * @param startTimeMs the master process start time in milliseconds
    */
-  public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager) {
+  public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager,
+      long startTimeMs) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mSafeModeManager = Preconditions.checkNotNull(safeModeManager, "safeModeManager");
+    mStartTimeMs = startTimeMs;
   }
 
   /**
@@ -43,5 +47,12 @@ public final class MasterContext {
    */
   public SafeModeManager getmSafeModeManager() {
     return mSafeModeManager;
+  }
+
+  /**
+   * @return the master process start time in milliseconds
+   */
+  public long getStartTimeMs() {
+    return mStartTimeMs;
   }
 }

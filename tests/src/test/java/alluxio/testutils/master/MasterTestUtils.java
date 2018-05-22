@@ -63,9 +63,10 @@ public class MasterTestUtils {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
     SafeModeManager safeModeManager = new TestSafeModeManager();
+    long startTimeMs = System.currentTimeMillis();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
-    new BlockMasterFactory().create(registry, journalSystem, safeModeManager);
-    new FileSystemMasterFactory().create(registry, journalSystem, safeModeManager);
+    new BlockMasterFactory().create(registry, journalSystem, safeModeManager, startTimeMs);
+    new FileSystemMasterFactory().create(registry, journalSystem, safeModeManager, startTimeMs);
     journalSystem.start();
     journalSystem.setMode(isLeader ? Mode.PRIMARY : Mode.SECONDARY);
     registry.start(isLeader);

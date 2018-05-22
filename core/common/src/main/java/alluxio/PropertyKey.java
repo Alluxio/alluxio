@@ -895,14 +895,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_CONFIG_CHECKER_LOG_INTERVAL_MS =
+  public static final PropertyKey MASTER_CONFIG_REPORT_LOG_INTERVAL_MS =
       new Builder(Name.MASTER_CONFIG_CHECKER_LOG_INTERVAL_MS)
           .setDefaultValue("1h")
           .setDescription("The interval between the checks of config checker log time.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_CONFIG_CHECKER_LOG_TIMEOUT_MS =
+  public static final PropertyKey MASTER_CONFIG_REPORT_LOG_TIMEOUT_MS =
       new Builder(Name.MASTER_CONFIG_CHECKER_LOG_TIMEOUT_MS)
           .setDefaultValue("1h")
           .setDescription("Timeout of config checker log. The server configuration checker"
