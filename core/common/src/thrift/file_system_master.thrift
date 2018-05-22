@@ -208,6 +208,20 @@ struct RenameTOptions {
 }
 struct RenameTResponse {}
 
+enum TSetAclAction {
+  Replace = 0,
+  Modify = 1,
+  Remove = 2,
+  RemoveAll = 3,
+  RemoveDefault = 4,
+}
+
+struct SetAclTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+  2: optional bool recursive
+}
+struct SetAclTResponse {}
+
 struct SetAttributeTOptions {
   1: optional bool pinned
   2: optional i64 ttl
@@ -392,6 +406,17 @@ service FileSystemMasterClientService extends common.AlluxioService {
   ScheduleAsyncPersistenceTResponse scheduleAsyncPersistence(
     /** the path of the file */ 1: string path,
     /** the method options */ 2: ScheduleAsyncPersistenceTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Sets ACL for the path.
+   */
+  SetAclTResponse setAcl(
+    /** the path of the file or directory */ 1: string path,
+    /** the set action to perform */ 2: TSetAclAction action,
+    /** the list of ACL entries */ 3: list<TAclEntry> entries,
+    /** the method options */ 4: SetAclTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 

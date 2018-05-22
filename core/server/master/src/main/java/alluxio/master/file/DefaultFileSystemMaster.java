@@ -78,6 +78,7 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
+import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalContext;
@@ -104,6 +105,8 @@ import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -135,6 +138,7 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.SetAclAction;
 import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerInfo;
 
@@ -144,6 +148,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TProcessor;
@@ -152,6 +157,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -2974,6 +2980,104 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
+  public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
+      SetAclOptions options)
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
+    Metrics.SET_ACL_OPS.inc();
+    LockingScheme lockingScheme =
+        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
+    try (RpcContext rpcContext = createRpcContext(); LockedInodePath inodePath = mInodeTree
+        .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
+         FileSystemMasterAuditContext auditContext = createAuditContext("setAcl", path, null,
+             inodePath.getInodeOrNull())) {
+      try {
+        mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
+      } catch (AccessControlException e) {
+        auditContext.setAllowed(false);
+        throw e;
+      }
+      // Possible ufs sync.
+      syncMetadata(rpcContext, inodePath, lockingScheme,
+          options.getRecursive() ? DescendantType.ALL : DescendantType.NONE);
+      if (!inodePath.fullPathExists()) {
+        throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+      }
+      setAclAndJournal(rpcContext, action, inodePath, entries, options);
+      auditContext.setSucceeded(true);
+    }
+  }
+
+  private void setAclAndJournal(RpcContext rpcContext, SetAclAction action,
+      LockedInodePath inodePath, List<AclEntry> entries, SetAclOptions options)
+      throws IOException, FileDoesNotExistException {
+    long opTimeMs = System.currentTimeMillis();
+    // Check inputs for setAcl
+    switch (action) {
+      case REPLACE:
+        Set<AclEntryType> types =
+            entries.stream().map(AclEntry::getType).collect(Collectors.toSet());
+        Set<AclEntryType> requiredTypes =
+            Sets.newHashSet(AclEntryType.OWNING_USER, AclEntryType.OWNING_GROUP,
+                AclEntryType.OTHER);
+        requiredTypes.removeAll(types);
+
+        // make sure the required entries are present
+        if (!requiredTypes.isEmpty()) {
+          throw new IOException(ExceptionMessage.ACL_BASE_REQUIRED.getMessage(
+              String.join(", ", requiredTypes.stream().map(AclEntryType::toString).collect(
+                  Collectors.toList()))));
+        }
+        break;
+      case MODIFY:
+        if (entries.isEmpty()) {
+          // Nothing to do.
+          return;
+        }
+        break;
+      case REMOVE:
+        if (entries.isEmpty()) {
+          // Nothing to do.
+          return;
+        }
+        break;
+      case REMOVE_ALL:
+        break;
+      case REMOVE_DEFAULT:
+        break;
+    }
+    setAclInternal(rpcContext, action, inodePath, entries, opTimeMs, options);
+
+  }
+
+  private void setAclInternal(RpcContext rpcContext, SetAclAction action, LockedInodePath inodePath,
+      List<AclEntry> entries, long opTimeMs, SetAclOptions options)
+      throws IOException, FileDoesNotExistException {
+    Inode<?> targetInode = inodePath.getInode();
+    // TODO(gpang): handle recursive
+    // TODO(gpang): apply to UFS
+    // TODO(gpang): journal the state
+    switch (action) {
+      case REPLACE:
+        // fully replace the acl for the path
+        targetInode.replaceAcl(entries);
+        break;
+      case MODIFY:
+        targetInode.setAcl(entries);
+        break;
+      case REMOVE:
+        targetInode.removeAcl(entries);
+        break;
+      case REMOVE_ALL:
+        targetInode.removeExtendedAcl();
+        break;
+      case REMOVE_DEFAULT:
+        // TODO(gpang): implement default acl
+        break;
+    }
+    targetInode.setLastModificationTimeMs(opTimeMs);
+  }
+
+  @Override
   public void setAttribute(AlluxioURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException,
       IOException {
@@ -3761,6 +3865,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     private static final Counter GET_NEW_BLOCK_OPS = MetricsSystem.masterCounter("GetNewBlockOps");
     private static final Counter MOUNT_OPS = MetricsSystem.masterCounter("MountOps");
     private static final Counter RENAME_PATH_OPS = MetricsSystem.masterCounter("RenamePathOps");
+    private static final Counter SET_ACL_OPS = MetricsSystem.masterCounter("SetAclOps");
     private static final Counter SET_ATTRIBUTE_OPS = MetricsSystem.masterCounter("SetAttributeOps");
     private static final Counter UNMOUNT_OPS = MetricsSystem.masterCounter("UnmountOps");
 

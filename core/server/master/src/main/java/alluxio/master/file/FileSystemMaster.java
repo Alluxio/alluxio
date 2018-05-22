@@ -38,14 +38,17 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
+import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
+import alluxio.security.authorization.AclEntry;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.SetAclAction;
 import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerInfo;
 
@@ -447,6 +450,21 @@ public interface FileSystemMaster extends Master {
   void resetFile(long fileId)
       throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, UnavailableException;
+
+  /**
+   * Sets the ACL for a path.
+   *
+   * @param path the path to set attribute for
+   * @param action the set action to perform
+   * @param entries the list of ACL entries for setting ACL
+   * @param options the options for setting ACL
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the given path is invalid
+   */
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException,
+      IOException;
 
   /**
    * Sets the file attribute.

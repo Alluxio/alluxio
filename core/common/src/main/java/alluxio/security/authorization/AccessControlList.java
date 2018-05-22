@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -75,6 +76,13 @@ public final class AccessControlList {
   public AccessControlList() {
     mOwningUser = "";
     mOwningGroup = "";
+    clearEntries();
+  }
+
+  /**
+   * Clears out all entries (does not modify the owner name and owning group).
+   */
+  public void clearEntries() {
     mUserActions = new HashMap<>(ACTIONS_MAP_INITIAL_CAPACITY, ACTIONS_MAP_INITIAL_LOAD_FACTOR);
     mUserActions.put(OWNING_USER_KEY, new AclActions());
     mGroupActions = new HashMap<>(ACTIONS_MAP_INITIAL_CAPACITY, ACTIONS_MAP_INITIAL_LOAD_FACTOR);
@@ -116,9 +124,10 @@ public final class AccessControlList {
   }
 
   /**
-   * @return an immutable list of ACL entries, if owning user or owning group is empty, no owning
-   *    user entry or owning group entry will be returned, named user entry and named group entry
-   *    will be returned if they exist, mask and other entry will always be returned
+   * Returns a list of {@link AclEntry} which represent this ACL instance. The mask will only be
+   * included if extended ACL entries exist.
+   *
+   * @return an immutable list of ACL entries
    */
   public List<AclEntry> getEntries() {
     ImmutableList.Builder<AclEntry> builder = new ImmutableList.Builder<>();
@@ -152,15 +161,80 @@ public final class AccessControlList {
             .build());
       }
     }
-    builder.add(new AclEntry.Builder()
-        .setType(AclEntryType.MASK)
-        .setActions(mMaskActions)
-        .build());
+    if (hasExtended()) {
+      // The mask is only relevant if the ACL contains extended entries.
+      builder.add(new AclEntry.Builder()
+          .setType(AclEntryType.MASK)
+          .setActions(mMaskActions)
+          .build());
+    }
     builder.add(new AclEntry.Builder()
         .setType(AclEntryType.OTHER)
         .setActions(mOtherActions)
         .build());
     return builder.build();
+  }
+
+  /**
+   * @return true if has extended ACL (named users, named groups)
+   */
+  public boolean hasExtended() {
+    if (mUserActions.size() > 1 || mGroupActions.size() > 1) {
+      // has more than the owning user and owning group
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Removes the specified entry. A base entry is not allowed to be removed.
+   *
+   * @param entry the entry to be removed
+   */
+  public void removeEntry(AclEntry entry) throws IOException {
+    switch (entry.getType()) {
+      case NAMED_USER:
+        mUserActions.remove(entry.getSubject());
+        return;
+      case NAMED_GROUP:
+        mGroupActions.remove(entry.getSubject());
+        return;
+      case MASK:
+        if (hasExtended()) {
+          // cannot remove the mask if it is extended.
+          throw new IOException(
+              "Deleting the mask for extended ACLs is not allowed. entry: " + entry);
+        } else {
+          mMaskActions = new AclActions();
+        }
+        return;
+      case OWNING_USER:  // fall through
+      case OWNING_GROUP: // fall through
+      case OTHER:
+        throw new IllegalStateException(
+            "Deleting base entry is not allowed. entry: " + entry);
+      default:
+        throw new IllegalStateException("Unknown ACL entry type: " + entry.getType());
+    }
+  }
+
+  /**
+   * Removes all of the exnteded entries. The base entries are retained.
+   */
+  public void removeExtendedEntries() {
+    AclActions ownerActions = mUserActions.get(OWNING_USER_KEY);
+    AclActions owningGroupActions = mGroupActions.get(OWNING_GROUP_KEY);
+
+    // reset the user entries
+    mUserActions.clear();
+    mUserActions.put(OWNING_USER_KEY, ownerActions);
+
+    // reset the group entries
+    mGroupActions.clear();
+    mGroupActions.put(OWNING_GROUP_KEY, owningGroupActions);
+
+    // reset the mask
+    mMaskActions = new AclActions();
   }
 
   /**

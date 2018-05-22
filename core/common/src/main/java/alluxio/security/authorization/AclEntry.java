@@ -125,12 +125,12 @@ public final class AclEntry {
    */
   public static AclEntry fromCliString(String stringEntry) {
     if (stringEntry == null) {
-      throw new IllegalArgumentException("Input string is null");
+      throw new IllegalArgumentException("Input acl string is null");
     }
     List<String> components = Arrays.stream(stringEntry.split(":")).map(String::trim).collect(
         Collectors.toList());
     if (components.size() != 3) {
-      throw new IllegalArgumentException("Unexpected components: " + stringEntry);
+      throw new IllegalArgumentException("Unexpected acl components: " + stringEntry);
     }
 
     AclEntry.Builder builder = new AclEntry.Builder();
@@ -158,14 +158,15 @@ public final class AclEntry {
         break;
       case AclEntryType.MASK_COMPONENT:
         if (!subject.isEmpty()) {
-          throw new IllegalArgumentException("Subject for mask type must be empty: " + stringEntry);
+          throw new IllegalArgumentException(
+              "Subject for acl mask type must be empty: " + stringEntry);
         }
         builder.setType(AclEntryType.MASK);
         break;
       case AclEntryType.OTHER_COMPONENT:
         if (!subject.isEmpty()) {
           throw new IllegalArgumentException(
-              "Subject for other type must be empty: " + stringEntry);
+              "Subject for acl other type must be empty: " + stringEntry);
         }
         builder.setType(AclEntryType.OTHER);
         break;
@@ -179,6 +180,78 @@ public final class AclEntry {
     for (AclAction action : bits.toAclActions()) {
       builder.addAction(action);
     }
+    return builder.build();
+  }
+
+  /**
+   * Creates an {@link AclEntry} from a string without permissions. The possible string inputs are:
+   * Named User: user:USER_NAME[:]
+   * Named Group: group:GROUP_NAME[:]
+   * Mask: mask[:][:]
+   *
+   * @param stringEntry the CLI string representation, without permissions
+   * @return the {@link AclEntry} instance created from the CLI string representation
+   */
+  public static AclEntry fromCliStringWithoutPermissions(String stringEntry) {
+    if (stringEntry == null) {
+      throw new IllegalArgumentException("Input acl string is null");
+    }
+    List<String> components = Arrays.stream(stringEntry.split(":")).map(String::trim).collect(
+        Collectors.toList());
+    if (components.size() < 1 || components.size() > 3) {
+      throw new IllegalArgumentException("Unexpected acl components: " + stringEntry);
+    }
+
+    AclEntry.Builder builder = new AclEntry.Builder();
+    String type = components.get(0);
+    String subject = "";
+    if (components.size() >= 2) {
+      subject = components.get(1);
+    }
+    String actions = "";
+    if (components.size() >= 3) {
+      actions = components.get(2);
+    }
+    if (!actions.isEmpty()) {
+      throw new IllegalArgumentException("ACL permissions cannot be specified: " + stringEntry);
+    }
+    if (type.isEmpty()) {
+      throw new IllegalArgumentException("ACL entry type is empty: " + stringEntry);
+    }
+
+    switch (type) {
+      case AclEntryType.USER_COMPONENT:
+        if (subject.isEmpty()) {
+          throw new IllegalArgumentException("ACL entry must have subject: " + stringEntry);
+        } else {
+          builder.setType(AclEntryType.NAMED_USER);
+        }
+        break;
+      case AclEntryType.GROUP_COMPONENT:
+        if (subject.isEmpty()) {
+          throw new IllegalArgumentException("ACL entry must have subject: " + stringEntry);
+        } else {
+          builder.setType(AclEntryType.NAMED_GROUP);
+        }
+        break;
+      case AclEntryType.MASK_COMPONENT:
+        if (!subject.isEmpty()) {
+          throw new IllegalArgumentException(
+              "Subject for acl mask type must be empty: " + stringEntry);
+        }
+        builder.setType(AclEntryType.MASK);
+        break;
+      case AclEntryType.OTHER_COMPONENT:
+        if (!subject.isEmpty()) {
+          throw new IllegalArgumentException(
+              "Subject for acl other type must be empty: " + stringEntry);
+        }
+        builder.setType(AclEntryType.OTHER);
+        break;
+      default:
+        throw new IllegalArgumentException("Unexpected ACL entry type: " + stringEntry);
+    }
+    builder.setSubject(subject);
     return builder.build();
   }
 

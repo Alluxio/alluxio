@@ -26,6 +26,7 @@ import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.options.RenameOptions;
+import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.exception.AlluxioException;
@@ -40,9 +41,11 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.security.authorization.AclEntry;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.SetAclAction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -380,6 +383,24 @@ public class BaseFileSystem implements FileSystem {
       // TODO(calvin): Update this code on the master side.
       masterClient.rename(src, dst, options);
       LOG.debug("Renamed {} to {}, options: {}", src.getPath(), dst.getPath(), options);
+    } catch (NotFoundException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e;
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    } finally {
+      mFileSystemContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
+  public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
+      SetAclOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+    FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+    try {
+      masterClient.setAcl(path, action, entries, options);
+      LOG.debug("Set ACL for {}, entries: {} options: {}", path.getPath(), entries, options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     } catch (UnavailableException e) {
