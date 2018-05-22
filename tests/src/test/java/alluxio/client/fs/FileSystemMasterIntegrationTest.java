@@ -15,7 +15,6 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -38,6 +37,7 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -131,6 +131,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false)
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
               String.valueOf(TTL_CHECKER_INTERVAL_MS))
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, 1000)

@@ -99,7 +99,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     } else {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
       if (local) {
-        if (!FileSystemContext.INSTANCE.hasLocalWorker()) {
+        if (!FileSystemContext.get().hasLocalWorker()) {
           System.out.println("When local option is specified,"
               + " there must be a local worker available");
           return;

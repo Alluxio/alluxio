@@ -59,6 +59,9 @@ import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.master.metrics.MetricsMasterFactory;
+import alluxio.metrics.Metric;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
@@ -132,6 +135,8 @@ public final class FileSystemMasterTest {
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
   private SafeModeManager mSafeModeManager;
+  private MetricsMaster mMetricsMaster;
+  private List<Metric> mMetrics;
   private long mWorkerId1;
   private long mWorkerId2;
 
@@ -252,9 +257,9 @@ public final class FileSystemMasterTest {
     }
 
     // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat1 =
-        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
-            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    Command heartbeat1 = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
+        ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat1);
     assertFalse(mBlockMaster.getLostBlocks().contains(blockId));
@@ -1097,9 +1102,9 @@ public final class FileSystemMasterTest {
     options.setTtl(0);
     options.setTtlAction(TtlAction.FREE);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, options);
-    Command heartbeat =
-        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
-            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
+        ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1122,9 +1127,9 @@ public final class FileSystemMasterTest {
     stopServices();
     startServices();
 
-    Command heartbeat =
-        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
-            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
+        ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1146,9 +1151,9 @@ public final class FileSystemMasterTest {
     options.setTtl(0);
     options.setTtlAction(TtlAction.FREE);
     mFileSystemMaster.setAttribute(NESTED_URI, options);
-    Command heartbeat =
-        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
-            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
+        ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1174,9 +1179,9 @@ public final class FileSystemMasterTest {
     stopServices();
     startServices();
 
-    Command heartbeat =
-        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
-            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
+        ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1507,9 +1512,9 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.free(NESTED_FILE_URI,
         FreeOptions.defaults().setForced(false).setRecursive(false));
     // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat2 =
-        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
-            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    Command heartbeat2 = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
+        ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat2);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1557,9 +1562,9 @@ public final class FileSystemMasterTest {
     // free the file
     mFileSystemMaster.free(NESTED_FILE_URI, FreeOptions.defaults().setForced(true));
     // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat =
-        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
-            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
+        ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1591,9 +1596,9 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
         FreeOptions.defaults().setForced(true).setRecursive(true));
     // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat3 =
-        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
-            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    Command heartbeat3 = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
+        ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat3);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1643,9 +1648,9 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
         FreeOptions.defaults().setForced(true).setRecursive(true));
     // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat =
-        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
-            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
+        ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1992,7 +1997,11 @@ public final class FileSystemMasterTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
+    mRegistry.add(MetricsMaster.class, mMetricsMaster);
+    mMetrics = Lists.newArrayList();
+    mBlockMaster =
+        new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster,
