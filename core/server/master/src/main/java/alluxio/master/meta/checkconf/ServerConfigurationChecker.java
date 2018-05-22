@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
  */
 public class ServerConfigurationChecker {
   private static final Logger LOG = LoggerFactory.getLogger(ServerConfigurationChecker.class);
+  private static final String HELP_INFO = "For details, please visit Alluxio web UI or"
+      + "run fsadmin doctor CLI.";
   /** Contain all the master configuration information. */
   private final ServerConfigurationStore mMasterStore;
   /** Contain all the worker configuration information. */
@@ -173,11 +175,11 @@ public class ServerConfigurationChecker {
     if (reportStatus.equals(Status.PASSED)) {
       LOG.info("Stauts: {}", reportStatus);
     } else if (reportStatus.equals(Status.WARN)) {
-      LOG.warn("Status: {}", reportStatus);
+      LOG.warn("Status: {}. {}", reportStatus, HELP_INFO);
       LOG.warn("Warnings: {}", mConfigCheckReport.getConfigWarns().values().stream()
           .map(Object::toString).collect(Collectors.joining(", ")));
     } else {
-      LOG.error("Status: {}", reportStatus);
+      LOG.error("Status: {}. {}", reportStatus, HELP_INFO);
       LOG.error("Errors: {}", mConfigCheckReport.getConfigErrors().values().stream()
           .map(Object::toString).collect(Collectors.joining(", ")));
       LOG.warn("Warnings: {}", mConfigCheckReport.getConfigWarns().values().stream()

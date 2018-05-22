@@ -896,16 +896,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_CONFIG_REPORT_LOG_INTERVAL_MS =
-      new Builder(Name.MASTER_CONFIG_CHECKER_LOG_INTERVAL_MS)
+      new Builder(Name.MASTER_CONFIG_REPORT_LOG_INTERVAL_MS)
           .setDefaultValue("1h")
-          .setDescription("The interval between the checks of config checker log time.")
+          .setDescription("The interval between the checks of config report log time.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_CONFIG_REPORT_LOG_TIMEOUT_MS =
-      new Builder(Name.MASTER_CONFIG_CHECKER_LOG_TIMEOUT_MS)
+      new Builder(Name.MASTER_CONFIG_REPORT_LOG_TIMEOUT_MS)
           .setDefaultValue("1h")
-          .setDescription("Timeout of config checker log. The server configuration checker"
+          .setDescription("Timeout of config report log. The server configuration checker"
               + "will log the config check report when timeout is reached.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -3007,10 +3007,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
         "alluxio.master.audit.logging.queue.capacity";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
-    public static final String MASTER_CONFIG_CHECKER_LOG_INTERVAL_MS =
-        "alluxio.master.config.checker.log.interval.ms";
-    public static final String MASTER_CONFIG_CHECKER_LOG_TIMEOUT_MS =
-        "alluxio.master.config.checker.log.timeout.ms";
+    public static final String MASTER_CONFIG_REPORT_LOG_INTERVAL_MS =
+        "alluxio.master.config.report.log.interval.ms";
+    public static final String MASTER_CONFIG_REPORT_LOG_TIMEOUT_MS =
+        "alluxio.master.config.report.log.timeout.ms";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
