@@ -2542,7 +2542,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               LoadMetadataOptions loadMetadataOptions =
                   LoadMetadataOptions.defaults().setLoadDescendantType(DescendantType.NONE)
                       .setCreateAncestors(false).setUfsStatus(childStatus);
-              // In what order is ufs status returned? matters for setCreateAncestor
               loadMetadataAndJournal(rpcContext, tempInodePath, loadMetadataOptions);
 
               if (options.getLoadDescendantType() == DescendantType.ALL
