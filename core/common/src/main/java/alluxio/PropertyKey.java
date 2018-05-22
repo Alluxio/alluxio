@@ -964,6 +964,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_INIT_FROM_SNAPSHOT =
+      new Builder(Name.MASTER_JOURNAL_INIT_FROM_SNAPSHOT)
+          .setDescription("A path to a snapshot to initialize the journal from. If set, the master"
+              + " will verify that the journal is freshly formatted, then restore its state from the"
+              + " specified snapshot.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =
       new Builder(Name.MASTER_JOURNAL_TYPE)
           .setDefaultValue("UFS")
@@ -2997,6 +3006,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_FLUSH_RETRY_INTERVAL =
         "alluxio.master.journal.retry.interval";
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
+    public static final String MASTER_JOURNAL_INIT_FROM_SNAPSHOT =
+        "alluxio.master.journal.init.from.snapshot";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_FORMATTER_CLASS =
         "alluxio.master.journal.formatter.class";

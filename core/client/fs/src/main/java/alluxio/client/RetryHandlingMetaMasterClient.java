@@ -80,11 +80,10 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized void exportJournal(AlluxioURI uri) throws IOException {
-    retryRPC(() -> {
-      mClient.exportJournal(new ExportJournalTOptions().setUri(uri.toString()));
-      return null;
-    });
+  public synchronized String exportJournal(AlluxioURI uri) throws IOException {
+    return retryRPC(() ->
+        mClient.exportJournal(new ExportJournalTOptions().setUri(uri.toString())).getUri()
+    );
   }
 
   @Override

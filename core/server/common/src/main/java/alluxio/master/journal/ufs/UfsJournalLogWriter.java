@@ -61,7 +61,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   private final long mMaxLogSize;
 
   /** The next sequence number to use. */
-  private long mNextSequenceNumber;
+  private volatile long mNextSequenceNumber;
   /** When mRotateForNextWrite is set, mJournalOutputStream must be closed before the next write. */
   private boolean mRotateLogForNextWrite;
   /**
@@ -447,6 +447,13 @@ final class UfsJournalLogWriter implements JournalWriter {
     } else {
       return new DataOutputStream(stream);
     }
+  }
+
+  /**
+   * @return the next sequence number to write
+   */
+  public long getNextSequenceNumber() {
+    return mNextSequenceNumber;
   }
 
   @VisibleForTesting

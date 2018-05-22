@@ -40,6 +40,11 @@ public final class NoopJournalSystem implements JournalSystem {
   }
 
   @Override
+  public boolean isEmpty() {
+    return true;
+  }
+
+  @Override
   public void format() throws IOException {}
 
   @Override

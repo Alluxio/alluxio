@@ -29,11 +29,13 @@ import java.util.Set;
  */
 public interface MetaMasterClient extends Closeable {
   /**
-   * Exports a snapshot of the journal to the specified URI
+   * Exports a snapshot of the journal to the specified directory URI. The snapshot is written
+   * to the directory with a file name containing the date when the file was written.
    *
-   * @param uri the URI to export to
+   * @param uri the URI of the directory to export to
+   *            @return the
    */
-  void exportJournal(AlluxioURI uri) throws IOException;
+  String exportJournal(AlluxioURI uri) throws IOException;
 
   /**
    * Gets the runtime configuration information.

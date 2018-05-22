@@ -127,6 +127,16 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
+  public boolean isEmpty() {
+    for (UfsJournal journal : mJournals.values()) {
+      if (journal.getNextSequenceNumberToWrite() > 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
   public void format() throws IOException {
     for (UfsJournal journal : mJournals.values()) {
       journal.format();

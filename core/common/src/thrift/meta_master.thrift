@@ -40,6 +40,7 @@ struct ExportJournalTOptions {
  1: string uri
 }
 struct ExportJournalTResponse {
+ 1: string uri
 }
 
 struct GetMasterInfoTOptions {

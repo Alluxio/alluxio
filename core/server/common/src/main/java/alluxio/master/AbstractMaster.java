@@ -135,10 +135,8 @@ public abstract class AbstractMaster implements Master {
     return mExecutorService;
   }
 
-  /**
-   * @return new instance of {@link JournalContext}
-   */
-  protected JournalContext createJournalContext() throws UnavailableException {
+  @Override
+  public JournalContext createJournalContext() throws UnavailableException {
     try (LockResource l = new LockResource(mStateLock)) {
       return mJournal.createJournalContext();
     }

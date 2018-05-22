@@ -12,7 +12,6 @@
 package alluxio.master.journal;
 
 import alluxio.Constants;
-import alluxio.exception.InvalidJournalEntryException;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 /**
@@ -23,9 +22,8 @@ public final class JournalEntryAssociation {
   /**
    * @param entry a journal entry
    * @return the name of the master responsible for the given journal entry
-   * @throws InvalidJournalEntryException if the journal entry is unrecognized
    */
-  public static String getMasterForEntry(JournalEntry entry) throws InvalidJournalEntryException {
+  public static String getMasterForEntry(JournalEntry entry) {
     if (entry.hasAddMountPoint()
         || entry.hasAsyncPersistRequest()
         || entry.hasCompleteFile()
@@ -58,7 +56,7 @@ public final class JournalEntryAssociation {
         || entry.hasLineage()) {
       return Constants.LINEAGE_MASTER_NAME;
     }
-    throw new InvalidJournalEntryException("Unrecognized journal entry: " + entry);
+    throw new IllegalStateException("Unrecognized journal entry: " + entry);
   }
 
   private JournalEntryAssociation() {} // Not intended for instantiation.

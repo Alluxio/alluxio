@@ -70,8 +70,8 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   public ExportJournalTResponse exportJournal(ExportJournalTOptions options) throws AlluxioTException {
     return RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<ExportJournalTResponse>) () -> {
-          mMasterProcess.exportJournal(ExportJournalOptions.fromThrift(options));
-          return new ExportJournalTResponse();
+          String uri = mMasterProcess.exportJournal(ExportJournalOptions.fromThrift(options));
+          return new ExportJournalTResponse().setUri(uri);
         });
   }
 

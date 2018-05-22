@@ -57,8 +57,9 @@ public interface MasterProcess extends Process {
    * Exports the journal.
    *
    * @param options method options
+   * @return the uri of the created backup
    */
-  void exportJournal(ExportJournalOptions options) throws IOException;
+  String exportJournal(ExportJournalOptions options) throws IOException;
 
   /**
    * @param clazz the class of the master to get
