@@ -78,7 +78,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 // parent of file
                 if (inode.isDirectory()) {
                   mFileSystemMaster
-                      .free(path, FreeOptions.defaults().setForced(true).setRecursive(true);
+                      .free(path, FreeOptions.defaults().setForced(true).setRecursive(true));
                 } else {
                   mFileSystemMaster.free(path, FreeOptions.defaults().setForced(true));
                 }
