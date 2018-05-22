@@ -208,12 +208,11 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
       fileWriter.close();
     }
     long startMs = CommonUtils.getCurrentMs();
-    mFileSystem.listStatus(new AlluxioURI ("/mnt"), options);
+    mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
     long durationMs = CommonUtils.getCurrentMs() - startMs;
     // Should load metadata once, in one recursive call
-    Assert.assertTrue("Expected to be between one and two SLEEP_MS. actual duration (ms): " + durationMs,
-        durationMs >= LONG_SLEEP_MS && durationMs <= 2 * LONG_SLEEP_MS);
-
+    Assert.assertTrue("Expected to be between one and two SLEEP_MS. actual duration (ms): "
+            + durationMs, durationMs >= LONG_SLEEP_MS && durationMs <= 2 * LONG_SLEEP_MS);
   }
 
   /**
