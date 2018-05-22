@@ -906,7 +906,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
     @Override
     public void heartbeat() {
-      int masterWorkerTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
+      long masterWorkerTimeoutMs = Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
         synchronized (worker) {
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();

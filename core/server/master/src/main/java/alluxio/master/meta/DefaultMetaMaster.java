@@ -355,7 +355,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
     @Override
     public void heartbeat() {
-      int masterTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
+      long masterTimeoutMs = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
       for (MasterInfo master : mMasters) {
         synchronized (master) {
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
