@@ -69,7 +69,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
     mMasterId = masterId;
     mMasterAddress = masterAddress;
     mMasterClient = masterClient;
-    mHeartbeatTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
+    mHeartbeatTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_TIMEOUT_MS);
 
     registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();

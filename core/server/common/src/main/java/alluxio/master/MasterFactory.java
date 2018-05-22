@@ -37,8 +37,9 @@ public interface MasterFactory {
    * @param journalSystem a journal system for persisting master state
    * @param safeModeManager a manager for safe mode state
    * @param startTimeMs the master process start time
+   * @param port the rpc port
    * @return a new {@link Master} instance
    */
   Master create(MasterRegistry registry, JournalSystem journalSystem,
-      SafeModeManager safeModeManager, long startTimeMs);
+      SafeModeManager safeModeManager, long startTimeMs, int port);
 }

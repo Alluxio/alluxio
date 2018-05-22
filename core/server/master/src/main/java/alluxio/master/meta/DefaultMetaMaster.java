@@ -113,11 +113,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   private final IndexedSet<MasterInfo> mLostMasters =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
-  /** The address of this master. */
-  private final Address mMasterAddress = new Address()
-      .setHost(Configuration.get(PropertyKey.MASTER_HOSTNAME))
-      .setRpcPort(Configuration.getInt(PropertyKey.MASTER_RPC_PORT));
-
   /** The connect address for the rpc server. */
   private final InetSocketAddress mRpcConnectAddress
       = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC);
@@ -127,6 +122,9 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   /** The start time for when the master started serving the RPC server. */
   private final long mStartTimeMs;
+
+  /** The address of this master. */
+  private Address mMasterAddress;
 
   /** The master ID for this master. */
   private AtomicReference<Long> mMasterId = new AtomicReference<>(-1L);
@@ -155,6 +153,8 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     super(masterContext, new SystemClock(), executorServiceFactory);
     mSafeModeManager = masterContext.getSafeModeManager();
     mStartTimeMs = masterContext.getStartTimeMs();
+    mMasterAddress = new Address().setHost(Configuration.get(PropertyKey.MASTER_HOSTNAME))
+        .setRpcPort(masterContext.getPort());
     mBlockMaster = blockMaster;
     mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
     mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
@@ -208,7 +208,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
-          (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+          (int) Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL_MS)));
     } else {
       // Standby master should setup MetaMasterSync to communicate with the leader master
       MetaMasterMasterClient metaMasterClient =
@@ -217,7 +217,8 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       MetaMasterSync metaMasterSync =
           new MetaMasterSync(mMasterId, mMasterAddress, metaMasterClient);
       getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
-          metaMasterSync, (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+          metaMasterSync,
+          (int) Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL_MS)));
       LOG.info("Standby master with id {} starts sending heartbeat to leader master.", mMasterId);
     }
   }
@@ -351,7 +352,8 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
     @Override
     public void heartbeat() {
-      int masterTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
+      int masterTimeoutMs =
+          (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_TIMEOUT_MS);
       for (MasterInfo master : mMasters) {
         synchronized (master) {
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();

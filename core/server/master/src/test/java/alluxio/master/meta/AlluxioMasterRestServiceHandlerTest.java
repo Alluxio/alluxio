@@ -21,6 +21,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
@@ -49,6 +50,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
 import com.google.common.collect.ImmutableMap;
+import javafx.beans.property.Property;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -99,6 +101,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private AlluxioMasterRestServiceHandler mHandler;
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
+  private int mPort;
   private MetricsMaster mMetricsMaster;
 
   @Rule
@@ -125,12 +128,13 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     mStartTimeMs = System.currentTimeMillis();
+    mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
     mMetricsMaster = new MetricsMasterFactory()
-        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
-    mBlockMaster =
-        new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
+    mBlockMaster = new BlockMasterFactory()
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(

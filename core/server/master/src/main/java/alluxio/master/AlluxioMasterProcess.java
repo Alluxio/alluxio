@@ -152,7 +152,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       // Create masters.
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
-      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager, mStartTimeMs);
+      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager, mStartTimeMs, mPort);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

@@ -13,6 +13,8 @@ package alluxio.master.metrics;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.clock.ManualClock;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
@@ -43,6 +45,7 @@ public class MetricsMasterTest {
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
+  private int mPort;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
 
@@ -51,12 +54,13 @@ public class MetricsMasterTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     mStartTimeMs = System.currentTimeMillis();
+    mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestMetricsMaster-%d", true));
     JournalSystem journalSystem = new NoopJournalSystem();
-    mMetricsMaster =
-        new DefaultMetricsMaster(new MasterContext(journalSystem, mSafeModeManager, mStartTimeMs),
+    mMetricsMaster = new DefaultMetricsMaster(
+        new MasterContext(journalSystem, mSafeModeManager, mStartTimeMs, mPort),
             mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mRegistry.start(true);

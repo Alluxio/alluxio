@@ -20,9 +20,9 @@ import alluxio.thrift.GetMasterIdTOptions;
 import alluxio.thrift.GetMasterIdTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
-import alluxio.thrift.MasterAddress;
 import alluxio.thrift.MasterHeartbeatTOptions;
 import alluxio.thrift.MasterHeartbeatTResponse;
+import alluxio.thrift.MasterNetAddress;
 import alluxio.thrift.MetaMasterMasterService;
 import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.thrift.RegisterMasterTResponse;
@@ -57,7 +57,7 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
   }
 
   @Override
-  public GetMasterIdTResponse getMasterId(final MasterAddress address,
+  public GetMasterIdTResponse getMasterId(final MasterNetAddress address,
       GetMasterIdTOptions options) throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetMasterIdTResponse>() {
       @Override
