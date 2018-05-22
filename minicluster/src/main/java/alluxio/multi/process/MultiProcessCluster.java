@@ -19,11 +19,14 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.cli.Format;
+import alluxio.client.MetaMasterClient;
+import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.ZkMasterInquireClient;
@@ -81,6 +84,8 @@ public final class MultiProcessCluster implements TestRule {
   private static final File TESTS_LOG = new File(Constants.TESTS_LOG);
 
   private final Map<PropertyKey, String> mProperties;
+  private final Map<Integer, Map<PropertyKey, String>> mMasterProperties;
+  private final Map<Integer, Map<PropertyKey, String>> mWorkerProperties;
   private final int mNumMasters;
   private final int mNumWorkers;
   private final String mClusterName;
@@ -102,9 +107,13 @@ public final class MultiProcessCluster implements TestRule {
    */
   private boolean mSuccess;
 
-  private MultiProcessCluster(Map<PropertyKey, String> properties, int numMasters, int numWorkers,
-      String clusterName, DeployMode mode) {
+  private MultiProcessCluster(Map<PropertyKey, String> properties,
+      Map<Integer, Map<PropertyKey, String>> masterProperties,
+      Map<Integer, Map<PropertyKey, String>> workerProperties,
+      int numMasters, int numWorkers, String clusterName, DeployMode mode) {
     mProperties = properties;
+    mMasterProperties = masterProperties;
+    mWorkerProperties = workerProperties;
     mNumMasters = numMasters;
     mNumWorkers = numWorkers;
     // Add a unique number so that different runs of the same test use different cluster names.
@@ -220,6 +229,16 @@ public final class MultiProcessCluster implements TestRule {
         "must be in the started state to get an fs client, but state was %s", mState);
     MasterInquireClient inquireClient = getMasterInquireClient();
     return Factory.get(mCloser.register(FileSystemContext.create(null, inquireClient)));
+  }
+
+  /**
+   * @return a meta master client
+   */
+  public MetaMasterClient getMetaMasterClient() throws UnavailableException {
+    Preconditions.checkState(mState == State.STARTED,
+        "must be in the started state to get an fs client, but state was %s", mState);
+    return new RetryHandlingMetaMasterClient(new MasterClientConfig()
+        .withMasterInquireClient(getMasterInquireClient()));
   }
 
   /**
@@ -340,7 +359,7 @@ public final class MultiProcessCluster implements TestRule {
     Preconditions.checkState(mState == State.STARTED,
         "Must be in a started state to create masters");
     MasterNetAddress address = mMasterAddresses.get(i);
-    File confDir = new File(mWorkDir, "conf");
+    File confDir = new File(mWorkDir, "conf-master" + i);
     File logsDir = new File(mWorkDir, "logs-master" + i);
     logsDir.mkdirs();
     Map<PropertyKey, String> conf = new HashMap<>();
@@ -363,7 +382,8 @@ public final class MultiProcessCluster implements TestRule {
   private synchronized Worker createWorker(int i) throws IOException {
     Preconditions.checkState(mState == State.STARTED,
         "Must be in a started state to create workers");
-    File confDir = new File(mWorkDir, "conf");
+    // TODO(lu) set each master have a specific conf directory
+    File confDir = new File(mWorkDir, "conf-worker" + i);
     File logsDir = new File(mWorkDir, "logs-worker" + i);
     File ramdisk = new File(mWorkDir, "ramdisk" + i);
     logsDir.mkdirs();
@@ -413,18 +433,34 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
-   * Writes the contents of {@link #mProperties} to the configuration file.
+   * Writes the contents of properties to the configuration file.
    */
   private void writeConf() throws IOException {
-    File confDir = new File(mWorkDir, "conf");
-    confDir.mkdirs();
-    StringBuilder sb = new StringBuilder();
+    StringBuilder commonPropBuilder = new StringBuilder();
     for (Entry<PropertyKey, String> entry : mProperties.entrySet()) {
-      sb.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
+      commonPropBuilder.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
     }
-    try (
-        FileOutputStream fos = new FileOutputStream(new File(confDir, "alluxio-site.properties"))) {
-      fos.write(sb.toString().getBytes(Charsets.UTF_8));
+    String commonProperties = commonPropBuilder.toString();
+
+    for (int i = 0; i < mNumMasters; i++) {
+      File confDir = new File(mWorkDir, "conf-master" + i);
+      StringBuilder sb = new StringBuilder(commonProperties);
+      if (mMasterProperties.containsKey(i)) {
+        for (Entry<PropertyKey, String> entry : mMasterProperties.get(i).entrySet()) {
+          sb.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
+        }
+      }
+      writeConfToFile(confDir, sb.toString());
+    }
+    for (int i = 0; i < mNumWorkers; i++) {
+      File confDir = new File(mWorkDir, "conf-worker" + i);
+      StringBuilder sb = new StringBuilder(commonProperties);
+      if (mWorkerProperties.containsKey(i)) {
+        for (Entry<PropertyKey, String> entry : mWorkerProperties.get(i).entrySet()) {
+          sb.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
+        }
+      }
+      writeConfToFile(confDir, sb.toString());
     }
   }
 
@@ -456,6 +492,21 @@ public final class MultiProcessCluster implements TestRule {
     };
   }
 
+  /**
+   * Creates the conf directory and file.
+   * Writes the properties to the generated file.
+   *
+   * @param dir the conf directory to create
+   * @param content the content to write to the conf file
+   */
+  private void writeConfToFile(File dir, String content) throws IOException {
+    dir.mkdirs();
+    try (FileOutputStream fos
+             = new FileOutputStream(new File(dir, "alluxio-site.properties"))) {
+      fos.write(content.getBytes(Charsets.UTF_8));
+    }
+  }
+
   private static List<MasterNetAddress> generateMasterAddresses(int numMasters) throws IOException {
     List<MasterNetAddress> addrs = new ArrayList<>();
     for (int i = 0; i < numMasters; i++) {
@@ -481,6 +532,8 @@ public final class MultiProcessCluster implements TestRule {
    */
   public static final class Builder {
     private Map<PropertyKey, String> mProperties = new HashMap<>();
+    private Map<Integer, Map<PropertyKey, String>> mMasterProperties = new HashMap<>();
+    private Map<Integer, Map<PropertyKey, String>> mWorkerProperties = new HashMap<>();
     private int mNumMasters = 1;
     private int mNumWorkers = 1;
     private String mClusterName = "AlluxioMiniCluster";
@@ -508,6 +561,32 @@ public final class MultiProcessCluster implements TestRule {
       for (Entry<PropertyKey, String> entry : properties.entrySet()) {
         addProperty(entry.getKey(), entry.getValue());
       }
+      return this;
+    }
+
+    /**
+     * Sets master specific properties.
+     * The keys of the properties are the indexes of masters
+     * which are numbers between 0 to the number of masters(not included).
+     *
+     * @param properties the master properties to set
+     * @return the builder
+     */
+    public Builder setMasterProperties(Map<Integer, Map<PropertyKey, String>> properties) {
+      mMasterProperties = properties;
+      return this;
+    }
+
+    /**
+     * Sets worker specific properties.
+     * The keys of the properties are the indexes of workers
+     * which are numbers between 0 to the number of workers(not included).
+     *
+     * @param properties the worker properties to set
+     * @return the builder
+     */
+    public Builder setWorkerProperties(Map<Integer, Map<PropertyKey, String>> properties) {
+      mWorkerProperties = properties;
       return this;
     }
 
@@ -551,8 +630,8 @@ public final class MultiProcessCluster implements TestRule {
      * @return a constructed {@link MultiProcessCluster}
      */
     public MultiProcessCluster build() {
-      return new MultiProcessCluster(mProperties, mNumMasters, mNumWorkers, mClusterName,
-          mDeployMode);
+      return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
+          mNumMasters, mNumWorkers, mClusterName, mDeployMode);
     }
   }
 
