@@ -36,6 +36,8 @@ public class ServerConfigurationChecker {
   private final ServerConfigurationStore mWorkerStore;
   /** Contain the checker results. */
   private ConfigCheckReport mConfigCheckReport;
+  /** Listeners to call when this config checker logs its report. */
+  private final List<Runnable> mLogConfigReportListeners = new ArrayList<>();
 
   /**
    * Status of the check.
@@ -146,12 +148,14 @@ public class ServerConfigurationChecker {
       }
     }
 
-    // Update configuration status
     Status status = confErrors.values().stream().anyMatch(a -> a.size() > 0) ? Status.FAILED
         : confWarns.values().stream().anyMatch(a -> a.size() > 0) ? Status.WARN : Status.PASSED;
 
+    if (!status.equals(mConfigCheckReport.getStatus())) {
+      logConfigCheckReport();
+    }
+
     mConfigCheckReport = new ConfigCheckReport(confErrors, confWarns, status);
-    logConfigCheckReport();
   }
 
   /**
@@ -164,7 +168,7 @@ public class ServerConfigurationChecker {
   /**
    * Logs the configuration check report information.
    */
-  private void logConfigCheckReport() {
+  public synchronized void logConfigCheckReport() {
     Status reportStatus = mConfigCheckReport.getStatus();
     if (reportStatus.equals(Status.PASSED)) {
       LOG.info("Stauts: {}", reportStatus);
@@ -178,6 +182,9 @@ public class ServerConfigurationChecker {
           .map(Object::toString).collect(Collectors.joining(", ")));
       LOG.warn("Warnings: {}", mConfigCheckReport.getConfigWarns().values().stream()
           .map(Object::toString).collect(Collectors.joining(", ")));
+    }
+    for (Runnable function : mLogConfigReportListeners) {
+      function.run();
     }
   }
 
@@ -217,5 +224,14 @@ public class ServerConfigurationChecker {
         values.get(value).add(addressStr);
       }
     }
+  }
+
+  /**
+   * Registers callback functions to use when this checker logs its report.
+   *
+   * @param function the function to register
+   */
+  public void registerLogConfigReportListener(Runnable function) {
+    mLogConfigReportListeners.add(function);
   }
 }

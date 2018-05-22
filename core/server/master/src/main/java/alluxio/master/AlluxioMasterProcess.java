@@ -173,6 +173,9 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The worker configuration record. */
   private final ServerConfigurationStore mWorkerConfigStore;
 
+  /** The last log time of the config checker report. */
+  private long mLastConfigCheckerLogTimeMs;
+
   /** A factory for creating executor services when they are needed. */
   private ExecutorServiceFactory mExecutorServiceFactory;
 
@@ -252,6 +255,9 @@ public class AlluxioMasterProcess implements MasterProcess {
       mConfigChecker = new ServerConfigurationChecker(mMasterConfigStore, mWorkerConfigStore);
 
       mClock = new SystemClock();
+      mLastConfigCheckerLogTimeMs = System.currentTimeMillis();
+      mConfigChecker.registerLogConfigReportListener(this::updateLastLogTimeHandler);
+
       mExecutorServiceFactory = ExecutorServiceFactories
           .fixedThreadPoolExecutorServiceFactory(Constants.META_MASTER_NAME, 2);
       mMetaMasterClient = new MetaMasterMasterClient(MasterClientConfig.defaults());
@@ -456,6 +462,9 @@ public class AlluxioMasterProcess implements MasterProcess {
         mMetaMasterSync = new MetaMasterSync(mMasterId, mMasterAddress, mMetaMasterClient);
         mExecutorService.submit(new HeartbeatThread(HeartbeatContext.MASTER_SYNC, mMetaMasterSync,
             (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+        mExecutorService.submit(new HeartbeatThread(HeartbeatContext.MASTER_SYNC,
+            new LogConfigCheckReportHeartbeatExecutor(),
+            (int) Configuration.getMs(PropertyKey.MASTER_CONFIG_CHECKER_LOG_INTERVAL_MS)));
         LOG.info("Standby master with id {} starts sending heartbeat to leader master.", mMasterId);
       }
       mRegistry.start(isLeader);
@@ -648,6 +657,40 @@ public class AlluxioMasterProcess implements MasterProcess {
     public void close() {
       // Nothing to clean up
     }
+  }
+
+  /**
+   * Periodic log config check report.
+   */
+  private final class LogConfigCheckReportHeartbeatExecutor implements HeartbeatExecutor {
+
+    /**
+     * Constructs a new {@link LogConfigCheckReportHeartbeatExecutor}.
+     */
+    public LogConfigCheckReportHeartbeatExecutor() {
+    }
+
+    @Override
+    public void heartbeat() {
+      int logTimeoutMs
+          = (int) Configuration.getMs(PropertyKey.MASTER_CONFIG_CHECKER_LOG_TIMEOUT_MS);
+      final long lastLog = System.currentTimeMillis() - mLastConfigCheckerLogTimeMs;
+      if (lastLog > logTimeoutMs) {
+        mConfigChecker.logConfigCheckReport();
+      }
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
+  }
+
+  /**
+   * Updates the last log time of the config checker report.
+   */
+  private void updateLastLogTimeHandler() {
+    mLastConfigCheckerLogTimeMs = System.currentTimeMillis();
   }
 
   /**
