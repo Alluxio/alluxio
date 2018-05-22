@@ -134,7 +134,7 @@ case $1 in
     done
 
     if [[ "$mode" = "" ]]; then
-      mode=ro
+      mode=rw
     fi
 
     if [[ "$mode" != "ro" && "$mode" != "rw" ]]; then
@@ -150,11 +150,11 @@ case $1 in
     IFS="$old_ifs"
 
     if [[ ${#args[@]} -eq 2 ]]; then
-      echo "mount_fuse ${args[1]} / $mode"
+      mount_fuse ${args[1]} / $mode
       exit $?
     fi
     if [[ ${#args[@]} -eq 3 ]]; then
-      echo "mount_fuse ${args[1]} ${args[2]} $mode"
+      mount_fuse ${args[1]} ${args[2]} $mode
       exit $?
     fi
     echo -e "Usage\n\t$0 mount mount_point [alluxio_path] [-o <ro/rw>]\
