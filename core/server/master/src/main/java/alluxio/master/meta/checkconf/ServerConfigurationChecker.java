@@ -11,6 +11,7 @@
 
 package alluxio.master.meta.checkconf;
 
+import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.Scope;
 import alluxio.PropertyKey.ConsistencyCheckLevel;
@@ -32,14 +33,16 @@ public class ServerConfigurationChecker {
   private static final Logger LOG = LoggerFactory.getLogger(ServerConfigurationChecker.class);
   private static final String HELP_INFO = "For details, please visit Alluxio web UI or"
       + "run fsadmin doctor CLI.";
+  private static final long MAX_LOG_INTERVAL
+      = Configuration.getMs(PropertyKey.MASTER_CONFIG_REPORT_MAX_LOG_INTERVAL_MS);
   /** Contain all the master configuration information. */
   private final ServerConfigurationStore mMasterStore;
   /** Contain all the worker configuration information. */
   private final ServerConfigurationStore mWorkerStore;
   /** Contain the checker results. */
   private ConfigCheckReport mConfigCheckReport;
-  /** Listeners to call when this config checker logs its report. */
-  private final List<Runnable> mLogConfigReportListeners = new ArrayList<>();
+  /** The last time we logged the config checker report. */
+  private long mLastLogConfigReportTimeMs;
 
   /**
    * Status of the check.
@@ -120,6 +123,7 @@ public class ServerConfigurationChecker {
     mMasterStore = masterStore;
     mWorkerStore = workerStore;
     mConfigCheckReport = new ConfigCheckReport();
+    mLastLogConfigReportTimeMs = System.currentTimeMillis();
     mMasterStore.registerChangeListener(this::regenerateReport);
   }
 
@@ -154,7 +158,7 @@ public class ServerConfigurationChecker {
         : confWarns.values().stream().anyMatch(a -> a.size() > 0) ? Status.WARN : Status.PASSED;
 
     if (!status.equals(mConfigCheckReport.getStatus())) {
-      logConfigCheckReport();
+      logConfigReport();
     }
 
     mConfigCheckReport = new ConfigCheckReport(confErrors, confWarns, status);
@@ -170,7 +174,7 @@ public class ServerConfigurationChecker {
   /**
    * Logs the configuration check report information.
    */
-  public synchronized void logConfigCheckReport() {
+  public synchronized void logConfigReport() {
     Status reportStatus = mConfigCheckReport.getStatus();
     if (reportStatus.equals(Status.PASSED)) {
       LOG.info("Stauts: {}", reportStatus);
@@ -185,9 +189,7 @@ public class ServerConfigurationChecker {
       LOG.warn("Warnings: {}", mConfigCheckReport.getConfigWarns().values().stream()
           .map(Object::toString).collect(Collectors.joining(", ")));
     }
-    for (Runnable function : mLogConfigReportListeners) {
-      function.run();
-    }
+    mLastLogConfigReportTimeMs = System.currentTimeMillis();
   }
 
   /**
@@ -229,11 +231,14 @@ public class ServerConfigurationChecker {
   }
 
   /**
-   * Registers callback functions to use when this checker logs its report.
-   *
-   * @param function the function to register
+   * Checks if the time gap between current time and the last time that
+   * we logged the configuration report is bigger than the maximum log interval.
+   * If it is bigger, we log the configuration report.
    */
-  public void registerLogConfigReportListener(Runnable function) {
-    mLogConfigReportListeners.add(function);
+  public synchronized void checkAndLog() {
+    long logInterval = System.currentTimeMillis() - mLastLogConfigReportTimeMs;
+    if (logInterval > MAX_LOG_INTERVAL) {
+      logConfigReport();
+    }
   }
 }

@@ -128,9 +128,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   /** The start time for when the master started serving the RPC server. */
   private final long mStartTimeMs;
 
-  /** The last log time of the config checker report. */
-  private long mLastConfigCheckerLogTimeMs = System.currentTimeMillis();
-
   /** The master ID for this master. */
   private AtomicReference<Long> mMasterId = new AtomicReference<>(-1L);
 
@@ -162,7 +159,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
     mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
     mBlockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
-    mConfigChecker.registerLogConfigReportListener(this::updateLastLogTimeHandler);
   }
 
   @Override
@@ -216,7 +212,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_CONFIG_REPORT_LOG_SCHEDULING,
           new LogConfigCheckReportHeartbeatExecutor(),
-          (int) Configuration.getMs(PropertyKey.MASTER_CONFIG_REPORT_LOG_INTERVAL_MS)));
+          (int) Configuration.getMs(PropertyKey.MASTER_CONFIG_REPORT_MAX_LOG_INTERVAL_MS)));
     } else {
       // Standby master should setup MetaMasterSync to communicate with the leader master
       MetaMasterMasterClient metaMasterClient =
@@ -393,25 +389,13 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
     @Override
     public void heartbeat() {
-      int logTimeoutMs
-          = (int) Configuration.getMs(PropertyKey.MASTER_CONFIG_REPORT_LOG_TIMEOUT_MS);
-      final long lastLog = System.currentTimeMillis() - mLastConfigCheckerLogTimeMs;
-      if (lastLog > logTimeoutMs) {
-        mConfigChecker.logConfigCheckReport();
-      }
+      mConfigChecker.checkAndLog();
     }
 
     @Override
     public void close() {
       // Nothing to clean up
     }
-  }
-
-  /**
-   * Updates the last log time of the config checker report.
-   */
-  private void updateLastLogTimeHandler() {
-    mLastConfigCheckerLogTimeMs = System.currentTimeMillis();
   }
 
   /**
