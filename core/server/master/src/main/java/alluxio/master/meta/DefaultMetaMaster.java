@@ -212,7 +212,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
           new LogConfigReportHeartbeatExecutor(),
-          (int) Configuration.getMs(PropertyKey.MASTER_CONFIG_REPORT_MAX_LOG_INTERVAL_MS)));
+          (int) Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL_MS)));
     } else {
       // Standby master should setup MetaMasterSync to communicate with the leader master
       MetaMasterMasterClient metaMasterClient =
@@ -389,7 +389,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
     @Override
     public void heartbeat() {
-      mConfigChecker.checkAndLog();
+      mConfigChecker.logConfigReport();
     }
 
     @Override

@@ -11,7 +11,6 @@
 
 package alluxio.master.meta.checkconf;
 
-import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.Scope;
 import alluxio.PropertyKey.ConsistencyCheckLevel;
@@ -31,18 +30,20 @@ import java.util.stream.Collectors;
  */
 public class ServerConfigurationChecker {
   private static final Logger LOG = LoggerFactory.getLogger(ServerConfigurationChecker.class);
-  private static final String HELP_INFO = "For details, please visit Alluxio web UI or"
+  private static final int LOG_CONF_SIZE = 5;
+  private static final String CONSISTENT_CONFIGURATION_INFO
+      = "All server-side configuration are consistent.";
+  private static final String INCONSISTENT_CONFIGURATION_INFO
+      = "Inconsistent configuration detected. "
+      + "Only a limited set of inconsistent configuration will be shown here. "
+      + "For details, please visit Alluxio web UI or "
       + "run fsadmin doctor CLI.";
-  private static final long MAX_LOG_INTERVAL
-      = Configuration.getMs(PropertyKey.MASTER_CONFIG_REPORT_MAX_LOG_INTERVAL_MS);
   /** Contain all the master configuration information. */
   private final ServerConfigurationStore mMasterStore;
   /** Contain all the worker configuration information. */
   private final ServerConfigurationStore mWorkerStore;
   /** Contain the checker results. */
   private ConfigCheckReport mConfigCheckReport;
-  /** The last time we logged the config checker report. */
-  private long mLastLogConfigReportTimeMs;
 
   /**
    * Status of the check.
@@ -123,7 +124,6 @@ public class ServerConfigurationChecker {
     mMasterStore = masterStore;
     mWorkerStore = workerStore;
     mConfigCheckReport = new ConfigCheckReport();
-    mLastLogConfigReportTimeMs = System.currentTimeMillis();
     mMasterStore.registerChangeListener(this::regenerateReport);
   }
 
@@ -177,19 +177,18 @@ public class ServerConfigurationChecker {
   public synchronized void logConfigReport() {
     Status reportStatus = mConfigCheckReport.getStatus();
     if (reportStatus.equals(Status.PASSED)) {
-      LOG.info("Stauts: {}", reportStatus);
+      LOG.info(CONSISTENT_CONFIGURATION_INFO);
     } else if (reportStatus.equals(Status.WARN)) {
-      LOG.warn("Status: {}. {}", reportStatus, HELP_INFO);
-      LOG.warn("Warnings: {}", mConfigCheckReport.getConfigWarns().values().stream()
-          .map(Object::toString).collect(Collectors.joining(", ")));
+      LOG.warn("{}\nWarnings: {}", INCONSISTENT_CONFIGURATION_INFO,
+          mConfigCheckReport.getConfigWarns().values().stream()
+              .map(Object::toString).limit(LOG_CONF_SIZE).collect(Collectors.joining(", ")));
     } else {
-      LOG.error("Status: {}. {}", reportStatus, HELP_INFO);
-      LOG.error("Errors: {}", mConfigCheckReport.getConfigErrors().values().stream()
-          .map(Object::toString).collect(Collectors.joining(", ")));
-      LOG.warn("Warnings: {}", mConfigCheckReport.getConfigWarns().values().stream()
-          .map(Object::toString).collect(Collectors.joining(", ")));
+      LOG.error("{}\nErrors: {}\nWarnings: {}", INCONSISTENT_CONFIGURATION_INFO,
+          mConfigCheckReport.getConfigErrors().values().stream()
+              .map(Object::toString).limit(LOG_CONF_SIZE).collect(Collectors.joining(", ")),
+          mConfigCheckReport.getConfigWarns().values().stream()
+              .map(Object::toString).limit(LOG_CONF_SIZE).collect(Collectors.joining(", ")));
     }
-    mLastLogConfigReportTimeMs = System.currentTimeMillis();
   }
 
   /**
@@ -227,18 +226,6 @@ public class ServerConfigurationChecker {
         values.putIfAbsent(value, new ArrayList<>());
         values.get(value).add(addressStr);
       }
-    }
-  }
-
-  /**
-   * Checks if the time gap between current time and the last time that
-   * we logged the configuration report is bigger than the maximum log interval.
-   * If it is bigger, we log the configuration report.
-   */
-  public synchronized void checkAndLog() {
-    long logInterval = System.currentTimeMillis() - mLastLogConfigReportTimeMs;
-    if (logInterval > MAX_LOG_INTERVAL) {
-      logConfigReport();
     }
   }
 }

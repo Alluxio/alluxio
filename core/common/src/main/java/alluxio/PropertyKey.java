@@ -895,16 +895,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_CONFIG_REPORT_MAX_LOG_INTERVAL_MS =
-      new Builder(Name.MASTER_CONFIG_REPORT_MAX_LOG_INTERVAL_MS)
-          .setDefaultValue("1h")
-          .setDescription("If the time gap between the current time and "
-              + "the last time we logged the config checker report is bigger than "
-              + "this max log interval, the configuration checker will log"
-              + "its configuration check report.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.MASTER_CONNECTION_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.master.connection.timeout.ms"})
@@ -1098,6 +1088,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(String.format("${%s}/recompute.log", Name.LOGS_DIR))
           .setDescription("The path to the log that the recompute executor redirects the "
               + "job's stdout into.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL_MS =
+      new Builder(Name.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL_MS)
+          .setDefaultValue("1h")
+          .setDescription("The interval for periodically logging the configuration check report.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3002,8 +2999,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
         "alluxio.master.audit.logging.queue.capacity";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
-    public static final String MASTER_CONFIG_REPORT_MAX_LOG_INTERVAL_MS =
-        "alluxio.master.config.report.max.log.interval.ms";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
@@ -3039,6 +3034,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lineage.recompute.interval";
     public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
         "alluxio.master.lineage.recompute.log.path";
+    public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL_MS =
+        "alluxio.master.log.config.report.heartbeat.interval.ms";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
         "alluxio.master.periodic.block.integrity.check.repair";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
