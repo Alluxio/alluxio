@@ -65,6 +65,7 @@ public class ConfigurationTest {
   public void alias() throws Exception {
     try (Closeable p =
         new SystemPropertyRule("alluxio.master.worker.timeout.ms", "100").toResource()) {
+      Configuration.reset();
       assertEquals(100, Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS));
     }
   }

@@ -25,6 +25,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -54,15 +55,16 @@ public class AlluxioProperties {
   /**
    * Constructs a new instance of Alluxio properties.
    */
-  private AlluxioProperties(String sitePropertyFile) {
-  }
+  public AlluxioProperties() {}
 
   /**
-   * Factory method to initialize the default properties.
+   * Factory method to initialize the properties based on given source and properties pairs.
    *
+   * @param sourceMap the map from source to properties
+   * @return the created instance of Alluxio properties
    */
   public static AlluxioProperties create(Map<Source, Map<?, ?>> sourceMap) {
-    AlluxioProperties properties = new AlluxioProperties("");
+    AlluxioProperties properties = new AlluxioProperties();
     // Keep the order of sources from lowest to highest
     for (Source source : Arrays.asList(Source.SITE_PROPERTY, Source.SYSTEM_PROPERTY,
         Source.HADOOP_CONF)) {
@@ -121,7 +123,7 @@ public class AlluxioProperties {
    * @return true if there is value for the key, false otherwise
    */
   public boolean hasValueSet(String key) {
-    if (mUserProps.contains(key)) {
+    if (mUserProps.containsKey(key)) {
       return true;
     }
     return PropertyKey.isValid(key) && (PropertyKey.fromString(key).getDefaultValue() != null);
@@ -132,9 +134,12 @@ public class AlluxioProperties {
    */
   public Set<Map.Entry<String, String>> entrySet() {
     Set<Map.Entry<String, String>> entrySet =
-        PropertyKey.defaultKeys().stream().filter(key -> !mUserProps.contains(key.getName()))
-            .map(key -> Maps.immutableEntry(key.getName(), key.getDefaultValue())).collect(toSet());
-    entrySet.addAll(mUserProps.entrySet());
+        Stream.concat(
+            PropertyKey.defaultKeys().stream()
+                .filter(key -> !mUserProps.containsKey(key.getName()))
+                .map(key -> Maps.immutableEntry(key.getName(), key.getDefaultValue())),
+            mUserProps.entrySet().stream()).collect(toSet());
+
     return entrySet;
   }
 
@@ -208,9 +213,10 @@ public class AlluxioProperties {
         // Add unrecognized properties
         LOG.debug("Property {} from source {} is unrecognized", key, source);
         // Workaround for issue https://alluxio.atlassian.net/browse/ALLUXIO-3108
+        // This will register the key as a valid PropertyKey
         // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuration
         // is made dynamic
-        put(key, value);
+        put(new PropertyKey.Builder(key).build().getName(), value);
         setSource(key, source);
       }
     }

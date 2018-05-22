@@ -81,7 +81,6 @@ public final class Configuration {
   private static String sSitePropertyFile;
   private static Map<Source, Map<?, ?>> sSources = Maps.newHashMap();
 
-
   static {
     reset();
   }
@@ -117,24 +116,25 @@ public final class Configuration {
 
     // Save the sources and create the real configuration instance
     sSources.clear();
-    sSources.put(Source.SYSTEM_PROPERTY, System.getProperties());
-    sSources.put(Source.SITE_PROPERTY, siteProps);
+    addPropertiesFromSource(System.getProperties(), Source.SYSTEM_PROPERTY);
+    addPropertiesFromSource(siteProps, Source.SITE_PROPERTY);
     update();
   }
 
+  /**
+   * Updates the source of truth of properties.
+   */
   public static void update() {
     sProperties = AlluxioProperties.create(sSources);
     validate();
   }
 
   /**
-   * Merges the current configuration properties with alternate properties. A property from the new
-   * configuration wins if it also appears in the current configuration.
-   *
-   * @param properties The source {@link Properties} to be merged
+   * Adds a new source of properties.
+   *  @param properties The source {@link Properties} to be added
    * @param source The source of the the properties (e.g., system property, default and etc)
    */
-  public static void addSource(Source source, Map<?, ?> properties) {
+  public static void addPropertiesFromSource(Map<?, ?> properties, Source source) {
     sSources.put(source, properties);
   }
 
