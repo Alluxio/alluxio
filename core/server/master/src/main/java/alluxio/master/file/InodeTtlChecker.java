@@ -21,6 +21,7 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.file.options.FreeOptions;
 import alluxio.wire.TtlAction;
 
 import org.slf4j.Logger;
@@ -76,11 +77,10 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 // public free method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {
-                  mFileSystemMaster.delete(path,
-                      DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true));
+                  mFileSystemMaster
+                      .free(path, FreeOptions.defaults().setForced(true).setRecursive(true);
                 } else {
-                  mFileSystemMaster.delete(path,
-                      DeleteOptions.defaults().setRecursive(false).setAlluxioOnly(true));
+                  mFileSystemMaster.free(path, FreeOptions.defaults().setForced(true));
                 }
                 // Reset state
                 inode.setTtl(Constants.NO_TTL);
