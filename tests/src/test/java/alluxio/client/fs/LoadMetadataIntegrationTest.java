@@ -20,6 +20,7 @@ import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.GetStatusOptions;
+import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.UfsAbsentPathCache;
@@ -50,6 +51,8 @@ import java.io.FileWriter;
 public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private static final long SLEEP_MS = Constants.SECOND_MS / 2;
 
+  private static final long LONG_SLEEP_MS = Constants.SECOND_MS;
+
   private FileSystem mFileSystem;
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 
@@ -63,7 +66,9 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
       new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
-          new SleepingUnderFileSystemOptions().setExistsMs(SLEEP_MS)));
+          new SleepingUnderFileSystemOptions()
+              .setExistsMs(SLEEP_MS)
+              .setListStatusWithOptionsMs(LONG_SLEEP_MS)));
 
   @Before
   public void before() throws Exception {
@@ -185,6 +190,30 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     GetStatusOptions options = GetStatusOptions.defaults();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
+  }
+
+  @Test
+  public void loadRecursive() throws Exception {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Once.toString());
+    ListStatusOptions options = ListStatusOptions.defaults().setRecursive(true);
+    for (int i = 0; i < 10; i++) {
+      FileWriter fileWriter = new FileWriter(mLocalUfsPath + "/dir1/file" + i);
+      fileWriter.write("test" + i);
+      fileWriter.close();
+    }
+
+    for (int i = 0; i < 10; i++) {
+      FileWriter fileWriter = new FileWriter(mLocalUfsPath + "/dir1/dirA/file" + i);
+      fileWriter.write("test" + i);
+      fileWriter.close();
+    }
+    long startMs = CommonUtils.getCurrentMs();
+    mFileSystem.listStatus(new AlluxioURI ("/mnt"), options);
+    long durationMs = CommonUtils.getCurrentMs() - startMs;
+    // Should load metadata once, in one recursive call
+    Assert.assertTrue("Expected to be between one and two SLEEP_MS. actual duration (ms): " + durationMs,
+        durationMs >= LONG_SLEEP_MS && durationMs <= 2 * LONG_SLEEP_MS);
+
   }
 
   /**
