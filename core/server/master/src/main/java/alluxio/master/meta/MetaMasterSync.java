@@ -73,22 +73,15 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   }
 
   /**
-   * Registers with the Alluxio master. This should be called
-   * before the continuous heartbeat thread begins.
-   */
-  private void registerWithMaster() throws IOException {
-    mMasterClient.register(mMasterId.get(),
-        Configuration.getConfiguration(PropertyKey.Scope.MASTER));
-  }
-
-  /**
    * Heartbeats to the leader master node.
    */
   @Override
   public void heartbeat() {
     MetaCommand command = null;
     try {
-      setMasterId();
+      if (mMasterId.get() == -1L) {
+        setIdAndRegister();
+      }
       command = mMasterClient.heartbeat(mMasterId.get());
       handleCommand(command);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
@@ -127,8 +120,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
         break;
       // Leader master requests re-registration
       case Register:
-        mMasterId.set(mMasterClient.getId(mMasterAddress));
-        registerWithMaster();
+        setIdAndRegister();
         break;
       // Unknown request
       case Unknown:
@@ -140,9 +132,9 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   }
 
   /**
-   * Sets the master id.
+   * Sets the master id and registers with the Alluxio leader master.
    */
-  private void setMasterId() {
+  private void setIdAndRegister() throws IOException {
     try {
       RetryUtils.retry("get master id",
           () -> mMasterId.set(mMasterClient.getId(mMasterAddress)),
@@ -157,6 +149,9 @@ public final class MetaMasterSync implements HeartbeatExecutor {
     }
 
     Preconditions.checkNotNull(mMasterId, "mMasterId");
+
+    mMasterClient.register(mMasterId.get(),
+        Configuration.getConfiguration(PropertyKey.Scope.MASTER));
   }
 
   @Override
