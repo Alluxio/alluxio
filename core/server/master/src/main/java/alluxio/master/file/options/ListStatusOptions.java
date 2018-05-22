@@ -26,6 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class ListStatusOptions {
   private CommonOptions mCommonOptions;
   private LoadMetadataType mLoadMetadataType;
+  private boolean mRecursive;
 
   /**
    * @return the default {@link ListStatusOptions}
@@ -38,6 +39,7 @@ public final class ListStatusOptions {
     super();
     mCommonOptions = CommonOptions.defaults();
     mLoadMetadataType = LoadMetadataType.Once;
+    mRecursive = false;
   }
 
   /**
@@ -56,6 +58,7 @@ public final class ListStatusOptions {
       } else if (!options.isLoadDirectChildren()) {
         mLoadMetadataType = LoadMetadataType.Never;
       }
+      mRecursive = options.isRecursive();
     }
   }
 
@@ -72,6 +75,13 @@ public final class ListStatusOptions {
    */
   public LoadMetadataType getLoadMetadataType() {
     return mLoadMetadataType;
+  }
+
+  /**
+   * @return whether to list status recursively
+   */
+  public boolean isRecursive() {
+    return mRecursive;
   }
 
   /**
@@ -94,6 +104,17 @@ public final class ListStatusOptions {
     return this;
   }
 
+  /**
+   * Sets the {@link ListStatusOptions#mRecursive}.
+   *
+   * @param recursive whether to recursively list status
+   * @return the updated options
+   */
+  public ListStatusOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -104,12 +125,13 @@ public final class ListStatusOptions {
     }
     ListStatusOptions that = (ListStatusOptions) o;
     return Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
-        && Objects.equal(mCommonOptions, that.mCommonOptions);
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
+        && Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType, mCommonOptions);
+    return Objects.hashCode(mLoadMetadataType, mCommonOptions, mRecursive);
   }
 
   @Override
@@ -117,6 +139,7 @@ public final class ListStatusOptions {
     return Objects.toStringHelper(this)
         .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
+        .add("recursive", mRecursive)
         .toString();
   }
 }

@@ -65,7 +65,7 @@ public interface FileSystem {
     private Factory() {} // prevent instantiation
 
     public static FileSystem get() {
-      return get(FileSystemContext.INSTANCE);
+      return get(FileSystemContext.get());
     }
 
     public static FileSystem get(FileSystemContext context) {

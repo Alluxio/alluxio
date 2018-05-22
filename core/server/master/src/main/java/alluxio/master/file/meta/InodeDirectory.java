@@ -172,6 +172,26 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   }
 
   /**
+   * Before calling this method, the caller should hold at least a READ LOCK on the inode.
+   *
+   * @return true if we have loaded all the direct and indirect children's metadata once
+   */
+  public synchronized boolean areDescendantsLoaded() {
+    if (!isDirectChildrenLoaded()) {
+      return false;
+    }
+    for (Inode<?> inode : getChildren()) {
+      if (inode.isDirectory()) {
+        InodeDirectory inodeDirectory = (InodeDirectory) inode;
+        if (!inodeDirectory.areDescendantsLoaded()) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
    * Removes the given inode from the directory.
    *
    * @param child the Inode to remove

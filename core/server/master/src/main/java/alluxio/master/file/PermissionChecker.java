@@ -44,7 +44,7 @@ public interface PermissionChecker {
    * @throws InvalidPathException if the path is invalid
    */
   void checkPermission(Mode.Bits bits, LockedInodePath inodePath)
-      throws AccessControlException, InvalidPathException;
+      throws AccessControlException;
 
   /**
    * Gets the permission to access inodePath for the current client user.

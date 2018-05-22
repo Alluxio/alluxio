@@ -69,7 +69,7 @@ public final class AlluxioBlockStore {
    * @return the {@link AlluxioBlockStore} created
    */
   public static AlluxioBlockStore create() {
-    return create(FileSystemContext.INSTANCE);
+    return create(FileSystemContext.get());
   }
 
   /**
