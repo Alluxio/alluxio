@@ -97,8 +97,7 @@ public final class BlockLockManagerTest {
     // Read-lock on can both get through
     long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager
-        .tryLockBlock(TEST_SESSION_ID + 1, TEST_BLOCK_ID, BlockLockType.WRITE, 1000,
-            TimeUnit.MILLISECONDS);
+        .tryLockBlock(TEST_SESSION_ID + 1, TEST_BLOCK_ID, BlockLockType.WRITE);
     assertNotEquals(lockId1, lockId2);
     assertEquals(BlockLockManager.INVALID_LOCK_ID, lockId2);
   }

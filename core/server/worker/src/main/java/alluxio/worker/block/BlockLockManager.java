@@ -106,27 +106,20 @@ public final class BlockLockManager {
   /**
    * Locks a block. Note that even if this block does not exist, a lock id is still returned.
    *
-   * If all {@link PropertyKey#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
-   * been allocated for the specified block, this method will need to wait until a lock can be
-   * acquired from the lock pool within the given waiting time.
+   * Acquires a valid lock from lock pool,only if all
+   * {@link PropertyKey#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
+   * been allocated for the specified block at the time of invocation.
+   * This method will return immediately with a lock id or {@link BlockLockManager#INVALID_LOCK_ID}
    *
    * @param sessionId the session id
    * @param blockId the block id
    * @param blockLockType {@link BlockLockType#READ} or {@link BlockLockType#WRITE}
-   * @param maximumTime the maximum time to wait for the lock
-   * @param timeUnit the time unit of the {@code time} argument
    * @return lock id or {@link BlockLockManager#INVALID_LOCK_ID}
    */
-  public long tryLockBlock(long sessionId, long blockId, BlockLockType blockLockType,
-      long maximumTime, TimeUnit timeUnit) {
+  public long tryLockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
     Lock lock = getBlockRWLock(sessionId, blockId, blockLockType);
-    try {
-      if (!lock.tryLock(maximumTime, timeUnit)) {
-        return INVALID_LOCK_ID;
-      }
-    } catch (InterruptedException e) {
-      LOG.warn("The session {} tried to take a lock on block {} was interrupted", sessionId,
-          blockId, e);
+    if (!lock.tryLock()) {
+      return INVALID_LOCK_ID;
     }
     return storeLock(sessionId, blockId, lock);
   }

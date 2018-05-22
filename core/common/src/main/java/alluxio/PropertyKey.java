@@ -1894,14 +1894,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_TIERED_STORE_TRY_LOCK_BLOCK_MAX_MS =
-      new Builder(Name.WORKER_TIERED_STORE_TRY_LOCK_BLOCK_MAX_MS)
-          .setAlias(new String[]{"alluxio.worker.tieredstore.lock.block.timeout.ms"})
-          .setDefaultValue(20000)
-          .setDescription("The time of trying to take a lock on block")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_TIERED_STORE_RETRY =
       new Builder(Name.WORKER_TIERED_STORE_RETRY)
           .setDefaultValue(3)
@@ -3191,8 +3183,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.tieredstore.reserver.enabled";
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval";
-    public static final String WORKER_TIERED_STORE_TRY_LOCK_BLOCK_MAX_MS =
-        "alluxio.worker.tieredstore.try.lock.block.max.ms";
     public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";

@@ -55,7 +55,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -99,8 +98,6 @@ public class TieredBlockStore implements BlockStore {
       (int) Configuration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
   private static final int MAX_RETRIES =
       Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
-  private static final int TRY_LOCK_BLOCK_TIMEOUT_MS =
-      Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_TRY_LOCK_BLOCK_MAX_MS);
 
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
@@ -814,8 +811,7 @@ public class TieredBlockStore implements BlockStore {
       BlockStoreLocation oldLocation, BlockStoreLocation newLocation)
       throws BlockDoesNotExistException, BlockAlreadyExistsException,
       InvalidWorkerStateException, IOException {
-    long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE,
-        TRY_LOCK_BLOCK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE);
     if (lockId == BlockLockManager.INVALID_LOCK_ID) {
       return new MoveBlockResult(false, 0, null, null);
     }
