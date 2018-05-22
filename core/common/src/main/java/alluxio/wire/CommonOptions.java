@@ -31,7 +31,7 @@ public final class CommonOptions implements Serializable {
   private static final long serialVersionUID = -1491370184123698287L;
 
   private long mSyncIntervalMs;
-  /** Below ttl and ttl action are for loading files */
+  /** Below ttl and ttl action are for loading files. */
   private long mTtl;
   private TtlAction mTtlAction;
 
@@ -105,7 +105,7 @@ public final class CommonOptions implements Serializable {
   }
 
   /**
-   * @param ttl time to live for files loaded by client, in milliseconds.
+   * @param ttl time to live for files loaded by client, in milliseconds
    * @return the updated options object
    */
   public CommonOptions setTtl(long ttl) {
@@ -114,7 +114,7 @@ public final class CommonOptions implements Serializable {
   }
 
   /**
-   * @param ttlAction action after ttl expired. DELETE by default.
+   * @param ttlAction action after ttl expired. DELETE by default
    * @return the updated options object
    */
   public CommonOptions setTtlAction(TtlAction ttlAction) {
