@@ -14,13 +14,17 @@ package alluxio.master.meta;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryUtils;
 import alluxio.thrift.MetaCommand;
 import alluxio.wire.Address;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -38,12 +42,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class MetaMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterSync.class);
 
-  /**
-   * The ID of this standby master.
-   * This may change if the leader master asks the standby master to re-register.
-   */
-  private final AtomicReference<Long> mMasterId;
-
   /** The address of this standby master. */
   private final Address mMasterAddress;
 
@@ -56,23 +54,22 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  /** The ID of this standby master. */
+  private AtomicReference<Long> mMasterId = new AtomicReference<>(-1L);
+
   /**
    * Creates a new instance of {@link MetaMasterSync}.
    *
-   * @param masterId the master id
    * @param masterAddress the master address
    * @param masterClient the meta master client
    */
-  public MetaMasterSync(AtomicReference<Long>  masterId,
-      Address masterAddress, MetaMasterMasterClient masterClient) throws IOException {
+  public MetaMasterSync(Address masterAddress, MetaMasterMasterClient masterClient)
+      throws IOException {
     // TODO(lu) should avoid throw exception in Java constructor to avoid half-baked class instances
-    mMasterId = masterId;
     mMasterAddress = masterAddress;
     mMasterClient = masterClient;
-    mHeartbeatTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_TIMEOUT_MS);
-
-    registerWithMaster();
-    mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
+    mHeartbeatTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
+    mLastSuccessfulHeartbeatMs = System.currentTimeMillis() - mHeartbeatTimeoutMs;
   }
 
   /**
@@ -91,6 +88,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   public void heartbeat() {
     MetaCommand command = null;
     try {
+      setMasterId();
       command = mMasterClient.heartbeat(mMasterId.get());
       handleCommand(command);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
@@ -139,6 +137,26 @@ public final class MetaMasterSync implements HeartbeatExecutor {
       default:
         throw new RuntimeException("Un-recognized command from leader master " + cmd);
     }
+  }
+
+  /**
+   * Sets the master id.
+   */
+  private void setMasterId() {
+    try {
+      RetryUtils.retry("get master id",
+          () -> mMasterId.set(mMasterClient.getId(mMasterAddress)),
+          ExponentialTimeBoundedRetry.builder()
+              .withMaxDuration(Duration
+                  .ofDays(100))
+              .withInitialSleep(Duration.ofMillis(100))
+              .withMaxSleep(Duration.ofSeconds(5))
+              .build());
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to get a master id from leader master: " + e.getMessage());
+    }
+
+    Preconditions.checkNotNull(mMasterId, "mMasterId");
   }
 
   @Override

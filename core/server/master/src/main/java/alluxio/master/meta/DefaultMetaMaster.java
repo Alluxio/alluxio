@@ -31,8 +31,6 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.retry.ExponentialTimeBoundedRetry;
-import alluxio.retry.RetryUtils;
 import alluxio.thrift.MetaCommand;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.thrift.MetaMasterMasterService;
@@ -44,7 +42,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
 import alluxio.wire.ConfigProperty;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import org.apache.thrift.TProcessor;
@@ -54,14 +51,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Clock;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -125,9 +120,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   /** The address of this master. */
   private Address mMasterAddress;
-
-  /** The master ID for this master. */
-  private AtomicReference<Long> mMasterId = new AtomicReference<>(-1L);
 
   /**
    * Creates a new instance of {@link DefaultMetaMaster}.
@@ -208,18 +200,16 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
-          (int) Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL_MS)));
+          (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL_MS)));
     } else {
       // Standby master should setup MetaMasterSync to communicate with the leader master
       MetaMasterMasterClient metaMasterClient =
           new MetaMasterMasterClient(MasterClientConfig.defaults());
-      setMasterId(metaMasterClient);
-      MetaMasterSync metaMasterSync =
-          new MetaMasterSync(mMasterId, mMasterAddress, metaMasterClient);
       getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
-          metaMasterSync,
-          (int) Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL_MS)));
-      LOG.info("Standby master with id {} starts sending heartbeat to leader master.", mMasterId);
+          new MetaMasterSync(mMasterAddress, metaMasterClient),
+          (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL_MS)));
+      LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
+          mMasterAddress);
     }
   }
 
@@ -348,7 +338,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     @Override
     public void heartbeat() {
       int masterTimeoutMs =
-          (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_TIMEOUT_MS);
+          (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
       for (MasterInfo master : mMasters) {
         synchronized (master) {
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
@@ -367,27 +357,5 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     public void close() {
       // Nothing to clean up
     }
-  }
-
-  /**
-   * Sets the master id. This method should only be called when this master is a standby master.
-   *
-   * @param metaMasterClient the meta master client to communicate with leader master
-   */
-  private void setMasterId(MetaMasterMasterClient metaMasterClient) {
-    try {
-      RetryUtils.retry("get master id",
-          () -> mMasterId.set(metaMasterClient.getId(mMasterAddress)),
-          ExponentialTimeBoundedRetry.builder()
-              .withMaxDuration(Duration
-                  .ofMillis(Configuration.getMs(PropertyKey.USER_RPC_RETRY_LARGE_NUM_RETRY)))
-              .withInitialSleep(Duration.ofMillis(100))
-              .withMaxSleep(Duration.ofSeconds(5))
-              .build());
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to get a master id from leader master: " + e.getMessage());
-    }
-
-    Preconditions.checkNotNull(mMasterId, "mMasterId");
   }
 }
