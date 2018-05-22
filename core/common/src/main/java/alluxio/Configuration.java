@@ -16,6 +16,7 @@ import alluxio.conf.AlluxioProperties;
 import alluxio.conf.Source;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
@@ -77,6 +78,10 @@ public final class Configuration {
    */
   private static AlluxioProperties sProperties;
 
+  private static String sSitePropertyFile;
+  private static Map<Source, Map<?, ?>> sSources = Maps.newHashMap();
+
+
   static {
     reset();
   }
@@ -88,7 +93,37 @@ public final class Configuration {
    * default property values.
    */
   public static void reset() {
-    sProperties = AlluxioProperties.create();
+    // bootstrap the configuration because we need to resolve alluxio home to locate the conf dir
+    // to search for the site properties
+    Map<Source, Map<?, ?>> sources = Maps.newHashMap();
+    sources.put(Source.SYSTEM_PROPERTY, System.getProperties());
+    sProperties = AlluxioProperties.create(sources);
+    Properties siteProps = new Properties();
+    // Load site specific properties file if not in test mode. Note that we decide whether in test
+    // mode by default properties and system properties (via getBoolean). After figuring out the
+    // path of site properties file, sProperties will be updated again.
+    if (!Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+      // we are not in test mode, load site properties
+      String confPaths = Configuration.get(PropertyKey.SITE_CONF_DIR);
+      String[] confPathList = confPaths.split(",");
+      sSitePropertyFile =
+          ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
+      if (sSitePropertyFile != null) {
+        siteProps = ConfigurationUtils.loadPropertiesFromFile(sSitePropertyFile);
+      } else {
+        siteProps = ConfigurationUtils.loadPropertiesFromResource(Constants.SITE_PROPERTIES);
+      }
+    }
+
+    // Save the sources and create the real configuration instance
+    sSources.clear();
+    sSources.put(Source.SYSTEM_PROPERTY, System.getProperties());
+    sSources.put(Source.SITE_PROPERTY, siteProps);
+    update();
+  }
+
+  public static void update() {
+    sProperties = AlluxioProperties.create(sSources);
     validate();
   }
 
@@ -99,8 +134,8 @@ public final class Configuration {
    * @param properties The source {@link Properties} to be merged
    * @param source The source of the the properties (e.g., system property, default and etc)
    */
-  public static void merge(Map<?, ?> properties, Source source) {
-    sProperties.merge(properties, source);
+  public static void addSource(Source source, Map<?, ?> properties) {
+    sSources.put(source, properties);
   }
 
   // Public accessor methods
@@ -434,7 +469,7 @@ public final class Configuration {
    */
   @Nullable
   public static String getSitePropertiesFile() {
-    return sProperties.getSitePropertiesFile();
+    return sSitePropertyFile;
   }
 
   /**

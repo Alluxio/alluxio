@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
- * "License"). You may not use this work except in compliance with the License, which is available
- * at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -13,15 +13,13 @@ package alluxio.conf;
 
 import static java.util.stream.Collectors.toSet;
 
-import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -34,16 +32,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Provides the source of truth of property values and a unified abstraction to put and get
  * properties, hiding the difference of accessing user-specified properties, the default properties
- * (known at construction time) and the extension properties (known at runtime).
- * This class is supposed to handle the ordering and priority of properties from different sources,
- * whereas the <code>Configuration</code> class is supposed to handle the type conversion on top of
- * the source of truth of the properties.
+ * (known at construction time) and the extension properties (known at runtime). This class is
+ * supposed to handle the ordering and priority of properties from different sources, whereas the
+ * <code>Configuration</code> class is supposed to handle the type conversion on top of the source
+ * of truth of the properties.
  *
  * For a given property key, the order of preference of its value is (from highest to lowest)
  *
- * (1) system properties,
- * (2) properties in the specified file (site-properties),
- * (3) default property values.
+ * (1) system properties, (2) properties in the specified file (site-properties), (3) default
+ * property values.
  */
 @NotThreadSafe
 public class AlluxioProperties {
@@ -54,51 +51,26 @@ public class AlluxioProperties {
   /** Map of property sources. */
   private final ConcurrentHashMap<String, Source> mSources = new ConcurrentHashMap<>();
 
-  private final Map<Source, Properties> mPropBySource = new HashMap<>();
-  private final String mSitePropertyFile;
-
   /**
    * Constructs a new instance of Alluxio properties.
    */
   private AlluxioProperties(String sitePropertyFile) {
-    mSitePropertyFile = sitePropertyFile;
   }
 
   /**
    * Factory method to initialize the default properties.
    *
    */
-  public static AlluxioProperties create() {
-    // Load system properties
-    Properties systemProps = new Properties();
-    systemProps.putAll(System.getProperties());
-
-    String sitePropertyFile = "";
-    Properties siteProps = new Properties();
-    // Load site specific properties file if not in test mode. Note that we decide whether in test
-    // mode by default properties and system properties (via getBoolean). If it is not in test mode
-    // the PROPERTIES will be updated again.
-    if (!Boolean.valueOf(PropertyKey.TEST_MODE.getDefaultValue())
-        && !Boolean.valueOf(systemProps.getProperty(PropertyKey.TEST_MODE.getName()))) {
-      // we are not in test mode, load site properties
-      String confPaths = PropertyKey.SITE_CONF_DIR.getDefaultValue();
-      if (systemProps.contains(PropertyKey.SITE_CONF_DIR.getName())) {
-        confPaths = systemProps.getProperty(PropertyKey.SITE_CONF_DIR.getName());
-      }
-      String[] confPathList = confPaths.split(",");
-      sitePropertyFile =
-          ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
-      if (sitePropertyFile != null) {
-        siteProps = ConfigurationUtils.loadPropertiesFromFile(sitePropertyFile);
-        LOG.info("Configuration file {} loaded.", sitePropertyFile);
-      } else {
-        siteProps = ConfigurationUtils.loadPropertiesFromResource(Constants.SITE_PROPERTIES);
+  public static AlluxioProperties create(Map<Source, Map<?, ?>> sourceMap) {
+    AlluxioProperties properties = new AlluxioProperties("");
+    // Keep the order of sources from lowest to highest
+    for (Source source : Arrays.asList(Source.SITE_PROPERTY, Source.SYSTEM_PROPERTY,
+        Source.HADOOP_CONF)) {
+      if (sourceMap.containsKey(source)) {
+        Map<?, ?> map = sourceMap.get(source);
+        properties.merge(map, source);
       }
     }
-    // Now lets combine, order matters here
-    AlluxioProperties properties = new AlluxioProperties(sitePropertyFile);
-    properties.merge(siteProps, Source.SITE_PROPERTY);
-    properties.merge(systemProps, Source.SYSTEM_PROPERTY);
     return properties;
   }
 
@@ -159,10 +131,9 @@ public class AlluxioProperties {
    * @return the entry set of all Alluxio property key and value pairs (value can be null)
    */
   public Set<Map.Entry<String, String>> entrySet() {
-    Set<Map.Entry<String, String>> entrySet = PropertyKey.defaultKeys().stream()
-        .filter(key -> !mUserProps.contains(key.getName()))
-        .map(key -> Maps.immutableEntry(key.getName(), key.getDefaultValue()))
-        .collect(toSet());
+    Set<Map.Entry<String, String>> entrySet =
+        PropertyKey.defaultKeys().stream().filter(key -> !mUserProps.contains(key.getName()))
+            .map(key -> Maps.immutableEntry(key.getName(), key.getDefaultValue())).collect(toSet());
     entrySet.addAll(mUserProps.entrySet());
     return entrySet;
   }
@@ -243,12 +214,5 @@ public class AlluxioProperties {
         setSource(key, source);
       }
     }
-  }
-
-  /**
-   * @return the path to the site property file
-   */
-  public String getSitePropertiesFile() {
-    return mSitePropertyFile;
   }
 }
