@@ -277,7 +277,7 @@ public final class FileInStreamTest {
     mTestStream.seek(seekAmount + readAmount);
     // Seek a short way past start of block 3
     mTestStream.seek((long) (BLOCK_LENGTH * 3.1));
-    assertEquals((byte) (BLOCK_LENGTH * 3.1), mTestStream.read());
+    assertEquals(BufferUtils.byteToInt((byte) (BLOCK_LENGTH * 3.1)), mTestStream.read());
     mTestStream.seek(FILE_LENGTH);
   }
 
@@ -515,7 +515,7 @@ public final class FileInStreamTest {
     assertEquals(0, mTestStream.skip(0));
     // Skip the next half block, bringing us to block 3
     assertEquals(BLOCK_LENGTH / 2, mTestStream.skip(BLOCK_LENGTH / 2));
-    assertEquals((byte) (BLOCK_LENGTH * 3), mTestStream.read());
+    assertEquals(BufferUtils.byteToInt((byte) (BLOCK_LENGTH * 3)), mTestStream.read());
   }
 
   /**

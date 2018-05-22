@@ -35,6 +35,8 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -104,6 +106,7 @@ public final class PermissionCheckerTest {
   private static MasterRegistry sRegistry;
   private static SafeModeManager sSafeModeManager;
   private static long sStartTimeMs;
+  private static MetricsMaster sMetricsMaster;
 
   private PermissionChecker mPermissionChecker;
 
@@ -178,8 +181,11 @@ public final class PermissionCheckerTest {
     sSafeModeManager = new DefaultSafeModeManager();
     sStartTimeMs = System.currentTimeMillis();
     JournalSystem journalSystem = new NoopJournalSystem();
-    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, journalSystem,
-        sSafeModeManager, sStartTimeMs);
+    sMetricsMaster = new MetricsMasterFactory()
+        .create(sRegistry, journalSystem, sSafeModeManager, sStartTimeMs);
+    sRegistry.add(MetricsMaster.class, sMetricsMaster);
+    BlockMaster blockMaster =
+        new BlockMasterFactory().create(sRegistry, journalSystem, sSafeModeManager, sStartTimeMs);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);
@@ -211,7 +217,7 @@ public final class PermissionCheckerTest {
   @Before
   public void before() throws Exception {
     AuthenticatedClientUser.remove();
-    mPermissionChecker = new PermissionChecker(sTree);
+    mPermissionChecker = new DefaultPermissionChecker(sTree);
   }
 
   /**

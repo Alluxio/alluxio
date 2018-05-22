@@ -38,17 +38,6 @@ public final class BlockLocation implements Serializable {
   public BlockLocation() {}
 
   /**
-   * Creates a new instance of {@link BlockLocation} from a thrift representation.
-   *
-   * @param blockLocation the thrift representation of a block location
-   */
-  protected BlockLocation(alluxio.thrift.BlockLocation blockLocation) {
-    mWorkerId = blockLocation.getWorkerId();
-    mWorkerAddress = new WorkerNetAddress(blockLocation.getWorkerAddress());
-    mTierAlias = blockLocation.getTierAlias();
-  }
-
-  /**
    * @return the worker id
    */
   public long getWorkerId() {
@@ -103,6 +92,19 @@ public final class BlockLocation implements Serializable {
    */
   protected alluxio.thrift.BlockLocation toThrift() {
     return new alluxio.thrift.BlockLocation(mWorkerId, mWorkerAddress.toThrift(), mTierAlias);
+  }
+
+  /**
+   * Creates a new instance of {@link BlockLocation} from a thrift representation.
+   *
+   * @param blockLocation the thrift representation of a block location
+   * @return the instance
+   */
+  public static BlockLocation fromThrift(alluxio.thrift.BlockLocation blockLocation) {
+    return new BlockLocation()
+        .setWorkerId(blockLocation.getWorkerId())
+        .setWorkerAddress(WorkerNetAddress.fromThrift(blockLocation.getWorkerAddress()))
+        .setTierAlias(blockLocation.getTierAlias());
   }
 
   @Override

@@ -39,7 +39,7 @@ public class JobConfInfoTest {
   @Test
   public void thrift() {
     JobConfInfo jobConfInfo = createRandom();
-    JobConfInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(jobConfInfo));
+    JobConfInfo other = JobConfInfo.fromThrift(jobConfInfo.toThrift());
     checkEquality(jobConfInfo, other);
   }
 

@@ -24,6 +24,7 @@ import alluxio.master.file.StartupConsistencyCheck.Status;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -65,6 +66,7 @@ public class MasterTestUtils {
     SafeModeManager safeModeManager = new TestSafeModeManager();
     long startTimeMs = System.currentTimeMillis();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
+    new MetricsMasterFactory().create(registry, journalSystem, safeModeManager, startTimeMs);
     new BlockMasterFactory().create(registry, journalSystem, safeModeManager, startTimeMs);
     new FileSystemMasterFactory().create(registry, journalSystem, safeModeManager, startTimeMs);
     journalSystem.start();

@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 /**
  * Unit tests for the {@link Configuration} class.
@@ -674,5 +675,58 @@ public class ConfigurationTest {
     assertEquals(100, Configuration.getInt(key));
     x.set(20);
     assertEquals(20, Configuration.getInt(key));
+  }
+
+  @Test
+  public void toMap() throws Exception {
+    // Create a nested property to test
+    String testKeyName = "alluxio.extensions.dir";
+    PropertyKey nestedKey = PropertyKey.SECURITY_LOGIN_USERNAME;
+    String nestedValue = String.format("${%s}.test", testKeyName);
+    Configuration.set(nestedKey, nestedValue);
+
+    Map<String, String> resolvedMap = Configuration.toMap();
+
+    // Test if the value of the created nested property is correct
+    assertEquals(Configuration.get(PropertyKey.fromString(testKeyName)),
+        resolvedMap.get(testKeyName));
+    String nestedResolvedValue = String.format("%s.test", resolvedMap.get(testKeyName));
+    assertEquals(nestedResolvedValue, resolvedMap.get(nestedKey.toString()));
+
+    // Test if the values in the resolvedMap is resolved
+    String resolvedValue1 = String.format("%s/extensions", resolvedMap.get("alluxio.home"));
+    assertEquals(resolvedValue1, resolvedMap.get(testKeyName));
+
+    String resolvedValue2 =  String.format("%s/logs", resolvedMap.get("alluxio.work.dir"));
+    assertEquals(resolvedValue2, resolvedMap.get("alluxio.logs.dir"));
+
+    // Test if the resolvedMap include all kinds of properties
+    assertTrue(resolvedMap.containsKey("alluxio.debug"));
+    assertTrue(resolvedMap.containsKey("alluxio.fuse.fs.name"));
+    assertTrue(resolvedMap.containsKey("alluxio.logserver.logs.dir"));
+    assertTrue(resolvedMap.containsKey("alluxio.master.journal.folder"));
+    assertTrue(resolvedMap.containsKey("alluxio.proxy.web.port"));
+    assertTrue(resolvedMap.containsKey("alluxio.security.authentication.type"));
+    assertTrue(resolvedMap.containsKey("alluxio.user.block.master.client.threads"));
+    assertTrue(resolvedMap.containsKey("alluxio.worker.bind.host"));
+  }
+
+  @Test
+  public void toRawMap() throws Exception {
+    // Create a nested property to test
+    PropertyKey testKey = PropertyKey.SECURITY_LOGIN_USERNAME;
+    String testValue = String.format("${%s}.test", "alluxio.extensions.dir");
+    Configuration.set(testKey, testValue);
+
+    Map<String, String> rawMap = Configuration.toRawMap();
+
+    // Test if the value of the created nested property remains raw
+    assertEquals(testValue, rawMap.get(testKey.toString()));
+
+    // Test if some values in raw map is of ${VALUE} format
+    String regexString = "(\\$\\{([^{}]*)\\})";
+    Pattern confRegex = Pattern.compile(regexString);
+    assertTrue(confRegex.matcher(rawMap.get("alluxio.locality.script")).find());
+    assertTrue(confRegex.matcher(rawMap.get("alluxio.logs.dir")).find());
   }
 }

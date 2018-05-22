@@ -34,7 +34,8 @@ public final class RestartableTestingServer extends TestingServer {
   }
 
   /**
-   * Restarts the internal testing server.
+   * Restarts the internal testing server. It is required to call {@link #stop()} before calling
+   * {@link #restart()}.
    */
   public void restart() throws Exception {
     mTestingZooKeeperServer.restart();

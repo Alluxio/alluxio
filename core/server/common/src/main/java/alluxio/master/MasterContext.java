@@ -45,7 +45,7 @@ public final class MasterContext {
   /**
    * @return the manager for master safe mode
    */
-  public SafeModeManager getmSafeModeManager() {
+  public SafeModeManager getSafeModeManager() {
     return mSafeModeManager;
   }
 

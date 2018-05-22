@@ -27,7 +27,6 @@ public final class DataFileChannel implements DataBuffer {
   private final long mLength;
 
   /**
-   *
    * @param file The file
    * @param offset The offset into the FileChannel
    * @param length The length of the data to read

@@ -11,12 +11,12 @@
 
 package alluxio.master.lineage;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
@@ -34,6 +34,8 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -66,6 +68,7 @@ public final class LineageMasterTest {
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
+  private MetricsMaster mMetricsMaster;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -78,12 +81,14 @@ public final class LineageMasterTest {
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem = new NoopJournalSystem();
-    mFileSystemMaster = mock(FileSystemMaster.class);
-    mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mSafeModeManager = new DefaultSafeModeManager();
-    mStartTimeMs = System.currentTimeMillis();
+    mMetricsMaster = new MetricsMasterFactory()
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
+    mRegistry.add(MetricsMaster.class, mMetricsMaster);
+    mFileSystemMaster = mock(FileSystemMaster.class);
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
+    mStartTimeMs = System.currentTimeMillis();
     mLineageMaster = new DefaultLineageMaster(mFileSystemMaster,
         new MasterContext(journalSystem, mSafeModeManager, mStartTimeMs),
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));

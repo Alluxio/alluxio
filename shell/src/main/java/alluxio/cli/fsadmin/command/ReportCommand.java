@@ -162,7 +162,7 @@ public final class ReportCommand implements Command {
 
       // Check if Alluxio master and client services are running
       try (CloseableResource<FileSystemMasterClient> client =
-               FileSystemContext.INSTANCE.acquireMasterClientResource()) {
+               FileSystemContext.get().acquireMasterClientResource()) {
         MasterInquireClient inquireClient = null;
         try {
           InetSocketAddress address = client.get().getAddress();
