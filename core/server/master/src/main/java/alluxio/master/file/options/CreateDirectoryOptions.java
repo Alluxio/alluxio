@@ -15,7 +15,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.util.SecurityUtils;
 import alluxio.wire.CommonOptions;
-import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 
@@ -51,8 +50,6 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
       mAllowExists = options.isAllowExists();
       mPersisted = options.isPersisted();
       mRecursive = options.isRecursive();
-      mTtl = options.getTtl();
-      mTtlAction = TtlAction.fromThrift(options.getTtlAction());
       if (SecurityUtils.isAuthenticationEnabled()) {
         mOwner = SecurityUtils.getOwnerFromThriftClient();
         mGroup = SecurityUtils.getGroupFromThriftClient();

@@ -27,9 +27,7 @@ struct CreateDirectoryTOptions {
   2: optional bool recursive
   3: optional bool allowExists
   4: optional i16 mode
-  5: optional i64 ttl
-  6: optional common.TTtlAction ttlAction
-  7: optional FileSystemMasterCommonTOptions commonOptions
+  5: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct CreateDirectoryTResponse {}
 
@@ -37,10 +35,8 @@ struct CreateFileTOptions {
   1: optional i64 blockSizeBytes
   2: optional bool persisted
   3: optional bool recursive
-  4: optional i64 ttl
-  5: optional i16 mode
-  6: optional common.TTtlAction ttlAction
-  7: optional FileSystemMasterCommonTOptions commonOptions
+  4: optional i16 mode
+  5: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct CreateFileTResponse {}
 

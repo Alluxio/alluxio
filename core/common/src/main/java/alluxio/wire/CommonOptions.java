@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.FileSystemMasterCommonTOptions;
@@ -44,7 +45,7 @@ public final class CommonOptions implements Serializable {
 
   protected CommonOptions() {
     mSyncIntervalMs = Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-    mTtl = -1;
+    mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
   }
 
@@ -59,6 +60,12 @@ public final class CommonOptions implements Serializable {
       if (options.isSetSyncIntervalMs()) {
         mSyncIntervalMs = options.getSyncIntervalMs();
       }
+      if (options.isSetTtl()) {
+        mTtl = options.getTtl();
+      }
+      if (options.isSetTtlAction()) {
+        mTtlAction = TtlAction.fromThrift(options.getTtlAction());
+      }
     }
   }
 
@@ -71,6 +78,8 @@ public final class CommonOptions implements Serializable {
     this();
     if (options != null) {
       mSyncIntervalMs = options.mSyncIntervalMs;
+      mTtl = options.mTtl;
+      mTtlAction = options.mTtlAction;
     }
   }
 

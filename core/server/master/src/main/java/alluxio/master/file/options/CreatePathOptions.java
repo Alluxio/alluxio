@@ -36,8 +36,6 @@ public abstract class CreatePathOptions<T> {
   // TODO(peis): Rename this to mCreateAncestors.
   protected boolean mRecursive;
   protected boolean mMetadataLoad;
-  protected long mTtl;
-  protected TtlAction mTtlAction;
 
   protected CreatePathOptions() {
     mCommonOptions = CommonOptions.defaults();
@@ -122,14 +120,14 @@ public abstract class CreatePathOptions<T> {
    *         should be kept around before it is automatically deleted
    */
   public long getTtl() {
-    return mTtl;
+    return getCommonOptions().getTtl();
   }
 
   /**
    * @return action {@link TtlAction} after ttl expired
    */
   public TtlAction getTtlAction() {
-    return mTtlAction;
+    return getCommonOptions().getTtlAction();
   }
 
   /**
@@ -223,7 +221,7 @@ public abstract class CreatePathOptions<T> {
    * @return the updated options object
    */
   public T setTtl(long ttl) {
-    mTtl = ttl;
+    getCommonOptions().setTtl(ttl);
     return getThis();
   }
 
@@ -232,7 +230,7 @@ public abstract class CreatePathOptions<T> {
    * @return the updated options object
    */
   public T setTtlAction(TtlAction ttlAction) {
-    mTtlAction = ttlAction;
+    getCommonOptions().setTtlAction(ttlAction);
     return getThis();
   }
 
@@ -253,16 +251,14 @@ public abstract class CreatePathOptions<T> {
         && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mMetadataLoad, that.mMetadataLoad)
-        && mOperationTimeMs == that.mOperationTimeMs
-        && mTtl == that.mTtl
-        && Objects.equal(mTtlAction, that.mTtlAction);
+        && mOperationTimeMs == that.mOperationTimeMs;
   }
 
   @Override
   public int hashCode() {
     return Objects
         .hashCode(mMountPoint, mOwner, mGroup, mMode, mPersisted, mRecursive, mMetadataLoad,
-            mOperationTimeMs, mCommonOptions, mTtl, mTtlAction);
+            mOperationTimeMs, mCommonOptions);
   }
 
   protected Objects.ToStringHelper toStringHelper() {
@@ -275,8 +271,6 @@ public abstract class CreatePathOptions<T> {
         .add("mode", mMode)
         .add("persisted", mPersisted)
         .add("recursive", mRecursive)
-        .add("metadataLoad", mMetadataLoad)
-        .add("ttl", mTtl)
-        .add("ttlAction", mTtlAction);
+        .add("metadataLoad", mMetadataLoad);
   }
 }
