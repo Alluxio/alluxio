@@ -20,6 +20,9 @@ import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
 
+/**
+ * Command for exporting a backup of the Alluxio master journal.
+ */
 public class ExportJournalCommand extends AbstractFsAdminCommand {
   /**
    * @param context fsadmin command context
@@ -38,19 +41,20 @@ public class ExportJournalCommand extends AbstractFsAdminCommand {
     String[] args = cl.getArgs();
     Preconditions.checkState(args.length == 1);
     AlluxioURI uri = new AlluxioURI(args[0]);
-    String backup = mMetaClient.exportJournal(uri);
+    AlluxioURI backup = mMetaClient.exportJournal(uri);
     mPrintStream.printf("Successfully exported journal to %s\n", backup);
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "exportJournal uri";
+    return "exportJournal directoryUri";
   }
 
   @Override
   public String getDescription() {
-    return "exportJournal exports the journal to the given URI. Exporting the journal"
+    return "exportJournal exports the journal to the given directory. The directory can be any URI"
+        + " that Alluxio has permissions to write to. Exporting the journal"
         + " requires a pause in master metadata changes, so use journal export sparingly to"
         + " avoid interfering with other users of the system.";
   }

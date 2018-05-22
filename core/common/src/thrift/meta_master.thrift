@@ -37,10 +37,10 @@ struct MasterInfo {
 }
 
 struct ExportJournalTOptions {
- 1: string uri
+ 1: string targetDirectoryUri
 }
 struct ExportJournalTResponse {
- 1: string uri
+ 1: string backupUri
 }
 
 struct GetMasterInfoTOptions {

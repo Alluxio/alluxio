@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
 import java.io.PrintStream;
 
 /**
- * Context for runnign an fsadmin command.
+ * Context for running an fsadmin command.
  */
 public final class Context {
   private final FileSystemMasterClient mFsClient;

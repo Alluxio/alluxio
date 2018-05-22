@@ -24,7 +24,6 @@ import alluxio.util.ConfigurationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -55,13 +54,8 @@ public final class FileSystemAdminShell extends AbstractShell {
       System.out.println("Cannot run fsadmin shell as master hostname is not configured.");
       System.exit(1);
     }
-    int rc = -1;
-    try (FileSystemAdminShell shell = new FileSystemAdminShell()) {
-      rc = shell.run(args);
-    } catch (IOException e) {
-      LOG.error("Error closing shell", e);
-    }
-    System.exit(rc);
+    FileSystemAdminShell fsAdminShell = new FileSystemAdminShell();
+    System.exit(fsAdminShell.run(args));
   }
 
   @Override

@@ -30,7 +30,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * A master process in the Alluxio system.
  */
 public interface MasterProcess extends Process {
-
   /**
    * Factory for creating {@link MasterProcess}.
    */

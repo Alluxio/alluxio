@@ -28,7 +28,7 @@ public final class MasterContext {
   /**
    * @param journalSystem the journal system to use for tracking master operations
    * @param safeModeManager the manager for master safe mode
-   * @param stateLock a lock which must be held before modifying persistent state
+   * @param stateLock a lock which must be taken before modifying persistent (journaled) state
    */
   public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager, Lock stateLock) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");

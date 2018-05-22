@@ -58,7 +58,7 @@ public abstract class AbstractMaster implements Master {
   /** The manager for safe mode state. */
   protected final SafeModeManager mSafeModeManager;
 
-  /** A lock which must be taken before modifying any persistent state */
+  /** A lock which must be taken before modifying persistent (journaled) state. */
   private final Lock mStateLock;
 
   /**

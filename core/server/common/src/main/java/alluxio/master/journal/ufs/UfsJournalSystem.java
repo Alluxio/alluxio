@@ -17,6 +17,7 @@ import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.URIUtils;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,7 +128,8 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public boolean isEmpty() {
+  public synchronized boolean isEmpty() {
+    Preconditions.checkState(getMode().equals(Mode.PRIMARY));
     for (UfsJournal journal : mJournals.values()) {
       if (journal.getNextSequenceNumberToWrite() > 0) {
         return false;

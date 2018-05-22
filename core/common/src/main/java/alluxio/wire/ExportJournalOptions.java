@@ -15,15 +15,18 @@ import alluxio.thrift.ExportJournalTOptions;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Options for exporting the Alluxio master journal.
+ */
 public class ExportJournalOptions {
   // URI to export the journal to.
-  private String mUri;
+  private String mTargetDirectory;
 
   /**
-   * @param uri the uri to export the journal to
+   * @param targetDirectory uri of the directory to export the journal to
    */
-  public ExportJournalOptions(String uri) {
-    mUri = Preconditions.checkNotNull(uri, "uri");
+  public ExportJournalOptions(String targetDirectory) {
+    mTargetDirectory = Preconditions.checkNotNull(targetDirectory, "uri");
   }
 
   /**
@@ -31,20 +34,20 @@ public class ExportJournalOptions {
    * @return wire type options corresponding to the thrift options
    */
   public static ExportJournalOptions fromThrift(ExportJournalTOptions tOpts) {
-    return new ExportJournalOptions(tOpts.getUri());
+    return new ExportJournalOptions(tOpts.getTargetDirectoryUri());
   }
 
   /**
    * @return the thrift options corresponding to these options
    */
   public ExportJournalTOptions toThrift() {
-    return new ExportJournalTOptions().setUri(mUri);
+    return new ExportJournalTOptions().setTargetDirectoryUri(mTargetDirectory);
   }
 
   /**
    * @return the uri to export the journal to
    */
-  public String getUri() {
-    return mUri;
+  public String getTargetDirectory() {
+    return mTargetDirectory;
   }
 }

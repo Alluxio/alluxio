@@ -71,7 +71,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
     return RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<ExportJournalTResponse>) () -> {
           String uri = mMasterProcess.exportJournal(ExportJournalOptions.fromThrift(options));
-          return new ExportJournalTResponse().setUri(uri);
+          return new ExportJournalTResponse().setBackupUri(uri);
         });
   }
 

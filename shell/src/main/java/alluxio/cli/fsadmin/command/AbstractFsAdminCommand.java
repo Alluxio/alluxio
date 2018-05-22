@@ -23,7 +23,6 @@ import java.io.PrintStream;
  * master, and meta master.
  */
 public abstract class AbstractFsAdminCommand implements Command {
-
   protected final FileSystemMasterClient mFsClient;
   protected final BlockMasterClient mBlockClient;
   protected final MetaMasterClient mMetaClient;

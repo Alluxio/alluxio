@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJournalTOptions, ExportJournalTOptions._Fields>, java.io.Serializable, Cloneable, Comparable<ExportJournalTOptions> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ExportJournalTOptions");
 
-  private static final org.apache.thrift.protocol.TField URI_FIELD_DESC = new org.apache.thrift.protocol.TField("uri", org.apache.thrift.protocol.TType.STRING, (short)1);
+  private static final org.apache.thrift.protocol.TField TARGET_DIRECTORY_URI_FIELD_DESC = new org.apache.thrift.protocol.TField("targetDirectoryUri", org.apache.thrift.protocol.TType.STRING, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -46,11 +46,11 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
     schemes.put(TupleScheme.class, new ExportJournalTOptionsTupleSchemeFactory());
   }
 
-  private String uri; // required
+  private String targetDirectoryUri; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    URI((short)1, "uri");
+    TARGET_DIRECTORY_URI((short)1, "targetDirectoryUri");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -65,8 +65,8 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // URI
-          return URI;
+        case 1: // TARGET_DIRECTORY_URI
+          return TARGET_DIRECTORY_URI;
         default:
           return null;
       }
@@ -110,7 +110,7 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.URI, new org.apache.thrift.meta_data.FieldMetaData("uri", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.TARGET_DIRECTORY_URI, new org.apache.thrift.meta_data.FieldMetaData("targetDirectoryUri", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ExportJournalTOptions.class, metaDataMap);
@@ -120,18 +120,18 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
   }
 
   public ExportJournalTOptions(
-    String uri)
+    String targetDirectoryUri)
   {
     this();
-    this.uri = uri;
+    this.targetDirectoryUri = targetDirectoryUri;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public ExportJournalTOptions(ExportJournalTOptions other) {
-    if (other.isSetUri()) {
-      this.uri = other.uri;
+    if (other.isSetTargetDirectoryUri()) {
+      this.targetDirectoryUri = other.targetDirectoryUri;
     }
   }
 
@@ -141,40 +141,40 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
 
   @Override
   public void clear() {
-    this.uri = null;
+    this.targetDirectoryUri = null;
   }
 
-  public String getUri() {
-    return this.uri;
+  public String getTargetDirectoryUri() {
+    return this.targetDirectoryUri;
   }
 
-  public ExportJournalTOptions setUri(String uri) {
-    this.uri = uri;
+  public ExportJournalTOptions setTargetDirectoryUri(String targetDirectoryUri) {
+    this.targetDirectoryUri = targetDirectoryUri;
     return this;
   }
 
-  public void unsetUri() {
-    this.uri = null;
+  public void unsetTargetDirectoryUri() {
+    this.targetDirectoryUri = null;
   }
 
-  /** Returns true if field uri is set (has been assigned a value) and false otherwise */
-  public boolean isSetUri() {
-    return this.uri != null;
+  /** Returns true if field targetDirectoryUri is set (has been assigned a value) and false otherwise */
+  public boolean isSetTargetDirectoryUri() {
+    return this.targetDirectoryUri != null;
   }
 
-  public void setUriIsSet(boolean value) {
+  public void setTargetDirectoryUriIsSet(boolean value) {
     if (!value) {
-      this.uri = null;
+      this.targetDirectoryUri = null;
     }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case URI:
+    case TARGET_DIRECTORY_URI:
       if (value == null) {
-        unsetUri();
+        unsetTargetDirectoryUri();
       } else {
-        setUri((String)value);
+        setTargetDirectoryUri((String)value);
       }
       break;
 
@@ -183,8 +183,8 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case URI:
-      return getUri();
+    case TARGET_DIRECTORY_URI:
+      return getTargetDirectoryUri();
 
     }
     throw new IllegalStateException();
@@ -197,8 +197,8 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
     }
 
     switch (field) {
-    case URI:
-      return isSetUri();
+    case TARGET_DIRECTORY_URI:
+      return isSetTargetDirectoryUri();
     }
     throw new IllegalStateException();
   }
@@ -216,12 +216,12 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
     if (that == null)
       return false;
 
-    boolean this_present_uri = true && this.isSetUri();
-    boolean that_present_uri = true && that.isSetUri();
-    if (this_present_uri || that_present_uri) {
-      if (!(this_present_uri && that_present_uri))
+    boolean this_present_targetDirectoryUri = true && this.isSetTargetDirectoryUri();
+    boolean that_present_targetDirectoryUri = true && that.isSetTargetDirectoryUri();
+    if (this_present_targetDirectoryUri || that_present_targetDirectoryUri) {
+      if (!(this_present_targetDirectoryUri && that_present_targetDirectoryUri))
         return false;
-      if (!this.uri.equals(that.uri))
+      if (!this.targetDirectoryUri.equals(that.targetDirectoryUri))
         return false;
     }
 
@@ -232,10 +232,10 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_uri = true && (isSetUri());
-    list.add(present_uri);
-    if (present_uri)
-      list.add(uri);
+    boolean present_targetDirectoryUri = true && (isSetTargetDirectoryUri());
+    list.add(present_targetDirectoryUri);
+    if (present_targetDirectoryUri)
+      list.add(targetDirectoryUri);
 
     return list.hashCode();
   }
@@ -248,12 +248,12 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetUri()).compareTo(other.isSetUri());
+    lastComparison = Boolean.valueOf(isSetTargetDirectoryUri()).compareTo(other.isSetTargetDirectoryUri());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetUri()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.uri, other.uri);
+    if (isSetTargetDirectoryUri()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.targetDirectoryUri, other.targetDirectoryUri);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -278,11 +278,11 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
     StringBuilder sb = new StringBuilder("ExportJournalTOptions(");
     boolean first = true;
 
-    sb.append("uri:");
-    if (this.uri == null) {
+    sb.append("targetDirectoryUri:");
+    if (this.targetDirectoryUri == null) {
       sb.append("null");
     } else {
-      sb.append(this.uri);
+      sb.append(this.targetDirectoryUri);
     }
     first = false;
     sb.append(")");
@@ -328,10 +328,10 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
           break;
         }
         switch (schemeField.id) {
-          case 1: // URI
+          case 1: // TARGET_DIRECTORY_URI
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.uri = iprot.readString();
-              struct.setUriIsSet(true);
+              struct.targetDirectoryUri = iprot.readString();
+              struct.setTargetDirectoryUriIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -351,9 +351,9 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.uri != null) {
-        oprot.writeFieldBegin(URI_FIELD_DESC);
-        oprot.writeString(struct.uri);
+      if (struct.targetDirectoryUri != null) {
+        oprot.writeFieldBegin(TARGET_DIRECTORY_URI_FIELD_DESC);
+        oprot.writeString(struct.targetDirectoryUri);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -374,12 +374,12 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
     public void write(org.apache.thrift.protocol.TProtocol prot, ExportJournalTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetUri()) {
+      if (struct.isSetTargetDirectoryUri()) {
         optionals.set(0);
       }
       oprot.writeBitSet(optionals, 1);
-      if (struct.isSetUri()) {
-        oprot.writeString(struct.uri);
+      if (struct.isSetTargetDirectoryUri()) {
+        oprot.writeString(struct.targetDirectoryUri);
       }
     }
 
@@ -388,8 +388,8 @@ public class ExportJournalTOptions implements org.apache.thrift.TBase<ExportJour
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
-        struct.uri = iprot.readString();
-        struct.setUriIsSet(true);
+        struct.targetDirectoryUri = iprot.readString();
+        struct.setTargetDirectoryUriIsSet(true);
       }
     }
   }

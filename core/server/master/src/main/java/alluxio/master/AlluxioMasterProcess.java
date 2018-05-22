@@ -91,7 +91,11 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The port for the RPC server. */
   private final int mPort;
 
-  /** A lock for which the read lock must be held before modifying persistent master state. */
+  /**
+   * Lock guarding all persistent master state. The read lock must be taken before making any
+   * modification to master state. Holding the write lock allows a thread to guarantee that no
+   * other threads will modify master state.
+   */
   private final ReadWriteLock mStateLock;
 
   /** The socket for thrift rpc server. */
@@ -187,7 +191,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public String exportJournal(ExportJournalOptions options) throws IOException {
-    AlluxioURI uri = new AlluxioURI(options.getUri());
+    AlluxioURI uri = new AlluxioURI(options.getTargetDirectory());
     LOG.info("Exporting journal backup to {}", uri);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(uri.toString());
     if (!ufs.isDirectory(uri.getPath())) {
@@ -364,7 +368,8 @@ public class AlluxioMasterProcess implements MasterProcess {
     try {
       if (isLeader) {
         if (Configuration.containsKey(PropertyKey.MASTER_JOURNAL_INIT_FROM_SNAPSHOT)) {
-          AlluxioURI snapshot = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_SNAPSHOT));
+          AlluxioURI snapshot =
+              new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_SNAPSHOT));
           if (!mJournalSystem.isEmpty()) {
             throw new IllegalStateException(String.format("Cannot init journal from %s when the"
                 + " journal is not formatted. Please format the journal first", snapshot));

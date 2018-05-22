@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJournalTResponse, ExportJournalTResponse._Fields>, java.io.Serializable, Cloneable, Comparable<ExportJournalTResponse> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ExportJournalTResponse");
 
-  private static final org.apache.thrift.protocol.TField URI_FIELD_DESC = new org.apache.thrift.protocol.TField("uri", org.apache.thrift.protocol.TType.STRING, (short)1);
+  private static final org.apache.thrift.protocol.TField BACKUP_URI_FIELD_DESC = new org.apache.thrift.protocol.TField("backupUri", org.apache.thrift.protocol.TType.STRING, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -46,11 +46,11 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
     schemes.put(TupleScheme.class, new ExportJournalTResponseTupleSchemeFactory());
   }
 
-  private String uri; // required
+  private String backupUri; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    URI((short)1, "uri");
+    BACKUP_URI((short)1, "backupUri");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -65,8 +65,8 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // URI
-          return URI;
+        case 1: // BACKUP_URI
+          return BACKUP_URI;
         default:
           return null;
       }
@@ -110,7 +110,7 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.URI, new org.apache.thrift.meta_data.FieldMetaData("uri", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.BACKUP_URI, new org.apache.thrift.meta_data.FieldMetaData("backupUri", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ExportJournalTResponse.class, metaDataMap);
@@ -120,18 +120,18 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
   }
 
   public ExportJournalTResponse(
-    String uri)
+    String backupUri)
   {
     this();
-    this.uri = uri;
+    this.backupUri = backupUri;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public ExportJournalTResponse(ExportJournalTResponse other) {
-    if (other.isSetUri()) {
-      this.uri = other.uri;
+    if (other.isSetBackupUri()) {
+      this.backupUri = other.backupUri;
     }
   }
 
@@ -141,40 +141,40 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
 
   @Override
   public void clear() {
-    this.uri = null;
+    this.backupUri = null;
   }
 
-  public String getUri() {
-    return this.uri;
+  public String getBackupUri() {
+    return this.backupUri;
   }
 
-  public ExportJournalTResponse setUri(String uri) {
-    this.uri = uri;
+  public ExportJournalTResponse setBackupUri(String backupUri) {
+    this.backupUri = backupUri;
     return this;
   }
 
-  public void unsetUri() {
-    this.uri = null;
+  public void unsetBackupUri() {
+    this.backupUri = null;
   }
 
-  /** Returns true if field uri is set (has been assigned a value) and false otherwise */
-  public boolean isSetUri() {
-    return this.uri != null;
+  /** Returns true if field backupUri is set (has been assigned a value) and false otherwise */
+  public boolean isSetBackupUri() {
+    return this.backupUri != null;
   }
 
-  public void setUriIsSet(boolean value) {
+  public void setBackupUriIsSet(boolean value) {
     if (!value) {
-      this.uri = null;
+      this.backupUri = null;
     }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case URI:
+    case BACKUP_URI:
       if (value == null) {
-        unsetUri();
+        unsetBackupUri();
       } else {
-        setUri((String)value);
+        setBackupUri((String)value);
       }
       break;
 
@@ -183,8 +183,8 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case URI:
-      return getUri();
+    case BACKUP_URI:
+      return getBackupUri();
 
     }
     throw new IllegalStateException();
@@ -197,8 +197,8 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
     }
 
     switch (field) {
-    case URI:
-      return isSetUri();
+    case BACKUP_URI:
+      return isSetBackupUri();
     }
     throw new IllegalStateException();
   }
@@ -216,12 +216,12 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
     if (that == null)
       return false;
 
-    boolean this_present_uri = true && this.isSetUri();
-    boolean that_present_uri = true && that.isSetUri();
-    if (this_present_uri || that_present_uri) {
-      if (!(this_present_uri && that_present_uri))
+    boolean this_present_backupUri = true && this.isSetBackupUri();
+    boolean that_present_backupUri = true && that.isSetBackupUri();
+    if (this_present_backupUri || that_present_backupUri) {
+      if (!(this_present_backupUri && that_present_backupUri))
         return false;
-      if (!this.uri.equals(that.uri))
+      if (!this.backupUri.equals(that.backupUri))
         return false;
     }
 
@@ -232,10 +232,10 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_uri = true && (isSetUri());
-    list.add(present_uri);
-    if (present_uri)
-      list.add(uri);
+    boolean present_backupUri = true && (isSetBackupUri());
+    list.add(present_backupUri);
+    if (present_backupUri)
+      list.add(backupUri);
 
     return list.hashCode();
   }
@@ -248,12 +248,12 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetUri()).compareTo(other.isSetUri());
+    lastComparison = Boolean.valueOf(isSetBackupUri()).compareTo(other.isSetBackupUri());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetUri()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.uri, other.uri);
+    if (isSetBackupUri()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.backupUri, other.backupUri);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -278,11 +278,11 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
     StringBuilder sb = new StringBuilder("ExportJournalTResponse(");
     boolean first = true;
 
-    sb.append("uri:");
-    if (this.uri == null) {
+    sb.append("backupUri:");
+    if (this.backupUri == null) {
       sb.append("null");
     } else {
-      sb.append(this.uri);
+      sb.append(this.backupUri);
     }
     first = false;
     sb.append(")");
@@ -328,10 +328,10 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
           break;
         }
         switch (schemeField.id) {
-          case 1: // URI
+          case 1: // BACKUP_URI
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.uri = iprot.readString();
-              struct.setUriIsSet(true);
+              struct.backupUri = iprot.readString();
+              struct.setBackupUriIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -351,9 +351,9 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.uri != null) {
-        oprot.writeFieldBegin(URI_FIELD_DESC);
-        oprot.writeString(struct.uri);
+      if (struct.backupUri != null) {
+        oprot.writeFieldBegin(BACKUP_URI_FIELD_DESC);
+        oprot.writeString(struct.backupUri);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -374,12 +374,12 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
     public void write(org.apache.thrift.protocol.TProtocol prot, ExportJournalTResponse struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetUri()) {
+      if (struct.isSetBackupUri()) {
         optionals.set(0);
       }
       oprot.writeBitSet(optionals, 1);
-      if (struct.isSetUri()) {
-        oprot.writeString(struct.uri);
+      if (struct.isSetBackupUri()) {
+        oprot.writeString(struct.backupUri);
       }
     }
 
@@ -388,8 +388,8 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
-        struct.uri = iprot.readString();
-        struct.setUriIsSet(true);
+        struct.backupUri = iprot.readString();
+        struct.setBackupUriIsSet(true);
       }
     }
   }
