@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,15 +41,20 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * For a given property key, the order of preference of its value is (from highest to lowest)
  *
- * (1) system properties, (2) properties in the specified file (site-properties), (3) default
- * property values.
+ * (1) hadoop config
+ * (2) system properties,
+ * (3) properties in the specified file (site-properties),
+ * (4) default property values.
  */
 @NotThreadSafe
 public class AlluxioProperties {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioProperties.class);
 
-  /** Map of user-specified properties. Value CANNOT be null. */
-  private final ConcurrentHashMap<String, String> mUserProps = new ConcurrentHashMap<>();
+  /**
+   * Map of user-specified properties. When key is mapped to Optional.empty(), it indicates no
+   * value is set for this key. Note that, ConcurrentHashMap requires not null for key and value.
+   */
+  private final ConcurrentHashMap<String, Optional<String>> mUserProps = new ConcurrentHashMap<>();
   /** Map of property sources. */
   private final ConcurrentHashMap<String, Source> mSources = new ConcurrentHashMap<>();
 
@@ -83,7 +89,7 @@ public class AlluxioProperties {
   @Nullable
   public String get(String key) {
     if (mUserProps.containsKey(key)) {
-      return mUserProps.get(key);
+      return mUserProps.get(key).orElse(null);
     }
     // fromString will check if the key is valid or throw RTE
     return PropertyKey.fromString(key).getDefaultValue();
@@ -104,16 +110,16 @@ public class AlluxioProperties {
    * @param value value to put
    */
   public void put(String key, String value) {
-    mUserProps.put(key, value);
+    mUserProps.put(key, Optional.ofNullable(value));
   }
 
   /**
-   * Remove the key and value.
+   * Remove the value set to key.
    *
    * @param key key to put
    */
   public void remove(String key) {
-    mUserProps.remove(key);
+    mUserProps.put(key, Optional.empty());
   }
 
   /**
@@ -124,7 +130,7 @@ public class AlluxioProperties {
    */
   public boolean hasValueSet(String key) {
     if (mUserProps.containsKey(key)) {
-      return true;
+      return mUserProps.get(key).isPresent();
     }
     return PropertyKey.isValid(key) && (PropertyKey.fromString(key).getDefaultValue() != null);
   }
@@ -138,7 +144,9 @@ public class AlluxioProperties {
             PropertyKey.defaultKeys().stream()
                 .filter(key -> !mUserProps.containsKey(key.getName()))
                 .map(key -> Maps.immutableEntry(key.getName(), key.getDefaultValue())),
-            mUserProps.entrySet().stream()).collect(toSet());
+            mUserProps.entrySet().stream()
+                .map(entry -> Maps.immutableEntry(entry.getKey(), entry.getValue().orElse(null))))
+            .collect(toSet());
 
     return entrySet;
   }

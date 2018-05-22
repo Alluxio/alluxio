@@ -65,20 +65,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
 
-  /**
-   * Regex string to find "${key}" for variable substitution.
-   */
+  /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
-  /**
-   * Regex to find ${key} for variable substitution.
-   */
+  /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
-  /**
-   * Map of properties.
-   */
+  /** Source of the truth of all property values (default or customized). */
   private static AlluxioProperties sProperties;
-
+  /** Path of site properties file. */
   private static String sSitePropertyFile;
+  /** Map from source to properties. */
   private static Map<Source, Map<?, ?>> sSources = Maps.newHashMap();
 
   static {
@@ -86,21 +81,19 @@ public final class Configuration {
   }
 
   /**
-   * Initializes the default {@link Configuration}.
-   *
-   * The order of preference is (1) system properties, (2) properties in the specified file, (3)
-   * default property values.
+   * Resets {@link Configuration} back to the default one.
    */
   public static void reset() {
-    // bootstrap the configuration because we need to resolve alluxio home to locate the conf dir
-    // to search for the site properties
-    Map<Source, Map<?, ?>> sources = Maps.newHashMap();
-    sources.put(Source.SYSTEM_PROPERTY, System.getProperties());
-    sProperties = AlluxioProperties.create(sources);
+    // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio.home
+    // (likely to be in system properties) to locate the conf dir to search for the site property
+    // file.
+    sSources.clear();
+    addPropertiesFromSource(System.getProperties(), Source.SYSTEM_PROPERTY);
+    update();
+
+    // Step2: Load site specific properties file if not in test mode. Note that we decide whether in
+    // test mode by default properties and system properties (via getBoolean).
     Properties siteProps = new Properties();
-    // Load site specific properties file if not in test mode. Note that we decide whether in test
-    // mode by default properties and system properties (via getBoolean). After figuring out the
-    // path of site properties file, sProperties will be updated again.
     if (!Configuration.getBoolean(PropertyKey.TEST_MODE)) {
       // we are not in test mode, load site properties
       String confPaths = Configuration.get(PropertyKey.SITE_CONF_DIR);
@@ -114,7 +107,7 @@ public final class Configuration {
       }
     }
 
-    // Save the sources and create the real configuration instance
+    // Step3: re-create the configuration instance after figuring out the site properties file.
     sSources.clear();
     addPropertiesFromSource(System.getProperties(), Source.SYSTEM_PROPERTY);
     addPropertiesFromSource(siteProps, Source.SITE_PROPERTY);
@@ -131,7 +124,8 @@ public final class Configuration {
 
   /**
    * Adds a new source of properties.
-   *  @param properties The source {@link Properties} to be added
+   *
+   * @param properties The source {@link Properties} to be added
    * @param source The source of the the properties (e.g., system property, default and etc)
    */
   public static void addPropertiesFromSource(Map<?, ?> properties, Source source) {
