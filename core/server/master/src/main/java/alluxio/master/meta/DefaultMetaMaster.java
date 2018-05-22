@@ -210,8 +210,8 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           new LostMasterDetectionHeartbeatExecutor(),
           (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
       getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.MASTER_CONFIG_REPORT_LOG_SCHEDULING,
-          new LogConfigCheckReportHeartbeatExecutor(),
+          new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
+          new LogConfigReportHeartbeatExecutor(),
           (int) Configuration.getMs(PropertyKey.MASTER_CONFIG_REPORT_MAX_LOG_INTERVAL_MS)));
     } else {
       // Standby master should setup MetaMasterSync to communicate with the leader master
@@ -379,12 +379,12 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   /**
    * Periodic log config check report.
    */
-  private final class LogConfigCheckReportHeartbeatExecutor implements HeartbeatExecutor {
+  private final class LogConfigReportHeartbeatExecutor implements HeartbeatExecutor {
 
     /**
-     * Constructs a new {@link LogConfigCheckReportHeartbeatExecutor}.
+     * Constructs a new {@link LogConfigReportHeartbeatExecutor}.
      */
-    public LogConfigCheckReportHeartbeatExecutor() {
+    public LogConfigReportHeartbeatExecutor() {
     }
 
     @Override
