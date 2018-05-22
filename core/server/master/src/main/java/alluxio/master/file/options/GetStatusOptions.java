@@ -11,11 +11,9 @@
 
 package alluxio.master.file.options;
 
-import alluxio.Constants;
 import alluxio.thrift.GetStatusTOptions;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
-import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 
@@ -28,8 +26,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class GetStatusOptions {
   private CommonOptions mCommonOptions;
   private LoadMetadataType mLoadMetadataType;
-  private long mTtl;
-  private TtlAction mTtlAction;
 
   /**
    * @return the default {@link GetStatusOptions}
@@ -42,8 +38,6 @@ public final class GetStatusOptions {
     super();
     mCommonOptions = CommonOptions.defaults();
     mLoadMetadataType = LoadMetadataType.Once;
-    mTtl = Constants.NO_TTL;
-    mTtlAction = TtlAction.DELETE;
   }
 
   /**
@@ -60,8 +54,6 @@ public final class GetStatusOptions {
       if (options.isSetLoadMetadataType()) {
         mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
       }
-      mTtl = options.getTtl();
-      mTtlAction = TtlAction.fromThrift(options.getTtlAction());
     }
   }
 
@@ -77,20 +69,6 @@ public final class GetStatusOptions {
    */
   public LoadMetadataType getLoadMetadataType() {
     return mLoadMetadataType;
-  }
-
-  /**
-   * @return time to live
-   */
-  public long getTtl() {
-    return mTtl;
-  }
-
-  /**
-   * @return action after ttl expired
-   */
-  public TtlAction getTtlAction() {
-    return mTtlAction;
   }
 
   /**
@@ -113,20 +91,6 @@ public final class GetStatusOptions {
     return this;
   }
 
-  /**
-   * @param ttl time to live
-   */
-  public void setTtl(long ttl) {
-    mTtl = ttl;
-  }
-
-  /**
-   * @param ttlAction action after ttl expired
-   */
-  public void setTtlAction(TtlAction ttlAction) {
-    mTtlAction = ttlAction;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -137,14 +101,12 @@ public final class GetStatusOptions {
     }
     GetStatusOptions that = (GetStatusOptions) o;
     return Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
-        && Objects.equal(mCommonOptions, that.mCommonOptions)
-        && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlAction, that.mTtlAction);
+        && Objects.equal(mCommonOptions, that.mCommonOptions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType, mCommonOptions, mTtl, mTtlAction);
+    return Objects.hashCode(mLoadMetadataType, mCommonOptions);
   }
 
   @Override
@@ -152,8 +114,6 @@ public final class GetStatusOptions {
     return Objects.toStringHelper(this)
         .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
-        .add("ttl", mTtl)
-        .add("ttlAction", mTtlAction.toString())
         .toString();
   }
 }

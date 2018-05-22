@@ -34,8 +34,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class GetStatusOptions {
   private CommonOptions mCommonOptions;
   private LoadMetadataType mLoadMetadataType;
-  private long mTtl;
-  private TtlAction mTtlAction;
 
   /**
    * @return the default {@link GetStatusOptions}
@@ -45,12 +43,12 @@ public final class GetStatusOptions {
   }
 
   private GetStatusOptions() {
-    mCommonOptions = CommonOptions.defaults();
+    mCommonOptions = CommonOptions.defaults()
+        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_READ_CACHE_TTL_MS))
+        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_READ_CACHE_TTL_EXPIRED_ACTION,
+            TtlAction.class));
     mLoadMetadataType =
         Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class);
-    mTtl = Configuration.getLong(PropertyKey.USER_FILE_READ_CACHE_TTL_MS);
-    mTtlAction = Configuration.getEnum(PropertyKey.USER_FILE_READ_CACHE_TTL_EXPIRED_ACTION,
-        TtlAction.class);
   }
 
   /**
@@ -65,20 +63,6 @@ public final class GetStatusOptions {
    */
   public LoadMetadataType getLoadMetadataType() {
     return mLoadMetadataType;
-  }
-
-  /**
-   * @return time to live
-   */
-  public long getTtl() {
-    return mTtl;
-  }
-
-  /**
-   * @return action after ttl expired
-   */
-  public TtlAction getTtlAction() {
-    return mTtlAction;
   }
 
   /**
@@ -99,24 +83,6 @@ public final class GetStatusOptions {
     return this;
   }
 
-  /**
-   * @param ttl ttl time to live
-   * @return the updated options
-   */
-  public GetStatusOptions setTtl(long ttl) {
-    mTtl = ttl;
-    return this;
-  }
-
-  /**
-   * @param ttlAction action after ttl expired
-   * @return the updated options
-   */
-  public GetStatusOptions setTtlAction(TtlAction ttlAction) {
-    mTtlAction = ttlAction;
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -127,14 +93,12 @@ public final class GetStatusOptions {
     }
     GetStatusOptions that = (GetStatusOptions) o;
     return Objects.equal(mCommonOptions, that.mCommonOptions)
-        && Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
-        && mTtl == that.mTtl
-        && Objects.equal(mTtlAction, that.mTtlAction);
+        && Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCommonOptions, mLoadMetadataType, mTtl, mTtlAction);
+    return Objects.hashCode(mCommonOptions, mLoadMetadataType);
   }
 
   @Override
@@ -142,8 +106,6 @@ public final class GetStatusOptions {
     return Objects.toStringHelper(this)
         .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
-        .add("ttl", mTtl)
-        .add("ttlAction", mTtlAction)
         .toString();
   }
 
@@ -154,8 +116,6 @@ public final class GetStatusOptions {
     GetStatusTOptions options = new GetStatusTOptions();
     options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
     options.setCommonOptions(mCommonOptions.toThrift());
-    options.setTtl(mTtl);
-    options.setTtlAction(TtlAction.toThrift(mTtlAction));
     return options;
   }
 }

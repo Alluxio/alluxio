@@ -824,7 +824,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         checkLoadMetadataOptions(options.getLoadMetadataType(), inodePath.getUri());
         loadMetadataIfNotExistAndJournal(rpcContext, inodePath,
             LoadMetadataOptions.defaults().setCreateAncestors(true)
-                .setTtl(options.getTtl()).setTtlAction(options.getTtlAction()));
+                .setTtl(options.getCommonOptions().getTtl())
+                .setTtlAction(options.getCommonOptions().getTtlAction()));
         ensureFullPathAndUpdateCache(inodePath);
       }
       FileInfo fileInfo = getFileInfoInternal(inodePath);
@@ -905,7 +906,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       LoadMetadataOptions loadMetadataOptions =
           LoadMetadataOptions.defaults().setCreateAncestors(true)
               .setLoadDescendantType(loadDescendantType)
-              .setTtl(listStatusOptions.getTtl()).setTtlAction(listStatusOptions.getTtlAction());
+              .setTtl(listStatusOptions.getCommonOptions().getTtl())
+              .setTtlAction(listStatusOptions.getCommonOptions().getTtlAction());
       Inode<?> inode;
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
@@ -2642,7 +2644,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
-
   private void loadDirectoryMetadataAndJournal(RpcContext rpcContext, LockedInodePath inodePath,
       LoadMetadataOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {

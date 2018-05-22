@@ -31,6 +31,9 @@ public final class CommonOptions implements Serializable {
   private static final long serialVersionUID = -1491370184123698287L;
 
   private long mSyncIntervalMs;
+  /** Below ttl and ttl action are for loading files */
+  private long mTtl;
+  private TtlAction mTtlAction;
 
   /**
    * @return the default {@link CommonOptions}
@@ -41,6 +44,8 @@ public final class CommonOptions implements Serializable {
 
   protected CommonOptions() {
     mSyncIntervalMs = Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+    mTtl = -1;
+    mTtlAction = TtlAction.DELETE;
   }
 
   /**
@@ -77,11 +82,43 @@ public final class CommonOptions implements Serializable {
   }
 
   /**
+   * @return the ttl for loaded files, in milliseconds
+   */
+  public long getTtl() {
+    return mTtl;
+  }
+
+  /**
+   * @return ttl action after ttl expired
+   */
+  public TtlAction getTtlAction() {
+    return mTtlAction;
+  }
+
+  /**
    * @param syncIntervalMs the sync interval, in milliseconds
    * @return the updated options object
    */
   public CommonOptions setSyncIntervalMs(long syncIntervalMs) {
     mSyncIntervalMs = syncIntervalMs;
+    return this;
+  }
+
+  /**
+   * @param ttl time to live for files loaded by client, in milliseconds.
+   * @return the updated options object
+   */
+  public CommonOptions setTtl(long ttl) {
+    mTtl = ttl;
+    return this;
+  }
+
+  /**
+   * @param ttlAction action after ttl expired. DELETE by default.
+   * @return the updated options object
+   */
+  public CommonOptions setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
     return this;
   }
 
@@ -94,18 +131,22 @@ public final class CommonOptions implements Serializable {
       return false;
     }
     CommonOptions that = (CommonOptions) o;
-    return Objects.equal(mSyncIntervalMs, that.mSyncIntervalMs);
+    return Objects.equal(mSyncIntervalMs, that.mSyncIntervalMs)
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlAction, that.mTtlAction);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mSyncIntervalMs);
+    return Objects.hashCode(mSyncIntervalMs, mTtl, mTtlAction);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
         .add("syncIntervalMs", mSyncIntervalMs)
+        .add("ttl", mTtl)
+        .add("ttlAction", mTtlAction)
         .toString();
   }
 
@@ -115,6 +156,8 @@ public final class CommonOptions implements Serializable {
   public FileSystemMasterCommonTOptions toThrift() {
     FileSystemMasterCommonTOptions options = new FileSystemMasterCommonTOptions();
     options.setSyncIntervalMs(mSyncIntervalMs);
+    options.setTtl(mTtl);
+    options.setTtlAction(TtlAction.toThrift(mTtlAction));
     return options;
   }
 }
