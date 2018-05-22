@@ -156,9 +156,9 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     mMasterAddress = new Address().setHost(Configuration.get(PropertyKey.MASTER_HOSTNAME))
         .setRpcPort(masterContext.getPort());
     mBlockMaster = blockMaster;
-    mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
-    mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
-    mBlockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
+    mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
+    mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
+    mBlockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
   }
 
   @Override
@@ -221,11 +221,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           (int) Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL_MS)));
       LOG.info("Standby master with id {} starts sending heartbeat to leader master.", mMasterId);
     }
-  }
-
-  @Override
-  public void stop() throws IOException {
-    super.stop();
   }
 
   @Override
@@ -375,34 +370,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   /**
-   * Updates the config checker when a lost worker becomes alive.
-   *
-   * @param address the address of the worker
-   */
-  private void lostWorkerFoundHandler(Address address) {
-    mWorkerConfigStore.lostNodeFound(address);
-  }
-
-  /**
-   * Updates the config checker when a live worker becomes lost.
-   *
-   * @param address the address of the worker
-   */
-  private void workerLostHandler(Address address) {
-    mWorkerConfigStore.handleNodeLost(address);
-  }
-
-  /**
-   * Updates the config checker when a worker registers with configuration.
-   *
-   * @param address the address of the worker
-   * @param configList the configuration of this worker
-   */
-  private void registerNewWorkerConfHandler(Address address, List<ConfigProperty> configList) {
-    mWorkerConfigStore.registerNewConf(address, configList);
-  }
-
-  /**
    * Sets the master id. This method should only be called when this master is a standby master.
    *
    * @param metaMasterClient the meta master client to communicate with leader master
@@ -413,7 +380,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           () -> mMasterId.set(metaMasterClient.getId(mMasterAddress)),
           ExponentialTimeBoundedRetry.builder()
               .withMaxDuration(Duration
-                  .ofMillis(Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY)))
+                  .ofMillis(Configuration.getMs(PropertyKey.USER_RPC_RETRY_LARGE_NUM_RETRY)))
               .withInitialSleep(Duration.ofMillis(100))
               .withMaxSleep(Duration.ofSeconds(5))
               .build());

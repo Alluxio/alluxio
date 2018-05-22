@@ -51,10 +51,9 @@ public final class MetricsMasterFactory implements MasterFactory {
       SafeModeManager safeModeManager, long startTimeMs, int port) {
     Preconditions.checkNotNull(journalSystem, "journal");
     LOG.info("Creating {} ", MetricsMaster.class.getName());
-    MetricsMaster master =
-        new DefaultMetricsMaster(new MasterContext(journalSystem, safeModeManager, startTimeMs, port));
+    MetricsMaster master = new DefaultMetricsMaster(new MasterContext(journalSystem,
+        safeModeManager, startTimeMs, port));
     registry.add(MetricsMaster.class, master);
     return master;
   }
-
 }

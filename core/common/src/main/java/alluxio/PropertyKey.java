@@ -2507,6 +2507,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "an exponential backoff. This property determines the maximum duration to retry for"
               + " before giving up.")
           .build();
+  public static final PropertyKey USER_RPC_RETRY_LARGE_NUM_RETRY =
+      new Builder(Name.USER_RPC_RETRY_MAX_NUM_RETRY)
+          .setDefaultValue(1000000000)
+          .setDescription("Alluxio client RPCs automatically retry for transient errors with "
+              + "an exponential backoff. This property sets a large default value "
+              + "to keep retrying.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       new Builder(Name.USER_RPC_RETRY_MAX_NUM_RETRY)
           .setDefaultValue(100)

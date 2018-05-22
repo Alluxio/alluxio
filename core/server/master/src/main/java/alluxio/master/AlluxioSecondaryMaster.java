@@ -19,7 +19,6 @@ import alluxio.RuntimeConstants;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 
-import javafx.beans.property.Property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -109,7 +109,6 @@ public final class MetaMasterSync implements HeartbeatExecutor {
                 + mHeartbeatTimeoutMs);
           }
           LOG.error("Leader Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
-          System.exit(-1);
         }
       }
     }
@@ -117,7 +116,6 @@ public final class MetaMasterSync implements HeartbeatExecutor {
 
   /**
    * Handles a leader master command.
-   * This call will block until the command is complete.
    *
    * @param cmd the command to execute
    * @throws IOException if I/O errors occur

@@ -186,8 +186,8 @@ public final class PermissionCheckerTest {
     sMetricsMaster = new MetricsMasterFactory()
         .create(sRegistry, journalSystem, sSafeModeManager, sStartTimeMs, sPort);
     sRegistry.add(MetricsMaster.class, sMetricsMaster);
-    BlockMaster blockMaster =
-        new BlockMasterFactory().create(sRegistry, journalSystem, sSafeModeManager, sStartTimeMs, sPort);
+    BlockMaster blockMaster = new BlockMasterFactory()
+        .create(sRegistry, journalSystem, sSafeModeManager, sStartTimeMs, sPort);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);

@@ -50,7 +50,6 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
 import com.google.common.collect.ImmutableMap;
-import javafx.beans.property.Property;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;

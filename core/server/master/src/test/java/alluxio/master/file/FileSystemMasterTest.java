@@ -2007,8 +2007,8 @@ public final class FileSystemMasterTest {
         .create(mRegistry, mJournalSystem, mSafeModeManager, mStartTimeMs, mPort);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
-    mBlockMaster =
-        new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager, mStartTimeMs, mPort);
+    mBlockMaster = new BlockMasterFactory()
+        .create(mRegistry, mJournalSystem, mSafeModeManager, mStartTimeMs, mPort);
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster,

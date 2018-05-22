@@ -14,7 +14,7 @@ package alluxio.master.meta.checkconf;
 import alluxio.PropertyKey;
 
 /**
- * The Alluxio configuration record.
+ * An Alluxio configuration record.
  */
 public final class ConfigRecord {
   private PropertyKey mKey;
@@ -87,4 +87,3 @@ public final class ConfigRecord {
     return this;
   }
 }
-
