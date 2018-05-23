@@ -37,6 +37,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class SetFaclCommand extends AbstractFileSystemCommand {
+  private static final Option RECURSIVE_OPTION = Option.builder("R")
+      .required(false)
+      .hasArg(false)
+      .desc("Apply to all files and directories recursively")
+      .build();
   private static final Option SET_OPTION = Option.builder()
       .longOpt("set")
       .required(false)
@@ -75,32 +80,36 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(SET_OPTION).addOption(MODIFY_OPTION)
+    return new Options().addOption(RECURSIVE_OPTION).addOption(SET_OPTION).addOption(MODIFY_OPTION)
         .addOption(REMOVE_OPTION).addOption(REMOVE_ALL_OPTION);
   }
 
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
+    SetAclOptions options = SetAclOptions.defaults().setRecursive(false);
+    if (cl.hasOption(RECURSIVE_OPTION.getOpt())) {
+      options.setRecursive(true);
+    }
+
     if (cl.hasOption(SET_OPTION.getLongOpt())) {
       String aclList = cl.getOptionValue(SET_OPTION.getLongOpt());
       List<AclEntry> entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
           .collect(Collectors.toList());
-      mFileSystem.setAcl(path, SetAclAction.REPLACE, entries, SetAclOptions.defaults());
+      mFileSystem.setAcl(path, SetAclAction.REPLACE, entries, options);
     } else if (cl.hasOption(MODIFY_OPTION.getOpt())) {
       String aclList = cl.getOptionValue(MODIFY_OPTION.getOpt());
       List<AclEntry> entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
           .collect(Collectors.toList());
-      mFileSystem.setAcl(path, SetAclAction.MODIFY, entries, SetAclOptions.defaults());
+      mFileSystem.setAcl(path, SetAclAction.MODIFY, entries, options);
     } else if (cl.hasOption(REMOVE_OPTION.getOpt())) {
       String aclList = cl.getOptionValue(REMOVE_OPTION.getOpt());
       List<AclEntry> entries =
           Arrays.stream(aclList.split(",")).map(AclEntry::fromCliStringWithoutPermissions)
               .collect(Collectors.toList());
-      mFileSystem.setAcl(path, SetAclAction.REMOVE, entries, SetAclOptions.defaults());
+      mFileSystem.setAcl(path, SetAclAction.REMOVE, entries, options);
     } else if (cl.hasOption(REMOVE_ALL_OPTION.getOpt())) {
-      mFileSystem
-          .setAcl(path, SetAclAction.REMOVE_ALL, Collections.emptyList(), SetAclOptions.defaults());
+      mFileSystem.setAcl(path, SetAclAction.REMOVE_ALL, Collections.emptyList(), options);
     } else {
       throw new IllegalArgumentException("nothing to execute.");
     }
