@@ -157,7 +157,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -523,6 +522,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     } else if (entry.hasUpdateUfsMode()) {
       try {
         updateUfsModeFromEntry(entry.getUpdateUfsMode());
+      } catch (AlluxioException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (entry.hasSetAcl()) {
+      try {
+        setAclFromEntry(entry.getSetAcl());
       } catch (AlluxioException e) {
         throw new RuntimeException(e);
       }
@@ -2986,8 +2991,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.SET_ACL_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
-    try (RpcContext rpcContext = createRpcContext(); LockedInodePath inodePath = mInodeTree
-        .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
+    try (RpcContext rpcContext = createRpcContext();
+         LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme.getPath(),
+             lockingScheme.getMode());
          FileSystemMasterAuditContext auditContext = createAuditContext("setAcl", path, null,
              inodePath.getInodeOrNull())) {
       try {
@@ -3028,12 +3034,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   Collectors.toList()))));
         }
         break;
-      case MODIFY:
-        if (entries.isEmpty()) {
-          // Nothing to do.
-          return;
-        }
-        break;
+      case MODIFY: // fall through
       case REMOVE:
         if (entries.isEmpty()) {
           // Nothing to do.
@@ -3044,9 +3045,29 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         break;
       case REMOVE_DEFAULT:
         break;
+      default:
     }
     setAclInternal(rpcContext, action, inodePath, entries, opTimeMs, options);
+    File.SetAclEntry setAcl = File.SetAclEntry.newBuilder()
+        .setId(inodePath.getInode().getId())
+        .setOpTimeMs(opTimeMs)
+        .setAction(action.toProto())
+        .setRecursive(options.getRecursive())
+        .addAllEntries(entries.stream().map(AclEntry::toProto).collect(Collectors.toList()))
+        .build();
+    rpcContext.journal(JournalEntry.newBuilder().setSetAcl(setAcl).build());
+  }
 
+  private void setAclFromEntry(File.SetAclEntry entry) throws FileDoesNotExistException,
+      IOException {
+    SetAclOptions options = SetAclOptions.defaults().setRecursive(entry.getRecursive());
+
+    try (LockedInodePath inodePath = mInodeTree
+        .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
+      setAclInternal(RpcContext.NOOP, SetAclAction.fromProto(entry.getAction()), inodePath,
+          entry.getEntriesList().stream().map(AclEntry::fromProto).collect(Collectors.toList()),
+          entry.getOpTimeMs(), options);
+    }
   }
 
   private void setAclInternal(RpcContext rpcContext, SetAclAction action, LockedInodePath inodePath,
@@ -3055,7 +3076,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Inode<?> targetInode = inodePath.getInode();
     // TODO(gpang): handle recursive
     // TODO(gpang): apply to UFS
-    // TODO(gpang): journal the state
     switch (action) {
       case REPLACE:
         // fully replace the acl for the path
@@ -3073,6 +3093,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       case REMOVE_DEFAULT:
         // TODO(gpang): implement default acl
         break;
+      default:
     }
     targetInode.setLastModificationTimeMs(opTimeMs);
   }

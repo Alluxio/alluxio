@@ -8,10 +8,10 @@ public final class Block {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
-  public interface BlockContainerIdGeneratorEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface BlockContainerIdGeneratorEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.BlockContainerIdGeneratorEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 next_container_id = 1;
     /**
      * <code>optional int64 next_container_id = 1;</code>
      */
@@ -29,8 +29,9 @@ public final class Block {
    * </pre>
    */
   public static final class BlockContainerIdGeneratorEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements BlockContainerIdGeneratorEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.BlockContainerIdGeneratorEntry)
+      BlockContainerIdGeneratorEntryOrBuilder {
     // Use BlockContainerIdGeneratorEntry.newBuilder() to construct.
     private BlockContainerIdGeneratorEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -121,7 +122,6 @@ public final class Block {
     }
 
     private int bitField0_;
-    // optional int64 next_container_id = 1;
     public static final int NEXT_CONTAINER_ID_FIELD_NUMBER = 1;
     private long nextContainerId_;
     /**
@@ -143,7 +143,8 @@ public final class Block {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -254,8 +255,9 @@ public final class Block {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.Block.BlockContainerIdGeneratorEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.BlockContainerIdGeneratorEntry)
+        alluxio.proto.journal.Block.BlockContainerIdGeneratorEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_descriptor;
@@ -368,7 +370,6 @@ public final class Block {
       }
       private int bitField0_;
 
-      // optional int64 next_container_id = 1;
       private long nextContainerId_ ;
       /**
        * <code>optional int64 next_container_id = 1;</code>
@@ -412,10 +413,10 @@ public final class Block {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.BlockContainerIdGeneratorEntry)
   }
 
-  public interface BlockInfoEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface BlockInfoEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.BlockInfoEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 block_id = 1;
     /**
      * <code>optional int64 block_id = 1;</code>
      */
@@ -425,7 +426,6 @@ public final class Block {
      */
     long getBlockId();
 
-    // optional int64 length = 2;
     /**
      * <code>optional int64 length = 2;</code>
      */
@@ -443,8 +443,9 @@ public final class Block {
    * </pre>
    */
   public static final class BlockInfoEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements BlockInfoEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.BlockInfoEntry)
+      BlockInfoEntryOrBuilder {
     // Use BlockInfoEntry.newBuilder() to construct.
     private BlockInfoEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -540,7 +541,6 @@ public final class Block {
     }
 
     private int bitField0_;
-    // optional int64 block_id = 1;
     public static final int BLOCK_ID_FIELD_NUMBER = 1;
     private long blockId_;
     /**
@@ -556,7 +556,6 @@ public final class Block {
       return blockId_;
     }
 
-    // optional int64 length = 2;
     public static final int LENGTH_FIELD_NUMBER = 2;
     private long length_;
     /**
@@ -579,7 +578,8 @@ public final class Block {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -697,8 +697,9 @@ public final class Block {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.Block.BlockInfoEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.BlockInfoEntry)
+        alluxio.proto.journal.Block.BlockInfoEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_BlockInfoEntry_descriptor;
@@ -820,7 +821,6 @@ public final class Block {
       }
       private int bitField0_;
 
-      // optional int64 block_id = 1;
       private long blockId_ ;
       /**
        * <code>optional int64 block_id = 1;</code>
@@ -853,7 +853,6 @@ public final class Block {
         return this;
       }
 
-      // optional int64 length = 2;
       private long length_ ;
       /**
        * <code>optional int64 length = 2;</code>
@@ -897,10 +896,10 @@ public final class Block {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.BlockInfoEntry)
   }
 
-  public interface DeleteBlockEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface DeleteBlockEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.DeleteBlockEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 block_id = 1;
     /**
      * <code>optional int64 block_id = 1;</code>
      */
@@ -918,8 +917,9 @@ public final class Block {
    * </pre>
    */
   public static final class DeleteBlockEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements DeleteBlockEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.DeleteBlockEntry)
+      DeleteBlockEntryOrBuilder {
     // Use DeleteBlockEntry.newBuilder() to construct.
     private DeleteBlockEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -1010,7 +1010,6 @@ public final class Block {
     }
 
     private int bitField0_;
-    // optional int64 block_id = 1;
     public static final int BLOCK_ID_FIELD_NUMBER = 1;
     private long blockId_;
     /**
@@ -1032,7 +1031,8 @@ public final class Block {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -1143,8 +1143,9 @@ public final class Block {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.Block.DeleteBlockEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.DeleteBlockEntry)
+        alluxio.proto.journal.Block.DeleteBlockEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_DeleteBlockEntry_descriptor;
@@ -1257,7 +1258,6 @@ public final class Block {
       }
       private int bitField0_;
 
-      // optional int64 block_id = 1;
       private long blockId_ ;
       /**
        * <code>optional int64 block_id = 1;</code>
@@ -1301,17 +1301,17 @@ public final class Block {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.DeleteBlockEntry)
   }
 
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_BlockInfoEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_BlockInfoEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_DeleteBlockEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -1332,35 +1332,35 @@ public final class Block {
       "\020DeleteBlockEntry\022\020\n\010block_id\030\001 \001(\003"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-      new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
-        public com.google.protobuf.ExtensionRegistry assignDescriptors(
-            com.google.protobuf.Descriptors.FileDescriptor root) {
-          descriptor = root;
-          internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_descriptor =
-            getDescriptor().getMessageTypes().get(0);
-          internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_descriptor,
-              new java.lang.String[] { "NextContainerId", });
-          internal_static_alluxio_proto_journal_BlockInfoEntry_descriptor =
-            getDescriptor().getMessageTypes().get(1);
-          internal_static_alluxio_proto_journal_BlockInfoEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_BlockInfoEntry_descriptor,
-              new java.lang.String[] { "BlockId", "Length", });
-          internal_static_alluxio_proto_journal_DeleteBlockEntry_descriptor =
-            getDescriptor().getMessageTypes().get(2);
-          internal_static_alluxio_proto_journal_DeleteBlockEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_DeleteBlockEntry_descriptor,
-              new java.lang.String[] { "BlockId", });
-          return null;
-        }
-      };
+        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf.ExtensionRegistry assignDescriptors(
+              com.google.protobuf.Descriptors.FileDescriptor root) {
+            descriptor = root;
+            return null;
+          }
+        };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
+    internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_descriptor =
+      getDescriptor().getMessageTypes().get(0);
+    internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_descriptor,
+        new java.lang.String[] { "NextContainerId", });
+    internal_static_alluxio_proto_journal_BlockInfoEntry_descriptor =
+      getDescriptor().getMessageTypes().get(1);
+    internal_static_alluxio_proto_journal_BlockInfoEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_BlockInfoEntry_descriptor,
+        new java.lang.String[] { "BlockId", "Length", });
+    internal_static_alluxio_proto_journal_DeleteBlockEntry_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_alluxio_proto_journal_DeleteBlockEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_DeleteBlockEntry_descriptor,
+        new java.lang.String[] { "BlockId", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
