@@ -140,7 +140,7 @@
     <build.path>build</build.path>
     <!-- Host to report call home information to. -->
     <call.home.host>http://diagnostics.alluxio.org</call.home.host>
-    <call.home.enabled>false</call.home.enabled>
+    <call.home.enabled>true</call.home.enabled>
     <call.home.period>10000</call.home.period>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
     <cxf.version>2.7.0</cxf.version>

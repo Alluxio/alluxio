@@ -46,6 +46,7 @@ public final class HeartbeatContext {
   static {
     sTimerClasses = new HashMap<>();
     sTimerClasses.put(MASTER_BLOCK_INTEGRITY_CHECK, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_CALL_HOME, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_CHECKPOINT_SCHEDULING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_DIAGNOSTIC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_FILE_RECOMPUTATION, SLEEPING_TIMER_CLASS);

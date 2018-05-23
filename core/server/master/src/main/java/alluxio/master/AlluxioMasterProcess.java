@@ -156,7 +156,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
-            if (Boolean.parseBoolean(alluxio.CallHomeConstants.CALL_HOME_ENABLED)
+      if (Boolean.parseBoolean(alluxio.CallHomeConstants.CALL_HOME_ENABLED)
           && Configuration.getBoolean(PropertyKey.CALL_HOME_ENABLED)) {
         mRegistry.get(alluxio.master.callhome.CallHomeMaster.class).setMaster(this);
       }
