@@ -25,6 +25,7 @@ import com.google.common.cache.LoadingCache;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.List;
+import java.nio.file.Path;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -35,14 +36,21 @@ import javax.annotation.concurrent.ThreadSafe;
 public class MetaCache {
   //private final Logger LOG = LoggerFactory.getLogger(MetaCache.class);
 
-  private static LoadingCache<String, MetaCacheData> fcache = null;
-  private static LoadingCache<Long, BlockInfoData> bcache = null;
-  private static MetaCache singleton = new MetaCache();     // just make compiler happy
+  private static Path alluxioRootPath = null;
+  private static int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
+  private static LoadingCache<String, MetaCacheData> fcache 
+      = CacheBuilder.newBuilder().maximumSize(maxCachedPaths).build(new MetaCacheLoader());
+  private static LoadingCache<Long, BlockInfoData> bcache 
+      = CacheBuilder.newBuilder().maximumSize(maxCachedPaths).build(new BlockInfoLoader());
   private static List<WorkerInfo> workerList = new ArrayList<>();
   private static long lastWorkerListAccess = 0;
   private static boolean attr_cache_enabled = true;
   private static boolean block_cache_enabled = true;
   private static boolean worker_cache_enabled = true;
+
+  public static void setAlluxioRootPath(Path path) {
+      alluxioRootPath = path;
+  }
 
   public static void debug_meta_cache(String p) {
       if (p.startsWith("start_attr_cache")) {
@@ -122,12 +130,6 @@ public class MetaCache {
   public static void set_worker_cache(int v) {
       worker_cache_enabled = (0 == v) ? false : true;
       if (v > 1) MetaCache.invalidateWorkerInfoList();
-  }
-
-  public MetaCache() {
-      int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
-      fcache = CacheBuilder.newBuilder().maximumSize(maxCachedPaths).build(new MetaCacheLoader());
-      bcache = CacheBuilder.newBuilder().maximumSize(maxCachedPaths).build(new BlockInfoLoader());
   }
 
   public static void setWorkerInfoList(List<WorkerInfo> list) {
@@ -227,15 +229,18 @@ public class MetaCache {
       bcache.invalidateAll();
   }
 
-  public class MetaCacheData {
-      private String path;
+  static class MetaCacheData {
       private URIStatus uriStatus;
       private AlluxioURI uri;
 
       public MetaCacheData(String path) {
-          this.path = path;
+          if (alluxioRootPath != null) {
+              Path tpath = alluxioRootPath.resolve(path.substring(1));
+              this.uri = new AlluxioURI(tpath.toString());
+          } else {
+              this.uri = new AlluxioURI(path);
+          }
           this.uriStatus = null;
-          this.uri = new AlluxioURI(this.path); // confirm to original code logic
       }
 
       public URIStatus getStatus() {
@@ -251,7 +256,7 @@ public class MetaCache {
       }
   }
 
-  public class BlockInfoData {
+  static class BlockInfoData {
       Long id;
       private BlockInfo info;
 
@@ -268,7 +273,7 @@ public class MetaCache {
       }
   }
 
-  private final class MetaCacheLoader extends CacheLoader<String, MetaCacheData> {
+  private static class MetaCacheLoader extends CacheLoader<String, MetaCacheData> {
 
     /**
      * Constructs a new {@link MetaCacheLoader}.
@@ -281,7 +286,7 @@ public class MetaCache {
     }
   }
 
-  private final class BlockInfoLoader extends CacheLoader<Long, BlockInfoData> {
+  private static class BlockInfoLoader extends CacheLoader<Long, BlockInfoData> {
 
     /**
      * Constructs a new {@link BlockInfoLoader}.
