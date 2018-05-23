@@ -979,8 +979,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_INIT_FROM_SNAPSHOT =
       new Builder(Name.MASTER_JOURNAL_INIT_FROM_SNAPSHOT)
           .setDescription("A path to a snapshot to initialize the journal from. If set, the master"
-              + " will verify that the journal is freshly formatted, then restore its state from the"
-              + " specified snapshot.")
+              + " will verify that the journal is freshly formatted, then restore its state from"
+              + " the specified snapshot.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .setIsHidden(true)

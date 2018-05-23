@@ -72,7 +72,8 @@ public abstract class AbstractMaster implements Master {
     Preconditions.checkNotNull(masterContext, "masterContext");
     mJournal = masterContext.getJournalSystem().createJournal(this);
     mSafeModeManager = masterContext.getSafeModeManager();
-    mStateLock = masterContext.getStateLock();    mClock = clock;
+    mStateLock = masterContext.getStateLock();
+    mClock = clock;
     mExecutorServiceFactory = executorServiceFactory;
   }
 

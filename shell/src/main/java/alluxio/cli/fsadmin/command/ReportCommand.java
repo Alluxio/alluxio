@@ -83,7 +83,7 @@ public final class ReportCommand extends AbstractFsAdminCommand implements Comma
   }
 
   /**
-   * Creates a new instance of {@link ReportCommand}.
+   * @param context fsadmin command context
    */
   public ReportCommand(Context context) {
     super(context);
@@ -209,6 +209,9 @@ public final class ReportCommand extends AbstractFsAdminCommand implements Comma
     return usage();
   }
 
+  /**
+   * @return the usage for the report command
+   */
   @VisibleForTesting
   public static String usage() {
     return "report [category] [category args]";
@@ -219,6 +222,9 @@ public final class ReportCommand extends AbstractFsAdminCommand implements Comma
     return description();
   }
 
+  /**
+   * @return the description for the report command
+   */
   @VisibleForTesting
   public static String description() {
     return "Report Alluxio running cluster information.\n"

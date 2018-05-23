@@ -181,7 +181,8 @@ public final class PermissionCheckerTest {
     sRegistry = new MasterRegistry();
     sSafeModeManager = new DefaultSafeModeManager();
     JournalSystem journalSystem = new NoopJournalSystem();
-    MasterContext masterContext = new MasterContext(journalSystem, sSafeModeManager, new ReentrantLock());
+    MasterContext masterContext =
+        new MasterContext(journalSystem, sSafeModeManager, new ReentrantLock());
     sMetricsMaster = new MetricsMasterFactory().create(sRegistry, masterContext);
     sRegistry.add(MetricsMaster.class, sMetricsMaster);
     BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, masterContext);

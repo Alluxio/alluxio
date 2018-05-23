@@ -30,7 +30,8 @@ public final class MasterContext {
    * @param safeModeManager the manager for master safe mode
    * @param stateLock a lock which must be taken before modifying persistent (journaled) state
    */
-  public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager, Lock stateLock) {
+  public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager,
+      Lock stateLock) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mSafeModeManager = Preconditions.checkNotNull(safeModeManager, "safeModeManager");
     mStateLock = Preconditions.checkNotNull(stateLock, "stateLock");

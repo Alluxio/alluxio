@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.ServiceUtils;
-import alluxio.master.journal.JournalSystem;
 import alluxio.util.CommonUtils;
 
 import java.util.ArrayList;
