@@ -207,12 +207,17 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("inconsistentPaths", 0);
     }
 
+    setUfsAttributes(request);
+  }
+
+  private void setUfsAttributes(HttpServletRequest request) {
     String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UnderFileSystem ufs = null;
     try {
       ufs = UnderFileSystem.Factory.createForRoot();
     } catch (Exception e) {
       LOG.error("Failed to create root UFS {}: {}", ufsRoot, e.getMessage());
+      return;
     }
 
     String totalSpace = "UNKNOWN";
