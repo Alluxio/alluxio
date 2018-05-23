@@ -41,6 +41,8 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 
@@ -321,7 +323,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
               paths, limitMs);
     }
     if (!errors.isEmpty()) {
-      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      errors.get(0).printStackTrace(pw);
+
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0)
+          + errors.get(0).getMessage() + "\n" + sw.toString()) ;
     }
 
     ListStatusOptions listOptions = ListStatusOptions.defaults().setLoadMetadataType(
