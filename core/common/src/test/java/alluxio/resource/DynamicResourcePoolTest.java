@@ -16,7 +16,12 @@ import alluxio.clock.ManualClock;
 import alluxio.util.ThreadFactoryUtils;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.internal.runners.statements.FailOnTimeout;
+import org.junit.rules.Timeout;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -269,5 +274,44 @@ public final class DynamicResourcePoolTest {
     releaseThread.start();
     Resource resource2 = pool.acquire(2, TimeUnit.SECONDS);
     Assert.assertEquals(0, resource2.mInteger.intValue());
+  }
+
+  /**
+  * The min timeout accepted.
+  */
+  private static final int MIN_TIMEOUT = 5000;
+
+  @Rule
+  public Timeout mTimeout = new Timeout(MIN_TIMEOUT, TimeUnit.MILLISECONDS) {
+    public Statement apply(Statement base, Description description) {
+      return new FailOnTimeout(base, MIN_TIMEOUT) {
+        @Override
+        public void evaluate() throws Throwable {
+          try {
+            super.evaluate();
+            throw new TimeoutException();
+          } catch (Exception e) {
+              throw new RuntimeException("The method finished before the expected timeout");
+          }
+        }
+      };
+    }
+  };
+
+  /**
+   * Tests the logic that invalid resource won't be acquired.
+   */
+  @Test
+  public void TimestampOverflow() throws Exception {
+    TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions().setMaxCapacity(1));
+    Resource resource = pool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    boolean isException = false;
+    try {
+      resource = pool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    } catch (TimeoutException ex) {
+      isException = true;
+    } finally {
+      org.junit.Assert.assertFalse(isException);
+    }
   }
 }

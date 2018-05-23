@@ -12,19 +12,31 @@
 package alluxio.resource;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.internal.runners.statements.FailOnTimeout;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.Timeout;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Unit test for {@code ResourcePool} class.
  */
 public final class ResourcePoolTest {
+
+  /**
+   * The min timeout accepted.
+   */
+  private static final int MIN_TIMEOUT = 5000;
 
   /**
    * The exception expected to be thrown.
@@ -97,4 +109,37 @@ public final class ResourcePoolTest {
       testPool.acquire();
     }
   }
+
+  @Rule
+  public Timeout mTimeout = new Timeout(MIN_TIMEOUT, TimeUnit.MILLISECONDS) {
+    public Statement apply(Statement base, Description description) {
+      return new FailOnTimeout(base, MIN_TIMEOUT) {
+        @Override
+        public void evaluate() throws Throwable {
+          try {
+            super.evaluate();
+            throw new TimeoutException();
+          } catch (Exception e) {
+            throw new RuntimeException("The method finished before the expected timeout");
+          }
+        }
+      };
+    }
+  };
+
+  /**
+   * Tests cases in which there could be a timestamp overflow.
+   */
+  @Test(expected = TimeoutException.class)
+  public void resourcePoolTimestampOverflow() {
+    ConcurrentLinkedQueue<Integer> queue = mock(ConcurrentLinkedQueue.class);
+    TestResourcePool testPool = new TestResourcePool(2, queue);
+    Integer resource1 = testPool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    Integer resource2 = testPool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    assertEquals(new Integer(1), resource1);
+    assertEquals(new Integer(2), resource2);
+    Integer resource3 = testPool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    assertNull(resource3);
+  }
+
 }
