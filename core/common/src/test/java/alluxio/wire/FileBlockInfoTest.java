@@ -14,8 +14,8 @@ package alluxio.wire;
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
 
-import com.google.common.net.HostAndPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.net.HostAndPort;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,7 +37,7 @@ public final class FileBlockInfoTest {
   @Test
   public void thrift() {
     FileBlockInfo fileBlockInfo = createRandom();
-    FileBlockInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(fileBlockInfo));
+    FileBlockInfo other = FileBlockInfo.fromThrift(fileBlockInfo.toThrift());
     checkEquality(fileBlockInfo, other);
   }
 

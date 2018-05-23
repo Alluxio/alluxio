@@ -44,21 +44,6 @@ public final class LineageInfo implements Serializable {
   public LineageInfo() {}
 
   /**
-   * Creates a new instance of {@link LineageInfo} from a thrift representation.
-   *
-   * @param lineageInfo the thrift representation of a lineage information
-   */
-  protected LineageInfo(alluxio.thrift.LineageInfo lineageInfo) {
-    mId = lineageInfo.getId();
-    mInputFiles = new ArrayList<>(lineageInfo.getInputFiles());
-    mOutputFiles = new ArrayList<>(lineageInfo.getOutputFiles());
-    mJob = new CommandLineJobInfo(lineageInfo.getJob());
-    mCreationTimeMs = lineageInfo.getCreationTimeMs();
-    mParents = new ArrayList<>(lineageInfo.getParents());
-    mChildren = new ArrayList<>(lineageInfo.getChildren());
-  }
-
-  /**
    * @return the lineage id
    */
   public long getId() {
@@ -178,9 +163,26 @@ public final class LineageInfo implements Serializable {
   /**
    * @return thrift representation of the lineage information
    */
-  protected alluxio.thrift.LineageInfo toThrift() {
+  public alluxio.thrift.LineageInfo toThrift() {
     return new alluxio.thrift.LineageInfo(mId, mInputFiles, mOutputFiles, mJob.toThrift(),
         mCreationTimeMs, mParents, mChildren);
+  }
+
+  /**
+   * Creates a new instance of {@link LineageInfo} from a thrift representation.
+   *
+   * @param info the thrift representation of a lineage information
+   * @return the instance
+   */
+  public static LineageInfo fromThrift(alluxio.thrift.LineageInfo info) {
+    return new LineageInfo()
+        .setId(info.getId())
+        .setInputFiles(info.getInputFiles())
+        .setOutputFiles(info.getOutputFiles())
+        .setJob(CommandLineJobInfo.fromThrift(info.getJob()))
+        .setCreationTimeMs(info.getCreationTimeMs())
+        .setParents(info.getParents())
+        .setChildren(info.getChildren());
   }
 
   @Override

@@ -31,6 +31,8 @@ final class MasterUtils {
    *
    * @param journalSystem the journal system to use for creating journals
    * @param registry the master registry
+   * @param safeModeManager the safe mode manager
+   * @param startTimeMs the master start time in milliseconds
    */
   public static void createMasters(final JournalSystem journalSystem, final MasterRegistry registry,
       final SafeModeManager safeModeManager, final long startTimeMs) {
