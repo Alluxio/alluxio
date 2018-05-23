@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -156,7 +157,7 @@ public final class DiagnosticMaster extends AbstractNonJournaledMaster {
         } catch (IOException e) {
           LOG.warn("Failed to log diagnostic info: {}", e.getMessage());
         }
-      } catch (IOException e) {
+      } catch (IOException | GeneralSecurityException e) {
         LOG.warn("Failed to collect diagnostic info: {}", e.getMessage());
       }
     }

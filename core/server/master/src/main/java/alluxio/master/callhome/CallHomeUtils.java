@@ -21,6 +21,9 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
+import java.net.NetworkInterface;
+import java.security.GeneralSecurityException;
+import java.util.Enumeration;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -41,7 +44,7 @@ public final class CallHomeUtils {
   @Nullable
   public static CallHomeInfo collectDiagnostics(MasterProcess masterProcess,
       BlockMaster blockMaster, FileSystemMaster fsMaster)
-      throws IOException {
+      throws IOException, GeneralSecurityException {
     CallHomeInfo info = new CallHomeInfo();
     info.setFaultTolerant(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     info.setWorkerCount(blockMaster.getWorkerCount());
@@ -76,6 +79,44 @@ public final class CallHomeUtils {
     // Set file system master info
     info.setMasterAddress(masterProcess.getRpcAddress().toString());
     info.setNumberOfPaths(fsMaster.getNumberOfPaths());
+    info.setMACAddress(getMACAddress(masterProcess));
+
     return info;
+  }
+
+  /**
+   * @return the MAC address of the network interface being used by the master
+   * @throws IOException when no MAC address is found
+   */
+  private static String getMACAddress(MasterProcess masterProcess) throws IOException {
+    // Try to get the MAC address of the network interface of the master's RPC address.
+    NetworkInterface nic =
+            NetworkInterface.getByInetAddress(masterProcess.getRpcAddress().getAddress());
+    byte[] mac = nic.getHardwareAddress();
+    if (mac != null) {
+      return new String(mac);
+    }
+
+    // Try to get the MAC address of the common "en0" interface.
+    nic = NetworkInterface.getByName("en0");
+    mac = nic.getHardwareAddress();
+    if (mac != null) {
+      return new String(mac);
+    }
+
+    // Try to get the first non-empty MAC address in the enumeration of all network interfaces.
+    Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
+    while (ifaces.hasMoreElements()) {
+      nic = ifaces.nextElement();
+      if (nic == null) {
+        continue;
+      }
+      mac = nic.getHardwareAddress();
+      if (mac != null) {
+        return new String(mac);
+      }
+    }
+
+    throw new IOException("No MAC address was found");
   }
 }

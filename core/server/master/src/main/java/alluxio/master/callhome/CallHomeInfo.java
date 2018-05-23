@@ -35,6 +35,7 @@ public final class CallHomeInfo {
   private String mUfsType;
   private long mUfsSize; // bytes
   private StorageTier[] mStorageTiers;
+  private String mMACAddress;
 
   /**
    * Creates a new instance of {@link CallHomeInfo}.
@@ -141,6 +142,13 @@ public final class CallHomeInfo {
   }
 
   /**
+   * @return the MAC address of the primary master
+   */
+  public String getMACAddress() {
+    return mMACAddress;
+  }
+
+  /**
    * @param version the json format version to use
    */
   public void setVersion(int version) {
@@ -241,6 +249,13 @@ public final class CallHomeInfo {
     System.arraycopy(storageTiers, 0, mStorageTiers, 0, storageTiers.length);
   }
 
+  /**
+   * @param mac the MAC address of primary master
+   */
+  public void setMACAddress(String mac) {
+    mMACAddress = mac;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -263,20 +278,21 @@ public final class CallHomeInfo {
         && Objects.equal(mNumberOfPaths, that.mNumberOfPaths)
         && Objects.equal(mUfsType, that.mUfsType)
         && Objects.equal(mUfsSize, that.mUfsSize)
-        && Arrays.equals(mStorageTiers, that.mStorageTiers);
+        && Arrays.equals(mStorageTiers, that.mStorageTiers)
+        && Objects.equal(mMACAddress, that.mMACAddress);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mVersion, mStartTime, mUptime, mClusterVersion,
         mFaultTolerant, mWorkerCount, mWorkerInfos, mLostWorkerCount, mLostWorkerInfos,
-        mMasterAddress, mNumberOfPaths, mUfsType, mUfsSize, mStorageTiers);
+        mMasterAddress, mNumberOfPaths, mUfsType, mUfsSize, mStorageTiers, mMACAddress);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("version", mVersion)
+        .add("json version", mVersion)
         .add("start time", mStartTime)
         .add("uptime", mUptime)
         .add("version", mClusterVersion)
@@ -290,6 +306,7 @@ public final class CallHomeInfo {
         .add("ufs type", mUfsType)
         .add("ufs size", mUfsSize)
         .add("storage tiers", mStorageTiers)
+        .add("MAC address", mMACAddress)
         .toString();
   }
 

@@ -138,7 +138,8 @@
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
-    <call.home.bucket>alluxio-diagnostics</call.home.bucket>
+    <!-- Host to report call home information to. -->
+    <call.home.host>http://diagnostics.alluxio.org</call.home.host>
     <call.home.enabled>false</call.home.enabled>
     <call.home.period>10000</call.home.period>
     <checkstyle.path>build/checkstyle/</checkstyle.path>

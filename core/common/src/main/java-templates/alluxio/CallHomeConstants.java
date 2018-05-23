@@ -15,8 +15,8 @@ package alluxio;
  * Compile time call home constants.
  */
 public final class CallHomeConstants {
-  /* AWS S3 bucket for storing call home information. **/
-  public static final String CALL_HOME_BUCKET = "${call.home.bucket}";
+  /* Host to report call home information to. **/
+  public static final String CALL_HOME_HOST = "${call.home.host}";
   /* Enable call home or not. **/
   public static final String CALL_HOME_ENABLED = "${call.home.enabled}";
   /* Period between two consequent call home executions. **/
