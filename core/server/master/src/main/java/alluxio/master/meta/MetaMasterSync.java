@@ -19,7 +19,6 @@ import alluxio.retry.RetryUtils;
 import alluxio.thrift.MetaCommand;
 import alluxio.wire.Address;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,21 +42,22 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterSync.class);
   /** We set a large retry day which means retry forever. */
   private static final long RETRY_DAY = 100000;
-
-  /** The address of this standby master. */
-  private final Address mMasterAddress;
+  private static final long UNINITIALIZED_MASTER_ID = -1L;
 
   /** Milliseconds between heartbeats before a timeout. */
   private final int mHeartbeatTimeoutMs;
 
-  /** Client for communication with the leader master. */
-  private final MetaMasterMasterClient mMasterClient;
-
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  /** The address of this standby master. */
+  private final Address mMasterAddress;
+
+  /** Client for communication with the leader master. */
+  private final MetaMasterMasterClient mMasterClient;
+
   /** The ID of this standby master. */
-  private AtomicReference<Long> mMasterId = new AtomicReference<>(-1L);
+  private final AtomicReference<Long> mMasterId = new AtomicReference<>(UNINITIALIZED_MASTER_ID);
 
   /**
    * Creates a new instance of {@link MetaMasterSync}.
@@ -79,7 +79,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   public void heartbeat() {
     MetaCommand command = null;
     try {
-      if (mMasterId.get() == -1L) {
+      if (mMasterId.get() == UNINITIALIZED_MASTER_ID) {
         setIdAndRegister();
       }
       command = mMasterClient.heartbeat(mMasterId.get());
