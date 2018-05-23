@@ -41,6 +41,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MetaMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterSync.class);
+  /** We set a large retry day which means retry forever. */
+  private static final long RETRY_DAY = 100000;
 
   /** The address of this standby master. */
   private final Address mMasterAddress;
@@ -63,9 +65,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
    * @param masterAddress the master address
    * @param masterClient the meta master client
    */
-  public MetaMasterSync(Address masterAddress, MetaMasterMasterClient masterClient)
-      throws IOException {
-    // TODO(lu) should avoid throw exception in Java constructor to avoid half-baked class instances
+  public MetaMasterSync(Address masterAddress, MetaMasterMasterClient masterClient) {
     mMasterAddress = masterAddress;
     mMasterClient = masterClient;
     mHeartbeatTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
@@ -139,16 +139,13 @@ public final class MetaMasterSync implements HeartbeatExecutor {
       RetryUtils.retry("get master id",
           () -> mMasterId.set(mMasterClient.getId(mMasterAddress)),
           ExponentialTimeBoundedRetry.builder()
-              .withMaxDuration(Duration
-                  .ofDays(100))
+              .withMaxDuration(Duration.ofDays(RETRY_DAY))
               .withInitialSleep(Duration.ofMillis(100))
               .withMaxSleep(Duration.ofSeconds(5))
               .build());
     } catch (Exception e) {
       throw new RuntimeException("Failed to get a master id from leader master: " + e.getMessage());
     }
-
-    Preconditions.checkNotNull(mMasterId, "mMasterId");
 
     mMasterClient.register(mMasterId.get(),
         Configuration.getConfiguration(PropertyKey.Scope.MASTER));
