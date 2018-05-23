@@ -120,7 +120,7 @@ public abstract class ResourcePool<T> implements Pool<T> {
           }
           if (time > 0) {
             long currTimeMs = System.currentTimeMillis();
-            if (currTimeMs >= endTimeMs) {
+            if (endTimeMs - currTimeMs <= 0) {
               return null;
             }
             if (!mNotEmpty.await(endTimeMs - currTimeMs, TimeUnit.MILLISECONDS)) {

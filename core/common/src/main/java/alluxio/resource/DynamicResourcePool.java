@@ -333,7 +333,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         }
         long currTimeMs = mClock.millis();
         try {
-          if (currTimeMs >= endTimeMs || !mNotEmpty
+          if (endTimeMs - currTimeMs <= 0 || !mNotEmpty
               .await(endTimeMs - currTimeMs, TimeUnit.MILLISECONDS)) {
             throw new TimeoutException("Acquire resource times out.");
           }
