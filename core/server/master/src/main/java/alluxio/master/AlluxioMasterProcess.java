@@ -245,8 +245,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     if (options.isLocalFileSystem()) {
       rootUfs = "file:///";
     }
-    String backupUri =
-        new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(exportFilePath)).toString();
+    AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(exportFilePath));
     return new ExportJournalResponse(backupUri,
         NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
   }
