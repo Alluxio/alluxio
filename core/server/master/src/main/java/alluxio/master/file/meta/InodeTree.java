@@ -1216,6 +1216,22 @@ public class InodeTree implements JournalEntryIterable {
         nonPersistedInodes, lockList, lockMode, null);
   }
 
+  /**
+   * Traverse the tree to find the rest of the given {@link LockedInodePath}. Hints for the lock
+   * mode at each path.
+   *
+   * @param pathComponents components of the path that are are traversing towards.
+   * @param inodes inodes that are already locked and will no longer require locking,
+   *               modified in the method to return all inode along the path.
+   * @param nonPersistedInodes nonPersistedInodes, modified in the method to return
+   *                           all nonPersistedInodes
+   * @param lockList lockList containing all locked inodes, modified in the method
+   * @param lockMode the {@link LockMode} for the path
+   * @param lockHints list of lock hints for locking the path, must be null or its size must match
+   *                  the size of pathComponents
+   * @return the result of the traversal
+   * @throws InvalidPathException
+   */
   private TraversalResult traverseToInodeInternal(String[] pathComponents, List<Inode<?>> inodes,
       List<Inode<?>> nonPersistedInodes, InodeLockList lockList, LockMode lockMode,
       List<LockMode> lockHints)
