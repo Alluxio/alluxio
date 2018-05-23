@@ -12,6 +12,7 @@
 package alluxio.worker.netty;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -72,6 +73,7 @@ public class ReadRequestContext<T extends ReadRequest> {
   private Error mError;
 
   private Counter mCounter;
+  private Meter mMeter;
 
   /** This is set when the SUCCESS or CANCEL response is sent. This is only for sanity check. */
   private volatile boolean mDone;
@@ -162,6 +164,14 @@ public class ReadRequestContext<T extends ReadRequest> {
   }
 
   /**
+   * @return metrics meter associated with this request
+   */
+  @Nullable
+  public Meter getMeter() {
+    return mMeter;
+  }
+
+  /**
    * @param packetReaderActive packet reader state to set
    */
   @GuardedBy("AbstractReadHandler#mLock")
@@ -221,5 +231,12 @@ public class ReadRequestContext<T extends ReadRequest> {
    */
   public void setCounter(Counter counter) {
     mCounter = counter;
+  }
+
+  /**
+   * @param meter meter to set
+   */
+  public void setMeter(Meter meter) {
+    mMeter = meter;
   }
 }

@@ -17,19 +17,36 @@ Alluxio提供了访问数据的文件系统接口。Alluxio上的文件提供了
 
 若需要使用Java代码获取一个Alluxio文件系统实例，可使用：
 
-{% include File-System-API/get-fileSystem.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+```
 
 ### 创建文件
 
 所有的元数据操作，以及用于读文件的打开文件的操作或用于写文件的创建文件的操作，都会通过FileSystem对象来执行。因为Alluxio文件一旦写入就不会改变，惯用的创建文件的方式是使用`FileSystem#createFile(AlluxioURI)`，这条语句会返回一个用于写文件的流对象，例如：
 
-{% include File-System-API/write-file.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Create a file and get its output stream
+FileOutStream out = fs.createFile(path);
+// Write data
+out.write(...);
+// Close and complete file
+out.close();
+```
 
 ### 指定操作选项
 
 对于所有FileSystem的操作，可能要指定额外的`options`域，该域允许用户指定该操作的非默认设置。例如：
 
-{% include File-System-API/specify-options.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Generate options to set a custom blocksize of 128 MB
+CreateFileOptions options = CreateFileOptions.defaults().setBlockSize(128 * Constants.MB);
+FileOutStream out = fs.createFile(path, options);
+```
 
 ### IO选项
 
@@ -103,7 +120,16 @@ Alluxio允许客户端在向本地worker写入数据块时选择偏好的存储�
 
 例如，读文件：
 
-{% include File-System-API/read-file.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Open the file for reading
+FileInStream in = fs.openFile(path);
+// Read data
+in.read(...);
+// Close file relinquishing the lock
+in.close();
+```
 
 ### Javadoc
 

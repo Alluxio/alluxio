@@ -33,7 +33,11 @@ final class MasterUtils {
    * @param registry the master registry
    */
   public static void createMasters(final JournalSystem journalSystem, final MasterRegistry registry,
+<<<<<<< HEAD
       final SafeModeManager safeModeManager, final long startTimeMs) {
+=======
+      final SafeModeManager safeModeManager) {
+>>>>>>> master
     List<Callable<Void>> callables = new ArrayList<>();
     for (final MasterFactory factory : ServiceUtils.getMasterServiceLoader()) {
       callables.add(new Callable<Void>() {

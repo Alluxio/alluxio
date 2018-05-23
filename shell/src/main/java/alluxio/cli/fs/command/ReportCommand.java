@@ -47,7 +47,7 @@ public final class ReportCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
-    LineageFileSystem.get(FileSystemContext.INSTANCE, LineageContext.INSTANCE).reportLostFile(path);
+    LineageFileSystem.get(FileSystemContext.get(), LineageContext.INSTANCE).reportLostFile(path);
     System.out.println(path + " has been reported as lost.");
   }
 

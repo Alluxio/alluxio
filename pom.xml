@@ -1141,6 +1141,8 @@
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
+            <exclude>**/dev/scripts/vendor/**</exclude>
+            <exclude>**/dev/scripts/src/vendor/**</exclude>
             <exclude>**/vagrant/**/*</exclude>
 
             <!-- Build and Packaging Exclusions -->
@@ -1168,6 +1170,7 @@
           </excludes>
           <mapping>
             <alluxio>SCRIPT_STYLE</alluxio>
+            <go>SLASHSTAR_STYLE</go>
             <java>SLASHSTAR_STYLE</java>
             <properties.template>SCRIPT_STYLE</properties.template>
             <sh.template>SCRIPT_STYLE</sh.template>
@@ -1342,6 +1345,37 @@
             </plugin>
           </plugins>
         </pluginManagement>
+      </build>
+    </profile>
+    <profile>
+      <id>generateDocs</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>exec-maven-plugin</artifactId>
+            <groupId>org.codehaus.mojo</groupId>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>Generate documentation</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>jekyll</executable>
+                  <arguments>
+                    <argument>build</argument>
+                    <argument>--source</argument>
+                    <argument>docs</argument>
+                    <argument>--destination</argument>
+                    <argument>docs/_site</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
       </build>
     </profile>
   </profiles>

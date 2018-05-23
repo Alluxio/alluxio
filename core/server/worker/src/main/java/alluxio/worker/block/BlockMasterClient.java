@@ -20,9 +20,13 @@ import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommitBlockTOptions;
 import alluxio.thrift.GetWorkerIdTOptions;
+import alluxio.thrift.Metric;
 import alluxio.thrift.RegisterWorkerTOptions;
+<<<<<<< HEAD
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.ThriftUtils;
+=======
+>>>>>>> master
 import alluxio.wire.WorkerNetAddress;
 
 import org.apache.thrift.TException;
@@ -104,7 +108,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.getWorkerId(ThriftUtils.toThrift(address), new GetWorkerIdTOptions())
+        return mClient.getWorkerId(address.toThrift(), new GetWorkerIdTOptions())
             .getWorkerId();
       }
     });
@@ -117,16 +121,17 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
    * @param addedBlocks a mapping from storage tier alias to added blocks
+   * @param metrics a list of worker metrics
    * @return an optional command for the worker to execute
    */
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
-      final Map<String, List<Long>> addedBlocks) throws IOException {
+      final Map<String, List<Long>> addedBlocks, final List<Metric> metrics) throws IOException {
     return retryRPC(new RpcCallable<Command>() {
       @Override
       public Command call() throws TException {
         return mClient.blockHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks,
-            new BlockHeartbeatTOptions()).getCommand();
+            new BlockHeartbeatTOptions(metrics)).getCommand();
       }
     });
   }

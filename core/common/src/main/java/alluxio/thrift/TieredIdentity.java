@@ -351,14 +351,14 @@ public class TieredIdentity implements org.apache.thrift.TBase<TieredIdentity, T
           case 1: // TIERS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list16 = iprot.readListBegin();
-                struct.tiers = new ArrayList<LocalityTier>(_list16.size);
-                LocalityTier _elem17;
-                for (int _i18 = 0; _i18 < _list16.size; ++_i18)
+                org.apache.thrift.protocol.TList _list26 = iprot.readListBegin();
+                struct.tiers = new ArrayList<LocalityTier>(_list26.size);
+                LocalityTier _elem27;
+                for (int _i28 = 0; _i28 < _list26.size; ++_i28)
                 {
-                  _elem17 = new LocalityTier();
-                  _elem17.read(iprot);
-                  struct.tiers.add(_elem17);
+                  _elem27 = new LocalityTier();
+                  _elem27.read(iprot);
+                  struct.tiers.add(_elem27);
                 }
                 iprot.readListEnd();
               }
@@ -386,9 +386,9 @@ public class TieredIdentity implements org.apache.thrift.TBase<TieredIdentity, T
         oprot.writeFieldBegin(TIERS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.tiers.size()));
-          for (LocalityTier _iter19 : struct.tiers)
+          for (LocalityTier _iter29 : struct.tiers)
           {
-            _iter19.write(oprot);
+            _iter29.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -419,9 +419,9 @@ public class TieredIdentity implements org.apache.thrift.TBase<TieredIdentity, T
       if (struct.isSetTiers()) {
         {
           oprot.writeI32(struct.tiers.size());
-          for (LocalityTier _iter20 : struct.tiers)
+          for (LocalityTier _iter30 : struct.tiers)
           {
-            _iter20.write(oprot);
+            _iter30.write(oprot);
           }
         }
       }
@@ -433,14 +433,14 @@ public class TieredIdentity implements org.apache.thrift.TBase<TieredIdentity, T
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TList _list21 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.tiers = new ArrayList<LocalityTier>(_list21.size);
-          LocalityTier _elem22;
-          for (int _i23 = 0; _i23 < _list21.size; ++_i23)
+          org.apache.thrift.protocol.TList _list31 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.tiers = new ArrayList<LocalityTier>(_list31.size);
+          LocalityTier _elem32;
+          for (int _i33 = 0; _i33 < _list31.size; ++_i33)
           {
-            _elem22 = new LocalityTier();
-            _elem22.read(iprot);
-            struct.tiers.add(_elem22);
+            _elem32 = new LocalityTier();
+            _elem32.read(iprot);
+            struct.tiers.add(_elem32);
           }
         }
         struct.setTiersIsSet(true);
