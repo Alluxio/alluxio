@@ -137,6 +137,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     super();
     mFileSystem = fs;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
+    MetaCache.setAlluxioRootPath(mAlluxioRootPath); // call this as earlier as possible - qiniu
     mNextOpenFileId = 0L;
     mOpenFiles = new HashMap<>();
     mTruncatePaths = new HashMap<>();
