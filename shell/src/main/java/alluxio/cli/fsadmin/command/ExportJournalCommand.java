@@ -42,7 +42,7 @@ public class ExportJournalCommand extends AbstractFsAdminCommand {
     Preconditions.checkState(args.length == 1);
     AlluxioURI uri = new AlluxioURI(args[0]);
     AlluxioURI backup = mMetaClient.exportJournal(uri);
-    mPrintStream.printf("Successfully exported journal to %s\n", backup);
+    mPrintStream.printf("Successfully exported journal to %s%n", backup);
     return 0;
   }
 

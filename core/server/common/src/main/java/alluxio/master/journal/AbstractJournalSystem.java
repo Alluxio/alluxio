@@ -63,7 +63,7 @@ public abstract class AbstractJournalSystem implements JournalSystem {
     mMode = mode;
   }
 
-  protected Mode getMode() {
+  protected synchronized Mode getMode() {
     return mMode;
   }
 
