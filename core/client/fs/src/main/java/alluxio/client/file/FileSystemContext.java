@@ -195,8 +195,10 @@ public final class FileSystemContext implements Closeable {
       mExecutorService
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
               (int) Configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
-      // register the shutdown hook
-      Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
+      // register the shutdown hook if we are not running tests
+      if (!Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+        Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
+      }
     }
   }
 
