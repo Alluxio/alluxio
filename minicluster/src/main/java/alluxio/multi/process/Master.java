@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -46,14 +47,33 @@ public final class Master implements Closeable {
   }
 
   /**
+   * Updates the master's configuration. This update will take effect the next time the master
+   * is started.
+   *
+   * @param key the conf key to update
+   * @param value the value to set, or null to unset the key
+   */
+  public void updateConf(PropertyKey key, @Nullable String value) {
+    if (value == null) {
+      mProperties.remove(key);
+    } else {
+      mProperties.put(key, value);
+    }
+  }
+
+  /**
    * Launches the master process.
    */
-  public synchronized void start() throws IOException {
+  public synchronized void start() {
     Preconditions.checkState(mProcess == null, "Master is already running");
     LOG.info("Starting master with port {}", mProperties.get(PropertyKey.MASTER_RPC_PORT));
     mProcess = new ExternalProcess(mProperties, LimitedLifeMasterProcess.class,
         new File(mLogsDir, "master.out"));
-    mProcess.start();
+    try {
+      mProcess.start();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
