@@ -2600,7 +2600,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                 new TempInodePathForChild(inodePath, childStatus.getName())) {
               LoadMetadataOptions loadMetadataOptions =
                   LoadMetadataOptions.defaults().setLoadDescendantType(DescendantType.NONE)
-                      .setCreateAncestors(false).setUfsStatus(childStatus);
+                      .setCreateAncestors(true).setUfsStatus(childStatus);
               loadMetadataAndJournal(rpcContext, tempInodePath, loadMetadataOptions);
 
               if (options.getLoadDescendantType() == DescendantType.ALL
