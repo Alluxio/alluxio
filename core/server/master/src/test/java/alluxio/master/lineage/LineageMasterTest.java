@@ -67,11 +67,8 @@ public final class LineageMasterTest {
   private Job mJob;
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
-<<<<<<< HEAD
   private long mStartTimeMs;
-=======
   private MetricsMaster mMetricsMaster;
->>>>>>> master
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -85,13 +82,11 @@ public final class LineageMasterTest {
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem = new NoopJournalSystem();
     mSafeModeManager = new DefaultSafeModeManager();
-<<<<<<< HEAD
     mStartTimeMs = System.currentTimeMillis();
-=======
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    mMetricsMaster = new MetricsMasterFactory()
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mFileSystemMaster = mock(FileSystemMaster.class);
->>>>>>> master
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
     mLineageMaster = new DefaultLineageMaster(mFileSystemMaster,

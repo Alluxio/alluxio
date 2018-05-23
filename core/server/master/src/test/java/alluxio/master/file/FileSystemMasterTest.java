@@ -136,12 +136,9 @@ public final class FileSystemMasterTest {
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
   private SafeModeManager mSafeModeManager;
-<<<<<<< HEAD
   private long mStartTimeMs;
-=======
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
->>>>>>> master
   private long mWorkerId1;
   private long mWorkerId2;
 
@@ -2003,16 +2000,12 @@ public final class FileSystemMasterTest {
     mSafeModeManager = new TestSafeModeManager();
     mStartTimeMs = System.currentTimeMillis();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-<<<<<<< HEAD
-    mBlockMaster = new BlockMasterFactory()
+    mMetricsMaster = new MetricsMasterFactory()
         .create(mRegistry, mJournalSystem, mSafeModeManager, mStartTimeMs);
-=======
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
     mBlockMaster =
-        new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
->>>>>>> master
+        new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager, mStartTimeMs);
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster,

@@ -84,11 +84,8 @@ public final class Constants {
   public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 2;
   public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
-<<<<<<< HEAD
   public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
-=======
   public static final long METRICS_MASTER_CLIENT_SERVICE_VERSION = 2;
->>>>>>> master
   public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 2;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
@@ -97,11 +94,8 @@ public final class Constants {
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String LINEAGE_MASTER_NAME = "LineageMaster";
   public static final String KEY_VALUE_MASTER_NAME = "KeyValueMaster";
-<<<<<<< HEAD
   public static final String META_MASTER_NAME = "MetaMaster";
-=======
   public static final String METRICS_MASTER_NAME = "MetricsMaster";
->>>>>>> master
   public static final String BLOCK_WORKER_NAME = "BlockWorker";
   public static final String FILE_SYSTEM_WORKER_NAME = "FileSystemWorker";
   public static final String KEY_VALUE_WORKER_NAME = "KeyValueWorker";
@@ -111,13 +105,10 @@ public final class Constants {
   public static final String FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME = "FileSystemMasterClient";
   public static final String FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME = "FileSystemMasterWorker";
   public static final String LINEAGE_MASTER_CLIENT_SERVICE_NAME = "LineageMasterClient";
-<<<<<<< HEAD
   public static final String META_MASTER_CLIENT_SERVICE_NAME = "MetaMasterClient";
   public static final String META_MASTER_MASTER_SERVICE_NAME = "MetaMasterMaster";
-=======
   public static final String META_MASTER_SERVICE_NAME = "MetaMaster";
   public static final String METRICS_MASTER_CLIENT_SERVICE_NAME = "MetricsMasterClient";
->>>>>>> master
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";

@@ -153,7 +153,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   DefaultMetaMaster(BlockMaster blockMaster, MasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
-    mSafeModeManager = masterContext.getmSafeModeManager();
+    mSafeModeManager = masterContext.getSafeModeManager();
     mStartTimeMs = masterContext.getStartTimeMs();
     mBlockMaster = blockMaster;
     mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);

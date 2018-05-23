@@ -89,9 +89,19 @@ public final class Address implements Serializable {
   /**
    * @return a master address of thrift construct
    */
-  protected alluxio.thrift.MasterAddress toThrift() {
+  public alluxio.thrift.MasterAddress toThrift() {
     return new alluxio.thrift.MasterAddress()
         .setHost(mHost).setRpcPort(mRpcPort);
+  }
+
+  /**
+   * Creates a new instance of {@link Address} from thrift representation.
+   *
+   * @param address the thrift representation of a master address
+   * @return the instance
+   */
+  public static Address fromThrift(alluxio.thrift.MasterAddress address) {
+    return new Address(address);
   }
 
   @Override

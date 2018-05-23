@@ -48,11 +48,11 @@ public final class MetricsMasterFactory implements MasterFactory {
 
   @Override
   public MetricsMaster create(MasterRegistry registry, JournalSystem journalSystem,
-      SafeModeManager safeModeManager) {
+      SafeModeManager safeModeManager, long startTimeMs) {
     Preconditions.checkNotNull(journalSystem, "journal");
     LOG.info("Creating {} ", MetricsMaster.class.getName());
-    MetricsMaster master =
-        new DefaultMetricsMaster(new MasterContext(journalSystem, safeModeManager));
+    MetricsMaster master = new DefaultMetricsMaster(
+        new MasterContext(journalSystem, safeModeManager, startTimeMs));
     registry.add(MetricsMaster.class, master);
     return master;
   }

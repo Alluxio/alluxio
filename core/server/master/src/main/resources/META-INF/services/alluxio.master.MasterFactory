@@ -12,8 +12,5 @@
 alluxio.master.block.BlockMasterFactory
 alluxio.master.file.FileSystemMasterFactory
 alluxio.master.lineage.LineageMasterFactory
-<<<<<<< HEAD
 alluxio.master.meta.MetaMasterFactory
-=======
 alluxio.master.metrics.MetricsMasterFactory
->>>>>>> master

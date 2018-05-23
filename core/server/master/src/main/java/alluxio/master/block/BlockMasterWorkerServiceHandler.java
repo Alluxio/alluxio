@@ -16,11 +16,8 @@ import static alluxio.wire.WorkerNetAddress.fromThrift;
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
-<<<<<<< HEAD
 import alluxio.exception.status.AlluxioStatusException;
-=======
 import alluxio.metrics.Metric;
->>>>>>> master
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockHeartbeatTResponse;

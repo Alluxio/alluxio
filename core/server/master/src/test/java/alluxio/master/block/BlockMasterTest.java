@@ -73,12 +73,9 @@ public class BlockMasterTest {
   private ManualClock mClock;
   private ExecutorService mExecutorService;
   private SafeModeManager mSafeModeManager;
-<<<<<<< HEAD
   private long mStartTimeMs;
-=======
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
->>>>>>> master
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -99,25 +96,17 @@ public class BlockMasterTest {
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
-<<<<<<< HEAD
     mStartTimeMs = System.currentTimeMillis();
-=======
     mMetrics = Lists.newArrayList();
->>>>>>> master
     JournalSystem journalSystem = new NoopJournalSystem();
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    mMetricsMaster = new MetricsMasterFactory()
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-<<<<<<< HEAD
-    mBlockMaster = new DefaultBlockMaster(
+    mBlockMaster = new DefaultBlockMaster(mMetricsMaster,
         new MasterContext(journalSystem, mSafeModeManager, mStartTimeMs),
         mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
-=======
-    mBlockMaster =
-        new DefaultBlockMaster(mMetricsMaster, new MasterContext(journalSystem, mSafeModeManager),
-            mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
->>>>>>> master
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
   }

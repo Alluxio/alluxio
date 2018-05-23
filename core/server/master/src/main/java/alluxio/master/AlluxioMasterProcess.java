@@ -91,12 +91,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The RPC server. */
   private TServer mThriftServer;
 
-<<<<<<< HEAD
-  /** True if the master is serving the RPC server. */
-  private boolean mIsServing;
-
-=======
->>>>>>> master
   /** The start time for when the master started serving the RPC server. */
   private long mStartTimeMs = -1;
 
@@ -201,33 +195,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-<<<<<<< HEAD
-=======
-  public List<ConfigProperty> getConfiguration() {
-    List<ConfigProperty> configInfoList = new ArrayList<>();
-    String alluxioConfPrefix = "alluxio";
-    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      String key = entry.getKey();
-      String value = entry.getValue();
-      if (key.startsWith(alluxioConfPrefix) && value != null) {
-        PropertyKey propertyKey = PropertyKey.fromString(key);
-        Configuration.Source source = Configuration.getSource(propertyKey);
-        String sourceStr;
-        if (source == Configuration.Source.SITE_PROPERTY) {
-          sourceStr =
-              String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
-        } else {
-          sourceStr = source.name();
-        }
-        configInfoList.add(new ConfigProperty()
-            .setName(key).setValue(entry.getValue()).setSource(sourceStr));
-      }
-    }
-    return configInfoList;
-  }
-
-  @Override
->>>>>>> master
   public void waitForReady() {
     CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override

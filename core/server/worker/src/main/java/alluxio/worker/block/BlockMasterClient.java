@@ -22,11 +22,7 @@ import alluxio.thrift.CommitBlockTOptions;
 import alluxio.thrift.GetWorkerIdTOptions;
 import alluxio.thrift.Metric;
 import alluxio.thrift.RegisterWorkerTOptions;
-<<<<<<< HEAD
 import alluxio.wire.ConfigProperty;
-import alluxio.wire.ThriftUtils;
-=======
->>>>>>> master
 import alluxio.wire.WorkerNetAddress;
 
 import org.apache.thrift.TException;

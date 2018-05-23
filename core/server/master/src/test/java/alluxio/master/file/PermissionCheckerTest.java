@@ -105,11 +105,8 @@ public final class PermissionCheckerTest {
   private static InodeTree sTree;
   private static MasterRegistry sRegistry;
   private static SafeModeManager sSafeModeManager;
-<<<<<<< HEAD
   private static long sStartTimeMs;
-=======
   private static MetricsMaster sMetricsMaster;
->>>>>>> master
 
   private PermissionChecker mPermissionChecker;
 
@@ -184,15 +181,11 @@ public final class PermissionCheckerTest {
     sSafeModeManager = new DefaultSafeModeManager();
     sStartTimeMs = System.currentTimeMillis();
     JournalSystem journalSystem = new NoopJournalSystem();
-<<<<<<< HEAD
-    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, journalSystem,
-        sSafeModeManager, sStartTimeMs);
-=======
-    sMetricsMaster = new MetricsMasterFactory().create(sRegistry, journalSystem, sSafeModeManager);
+    sMetricsMaster = new MetricsMasterFactory()
+        .create(sRegistry, journalSystem, sSafeModeManager, sStartTimeMs);
     sRegistry.add(MetricsMaster.class, sMetricsMaster);
-    BlockMaster blockMaster =
-        new BlockMasterFactory().create(sRegistry, journalSystem, sSafeModeManager);
->>>>>>> master
+    BlockMaster blockMaster = new BlockMasterFactory()
+        .create(sRegistry, journalSystem, sSafeModeManager, sStartTimeMs);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);

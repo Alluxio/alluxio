@@ -52,14 +52,9 @@ public final class BlockMasterFactory implements MasterFactory {
       SafeModeManager safeModeManager, long startTimeMs) {
     Preconditions.checkArgument(journalFactory != null, "journal");
     LOG.info("Creating {} ", BlockMaster.class.getName());
-<<<<<<< HEAD
-    BlockMaster master = new DefaultBlockMaster(new MasterContext(journalFactory,
-        safeModeManager, startTimeMs));
-=======
     MetricsMaster metricsMaster = registry.get(MetricsMaster.class);
-    BlockMaster master =
-        new DefaultBlockMaster(metricsMaster, new MasterContext(journalFactory, safeModeManager));
->>>>>>> master
+    BlockMaster master = new DefaultBlockMaster(metricsMaster,
+        new MasterContext(journalFactory, safeModeManager, startTimeMs));
     registry.add(BlockMaster.class, master);
     return master;
   }

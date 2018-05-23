@@ -175,7 +175,6 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
-<<<<<<< HEAD
   /** Listeners to call when lost workers are found. */
   private final BlockingQueue<Consumer<Address>> mLostWorkerFoundListeners
       = new LinkedBlockingQueue<>();
@@ -186,10 +185,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** Listeners to call when a new worker registers. */
   private final BlockingQueue<BiConsumer<Address, List<ConfigProperty>>> mWorkerRegisteredListeners
       = new LinkedBlockingQueue<>();
-=======
+
   /** Handle to the metrics master. */
   private final MetricsMaster mMetricsMaster;
->>>>>>> master
 
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.

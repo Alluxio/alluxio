@@ -81,11 +81,8 @@ public final class InodeTreeTest {
   private InodeTree mTree;
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
-<<<<<<< HEAD
   private long mStartTimeMs;
-=======
   private MetricsMaster mMetricsMaster;
->>>>>>> master
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -111,15 +108,11 @@ public final class InodeTreeTest {
     mSafeModeManager = new DefaultSafeModeManager();
     mStartTimeMs = System.currentTimeMillis();
     JournalSystem journalSystem = new NoopJournalSystem();
-<<<<<<< HEAD
-    BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, journalSystem,
-        mSafeModeManager, mStartTimeMs);
-=======
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    mMetricsMaster = new MetricsMasterFactory()
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
-    BlockMaster blockMaster =
-        new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
->>>>>>> master
+    BlockMaster blockMaster = new BlockMasterFactory()
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);

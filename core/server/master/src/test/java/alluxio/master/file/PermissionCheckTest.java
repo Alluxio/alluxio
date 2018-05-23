@@ -116,11 +116,8 @@ public final class PermissionCheckTest {
 
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
-<<<<<<< HEAD
   private long mStartTimeMs;
-=======
   private MetricsMaster mMetricsMaster;
->>>>>>> master
   private FileSystemMaster mFileSystemMaster;
   private BlockMaster mBlockMaster;
 
@@ -200,18 +197,13 @@ public final class PermissionCheckTest {
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     JournalSystem journalSystem = new NoopJournalSystem();
     mSafeModeManager = new DefaultSafeModeManager();
-<<<<<<< HEAD
     mStartTimeMs = System.currentTimeMillis();
+    mMetricsMaster = new MetricsMasterFactory()
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
     mBlockMaster = new BlockMasterFactory()
         .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
-    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, journalSystem,
-        mSafeModeManager, mStartTimeMs);
-=======
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
-    mFileSystemMaster =
-        new FileSystemMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
->>>>>>> master
+    mFileSystemMaster = new FileSystemMasterFactory()
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
     mRegistry.start(true);
 
     createDirAndFileForTest();

@@ -42,6 +42,7 @@ public class MetricsMasterTest {
   private DefaultMetricsMaster mMetricsMaster;
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
+  private long mStartTimeMs;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
 
@@ -50,12 +51,13 @@ public class MetricsMasterTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     mClock = new ManualClock();
+    mStartTimeMs = System.currentTimeMillis();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestMetricsMaster-%d", true));
     JournalSystem journalSystem = new NoopJournalSystem();
-    mMetricsMaster =
-        new DefaultMetricsMaster(new MasterContext(journalSystem, mSafeModeManager),
-            mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mMetricsMaster = new DefaultMetricsMaster(
+        new MasterContext(journalSystem, mSafeModeManager, mStartTimeMs),
+        mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mRegistry.start(true);
   }
