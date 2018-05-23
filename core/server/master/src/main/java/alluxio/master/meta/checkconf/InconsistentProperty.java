@@ -28,8 +28,7 @@ import java.util.Map;
 public class InconsistentProperty {
   /** The name of the property that has errors/warnings. */
   private String mName = "";
-  /**
-   * Record the values and corresponding hostnames. */
+  /** Record the values and corresponding hostnames. */
   private Map<String, List<String>> mValues = new HashMap<>();
 
   /**
