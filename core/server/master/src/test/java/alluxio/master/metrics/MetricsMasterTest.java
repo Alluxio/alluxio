@@ -56,6 +56,7 @@ public class MetricsMasterTest {
     mStartTimeMs = System.currentTimeMillis();
     mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     mClock = new ManualClock();
+    mStartTimeMs = System.currentTimeMillis();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestMetricsMaster-%d", true));
     JournalSystem journalSystem = new NoopJournalSystem();

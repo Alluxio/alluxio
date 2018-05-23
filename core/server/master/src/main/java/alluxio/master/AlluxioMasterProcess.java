@@ -91,9 +91,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The RPC server. */
   private TServer mThriftServer;
 
-  /** True if the master is serving the RPC server. */
-  private boolean mIsServing;
-
   /** The start time for when the master started serving the RPC server. */
   private long mStartTimeMs = -1;
 

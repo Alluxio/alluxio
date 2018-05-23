@@ -14,9 +14,8 @@ package alluxio.wire;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-import java.io.Serializable;
-
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.Serializable;
 
 /**
  * The address of a node.
