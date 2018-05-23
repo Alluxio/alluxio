@@ -26,7 +26,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -114,9 +113,9 @@ public class AlluxioProperties {
   }
 
   /**
-   * Remove the value set to key.
+   * Remove the value set for key.
    *
-   * @param key key to put
+   * @param key key to remove
    */
   public void remove(String key) {
     mUserProps.put(key, Optional.empty());
@@ -139,20 +138,11 @@ public class AlluxioProperties {
    * @return the entry set of all Alluxio property key and value pairs (value can be null)
    */
   public Set<Map.Entry<String, String>> entrySet() {
-    Set<Map.Entry<String, String>> entrySet =
-        Stream.concat(
-            PropertyKey.defaultKeys().stream()
-                .filter(key -> !mUserProps.containsKey(key.getName()))
-                .map(key -> Maps.immutableEntry(key.getName(), key.getDefaultValue())),
-            mUserProps.entrySet().stream()
-                .map(entry -> Maps.immutableEntry(entry.getKey(), entry.getValue().orElse(null))))
-            .collect(toSet());
-
-    return entrySet;
+    return keySet().stream().map(key -> Maps.immutableEntry(key, get(key))).collect(toSet());
   }
 
   /**
-   * @return the entry set of all Alluxio property key and value pairs (value can be null)
+   * @return the key set of all Alluxio property
    */
   public Set<String> keySet() {
     Set<String> keySet =
@@ -201,8 +191,8 @@ public class AlluxioProperties {
    * Merges the current configuration properties with alternate properties. A property from the new
    * configuration wins if it also appears in the current configuration.
    *
-   * @param properties The source {@link Properties} to be merged
-   * @param source The source of the the properties (e.g., system property, default and etc)
+   * @param properties the source {@link Properties} to be merged
+   * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public void merge(Map<?, ?> properties, Source source) {
     if (properties == null) {

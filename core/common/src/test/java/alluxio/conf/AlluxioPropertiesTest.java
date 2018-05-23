@@ -34,7 +34,7 @@ import java.util.Set;
 public class AlluxioPropertiesTest {
 
   private static final String KEY_WITHOUT_VALUE = "key.without.value";
-  private static final String KEY_WITH_VALUE = "key.without.value";
+  private static final String KEY_WITH_VALUE = "key.with.value";
   private static final String KEY_NEW = "key.ne1w";
 
   private AlluxioProperties mProperties = new AlluxioProperties();

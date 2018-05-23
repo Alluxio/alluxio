@@ -15,11 +15,11 @@ package alluxio.conf;
  * The source of a configuration property.
  */
 public enum Source {
+  UNKNOWN(-1),
   DEFAULT(0),
-  HADOOP_CONF(3),
   SITE_PROPERTY(1),
   SYSTEM_PROPERTY(2),
-  UNKNOWN(-1)
+  HADOOP_CONF(3),
   ;
   private final int mPriority;
   Source(int val) {

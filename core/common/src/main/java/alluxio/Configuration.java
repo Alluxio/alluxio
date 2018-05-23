@@ -90,21 +90,22 @@ public final class Configuration {
     sSources.clear();
     addPropertiesFromSource(System.getProperties(), Source.SYSTEM_PROPERTY);
     update();
+    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+      return;
+    }
 
     // Step2: Load site specific properties file if not in test mode. Note that we decide whether in
     // test mode by default properties and system properties (via getBoolean).
-    Properties siteProps = new Properties();
-    if (!Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-      // we are not in test mode, load site properties
-      String confPaths = Configuration.get(PropertyKey.SITE_CONF_DIR);
-      String[] confPathList = confPaths.split(",");
-      sSitePropertyFile =
-          ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
-      if (sSitePropertyFile != null) {
-        siteProps = ConfigurationUtils.loadPropertiesFromFile(sSitePropertyFile);
-      } else {
-        siteProps = ConfigurationUtils.loadPropertiesFromResource(Constants.SITE_PROPERTIES);
-      }
+    Properties siteProps;
+    // we are not in test mode, load site properties
+    String confPaths = Configuration.get(PropertyKey.SITE_CONF_DIR);
+    String[] confPathList = confPaths.split(",");
+    sSitePropertyFile =
+        ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
+    if (sSitePropertyFile != null) {
+      siteProps = ConfigurationUtils.loadPropertiesFromFile(sSitePropertyFile);
+    } else {
+      siteProps = ConfigurationUtils.loadPropertiesFromResource(Constants.SITE_PROPERTIES);
     }
 
     // Step3: re-create the configuration instance after figuring out the site properties file.
