@@ -28,6 +28,7 @@ public class FileInfoTest {
   public void json() throws Exception {
     FileInfo fileInfo = createRandom();
     ObjectMapper mapper = new ObjectMapper();
+    String s = mapper.writeValueAsString(fileInfo);
     FileInfo other = mapper.readValue(mapper.writeValueAsBytes(fileInfo), FileInfo.class);
     checkEquality(fileInfo, other);
   }
