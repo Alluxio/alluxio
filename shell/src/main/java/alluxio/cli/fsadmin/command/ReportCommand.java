@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
+import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.cli.fsadmin.report.ConfigurationCommand;
@@ -39,7 +40,7 @@ import java.util.List;
 /**
  * Reports Alluxio running cluster information.
  */
-public final class ReportCommand extends AbstractFsAdminCommand {
+public final class ReportCommand extends AbstractFsAdminCommand implements Command {
   public static final String HELP_OPTION_NAME = "h";
   public static final String LIVE_OPTION_NAME = "live";
   public static final String LOST_OPTION_NAME = "lost";
@@ -82,7 +83,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
   }
 
   /**
-   * @param context fsadmin command context
+   * Creates a new instance of {@link ReportCommand}.
    */
   public ReportCommand(Context context) {
     super(context);
@@ -142,7 +143,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
 
     // Check if Alluxio master and client services are running
     try (CloseableResource<FileSystemMasterClient> client =
-             FileSystemContext.INSTANCE.acquireMasterClientResource()) {
+             FileSystemContext.get().acquireMasterClientResource()) {
       MasterInquireClient inquireClient = null;
       try {
         InetSocketAddress address = client.get().getAddress();

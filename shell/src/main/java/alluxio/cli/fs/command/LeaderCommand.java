@@ -56,7 +56,7 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) {
     try (CloseableResource<FileSystemMasterClient> client =
-        FileSystemContext.INSTANCE.acquireMasterClientResource()) {
+        FileSystemContext.get().acquireMasterClientResource()) {
       try {
         InetSocketAddress address = client.get().getAddress();
         System.out.println(address.getHostName());

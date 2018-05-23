@@ -25,6 +25,7 @@ import alluxio.master.file.StartupConsistencyCheck.Status;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -69,6 +70,7 @@ public class MasterTestUtils {
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
     MasterContext masterContext =
         new MasterContext(journalSystem, safeModeManager, new ReentrantLock());
+    new MetricsMasterFactory().create(registry, masterContext);
     new BlockMasterFactory().create(registry, masterContext);
     new FileSystemMasterFactory().create(registry, masterContext);
     journalSystem.start();

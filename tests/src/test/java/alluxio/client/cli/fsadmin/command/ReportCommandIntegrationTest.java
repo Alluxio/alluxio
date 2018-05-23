@@ -22,6 +22,9 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Tests for report command.
  */
@@ -52,8 +55,22 @@ public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest
     String output = mOutput.toString();
     Assert.assertThat(output,
         CoreMatchers.containsString("Alluxio configuration information:"));
-    Assert.assertThat(output,
-        CoreMatchers.containsString("alluxio.test.mode"));
+
+    // Output should not contain raw values with ${VALUE} format
+    String regexString = "(\\$\\{([^{}]*)\\})";
+    Pattern confRegex = Pattern.compile(regexString);
+    Matcher matcher = confRegex.matcher(output);
+    Assert.assertFalse(matcher.find());
+
+    // Output should contain all kinds of properties.
+    Assert.assertTrue(output.contains("alluxio.debug"));
+    Assert.assertTrue(output.contains("alluxio.fuse.fs.name"));
+    Assert.assertTrue(output.contains("alluxio.logserver.logs.dir"));
+    Assert.assertTrue(output.contains("alluxio.master.journal.folder"));
+    Assert.assertTrue(output.contains("alluxio.proxy.web.port"));
+    Assert.assertTrue(output.contains("alluxio.security.authentication.type"));
+    Assert.assertTrue(output.contains("alluxio.user.block.master.client.threads"));
+    Assert.assertTrue(output.contains("alluxio.worker.bind.host"));
   }
 
   @Test

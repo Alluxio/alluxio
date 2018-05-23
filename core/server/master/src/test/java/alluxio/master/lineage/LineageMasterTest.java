@@ -11,12 +11,12 @@
 
 package alluxio.master.lineage;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
@@ -78,9 +78,8 @@ public final class LineageMasterTest {
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem = new NoopJournalSystem();
-    mFileSystemMaster = mock(FileSystemMaster.class);
-    mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mSafeModeManager = new DefaultSafeModeManager();
+    mFileSystemMaster = mock(FileSystemMaster.class);
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
     mLineageMaster = new DefaultLineageMaster(mFileSystemMaster,

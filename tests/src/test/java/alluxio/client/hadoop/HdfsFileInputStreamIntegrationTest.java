@@ -12,7 +12,6 @@
 package alluxio.client.hadoop;
 
 import alluxio.AlluxioURI;
-import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -22,6 +21,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.hadoop.HdfsFileInputStream;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -75,7 +75,7 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
     mFileSystem = sLocalAlluxioClusterResource.get().getClient();
     FileSystemTestUtils
         .createByteFile(mFileSystem, IN_MEMORY_FILE, WriteType.CACHE_THROUGH, FILE_LEN);
-    mInMemInputStream = new HdfsFileInputStream(FileSystemContext.INSTANCE,
+    mInMemInputStream = new HdfsFileInputStream(FileSystemContext.get(),
         new AlluxioURI(IN_MEMORY_FILE), null);
   }
 
@@ -83,7 +83,7 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
     String defaultReadType = alluxio.Configuration.get(PropertyKey.USER_FILE_READ_TYPE_DEFAULT);
     alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
     FileSystemTestUtils.createByteFile(mFileSystem, UFS_ONLY_FILE, WriteType.THROUGH, FILE_LEN);
-    mUfsInputStream = new HdfsFileInputStream(FileSystemContext.INSTANCE,
+    mUfsInputStream = new HdfsFileInputStream(FileSystemContext.get(),
         new AlluxioURI(UFS_ONLY_FILE), null);
     alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
   }

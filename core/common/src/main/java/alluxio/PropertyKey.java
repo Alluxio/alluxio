@@ -339,6 +339,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "should be the same on the clients and server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
+  /**
+   * @deprecated since 1.8.0 and will be removed in 2.0.
+   */
+  @Deprecated
   public static final PropertyKey NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
       new Builder(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX)
           .setDefaultValue("16MB")
@@ -894,6 +898,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname that Alluxio master binds to. See <a "
               + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
+      new Builder(Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL)
+          .setDefaultValue("10min")
+          .setDescription("Interval for removing closed client sockets from internal tracking.")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
@@ -2366,6 +2378,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_METRICS_COLLECTION_ENABLED =
+      new Builder(Name.USER_METRICS_COLLECTION_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Enable collecting the client-side metrics and hearbeat them to master")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METRICS_HEARTBEAT_INTERVAL_MS =
+      new Builder(Name.USER_METRICS_HEARTBEAT_INTERVAL_MS)
+          .setAlias(new String[]{"alluxio.user.heartbeat.interval.ms"})
+          .setDefaultValue("3sec")
+          .setDescription("The time period of client master hearbeat to "
+              + "send the client-side metrics.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
           .setDescription("Type of netty channels.")
@@ -2682,6 +2710,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey SECURITY_LOGIN_IMPERSONATION_USERNAME =
+      new Builder(Name.SECURITY_LOGIN_IMPERSONATION_USERNAME).setDescription(String.format(
+          "When %s is set to SIMPLE or CUSTOM, user application uses this property to indicate "
+              + "the IMPERSONATED user requesting Alluxio service. If it is not set explicitly, "
+              + "impersonation will not be used. A special value of '%s' can be specified to "
+              + "impersonate the hadoop client user.",
+          SECURITY_AUTHENTICATION_TYPE, Constants.IMPERSONATION_HDFS_USER))
+          .setDefaultValue(Constants.IMPERSONATION_HDFS_USER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey SECURITY_LOGIN_USERNAME =
       new Builder(Name.SECURITY_LOGIN_USERNAME)
           .setDescription("When alluxio.security.authentication.type is set to SIMPLE or "
@@ -2741,8 +2780,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey INTEGRATION_MESOS_JDK_URL =
       new Builder(Name.INTEGRATION_MESOS_JDK_URL)
-          .setDefaultValue("https://alluxio-mesos.s3.amazonaws.com/jdk-8u151-linux-x64.tar.gz")
-          .setDescription("A url from which to install the jdk during Mesos deployment. When "
+          .setDefaultValue(Constants.MESOS_LOCAL_INSTALL)
+          .setDescription("A url from which to install the jdk during Mesos deployment. Default to "
+              + "LOCAL which tells Mesos to use the local JDK on the system. When "
               + "using this property, alluxio.integration.mesos.jdk.path must also be set "
               + "correctly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2991,6 +3031,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
         "alluxio.master.audit.logging.queue.capacity";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
+    public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
+        "alluxio.master.client.socket.cleanup.interval";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
@@ -3270,6 +3312,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.local.reader.packet.size.bytes";
     public static final String USER_LOCAL_WRITER_PACKET_SIZE_BYTES =
         "alluxio.user.local.writer.packet.size.bytes";
+    public static final String USER_METRICS_COLLECTION_ENABLED =
+        "alluxio.user.metrics.collection.enabled";
+    public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
+        "alluxio.user.metrics.heartbeat.interval";
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
     public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
         "alluxio.user.network.netty.timeout";
@@ -3342,6 +3388,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.security.group.mapping.cache.timeout";
     public static final String SECURITY_GROUP_MAPPING_CLASS =
         "alluxio.security.group.mapping.class";
+    public static final String SECURITY_LOGIN_IMPERSONATION_USERNAME =
+        "alluxio.security.login.impersonation.username";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
 
     //
@@ -3366,6 +3414,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @ThreadSafe
   public enum Template {
     LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
+    MASTER_IMPERSONATION_GROUPS_OPTION("alluxio.master.security.impersonation.%s.groups",
+        "alluxio.master.security.impersonation.(\\w+).groups"),
+    MASTER_IMPERSONATION_USERS_OPTION("alluxio.master.security.impersonation.%s.users",
+        "alluxio.master.security.impersonation.(\\w+).users"),
     MASTER_JOURNAL_UFS_OPTION("alluxio.master.journal.ufs.option",
         "alluxio\\.master\\.journal\\.ufs\\.option"),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",

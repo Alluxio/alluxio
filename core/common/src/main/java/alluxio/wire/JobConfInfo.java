@@ -37,15 +37,6 @@ public final class JobConfInfo implements Serializable {
   public JobConfInfo() {}
 
   /**
-   * Creates a new instance of {@link JobConfInfo} from a thrift representation.
-   *
-   * @param jobConfInfo the thrift representation of a lineage command-line job configuration
-   */
-  protected JobConfInfo(alluxio.thrift.JobConfInfo jobConfInfo) {
-    mOutputFile = jobConfInfo.getOutputFile();
-  }
-
-  /**
    * @return the output file
    */
   public String getOutputFile() {
@@ -67,6 +58,16 @@ public final class JobConfInfo implements Serializable {
    */
   protected alluxio.thrift.JobConfInfo toThrift() {
     return new alluxio.thrift.JobConfInfo(mOutputFile);
+  }
+
+  /**
+   * Creates a new instance of {@link JobConfInfo} from a thrift representation.
+   *
+   * @param info the thrift representation of a lineage command-line job configuration
+   * @return the instance
+   */
+  public static JobConfInfo fromThrift(alluxio.thrift.JobConfInfo info) {
+    return new JobConfInfo().setOutputFile(info.getOutputFile());
   }
 
   @Override
