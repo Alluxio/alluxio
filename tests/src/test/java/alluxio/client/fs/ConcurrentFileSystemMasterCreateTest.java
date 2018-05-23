@@ -323,7 +323,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     }
     if (!errors.isEmpty()) {
       Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0)
-          + "\n" + Throwables.getStackTraceAsString(errors.get(0))) ;
+          + "\n" + Throwables.getStackTraceAsString(errors.get(0)));
     }
 
     ListStatusOptions listOptions = ListStatusOptions.defaults().setLoadMetadataType(
