@@ -11,17 +11,17 @@
 
 package alluxio.master.callhome;
 
-import java.util.Arrays;
-import java.util.List;
+import alluxio.RuntimeConstants;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerInfoTest;
 
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import alluxio.RuntimeConstants;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerInfoTest;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Unit tests for {@link CallHomeInfo}.
