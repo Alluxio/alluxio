@@ -26,7 +26,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.io.PrintStream;
 
 /**
  * Shows errors or warnings that users should pay attention to.
@@ -34,7 +33,6 @@ import java.io.PrintStream;
 public final class DoctorCommand implements Command {
   public static final String HELP_OPTION_NAME = "h";
   private final MetaMasterClient mMetaMasterClient;
-  private final PrintStream mPrintStream;
 
   private static final Option HELP_OPTION =
       Option.builder(HELP_OPTION_NAME)
@@ -53,7 +51,6 @@ public final class DoctorCommand implements Command {
    */
   public DoctorCommand() {
     mMetaMasterClient = new RetryHandlingMetaMasterClient(MasterClientConfig.defaults());
-    mPrintStream = System.out;
   }
 
   @Override
@@ -71,28 +68,27 @@ public final class DoctorCommand implements Command {
       return 0;
     }
 
-    FileSystemAdminShellUtils.masterClientServiceIsRunning();
+    FileSystemAdminShellUtils.checkMasterClientServiceIsRunning();
 
     // Get the doctor category
     Command command = Command.ALL;
     if (args.length == 1) {
-      switch (args[0]) {
-        case "configuration":
-          command = Command.CONFIGURATION;
-          break;
-        default:
-          System.out.println(getUsage());
-          System.out.println(getDescription());
-          throw new InvalidArgumentException("doctor category is invalid.");
+      try {
+        command = Command.valueOf(args[0]);
+      } catch (IllegalArgumentException e) {
+        System.out.println(getUsage());
+        System.out.println(getDescription());
+        throw new IllegalArgumentException(String
+            .format("doctor category cannot be %s.", args[0]));
       }
     }
 
     switch (command) {
-      case ALL:
+      case ALL:// intended to fall through
         // TODO(lu) add other Alluxio errors and warnings and separate from CONFIGURATION
       case CONFIGURATION:
         ConfigurationCommand configurationCommand
-            = new ConfigurationCommand(mMetaMasterClient, mPrintStream);
+            = new ConfigurationCommand(mMetaMasterClient, System.out);
         configurationCommand.run();
         break;
       default:

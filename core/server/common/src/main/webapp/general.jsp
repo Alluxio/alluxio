@@ -192,7 +192,7 @@
               <tbody>
                 <% if (errorSize != 0) { %>
                   <tr>
-                    <th colspan="3"> <font color="red">Errors (those properties are required to be same)</font></th>
+                    <th colspan="3"> <font color="red">Errors (those properties are required to be identical)</font></th>
                   </tr>
                   <% for (Map.Entry<Scope, List<InconsistentProperty>> error : ((Map<Scope, List<InconsistentProperty>>) request.getAttribute("configCheckErrors")).entrySet()) { %>
                     <% for (InconsistentProperty inconsistentProperty: error.getValue()) { %>
@@ -213,7 +213,7 @@
                 <% } %>
                 <% if (warnSize != 0) { %>
                   <tr>
-                    <th colspan="3">Warnings (those properties are recommended to be same)</th>
+                    <th colspan="3">Warnings (those properties are recommended to be identical)</th>
                   </tr>
                   <% for (Map.Entry<Scope, List<InconsistentProperty>> warn : ((Map<Scope, List<InconsistentProperty>>) request.getAttribute("configCheckWarns")).entrySet()) { %>
                     <% for (InconsistentProperty inconsistentProperty: warn.getValue()) { %>

@@ -23,11 +23,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Prints runtime configuration information.
+ * Prints server-side configuration errors and warnings.
  */
 public class ConfigurationCommand {
-  private MetaMasterClient mMetaMasterClient;
-  private PrintStream mPrintStream;
+  private final MetaMasterClient mMetaMasterClient;
+  private final PrintStream mPrintStream;
 
   /**
    * Creates a new instance of {@link ConfigurationCommand}.
@@ -48,7 +48,7 @@ public class ConfigurationCommand {
   public int run() throws IOException {
     ConfigCheckReport report = mMetaMasterClient.getConfigReport();
     ConfigStatus configStatus = report.getConfigStatus();
-    if (configStatus.equals(ConfigStatus.PASSED)) {
+    if (configStatus == ConfigStatus.PASSED) {
       // No errors or warnings to show
       mPrintStream.println("No server-side configuration errors or warnings.");
       return 0;
@@ -57,14 +57,14 @@ public class ConfigurationCommand {
     Map<Scope, List<InconsistentProperty>> errors = report.getConfigErrors();
     if (errors.size() != 0) {
       mPrintStream.println("Server-side configuration errors "
-          + "(those properties are required to be same): ");
+          + "(those properties are required to be identical): ");
       printInconsistentProperties(errors);
     }
 
     Map<Scope, List<InconsistentProperty>> warnings = report.getConfigWarns();
     if (warnings.size() != 0) {
       mPrintStream.println("\nServer-side configuration warnings "
-          + "(those properties are recommended to be same): ");
+          + "(those properties are recommended to be identical): ");
       printInconsistentProperties(warnings);
     }
     return 0;
