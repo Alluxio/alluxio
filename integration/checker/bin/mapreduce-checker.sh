@@ -25,7 +25,7 @@ where NUM_MAPS is an optional argument which affects the number of map tasks in 
 
 -h  display this help."
 
-ALLUXIO_PATH=$(cd "${BIN}/../../"; pwd)
+ALLUXIO_PATH=$(cd "${BIN}/../../../"; pwd)
 HADOOP_LOCATION=""
 NUM_MAPS="${1:-10}";
 

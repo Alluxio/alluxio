@@ -44,7 +44,7 @@ and use \"<ALLUXIO_HOME>/bin/alluxio fs chmod 777 /alluxioTestFolder\" to change
 
 Please rerun the Hive integration checker."
 
-ALLUXIO_PATH=$(cd "${CHECKER_BIN_PATH}/../../"; pwd)
+ALLUXIO_PATH=$(cd "${CHECKER_BIN_PATH}/../../../"; pwd)
 
 function generate_input() {
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"

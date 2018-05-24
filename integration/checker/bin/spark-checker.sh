@@ -112,12 +112,12 @@ function main {
     exit 1
   fi
 
-  source "${BIN}/../../libexec/alluxio-config.sh"
+  source "${BIN}/../../../libexec/alluxio-config.sh"
   ALLUXIO_CHECKER_JAR="${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar"
 
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
   case "${SPARK_MASTER}" in
-    local*) 
+    local*)
       find_spark_path
       trigger_spark_local
       ;;
