@@ -43,6 +43,8 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * Creates a new master client base.
    *
    * @param conf master client configuration
+   * @param address address to connect to
+   * @param retryPolicySupplier retry policy to use
    */
   public AbstractMasterClient(MasterClientConfig conf, InetSocketAddress address,
       Supplier<RetryPolicy> retryPolicySupplier) {

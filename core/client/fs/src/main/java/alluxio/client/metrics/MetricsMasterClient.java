@@ -81,9 +81,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
    * @param metrics a list of client metrics
    */
   public synchronized void heartbeat(final List<Metric> metrics) throws IOException {
-    if (!mConnected) {
-      connect();
-    }
+    connect();
     try {
       mClient.metricsHeartbeat(Long.toString(FileSystemContext.get().getId()),
           NetworkAddressUtils.getClientHostName(), new MetricsHeartbeatTOptions(metrics));
