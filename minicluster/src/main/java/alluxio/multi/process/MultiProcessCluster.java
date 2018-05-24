@@ -225,25 +225,24 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
-   * Wait for the live worker number registered
-   * reached the cluster worker number.
+   * Wait for the number of live workers in worker configuration store
+   * reached the worker number of this cluster.
    *
-   * @param workerNum the work num of this cluster
+   * @param nodeNum the work num of this cluster
    * @param timeoutMs maximum amount of time to wait, in milliseconds
+   * @return  the meta master client
    */
-  public synchronized void waitForWorkerNum(int workerNum, int timeoutMs) {
+  public synchronized MetaMasterClient waitForNodeNumAndGetClient(int nodeNum, int timeoutMs) {
     final MetaMasterClient metaMasterClient = getMetaMasterClient();
-    CommonUtils.waitFor("All the workers got their id.", new Function<Void, Boolean>() {
+    CommonUtils.waitFor("All the workers have registered with configuration",
+        new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         try {
-          int liveWorkerNum = metaMasterClient.getMasterInfo(new HashSet<>(Arrays
-              .asList(MasterInfo.MasterInfoField.LIVE_MASTER_NUM)))
-              .getLiveMasterNum();
-          if (liveWorkerNum == workerNum) {
-            return true;
-          }
-          return false;
+          MasterInfo masterInfo = metaMasterClient.getMasterInfo(new HashSet<>(Arrays
+              .asList(MasterInfo.MasterInfoField.CONF_MASTER_NUM, MasterInfo.MasterInfoField.CONF_MASTER_NUM)));
+          int liveNodeNum = masterInfo.getConfMasterNum() + masterInfo.getConfWorkerNum();
+          return liveNodeNum == nodeNum;
         } catch (UnavailableException e) {
           return false;
         } catch (Exception e) {
@@ -251,6 +250,7 @@ public final class MultiProcessCluster implements TestRule {
         }
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+    return metaMasterClient;
   }
 
   /**
