@@ -151,18 +151,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.Stack;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -2586,21 +2575,27 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             listOptions.setRecursive(false);
           }
           UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
+          Arrays.sort(children, Comparator.comparing(UfsStatus::getName));
+
           for (UfsStatus childStatus : children) {
             if (PathUtils.isTemporaryFileName(childStatus.getName())) {
               continue;
             }
-            if (inode.getChild(childStatus.getName()) != null && (childStatus.isFile()
+            AlluxioURI childURI = new AlluxioURI(
+                PathUtils.concatPath(inodePath.getUri(), childStatus.getName()));
+            if (mInodeTree.inodePathExists(childURI) && (childStatus.isFile()
                 || options.getLoadDescendantType() != DescendantType.ALL)) {
               // stop traversing if this is an existing file, or an existing directory without
               // loading all descendants.
               continue;
             }
-            try (TempInodePathForChild tempInodePath =
+            try (InodeLockList lockList = mInodeTree.lockDescendant(inodePath,
+                InodeTree.LockMode.READ, childURI);
+                TempInodePathForChild tempInodePath =
                 new TempInodePathForChild(inodePath, childStatus.getName())) {
               LoadMetadataOptions loadMetadataOptions =
                   LoadMetadataOptions.defaults().setLoadDescendantType(DescendantType.NONE)
-                      .setCreateAncestors(true).setUfsStatus(childStatus);
+                      .setCreateAncestors(false).setUfsStatus(childStatus);
               loadMetadataAndJournal(rpcContext, tempInodePath, loadMetadataOptions);
 
               if (options.getLoadDescendantType() == DescendantType.ALL
