@@ -11,13 +11,12 @@
 
 package alluxio.conf;
 
-
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 /**
- * Tests enum Source
+ * Tests enum Source.
  */
 public class SourceTest {
   @Test
@@ -27,5 +26,4 @@ public class SourceTest {
     assertEquals(-1, Source.SITE_PROPERTY.compareTo(Source.SYSTEM_PROPERTY));
     assertEquals(-1, Source.SYSTEM_PROPERTY.compareTo(Source.RUNTIME));
   }
-
 }
