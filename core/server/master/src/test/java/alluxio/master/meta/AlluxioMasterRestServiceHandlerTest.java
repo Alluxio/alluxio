@@ -33,7 +33,8 @@ import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
-import alluxio.master.meta.AlluxioMasterRestServiceHandler;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.underfs.UnderFileSystem;
@@ -98,6 +99,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private AlluxioMasterRestServiceHandler mHandler;
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
+  private MetricsMaster mMetricsMaster;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -124,8 +126,11 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mSafeModeManager = new TestSafeModeManager();
     mStartTimeMs = System.currentTimeMillis();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
-    mBlockMaster = new BlockMasterFactory()
+    mMetricsMaster = new MetricsMasterFactory()
         .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
+    mRegistry.add(MetricsMaster.class, mMetricsMaster);
+    mBlockMaster =
+        new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(

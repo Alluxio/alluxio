@@ -14,7 +14,6 @@ package alluxio.master.file.options;
 import alluxio.Constants;
 import alluxio.thrift.SetAttributeTOptions;
 import alluxio.wire.CommonOptions;
-import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
@@ -58,7 +57,7 @@ public final class SetAttributeOptions {
       }
       mPinned = options.isSetPinned() ? options.isPinned() : null;
       mTtl = options.isSetTtl() ? options.getTtl() : null;
-      mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
+      mTtlAction = TtlAction.fromThrift(options.getTtlAction());
       mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
       mOwner = options.isSetOwner() ? options.getOwner() : null;
       mGroup = options.isSetGroup() ? options.getGroup() : null;
