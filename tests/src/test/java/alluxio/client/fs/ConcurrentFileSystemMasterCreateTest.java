@@ -36,6 +36,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -243,6 +244,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     runLoadMetadata(WriteType.MUST_CACHE, false, false, true);
   }
 
+  @Ignore
   @Test
   public void concurrentListFiles() throws Exception {
     runLoadMetadata(null, false, true, true);
