@@ -16,17 +16,16 @@ import alluxio.clock.ManualClock;
 import alluxio.util.ThreadFactoryUtils;
 
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.internal.runners.statements.FailOnTimeout;
-import org.junit.rules.Timeout;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -277,41 +276,27 @@ public final class DynamicResourcePoolTest {
   }
 
   /**
-  * The min timeout accepted.
-  */
-  private static final int MIN_TIMEOUT = 5000;
-
-  @Rule
-  public Timeout mTimeout = new Timeout(MIN_TIMEOUT, TimeUnit.MILLISECONDS) {
-    public Statement apply(Statement base, Description description) {
-      return new FailOnTimeout(base, MIN_TIMEOUT) {
-        @Override
-        public void evaluate() throws Throwable {
-          try {
-            super.evaluate();
-            throw new TimeoutException();
-          } catch (Exception e) {
-              throw new RuntimeException("The method finished before the expected timeout");
-          }
-        }
-      };
-    }
-  };
-
-  /**
-   * Tests the logic that invalid resource won't be acquired.
+   * Tests that an exception is thrown if the timestamps overflow and the method
+   * terminate before 5 seconds.
    */
   @Test
-  public void TimestampOverflow() throws Exception {
-    TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions().setMaxCapacity(1));
-    Resource resource = pool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-    boolean isException = false;
+  public void TimestampOverflow() {
+    Callable<Resource> task = () -> {
+      TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions().setMaxCapacity(1));
+      pool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+      return pool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    };
+    ExecutorService executor = Executors.newFixedThreadPool(1);
+    Future<Resource> future = executor.submit(task);
+    boolean timeout = false;
     try {
-      resource = pool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-    } catch (TimeoutException ex) {
-      isException = true;
-    } finally {
-      org.junit.Assert.assertFalse(isException);
+      future.get(5000, TimeUnit.MILLISECONDS);
+    } catch (Exception ex) {
+      timeout = true;
     }
+    Assert.assertTrue(timeout);
+    Assert.assertFalse(future.isDone());
+    future.cancel(true);
   }
+
 }
