@@ -104,9 +104,9 @@ public final class DiagnosticMaster extends AbstractNonJournaledMaster {
     super.start(isLeader);
     Preconditions.checkNotNull(mMasterProcess, "Alluxio master process is not specified");
     LOG.info("Starting {}", getName());
-    mDiagnosticService = getExecutorService().submit(
-        new HeartbeatThread(HeartbeatContext.MASTER_DIAGNOSTIC, new DiagnosticExecutor(mMasterProcess),
-            mIntervalMs));
+    mDiagnosticService =
+        getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_DIAGNOSTIC,
+            new DiagnosticExecutor(mMasterProcess), mIntervalMs));
     LOG.info("{} is started", getName());
   }
 
