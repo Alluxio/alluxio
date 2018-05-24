@@ -38,6 +38,16 @@ public interface MetaMaster extends Master {
   List<ConfigProperty> getConfiguration();
 
   /**
+   * @return the number of live masters
+   */
+  int getLiveMasterNum();
+
+  /**
+   * @return the number of lost masters
+   */
+  int getLostMasterNum();
+
+  /**
    * Returns a master id for the given master, creating one if the master is new.
    *
    * @param address the master hostname

@@ -53,7 +53,6 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
     Map<Integer, Map<PropertyKey, String>> properties = new HashMap<>();
     for (int i = 0; i < nodeNum; i++) {
       Map<PropertyKey, String> prop = new HashMap<>();
-      // Use as an example, will change to other sell generated property key
       prop.put(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT, (60 + i) + "sec");
       properties.put(i, prop);
     }

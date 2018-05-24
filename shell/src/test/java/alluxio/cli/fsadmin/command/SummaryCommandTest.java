@@ -46,6 +46,7 @@ public class SummaryCommandTest {
     // Prepare mock meta master client
     mMetaMasterClient = Mockito.mock(MetaMasterClient.class);
     MasterInfo masterInfo = new MasterInfo()
+        .setLiveMasterNum(10)
         .setMasterAddress("testAddress")
         .setWebPort(1231)
         .setRpcPort(8462)
@@ -107,6 +108,7 @@ public class SummaryCommandTest {
         "    Master Address: testAddress",
         "    Web Port: 1231",
         "    Rpc Port: 8462",
+        "    Live Master Num: 10",
         "    Started: " + startTime,
         "    Uptime: 143 day(s), 15 hour(s), 53 minute(s), and 32 second(s)",
         "    Version: testVersion",

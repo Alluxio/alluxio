@@ -81,6 +81,12 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
       for (MasterInfoField field : options.getFilter() != null ? options.getFilter()
           : Arrays.asList(MasterInfoField.values())) {
         switch (field) {
+          case LIVE_MASTER_NUM:
+            info.setLiveMasterNum(mMetaMaster.getLiveMasterNum());
+            break;
+          case LOST_MASTER_NUM:
+            info.setLiveMasterNum(mMetaMaster.getLostMasterNum());
+            break;
           case MASTER_ADDRESS:
             info.setMasterAddress(mMetaMaster.getRpcAddress().toString());
             break;

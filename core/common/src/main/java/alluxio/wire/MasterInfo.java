@@ -25,6 +25,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class MasterInfo implements Serializable {
   private static final long serialVersionUID = 5846173765139223974L;
 
+  private int mLiveMasterNum;
+  private int mLostMasterNum;
   private String mMasterAddress;
   private int mRpcPort;
   private boolean mSafeMode;
@@ -38,6 +40,38 @@ public final class MasterInfo implements Serializable {
    * Creates a new instance of {@link MasterInfo}.
    */
   public MasterInfo() {}
+
+  /**
+   * Creates a new instance of {@link MasterInfo} from a thrift representation.
+   *
+   * @param masterInfo the thrift representation of alluxio master information
+   */
+  protected MasterInfo(alluxio.thrift.MasterInfo masterInfo) {
+    mLiveMasterNum = masterInfo.getLiveMasterNum();
+    mLostMasterNum = masterInfo.getLostMasterNum();
+    mMasterAddress = masterInfo.getMasterAddress();
+    mRpcPort = masterInfo.getRpcPort();
+    mSafeMode = masterInfo.isSafeMode();
+    mStartTimeMs = masterInfo.getStartTimeMs();
+    mUpTimeMs = masterInfo.getUpTimeMs();
+    mVersion = masterInfo.getVersion();
+    mWebPort = masterInfo.getWebPort();
+    mZookeeperAddresses = masterInfo.getZookeeperAddresses();
+  }
+
+  /**
+   * @return the number of live masters
+   */
+  public int getLiveMasterNum() {
+    return mLiveMasterNum;
+  }
+
+  /**
+   * @return the number of lost masters
+   */
+  public int getLostMasterNum() {
+    return mLostMasterNum;
+  }
 
   /**
    * @return the master address
@@ -93,6 +127,24 @@ public final class MasterInfo implements Serializable {
    */
   public List<String> getZookeeperAddresses() {
     return mZookeeperAddresses;
+  }
+
+  /**
+   * @param liveMasterNum the number of live masters
+   * @return the master information
+   */
+  public MasterInfo setLiveMasterNum(int liveMasterNum) {
+    mLiveMasterNum = liveMasterNum;
+    return this;
+  }
+
+  /**
+   * @param lostMasterNum the number of lost masters
+   * @return the master information
+   */
+  public MasterInfo setLostMasterNum(int lostMasterNum) {
+    mLostMasterNum = lostMasterNum;
+    return this;
   }
 
   /**
@@ -170,8 +222,9 @@ public final class MasterInfo implements Serializable {
   /**
    * @return thrift representation of the master information
    */
-  public alluxio.thrift.MasterInfo toThrift() {
-    return new alluxio.thrift.MasterInfo().setMasterAddress(mMasterAddress)
+  protected alluxio.thrift.MasterInfo toThrift() {
+    return new alluxio.thrift.MasterInfo().setLiveMasterNum(mLiveMasterNum)
+        .setLostMasterNum(mLostMasterNum).setMasterAddress(mMasterAddress)
         .setRpcPort(mRpcPort).setSafeMode(mSafeMode).setStartTimeMs(mStartTimeMs)
         .setUpTimeMs(mUpTimeMs).setVersion(mVersion).setWebPort(mWebPort)
         .setZookeeperAddresses(mZookeeperAddresses);
@@ -204,7 +257,8 @@ public final class MasterInfo implements Serializable {
       return false;
     }
     MasterInfo that = (MasterInfo) o;
-    return Objects.equal(mMasterAddress, that.mMasterAddress) && mRpcPort == that.mRpcPort
+    return mLiveMasterNum == that.mLiveMasterNum && mLostMasterNum == that.mLostMasterNum
+        && Objects.equal(mMasterAddress, that.mMasterAddress) && mRpcPort == that.mRpcPort
         && mSafeMode == that.mSafeMode && mStartTimeMs == that.mStartTimeMs
         && mUpTimeMs == that.mUpTimeMs && Objects.equal(mVersion, that.mVersion)
         && mWebPort == that.mWebPort
@@ -213,13 +267,14 @@ public final class MasterInfo implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mMasterAddress, mRpcPort, mSafeMode,
-        mStartTimeMs, mUpTimeMs, mVersion, mWebPort, mZookeeperAddresses);
+    return Objects.hashCode(mLiveMasterNum, mLostMasterNum, mMasterAddress, mRpcPort,
+        mSafeMode, mStartTimeMs, mUpTimeMs, mVersion, mWebPort, mZookeeperAddresses);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("masterAddress", mMasterAddress)
+    return Objects.toStringHelper(this).add("liveMasterNum", mLiveMasterNum)
+        .add("lostMasterNum", mLostMasterNum).add("masterAddress", mMasterAddress)
         .add("rpcPort", mRpcPort).add("safeMode", mSafeMode)
         .add("startTimeMs", mStartTimeMs).add("upTimeMs", mUpTimeMs)
         .add("version", mVersion).add("webPort", mWebPort)
@@ -230,6 +285,8 @@ public final class MasterInfo implements Serializable {
    * Enum representing the fields of the master info.
    */
   public static enum MasterInfoField {
+    LIVE_MASTER_NUM,
+    LOST_MASTER_NUM,
     MASTER_ADDRESS,
     RPC_PORT,
     SAFE_MODE,

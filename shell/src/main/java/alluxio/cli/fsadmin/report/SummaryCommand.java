@@ -76,8 +76,8 @@ public class SummaryCommand {
   private void printMetaMasterInfo() throws IOException {
     mIndentationLevel++;
     Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
-        .asList(MasterInfoField.MASTER_ADDRESS, MasterInfoField.WEB_PORT,
-            MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
+        .asList(MasterInfoField.LIVE_MASTER_NUM, MasterInfoField.MASTER_ADDRESS,
+            MasterInfoField.WEB_PORT, MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
             MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
             MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES));
     MasterInfo masterInfo = mMetaMasterClient.getMasterInfo(masterInfoFilter);
@@ -85,6 +85,7 @@ public class SummaryCommand {
     print("Master Address: " + masterInfo.getMasterAddress());
     print("Web Port: " + masterInfo.getWebPort());
     print("Rpc Port: " + masterInfo.getRpcPort());
+    print("Live Master Num: " + masterInfo.getLiveMasterNum());
     print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs()));
     print("Uptime: " + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
     print("Version: " + masterInfo.getVersion());
