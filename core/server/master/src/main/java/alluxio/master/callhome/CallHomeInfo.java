@@ -35,7 +35,7 @@ public final class CallHomeInfo {
   private String mUfsType;
   private long mUfsSize; // bytes
   private StorageTier[] mStorageTiers;
-  private String mMACAddress;
+  private String mMachineId;
 
   /**
    * Creates a new instance of {@link CallHomeInfo}.
@@ -142,10 +142,10 @@ public final class CallHomeInfo {
   }
 
   /**
-   * @return the MAC address of the primary master
+   * @return the machine id of the primary master
    */
-  public String getMACAddress() {
-    return mMACAddress;
+  public String getMachineId() {
+    return mMachineId;
   }
 
   /**
@@ -250,10 +250,10 @@ public final class CallHomeInfo {
   }
 
   /**
-   * @param mac the MAC address of primary master
+   * @param mac the machine id of primary master
    */
-  public void setMACAddress(String mac) {
-    mMACAddress = mac;
+  public void setMachineId(String mac) {
+    mMachineId = mac;
   }
 
   @Override
@@ -279,14 +279,14 @@ public final class CallHomeInfo {
         && Objects.equal(mUfsType, that.mUfsType)
         && Objects.equal(mUfsSize, that.mUfsSize)
         && Arrays.equals(mStorageTiers, that.mStorageTiers)
-        && Objects.equal(mMACAddress, that.mMACAddress);
+        && Objects.equal(mMachineId, that.mMachineId);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mVersion, mStartTime, mUptime, mClusterVersion,
         mFaultTolerant, mWorkerCount, mWorkerInfos, mLostWorkerCount, mLostWorkerInfos,
-        mMasterAddress, mNumberOfPaths, mUfsType, mUfsSize, mStorageTiers, mMACAddress);
+        mMasterAddress, mNumberOfPaths, mUfsType, mUfsSize, mStorageTiers, mMachineId);
   }
 
   @Override
@@ -306,7 +306,7 @@ public final class CallHomeInfo {
         .add("ufs type", mUfsType)
         .add("ufs size", mUfsSize)
         .add("storage tiers", mStorageTiers)
-        .add("MAC address", mMACAddress)
+        .add("machine id", mMachineId)
         .toString();
   }
 

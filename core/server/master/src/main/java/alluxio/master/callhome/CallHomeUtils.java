@@ -79,7 +79,7 @@ public final class CallHomeUtils {
     // Set file system master info
     info.setMasterAddress(masterProcess.getRpcAddress().toString());
     info.setNumberOfPaths(fsMaster.getNumberOfPaths());
-    info.setMACAddress(getMACAddress(masterProcess));
+    info.setMachineId(getMACAddress(masterProcess));
 
     return info;
   }
@@ -94,14 +94,14 @@ public final class CallHomeUtils {
             NetworkInterface.getByInetAddress(masterProcess.getRpcAddress().getAddress());
     byte[] mac = nic.getHardwareAddress();
     if (mac != null) {
-      return new String(mac);
+      return parseMacAddress(mac);
     }
 
     // Try to get the MAC address of the common "en0" interface.
     nic = NetworkInterface.getByName("en0");
     mac = nic.getHardwareAddress();
     if (mac != null) {
-      return new String(mac);
+      return parseMacAddress(mac);
     }
 
     // Try to get the first non-empty MAC address in the enumeration of all network interfaces.
@@ -113,10 +113,21 @@ public final class CallHomeUtils {
       }
       mac = nic.getHardwareAddress();
       if (mac != null) {
-        return new String(mac);
+        return parseMacAddress(mac);
       }
     }
 
     throw new IOException("No MAC address was found");
+  }
+
+  /**
+   * @return the MAC address as a hex string
+   */
+  private static String parseMacAddress(byte[] mac) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < mac.length; i++) {
+      sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+    }
+    return sb.toString();
   }
 }

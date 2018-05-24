@@ -15,8 +15,6 @@ package alluxio;
  * Project constants from compilation time by maven.
  */
 public final class ProjectConstants {
-  /* URL to the proxy server for call home. **/
-  public static final String PROXY_URL = "${proxy.url}";
   /* Project version, specified in maven property. **/
   public static final String VERSION = "${project.version}";
   /* Hadoop version, specified in maven property. **/

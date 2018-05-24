@@ -140,8 +140,11 @@
     <build.path>build</build.path>
     <!-- Host to report call home information to. -->
     <call.home.host>http://diagnostics.alluxio.org</call.home.host>
-    <call.home.enabled>true</call.home.enabled>
-    <call.home.period>10000</call.home.period>
+    <!-- Determines whether call home should be enforced.
+         This flag should only be set at compile time when generating distributions. -->
+    <call.home.enabled>false</call.home.enabled>
+    <!-- Determines how frequently to run the call home (in milliseconds). -->
+    <call.home.period>86400000</call.home.period>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
     <cxf.version>2.7.0</cxf.version>
     <findbugs.path>build/findbugs</findbugs.path>
@@ -162,7 +165,6 @@
     <prometheus.version>0.3.0</prometheus.version>
     <protobuf.version>2.5.0</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <proxy.url>https://change/me</proxy.url>
     <slf4j.version>1.7.2</slf4j.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
