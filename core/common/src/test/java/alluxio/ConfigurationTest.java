@@ -438,6 +438,13 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void getTemplatedKey() {
+    Configuration.set(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS, "test");
+    assertEquals("test",
+        Configuration.get(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0)));
+  }
+
+  @Test
   public void variableSubstitution() {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.WORK_DIR, "value",

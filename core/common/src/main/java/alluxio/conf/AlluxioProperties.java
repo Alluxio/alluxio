@@ -73,7 +73,8 @@ public class AlluxioProperties {
     if (mUserProps.containsKey(key)) {
       return mUserProps.get(key).orElse(null);
     }
-    return key.getDefaultValue();
+    // In case key is not the reference to the original key
+    return PropertyKey.fromString(key.toString()).getDefaultValue();
   }
 
   /**
@@ -149,7 +150,8 @@ public class AlluxioProperties {
     if (mUserProps.containsKey(key)) {
       return mUserProps.get(key).isPresent();
     }
-    return key.getDefaultValue() != null;
+    // In case key is not the reference to the original key
+    return PropertyKey.fromString(key.toString()).getDefaultValue() != null;
   }
 
   /**

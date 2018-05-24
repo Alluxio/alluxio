@@ -16,6 +16,7 @@ import alluxio.network.ChannelType;
 import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -117,7 +118,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
-   * Builder to create {@link PropertyKey} instances.
+   * Builder to create {@link PropertyKey} instances. Note that, <code>Builder.build()</code> will
+   * throw exception if there is an existing property built with the same name.
    */
   public static final class Builder {
     private String[] mAlias;
@@ -239,8 +241,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             : new DefaultSupplier(() -> defaultString, defaultString);
       }
 
-      return PropertyKey.create(mName, defaultSupplier, mAlias, mDescription, mIgnoredSiteProperty,
-          mIsHidden, mConsistencyCheckLevel, mScope);
+      PropertyKey key = new PropertyKey(mName, mDescription, defaultSupplier, mAlias,
+          mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope);
+      Preconditions.checkState(PropertyKey.register(key), "Cannot register existing key \"%s\"",
+          mName);
+      return key;
     }
 
     @Override
@@ -3586,28 +3591,37 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
-   * Factory method to create a constant default property and assign a default value together with
-   * its alias.
+   * Registers the given key to the global key map.
    *
-   * @param name name of this property
-   * @param defaultSupplier a supplier to return the default value for this property
-   * @param aliases list of aliases of this property
-   * @param description description of this property key
-   * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property in
-   *        the site properties file
+   * @param key th property
+   * @return whether the property key is successfully registered
    */
-  static PropertyKey create(String name, DefaultSupplier defaultSupplier, String[] aliases,
-      String description, boolean ignoredSiteProperty, boolean isHidden,
-      ConsistencyCheckLevel consistencyCheckLevel, Scope scope) {
-    PropertyKey key = new PropertyKey(name, description, defaultSupplier, aliases,
-        ignoredSiteProperty, isHidden, consistencyCheckLevel, scope);
+  @VisibleForTesting
+  public static boolean register(PropertyKey key) {
+    String name = key.getName();
+    String[] aliases = key.getAliases();
+    if (DEFAULT_KEYS_MAP.containsKey(name)) {
+      return false;
+    }
     DEFAULT_KEYS_MAP.put(name, key);
     if (aliases != null) {
       for (String alias : aliases) {
         DEFAULT_ALIAS_MAP.put(alias, key);
       }
     }
-    return key;
+    return true;
+  }
+
+  /**
+   * Unregisters the given key from the global key map.
+   *
+   * @param key th property to unregister
+   */
+  @VisibleForTesting
+  public static void unregister(PropertyKey key) {
+    String name = key.getName();
+    DEFAULT_KEYS_MAP.remove(name);
+    DEFAULT_ALIAS_MAP.remove(name);
   }
 
   @Override

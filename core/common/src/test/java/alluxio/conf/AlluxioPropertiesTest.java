@@ -22,6 +22,7 @@ import alluxio.PropertyKey;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.junit.After;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -38,6 +39,12 @@ public class AlluxioPropertiesTest {
   private PropertyKey mKeyWithValue = new PropertyKey.Builder("key.with.value").setDefaultValue(
       "value").build();
   private PropertyKey mKeyWithoutValue = new PropertyKey.Builder("key.without.value").build();
+
+  @After
+  public void after() {
+    PropertyKey.unregister(mKeyWithValue);
+    PropertyKey.unregister(mKeyWithoutValue);
+  }
 
   @Test
   public void get() {
