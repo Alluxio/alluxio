@@ -12,9 +12,7 @@
 package alluxio.master.callhome;
 
 import alluxio.CallHomeConstants;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
