@@ -2602,9 +2602,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               // loading all descendants.
               continue;
             }
-            try (InodeLockList lockList = mInodeTree.lockDescendant(inodePath,
-                InodeTree.LockMode.READ, childURI);
-                TempInodePathForChild tempInodePath =
+            try (TempInodePathForChild tempInodePath =
                 new TempInodePathForChild(inodePath, childStatus.getName())) {
               LoadMetadataOptions loadMetadataOptions =
                   LoadMetadataOptions.defaults().setLoadDescendantType(DescendantType.NONE)

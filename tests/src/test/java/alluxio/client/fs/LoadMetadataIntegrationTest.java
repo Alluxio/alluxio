@@ -19,6 +19,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.FileDoesNotExistException;
@@ -44,6 +45,7 @@ import org.powermock.reflect.Whitebox;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.util.List;
 
 /**
  * Tests the loading of metadata and the available options.
@@ -196,20 +198,20 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   public void loadRecursive() throws Exception {
     Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Once.toString());
     ListStatusOptions options = ListStatusOptions.defaults().setRecursive(true);
-    for (int i = 0; i < 10; i++) {
-      FileWriter fileWriter = new FileWriter(mLocalUfsPath + "/dir1/file" + i);
-      fileWriter.write("test" + i);
-      fileWriter.close();
-    }
-
-    for (int i = 0; i < 10; i++) {
-      FileWriter fileWriter = new FileWriter(mLocalUfsPath + "/dir1/dirA/file" + i);
-      fileWriter.write("test" + i);
-      fileWriter.close();
+    for (int i = 0; i < 5; i++) {
+      for (int j = 0; j < 5; j++) {
+        new File(mLocalUfsPath + "/dir" + i + "/dir" + j + "/").mkdirs();
+        FileWriter fileWriter = new FileWriter(mLocalUfsPath + "/dir" + i + "/dir" + j + "/" + "file");
+        fileWriter.write("test" + i);
+        fileWriter.close();
+      }
     }
     long startMs = CommonUtils.getCurrentMs();
-    mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
+    List<URIStatus> list = mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
     long durationMs = CommonUtils.getCurrentMs() - startMs;
+    // 25 files, 25 level 2 dirs, 5 level 1 dirs, 1 file and 1 dir created in before
+    Assert.assertEquals(25 * 2 + 5 + 2, list.size());
+    
     // Should load metadata once, in one recursive call
     Assert.assertTrue("Expected to be between one and two SLEEP_MS. actual duration (ms): "
             + durationMs, durationMs >= LONG_SLEEP_MS && durationMs <= 2 * LONG_SLEEP_MS);
