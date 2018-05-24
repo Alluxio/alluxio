@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class MetaMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterSync.class);
   /** We set a large retry day which means retry forever. */
-  private static final long RETRY_DAY = 100000;
+  private static final long RETRY_DAYS = 100000;
   private static final long UNINITIALIZED_MASTER_ID = -1L;
 
   /** Milliseconds between heartbeats before a timeout. */
@@ -139,7 +139,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
       RetryUtils.retry("get master id",
           () -> mMasterId.set(mMasterClient.getId(mMasterAddress)),
           ExponentialTimeBoundedRetry.builder()
-              .withMaxDuration(Duration.ofDays(RETRY_DAY))
+              .withMaxDuration(Duration.ofDays(RETRY_DAYS))
               .withInitialSleep(Duration.ofMillis(100))
               .withMaxSleep(Duration.ofSeconds(5))
               .build());
