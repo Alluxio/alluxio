@@ -674,5 +674,17 @@ public final class CommonUtils {
         mins, secs);
   }
 
+  /**
+   * Convert byte array to hex string.
+   *
+   * @return the byte array as a hex string
+   */
+  public static String convertToHexString(byte[] array) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < array.length; i++) {
+      sb.append(String.format("%02X%s", array[i], (i < array.length - 1) ? "-" : ""));
+    }
+    return sb.toString();
+  }
   private CommonUtils() {} // prevent instantiation
 }

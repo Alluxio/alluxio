@@ -76,6 +76,9 @@ public enum ExceptionMessage {
       "This writer is already open for address: {0}, blockId: {1,number,#}, "
           + "sessionId: {2,number,#}"),
 
+  // network
+  MAC_ADDRESS_NOT_FOUND("No mac address was found"),
+
   // storageDir
   ADD_EXISTING_BLOCK("blockId {0,number,#} exists in {1}"),
   BLOCK_NOT_FOUND_FOR_SESSION("blockId {0,number,#} in {1} not found for session {2,number,#}"),

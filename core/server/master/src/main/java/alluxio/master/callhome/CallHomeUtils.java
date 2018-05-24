@@ -14,10 +14,12 @@ package alluxio.master.callhome;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.exception.ExceptionMessage;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
@@ -94,14 +96,14 @@ public final class CallHomeUtils {
             NetworkInterface.getByInetAddress(masterProcess.getRpcAddress().getAddress());
     byte[] mac = nic.getHardwareAddress();
     if (mac != null) {
-      return parseMacAddress(mac);
+      return CommonUtils.convertToHexString(mac);
     }
 
     // Try to get the MAC address of the common "en0" interface.
     nic = NetworkInterface.getByName("en0");
     mac = nic.getHardwareAddress();
     if (mac != null) {
-      return parseMacAddress(mac);
+      return CommonUtils.convertToHexString(mac);
     }
 
     // Try to get the first non-empty MAC address in the enumeration of all network interfaces.
@@ -113,21 +115,10 @@ public final class CallHomeUtils {
       }
       mac = nic.getHardwareAddress();
       if (mac != null) {
-        return parseMacAddress(mac);
+        return CommonUtils.convertToHexString(mac);
       }
     }
 
-    throw new IOException("No MAC address was found");
-  }
-
-  /**
-   * @return the MAC address as a hex string
-   */
-  private static String parseMacAddress(byte[] mac) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < mac.length; i++) {
-      sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
-    }
-    return sb.toString();
+    throw new IOException(ExceptionMessage.MAC_ADDRESS_NOT_FOUND.toString());
   }
 }
