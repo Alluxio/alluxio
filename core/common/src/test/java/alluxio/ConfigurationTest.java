@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.PropertyKey.Template;
 import alluxio.conf.Source;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
@@ -438,27 +439,32 @@ public class ConfigurationTest {
 
   @Test
   public void variableSubstitution() {
-    Configuration.set(PropertyKey.WORK_DIR, "value");
-    Configuration.set(PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs");
+    Configuration.merge(ImmutableMap.of(
+        PropertyKey.WORK_DIR, "value",
+        PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs"),
+        Source.SYSTEM_PROPERTY);
     String substitution = Configuration.get(PropertyKey.LOGS_DIR);
     assertEquals("value/logs", substitution);
   }
 
   @Test
   public void twoVariableSubstitution() {
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, "value1");
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, "value2");
-    Configuration.set(
-        PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.port}");
+    Configuration.merge(ImmutableMap.of(
+        PropertyKey.MASTER_HOSTNAME, "value1",
+        PropertyKey.MASTER_RPC_PORT, "value2",
+        PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.port}"),
+        Source.SYSTEM_PROPERTY);
     String substitution = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     assertEquals("value1-value2", substitution);
   }
 
   @Test
   public void recursiveVariableSubstitution() {
-    Configuration.set(PropertyKey.WORK_DIR, "value");
-    Configuration.set(PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs");
-    Configuration.set(PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}/conf");
+    Configuration.merge(ImmutableMap.of(
+        PropertyKey.WORK_DIR, "value",
+        PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs",
+        PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}/conf"),
+        Source.SYSTEM_PROPERTY);
     String substitution2 = Configuration.get(PropertyKey.SITE_CONF_DIR);
     assertEquals("value/logs/conf", substitution2);
   }
