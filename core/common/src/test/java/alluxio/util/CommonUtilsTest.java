@@ -80,8 +80,8 @@ public class CommonUtilsTest {
    */
   @Test
   public void convertToHexString() {
-    byte[] test_array = {-1, 0, 1, 2, 3 };
-    assertTrue("FF-00-01-02-03".equals(CommonUtils.convertToHexString(test_array)));
+    byte[] testArray = {-1, 0, 1, 2, 3};
+    assertTrue("FF-00-01-02-03".equals(CommonUtils.convertToHexString(testArray)));
   }
 
   /**

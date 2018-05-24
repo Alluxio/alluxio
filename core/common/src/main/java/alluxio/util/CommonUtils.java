@@ -677,7 +677,8 @@ public final class CommonUtils {
   /**
    * Convert byte array to hex string.
    *
-   * @return the byte array as a hex string
+   * @param array a byte array
+   * @return hex string
    */
   public static String convertToHexString(byte[] array) {
     StringBuilder sb = new StringBuilder();
@@ -686,5 +687,6 @@ public final class CommonUtils {
     }
     return sb.toString();
   }
+
   private CommonUtils() {} // prevent instantiation
 }
