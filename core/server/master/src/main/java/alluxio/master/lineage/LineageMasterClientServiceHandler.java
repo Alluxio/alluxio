@@ -36,7 +36,7 @@ import alluxio.thrift.ReinitializeFileTResponse;
 import alluxio.thrift.ReportLostFileTOptions;
 import alluxio.thrift.ReportLostFileTResponse;
 import alluxio.thrift.TTtlAction;
-import alluxio.wire.ThriftUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -116,7 +116,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
       public GetLineageInfoListTResponse call() throws AlluxioException {
         List<LineageInfo> result = new ArrayList<>();
         for (alluxio.wire.LineageInfo lineageInfo : mLineageMaster.getLineageInfoList()) {
-          result.add(ThriftUtils.toThrift(lineageInfo));
+          result.add(lineageInfo.toThrift());
         }
         return new GetLineageInfoListTResponse(result);
       }
@@ -130,7 +130,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
     return RpcUtils.call(LOG,
     (RpcCallableThrowsIOException<ReinitializeFileTResponse>) () ->
     new ReinitializeFileTResponse(mLineageMaster
-        .reinitializeFile(path, blockSizeBytes, ttl, ThriftUtils.fromThrift(ttlAction))));
+        .reinitializeFile(path, blockSizeBytes, ttl, TtlAction.fromThrift(ttlAction))));
   }
 
   @Override

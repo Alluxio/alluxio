@@ -79,8 +79,19 @@ public class InconsistentProperty {
   /**
    * @return an inconsistent property of thrift construct
    */
-  protected alluxio.thrift.InconsistentProperty toThrift() {
+  public alluxio.thrift.InconsistentProperty toThrift() {
     return new alluxio.thrift.InconsistentProperty()
         .setName(mName).setValues(mValues);
+  }
+
+  /**
+   * Creates a new instance of {@link InconsistentProperty} from thrift representation.
+   *
+   * @param inconsistentProperty the thrift representation of an inconsistent property
+   * @return the instance
+   */
+  public static InconsistentProperty fromThrift(
+      alluxio.thrift.InconsistentProperty inconsistentProperty) {
+    return new InconsistentProperty(inconsistentProperty);
   }
 }

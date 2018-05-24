@@ -62,13 +62,13 @@ public class ConfigCheckReport {
     for (Map.Entry<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> entry :
         configCheckReport.getErrors().entrySet()) {
       mConfigErrors.put(Scope.fromThrift(entry.getKey()), entry.getValue().stream()
-          .map(ThriftUtils::fromThrift).collect(Collectors.toList()));
+          .map(InconsistentProperty::fromThrift).collect(Collectors.toList()));
     }
     mConfigWarns = new HashMap<>();
     for (Map.Entry<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> entry :
         configCheckReport.getWarns().entrySet()) {
       mConfigWarns.put(Scope.fromThrift(entry.getKey()), entry.getValue().stream()
-          .map(ThriftUtils::fromThrift).collect(Collectors.toList()));
+          .map(InconsistentProperty::fromThrift).collect(Collectors.toList()));
     }
     mConfigStatus = ConfigStatus.fromThrift(configCheckReport.getStatus());
   }
@@ -97,13 +97,13 @@ public class ConfigCheckReport {
   /**
    * @return thrift representation of the configuration check report
    */
-  protected alluxio.thrift.ConfigCheckReport toThrift() {
+  public alluxio.thrift.ConfigCheckReport toThrift() {
     Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftErrors
         = new HashMap<>();
     for (Map.Entry<Scope, List<InconsistentProperty>> entry :
         mConfigErrors.entrySet()) {
       thriftErrors.put(entry.getKey().toThrift(), entry.getValue().stream()
-          .map(ThriftUtils::toThrift).collect(Collectors.toList()));
+          .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
     }
 
     Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftWarns
@@ -111,11 +111,21 @@ public class ConfigCheckReport {
     for (Map.Entry<Scope, List<InconsistentProperty>> entry :
         mConfigWarns.entrySet()) {
       thriftWarns.put(entry.getKey().toThrift(), entry.getValue().stream()
-          .map(ThriftUtils::toThrift).collect(Collectors.toList()));
+          .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
     }
 
     return new alluxio.thrift.ConfigCheckReport().setErrors(thriftErrors)
         .setWarns(thriftWarns).setStatus(mConfigStatus.toThrift());
+  }
+
+  /**
+   * Creates a new instance of {@link ConfigCheckReport} from thrift representation.
+   *
+   * @param report the thrift representation of a configuration check report
+   * @return the instance
+   */
+  public static ConfigCheckReport fromThrift(alluxio.thrift.ConfigCheckReport report) {
+    return new ConfigCheckReport(report);
   }
 
   /**

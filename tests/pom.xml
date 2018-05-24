@@ -231,6 +231,21 @@
           <scope>provided</scope>
         </dependency>
       </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.igormaznitsa</groupId>
+            <artifactId>jcp</artifactId>
+            <configuration>
+              <globalVars>
+                <property>
+                  <name>HADOOP1</name>
+                </property>
+              </globalVars>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
 
     <!-- Profile to build tests module connecting to hdfs 2 -->
@@ -250,6 +265,27 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- Profile to build tests module connecting to hdfs 3 -->
+    <!-- Mark hadoop-{common, hdfs-client} as provided because alluxio-underfs-hdfs will come with a
+    shaded version. -->
+    <profile>
+      <id>hadoop-3</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs-client</artifactId>
           <version>${hadoop.version}</version>
           <scope>provided</scope>
         </dependency>
@@ -283,6 +319,26 @@
             <exclude>**/hadoop/contract/**</exclude>
           </testExcludes>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.igormaznitsa</groupId>
+        <artifactId>jcp</artifactId>
+        <executions>
+          <execution>
+            <id>preprocessSources</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>preprocessTests</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>clearGeneratedFolders</id>
+            <goals>
+              <goal>clear</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

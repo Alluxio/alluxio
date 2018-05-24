@@ -26,7 +26,6 @@ import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 import alluxio.wire.MetricValue;
-import alluxio.wire.ThriftUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -81,8 +80,8 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
 
   @Override
   public synchronized ConfigCheckReport getConfigReport() throws IOException {
-    return retryRPC(() -> ThriftUtils
-        .fromThrift(mClient.getConfigReport(new GetConfigReportTOptions()).getReport()));
+    return retryRPC(() -> ConfigCheckReport.fromThrift(mClient
+        .getConfigReport(new GetConfigReportTOptions()).getReport()));
   }
 
   @Override
@@ -105,7 +104,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
           thriftFields.add(field.toThrift());
         }
       }
-      return ThriftUtils.fromThrift(
+      return MasterInfo.fromThrift(
           mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
     });
   }

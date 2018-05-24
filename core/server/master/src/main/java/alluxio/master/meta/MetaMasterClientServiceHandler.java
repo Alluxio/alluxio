@@ -32,7 +32,6 @@ import alluxio.thrift.MasterInfo;
 import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.MetricValue;
-import alluxio.wire.ThriftUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -70,7 +69,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   public GetConfigReportTResponse getConfigReport(final GetConfigReportTOptions options)
       throws TException {
     return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigReportTResponse>) ()
-        -> new GetConfigReportTResponse(ThriftUtils.toThrift(mMetaMaster.getConfigCheckReport())));
+        -> new GetConfigReportTResponse(mMetaMaster.getConfigCheckReport().toThrift()));
   }
 
   @Override

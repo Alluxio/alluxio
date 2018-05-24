@@ -133,7 +133,7 @@ public final class FileSystemUtils {
    * @param uri the uri of the file to persist
    */
   public static void persistFile(final FileSystem fs, final AlluxioURI uri) throws IOException {
-    FileSystemContext context = FileSystemContext.INSTANCE;
+    FileSystemContext context = FileSystemContext.get();
     FileSystemMasterClient client = context.acquireMasterClient();
     try {
       client.scheduleAsyncPersist(uri);
@@ -164,7 +164,7 @@ public final class FileSystemUtils {
    */
   public static List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
       throws IOException {
-    FileSystemContext context = FileSystemContext.INSTANCE;
+    FileSystemContext context = FileSystemContext.get();
     FileSystemMasterClient client = context.acquireMasterClient();
     try {
       return client.checkConsistency(path, options);

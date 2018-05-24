@@ -50,13 +50,12 @@ public class ConfigurationCommandTest {
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
       // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
       List<String> expectedOutput = Arrays.asList("Alluxio configuration information: ",
-          "Property                          Value                  Source                                               ",
-          "alluxio.master.port               19998                  DEFAULT                                              ",
-          "alluxio.master.web.port           19999                  DEFAULT                                              ",
-          "alluxio.master.hostname           localhost              SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)",
-          "alluxio.underfs.address           hdfs://localhost:9000  SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)",
-          "alluxio.logger.type               MASTER_LOGGER          SYSTEM_PROPERTY                                      ",
-          "alluxio.master.audit.logger.type  MASTER_AUDIT_LOGGER    SYSTEM_PROPERTY                                      ");
+          "alluxio.master.port = 19998 (source = DEFAULT)",
+          "alluxio.master.web.port = 19999 (source = DEFAULT)",
+          "alluxio.master.hostname = localhost (source = SITE_PROPERTY (/alluxio/conf/alluxio-site.properties))",
+          "alluxio.underfs.address = hdfs://localhost:9000 (source = SITE_PROPERTY (/alluxio/conf/alluxio-site.properties))",
+          "alluxio.logger.type = MASTER_LOGGER (source = SYSTEM_PROPERTY)",
+          "alluxio.master.audit.logger.type = MASTER_AUDIT_LOGGER (source = SYSTEM_PROPERTY)");
       // CHECKSTYLE.ON: LineLengthExceed
       List<String> testOutput = Arrays.asList(output.split("\n"));
       Assert.assertThat(testOutput,

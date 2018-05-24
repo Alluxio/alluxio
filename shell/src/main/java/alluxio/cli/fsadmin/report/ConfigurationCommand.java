@@ -24,6 +24,7 @@ import java.util.List;
  * Prints server-side configuration check report.
  */
 public class ConfigurationCommand {
+  private static final String CONFIG_INFO_FORMAT = "%s = %s (source = %s)%n";
   private MetaMasterClient mMetaMasterClient;
   private PrintStream mPrintStream;
 
@@ -44,34 +45,12 @@ public class ConfigurationCommand {
   public void run() throws IOException {
     List<ConfigProperty> configList = mMetaMasterClient.getConfiguration();
     Collections.sort(configList, Comparator.comparing(ConfigProperty::getSource));
-    String configInfoFormat = getConfigInfoFormat(configList);
 
     mPrintStream.print("Alluxio configuration information: \n");
-    mPrintStream.print(String.format(configInfoFormat,
-        "Property", "Value", "Source"));
 
     for (ConfigProperty info : configList) {
-      mPrintStream.print(String.format(configInfoFormat,
+      mPrintStream.print(String.format(CONFIG_INFO_FORMAT,
           info.getName(), info.getValue(), info.getSource()));
     }
-  }
-
-  /**
-   * Gets config info format based on the max length of each column.
-   *
-   * @param configList the config property list to find the max length of each column
-   * @return a config info format string
-   */
-  private String getConfigInfoFormat(List<ConfigProperty> configList) {
-    int nameSize = 15; // Default value is 15 to maintain basic column width
-    int valueSize = 15;
-    int sourceSize = 15;
-    for (ConfigProperty property : configList) {
-      nameSize = Math.max(nameSize, property.getName().length());
-      valueSize = Math.max(valueSize, property.getValue().length());
-      sourceSize = Math.max(sourceSize, property.getSource().length());
-    }
-    return new StringBuilder("%-").append(nameSize).append("s  %-")
-        .append(valueSize).append("s  %-").append(sourceSize).append("s%n").toString();
   }
 }
