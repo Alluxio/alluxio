@@ -120,6 +120,8 @@ public abstract class ResourcePool<T> implements Pool<T> {
           }
           if (time > 0) {
             long currTimeMs = System.currentTimeMillis();
+            // one should use t1-t0<0, not t1<t0, because of the possibility of numerical overflow.
+            // For further detail see: https://docs.oracle.com/javase/8/docs/api/java/lang/System.html
             if (endTimeMs - currTimeMs <= 0) {
               return null;
             }

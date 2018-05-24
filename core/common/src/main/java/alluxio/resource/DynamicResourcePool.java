@@ -333,6 +333,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         }
         long currTimeMs = mClock.millis();
         try {
+          // one should use t1-t0<0, not t1<t0, because of the possibility of numerical overflow.
+          // For further detail see: https://docs.oracle.com/javase/8/docs/api/java/lang/System.html
           if (endTimeMs - currTimeMs <= 0 || !mNotEmpty
               .await(endTimeMs - currTimeMs, TimeUnit.MILLISECONDS)) {
             throw new TimeoutException("Acquire resource times out.");
