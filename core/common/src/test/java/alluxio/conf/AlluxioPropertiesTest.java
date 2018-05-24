@@ -36,9 +36,14 @@ import java.util.Set;
 public class AlluxioPropertiesTest {
 
   private AlluxioProperties mProperties = new AlluxioProperties();
-  private PropertyKey mKeyWithValue = new PropertyKey.Builder("key.with.value").setDefaultValue(
-      "value").build();
-  private PropertyKey mKeyWithoutValue = new PropertyKey.Builder("key.without.value").build();
+  private PropertyKey mKeyWithValue;
+  private PropertyKey mKeyWithoutValue;
+
+  @After
+  public void before() {
+    mKeyWithValue = new PropertyKey.Builder("key.with.value").setDefaultValue("value").build();
+    mKeyWithoutValue = new PropertyKey.Builder("key.without.value").build();
+  }
 
   @After
   public void after() {

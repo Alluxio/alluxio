@@ -3615,7 +3615,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * Unregisters the given key from the global key map.
    *
-   * @param key th property to unregister
+   * @param key the property to unregister
    */
   @VisibleForTesting
   public static void unregister(PropertyKey key) {
