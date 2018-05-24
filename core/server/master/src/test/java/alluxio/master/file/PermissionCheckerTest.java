@@ -60,7 +60,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Unit tests for {@link PermissionChecker}.
@@ -181,8 +180,7 @@ public final class PermissionCheckerTest {
     sRegistry = new MasterRegistry();
     sSafeModeManager = new DefaultSafeModeManager();
     JournalSystem journalSystem = new NoopJournalSystem();
-    MasterContext masterContext =
-        new MasterContext(journalSystem, sSafeModeManager, new ReentrantLock());
+    MasterContext masterContext = new MasterContext(journalSystem, sSafeModeManager);
     sMetricsMaster = new MetricsMasterFactory().create(sRegistry, masterContext);
     sRegistry.add(MetricsMaster.class, sMetricsMaster);
     BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, masterContext);

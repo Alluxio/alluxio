@@ -31,8 +31,6 @@ import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 public class MasterTestUtils {
 
   /**
@@ -68,8 +66,7 @@ public class MasterTestUtils {
     MasterRegistry registry = new MasterRegistry();
     SafeModeManager safeModeManager = new TestSafeModeManager();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
-    MasterContext masterContext =
-        new MasterContext(journalSystem, safeModeManager, new ReentrantLock());
+    MasterContext masterContext = new MasterContext(journalSystem, safeModeManager);
     new MetricsMasterFactory().create(registry, masterContext);
     new BlockMasterFactory().create(registry, masterContext);
     new FileSystemMasterFactory().create(registry, masterContext);

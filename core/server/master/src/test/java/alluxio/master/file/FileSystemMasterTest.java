@@ -2110,8 +2110,7 @@ public final class FileSystemMasterTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-    MasterContext masterContext =
-        new MasterContext(mJournalSystem, mSafeModeManager, new ReentrantLock());
+    MasterContext masterContext = new MasterContext(mJournalSystem, mSafeModeManager);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();

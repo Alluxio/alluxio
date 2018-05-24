@@ -69,8 +69,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -92,11 +91,10 @@ public class AlluxioMasterProcess implements MasterProcess {
   private final int mPort;
 
   /**
-   * Lock guarding all persistent master state. The read lock must be taken before making any
-   * modification to master state. Holding the write lock allows a thread to guarantee that no
-   * other threads will modify master state.
+   * Lock for pausing modifications to master state. Holding the this lock allows a thread to
+   * guarantee that no other threads will modify master state.
    */
-  private final ReadWriteLock mStateLock;
+  private final Lock mPauseStateLock;
 
   /** The socket for thrift rpc server. */
   private TServerSocket mRpcServerSocket;
@@ -181,9 +179,9 @@ public class AlluxioMasterProcess implements MasterProcess {
       // Create masters.
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
-      mStateLock = new ReentrantReadWriteLock();
-      MasterUtils.createMasters(mRegistry,
-          new MasterContext(mJournalSystem, mSafeModeManager, mStateLock.readLock()));
+      MasterContext context = new MasterContext(mJournalSystem, mSafeModeManager);
+      mPauseStateLock = context.pauseStateLock();
+      MasterUtils.createMasters(mRegistry, context);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -200,7 +198,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
     }
     AlluxioURI backup;
-    try (LockResource lr = new LockResource(mStateLock.writeLock())) {
+    try (LockResource lr = new LockResource(mPauseStateLock)) {
       Instant now = Instant.now();
       String exportFileName = String.format("alluxio-journal-%s-%s.gz",
           DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),

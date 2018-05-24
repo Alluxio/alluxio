@@ -54,7 +54,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Unit tests for {@link BlockMaster}.
@@ -97,8 +96,7 @@ public class BlockMasterTest {
     mSafeModeManager = new TestSafeModeManager();
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
-    MasterContext masterContext =
-        new MasterContext(journalSystem, mSafeModeManager, new ReentrantLock());
+    MasterContext masterContext = new MasterContext(journalSystem, mSafeModeManager);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mClock = new ManualClock();
     mExecutorService =

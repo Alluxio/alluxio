@@ -61,7 +61,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
@@ -120,8 +119,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
-    MasterContext masterContext =
-        new MasterContext(journalSystem, mSafeModeManager, new ReentrantLock());
+    MasterContext masterContext = new MasterContext(journalSystem, mSafeModeManager);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);

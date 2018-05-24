@@ -79,7 +79,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Unit test for {@link FileSystemMaster} when permission check is enabled by configure
@@ -199,8 +198,7 @@ public final class PermissionCheckTest {
     JournalSystem journalSystem = new NoopJournalSystem();
     mSafeModeManager = new DefaultSafeModeManager();
 
-    MasterContext masterContext =
-        new MasterContext(journalSystem, mSafeModeManager, new ReentrantLock());
+    MasterContext masterContext = new MasterContext(journalSystem, mSafeModeManager);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);

@@ -34,7 +34,6 @@ import org.junit.Test;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Unit tests for {@link MetricsMaster}.
@@ -54,9 +53,8 @@ public class MetricsMasterTest {
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestMetricsMaster-%d", true));
     JournalSystem journalSystem = new NoopJournalSystem();
-    mMetricsMaster = new DefaultMetricsMaster(
-        new MasterContext(journalSystem, mSafeModeManager, new ReentrantLock()), mClock,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mMetricsMaster = new DefaultMetricsMaster(new MasterContext(journalSystem, mSafeModeManager),
+        mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mRegistry.start(true);
   }

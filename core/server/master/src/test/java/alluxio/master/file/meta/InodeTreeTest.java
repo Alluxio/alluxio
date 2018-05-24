@@ -108,7 +108,7 @@ public final class InodeTreeTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new DefaultSafeModeManager();
     JournalSystem journalSystem = new NoopJournalSystem();
-    MasterContext context = new MasterContext(journalSystem, mSafeModeManager, new ReentrantLock());
+    MasterContext context = new MasterContext(journalSystem, mSafeModeManager);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, context);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, context);

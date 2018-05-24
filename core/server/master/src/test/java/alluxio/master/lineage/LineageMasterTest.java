@@ -54,7 +54,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Unit tests for {@link LineageMaster}.
@@ -83,7 +82,7 @@ public final class LineageMasterTest {
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
     mLineageMaster = new DefaultLineageMaster(mFileSystemMaster,
-        new MasterContext(journalSystem, mSafeModeManager, new ReentrantLock()),
+        new MasterContext(journalSystem, mSafeModeManager),
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(LineageMaster.class, mLineageMaster);
     mJob = new CommandLineJob("test", new JobConf("output"));
