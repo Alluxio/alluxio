@@ -51,6 +51,8 @@ import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -115,6 +117,8 @@ public final class PermissionCheckTest {
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
+  private int mPort;
+  private MetricsMaster mMetricsMaster;
   private FileSystemMaster mFileSystemMaster;
   private BlockMaster mBlockMaster;
 
@@ -191,13 +195,17 @@ public final class PermissionCheckTest {
     Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mTestFolder.newFolder());
     GroupMappingServiceTestUtils.resetCache();
     mRegistry = new MasterRegistry();
+    mRegistry.add(MetricsMaster.class, mMetricsMaster);
     JournalSystem journalSystem = new NoopJournalSystem();
     mSafeModeManager = new DefaultSafeModeManager();
     mStartTimeMs = System.currentTimeMillis();
+    mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
+    mMetricsMaster = new MetricsMasterFactory()
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
     mBlockMaster = new BlockMasterFactory()
-        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
-    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, journalSystem,
-        mSafeModeManager, mStartTimeMs);
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
+    mFileSystemMaster = new FileSystemMasterFactory()
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
     mRegistry.start(true);
 
     createDirAndFileForTest();
@@ -258,7 +266,7 @@ public final class PermissionCheckTest {
         new Mode((short) 0754)));
     LockedInodePath lockedInodePath = getLockedInodePath(permissions);
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_1.getUser()).toResource()) {
-      PermissionChecker checker = new PermissionChecker(mInodeTree);
+      PermissionChecker checker = new DefaultPermissionChecker(mInodeTree);
       Mode.Bits actual = checker.getPermission(lockedInodePath);
       assertEquals(Mode.Bits.ALL, actual);
     }
@@ -271,7 +279,7 @@ public final class PermissionCheckTest {
         new Mode((short) 0754)));
     LockedInodePath lockedInodePath = getLockedInodePath(permissions);
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_3.getUser()).toResource()) {
-      PermissionChecker checker = new PermissionChecker(mInodeTree);
+      PermissionChecker checker = new DefaultPermissionChecker(mInodeTree);
       Mode.Bits actual = checker.getPermission(lockedInodePath);
       assertEquals(Mode.Bits.READ_EXECUTE, actual);
     }
@@ -284,7 +292,7 @@ public final class PermissionCheckTest {
         new Mode((short) 0754)));
     LockedInodePath lockedInodePath = getLockedInodePath(permissions);
     try (Closeable r  = new AuthenticatedUserRule(TEST_USER_2.getUser()).toResource()) {
-      PermissionChecker checker = new PermissionChecker(mInodeTree);
+      PermissionChecker checker = new DefaultPermissionChecker(mInodeTree);
       Mode.Bits actual = checker.getPermission(lockedInodePath);
       assertEquals(Mode.Bits.READ, actual);
     }

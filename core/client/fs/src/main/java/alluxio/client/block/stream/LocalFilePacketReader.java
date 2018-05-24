@@ -15,6 +15,8 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyRPC;
 import alluxio.network.netty.NettyRPCContext;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -69,6 +71,9 @@ public final class LocalFilePacketReader implements PacketReader {
     ByteBuffer buffer = mReader.read(mPos, Math.min(mPacketSize, mEnd - mPos));
     DataBuffer dataBuffer = new DataByteBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
+    MetricsSystem.clientCounter(ClientMetrics.BYTES_READ_LOCAL).inc(dataBuffer.getLength());
+    MetricsSystem.clientMeter(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT)
+        .mark(dataBuffer.getLength());
     return dataBuffer;
   }
 

@@ -21,6 +21,18 @@ struct BlockLocation {
   3: string tierAlias
 }
 
+/**
+ * Information about metrics.
+ */
+struct Metric {
+  1: string instance
+  2: string hostname
+  3: string instanceId
+  4: string name
+  5: double value
+  6: map<string,string> tags
+}
+
 enum CommandType {
   Unknown = 0,
   Nothing = 1,
@@ -58,7 +70,7 @@ struct TieredIdentity {
 /**
  * Address information about masters.
  */
-struct MasterAddress {
+struct MasterNetAddress {
   1: string host
   2: i32 rpcPort
 }

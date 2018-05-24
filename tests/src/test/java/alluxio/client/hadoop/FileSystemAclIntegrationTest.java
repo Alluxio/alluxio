@@ -423,7 +423,8 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
     // Skip non-local and non-HDFS UFSs.
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(sUfs) || UnderFileSystemUtils.isHdfs(sUfs));
 
-    Path fileA = new Path("/root/dirA/fileA");
+    String path = "/root/parentDirectoryPermissionForUfsDir/parentDirectoryPermissionForUfsFile";
+    Path fileA = new Path(path);
     Path dirA = fileA.getParent();
     sTFS.mkdirs(dirA);
     short parentMode = (short) 0700;
@@ -501,7 +502,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
     Assume.assumeTrue(UnderFileSystemUtils.isS3(sUfs));
 
     alluxio.Configuration.set(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "");
-    Path fileA = new Path("/objectfileA");
+    Path fileA = new Path("/s3GetPermissionFile");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
@@ -535,7 +536,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   public void swiftGetPermission() throws Exception {
     Assume.assumeTrue(UnderFileSystemUtils.isSwift(sUfs));
 
-    Path fileA = new Path("/objectfileA");
+    Path fileA = new Path("/swiftGetPermissionFile");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 

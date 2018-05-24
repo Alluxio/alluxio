@@ -20,13 +20,13 @@ import alluxio.thrift.GetMasterIdTOptions;
 import alluxio.thrift.GetMasterIdTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
-import alluxio.thrift.MasterAddress;
 import alluxio.thrift.MasterHeartbeatTOptions;
 import alluxio.thrift.MasterHeartbeatTResponse;
+import alluxio.thrift.MasterNetAddress;
 import alluxio.thrift.MetaMasterMasterService;
 import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.thrift.RegisterMasterTResponse;
-import alluxio.wire.ThriftUtils;
+import alluxio.wire.Address;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,13 +57,13 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
   }
 
   @Override
-  public GetMasterIdTResponse getMasterId(final MasterAddress address,
+  public GetMasterIdTResponse getMasterId(final MasterNetAddress address,
       GetMasterIdTOptions options) throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetMasterIdTResponse>() {
       @Override
       public GetMasterIdTResponse call() throws AlluxioException {
         return new GetMasterIdTResponse(mMetaMaster
-            .getMasterId(ThriftUtils.fromThrift(address)));
+            .getMasterId(Address.fromThrift(address)));
       }
 
       @Override

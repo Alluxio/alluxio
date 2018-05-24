@@ -182,7 +182,7 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
   }
 
   /**
-   * Tests -R option for chown recursively.
+   * Tests -R option for chown.
    */
   @Test
   public void chownRecursive() throws IOException, AlluxioException {

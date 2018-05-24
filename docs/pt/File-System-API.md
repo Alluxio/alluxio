@@ -27,7 +27,9 @@ recurso.
 
 Para obter um Alluxio `client file system` em código `Java`, execute:
 
-{% include File-System-API/get-fileSystem.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+```
 
 ### Criando um Arquivo
 
@@ -37,14 +39,29 @@ no Alluxio são imutáveis depois de escritos, a forma idiomática para criar ar
 utilização de `FileSystem#createFile(AlluxioURI)`, que retorna um objeto `stream` e este pode ser
 utilizado para escrever o arquivo. Por exemplo:
 
-{% include File-System-API/write-file.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Create a file and get its output stream
+FileOutStream out = fs.createFile(path);
+// Write data
+out.write(...);
+// Close and complete file
+out.close();
+```
 
 ### Especificando Opções de Operações
 
 Para todas as operações de `FileSystem`, campos de opções adicionais podem ser especificados,
 que permitem usuários mencionar configurações fora do padrão para a operação. Por exemplo:
 
-{% include File-System-API/specify-options.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Generate options to set a custom blocksize of 128 MB
+CreateFileOptions options = CreateFileOptions.defaults().setBlockSize(128 * Constants.MB);
+FileOutStream out = fs.createFile(path, options);
+```
 
 ### Opções de I/O
 
@@ -135,7 +152,16 @@ leitura de `stream` para ler um arquivo.
 
 Por exemplo, para ler um arquivo:
 
-{% include File-System-API/read-file.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Open the file for reading
+FileInStream in = fs.openFile(path);
+// Read data
+in.read(...);
+// Close file relinquishing the lock
+in.close();
+```
 
 ## Hadoop API
 

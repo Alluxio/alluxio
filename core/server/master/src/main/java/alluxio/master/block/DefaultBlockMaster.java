@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
+import alluxio.Server;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
@@ -36,6 +37,8 @@ import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -63,6 +66,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jersey.repackaged.com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,10 +85,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -99,6 +101,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class DefaultBlockMaster extends AbstractMaster implements BlockMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
+  private static final Set<Class<? extends Server>> DEPS =
+      ImmutableSet.<Class<? extends Server>>of(MetricsMaster.class);
 
   /**
    * The number of container ids to 'reserve' before having to journal container id state. This
@@ -170,15 +174,18 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /** Listeners to call when lost workers are found. */
-  private final BlockingQueue<Consumer<Address>> mLostWorkerFoundListeners
-      = new LinkedBlockingQueue<>();
+  private final List<Consumer<Address>> mLostWorkerFoundListeners
+      = new ArrayList<>();
 
   /** Listeners to call when workers are lost. */
-  private final BlockingQueue<Consumer<Address>> mWorkerLostListeners = new LinkedBlockingQueue<>();
+  private final List<Consumer<Address>> mWorkerLostListeners = new ArrayList<>();
 
   /** Listeners to call when a new worker registers. */
-  private final BlockingQueue<BiConsumer<Address, List<ConfigProperty>>> mWorkerRegisteredListeners
-      = new LinkedBlockingQueue<>();
+  private final List<BiConsumer<Address, List<ConfigProperty>>> mWorkerRegisteredListeners
+      = new ArrayList<>();
+
+  /** Handle to the metrics master. */
+  private final MetricsMaster mMetricsMaster;
 
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
@@ -194,25 +201,29 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
+   * @param metricsMaster the metrics master
    * @param masterContext the context for Alluxio master
    */
-  DefaultBlockMaster(MasterContext masterContext) {
-    this(masterContext, new SystemClock(), ExecutorServiceFactories
+  DefaultBlockMaster(MetricsMaster metricsMaster, MasterContext masterContext) {
+    this(metricsMaster, masterContext, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
   }
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
+   * @param metricsMaster the metrics master
    * @param masterContext the context for Alluxio master
    * @param clock the clock to use for determining the time
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultBlockMaster(MasterContext masterContext, Clock clock,
+  DefaultBlockMaster(MetricsMaster metricsMaster, MasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
+    Preconditions.checkNotNull(metricsMaster, "metricsMaster");
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
+    mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);
   }
 
@@ -298,7 +309,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     if (isLeader) {
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
-          (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+          (int) Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL)));
     }
   }
 
@@ -470,15 +481,25 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public void validateBlocks(Function<Long, Boolean> validator, boolean repair)
       throws UnavailableException {
-    List<Long> invalidBlocks = new ArrayList<>();
-    for (long blockId : mBlocks.keySet()) {
-      if (!validator.apply(blockId)) {
-        invalidBlocks.add(blockId);
+    List<Long> invalidBlocks =
+        mBlocks.keySet().stream().filter((blockId) -> !validator.apply(blockId))
+            .collect(Collectors.toList());
+    if (!invalidBlocks.isEmpty()) {
+      long limit = 100;
+      List<Long> loggedBlocks = invalidBlocks.stream().limit(limit).collect(Collectors.toList());
+      LOG.warn("Found {} orphan blocks without corresponding file metadata.", invalidBlocks.size());
+      if (invalidBlocks.size() > limit) {
+        LOG.warn("The first {} orphan blocks include {}.", limit, loggedBlocks);
+      } else {
+        LOG.warn("The orphan blocks include {}.", loggedBlocks);
       }
-    }
-    if (repair && !invalidBlocks.isEmpty()) {
-      LOG.warn("Deleting {} invalid blocks.", invalidBlocks.size());
-      removeBlocks(invalidBlocks, true);
+      if (repair) {
+        LOG.warn("Deleting {} orphan blocks.", invalidBlocks.size());
+        removeBlocks(invalidBlocks, true);
+      } else {
+        LOG.warn("Restart Alluxio master with {}=true to delete the blocks and repair the system.",
+            PropertyKey.Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED);
+      }
     }
   }
 
@@ -690,8 +711,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         lostWorker.updateLastUpdatedTimeMs();
         mWorkers.add(lostWorker);
         mLostWorkers.remove(lostWorker);
+        WorkerNetAddress workerAddress = lostWorker.getWorkerAddress();
         for (Consumer<Address> function : mLostWorkerFoundListeners) {
-          WorkerNetAddress workerAddress = lostWorker.getWorkerAddress();
           function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
         }
         return lostWorkerId;
@@ -750,7 +771,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers) {
+      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers,
+      List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
@@ -763,6 +785,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       // will just re-register regardless.
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocksOnTiers);
+      processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
       worker.updateUsedBytes(usedBytesOnTiers);
       worker.updateLastUpdatedTimeMs();
@@ -773,6 +796,13 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       }
       return new Command(CommandType.Free, toRemoveBlocks);
     }
+  }
+
+  private void processWorkerMetrics(String hostname, List<Metric> metrics) {
+    if (metrics.isEmpty()) {
+      return;
+    }
+    mMetricsMaster.workerHeartbeat(hostname, metrics);
   }
 
   /**
@@ -894,6 +924,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     mLostBlocks.addAll(blockIds);
   }
 
+  @Override
+  public Set<Class<? extends Server>> getDependencies() {
+    return DEPS;
+  }
+
   /**
    * Lost worker periodic check.
    */
@@ -915,8 +950,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
                 worker.getWorkerAddress(), lastUpdate);
             mLostWorkers.add(worker);
             mWorkers.remove(worker);
+            WorkerNetAddress workerAddress = worker.getWorkerAddress();
             for (Consumer<Address> function : mWorkerLostListeners) {
-              WorkerNetAddress workerAddress = worker.getWorkerAddress();
               function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
             }
             processWorkerRemovedBlocks(worker, worker.getBlocks());
