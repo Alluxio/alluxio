@@ -41,8 +41,7 @@ public final class CallHomeMasterFactory implements MasterFactory {
 
   @Override
   public boolean isEnabled() {
-    return Boolean.parseBoolean(CallHomeConstants.CALL_HOME_ENABLED)
-        && Configuration.getBoolean(PropertyKey.CALL_HOME_ENABLED);
+    return Boolean.parseBoolean(CallHomeConstants.CALL_HOME_ENABLED);
   }
 
   @Override

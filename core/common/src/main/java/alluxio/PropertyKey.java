@@ -452,12 +452,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // Call home
-  //
-  public static final PropertyKey CALL_HOME_ENABLED =
-      new Builder(Name.CALL_HOME_ENABLED).setDefaultValue(true).setIsHidden(true).build();
-
-  //
   // Diagnostic logs
   //
   public static final PropertyKey DIAGNOSTIC_LOG_INTERVAL_MS =
@@ -2931,11 +2925,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.zookeeper.leader.inquiry.retry";
     public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
     public static final String ZOOKEEPER_SESSION_TIMEOUT = "alluxio.zookeeper.session.timeout";
-
-    //
-    // Call home
-    //
-    public static final String CALL_HOME_ENABLED = "alluxio.call.home.enabled";
 
     //
     // Diagnostic logs

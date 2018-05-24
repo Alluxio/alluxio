@@ -102,15 +102,9 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 	if includeYarnIntegration(hadoopVersion) {
 		args = append(args, "-Pyarn")
 	}
-        if callHomeFlag {
-                args = append(args, "-Dcall.home.enabled=true")
-                if callHomeBucketFlag != "" {
-                        args = append(args, fmt.Sprintf("-Dcall.home.bucket=%s", callHomeBucketFlag))
-                }
-        }
-        if proxyURLFlag != "" {
-                args = append(args, fmt.Sprintf("-Dproxy.url=%s", proxyURLFlag))
-        }
+	if callHomeFlag {
+		args = append(args, "-Dcall.home.enabled=true")
+	}
 	return args
 }
 
