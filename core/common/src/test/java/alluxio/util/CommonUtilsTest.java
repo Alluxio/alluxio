@@ -76,6 +76,15 @@ public class CommonUtilsTest {
   }
 
   /**
+   * Tests the {@link CommonUtils#convertToHexString(byte[])} method.
+   */
+  @Test
+  public void convertToHexString() {
+    byte[] test_array = {-1, 0, 1, 2, 3 };
+    assertTrue("FF-00-01-02-03".equals(CommonUtils.convertToHexString(test_array)));
+  }
+
+  /**
    * Tests the {@link CommonUtils#getCurrentMs()} and {@link CommonUtils#sleepMs(long)} methods.
    */
   @Test
