@@ -31,11 +31,11 @@ Alluxio works together with Spark 1.1 or later out-of-the-box.
   by following Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
   The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
-* In order for Spark applications to read and write files in Alluxio, the Alluxio client jar must be distributed 
-  on the classpath of the application across different nodes 
-  (each node must have the client jar on the same local path {{site.ALLUXIO_CLIENT_JAR_PATH}}). 
-  
-* Add the following line to `spark/conf/spark-defaults.conf`.  
+* In order for Spark applications to read and write files in Alluxio, the Alluxio client jar must be distributed
+  on the classpath of the application across different nodes
+  (each node must have the client jar on the same local path {{site.ALLUXIO_CLIENT_JAR_PATH}}).
+
+* Add the following line to `spark/conf/spark-defaults.conf`.
 
 ```bash
 spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
@@ -79,17 +79,18 @@ Alternatively you can add the properties to the previously created Hadoop config
 
 ## Check Spark with Alluxio integration (Supports Spark 2.X)
 
-Before running Spark on Alluxio, you might want to make sure that your Spark configuration has been 
-setup correctly for integrating with Alluxio. The Spark integration checker can help you achieve this. 
+Before running Spark on Alluxio, you might want to make sure that your Spark configuration has been
+setup correctly for integrating with Alluxio. The Spark integration checker can help you achieve this.
 
 When you have a running Spark cluster (or Spark standalone), you can run the following command in the Alluxio project directory:
 
 ```bash
-$ checker/bin/alluxio-checker.sh spark <spark master uri> <spark partition number(optional)>
+$ integration/checker/bin/alluxio-checker.sh spark <spark master uri> [partition number]
 ```
 
+Here `partition number` is optional.
 You can use `-h` to display helpful information about the command.
-This command will report potential problems that might prevent you from running Spark on Alluxio. 
+This command will report potential problems that might prevent you from running Spark on Alluxio.
 
 ## Use Alluxio as Input and Output
 
@@ -217,9 +218,9 @@ enough to prioritize placing the job on `host1`.
 ## `Class alluxio.hadoop.FileSystem not found` Issues with SparkSQL and Hive MetaStore
 
 To run the `spark-shell` with the Alluxio client, the Alluxio client jar will have to be added to the classpath of the
-Spark driver and Spark executors, as [described earlier](Running-Spark-on-Alluxio.html#general-setup). 
+Spark driver and Spark executors, as [described earlier](Running-Spark-on-Alluxio.html#general-setup).
 However, sometimes SparkSQL may fail to save tables to the Hive MetaStore (location in Alluxio), with an error
-message similar to the following: 
+message similar to the following:
 
 ```
 org.apache.hadoop.hive.ql.metadata.HiveException: MetaException(message:java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found)
