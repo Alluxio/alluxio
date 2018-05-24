@@ -53,8 +53,7 @@ import java.util.concurrent.Future;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This service periodically collects call home information and stores it to Alluxio company's
- * backend.
+ * This service periodically collects call home information.
  */
 @ThreadSafe
 public final class CallHomeMaster extends AbstractNonJournaledMaster {
@@ -183,12 +182,12 @@ public final class CallHomeMaster extends AbstractNonJournaledMaster {
     }
 
     /**
-     * Uploads the collected call home information to Alluxio company's backend.
+     * Uploads the collected call home information.
      *
      * @param info the call home information to be uploaded
      */
     private void upload(CallHomeInfo info) throws IOException {
-      String body = "";
+      String body;
       try {
         ObjectMapper mapper = new ObjectMapper();
         body = mapper.writeValueAsString(info);
