@@ -34,6 +34,7 @@ import alluxio.network.PortUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.MasterInfo;
 import alluxio.zookeeper.RestartableTestingServer;
 
 import com.google.common.base.Function;
@@ -54,7 +55,9 @@ import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -222,6 +225,35 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
+   * Wait for the live worker number registered
+   * reached the cluster worker number.
+   *
+   * @param workerNum the work num of this cluster
+   * @param timeoutMs maximum amount of time to wait, in milliseconds
+   */
+  public synchronized void waitForWorkerNum(int workerNum, int timeoutMs) {
+    final MetaMasterClient metaMasterClient = getMetaMasterClient();
+    CommonUtils.waitFor("All the workers got their id.", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        try {
+          int liveWorkerNum = metaMasterClient.getMasterInfo(new HashSet<>(Arrays
+              .asList(MasterInfo.MasterInfoField.LIVE_MASTER_NUM)))
+              .getLiveMasterNum();
+          if (liveWorkerNum == workerNum) {
+            return true;
+          }
+          return false;
+        } catch (UnavailableException e) {
+          return false;
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+  }
+
+  /**
    * @return a client for interacting with the cluster
    */
   public synchronized FileSystem getFileSystemClient() {
@@ -234,7 +266,7 @@ public final class MultiProcessCluster implements TestRule {
   /**
    * @return a meta master client
    */
-  public MetaMasterClient getMetaMasterClient() throws UnavailableException {
+  public synchronized MetaMasterClient getMetaMasterClient() {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to get an fs client, but state was %s", mState);
     return new RetryHandlingMetaMasterClient(new MasterClientConfig()
@@ -416,7 +448,7 @@ public final class MultiProcessCluster implements TestRule {
     }
   }
 
-  private MasterInquireClient getMasterInquireClient() {
+  private synchronized MasterInquireClient getMasterInquireClient() {
     switch (mDeployMode) {
       case NON_HA:
         Preconditions.checkState(mMasters.size() == 1,
