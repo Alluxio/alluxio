@@ -37,7 +37,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -131,7 +130,7 @@ public final class Configuration {
   public static void set(PropertyKey key, Object value) {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
-    PROPERTIES.put(key.getName(), String.valueOf(value), Source.RUNTIME);
+    PROPERTIES.put(key, String.valueOf(value), Source.RUNTIME);
   }
 
   /**
@@ -141,7 +140,7 @@ public final class Configuration {
    */
   public static void unset(PropertyKey key) {
     Preconditions.checkNotNull(key, "key");
-    PROPERTIES.remove(key.getName());
+    PROPERTIES.remove(key);
   }
 
   /**
@@ -152,7 +151,7 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key) {
-    String rawValue = PROPERTIES.get(key.toString());
+    String rawValue = PROPERTIES.get(key);
     if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
@@ -167,7 +166,7 @@ public final class Configuration {
    * @return true if there is value for the key, false otherwise
    */
   public static boolean containsKey(PropertyKey key) {
-    return PROPERTIES.hasValueSet(key.toString());
+    return PROPERTIES.hasValueSet(key);
   }
 
   /**
@@ -358,8 +357,8 @@ public final class Configuration {
    */
   public static Map<String, String> getNestedProperties(PropertyKey prefixKey) {
     Map<String, String> ret = Maps.newHashMap();
-    for (Map.Entry<String, String> entry: PROPERTIES.entrySet()) {
-      String key = entry.getKey();
+    for (Map.Entry<PropertyKey, String> entry: PROPERTIES.entrySet()) {
+      String key = entry.getKey().getName();
       if (prefixKey.isNested(key)) {
         String suffixKey = key.substring(prefixKey.length() + 1);
         ret.put(suffixKey, entry.getValue());
@@ -391,7 +390,7 @@ public final class Configuration {
    */
   public static Map<String, String> toRawMap() {
     Map<String, String> rawMap = new HashMap<>();
-    PROPERTIES.forEach(rawMap::put);
+    PROPERTIES.forEach((key, value) -> rawMap.put(key.getName(), value));
     return rawMap;
   }
 
@@ -428,7 +427,10 @@ public final class Configuration {
       if (!seen.add(match)) {
         throw new RuntimeException("Circular dependency found while resolving " + match);
       }
-      String value = lookupRecursively(PROPERTIES.get(match), seen);
+      if (!PropertyKey.isValid(match)) {
+        throw new RuntimeException("Invalid property key " + match);
+      }
+      String value = lookupRecursively(PROPERTIES.get(PropertyKey.fromString(match)), seen);
       seen.remove(match);
       if (value == null) {
         throw new RuntimeException("No value specified for configuration property " + match);
@@ -444,7 +446,7 @@ public final class Configuration {
    * @return the source for the given key
    */
   public static Source getSource(PropertyKey key) {
-    return PROPERTIES.getSource(key.getName());
+    return PROPERTIES.getSource(key);
   }
 
   /**
@@ -529,14 +531,13 @@ public final class Configuration {
     // Check that any custom tiers set by alluxio.locality.{custom_tier}=value are also defined in
     // the tier ordering defined by alluxio.locality.order.
     Set<String> tiers = Sets.newHashSet(getList(PropertyKey.LOCALITY_ORDER, ","));
-    Set<String> predefinedKeys =
-        PropertyKey.defaultKeys().stream().map(PropertyKey::getName).collect(Collectors.toSet());
-    for (String key : PROPERTIES.keySet()) {
+    Set<PropertyKey> predefinedKeys = new HashSet<>(PropertyKey.defaultKeys());
+    for (PropertyKey key : PROPERTIES.keySet()) {
       if (predefinedKeys.contains(key)) {
         // Skip non-templated keys.
         continue;
       }
-      Matcher matcher = Template.LOCALITY_TIER.match(key);
+      Matcher matcher = Template.LOCALITY_TIER.match(key.toString());
       if (matcher.matches() && matcher.group(1) != null) {
         String tierName = matcher.group(1);
         if (!tiers.contains(tierName)) {

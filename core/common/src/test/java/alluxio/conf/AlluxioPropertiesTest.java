@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.Test;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -33,115 +34,114 @@ import java.util.Set;
  */
 public class AlluxioPropertiesTest {
 
-  private static final String KEY_WITHOUT_VALUE = "key.without.value";
-  private static final String KEY_WITH_VALUE = "key.with.value";
-  private static final String KEY_NEW = "key.ne1w";
-
   private AlluxioProperties mProperties = new AlluxioProperties();
-  private PropertyKey mKeyWithValue = new PropertyKey.Builder(KEY_WITH_VALUE).setDefaultValue(
+  private PropertyKey mKeyWithValue = new PropertyKey.Builder("key.with.value").setDefaultValue(
       "value").build();
-  private PropertyKey mKeyWithoutValue = new PropertyKey.Builder(KEY_WITHOUT_VALUE).build();
+  private PropertyKey mKeyWithoutValue = new PropertyKey.Builder("key.without.value").build();
 
   @Test
   public void get() {
-    assertEquals("value", mProperties.get(KEY_WITH_VALUE));
-    assertEquals(null, mProperties.get(KEY_WITHOUT_VALUE));
-    mProperties.put(KEY_WITHOUT_VALUE, "newValue1", Source.RUNTIME);
-    mProperties.put(KEY_NEW, "newValue2", Source.RUNTIME);
-    assertEquals("newValue1", mProperties.get(KEY_WITHOUT_VALUE));
-    assertEquals("newValue2", mProperties.get(KEY_NEW));
+    assertEquals("value", mProperties.get(mKeyWithValue));
+    assertEquals(null, mProperties.get(mKeyWithoutValue));
+    mProperties.put(mKeyWithoutValue, "newValue1", Source.RUNTIME);
+    assertEquals("newValue1", mProperties.get(mKeyWithoutValue));
   }
 
   @Test
   public void clear() {
-    mProperties.put(KEY_WITH_VALUE, "ignored1", Source.RUNTIME);
-    mProperties.put(KEY_WITHOUT_VALUE, "ignored2", Source.RUNTIME);
+    mProperties.put(mKeyWithValue, "ignored1", Source.RUNTIME);
+    mProperties.put(mKeyWithoutValue, "ignored2", Source.RUNTIME);
     mProperties.clear();
-    assertEquals(null, mProperties.get(KEY_WITHOUT_VALUE));
-    assertEquals("value", mProperties.get(KEY_WITH_VALUE));
+    assertEquals(null, mProperties.get(mKeyWithoutValue));
+    assertEquals("value", mProperties.get(mKeyWithValue));
   }
 
   @Test
   public void put() {
-    mProperties.put(KEY_WITH_VALUE, "value1", Source.RUNTIME);
-    mProperties.put(KEY_WITHOUT_VALUE, "value2", Source.RUNTIME);
-    assertEquals("value1", mProperties.get(KEY_WITH_VALUE));
-    assertEquals("value2", mProperties.get(KEY_WITHOUT_VALUE));
+    mProperties.put(mKeyWithValue, "value1", Source.SYSTEM_PROPERTY);
+    mProperties.put(mKeyWithoutValue, "value2", Source.SYSTEM_PROPERTY);
+    assertEquals("value1", mProperties.get(mKeyWithValue));
+    assertEquals("value2", mProperties.get(mKeyWithoutValue));
+
+    mProperties.put(mKeyWithValue, "valueLowerPriority", Source.SITE_PROPERTY);
+    assertEquals("value1", mProperties.get(mKeyWithValue));
+    mProperties.put(mKeyWithValue, "valueSamePriority", Source.SYSTEM_PROPERTY);
+    assertEquals("valueSamePriority", mProperties.get(mKeyWithValue));
+    mProperties.put(mKeyWithValue, "valueHigherPriority", Source.RUNTIME);
+    assertEquals("valueHigherPriority", mProperties.get(mKeyWithValue));
   }
 
   @Test
   public void remove() {
-    mProperties.remove(KEY_WITH_VALUE);
-    assertEquals(null, mProperties.get(KEY_WITH_VALUE));
+    mProperties.remove(mKeyWithValue);
+    assertEquals(null, mProperties.get(mKeyWithValue));
   }
 
   @Test
   public void hasValueSet() {
-    assertTrue(mProperties.hasValueSet(KEY_WITH_VALUE));
-    assertFalse(mProperties.hasValueSet(KEY_WITHOUT_VALUE));
-    mProperties.remove(KEY_WITH_VALUE);
-    mProperties.put(KEY_WITHOUT_VALUE, "value", Source.RUNTIME);
-    assertFalse(mProperties.hasValueSet(KEY_WITH_VALUE));
-    assertTrue(mProperties.hasValueSet(KEY_WITHOUT_VALUE));
+    assertTrue(mProperties.hasValueSet(mKeyWithValue));
+    assertFalse(mProperties.hasValueSet(mKeyWithoutValue));
+    mProperties.remove(mKeyWithValue);
+    mProperties.put(mKeyWithoutValue, "value", Source.RUNTIME);
+    assertFalse(mProperties.hasValueSet(mKeyWithValue));
+    assertTrue(mProperties.hasValueSet(mKeyWithoutValue));
   }
 
   @Test
   public void entrySet() {
-    Set<Map.Entry<String, String>> expected =
+    Set<Map.Entry<? extends PropertyKey, String>> expected =
         PropertyKey.defaultKeys().stream()
-            .map(key -> Maps.immutableEntry(key.getName(), key.getDefaultValue())).collect(toSet());
+            .map(key -> Maps.immutableEntry(key, key.getDefaultValue())).collect(toSet());
     assertThat(mProperties.entrySet(), is(expected));
-    mProperties.put(KEY_NEW, "value", Source.RUNTIME);
-    expected.add(Maps.immutableEntry(KEY_NEW, "value"));
+    mProperties.put(mKeyWithValue, "value", Source.RUNTIME);
+    expected.add(Maps.immutableEntry(mKeyWithValue, "value"));
     assertThat(mProperties.entrySet(), is(expected));
   }
 
   @Test
   public void keySet() {
-    Set<String> expected =
-        PropertyKey.defaultKeys().stream().map(PropertyKey::getName).collect(toSet());
+    Set<PropertyKey> expected = new HashSet<>(PropertyKey.defaultKeys());
     assertThat(mProperties.keySet(), is(expected));
-    mProperties.put(KEY_NEW, "value", Source.RUNTIME);
-    expected.add(KEY_NEW);
+    PropertyKey newKey = new PropertyKey.Builder("keySetNew").build();
+    mProperties.put(newKey, "value", Source.RUNTIME);
+    expected.add(newKey);
     assertThat(mProperties.keySet(), is(expected));
   }
 
   @Test
   public void forEach() {
-    Set<String> expected =
-        PropertyKey.defaultKeys().stream().map(PropertyKey::getName).collect(toSet());
-    Set<String> actual = Sets.newHashSet();
+    Set<PropertyKey> expected = new HashSet<>(PropertyKey.defaultKeys());
+    Set<PropertyKey> actual = Sets.newHashSet();
     mProperties.forEach((key, value) -> actual.add(key));
     assertThat(actual, is(expected));
 
-    mProperties.put(KEY_NEW, "value", Source.RUNTIME);
-    Set<String> actual2 = Sets.newHashSet();
+    PropertyKey newKey = new PropertyKey.Builder("forEachNew").build();
+    mProperties.put(newKey, "value", Source.RUNTIME);
+    Set<PropertyKey> actual2 = Sets.newHashSet();
     mProperties.forEach((key, value) -> actual2.add(key));
-    expected.add(KEY_NEW);
+    expected.add(newKey);
     assertThat(actual2, is(expected));
   }
 
   @Test
   public void setGetSource() {
-    mProperties.put(KEY_NEW, "value", Source.RUNTIME);
-    mProperties.setSource(KEY_NEW, Source.SYSTEM_PROPERTY);
-    assertEquals(Source.SYSTEM_PROPERTY, mProperties.getSource(KEY_NEW));
-    assertEquals(Source.DEFAULT, mProperties.getSource(KEY_WITH_VALUE));
-    assertEquals(Source.DEFAULT, mProperties.getSource(KEY_WITHOUT_VALUE));
+    mProperties.put(mKeyWithValue, "valueIgnored", Source.RUNTIME);
+    assertEquals(Source.RUNTIME, mProperties.getSource(mKeyWithValue));
+    assertEquals(Source.DEFAULT, mProperties.getSource(mKeyWithoutValue));
   }
 
   @Test
   public void merge() {
-    Map<Source, Properties> newSources = Maps.newHashMap();
+    PropertyKey newKey = new PropertyKey.Builder("mergeNew").setDefaultValue("value3").build();
     Properties sysProp = new Properties();
-    sysProp.put(KEY_NEW, "value1");
-    sysProp.put(KEY_WITHOUT_VALUE, "value2");
-    newSources.put(Source.SYSTEM_PROPERTY, sysProp);
+    sysProp.put(mKeyWithValue, "value1");
+    sysProp.put(mKeyWithoutValue, "value2");
     mProperties.merge(sysProp, Source.SYSTEM_PROPERTY);
-    assertEquals(Source.SYSTEM_PROPERTY, mProperties.getSource(KEY_NEW));
-    assertEquals(Source.SYSTEM_PROPERTY, mProperties.getSource(KEY_WITHOUT_VALUE));
-    assertEquals(Source.DEFAULT, mProperties.getSource(KEY_WITH_VALUE));
-    assertEquals("value1", mProperties.get(KEY_NEW));
-    assertEquals("value2", mProperties.get(KEY_WITHOUT_VALUE));
+    assertEquals(Source.SYSTEM_PROPERTY, mProperties.getSource(mKeyWithValue));
+    assertEquals(Source.SYSTEM_PROPERTY, mProperties.getSource(mKeyWithoutValue));
+    assertEquals(Source.DEFAULT, mProperties.getSource(newKey));
+    assertEquals("value1", mProperties.get(mKeyWithValue));
+    assertEquals("value2", mProperties.get(mKeyWithoutValue));
+    assertEquals("value3", mProperties.get(newKey));
   }
 }

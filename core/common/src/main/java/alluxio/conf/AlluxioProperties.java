@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -53,9 +54,10 @@ public class AlluxioProperties {
    * Map of user-specified properties. When key is mapped to Optional.empty(), it indicates no
    * value is set for this key. Note that, ConcurrentHashMap requires not null for key and value.
    */
-  private final ConcurrentHashMap<String, Optional<String>> mUserProps = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<PropertyKey, Optional<String>> mUserProps =
+      new ConcurrentHashMap<>();
   /** Map of property sources. */
-  private final ConcurrentHashMap<String, Source> mSources = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<PropertyKey, Source> mSources = new ConcurrentHashMap<>();
 
   /**
    * Constructs a new instance of Alluxio properties.
@@ -67,12 +69,11 @@ public class AlluxioProperties {
    * @return the value, or null if the key has no value set
    */
   @Nullable
-  public String get(String key) {
+  public String get(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
       return mUserProps.get(key).orElse(null);
     }
-    // fromString will check if the key is valid or throw RTE
-    return PropertyKey.fromString(key).getDefaultValue();
+    return key.getDefaultValue();
   }
 
   /**
@@ -89,23 +90,10 @@ public class AlluxioProperties {
    * @param key key to put
    * @param value value to put
    */
-  public void put(String key, String value, Source source) {
+  public void put(PropertyKey key, String value, Source source) {
     if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
-      PropertyKey propertyKey;
-      if (PropertyKey.isValid(key)) {
-        propertyKey = PropertyKey.fromString(key);
-      } else {
-        // Add unrecognized properties
-        LOG.debug("Property {} from source {} is unrecognized", key, source);
-        // Workaround for issue https://alluxio.atlassian.net/browse/ALLUXIO-3108
-        // This will register the key as a valid PropertyKey
-        // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuration
-        // is made dynamic
-        propertyKey = new PropertyKey.Builder(key).build();
-      }
-      // Get the true name for the property key in case it is an alias.
-      mUserProps.put(propertyKey.getName(), Optional.ofNullable(value));
-      mSources.put(propertyKey.getName(), source);
+      mUserProps.put(key, Optional.ofNullable(value));
+      mSources.put(key, source);
     }
   }
 
@@ -125,7 +113,19 @@ public class AlluxioProperties {
     for (Map.Entry<?, ?> entry : properties.entrySet()) {
       String key = entry.getKey().toString().trim();
       String value = entry.getValue() == null ? null : entry.getValue().toString().trim();
-      put(key, value, source);
+      PropertyKey propertyKey;
+      if (PropertyKey.isValid(key)) {
+        propertyKey = PropertyKey.fromString(key);
+      } else {
+        // Add unrecognized properties
+        LOG.debug("Property {} from source {} is unrecognized", key, source);
+        // Workaround for issue https://alluxio.atlassian.net/browse/ALLUXIO-3108
+        // This will register the key as a valid PropertyKey
+        // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuration
+        // is made dynamic
+        propertyKey = new PropertyKey.Builder(key).build();
+      }
+      put(propertyKey, value, source);
     }
   }
 
@@ -134,7 +134,7 @@ public class AlluxioProperties {
    *
    * @param key key to remove
    */
-  public void remove(String key) {
+  public void remove(PropertyKey key) {
     mUserProps.put(key, Optional.empty());
   }
 
@@ -144,26 +144,25 @@ public class AlluxioProperties {
    * @param key the key to check
    * @return true if there is value for the key, false otherwise
    */
-  public boolean hasValueSet(String key) {
+  public boolean hasValueSet(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
       return mUserProps.get(key).isPresent();
     }
-    return PropertyKey.isValid(key) && (PropertyKey.fromString(key).getDefaultValue() != null);
+    return key.getDefaultValue() != null;
   }
 
   /**
    * @return the entry set of all Alluxio property key and value pairs (value can be null)
    */
-  public Set<Map.Entry<String, String>> entrySet() {
+  public Set<Map.Entry<PropertyKey, String>> entrySet() {
     return keySet().stream().map(key -> Maps.immutableEntry(key, get(key))).collect(toSet());
   }
 
   /**
    * @return the key set of all Alluxio property
    */
-  public Set<String> keySet() {
-    Set<String> keySet =
-        PropertyKey.defaultKeys().stream().map(PropertyKey::getName).collect(toSet());
+  public Set<PropertyKey> keySet() {
+    Set<PropertyKey> keySet = new HashSet<>(PropertyKey.defaultKeys());
     keySet.addAll(mUserProps.keySet());
     return keySet;
   }
@@ -173,8 +172,8 @@ public class AlluxioProperties {
    *
    * @param action the operation to perform on each key value pair
    */
-  public void forEach(BiConsumer<? super String, ? super String> action) {
-    for (Map.Entry<String, String> entry : entrySet()) {
+  public void forEach(BiConsumer<? super PropertyKey, ? super String> action) {
+    for (Map.Entry<PropertyKey, String> entry : entrySet()) {
       action.accept(entry.getKey(), entry.getValue());
     }
   }
@@ -186,7 +185,7 @@ public class AlluxioProperties {
    * @param source the source
    */
   @VisibleForTesting
-  public void setSource(String key, Source source) {
+  public void setSource(PropertyKey key, Source source) {
     mSources.put(key, source);
   }
 
@@ -194,14 +193,11 @@ public class AlluxioProperties {
    * @param key property key
    * @return the source of the key
    */
-  public Source getSource(String key) {
+  public Source getSource(PropertyKey key) {
     Source source = mSources.get(key);
     if (source != null) {
       return source;
     }
-    if (PropertyKey.isValid(key)) {
-      return Source.DEFAULT;
-    }
-    return Source.UNKNOWN;
+    return Source.DEFAULT;
   }
 }
