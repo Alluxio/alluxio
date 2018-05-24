@@ -201,7 +201,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         new File(mLocalUfsPath + "/dir" + i + "/dir" + j + "/").mkdirs();
-        FileWriter fileWriter = new FileWriter(mLocalUfsPath + "/dir" + i + "/dir" + j + "/" + "file");
+        FileWriter fileWriter = new FileWriter(mLocalUfsPath
+            + "/dir" + i + "/dir" + j + "/" + "file");
         fileWriter.write("test" + i);
         fileWriter.close();
       }
@@ -211,7 +212,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     long durationMs = CommonUtils.getCurrentMs() - startMs;
     // 25 files, 25 level 2 dirs, 5 level 1 dirs, 1 file and 1 dir created in before
     Assert.assertEquals(25 * 2 + 5 + 2, list.size());
-    
+
     // Should load metadata once, in one recursive call
     Assert.assertTrue("Expected to be between one and two SLEEP_MS. actual duration (ms): "
             + durationMs, durationMs >= LONG_SLEEP_MS && durationMs <= 2 * LONG_SLEEP_MS);
