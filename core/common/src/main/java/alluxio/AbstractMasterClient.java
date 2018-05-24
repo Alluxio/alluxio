@@ -14,8 +14,10 @@ package alluxio;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
+import alluxio.retry.RetryPolicy;
 
 import java.net.InetSocketAddress;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,6 +36,17 @@ public abstract class AbstractMasterClient extends AbstractClient {
    */
   public AbstractMasterClient(MasterClientConfig conf) {
     super(conf.getSubject(), null);
+    mMasterInquireClient = conf.getMasterInquireClient();
+  }
+
+  /**
+   * Creates a new master client base.
+   *
+   * @param conf master client configuration
+   */
+  public AbstractMasterClient(MasterClientConfig conf, InetSocketAddress address,
+      Supplier<RetryPolicy> retryPolicySupplier) {
+    super(conf.getSubject(), address, retryPolicySupplier);
     mMasterInquireClient = conf.getMasterInquireClient();
   }
 

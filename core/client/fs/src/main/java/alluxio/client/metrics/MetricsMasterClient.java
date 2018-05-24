@@ -14,8 +14,13 @@ package alluxio.client.metrics;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.thrift.AlluxioService.Client;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.Metric;
 import alluxio.thrift.MetricsHeartbeatTOptions;
 import alluxio.thrift.MetricsMasterClientService;
@@ -25,6 +30,7 @@ import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -33,6 +39,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class MetricsMasterClient extends AbstractMasterClient {
+  // No retry for metrics since they are best effort and automatically retried with the heartbeat.
+  private static Supplier<RetryPolicy> defaultMetricsRetry() {
+    return () -> new CountingRetry(0);
+  }
+
   private MetricsMasterClientService.Client mClient = null;
 
   /**
@@ -41,7 +52,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
    * @param conf master client configuration
    */
   public MetricsMasterClient(MasterClientConfig conf) {
-    super(conf);
+    super(conf, null, defaultMetricsRetry());
   }
 
   @Override
@@ -70,13 +81,16 @@ public class MetricsMasterClient extends AbstractMasterClient {
    * @param metrics a list of client metrics
    */
   public synchronized void heartbeat(final List<Metric> metrics) throws IOException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.metricsHeartbeat(Long.toString(FileSystemContext.get().getId()),
-            NetworkAddressUtils.getClientHostName(), new MetricsHeartbeatTOptions(metrics));
-        return null;
-      }
-    });
+    if (!mConnected) {
+      connect();
+    }
+    try {
+      mClient.metricsHeartbeat(Long.toString(FileSystemContext.get().getId()),
+          NetworkAddressUtils.getClientHostName(), new MetricsHeartbeatTOptions(metrics));
+    } catch (AlluxioTException e) {
+      throw AlluxioStatusException.fromThrift(e);
+    } catch (TException e) {
+      throw new UnavailableException(e);
+    }
   }
 }
