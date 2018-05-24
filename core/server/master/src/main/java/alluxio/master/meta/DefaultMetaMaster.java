@@ -31,8 +31,6 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.retry.ExponentialTimeBoundedRetry;
-import alluxio.retry.RetryUtils;
 import alluxio.thrift.MetaCommand;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.thrift.MetaMasterMasterService;
@@ -46,7 +44,6 @@ import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.Scope;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import org.apache.thrift.TProcessor;
@@ -56,14 +53,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Clock;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -115,11 +110,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   private final IndexedSet<MasterInfo> mLostMasters =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
-  /** The address of this master. */
-  private final Address mMasterAddress = new Address()
-      .setHost(Configuration.get(PropertyKey.MASTER_HOSTNAME))
-      .setRpcPort(Configuration.getInt(PropertyKey.MASTER_RPC_PORT));
-
   /** The connect address for the rpc server. */
   private final InetSocketAddress mRpcConnectAddress
       = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC);
@@ -130,8 +120,8 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   /** The start time for when the master started serving the RPC server. */
   private final long mStartTimeMs;
 
-  /** The master ID for this master. */
-  private AtomicReference<Long> mMasterId = new AtomicReference<>(-1L);
+  /** The address of this master. */
+  private Address mMasterAddress;
 
   /**
    * Creates a new instance of {@link DefaultMetaMaster}.
@@ -157,10 +147,12 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     super(masterContext, new SystemClock(), executorServiceFactory);
     mSafeModeManager = masterContext.getSafeModeManager();
     mStartTimeMs = masterContext.getStartTimeMs();
+    mMasterAddress = new Address().setHost(Configuration.get(PropertyKey.MASTER_HOSTNAME))
+        .setRpcPort(masterContext.getPort());
     mBlockMaster = blockMaster;
-    mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
-    mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
-    mBlockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
+    mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
+    mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
+    mBlockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
   }
 
   @Override
@@ -210,23 +202,17 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
-          (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+          (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL)));
     } else {
       // Standby master should setup MetaMasterSync to communicate with the leader master
       MetaMasterMasterClient metaMasterClient =
           new MetaMasterMasterClient(MasterClientConfig.defaults());
-      setMasterId(metaMasterClient);
-      MetaMasterSync metaMasterSync =
-          new MetaMasterSync(mMasterId, mMasterAddress, metaMasterClient);
       getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
-          metaMasterSync, (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
-      LOG.info("Standby master with id {} starts sending heartbeat to leader master.", mMasterId);
+          new MetaMasterSync(mMasterAddress, metaMasterClient),
+          (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL)));
+      LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
+          mMasterAddress);
     }
-  }
-
-  @Override
-  public void stop() throws IOException {
-    super.stop();
   }
 
   @Override
@@ -353,7 +339,8 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
     @Override
     public void heartbeat() {
-      int masterTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
+      int masterTimeoutMs =
+          (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
       for (MasterInfo master : mMasters) {
         synchronized (master) {
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
@@ -372,55 +359,5 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     public void close() {
       // Nothing to clean up
     }
-  }
-
-  /**
-   * Updates the config checker when a lost worker becomes alive.
-   *
-   * @param address the address of the worker
-   */
-  private void lostWorkerFoundHandler(Address address) {
-    mWorkerConfigStore.lostNodeFound(address);
-  }
-
-  /**
-   * Updates the config checker when a live worker becomes lost.
-   *
-   * @param address the address of the worker
-   */
-  private void workerLostHandler(Address address) {
-    mWorkerConfigStore.handleNodeLost(address);
-  }
-
-  /**
-   * Updates the config checker when a worker registers with configuration.
-   *
-   * @param address the address of the worker
-   * @param configList the configuration of this worker
-   */
-  private void registerNewWorkerConfHandler(Address address, List<ConfigProperty> configList) {
-    mWorkerConfigStore.registerNewConf(address, configList);
-  }
-
-  /**
-   * Sets the master id. This method should only be called when this master is a standby master.
-   *
-   * @param metaMasterClient the meta master client to communicate with leader master
-   */
-  private void setMasterId(MetaMasterMasterClient metaMasterClient) {
-    try {
-      RetryUtils.retry("get master id",
-          () -> mMasterId.set(metaMasterClient.getId(mMasterAddress)),
-          ExponentialTimeBoundedRetry.builder()
-              .withMaxDuration(Duration
-                  .ofMillis(Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY)))
-              .withInitialSleep(Duration.ofMillis(100))
-              .withMaxSleep(Duration.ofSeconds(5))
-              .build());
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to get a master id from leader master: " + e.getMessage());
-    }
-
-    Preconditions.checkNotNull(mMasterId, "mMasterId");
   }
 }

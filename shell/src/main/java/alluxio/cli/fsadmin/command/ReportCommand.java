@@ -152,7 +152,7 @@ public final class ReportCommand implements Command {
         }
       }
 
-      FileSystemAdminShellUtils.checkMasterClientServiceIsRunning();
+      FileSystemAdminShellUtils.checkMasterClientService();
 
       switch (command) {
         case CAPACITY:

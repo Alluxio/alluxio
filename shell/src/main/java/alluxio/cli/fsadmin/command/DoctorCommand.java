@@ -68,7 +68,7 @@ public final class DoctorCommand implements Command {
       return 0;
     }
 
-    FileSystemAdminShellUtils.checkMasterClientServiceIsRunning();
+    FileSystemAdminShellUtils.checkMasterClientService();
 
     // Get the doctor category
     Command command = Command.ALL;

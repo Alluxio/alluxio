@@ -70,7 +70,7 @@ struct TieredIdentity {
 /**
  * Address information about masters.
  */
-struct MasterAddress {
+struct MasterNetAddress {
   1: string host
   2: i32 rpcPort
 }

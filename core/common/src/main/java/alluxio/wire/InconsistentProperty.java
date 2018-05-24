@@ -22,7 +22,7 @@ import java.util.Map;
  * The ConsistencyCheckLevel of key B is WARN and its Scope is SERVER,
  * so this property is recommended to be consistent in all master and worker nodes.
  */
-public class InconsistentProperty {
+public final class InconsistentProperty {
   /** The name of the property that has errors/warnings. */
   private String mName;
   /**

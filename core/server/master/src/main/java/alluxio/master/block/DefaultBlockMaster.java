@@ -85,10 +85,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -176,15 +174,15 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /** Listeners to call when lost workers are found. */
-  private final BlockingQueue<Consumer<Address>> mLostWorkerFoundListeners
-      = new LinkedBlockingQueue<>();
+  private final List<Consumer<Address>> mLostWorkerFoundListeners
+      = new ArrayList<>();
 
   /** Listeners to call when workers are lost. */
-  private final BlockingQueue<Consumer<Address>> mWorkerLostListeners = new LinkedBlockingQueue<>();
+  private final List<Consumer<Address>> mWorkerLostListeners = new ArrayList<>();
 
   /** Listeners to call when a new worker registers. */
-  private final BlockingQueue<BiConsumer<Address, List<ConfigProperty>>> mWorkerRegisteredListeners
-      = new LinkedBlockingQueue<>();
+  private final List<BiConsumer<Address, List<ConfigProperty>>> mWorkerRegisteredListeners
+      = new ArrayList<>();
 
   /** Handle to the metrics master. */
   private final MetricsMaster mMetricsMaster;
@@ -311,7 +309,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     if (isLeader) {
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
-          (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+          (int) Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL)));
     }
   }
 
@@ -713,8 +711,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         lostWorker.updateLastUpdatedTimeMs();
         mWorkers.add(lostWorker);
         mLostWorkers.remove(lostWorker);
+        WorkerNetAddress workerAddress = lostWorker.getWorkerAddress();
         for (Consumer<Address> function : mLostWorkerFoundListeners) {
-          WorkerNetAddress workerAddress = lostWorker.getWorkerAddress();
           function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
         }
         return lostWorkerId;
@@ -952,8 +950,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
                 worker.getWorkerAddress(), lastUpdate);
             mLostWorkers.add(worker);
             mWorkers.remove(worker);
+            WorkerNetAddress workerAddress = worker.getWorkerAddress();
             for (Consumer<Address> function : mWorkerLostListeners) {
-              WorkerNetAddress workerAddress = worker.getWorkerAddress();
               function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
             }
             processWorkerRemovedBlocks(worker, worker.getBlocks());
