@@ -14,7 +14,9 @@ package alluxio.master.block;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.clock.ManualClock;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -74,6 +76,7 @@ public class BlockMasterTest {
   private ExecutorService mExecutorService;
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
+  private int mPort;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
 
@@ -97,15 +100,16 @@ public class BlockMasterTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     mStartTimeMs = System.currentTimeMillis();
+    mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
     mMetricsMaster = new MetricsMasterFactory()
-        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
     mBlockMaster = new DefaultBlockMaster(mMetricsMaster,
-        new MasterContext(journalSystem, mSafeModeManager, mStartTimeMs),
+        new MasterContext(journalSystem, mSafeModeManager, mStartTimeMs, mPort),
         mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);

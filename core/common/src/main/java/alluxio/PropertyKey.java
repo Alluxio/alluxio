@@ -933,13 +933,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_HEARTBEAT_INTERVAL_MS =
-      new Builder(Name.MASTER_HEARTBEAT_INTERVAL_MS)
-          .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms"})
-          .setDefaultValue("10sec")
+  public static final PropertyKey MASTER_MASTER_HEARTBEAT_INTERVAL =
+      new Builder(Name.MASTER_MASTER_HEARTBEAT_INTERVAL)
+          .setDefaultValue("2min")
           .setDescription("The interval between Alluxio masters' heartbeats.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_WORKER_HEARTBEAT_INTERVAL =
+      new Builder(Name.MASTER_WORKER_HEARTBEAT_INTERVAL)
+          .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms",
+              "alluxio.master.heartbeat.interval"})
+          .setDefaultValue("10sec")
+          .setDescription("The interval between Alluxio master and worker heartbeats.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey MASTER_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.MASTER_HEARTBEAT_TIMEOUT_MS)
@@ -3059,8 +3067,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
         "alluxio.master.file.async.persist.handler";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file_prefix";
-    public static final String MASTER_HEARTBEAT_INTERVAL_MS =
-        "alluxio.master.heartbeat.interval";
+    public static final String MASTER_MASTER_HEARTBEAT_INTERVAL =
+        "alluxio.master.master.heartbeat.interval";
+    public static final String MASTER_WORKER_HEARTBEAT_INTERVAL =
+        "alluxio.master.worker.heartbeat.interval";
     public static final String MASTER_HEARTBEAT_TIMEOUT_MS =
         "alluxio.master.heartbeat.timeout";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
