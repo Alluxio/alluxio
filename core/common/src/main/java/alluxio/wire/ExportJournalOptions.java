@@ -20,13 +20,13 @@ import com.google.common.base.Preconditions;
  */
 public class ExportJournalOptions {
   // URI to export the journal to.
-  private String mTargetDirectory;
+  private String mTargetDirectoryUri;
 
   /**
-   * @param targetDirectory uri of the directory to export the journal to
+   * @param targetDirectoryUri uri of the directory to export the journal to
    */
-  public ExportJournalOptions(String targetDirectory) {
-    mTargetDirectory = Preconditions.checkNotNull(targetDirectory, "uri");
+  public ExportJournalOptions(String targetDirectoryUri) {
+    mTargetDirectoryUri = Preconditions.checkNotNull(targetDirectoryUri, "targetDirectoryUri");
   }
 
   /**
@@ -41,13 +41,13 @@ public class ExportJournalOptions {
    * @return the thrift options corresponding to these options
    */
   public ExportJournalTOptions toThrift() {
-    return new ExportJournalTOptions().setTargetDirectoryUri(mTargetDirectory);
+    return new ExportJournalTOptions().setTargetDirectoryUri(mTargetDirectoryUri);
   }
 
   /**
    * @return the uri to export the journal to
    */
-  public String getTargetDirectory() {
-    return mTargetDirectory;
+  public String getTargetDirectoryUri() {
+    return mTargetDirectoryUri;
   }
 }

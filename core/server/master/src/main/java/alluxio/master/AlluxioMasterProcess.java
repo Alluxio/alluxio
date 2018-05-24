@@ -45,6 +45,7 @@ import alluxio.wire.ExportJournalOptions;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.thrift.TMultiplexedProcessor;
@@ -189,7 +190,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public String exportJournal(ExportJournalOptions options) throws IOException {
-    AlluxioURI uri = new AlluxioURI(options.getTargetDirectory());
+    AlluxioURI uri = new AlluxioURI(options.getTargetDirectoryUri());
     LOG.info("Exporting journal backup to {}", uri);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(uri.toString());
     if (!ufs.isDirectory(uri.getPath())) {
@@ -219,13 +220,13 @@ public class AlluxioMasterProcess implements MasterProcess {
         try {
           ufsStream.close();
         } catch (Throwable t2) {
-          LOG.error("Failed to close snapshot stream to {}", uri.getPath(), t2);
+          LOG.error("Failed to close backup stream to {}", uri.getPath(), t2);
           t.addSuppressed(t2);
         }
         try {
           ufs.deleteFile(uri.getPath());
         } catch (Throwable t2) {
-          LOG.error("Failed to clean up partially-written snapshot at {}", uri.getPath(), t2);
+          LOG.error("Failed to clean up partially-written backup at {}", uri.getPath(), t2);
           t.addSuppressed(t2);
         }
         throw t;
@@ -243,8 +244,10 @@ public class AlluxioMasterProcess implements MasterProcess {
          JournalEntryStreamReader reader = new JournalEntryStreamReader(gzIn)) {
       List<Master> masters = mRegistry.getServers();
       JournalEntry entry;
+      Map<String, Master> mastersByName = Maps.uniqueIndex(masters, Master::getName);
       while ((entry = reader.readEntry()) != null) {
-        Master master = masterForEntry(entry, masters);
+        String masterName = JournalEntryAssociation.getMasterForEntry(entry);
+        Master master = mastersByName.get(masterName);
         master.processJournalEntry(entry);
         try (JournalContext jc = master.createJournalContext()) {
           jc.append(entry);
@@ -253,17 +256,6 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
     }
     LOG.info("Imported {} entries from backup", count);
-  }
-
-  private Master masterForEntry(JournalEntry entry, List<Master> masters) {
-    String masterName = JournalEntryAssociation.getMasterForEntry(entry);
-    for (Master master : masters) {
-      if (master.getName().equals(masterName)) {
-        return master;
-      }
-    }
-    throw new IllegalStateException(
-        String.format("Failed to find a master associated with entry %s", entry));
   }
 
   @Override
@@ -366,14 +358,15 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected void startMasters(boolean isLeader) {
     try {
       if (isLeader) {
-        if (Configuration.containsKey(PropertyKey.MASTER_JOURNAL_INIT_FROM_SNAPSHOT)) {
-          AlluxioURI snapshot =
-              new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_SNAPSHOT));
-          if (!mJournalSystem.isEmpty()) {
-            throw new IllegalStateException(String.format("Cannot init journal from %s when the"
-                + " journal is not formatted. Please format the journal first", snapshot));
+        if (Configuration.containsKey(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
+          AlluxioURI backup =
+              new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP));
+          if (mJournalSystem.isEmpty()) {
+            initFromBackup(backup);
+          } else {
+            LOG.info("The journal system is not freshly formatted, skipping restoring backup from "
+                + backup);
           }
-          initFromBackup(snapshot);
         }
         mSafeModeManager.notifyPrimaryMasterStarted();
       }

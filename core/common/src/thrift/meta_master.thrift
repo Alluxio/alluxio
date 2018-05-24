@@ -36,9 +36,7 @@ struct MasterInfo {
  8: list<string> zookeeperAddresses // Null means zookeeper is not enabled
 }
 
-struct ExportJournalTOptions {
- 1: string targetDirectoryUri
-}
+struct ExportJournalTOptions {}
 struct ExportJournalTResponse {
  1: string backupUri
 }
@@ -46,7 +44,6 @@ struct ExportJournalTResponse {
 struct GetMasterInfoTOptions {
   1: set<MasterInfoField> filter
 }
-
 struct GetMasterInfoTResponse {
   1: MasterInfo masterInfo
 }
@@ -70,7 +67,8 @@ service MetaMasterClientService extends common.AlluxioService {
    * Exports the journal to the specified URI
    */
   ExportJournalTResponse exportJournal(
-    /** the method options */ 1: ExportJournalTOptions options,
+    /** the directory to export to */ 1: string targetDirectoryUri
+    /** the method options */ 2: ExportJournalTOptions options,
     ) throws (1: exception.AlluxioTException e)
 
   /**

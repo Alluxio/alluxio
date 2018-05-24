@@ -59,7 +59,7 @@ public abstract class AbstractMaster implements Master {
   protected final SafeModeManager mSafeModeManager;
 
   /** A lock which must be taken before modifying persistent (journaled) state. */
-  private final Lock mStateLock;
+  private final Lock mStateChangeLock;
 
   /**
    * @param masterContext the context for Alluxio master
@@ -72,7 +72,7 @@ public abstract class AbstractMaster implements Master {
     Preconditions.checkNotNull(masterContext, "masterContext");
     mJournal = masterContext.getJournalSystem().createJournal(this);
     mSafeModeManager = masterContext.getSafeModeManager();
-    mStateLock = masterContext.getStateLock();
+    mStateChangeLock = masterContext.stateChangeLock();
     mClock = clock;
     mExecutorServiceFactory = executorServiceFactory;
   }
@@ -137,7 +137,10 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public JournalContext createJournalContext() throws UnavailableException {
-    try (LockResource l = new LockResource(mStateLock)) {
+    // All modifications to journaled state must happen inside of a journal context so that we can
+    // persist the state change. As a mechanism to allow for state pauses, we acquire the state
+    // change lock before entering any code paths that could modify journaled state.
+    try (LockResource l = new LockResource(mStateChangeLock)) {
       return mJournal.createJournalContext();
     }
   }

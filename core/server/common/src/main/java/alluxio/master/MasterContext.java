@@ -40,7 +40,7 @@ public final class MasterContext {
   public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mSafeModeManager = Preconditions.checkNotNull(safeModeManager, "safeModeManager");
-    mStateLock = new ReentrantReadWriteLock()
+    mStateLock = new ReentrantReadWriteLock();
   }
 
   /**
