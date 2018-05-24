@@ -15,11 +15,11 @@ import static java.util.stream.Collectors.toSet;
 
 import alluxio.PropertyKey;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -40,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * For a given property key, the order of preference of its value is (from highest to lowest)
  *
- * (1) hadoop config
+ * (1) runtime config
  * (2) system properties,
  * (3) properties in the specified file (site-properties),
  * (4) default property values.
@@ -61,25 +61,6 @@ public class AlluxioProperties {
    * Constructs a new instance of Alluxio properties.
    */
   public AlluxioProperties() {}
-
-  /**
-   * Factory method to initialize the properties based on given source and properties pairs.
-   *
-   * @param sourceMap the map from source to properties
-   * @return the created instance of Alluxio properties
-   */
-  public static AlluxioProperties create(Map<Source, Map<?, ?>> sourceMap) {
-    AlluxioProperties properties = new AlluxioProperties();
-    // Keep the order of sources from lowest to highest
-    for (Source source : Arrays.asList(Source.SITE_PROPERTY, Source.SYSTEM_PROPERTY,
-        Source.HADOOP_CONF)) {
-      if (sourceMap.containsKey(source)) {
-        Map<?, ?> map = sourceMap.get(source);
-        properties.merge(map, source);
-      }
-    }
-    return properties;
-  }
 
   /**
    * @param key the key to query
@@ -108,8 +89,44 @@ public class AlluxioProperties {
    * @param key key to put
    * @param value value to put
    */
-  public void put(String key, String value) {
-    mUserProps.put(key, Optional.ofNullable(value));
+  public void put(String key, String value, Source source) {
+    if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
+      PropertyKey propertyKey;
+      if (PropertyKey.isValid(key)) {
+        propertyKey = PropertyKey.fromString(key);
+      } else {
+        // Add unrecognized properties
+        LOG.debug("Property {} from source {} is unrecognized", key, source);
+        // Workaround for issue https://alluxio.atlassian.net/browse/ALLUXIO-3108
+        // This will register the key as a valid PropertyKey
+        // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuration
+        // is made dynamic
+        propertyKey = new PropertyKey.Builder(key).build();
+      }
+      // Get the true name for the property key in case it is an alias.
+      mUserProps.put(propertyKey.getName(), Optional.ofNullable(value));
+      mSources.put(propertyKey.getName(), source);
+    }
+  }
+
+  /**
+   * Merges the current configuration properties with new properties. If a property exists
+   * both in the new and current configuration, the one from the new configuration wins if
+   * its priority is higher or equal than the existing one.
+   *
+   * @param properties the source {@link Properties} to be merged
+   * @param source the source of the the properties (e.g., system property, default and etc)
+   */
+  public void merge(Map<?, ?> properties, Source source) {
+    if (properties == null) {
+      return;
+    }
+    // merge the properties
+    for (Map.Entry<?, ?> entry : properties.entrySet()) {
+      String key = entry.getKey().toString().trim();
+      String value = entry.getValue() == null ? null : entry.getValue().toString().trim();
+      put(key, value, source);
+    }
   }
 
   /**
@@ -168,6 +185,7 @@ public class AlluxioProperties {
    * @param key property key
    * @param source the source
    */
+  @VisibleForTesting
   public void setSource(String key, Source source) {
     mSources.put(key, source);
   }
@@ -185,38 +203,5 @@ public class AlluxioProperties {
       return Source.DEFAULT;
     }
     return Source.UNKNOWN;
-  }
-
-  /**
-   * Merges the current configuration properties with alternate properties. A property from the new
-   * configuration wins if it also appears in the current configuration.
-   *
-   * @param properties the source {@link Properties} to be merged
-   * @param source the source of the the properties (e.g., system property, default and etc)
-   */
-  public void merge(Map<?, ?> properties, Source source) {
-    if (properties == null) {
-      return;
-    }
-    // merge the properties
-    for (Map.Entry<?, ?> entry : properties.entrySet()) {
-      String key = entry.getKey().toString().trim();
-      String value = entry.getValue() == null ? null : entry.getValue().toString().trim();
-      if (PropertyKey.isValid(key)) {
-        PropertyKey propertyKey = PropertyKey.fromString(key);
-        // Get the true name for the property key in case it is an alias.
-        put(propertyKey.getName(), value);
-        setSource(propertyKey.getName(), source);
-      } else {
-        // Add unrecognized properties
-        LOG.debug("Property {} from source {} is unrecognized", key, source);
-        // Workaround for issue https://alluxio.atlassian.net/browse/ALLUXIO-3108
-        // This will register the key as a valid PropertyKey
-        // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuration
-        // is made dynamic
-        put(new PropertyKey.Builder(key).build().getName(), value);
-        setSource(key, source);
-      }
-    }
   }
 }

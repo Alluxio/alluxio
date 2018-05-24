@@ -15,21 +15,25 @@ package alluxio.conf;
  * The source of a configuration property.
  */
 public enum Source {
-  UNKNOWN(-1),
-  DEFAULT(0),
-  SITE_PROPERTY(1),
-  SYSTEM_PROPERTY(2),
-  HADOOP_CONF(3),
-  ;
-  private final int mPriority;
-  Source(int val) {
-    mPriority = val;
-  }
-
   /**
-   * @return the priority of the source
+   * The unknown source which has the lowest priority.
    */
-  public int getPriority() {
-    return mPriority;
-  }
+  UNKNOWN,
+  /**
+   * The default property value from <code>PropertyKey</code> on compile time.
+   */
+  DEFAULT,
+  /**
+   * The property value is specified in site properties file (alluxio-site.properties).
+   */
+  SITE_PROPERTY,
+  /**
+   * The property value is specified with JVM -D options before passed to Alluxio.
+   */
+  SYSTEM_PROPERTY,
+  /**
+   * The property value is set by user during runtime (e.g., Configuration.set or through
+   * HadoopConf). This source has the highest priority.
+   */
+  RUNTIME,
 }

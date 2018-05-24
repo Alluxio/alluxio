@@ -72,7 +72,7 @@ public final class HadoopConfigurationUtils {
     LOG.info("Loading Alluxio properties from Hadoop configuration: {}", alluxioConfProperties);
     // Merge the relevant Hadoop configuration into Alluxio's configuration.
     // TODO(jiri): support multiple client configurations (ALLUXIO-2034)
-    Configuration.addPropertiesFromSource(alluxioConfProperties, Source.HADOOP_CONF);
-    Configuration.update();
+    Configuration.merge(alluxioConfProperties, Source.RUNTIME);
+    Configuration.validate();
   }
 }

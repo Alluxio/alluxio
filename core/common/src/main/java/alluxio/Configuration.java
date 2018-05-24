@@ -70,11 +70,9 @@ public final class Configuration {
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Source of the truth of all property values (default or customized). */
-  private static AlluxioProperties sProperties;
+  private static final AlluxioProperties PROPERTIES = new AlluxioProperties();
   /** Path of site properties file. */
   private static String sSitePropertyFile;
-  /** Map from source to properties. */
-  private static Map<Source, Map<?, ?>> sSources = Maps.newHashMap();
 
   static {
     reset();
@@ -87,10 +85,10 @@ public final class Configuration {
     // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio.home
     // (likely to be in system properties) to locate the conf dir to search for the site property
     // file.
-    sSources.clear();
-    addPropertiesFromSource(System.getProperties(), Source.SYSTEM_PROPERTY);
-    update();
+    PROPERTIES.clear();
+    PROPERTIES.merge(System.getProperties(), Source.SYSTEM_PROPERTY);
     if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+      validate();
       return;
     }
 
@@ -107,30 +105,20 @@ public final class Configuration {
     } else {
       siteProps = ConfigurationUtils.loadPropertiesFromResource(Constants.SITE_PROPERTIES);
     }
-
-    // Step3: re-create the configuration instance after figuring out the site properties file.
-    sSources.clear();
-    addPropertiesFromSource(System.getProperties(), Source.SYSTEM_PROPERTY);
-    addPropertiesFromSource(siteProps, Source.SITE_PROPERTY);
-    update();
-  }
-
-  /**
-   * Updates the source of truth of properties.
-   */
-  public static void update() {
-    sProperties = AlluxioProperties.create(sSources);
+    PROPERTIES.merge(siteProps, Source.SITE_PROPERTY);
     validate();
   }
 
   /**
-   * Adds a new source of properties.
+   * Merges the current configuration properties with new properties. If a property exists
+   * both in the new and current configuration, the one from the new configuration wins if
+   * its priority is higher or equal than the existing one.
    *
-   * @param properties The source {@link Properties} to be added
-   * @param source The source of the the properties (e.g., system property, default and etc)
+   * @param properties the source {@link Properties} to be merged
+   * @param source the source of the the properties (e.g., system property, default and etc)
    */
-  public static void addPropertiesFromSource(Map<?, ?> properties, Source source) {
-    sSources.put(source, properties);
+  public static void merge(Map<?, ?> properties, Source source) {
+    PROPERTIES.merge(properties, source);
   }
 
   // Public accessor methods
@@ -143,7 +131,7 @@ public final class Configuration {
   public static void set(PropertyKey key, Object value) {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
-    sProperties.put(key.getName(), String.valueOf(value));
+    PROPERTIES.put(key.getName(), String.valueOf(value), Source.RUNTIME);
   }
 
   /**
@@ -153,7 +141,7 @@ public final class Configuration {
    */
   public static void unset(PropertyKey key) {
     Preconditions.checkNotNull(key, "key");
-    sProperties.remove(key.getName());
+    PROPERTIES.remove(key.getName());
   }
 
   /**
@@ -164,7 +152,7 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key) {
-    String rawValue = sProperties.get(key.toString());
+    String rawValue = PROPERTIES.get(key.toString());
     if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
@@ -179,7 +167,7 @@ public final class Configuration {
    * @return true if there is value for the key, false otherwise
    */
   public static boolean containsKey(PropertyKey key) {
-    return sProperties.hasValueSet(key.toString());
+    return PROPERTIES.hasValueSet(key.toString());
   }
 
   /**
@@ -370,7 +358,7 @@ public final class Configuration {
    */
   public static Map<String, String> getNestedProperties(PropertyKey prefixKey) {
     Map<String, String> ret = Maps.newHashMap();
-    for (Map.Entry<String, String> entry: sProperties.entrySet()) {
+    for (Map.Entry<String, String> entry: PROPERTIES.entrySet()) {
       String key = entry.getKey();
       if (prefixKey.isNested(key)) {
         String suffixKey = key.substring(prefixKey.length() + 1);
@@ -403,7 +391,7 @@ public final class Configuration {
    */
   public static Map<String, String> toRawMap() {
     Map<String, String> rawMap = new HashMap<>();
-    sProperties.forEach(rawMap::put);
+    PROPERTIES.forEach(rawMap::put);
     return rawMap;
   }
 
@@ -440,7 +428,7 @@ public final class Configuration {
       if (!seen.add(match)) {
         throw new RuntimeException("Circular dependency found while resolving " + match);
       }
-      String value = lookupRecursively(sProperties.get(match), seen);
+      String value = lookupRecursively(PROPERTIES.get(match), seen);
       seen.remove(match);
       if (value == null) {
         throw new RuntimeException("No value specified for configuration property " + match);
@@ -456,7 +444,7 @@ public final class Configuration {
    * @return the source for the given key
    */
   public static Source getSource(PropertyKey key) {
-    return sProperties.getSource(key.getName());
+    return PROPERTIES.getSource(key.getName());
   }
 
   /**
@@ -543,7 +531,7 @@ public final class Configuration {
     Set<String> tiers = Sets.newHashSet(getList(PropertyKey.LOCALITY_ORDER, ","));
     Set<String> predefinedKeys =
         PropertyKey.defaultKeys().stream().map(PropertyKey::getName).collect(Collectors.toSet());
-    for (String key : sProperties.keySet()) {
+    for (String key : PROPERTIES.keySet()) {
       if (predefinedKeys.contains(key)) {
         // Skip non-templated keys.
         continue;

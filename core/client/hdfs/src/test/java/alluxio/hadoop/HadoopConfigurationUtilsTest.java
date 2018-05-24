@@ -62,7 +62,7 @@ public final class HadoopConfigurationUtilsTest {
     HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig);
     Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(PropertyKey.S3A_ACCESS_KEY));
     Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(PropertyKey.S3A_SECRET_KEY));
-    Assert.assertEquals(Source.HADOOP_CONF, Configuration.getSource(PropertyKey.S3A_ACCESS_KEY));
-    Assert.assertEquals(Source.HADOOP_CONF, Configuration.getSource(PropertyKey.S3A_SECRET_KEY));
+    Assert.assertEquals(Source.RUNTIME, Configuration.getSource(PropertyKey.S3A_ACCESS_KEY));
+    Assert.assertEquals(Source.RUNTIME, Configuration.getSource(PropertyKey.S3A_SECRET_KEY));
   }
 }

@@ -46,16 +46,16 @@ public class AlluxioPropertiesTest {
   public void get() {
     assertEquals("value", mProperties.get(KEY_WITH_VALUE));
     assertEquals(null, mProperties.get(KEY_WITHOUT_VALUE));
-    mProperties.put(KEY_WITHOUT_VALUE, "newValue1");
-    mProperties.put(KEY_NEW, "newValue2");
+    mProperties.put(KEY_WITHOUT_VALUE, "newValue1", Source.RUNTIME);
+    mProperties.put(KEY_NEW, "newValue2", Source.RUNTIME);
     assertEquals("newValue1", mProperties.get(KEY_WITHOUT_VALUE));
     assertEquals("newValue2", mProperties.get(KEY_NEW));
   }
 
   @Test
   public void clear() {
-    mProperties.put(KEY_WITH_VALUE, "ignored1");
-    mProperties.put(KEY_WITHOUT_VALUE, "ignored2");
+    mProperties.put(KEY_WITH_VALUE, "ignored1", Source.RUNTIME);
+    mProperties.put(KEY_WITHOUT_VALUE, "ignored2", Source.RUNTIME);
     mProperties.clear();
     assertEquals(null, mProperties.get(KEY_WITHOUT_VALUE));
     assertEquals("value", mProperties.get(KEY_WITH_VALUE));
@@ -63,8 +63,8 @@ public class AlluxioPropertiesTest {
 
   @Test
   public void put() {
-    mProperties.put(KEY_WITH_VALUE, "value1");
-    mProperties.put(KEY_WITHOUT_VALUE, "value2");
+    mProperties.put(KEY_WITH_VALUE, "value1", Source.RUNTIME);
+    mProperties.put(KEY_WITHOUT_VALUE, "value2", Source.RUNTIME);
     assertEquals("value1", mProperties.get(KEY_WITH_VALUE));
     assertEquals("value2", mProperties.get(KEY_WITHOUT_VALUE));
   }
@@ -80,7 +80,7 @@ public class AlluxioPropertiesTest {
     assertTrue(mProperties.hasValueSet(KEY_WITH_VALUE));
     assertFalse(mProperties.hasValueSet(KEY_WITHOUT_VALUE));
     mProperties.remove(KEY_WITH_VALUE);
-    mProperties.put(KEY_WITHOUT_VALUE, "value");
+    mProperties.put(KEY_WITHOUT_VALUE, "value", Source.RUNTIME);
     assertFalse(mProperties.hasValueSet(KEY_WITH_VALUE));
     assertTrue(mProperties.hasValueSet(KEY_WITHOUT_VALUE));
   }
@@ -91,7 +91,7 @@ public class AlluxioPropertiesTest {
         PropertyKey.defaultKeys().stream()
             .map(key -> Maps.immutableEntry(key.getName(), key.getDefaultValue())).collect(toSet());
     assertThat(mProperties.entrySet(), is(expected));
-    mProperties.put(KEY_NEW, "value");
+    mProperties.put(KEY_NEW, "value", Source.RUNTIME);
     expected.add(Maps.immutableEntry(KEY_NEW, "value"));
     assertThat(mProperties.entrySet(), is(expected));
   }
@@ -101,7 +101,7 @@ public class AlluxioPropertiesTest {
     Set<String> expected =
         PropertyKey.defaultKeys().stream().map(PropertyKey::getName).collect(toSet());
     assertThat(mProperties.keySet(), is(expected));
-    mProperties.put(KEY_NEW, "value");
+    mProperties.put(KEY_NEW, "value", Source.RUNTIME);
     expected.add(KEY_NEW);
     assertThat(mProperties.keySet(), is(expected));
   }
@@ -114,7 +114,7 @@ public class AlluxioPropertiesTest {
     mProperties.forEach((key, value) -> actual.add(key));
     assertThat(actual, is(expected));
 
-    mProperties.put(KEY_NEW, "value");
+    mProperties.put(KEY_NEW, "value", Source.RUNTIME);
     Set<String> actual2 = Sets.newHashSet();
     mProperties.forEach((key, value) -> actual2.add(key));
     expected.add(KEY_NEW);
@@ -123,7 +123,7 @@ public class AlluxioPropertiesTest {
 
   @Test
   public void setGetSource() {
-    mProperties.put(KEY_NEW, "value");
+    mProperties.put(KEY_NEW, "value", Source.RUNTIME);
     mProperties.setSource(KEY_NEW, Source.SYSTEM_PROPERTY);
     assertEquals(Source.SYSTEM_PROPERTY, mProperties.getSource(KEY_NEW));
     assertEquals(Source.DEFAULT, mProperties.getSource(KEY_WITH_VALUE));
