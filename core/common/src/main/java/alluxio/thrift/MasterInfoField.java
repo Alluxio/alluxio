@@ -12,8 +12,8 @@ import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
 public enum MasterInfoField implements org.apache.thrift.TEnum {
-  LIVE_MASTER_NUM(0),
-  LOST_MASTER_NUM(1),
+  CONF_MASTER_NUM(0),
+  CONF_WORKER_NUM(1),
   MASTER_ADDRESS(2),
   RPC_PORT(3),
   SAFE_MODE(4),
@@ -43,9 +43,9 @@ public enum MasterInfoField implements org.apache.thrift.TEnum {
   public static MasterInfoField findByValue(int value) { 
     switch (value) {
       case 0:
-        return LIVE_MASTER_NUM;
+        return CONF_MASTER_NUM;
       case 1:
-        return LOST_MASTER_NUM;
+        return CONF_WORKER_NUM;
       case 2:
         return MASTER_ADDRESS;
       case 3:

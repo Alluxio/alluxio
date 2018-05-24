@@ -116,6 +116,13 @@ public class ServerConfigurationStore {
   }
 
   /**
+   * @return the number of live nodes
+   */
+  public synchronized int getLiveNodeNum() {
+    return mConfMap.size() - mLostNodes.size();
+  }
+
+  /**
    * Registers callback functions to use when this store has any changes.
    *
    * @param function the function to register

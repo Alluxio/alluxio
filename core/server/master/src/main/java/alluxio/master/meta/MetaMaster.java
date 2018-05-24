@@ -38,14 +38,16 @@ public interface MetaMaster extends Master {
   List<ConfigProperty> getConfiguration();
 
   /**
-   * @return the number of live masters
+   * @return the number of live masters whose configuration was recorded by
+   *         master configuration store.
    */
-  int getLiveMasterNum();
+  int getConfMasterNum();
 
   /**
-   * @return the number of lost masters
+   * @return the number of live workers whose configuration was recorded by
+   *         master configuration store.
    */
-  int getLostMasterNum();
+  int getConfWorkerNum();
 
   /**
    * Returns a master id for the given master, creating one if the master is new.

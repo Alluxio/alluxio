@@ -25,8 +25,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class MasterInfo implements Serializable {
   private static final long serialVersionUID = 5846173765139223974L;
 
-  private int mLiveMasterNum;
-  private int mLostMasterNum;
+  private int mConfMasterNum;
+  private int mConfWorkerNum;
   private String mMasterAddress;
   private int mRpcPort;
   private boolean mSafeMode;
@@ -47,8 +47,8 @@ public final class MasterInfo implements Serializable {
    * @param masterInfo the thrift representation of alluxio master information
    */
   protected MasterInfo(alluxio.thrift.MasterInfo masterInfo) {
-    mLiveMasterNum = masterInfo.getLiveMasterNum();
-    mLostMasterNum = masterInfo.getLostMasterNum();
+    mConfMasterNum = masterInfo.getConfMasterNum();
+    mConfWorkerNum = masterInfo.getConfWorkerNum();
     mMasterAddress = masterInfo.getMasterAddress();
     mRpcPort = masterInfo.getRpcPort();
     mSafeMode = masterInfo.isSafeMode();
@@ -60,17 +60,19 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @return the number of live masters
+   * @return the number of masters whose configuration is recorded
+   *         in the server configuration store
    */
-  public int getLiveMasterNum() {
-    return mLiveMasterNum;
+  public int getConfMasterNum() {
+    return mConfMasterNum;
   }
 
   /**
-   * @return the number of lost masters
+   * @return the number of workers whose configuration is recorded
+   *         in the server configuration store
    */
-  public int getLostMasterNum() {
-    return mLostMasterNum;
+  public int getConfWorkerNum() {
+    return mConfWorkerNum;
   }
 
   /**
@@ -130,20 +132,22 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @param liveMasterNum the number of live masters
+   * @param confMasterNum the number of masters whose configuration is recorded
+   *        in the server configuration store
    * @return the master information
    */
-  public MasterInfo setLiveMasterNum(int liveMasterNum) {
-    mLiveMasterNum = liveMasterNum;
+  public MasterInfo setConfMasterNum(int confMasterNum) {
+    mConfMasterNum = confMasterNum;
     return this;
   }
 
   /**
-   * @param lostMasterNum the number of lost masters
+   * @param confWorkerNum the number of workers whose configuration is recorded
+   *        in the server configuration store
    * @return the master information
    */
-  public MasterInfo setLostMasterNum(int lostMasterNum) {
-    mLostMasterNum = lostMasterNum;
+  public MasterInfo setConfWorkerNum(int confWorkerNum) {
+    mConfWorkerNum = confWorkerNum;
     return this;
   }
 
@@ -223,8 +227,8 @@ public final class MasterInfo implements Serializable {
    * @return thrift representation of the master information
    */
   protected alluxio.thrift.MasterInfo toThrift() {
-    return new alluxio.thrift.MasterInfo().setLiveMasterNum(mLiveMasterNum)
-        .setLostMasterNum(mLostMasterNum).setMasterAddress(mMasterAddress)
+    return new alluxio.thrift.MasterInfo().setConfMasterNum(mConfMasterNum)
+        .setConfWorkerNum(mConfWorkerNum).setMasterAddress(mMasterAddress)
         .setRpcPort(mRpcPort).setSafeMode(mSafeMode).setStartTimeMs(mStartTimeMs)
         .setUpTimeMs(mUpTimeMs).setVersion(mVersion).setWebPort(mWebPort)
         .setZookeeperAddresses(mZookeeperAddresses);
@@ -238,6 +242,8 @@ public final class MasterInfo implements Serializable {
    */
   public static MasterInfo fromThrift(alluxio.thrift.MasterInfo masterInfo) {
     return new MasterInfo()
+        .setConfMasterNum(masterInfo.getConfMasterNum())
+        .setConfWorkerNum(masterInfo.getConfWorkerNum())
         .setMasterAddress(masterInfo.getMasterAddress())
         .setRpcPort(masterInfo.getRpcPort())
         .setSafeMode(masterInfo.isSafeMode())
@@ -257,7 +263,7 @@ public final class MasterInfo implements Serializable {
       return false;
     }
     MasterInfo that = (MasterInfo) o;
-    return mLiveMasterNum == that.mLiveMasterNum && mLostMasterNum == that.mLostMasterNum
+    return mConfMasterNum == that.mConfMasterNum && mConfWorkerNum == that.mConfWorkerNum
         && Objects.equal(mMasterAddress, that.mMasterAddress) && mRpcPort == that.mRpcPort
         && mSafeMode == that.mSafeMode && mStartTimeMs == that.mStartTimeMs
         && mUpTimeMs == that.mUpTimeMs && Objects.equal(mVersion, that.mVersion)
@@ -267,14 +273,14 @@ public final class MasterInfo implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLiveMasterNum, mLostMasterNum, mMasterAddress, mRpcPort,
+    return Objects.hashCode(mConfMasterNum, mConfWorkerNum, mMasterAddress, mRpcPort,
         mSafeMode, mStartTimeMs, mUpTimeMs, mVersion, mWebPort, mZookeeperAddresses);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("liveMasterNum", mLiveMasterNum)
-        .add("lostMasterNum", mLostMasterNum).add("masterAddress", mMasterAddress)
+    return Objects.toStringHelper(this).add("confMasterNum", mConfMasterNum)
+        .add("confWorkerNum", mConfWorkerNum).add("masterAddress", mMasterAddress)
         .add("rpcPort", mRpcPort).add("safeMode", mSafeMode)
         .add("startTimeMs", mStartTimeMs).add("upTimeMs", mUpTimeMs)
         .add("version", mVersion).add("webPort", mWebPort)
@@ -285,8 +291,8 @@ public final class MasterInfo implements Serializable {
    * Enum representing the fields of the master info.
    */
   public static enum MasterInfoField {
-    LIVE_MASTER_NUM,
-    LOST_MASTER_NUM,
+    CONF_MASTER_NUM,
+    CONF_WORKER_NUM,
     MASTER_ADDRESS,
     RPC_PORT,
     SAFE_MODE,

@@ -9,8 +9,8 @@ struct GetConfigurationTResponse{
 }
 
 enum MasterInfoField {
-  LIVE_MASTER_NUM
-  LOST_MASTER_NUM
+  CONF_MASTER_NUM
+  CONF_WORKER_NUM
   MASTER_ADDRESS
   RPC_PORT
   SAFE_MODE
@@ -22,8 +22,8 @@ enum MasterInfoField {
 }
 
 struct MasterInfo {
-  1: i32 liveMasterNum
-  2: i32 lostMasterNum
+  1: i32 confMasterNum
+  2: i32 confWorkerNum
   3: string masterAddress
   4: i32 rpcPort
   5: bool safeMode

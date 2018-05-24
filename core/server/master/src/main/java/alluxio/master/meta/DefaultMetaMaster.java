@@ -249,13 +249,13 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public int getLiveMasterNum() {
-    return mMasters.size();
+  public int getConfMasterNum() {
+    return mMasterConfigStore.getLiveNodeNum();
   }
 
   @Override
-  public int getLostMasterNum() {
-    return mLostMasters.size();
+  public int getConfWorkerNum() {
+    return mWorkerConfigStore.getLiveNodeNum();
   }
 
   @Override

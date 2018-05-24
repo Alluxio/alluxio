@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
 public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInfo._Fields>, java.io.Serializable, Cloneable, Comparable<MasterInfo> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("MasterInfo");
 
-  private static final org.apache.thrift.protocol.TField LIVE_MASTER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("liveMasterNum", org.apache.thrift.protocol.TType.I32, (short)1);
-  private static final org.apache.thrift.protocol.TField LOST_MASTER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("lostMasterNum", org.apache.thrift.protocol.TType.I32, (short)2);
+  private static final org.apache.thrift.protocol.TField CONF_MASTER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("confMasterNum", org.apache.thrift.protocol.TType.I32, (short)1);
+  private static final org.apache.thrift.protocol.TField CONF_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("confWorkerNum", org.apache.thrift.protocol.TType.I32, (short)2);
   private static final org.apache.thrift.protocol.TField MASTER_ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("masterAddress", org.apache.thrift.protocol.TType.STRING, (short)3);
   private static final org.apache.thrift.protocol.TField RPC_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("rpcPort", org.apache.thrift.protocol.TType.I32, (short)4);
   private static final org.apache.thrift.protocol.TField SAFE_MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("safeMode", org.apache.thrift.protocol.TType.BOOL, (short)5);
@@ -55,8 +55,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     schemes.put(TupleScheme.class, new MasterInfoTupleSchemeFactory());
   }
 
-  private int liveMasterNum; // required
-  private int lostMasterNum; // required
+  private int confMasterNum; // required
+  private int confWorkerNum; // required
   private String masterAddress; // required
   private int rpcPort; // required
   private boolean safeMode; // required
@@ -68,8 +68,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    LIVE_MASTER_NUM((short)1, "liveMasterNum"),
-    LOST_MASTER_NUM((short)2, "lostMasterNum"),
+    CONF_MASTER_NUM((short)1, "confMasterNum"),
+    CONF_WORKER_NUM((short)2, "confWorkerNum"),
     MASTER_ADDRESS((short)3, "masterAddress"),
     RPC_PORT((short)4, "rpcPort"),
     SAFE_MODE((short)5, "safeMode"),
@@ -92,10 +92,10 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // LIVE_MASTER_NUM
-          return LIVE_MASTER_NUM;
-        case 2: // LOST_MASTER_NUM
-          return LOST_MASTER_NUM;
+        case 1: // CONF_MASTER_NUM
+          return CONF_MASTER_NUM;
+        case 2: // CONF_WORKER_NUM
+          return CONF_WORKER_NUM;
         case 3: // MASTER_ADDRESS
           return MASTER_ADDRESS;
         case 4: // RPC_PORT
@@ -152,8 +152,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   }
 
   // isset id assignments
-  private static final int __LIVEMASTERNUM_ISSET_ID = 0;
-  private static final int __LOSTMASTERNUM_ISSET_ID = 1;
+  private static final int __CONFMASTERNUM_ISSET_ID = 0;
+  private static final int __CONFWORKERNUM_ISSET_ID = 1;
   private static final int __RPCPORT_ISSET_ID = 2;
   private static final int __SAFEMODE_ISSET_ID = 3;
   private static final int __STARTTIMEMS_ISSET_ID = 4;
@@ -163,9 +163,9 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.LIVE_MASTER_NUM, new org.apache.thrift.meta_data.FieldMetaData("liveMasterNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.CONF_MASTER_NUM, new org.apache.thrift.meta_data.FieldMetaData("confMasterNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.LOST_MASTER_NUM, new org.apache.thrift.meta_data.FieldMetaData("lostMasterNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.CONF_WORKER_NUM, new org.apache.thrift.meta_data.FieldMetaData("confWorkerNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.MASTER_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("masterAddress", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
@@ -192,8 +192,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   }
 
   public MasterInfo(
-    int liveMasterNum,
-    int lostMasterNum,
+    int confMasterNum,
+    int confWorkerNum,
     String masterAddress,
     int rpcPort,
     boolean safeMode,
@@ -204,10 +204,10 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     List<String> zookeeperAddresses)
   {
     this();
-    this.liveMasterNum = liveMasterNum;
-    setLiveMasterNumIsSet(true);
-    this.lostMasterNum = lostMasterNum;
-    setLostMasterNumIsSet(true);
+    this.confMasterNum = confMasterNum;
+    setConfMasterNumIsSet(true);
+    this.confWorkerNum = confWorkerNum;
+    setConfWorkerNumIsSet(true);
     this.masterAddress = masterAddress;
     this.rpcPort = rpcPort;
     setRpcPortIsSet(true);
@@ -228,8 +228,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
    */
   public MasterInfo(MasterInfo other) {
     __isset_bitfield = other.__isset_bitfield;
-    this.liveMasterNum = other.liveMasterNum;
-    this.lostMasterNum = other.lostMasterNum;
+    this.confMasterNum = other.confMasterNum;
+    this.confWorkerNum = other.confWorkerNum;
     if (other.isSetMasterAddress()) {
       this.masterAddress = other.masterAddress;
     }
@@ -253,10 +253,10 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
   @Override
   public void clear() {
-    setLiveMasterNumIsSet(false);
-    this.liveMasterNum = 0;
-    setLostMasterNumIsSet(false);
-    this.lostMasterNum = 0;
+    setConfMasterNumIsSet(false);
+    this.confMasterNum = 0;
+    setConfWorkerNumIsSet(false);
+    this.confWorkerNum = 0;
     this.masterAddress = null;
     setRpcPortIsSet(false);
     this.rpcPort = 0;
@@ -272,50 +272,50 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     this.zookeeperAddresses = null;
   }
 
-  public int getLiveMasterNum() {
-    return this.liveMasterNum;
+  public int getConfMasterNum() {
+    return this.confMasterNum;
   }
 
-  public MasterInfo setLiveMasterNum(int liveMasterNum) {
-    this.liveMasterNum = liveMasterNum;
-    setLiveMasterNumIsSet(true);
+  public MasterInfo setConfMasterNum(int confMasterNum) {
+    this.confMasterNum = confMasterNum;
+    setConfMasterNumIsSet(true);
     return this;
   }
 
-  public void unsetLiveMasterNum() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __LIVEMASTERNUM_ISSET_ID);
+  public void unsetConfMasterNum() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __CONFMASTERNUM_ISSET_ID);
   }
 
-  /** Returns true if field liveMasterNum is set (has been assigned a value) and false otherwise */
-  public boolean isSetLiveMasterNum() {
-    return EncodingUtils.testBit(__isset_bitfield, __LIVEMASTERNUM_ISSET_ID);
+  /** Returns true if field confMasterNum is set (has been assigned a value) and false otherwise */
+  public boolean isSetConfMasterNum() {
+    return EncodingUtils.testBit(__isset_bitfield, __CONFMASTERNUM_ISSET_ID);
   }
 
-  public void setLiveMasterNumIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __LIVEMASTERNUM_ISSET_ID, value);
+  public void setConfMasterNumIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CONFMASTERNUM_ISSET_ID, value);
   }
 
-  public int getLostMasterNum() {
-    return this.lostMasterNum;
+  public int getConfWorkerNum() {
+    return this.confWorkerNum;
   }
 
-  public MasterInfo setLostMasterNum(int lostMasterNum) {
-    this.lostMasterNum = lostMasterNum;
-    setLostMasterNumIsSet(true);
+  public MasterInfo setConfWorkerNum(int confWorkerNum) {
+    this.confWorkerNum = confWorkerNum;
+    setConfWorkerNumIsSet(true);
     return this;
   }
 
-  public void unsetLostMasterNum() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __LOSTMASTERNUM_ISSET_ID);
+  public void unsetConfWorkerNum() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __CONFWORKERNUM_ISSET_ID);
   }
 
-  /** Returns true if field lostMasterNum is set (has been assigned a value) and false otherwise */
-  public boolean isSetLostMasterNum() {
-    return EncodingUtils.testBit(__isset_bitfield, __LOSTMASTERNUM_ISSET_ID);
+  /** Returns true if field confWorkerNum is set (has been assigned a value) and false otherwise */
+  public boolean isSetConfWorkerNum() {
+    return EncodingUtils.testBit(__isset_bitfield, __CONFWORKERNUM_ISSET_ID);
   }
 
-  public void setLostMasterNumIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __LOSTMASTERNUM_ISSET_ID, value);
+  public void setConfWorkerNumIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CONFWORKERNUM_ISSET_ID, value);
   }
 
   public String getMasterAddress() {
@@ -522,19 +522,19 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case LIVE_MASTER_NUM:
+    case CONF_MASTER_NUM:
       if (value == null) {
-        unsetLiveMasterNum();
+        unsetConfMasterNum();
       } else {
-        setLiveMasterNum((Integer)value);
+        setConfMasterNum((Integer)value);
       }
       break;
 
-    case LOST_MASTER_NUM:
+    case CONF_WORKER_NUM:
       if (value == null) {
-        unsetLostMasterNum();
+        unsetConfWorkerNum();
       } else {
-        setLostMasterNum((Integer)value);
+        setConfWorkerNum((Integer)value);
       }
       break;
 
@@ -607,11 +607,11 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case LIVE_MASTER_NUM:
-      return getLiveMasterNum();
+    case CONF_MASTER_NUM:
+      return getConfMasterNum();
 
-    case LOST_MASTER_NUM:
-      return getLostMasterNum();
+    case CONF_WORKER_NUM:
+      return getConfWorkerNum();
 
     case MASTER_ADDRESS:
       return getMasterAddress();
@@ -648,10 +648,10 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     }
 
     switch (field) {
-    case LIVE_MASTER_NUM:
-      return isSetLiveMasterNum();
-    case LOST_MASTER_NUM:
-      return isSetLostMasterNum();
+    case CONF_MASTER_NUM:
+      return isSetConfMasterNum();
+    case CONF_WORKER_NUM:
+      return isSetConfWorkerNum();
     case MASTER_ADDRESS:
       return isSetMasterAddress();
     case RPC_PORT:
@@ -685,21 +685,21 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     if (that == null)
       return false;
 
-    boolean this_present_liveMasterNum = true;
-    boolean that_present_liveMasterNum = true;
-    if (this_present_liveMasterNum || that_present_liveMasterNum) {
-      if (!(this_present_liveMasterNum && that_present_liveMasterNum))
+    boolean this_present_confMasterNum = true;
+    boolean that_present_confMasterNum = true;
+    if (this_present_confMasterNum || that_present_confMasterNum) {
+      if (!(this_present_confMasterNum && that_present_confMasterNum))
         return false;
-      if (this.liveMasterNum != that.liveMasterNum)
+      if (this.confMasterNum != that.confMasterNum)
         return false;
     }
 
-    boolean this_present_lostMasterNum = true;
-    boolean that_present_lostMasterNum = true;
-    if (this_present_lostMasterNum || that_present_lostMasterNum) {
-      if (!(this_present_lostMasterNum && that_present_lostMasterNum))
+    boolean this_present_confWorkerNum = true;
+    boolean that_present_confWorkerNum = true;
+    if (this_present_confWorkerNum || that_present_confWorkerNum) {
+      if (!(this_present_confWorkerNum && that_present_confWorkerNum))
         return false;
-      if (this.lostMasterNum != that.lostMasterNum)
+      if (this.confWorkerNum != that.confWorkerNum)
         return false;
     }
 
@@ -782,15 +782,15 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_liveMasterNum = true;
-    list.add(present_liveMasterNum);
-    if (present_liveMasterNum)
-      list.add(liveMasterNum);
+    boolean present_confMasterNum = true;
+    list.add(present_confMasterNum);
+    if (present_confMasterNum)
+      list.add(confMasterNum);
 
-    boolean present_lostMasterNum = true;
-    list.add(present_lostMasterNum);
-    if (present_lostMasterNum)
-      list.add(lostMasterNum);
+    boolean present_confWorkerNum = true;
+    list.add(present_confWorkerNum);
+    if (present_confWorkerNum)
+      list.add(confWorkerNum);
 
     boolean present_masterAddress = true && (isSetMasterAddress());
     list.add(present_masterAddress);
@@ -843,22 +843,22 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetLiveMasterNum()).compareTo(other.isSetLiveMasterNum());
+    lastComparison = Boolean.valueOf(isSetConfMasterNum()).compareTo(other.isSetConfMasterNum());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetLiveMasterNum()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.liveMasterNum, other.liveMasterNum);
+    if (isSetConfMasterNum()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.confMasterNum, other.confMasterNum);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetLostMasterNum()).compareTo(other.isSetLostMasterNum());
+    lastComparison = Boolean.valueOf(isSetConfWorkerNum()).compareTo(other.isSetConfWorkerNum());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetLostMasterNum()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lostMasterNum, other.lostMasterNum);
+    if (isSetConfWorkerNum()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.confWorkerNum, other.confWorkerNum);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -963,12 +963,12 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     StringBuilder sb = new StringBuilder("MasterInfo(");
     boolean first = true;
 
-    sb.append("liveMasterNum:");
-    sb.append(this.liveMasterNum);
+    sb.append("confMasterNum:");
+    sb.append(this.confMasterNum);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("lostMasterNum:");
-    sb.append(this.lostMasterNum);
+    sb.append("confWorkerNum:");
+    sb.append(this.confWorkerNum);
     first = false;
     if (!first) sb.append(", ");
     sb.append("masterAddress:");
@@ -1059,18 +1059,18 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
           break;
         }
         switch (schemeField.id) {
-          case 1: // LIVE_MASTER_NUM
+          case 1: // CONF_MASTER_NUM
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.liveMasterNum = iprot.readI32();
-              struct.setLiveMasterNumIsSet(true);
+              struct.confMasterNum = iprot.readI32();
+              struct.setConfMasterNumIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // LOST_MASTER_NUM
+          case 2: // CONF_WORKER_NUM
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.lostMasterNum = iprot.readI32();
-              struct.setLostMasterNumIsSet(true);
+              struct.confWorkerNum = iprot.readI32();
+              struct.setConfWorkerNumIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -1164,11 +1164,11 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      oprot.writeFieldBegin(LIVE_MASTER_NUM_FIELD_DESC);
-      oprot.writeI32(struct.liveMasterNum);
+      oprot.writeFieldBegin(CONF_MASTER_NUM_FIELD_DESC);
+      oprot.writeI32(struct.confMasterNum);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(LOST_MASTER_NUM_FIELD_DESC);
-      oprot.writeI32(struct.lostMasterNum);
+      oprot.writeFieldBegin(CONF_WORKER_NUM_FIELD_DESC);
+      oprot.writeI32(struct.confWorkerNum);
       oprot.writeFieldEnd();
       if (struct.masterAddress != null) {
         oprot.writeFieldBegin(MASTER_ADDRESS_FIELD_DESC);
@@ -1225,10 +1225,10 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     public void write(org.apache.thrift.protocol.TProtocol prot, MasterInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetLiveMasterNum()) {
+      if (struct.isSetConfMasterNum()) {
         optionals.set(0);
       }
-      if (struct.isSetLostMasterNum()) {
+      if (struct.isSetConfWorkerNum()) {
         optionals.set(1);
       }
       if (struct.isSetMasterAddress()) {
@@ -1256,11 +1256,11 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         optionals.set(9);
       }
       oprot.writeBitSet(optionals, 10);
-      if (struct.isSetLiveMasterNum()) {
-        oprot.writeI32(struct.liveMasterNum);
+      if (struct.isSetConfMasterNum()) {
+        oprot.writeI32(struct.confMasterNum);
       }
-      if (struct.isSetLostMasterNum()) {
-        oprot.writeI32(struct.lostMasterNum);
+      if (struct.isSetConfWorkerNum()) {
+        oprot.writeI32(struct.confWorkerNum);
       }
       if (struct.isSetMasterAddress()) {
         oprot.writeString(struct.masterAddress);
@@ -1299,12 +1299,12 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(10);
       if (incoming.get(0)) {
-        struct.liveMasterNum = iprot.readI32();
-        struct.setLiveMasterNumIsSet(true);
+        struct.confMasterNum = iprot.readI32();
+        struct.setConfMasterNumIsSet(true);
       }
       if (incoming.get(1)) {
-        struct.lostMasterNum = iprot.readI32();
-        struct.setLostMasterNumIsSet(true);
+        struct.confWorkerNum = iprot.readI32();
+        struct.setConfWorkerNumIsSet(true);
       }
       if (incoming.get(2)) {
         struct.masterAddress = iprot.readString();
