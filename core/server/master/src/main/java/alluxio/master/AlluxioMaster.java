@@ -44,9 +44,8 @@ public final class AlluxioMaster {
     try {
       process = MasterProcess.Factory.create();
     } catch (Throwable t) {
-      LOG.error("Failed to create master process", t);
-      // Exit to stop any non-daemon threads.
-      System.exit(-1);
+      ProcessUtils.fatalError(LOG, t, "Failed to create master process");
+      // fatalError will exit, so we shouldn't reach here.
       throw t;
     }
 
