@@ -107,6 +107,35 @@ Alluxio文件系统为目录和文件实现了一个访问权限模型，该模�
 所属用户只能由超级用户修改。
 所属组和访问权限只能由超级用户和文件所有者修改。
 
+## 模拟 {Impersonation}
+Alluxio支持用户模拟，以便用户代表另一个用户访问Alluxio。如果Alluxio客户端是一个为多个用户提供数据访问的服务的一部分时，这个机制会相当有用。
+在这种情况下，可以将Alluxio客户端配置为用特定用户（连接用户）连接到Alluxio服务器，但代表其他用户（模拟用户）行事。
+为了让Alluxio支持用户模拟功能，需要在客户端和服务端进行配置。
+
+### 服务端配置
+为了能够让特定的用户模拟其他用户，需要配置Alluxio master。master的配置属性包括：`alluxio.master.security.impersonation.<USERNAME>.users` 和 `alluxio.master.security.impersonation.<USERNAME>.groups`。
+对于`alluxio.master.security.impersonation.<USERNAME>.users`，你可以指定由逗号分隔的用户列表，这些用户可以被`<USERNAME>` 模拟。
+通配符`*`表示任意的用户可以被`<USERNAME>` 模拟。以下是例子。
+- `alluxio.master.security.impersonation.alluxio_user.users=user1,user2`
+    - 这意味着Alluxio用户`alluxio_user`可以模拟用户`user1`以及`user2`。
+- `alluxio.master.security.impersonation.client.users=*`
+    - 这意味着Alluxio用户`client`可以模拟任意的用户。
+
+对于`alluxio.master.security.impersonation.<USERNAME>.groups`，你可以指定由逗号分隔的用户组，这些用户组内的用户可以被`<USERNAME>`模拟。
+通配符`*`表示该用户可以模拟任意的用户。以下是一些例子。
+- `alluxio.master.security.impersonation.alluxio_user.groups=group1,group2`
+    - 这意味着Alluxio用户`alluxio_user`可以模拟用户`group1`以及`group2`中的任意用户。
+- `alluxio.master.security.impersonation.client.groups=*`
+    - 这意味着Alluxio用户`client`可以模拟任意的用户。
+
+为了使得用户`alluxio_user`能够模拟其他用户，你至少需要设置`alluxio.master.security.impersonation.<USERNAME>.users`和
+`alluxio.master.security.impersonation.<USERNAME>.groups`的其中一个（将`<USERNAME>`替换为`alluxio_user`）。你可以将两个参数设置为同一个用户。
+
+### Client Configuration
+如果master配置为允许某些用户模拟其他的用户，client端也要进行相应的配置。使用`alluxio.security.login.impersonation.username`进行配置。
+这表示进行连接的Alluxio client保持不变，但是是模拟的一个不同的用户。如果使用的是Hadoop兼容的Alluxio client，
+那就需要设置`_HDFS_USER_`来告知Alluxio client，当它作为HDFS的client时也要模拟同样的用户。
+
 ## 审查
 Alluxio支持审查日志用于系统管理员追踪用户对文件元数据的访问操作。
 
