@@ -66,6 +66,7 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
       .hasArg(false)
       .desc("Removes all of the ACL entries, except for the base entries.")
       .build();
+  // TODO(gpang): support remove defaults
 
   /**
    * @param fs the filesystem of Alluxio
