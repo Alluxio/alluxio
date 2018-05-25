@@ -723,7 +723,7 @@ public class MetaMasterClientService {
   public static class exportJournal_args implements org.apache.thrift.TBase<exportJournal_args, exportJournal_args._Fields>, java.io.Serializable, Cloneable, Comparable<exportJournal_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("exportJournal_args");
 
-    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -738,7 +738,7 @@ public class MetaMasterClientService {
       /**
        * the method options
        */
-      OPTIONS((short)1, "options");
+      OPTIONS((short)2, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -753,7 +753,7 @@ public class MetaMasterClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // OPTIONS
+          case 2: // OPTIONS
             return OPTIONS;
           default:
             return null;
@@ -1025,7 +1025,7 @@ public class MetaMasterClientService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // OPTIONS
+            case 2: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.options = new ExportJournalTOptions();
                 struct.options.read(iprot);

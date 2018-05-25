@@ -11,12 +11,14 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.wire.ExportJournalResponse;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
@@ -24,6 +26,15 @@ import java.io.IOException;
  * Command for exporting a backup of the Alluxio master journal.
  */
 public class ExportJournalCommand extends AbstractFsAdminCommand {
+
+  private static final Option LOCAL_OPTION =
+      Option.builder()
+          .longOpt("local")
+          .required(false)
+          .hasArg(false)
+          .desc("whether to write the backup to the master's local filesystem instead of the root"
+              + " UFS")
+          .build();
   /**
    * @param context fsadmin command context
    */
@@ -37,12 +48,20 @@ public class ExportJournalCommand extends AbstractFsAdminCommand {
   }
 
   @Override
+  public Options getOptions() {
+    return new Options().addOption(LOCAL_OPTION);
+  }
+
+  @Override
   public int run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
     Preconditions.checkState(args.length == 1);
-    AlluxioURI uri = new AlluxioURI(args[0]);
-    AlluxioURI backup = mMetaClient.exportJournal(uri);
-    mPrintStream.printf("Successfully exported journal to %s%n", backup);
+    String dir = args[0];
+    boolean local = cl.hasOption(LOCAL_OPTION.getLongOpt());
+    ExportJournalResponse resp = mMetaClient.exportJournal(dir, local);
+    String locationMessage = local ? " on master " + resp.getHostname() : "";
+    mPrintStream.printf("Successfully exported journal to %s%s%n", resp.getBackupUri(),
+        locationMessage);
     return 0;
   }
 

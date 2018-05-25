@@ -19,14 +19,16 @@ import com.google.common.base.Preconditions;
  * Options for exporting the Alluxio master journal.
  */
 public class ExportJournalOptions {
-  // URI to export the journal to.
-  private String mTargetDirectoryUri;
+  // Directory to export the journal to.
+  private String mTargetDirectory;
+  private boolean mLocalFileSystem;
 
   /**
-   * @param targetDirectoryUri uri of the directory to export the journal to
+   * @param targetDirectory path of the directory to export the journal to
    */
-  public ExportJournalOptions(String targetDirectoryUri) {
-    mTargetDirectoryUri = Preconditions.checkNotNull(targetDirectoryUri, "targetDirectoryUri");
+  public ExportJournalOptions(String targetDirectory, boolean localFileSystem) {
+    mTargetDirectory = Preconditions.checkNotNull(targetDirectory, "targetDirectoryUri");
+    mLocalFileSystem = localFileSystem;
   }
 
   /**
@@ -34,20 +36,28 @@ public class ExportJournalOptions {
    * @return wire type options corresponding to the thrift options
    */
   public static ExportJournalOptions fromThrift(ExportJournalTOptions tOpts) {
-    return new ExportJournalOptions(tOpts.getTargetDirectoryUri());
+    return new ExportJournalOptions(tOpts.getTargetDirectory(), tOpts.isLocalFileSystem());
   }
 
   /**
    * @return the thrift options corresponding to these options
    */
   public ExportJournalTOptions toThrift() {
-    return new ExportJournalTOptions().setTargetDirectoryUri(mTargetDirectoryUri);
+    return new ExportJournalTOptions().setTargetDirectory(mTargetDirectory)
+        .setLocalFileSystem(mLocalFileSystem);
   }
 
   /**
-   * @return the uri to export the journal to
+   * @return the directory to export the journal to
    */
-  public String getTargetDirectoryUri() {
-    return mTargetDirectoryUri;
+  public String getTargetDirectory() {
+    return mTargetDirectory;
+  }
+
+  /**
+   * @return whether to write to the local filesystem instead of the root UFS
+   */
+  public boolean isLocalFileSystem() {
+    return mLocalFileSystem;
   }
 }

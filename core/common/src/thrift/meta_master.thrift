@@ -36,9 +36,17 @@ struct MasterInfo {
  8: list<string> zookeeperAddresses // Null means zookeeper is not enabled
 }
 
-struct ExportJournalTOptions {}
+struct ExportJournalTOptions {
+ // The directory to export to within the root UFS.
+ 1: string targetDirectory
+ // Whether to write to the local filesystem instead of the root UFS.
+ 2: bool localFileSystem
+}
 struct ExportJournalTResponse {
  1: string backupUri
+ // If we export to local filesystem, this field will be populated with the hostname of the host we
+ // wrote the journal on.
+ 2: string hostname
 }
 
 struct GetMasterInfoTOptions {
@@ -67,7 +75,6 @@ service MetaMasterClientService extends common.AlluxioService {
    * Exports the journal to the specified URI
    */
   ExportJournalTResponse exportJournal(
-    /** the directory to export to */ 1: string targetDirectoryUri
     /** the method options */ 2: ExportJournalTOptions options,
     ) throws (1: exception.AlluxioTException e)
 

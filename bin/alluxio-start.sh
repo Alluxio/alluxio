@@ -188,7 +188,7 @@ start_master() {
       ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
     fi
     if [[ -n ${journal_backup} ]]; then
-      ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.journal.init.from.snapshot=${journal_backup}"
+      ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.journal.init.from.backup=${journal_backup}"
     fi
 
     # use a default Xmx value for the master

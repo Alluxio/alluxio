@@ -39,6 +39,7 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ExportJournalTResponse");
 
   private static final org.apache.thrift.protocol.TField BACKUP_URI_FIELD_DESC = new org.apache.thrift.protocol.TField("backupUri", org.apache.thrift.protocol.TType.STRING, (short)1);
+  private static final org.apache.thrift.protocol.TField HOSTNAME_FIELD_DESC = new org.apache.thrift.protocol.TField("hostname", org.apache.thrift.protocol.TType.STRING, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,10 +48,12 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
   }
 
   private String backupUri; // required
+  private String hostname; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    BACKUP_URI((short)1, "backupUri");
+    BACKUP_URI((short)1, "backupUri"),
+    HOSTNAME((short)2, "hostname");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -67,6 +70,8 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
       switch(fieldId) {
         case 1: // BACKUP_URI
           return BACKUP_URI;
+        case 2: // HOSTNAME
+          return HOSTNAME;
         default:
           return null;
       }
@@ -112,6 +117,8 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.BACKUP_URI, new org.apache.thrift.meta_data.FieldMetaData("backupUri", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.HOSTNAME, new org.apache.thrift.meta_data.FieldMetaData("hostname", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ExportJournalTResponse.class, metaDataMap);
   }
@@ -120,10 +127,12 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
   }
 
   public ExportJournalTResponse(
-    String backupUri)
+    String backupUri,
+    String hostname)
   {
     this();
     this.backupUri = backupUri;
+    this.hostname = hostname;
   }
 
   /**
@@ -132,6 +141,9 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
   public ExportJournalTResponse(ExportJournalTResponse other) {
     if (other.isSetBackupUri()) {
       this.backupUri = other.backupUri;
+    }
+    if (other.isSetHostname()) {
+      this.hostname = other.hostname;
     }
   }
 
@@ -142,6 +154,7 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
   @Override
   public void clear() {
     this.backupUri = null;
+    this.hostname = null;
   }
 
   public String getBackupUri() {
@@ -168,6 +181,30 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
     }
   }
 
+  public String getHostname() {
+    return this.hostname;
+  }
+
+  public ExportJournalTResponse setHostname(String hostname) {
+    this.hostname = hostname;
+    return this;
+  }
+
+  public void unsetHostname() {
+    this.hostname = null;
+  }
+
+  /** Returns true if field hostname is set (has been assigned a value) and false otherwise */
+  public boolean isSetHostname() {
+    return this.hostname != null;
+  }
+
+  public void setHostnameIsSet(boolean value) {
+    if (!value) {
+      this.hostname = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case BACKUP_URI:
@@ -178,6 +215,14 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
       }
       break;
 
+    case HOSTNAME:
+      if (value == null) {
+        unsetHostname();
+      } else {
+        setHostname((String)value);
+      }
+      break;
+
     }
   }
 
@@ -185,6 +230,9 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
     switch (field) {
     case BACKUP_URI:
       return getBackupUri();
+
+    case HOSTNAME:
+      return getHostname();
 
     }
     throw new IllegalStateException();
@@ -199,6 +247,8 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
     switch (field) {
     case BACKUP_URI:
       return isSetBackupUri();
+    case HOSTNAME:
+      return isSetHostname();
     }
     throw new IllegalStateException();
   }
@@ -225,6 +275,15 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
         return false;
     }
 
+    boolean this_present_hostname = true && this.isSetHostname();
+    boolean that_present_hostname = true && that.isSetHostname();
+    if (this_present_hostname || that_present_hostname) {
+      if (!(this_present_hostname && that_present_hostname))
+        return false;
+      if (!this.hostname.equals(that.hostname))
+        return false;
+    }
+
     return true;
   }
 
@@ -236,6 +295,11 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
     list.add(present_backupUri);
     if (present_backupUri)
       list.add(backupUri);
+
+    boolean present_hostname = true && (isSetHostname());
+    list.add(present_hostname);
+    if (present_hostname)
+      list.add(hostname);
 
     return list.hashCode();
   }
@@ -254,6 +318,16 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
     }
     if (isSetBackupUri()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.backupUri, other.backupUri);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetHostname()).compareTo(other.isSetHostname());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetHostname()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.hostname, other.hostname);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -283,6 +357,14 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
       sb.append("null");
     } else {
       sb.append(this.backupUri);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("hostname:");
+    if (this.hostname == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.hostname);
     }
     first = false;
     sb.append(")");
@@ -336,6 +418,14 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 2: // HOSTNAME
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.hostname = iprot.readString();
+              struct.setHostnameIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -354,6 +444,11 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
       if (struct.backupUri != null) {
         oprot.writeFieldBegin(BACKUP_URI_FIELD_DESC);
         oprot.writeString(struct.backupUri);
+        oprot.writeFieldEnd();
+      }
+      if (struct.hostname != null) {
+        oprot.writeFieldBegin(HOSTNAME_FIELD_DESC);
+        oprot.writeString(struct.hostname);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -377,19 +472,29 @@ public class ExportJournalTResponse implements org.apache.thrift.TBase<ExportJou
       if (struct.isSetBackupUri()) {
         optionals.set(0);
       }
-      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetHostname()) {
+        optionals.set(1);
+      }
+      oprot.writeBitSet(optionals, 2);
       if (struct.isSetBackupUri()) {
         oprot.writeString(struct.backupUri);
+      }
+      if (struct.isSetHostname()) {
+        oprot.writeString(struct.hostname);
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ExportJournalTResponse struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(1);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
         struct.backupUri = iprot.readString();
         struct.setBackupUriIsSet(true);
+      }
+      if (incoming.get(1)) {
+        struct.hostname = iprot.readString();
+        struct.setHostnameIsSet(true);
       }
     }
   }

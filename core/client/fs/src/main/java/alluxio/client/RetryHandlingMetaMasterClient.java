@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.AbstractMasterClient;
-import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
@@ -23,6 +22,7 @@ import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMetricsTOptions;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.ExportJournalResponse;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 import alluxio.wire.MetricValue;
@@ -79,10 +79,11 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized AlluxioURI exportJournal(AlluxioURI uri) throws IOException {
-    return retryRPC(() -> new AlluxioURI(mClient
-        .exportJournal(new ExportJournalTOptions().setTargetDirectoryUri(uri.toString()))
-        .getBackupUri()));
+  public synchronized ExportJournalResponse exportJournal(String targetDirectory,
+      boolean localFileSystem) throws IOException {
+    return retryRPC(
+        () -> ExportJournalResponse.fromThrift(mClient.exportJournal(new ExportJournalTOptions()
+            .setTargetDirectory(targetDirectory).setLocalFileSystem(localFileSystem))));
   }
 
   @Override
