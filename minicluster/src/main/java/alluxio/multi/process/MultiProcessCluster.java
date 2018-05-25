@@ -413,7 +413,6 @@ public final class MultiProcessCluster implements TestRule {
   private synchronized Worker createWorker(int i) throws IOException {
     Preconditions.checkState(mState == State.STARTED,
         "Must be in a started state to create workers");
-    // TODO(lu) set each master have a specific conf directory
     File confDir = new File(mWorkDir, "conf-worker" + i);
     File logsDir = new File(mWorkDir, "logs-worker" + i);
     File ramdisk = new File(mWorkDir, "ramdisk" + i);
