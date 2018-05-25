@@ -117,7 +117,7 @@ public class AlluxioLogServerProcess implements Process {
               }
             });
       } catch (RejectedExecutionException e) {
-        // Alluxio log clients (master, secondary master, proxy and workers establish
+        // Alluxio log clients (master, secondary master, proxy and workers) establish
         // long-living connections with the log server. Therefore, if the log server cannot
         // find a thread to service a log client, it is very likely due to low number of
         // worker threads. If retry fails, then it makes sense just to let system throw

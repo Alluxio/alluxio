@@ -40,21 +40,6 @@ public final class BlockMasterInfo implements Serializable {
   public BlockMasterInfo() {}
 
   /**
-   * Creates a new instance of {@link BlockMasterInfo} from a thrift representation.
-   *
-   * @param blockMasterInfo the thrift representation of a block master information
-   */
-  protected BlockMasterInfo(alluxio.thrift.BlockMasterInfo blockMasterInfo) {
-    mCapacityBytes = blockMasterInfo.getCapacityBytes();
-    mCapacityBytesOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
-    mFreeBytes = blockMasterInfo.getFreeBytes();
-    mLiveWorkerNum = blockMasterInfo.getLiveWorkerNum();
-    mLostWorkerNum = blockMasterInfo.getLostWorkerNum();
-    mUsedBytes = blockMasterInfo.getUsedBytes();
-    mUsedBytesOnTiers = blockMasterInfo.getUsedBytesOnTiers();
-  }
-
-  /**
    * @return the total capacity bytes
    */
   public long getCapacityBytes() {
@@ -174,6 +159,23 @@ public final class BlockMasterInfo implements Serializable {
         mFreeBytes, mLiveWorkerNum, mLostWorkerNum, mUsedBytes, mUsedBytesOnTiers);
   }
 
+  /**
+   * Creates a new instance of {@link BlockMasterInfo} from a thrift representation.
+   *
+   * @param info the thrift representation of a block master information
+   * @return the instance
+   */
+  public static BlockMasterInfo fromThrift(alluxio.thrift.BlockMasterInfo info) {
+    return new BlockMasterInfo()
+        .setCapacityBytes(info.getCapacityBytes())
+        .setCapacityBytesOnTiers(info.getCapacityBytesOnTiers())
+        .setFreeBytes(info.getFreeBytes())
+        .setLiveWorkerNum(info.getLiveWorkerNum())
+        .setLostWorkerNum(info.getLostWorkerNum())
+        .setUsedBytes(info.getUsedBytes())
+        .setUsedBytesOnTiers(info.getUsedBytesOnTiers());
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -184,10 +186,10 @@ public final class BlockMasterInfo implements Serializable {
     }
     BlockMasterInfo that = (BlockMasterInfo) o;
     return mCapacityBytes == that.mCapacityBytes
-        && mCapacityBytesOnTiers.equals(that.mCapacityBytesOnTiers)
+        && Objects.equal(mCapacityBytesOnTiers, that.mCapacityBytesOnTiers)
         && mFreeBytes == that.mFreeBytes && mLiveWorkerNum == that.mLiveWorkerNum
         && mLostWorkerNum == that.mLostWorkerNum && mUsedBytes == that.mUsedBytes
-        && mUsedBytesOnTiers.equals(that.mUsedBytesOnTiers);
+        && Objects.equal(mUsedBytesOnTiers, that.mUsedBytesOnTiers);
   }
 
   @Override

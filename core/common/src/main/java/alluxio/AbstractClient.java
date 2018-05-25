@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.conf.Source;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
@@ -57,11 +58,19 @@ import javax.security.auth.Subject;
 public abstract class AbstractClient implements Client {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
 
-  private static AtomicBoolean sHandshakeComplete = new AtomicBoolean(false);
+  private static Supplier<RetryPolicy> defaultRetry() {
+    Duration maxRetryDuration = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
+    Duration baseSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+    Duration maxSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+    return () -> ExponentialTimeBoundedRetry.builder().withMaxDuration(maxRetryDuration)
+        .withInitialSleep(baseSleepMs).withMaxSleep(maxSleepMs).build();
+  }
+
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
   protected InetSocketAddress mAddress;
   protected TProtocol mProtocol;
+  private static AtomicBoolean sHandshakeComplete = new AtomicBoolean(false);
 
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
@@ -91,14 +100,6 @@ public abstract class AbstractClient implements Client {
    */
   public AbstractClient(Subject subject, InetSocketAddress address) {
     this(subject, address, defaultRetry());
-  }
-
-  private static Supplier<RetryPolicy> defaultRetry() {
-    Duration maxRetryDuration = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
-    Duration baseSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
-    Duration maxSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
-    return () -> ExponentialTimeBoundedRetry.builder().withMaxDuration(maxRetryDuration)
-        .withInitialSleep(baseSleepMs).withMaxSleep(maxSleepMs).build();
   }
 
   /**
@@ -179,7 +180,7 @@ public abstract class AbstractClient implements Client {
   /**
    * Handshakes with meta master
    */
-  public synchronized void handshake() throws AlluxioStatusException {
+  private synchronized void handshake() throws AlluxioStatusException {
     if (isConnected() || sHandshakeComplete.get()) {
       return;
     }
@@ -222,7 +223,7 @@ public abstract class AbstractClient implements Client {
         }
       }
     }
-    Configuration.init(clusterProps);
+    Configuration.merge(clusterProps, Source.CLUSTER_DEFAULT);
     // This needs to be the last
     sHandshakeComplete.set(false);
   }

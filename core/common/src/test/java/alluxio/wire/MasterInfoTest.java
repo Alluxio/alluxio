@@ -35,7 +35,7 @@ public class MasterInfoTest {
   @Test
   public void thrift() {
     MasterInfo masterInfo = createRandom();
-    MasterInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(masterInfo));
+    MasterInfo other = MasterInfo.fromThrift(masterInfo.toThrift());
     checkEquality(masterInfo, other);
   }
 

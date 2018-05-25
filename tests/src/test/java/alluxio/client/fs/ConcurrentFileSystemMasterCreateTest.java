@@ -31,11 +31,13 @@ import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 import alluxio.wire.LoadMetadataType;
 
+import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -243,6 +245,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     runLoadMetadata(WriteType.MUST_CACHE, false, false, true);
   }
 
+  @Ignore
   @Test
   public void concurrentListFiles() throws Exception {
     runLoadMetadata(null, false, true, true);
@@ -321,7 +324,8 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
               paths, limitMs);
     }
     if (!errors.isEmpty()) {
-      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0)
+          + "\n" + Throwables.getStackTraceAsString(errors.get(0)));
     }
 
     ListStatusOptions listOptions = ListStatusOptions.defaults().setLoadMetadataType(

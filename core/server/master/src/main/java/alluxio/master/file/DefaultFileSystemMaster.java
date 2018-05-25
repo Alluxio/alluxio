@@ -401,7 +401,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST, ","));
 
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
-    mPermissionChecker = new PermissionChecker(mInodeTree);
+    mPermissionChecker = new DefaultPermissionChecker(mInodeTree);
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
     mUfsSyncPathCache = new UfsSyncPathCache();
@@ -891,16 +891,24 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         auditContext.setAllowed(false);
         throw e;
       }
+
+      DescendantType descendantType = listStatusOptions.isRecursive() ? DescendantType.ALL
+          : DescendantType.ONE;
       // Possible ufs sync.
-      if (syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE)) {
+      if (syncMetadata(rpcContext, inodePath, lockingScheme, descendantType)) {
         // If synced, do not load metadata.
         listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
       }
 
-      // load metadata for 1 level of descendants
-      DescendantType loadDescendantType =
-          (listStatusOptions.getLoadMetadataType() != LoadMetadataType.Never) ? DescendantType.ONE :
-              DescendantType.NONE;
+      DescendantType loadDescendantType;
+      if (listStatusOptions.getLoadMetadataType() == LoadMetadataType.Never) {
+        loadDescendantType = DescendantType.NONE;
+      } else if (listStatusOptions.isRecursive()) {
+        loadDescendantType = DescendantType.ALL;
+      } else {
+        loadDescendantType = DescendantType.ONE;
+      }
+      // load metadata for 1 level of descendants, or all descendants if recursive
       LoadMetadataOptions loadMetadataOptions =
           LoadMetadataOptions.defaults().setCreateAncestors(true)
               .setLoadDescendantType(loadDescendantType);
@@ -908,9 +916,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
         if (inode.isDirectory()
-            && listStatusOptions.getLoadMetadataType() != LoadMetadataType.Always
-            && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
-          loadMetadataOptions.setLoadDescendantType(DescendantType.NONE);
+            && listStatusOptions.getLoadMetadataType() != LoadMetadataType.Always) {
+          InodeDirectory inodeDirectory = (InodeDirectory) inode;
+
+          boolean isLoaded = inodeDirectory.isDirectChildrenLoaded();
+          if (listStatusOptions.isRecursive()) {
+            isLoaded = inodeDirectory.areDescendantsLoaded();
+          }
+          if (isLoaded) {
+            // no need to load again.
+            loadMetadataOptions.setLoadDescendantType(DescendantType.NONE);
+          }
         }
       } else {
         checkLoadMetadataOptions(listStatusOptions.getLoadMetadataType(), inodePath.getUri());
@@ -920,34 +936,77 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       ensureFullPathAndUpdateCache(inodePath);
       inode = inodePath.getInode();
       auditContext.setSrcInode(inode);
-
       List<FileInfo> ret = new ArrayList<>();
-      if (inode.isDirectory()) {
-        try (TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath)) {
-          try {
-            mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, inodePath);
-          } catch (AccessControlException e) {
-            auditContext.setAllowed(false);
-            throw e;
-          }
-          for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-            child.lockReadAndCheckParent(inode);
-            try {
-              // the path to child for getPath should already be locked.
-              tempInodePath.setDescendant(child, mInodeTree.getPath(child));
-              ret.add(getFileInfoInternal(tempInodePath));
-            } finally {
-              child.unlockRead();
-            }
-          }
-        }
-      } else {
-        ret.add(getFileInfoInternal(inodePath));
+      DescendantType descendantTypeForListStatus = (listStatusOptions.isRecursive())
+          ? DescendantType.ALL : DescendantType.ONE;
+      listStatusInternal(inodePath, auditContext, descendantTypeForListStatus, ret);
+
+      // If we are listing the status of a directory, we remove the directory info that we inserted
+      if (inode.isDirectory() && ret.size() >= 1) {
+        ret.remove(ret.size() - 1);
       }
+
       auditContext.setSucceeded(true);
       Metrics.FILE_INFOS_GOT.inc();
       return ret;
     }
+  }
+
+  /**
+   * Lists the status of the path in {@link LockedInodePath}, possibly recursively depending on
+   * the descendantType. The result is returned via a list specified by statusList, in postorder
+   * traversal order.
+   *
+   * @param currInodePath the inode path to find the status
+   * @param auditContext the audit context to return any access exceptions
+   * @param descendantType if the currInodePath is a directory, how many levels of its descendant
+   *                       should be returned
+   * @param statusList To be populated with the status of the files and directories requested
+   * @throws AccessControlException if the path can not be read by the user
+   * @throws FileDoesNotExistException if the path does not exist
+   * @throws UnavailableException if the service is temporarily unavailable
+   */
+  private void listStatusInternal(LockedInodePath currInodePath,
+                                  AuditContext auditContext,
+                                  DescendantType descendantType,
+                                  List<FileInfo> statusList)
+      throws FileDoesNotExistException, UnavailableException, AccessControlException {
+    Inode<?> inode = currInodePath.getInode();
+    if (inode.isDirectory()) {
+      try {
+        // TODO(david): Return the error message when we do not have permission
+        mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, currInodePath);
+      } catch (AccessControlException e) {
+        auditContext.setAllowed(false);
+        if (descendantType == DescendantType.ALL) {
+          return;
+        } else {
+          throw e;
+        }
+      }
+      if (descendantType != DescendantType.NONE) {
+        DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
+            ? DescendantType.ALL : DescendantType.NONE;
+        for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
+          // TODO(david): Make extending InodePath more efficient
+          try (LockedInodePath childInodePath = mInodeTree.lockFullInodePath(child.getId(),
+              InodeTree.LockMode.READ)) {
+            listStatusInternal(childInodePath, auditContext,
+                nextDescendantType, statusList);
+          } catch (FileDoesNotExistException e) {
+            LOG.debug("ListStatus failed for path {} because file does not exist",
+                mInodeTree.getPath(child).getPath(), e);
+          } catch (UnavailableException e) {
+            LOG.debug("ListStatus failed for path {} because service is not available",
+                mInodeTree.getPath(child).getPath(), e);
+          } catch (AccessControlException e) {
+            LOG.debug("ListStatus failed for path {} because user does not have access",
+                mInodeTree.getPath(child).getPath(), e);
+          }
+        }
+      }
+    }
+    statusList.add(getFileInfoInternal(currInodePath));
   }
 
   /**

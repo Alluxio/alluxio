@@ -43,21 +43,6 @@ public class MountPointInfo implements Serializable {
   public MountPointInfo() {}
 
   /**
-   * Creates a new instance of {@link MountPointInfo} from thrift representation.
-   *
-   * @param mountPointInfo the thrift representation of a mount point information
-   */
-  protected MountPointInfo(alluxio.thrift.MountPointInfo mountPointInfo) {
-    mUfsUri = mountPointInfo.getUfsUri();
-    mUfsType = mountPointInfo.getUfsType();
-    mUfsCapacityBytes = mountPointInfo.getUfsCapacityBytes();
-    mUfsUsedBytes = mountPointInfo.getUfsUsedBytes();
-    mReadOnly = mountPointInfo.isReadOnly();
-    mProperties = new HashMap<>(mountPointInfo.getProperties());
-    mShared = mountPointInfo.isShared();
-  }
-
-  /**
    * @return the uri of the under filesystem
    */
   public String getUfsUri() {
@@ -172,9 +157,26 @@ public class MountPointInfo implements Serializable {
   /**
    * @return thrift representation of the file information
    */
-  protected alluxio.thrift.MountPointInfo toThrift() {
+  public alluxio.thrift.MountPointInfo toThrift() {
     return new alluxio.thrift.MountPointInfo(mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes,
         mReadOnly, mProperties, mShared);
+  }
+
+  /**
+   * Creates a new instance of {@link MountPointInfo} from thrift representation.
+   *
+   * @param info the thrift representation of a mount point information
+   * @return the instance
+   */
+  public static MountPointInfo fromThrift(alluxio.thrift.MountPointInfo info) {
+    return new MountPointInfo()
+        .setUfsUri(info.getUfsUri())
+        .setUfsType(info.getUfsType())
+        .setUfsCapacityBytes(info.getUfsCapacityBytes())
+        .setUfsUsedBytes(info.getUfsUsedBytes())
+        .setReadOnly(info.isReadOnly())
+        .setProperties(info.getProperties())
+        .setShared(info.isShared());
   }
 
   @Override

@@ -249,7 +249,7 @@ hive> select * from u_user;
 您可以在Alluxio项目目录中运行以下命令：
 
 ```bash
-$ checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
+$ integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
 ```
 
 您可以使用`-h`来显示有关该命令的有用信息。

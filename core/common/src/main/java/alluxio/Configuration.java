@@ -12,6 +12,8 @@
 package alluxio;
 
 import alluxio.PropertyKey.Template;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.Source;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.ConfigurationUtils;
@@ -33,10 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -64,108 +64,60 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
 
-  /** The source of a configuration property. */
-  public enum Source {
-    CLUSTER_DEFAULT,
-    DEFAULT,
-    HADOOP_CONF,
-    SITE_PROPERTY,
-    SYSTEM_PROPERTY,
-    UNKNOWN,
-  }
-
   /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
-  /** Map of properties. */
-  private static final ConcurrentHashMap<String, String> PROPERTIES = new ConcurrentHashMap<>();
-  /** Map of property sources. */
-  private static final ConcurrentHashMap<PropertyKey, Source> SOURCES = new ConcurrentHashMap<>();
+  /** Source of the truth of all property values (default or customized). */
+  private static final AlluxioProperties PROPERTIES = new AlluxioProperties();
+  /** Path of site properties file. */
   private static String sSitePropertyFile;
 
   static {
-    init();
-  }
-
-  static void init() {
-    init(null);
+    reset();
   }
 
   /**
-   * Initializes the default {@link Configuration}.
-   *
-   * The order of preference is (1) system properties, (2) properties in the specified file, (3)
-   * default property values.
+   * Resets {@link Configuration} back to the default one.
    */
-  static void init(Properties clusterProps) {
-    // Load cluster default
-    merge(clusterProps, Source.CLUSTER_DEFAULT);
-
-    // Load system properties
-    Properties systemProps = new Properties();
-    systemProps.putAll(System.getProperties());
-
-    // Now lets combine, order matters here
+  public static void reset() {
+    // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio.home
+    // (likely to be in system properties) to locate the conf dir to search for the site property
+    // file.
     PROPERTIES.clear();
-    SOURCES.clear();
-    merge(systemProps, Source.SYSTEM_PROPERTY);
-
-    // Load site specific properties file if not in test mode. Note that we decide whether in test
-    // mode by default properties and system properties (via getBoolean). If it is not in test mode
-    // the PROPERTIES will be updated again.
-    if (!getBoolean(PropertyKey.TEST_MODE)) {
-      String confPaths = get(PropertyKey.SITE_CONF_DIR);
-      String[] confPathList = confPaths.split(",");
-      sSitePropertyFile =
-          ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
-      Properties siteProps;
-      if (sSitePropertyFile != null) {
-        siteProps = ConfigurationUtils.loadPropertiesFromFile(sSitePropertyFile);
-        LOG.info("Configuration file {} loaded.", sSitePropertyFile);
-      } else {
-        siteProps = ConfigurationUtils.loadPropertiesFromResource(Constants.SITE_PROPERTIES);
-      }
-      if (siteProps != null) {
-        // Update site properties and system properties in order
-        merge(clusterProps, Source.CLUSTER_DEFAULT);
-        merge(siteProps, Source.SITE_PROPERTY);
-        merge(systemProps, Source.SYSTEM_PROPERTY);
-      }
+    PROPERTIES.merge(System.getProperties(), Source.SYSTEM_PROPERTY);
+    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+      validate();
+      return;
     }
 
+    // Step2: Load site specific properties file if not in test mode. Note that we decide whether in
+    // test mode by default properties and system properties (via getBoolean).
+    Properties siteProps;
+    // we are not in test mode, load site properties
+    String confPaths = Configuration.get(PropertyKey.SITE_CONF_DIR);
+    String[] confPathList = confPaths.split(",");
+    sSitePropertyFile =
+        ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
+    if (sSitePropertyFile != null) {
+      siteProps = ConfigurationUtils.loadPropertiesFromFile(sSitePropertyFile);
+    } else {
+      siteProps = ConfigurationUtils.loadPropertiesFromResource(Constants.SITE_PROPERTIES);
+    }
+    PROPERTIES.merge(siteProps, Source.SITE_PROPERTY);
     validate();
   }
 
   /**
-   * Merges the current configuration properties with alternate properties. A property from the new
-   * configuration wins if it also appears in the current configuration.
+   * Merges the current configuration properties with new properties. If a property exists
+   * both in the new and current configuration, the one from the new configuration wins if
+   * its priority is higher or equal than the existing one.
    *
-   * @param properties The source {@link Properties} to be merged
-   * @param source The source of the the properties (e.g., system property, default and etc)
+   * @param properties the source {@link Properties} to be merged
+   * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public static void merge(Map<?, ?> properties, Source source) {
-    if (properties != null) {
-      // merge the properties
-      for (Map.Entry<?, ?> entry : properties.entrySet()) {
-        String key = entry.getKey().toString().trim();
-        String value = entry.getValue().toString().trim();
-        if (PropertyKey.isValid(key)) {
-          PropertyKey propertyKey = PropertyKey.fromString(key);
-          // Get the true name for the property key in case it is an alias.
-          PROPERTIES.put(propertyKey.getName(), value);
-          SOURCES.put(propertyKey, source);
-        } else {
-          // Add unrecognized properties
-          LOG.debug("Property {} from source {} is unrecognized", key, source);
-          // Workaround for issue https://alluxio.atlassian.net/browse/ALLUXIO-3108
-          // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuraton
-          // is made dynamic
-          PROPERTIES.put(key, value);
-          SOURCES.put(new PropertyKey.Builder(key).build(), source);
-        }
-      }
-    }
+    PROPERTIES.merge(properties, source);
   }
 
   // Public accessor methods
@@ -178,7 +130,7 @@ public final class Configuration {
   public static void set(PropertyKey key, Object value) {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
-    PROPERTIES.put(key.toString(), value.toString());
+    PROPERTIES.put(key, String.valueOf(value), Source.RUNTIME);
   }
 
   /**
@@ -188,7 +140,7 @@ public final class Configuration {
    */
   public static void unset(PropertyKey key) {
     Preconditions.checkNotNull(key, "key");
-    PROPERTIES.remove(key.toString());
+    PROPERTIES.remove(key);
   }
 
   /**
@@ -199,7 +151,7 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key) {
-    String rawValue = lookupNonRecursively(key.toString());
+    String rawValue = PROPERTIES.get(key);
     if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
@@ -208,13 +160,13 @@ public final class Configuration {
   }
 
   /**
-   * Checks if the configuration contains the given key.
+   * Checks if the configuration contains value for the given key.
    *
    * @param key the key to check
-   * @return true if the key is in the {@link Properties}, false otherwise
+   * @return true if there is value for the key, false otherwise
    */
   public static boolean containsKey(PropertyKey key) {
-    return PROPERTIES.containsKey(key.toString()) || key.getDefaultValue() != null;
+    return PROPERTIES.hasValueSet(key);
   }
 
   /**
@@ -405,8 +357,8 @@ public final class Configuration {
    */
   public static Map<String, String> getNestedProperties(PropertyKey prefixKey) {
     Map<String, String> ret = Maps.newHashMap();
-    for (Map.Entry<String, String> entry: PROPERTIES.entrySet()) {
-      String key = entry.getKey();
+    for (Map.Entry<PropertyKey, String> entry: PROPERTIES.entrySet()) {
+      String key = entry.getKey().getName();
       if (prefixKey.isNested(key)) {
         String suffixKey = key.substring(prefixKey.length() + 1);
         ret.put(suffixKey, entry.getValue());
@@ -425,6 +377,8 @@ public final class Configuration {
       String value = entry.getValue();
       if (value != null) {
         map.put(entry.getKey(), lookup(value));
+      } else {
+        map.put(entry.getKey(), value);
       }
     }
     return map;
@@ -435,15 +389,9 @@ public final class Configuration {
    *         including all default properties
    */
   public static Map<String, String> toRawMap() {
-    Map<String, String> map = new HashMap<>(PROPERTIES);
-    for (PropertyKey key : PropertyKey.defaultKeys()) {
-      String keyName = key.getName();
-      String defaultValue = key.getDefaultValue();
-      if (!map.containsKey(keyName) && defaultValue != null) {
-        map.put(keyName, defaultValue);
-      }
-    }
-    return map;
+    Map<String, String> rawMap = new HashMap<>();
+    PROPERTIES.forEach((key, value) -> rawMap.put(key.getName(), value));
+    return rawMap;
   }
 
   /**
@@ -463,6 +411,7 @@ public final class Configuration {
    * @param seen strings already seen during this lookup, used to prevent unbound recursion
    * @return the resolved string
    */
+  @Nullable
   private static String lookupRecursively(String base, Set<String> seen) {
     // check argument
     if (base == null) {
@@ -478,7 +427,10 @@ public final class Configuration {
       if (!seen.add(match)) {
         throw new RuntimeException("Circular dependency found while resolving " + match);
       }
-      String value = lookupRecursively(lookupNonRecursively(match), seen);
+      if (!PropertyKey.isValid(match)) {
+        throw new RuntimeException("Invalid property key " + match);
+      }
+      String value = lookupRecursively(PROPERTIES.get(PropertyKey.fromString(match)), seen);
       seen.remove(match);
       if (value == null) {
         throw new RuntimeException("No value specified for configuration property " + match);
@@ -490,27 +442,11 @@ public final class Configuration {
   }
 
   /**
-   * Looks up a property without resolving ${key} stuff.
-   *
-   * @param property the property name
-   */
-  private static String lookupNonRecursively(String property) {
-    if (PROPERTIES.containsKey(property)) {
-      return PROPERTIES.get(property);
-    }
-    if (!PropertyKey.isValid(property)) {
-      throw new RuntimeException("Invalid key encountered: " + property);
-    }
-    return PropertyKey.fromString(property).getDefaultValue();
-  }
-
-  /**
    * @param key the property key
    * @return the source for the given key
    */
   public static Source getSource(PropertyKey key) {
-    Source source = SOURCES.get(key);
-    return (source == null) ? Source.DEFAULT : source;
+    return PROPERTIES.getSource(key);
   }
 
   /**
@@ -595,14 +531,13 @@ public final class Configuration {
     // Check that any custom tiers set by alluxio.locality.{custom_tier}=value are also defined in
     // the tier ordering defined by alluxio.locality.order.
     Set<String> tiers = Sets.newHashSet(getList(PropertyKey.LOCALITY_ORDER, ","));
-    Set<String> predefinedKeys =
-        PropertyKey.defaultKeys().stream().map(PropertyKey::getName).collect(Collectors.toSet());
-    for (String key : PROPERTIES.keySet()) {
+    Set<PropertyKey> predefinedKeys = new HashSet<>(PropertyKey.defaultKeys());
+    for (PropertyKey key : PROPERTIES.keySet()) {
       if (predefinedKeys.contains(key)) {
         // Skip non-templated keys.
         continue;
       }
-      Matcher matcher = Template.LOCALITY_TIER.match(key);
+      Matcher matcher = Template.LOCALITY_TIER.match(key.toString());
       if (matcher.matches() && matcher.group(1) != null) {
         String tierName = matcher.group(1);
         if (!tiers.contains(tierName)) {
@@ -625,7 +560,7 @@ public final class Configuration {
       Preconditions.checkState(PropertyKey.isValid(propertyName), propertyName);
       PropertyKey propertyKey = PropertyKey.fromString(propertyName);
       Preconditions.checkState(
-          SOURCES.get(propertyKey) != Source.SITE_PROPERTY || !propertyKey.isIgnoredSiteProperty(),
+          getSource(propertyKey) != Source.SITE_PROPERTY || !propertyKey.isIgnoredSiteProperty(),
           "%s is not accepted in alluxio-site.properties, "
               + "and must be specified as a JVM property. "
               + "If no JVM property is present, Alluxio will use default value '%s'.", propertyName,

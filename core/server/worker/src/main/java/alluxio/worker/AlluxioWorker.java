@@ -43,13 +43,12 @@ public final class AlluxioWorker {
     }
 
     if (!ConfigurationUtils.masterHostConfigured()) {
-      System.out.println(String.format(
+      ProcessUtils.fatalError(LOG,
           "Cannot run alluxio worker; master hostname is not "
               + "configured. Please modify %s to either set %s or configure zookeeper with "
               + "%s=true and %s=[comma-separated zookeeper master addresses]",
           Constants.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
-          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString()));
-      System.exit(1);
+          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString());
     }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.WORKER);
