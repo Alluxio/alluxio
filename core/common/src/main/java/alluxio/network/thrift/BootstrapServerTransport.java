@@ -23,6 +23,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+/**
+ * The server side of bootstrap transport. This transport can fallback to the real RPC transport
+ * if the magic number is not found in the message header.
+ */
 public class BootstrapServerTransport extends BootstrapTransport {
   private static final Logger LOG = LoggerFactory.getLogger(BootstrapServerTransport.class);
 
@@ -63,7 +67,7 @@ public class BootstrapServerTransport extends BootstrapTransport {
   }
 
   /**
-   * Factory to create <code>MultiplexServerTransport</code> instance on server side.
+   * Factory to create <code>BootstrapServerTransport</code> instance on server side.
    */
   public static class Factory extends TTransportFactory {
     /**

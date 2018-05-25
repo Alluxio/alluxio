@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A transport that is the wrapper of two different types of transports.
+ * A transport that can support bootstrap.
  */
 public abstract class BootstrapTransport extends TTransport {
   private static final Logger LOG = LoggerFactory.getLogger(BootstrapTransport.class);
@@ -27,9 +27,11 @@ public abstract class BootstrapTransport extends TTransport {
   /** The logic transport to work on, can be base transport or the real transport. */
   protected TTransport mTransport;
 
-  protected static final int BOOTSTRAP_HEADER_LENGTH = 8;
+  /** The magic number to look for in message header to indicate this is a bootstrap rpc. */
   protected static final byte[] BOOTSTRAP_HEADER = new byte[] {127, -128, 34, 12, -120, 22, -37,
       85};
+  /** The size of this magic number in bytes. */
+  protected static final int BOOTSTRAP_HEADER_LENGTH = 8;
 
   public BootstrapTransport(TTransport baseTransport) {
     mUnderlyingTransport = new PeekableTransport(baseTransport);
@@ -70,6 +72,4 @@ public abstract class BootstrapTransport extends TTransport {
     }
     mTransport.flush();
   }
-
-
 }

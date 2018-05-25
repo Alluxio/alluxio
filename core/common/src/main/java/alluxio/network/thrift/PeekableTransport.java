@@ -26,6 +26,9 @@ public class PeekableTransport extends TTransport {
   private int mPos;
   private int mBufferSize;
 
+  /**
+   * @param baseTransport the base transport to peek
+   */
   public PeekableTransport(TTransport baseTransport) {
     mUnderlyingTransport = baseTransport;
   }
@@ -68,6 +71,16 @@ public class PeekableTransport extends TTransport {
     mUnderlyingTransport.flush();
   }
 
+  /**
+   * Peaks up to len bytes into buffer buf, starting at offset off. This method will not change the
+   * underlying position of the read stream.
+   *
+   * @param buf Array to read into
+   * @param off Index to start reading at
+   * @param len Maximum number of bytes to read
+   * @return The number of bytes actually read
+   * @throws TTransportException if there was an error reading data
+   */
   public int peek(byte[] buf, int off, int len) throws TTransportException {
     Preconditions.checkState(mBuffer == null, "Currently we only support peek once");
     int bytesRead = mUnderlyingTransport.read(buf, off, len);
@@ -80,14 +93,25 @@ public class PeekableTransport extends TTransport {
     return bytesRead;
   }
 
+  /**
+   * @return current buffer position
+   */
   public int getBufferPosition() {
     return mPos;
   }
 
+  /**
+   * @return the number of bytes left in buffer
+   */
   public int getBytesRemainingInBuffer() {
     return mBufferSize - mPos;
   }
 
+  /**
+   * Consumes len bytes from the buffer.
+   *
+   * @param len number of bytes to consume
+   */
   public void consumeBuffer(int len) {
     mPos += len;
   }
