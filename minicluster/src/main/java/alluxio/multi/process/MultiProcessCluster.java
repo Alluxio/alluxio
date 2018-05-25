@@ -655,11 +655,13 @@ public final class MultiProcessCluster implements TestRule {
      */
     public MultiProcessCluster build() {
       Preconditions.checkState(mMasterProperties.keySet()
-              .stream().filter(key -> key >= mNumMasters).count() == 0,
-          "The master indexes in master properties should be small than %s", mNumMasters);
+              .stream().filter(key -> (key >= mNumMasters || key < 0)).count() == 0,
+          "The master indexes in master properties should be bigger or equal to zero "
+              + "and small than %s", mNumMasters);
       Preconditions.checkState(mWorkerProperties.keySet()
-              .stream().filter(key -> key >= mNumWorkers).count() == 0,
-          "The worker indexes in worker properties should be small than %s", mNumWorkers);
+              .stream().filter(key ->  (key >= mNumWorkers || key < 0)).count() == 0,
+          "The worker indexes in worker properties should be bigger or equal to zero "
+              + "and small than %s", mNumWorkers);
       return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
           mNumMasters, mNumWorkers, mClusterName, mDeployMode);
     }
