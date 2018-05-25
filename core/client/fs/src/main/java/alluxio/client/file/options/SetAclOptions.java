@@ -106,6 +106,7 @@ public final class SetAclOptions {
    */
   public SetAclTOptions toThrift() {
     SetAclTOptions options = new SetAclTOptions();
+    options.setCommonOptions(mCommonOptions.toThrift());
     options.setRecursive(mRecursive);
     return options;
   }

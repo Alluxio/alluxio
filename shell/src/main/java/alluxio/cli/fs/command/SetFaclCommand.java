@@ -25,6 +25,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -92,27 +93,45 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
       options.setRecursive(true);
     }
 
+    List<AclEntry> entries = Collections.emptyList();
+    SetAclAction action = SetAclAction.REPLACE;
+
+    List<String> specifiedActions = new ArrayList<>(1);
+
     if (cl.hasOption(SET_OPTION.getLongOpt())) {
+      specifiedActions.add(SET_OPTION.getLongOpt());
+      action = SetAclAction.REPLACE;
       String aclList = cl.getOptionValue(SET_OPTION.getLongOpt());
-      List<AclEntry> entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
+      entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
           .collect(Collectors.toList());
-      mFileSystem.setAcl(path, SetAclAction.REPLACE, entries, options);
-    } else if (cl.hasOption(MODIFY_OPTION.getOpt())) {
-      String aclList = cl.getOptionValue(MODIFY_OPTION.getOpt());
-      List<AclEntry> entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
-          .collect(Collectors.toList());
-      mFileSystem.setAcl(path, SetAclAction.MODIFY, entries, options);
-    } else if (cl.hasOption(REMOVE_OPTION.getOpt())) {
-      String aclList = cl.getOptionValue(REMOVE_OPTION.getOpt());
-      List<AclEntry> entries =
-          Arrays.stream(aclList.split(",")).map(AclEntry::fromCliStringWithoutPermissions)
-              .collect(Collectors.toList());
-      mFileSystem.setAcl(path, SetAclAction.REMOVE, entries, options);
-    } else if (cl.hasOption(REMOVE_ALL_OPTION.getOpt())) {
-      mFileSystem.setAcl(path, SetAclAction.REMOVE_ALL, Collections.emptyList(), options);
-    } else {
-      throw new IllegalArgumentException("nothing to execute.");
     }
+    if (cl.hasOption(MODIFY_OPTION.getOpt())) {
+      specifiedActions.add(MODIFY_OPTION.getOpt());
+      action = SetAclAction.MODIFY;
+      String aclList = cl.getOptionValue(MODIFY_OPTION.getOpt());
+      entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
+          .collect(Collectors.toList());
+    }
+    if (cl.hasOption(REMOVE_OPTION.getOpt())) {
+      specifiedActions.add(REMOVE_OPTION.getOpt());
+      action = SetAclAction.REMOVE;
+      String aclList = cl.getOptionValue(REMOVE_OPTION.getOpt());
+      entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliStringWithoutPermissions)
+          .collect(Collectors.toList());
+    }
+    if (cl.hasOption(REMOVE_ALL_OPTION.getOpt())) {
+      specifiedActions.add(REMOVE_ALL_OPTION.getOpt());
+      action = SetAclAction.REMOVE_ALL;
+    }
+
+    if (specifiedActions.isEmpty()) {
+      throw new IllegalArgumentException("No actions specified.");
+    } else if (specifiedActions.size() > 1) {
+      throw new IllegalArgumentException(
+          "Only 1 action can be specified: " + String.join(", ", specifiedActions));
+    }
+
+    mFileSystem.setAcl(path, action, entries, options);
   }
 
   @Override
