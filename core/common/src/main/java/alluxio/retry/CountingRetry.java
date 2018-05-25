@@ -30,7 +30,7 @@ public class CountingRetry implements RetryPolicy {
    * @param maxRetries max number of retries
    */
   public CountingRetry(int maxRetries) {
-    Preconditions.checkArgument(maxRetries >= 0, "Max retries must be a positive number");
+    Preconditions.checkArgument(maxRetries >= 0, "Max retries must be a non-negative number");
     mMaxRetries = maxRetries;
   }
 
