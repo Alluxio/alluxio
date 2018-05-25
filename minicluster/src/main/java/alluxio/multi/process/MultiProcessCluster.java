@@ -225,13 +225,13 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
-   * Wait for the number of live workers in worker configuration store
-   * reached the worker number of this cluster.
+   * Waits for the number of live nodes in server configuration store
+   * reached the number of nodes in this cluster and gets meta master client.
    *
    * @param timeoutMs maximum amount of time to wait, in milliseconds
    * @return  the meta master client
    */
-  public synchronized MetaMasterClient waitForNodeNumAndGetClient(int timeoutMs) {
+  public synchronized MetaMasterClient waitForAllNodesRegistered(int timeoutMs) {
     final MetaMasterClient metaMasterClient = getMetaMasterClient();
     CommonUtils.waitFor("all nodes registered", new Function<Void, Boolean>() {
       @Override
@@ -267,7 +267,7 @@ public final class MultiProcessCluster implements TestRule {
    */
   public synchronized MetaMasterClient getMetaMasterClient() {
     Preconditions.checkState(mState == State.STARTED,
-        "must be in the started state to get an fs client, but state was %s", mState);
+        "must be in the started state to get a meta master client, but state was %s", mState);
     return new RetryHandlingMetaMasterClient(new MasterClientConfig()
         .withMasterInquireClient(getMasterInquireClient()));
   }
@@ -447,7 +447,7 @@ public final class MultiProcessCluster implements TestRule {
     }
   }
 
-  private synchronized MasterInquireClient getMasterInquireClient() {
+  private MasterInquireClient getMasterInquireClient() {
     switch (mDeployMode) {
       case NON_HA:
         Preconditions.checkState(mMasters.size() == 1,
@@ -467,31 +467,15 @@ public final class MultiProcessCluster implements TestRule {
    * Writes the contents of properties to the configuration file.
    */
   private void writeConf() throws IOException {
-    StringBuilder commonPropBuilder = new StringBuilder();
-    for (Entry<PropertyKey, String> entry : mProperties.entrySet()) {
-      commonPropBuilder.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
-    }
-    String commonProperties = commonPropBuilder.toString();
-
     for (int i = 0; i < mNumMasters; i++) {
       File confDir = new File(mWorkDir, "conf-master" + i);
-      StringBuilder sb = new StringBuilder(commonProperties);
-      if (mMasterProperties.containsKey(i)) {
-        for (Entry<PropertyKey, String> entry : mMasterProperties.get(i).entrySet()) {
-          sb.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
-        }
-      }
-      writeConfToFile(confDir, sb.toString());
+      writeConfToFile(confDir, mMasterProperties.containsKey(i)
+          ? mMasterProperties.get(i) : new HashMap<>());
     }
     for (int i = 0; i < mNumWorkers; i++) {
       File confDir = new File(mWorkDir, "conf-worker" + i);
-      StringBuilder sb = new StringBuilder(commonProperties);
-      if (mWorkerProperties.containsKey(i)) {
-        for (Entry<PropertyKey, String> entry : mWorkerProperties.get(i).entrySet()) {
-          sb.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
-        }
-      }
-      writeConfToFile(confDir, sb.toString());
+      writeConfToFile(confDir, mWorkerProperties.containsKey(i)
+          ? mWorkerProperties.get(i) : new HashMap<>());
     }
   }
 
@@ -528,13 +512,24 @@ public final class MultiProcessCluster implements TestRule {
    * Writes the properties to the generated file.
    *
    * @param dir the conf directory to create
-   * @param content the content to write to the conf file
+   * @param properties the specific properties of the current node
    */
-  private void writeConfToFile(File dir, String content) throws IOException {
+  private void writeConfToFile(File dir, Map<PropertyKey, String> properties) throws IOException {
+    // Generates the full set of properties to write
+    Map<PropertyKey, String> map = new HashMap<>(mProperties);
+    for (Map.Entry<PropertyKey, String> entry : properties.entrySet()) {
+      map.put(entry.getKey(), entry.getValue());
+    }
+
+    StringBuilder sb = new StringBuilder();
+    for (Entry<PropertyKey, String> entry : map.entrySet()) {
+      sb.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
+    }
+
     dir.mkdirs();
     try (FileOutputStream fos
-             = new FileOutputStream(new File(dir, "alluxio-site.properties"))) {
-      fos.write(content.getBytes(Charsets.UTF_8));
+        = new FileOutputStream(new File(dir, "alluxio-site.properties"))) {
+      fos.write(sb.toString().getBytes(Charsets.UTF_8));
     }
   }
 

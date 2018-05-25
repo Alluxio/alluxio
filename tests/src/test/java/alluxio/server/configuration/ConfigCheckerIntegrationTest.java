@@ -50,10 +50,11 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
     try {
       cluster.start();
       MetaMasterClient client = cluster
-          .waitForNodeNumAndGetClient(30 * Constants.SECOND_MS);
+          .waitForAllNodesRegistered(30 * Constants.SECOND_MS);
       Assert.assertEquals(TEST_NUM_MASTERS, client.getMasterInfo(
           new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.CONF_MASTER_NUM)))
           .getConfMasterNum());
+      cluster.notifySuccess();
     } finally {
       cluster.destroy();
     }
@@ -69,10 +70,15 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setNumWorkers(TEST_NUM_WORKERS)
         .setWorkerProperties(workerProperties)
         .build();
+
     try {
       cluster.start();
       MetaMasterClient client = cluster
-          .waitForNodeNumAndGetClient(30 * Constants.SECOND_MS);
+          .waitForAllNodesRegistered(30 * Constants.SECOND_MS);
+
+      Assert.assertEquals(1, client.getMasterInfo(
+          new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.CONF_MASTER_NUM)))
+          .getConfMasterNum());
       Assert.assertEquals(TEST_NUM_WORKERS, client.getMasterInfo(
           new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.CONF_WORKER_NUM)))
           .getConfWorkerNum());
@@ -84,6 +90,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void MultiNodes() throws Exception {
+    // Prepare properties
     Map<Integer, Map<PropertyKey, String>> properties = generateProperties(
         TEST_NUM_MASTERS + TEST_NUM_WORKERS, PropertyKey.Scope.SERVER);
     Map<Integer, Map<PropertyKey, String>> masterProperties = properties.entrySet().stream()
@@ -92,6 +99,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
     Map<Integer, Map<PropertyKey, String>> workerProperties = properties.entrySet().stream()
         .filter(entry -> (entry.getKey() >= TEST_NUM_MASTERS))
         .collect(Collectors.toMap(entry -> entry.getKey() - TEST_NUM_MASTERS, Map.Entry::getValue));
+
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setClusterName("ConfigCheckerMultiNodesTest")
         .setNumMasters(TEST_NUM_MASTERS)
@@ -100,10 +108,12 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setMasterProperties(masterProperties)
         .setWorkerProperties(workerProperties)
         .build();
+
     try {
       cluster.start();
-      MetaMasterClient client = cluster.waitForNodeNumAndGetClient(
+      MetaMasterClient client = cluster.waitForAllNodesRegistered(
           30 * Constants.SECOND_MS);
+
       Assert.assertEquals(TEST_NUM_MASTERS, client.getMasterInfo(
           new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.CONF_MASTER_NUM)))
           .getConfMasterNum());
@@ -126,7 +136,8 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
   private Map<Integer, Map<PropertyKey, String>> generateProperties(int nodeNum,
       Scope scope) {
     Map<Integer, Map<PropertyKey, String>> properties = new HashMap<>();
-    PropertyKey key = scope.equals(Scope.MASTER) ? PropertyKey.MASTER_SERVING_THREAD_TIMEOUT
+    // Choose some example properties
+    PropertyKey key = scope.equals(Scope.MASTER) ? PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS
         : scope.equals(Scope.WORKER) ? PropertyKey.WORKER_FREE_SPACE_TIMEOUT
         : PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS;
     for (int i = 0; i < nodeNum; i++) {
