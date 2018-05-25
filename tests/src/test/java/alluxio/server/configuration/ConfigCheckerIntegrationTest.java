@@ -39,7 +39,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void MultiMasters() throws Exception {
     Map<Integer, Map<PropertyKey, String>> masterProperties
-        = generateProperties(TEST_NUM_MASTERS, PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
+        = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setClusterName("ConfigCheckerMultiMastersTest")
         .setNumMasters(TEST_NUM_MASTERS)
@@ -63,7 +63,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void MultiWorkers() throws Exception {
     Map<Integer, Map<PropertyKey, String>> workerProperties
-        = generateProperties(TEST_NUM_WORKERS, PropertyKey.WORKER_FREE_SPACE_TIMEOUT);
+        = generatePropertyWithDifferentValues(TEST_NUM_WORKERS, PropertyKey.WORKER_FREE_SPACE_TIMEOUT);
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setClusterName("ConfigCheckerMultiWorkersTest")
         .setNumMasters(1)
@@ -91,7 +91,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void MultiNodes() throws Exception {
     // Prepare properties
-    Map<Integer, Map<PropertyKey, String>> properties = generateProperties(
+    Map<Integer, Map<PropertyKey, String>> properties = generatePropertyWithDifferentValues(
         TEST_NUM_MASTERS + TEST_NUM_WORKERS, PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS);
     Map<Integer, Map<PropertyKey, String>> masterProperties = properties.entrySet().stream()
         .filter(entry -> (entry.getKey() < TEST_NUM_MASTERS))
@@ -129,11 +129,11 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
    * Generates a map that different nodes contain different values for one property.
    *
    * @param nodeNum the number of nodes to test
-   * @param key the property key to generate values
+   * @param key the time-related property key to generate values
    * @return generated properties
    */
-  private Map<Integer, Map<PropertyKey, String>> generateProperties(int nodeNum,
-      PropertyKey key) {
+  private Map<Integer, Map<PropertyKey, String>> generatePropertyWithDifferentValues(
+      int nodeNum,PropertyKey key) {
     Map<Integer, Map<PropertyKey, String>> properties = new HashMap<>();
     for (int i = 0; i < nodeNum; i++) {
       Map<PropertyKey, String> prop = new HashMap<>();

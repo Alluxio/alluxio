@@ -469,13 +469,11 @@ public final class MultiProcessCluster implements TestRule {
   private void writeConf() throws IOException {
     for (int i = 0; i < mNumMasters; i++) {
       File confDir = new File(mWorkDir, "conf-master" + i);
-      writeConfToFile(confDir, mMasterProperties.containsKey(i)
-          ? mMasterProperties.get(i) : new HashMap<>());
+      writeConfToFile(confDir, mMasterProperties.getOrDefault(i, new HashMap<>()));
     }
     for (int i = 0; i < mNumWorkers; i++) {
       File confDir = new File(mWorkDir, "conf-worker" + i);
-      writeConfToFile(confDir, mWorkerProperties.containsKey(i)
-          ? mWorkerProperties.get(i) : new HashMap<>());
+      writeConfToFile(confDir, mWorkerProperties.getOrDefault(i, new HashMap<>()));
     }
   }
 
@@ -593,7 +591,7 @@ public final class MultiProcessCluster implements TestRule {
     /**
      * Sets master specific properties.
      * The keys of the properties are the indexes of masters
-     * which are numbers between 0 to the number of masters(not included).
+     * which are numbers between 0 to the number of masters (exclusive).
      *
      * @param properties the master properties to set
      * @return the builder
@@ -606,7 +604,7 @@ public final class MultiProcessCluster implements TestRule {
     /**
      * Sets worker specific properties.
      * The keys of the properties are the indexes of workers
-     * which are numbers between 0 to the number of workers(not included).
+     * which are numbers between 0 to the number of workers (exclusive).
      *
      * @param properties the worker properties to set
      * @return the builder
@@ -656,6 +654,12 @@ public final class MultiProcessCluster implements TestRule {
      * @return a constructed {@link MultiProcessCluster}
      */
     public MultiProcessCluster build() {
+      Preconditions.checkState(mMasterProperties.keySet()
+              .stream().filter(key -> key >= mNumMasters).count() == 0,
+          "The master indexes in master properties should be small than %s", mNumMasters);
+      Preconditions.checkState(mWorkerProperties.keySet()
+              .stream().filter(key -> key >= mNumWorkers).count() == 0,
+          "The worker indexes in worker properties should be small than %s", mNumWorkers);
       return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
           mNumMasters, mNumWorkers, mClusterName, mDeployMode);
     }
