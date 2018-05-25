@@ -13,8 +13,7 @@
 <%@ page import="java.util.*" %>
 <%@ page import="java.lang.*" %>
 <%@ page import="alluxio.web.*" %>
-<%@ page import="alluxio.PropertyKey.*" %>
-<%@ page import="alluxio.master.meta.checkconf.*" %>
+<%@ page import="alluxio.wire.*" %>
 
 <html>
 <head>
@@ -74,9 +73,9 @@
                 <% } %>
                 <tr>
                   <th>Server Configuration Check:</th>
-                  <% ServerConfigurationChecker.ConfigCheckReport configReport = ((ServerConfigurationChecker.ConfigCheckReport) request.getAttribute("configCheckReport")); %>
-                  <% ServerConfigurationChecker.Status status = (ServerConfigurationChecker.Status) request.getAttribute("configCheckStatus");%>
-                  <% if (status.equals(ServerConfigurationChecker.Status.FAILED)) { %>
+                  <% ConfigCheckReport configReport = ((ConfigCheckReport) request.getAttribute("configCheckReport")); %>
+                  <% ConfigCheckReport.ConfigStatus status = (ConfigCheckReport.ConfigStatus) request.getAttribute("configCheckStatus");%>
+                  <% if (status.equals(ConfigCheckReport.ConfigStatus.FAILED)) { %>
                     <th><font color="red"><%= status %><font color="red"></th>
                   <% } else { %>
                     <th><%= status %></th>
@@ -193,7 +192,7 @@
               <tbody>
                 <% if (errorSize != 0) { %>
                   <tr>
-                    <th colspan="3"> <font color="red">Errors (those properties are required to be same)</font></th>
+                    <th colspan="3"> <font color="red">Errors (those properties are required to be identical)</font></th>
                   </tr>
                   <% for (Map.Entry<Scope, List<InconsistentProperty>> error : ((Map<Scope, List<InconsistentProperty>>) request.getAttribute("configCheckErrors")).entrySet()) { %>
                     <% for (InconsistentProperty inconsistentProperty: error.getValue()) { %>
@@ -214,7 +213,7 @@
                 <% } %>
                 <% if (warnSize != 0) { %>
                   <tr>
-                    <th colspan="3">Warnings (those properties are recommended to be same)</th>
+                    <th colspan="3">Warnings (those properties are recommended to be identical)</th>
                   </tr>
                   <% for (Map.Entry<Scope, List<InconsistentProperty>> warn : ((Map<Scope, List<InconsistentProperty>>) request.getAttribute("configCheckWarns")).entrySet()) { %>
                     <% for (InconsistentProperty inconsistentProperty: warn.getValue()) { %>

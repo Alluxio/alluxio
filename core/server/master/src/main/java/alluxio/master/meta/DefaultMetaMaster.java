@@ -40,7 +40,9 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
+import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.Scope;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
@@ -194,7 +196,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     if (isPrimary) {
       // Add the configuration of the current leader master
       mMasterConfigStore.registerNewConf(mMasterAddress,
-          Configuration.getConfiguration(PropertyKey.Scope.MASTER));
+          Configuration.getConfiguration(Scope.MASTER));
 
       // The service that detects lost standby master nodes
       getExecutorService().submit(new HeartbeatThread(
@@ -214,7 +216,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public ServerConfigurationChecker.ConfigCheckReport getConfigCheckReport() {
+  public ConfigCheckReport getConfigCheckReport() {
     return mConfigChecker.getConfigCheckReport();
   }
 

@@ -16,10 +16,12 @@ import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.GetConfigReportTOptions;
 import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMetricsTOptions;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
@@ -74,6 +76,12 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   @Override
   protected void afterConnect() {
     mClient = new MetaMasterClientService.Client(mProtocol);
+  }
+
+  @Override
+  public synchronized ConfigCheckReport getConfigReport() throws IOException {
+    return retryRPC(() -> ConfigCheckReport.fromThrift(mClient
+        .getConfigReport(new GetConfigReportTOptions()).getReport()));
   }
 
   @Override

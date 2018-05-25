@@ -91,7 +91,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
 
   @Override
   public void checkPermission(Mode.Bits bits, LockedInodePath inodePath)
-      throws AccessControlException, InvalidPathException {
+      throws AccessControlException {
     if (!mPermissionCheckEnabled) {
       return;
     }

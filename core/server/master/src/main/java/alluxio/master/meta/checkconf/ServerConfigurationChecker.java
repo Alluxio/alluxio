@@ -12,9 +12,12 @@
 package alluxio.master.meta.checkconf;
 
 import alluxio.PropertyKey;
-import alluxio.PropertyKey.Scope;
 import alluxio.PropertyKey.ConsistencyCheckLevel;
 import alluxio.wire.Address;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigCheckReport.ConfigStatus;
+import alluxio.wire.InconsistentProperty;
+import alluxio.wire.Scope;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,74 +34,6 @@ public class ServerConfigurationChecker {
   private final ServerConfigurationStore mWorkerStore;
   /** Contain the checker results. */
   private ConfigCheckReport mConfigCheckReport;
-
-  /**
-   * Status of the check.
-   */
-  public enum Status {
-    PASSED, // do not have configuration errors and warnings
-    WARN, // do not have configuration errors but have warnings
-    FAILED, // have configuration errors
-    NOT_STARTED,
-  }
-
-  /**
-   * Represents a configuration report which records the configuration checker results.
-   * Since we check server-side configuration, Scope here only includes
-   * SERVER, MASTER and WORKER. Scope.ALL will be considered as Scope.SERVER.
-   */
-  public static final class ConfigCheckReport {
-    /** Record the configuration errors. */
-    private final Map<Scope, List<InconsistentProperty>> mConfigErrors;
-    /** Record the configuration warnings. */
-    private final Map<Scope, List<InconsistentProperty>> mConfigWarns;
-    /** Record the overall status of config check report. */
-    private final Status mStatus;
-
-    /**
-     * Creates a new instance of {@link ConfigCheckReport}.
-     */
-    private ConfigCheckReport() {
-      mConfigErrors = new HashMap<>();
-      mConfigWarns = new HashMap<>();
-      mStatus = Status.NOT_STARTED;
-    }
-
-    /**
-     * Creates a new instance of {@link ConfigCheckReport}.
-     *
-     * @param configErrors the configuration errors
-     * @param configWarns the configuration warnings
-     * @param status the overall report status
-     */
-    private ConfigCheckReport(Map<Scope, List<InconsistentProperty>> configErrors,
-        Map<Scope, List<InconsistentProperty>> configWarns, Status status) {
-      mConfigErrors = configErrors;
-      mConfigWarns = configWarns;
-      mStatus = status;
-    }
-
-    /**
-     * @return a map of configuration errors
-     */
-    public Map<Scope, List<InconsistentProperty>> getConfigErrors() {
-      return mConfigErrors;
-    }
-
-    /**
-     * @return a map of configuration warnings
-     */
-    public Map<Scope, List<InconsistentProperty>> getConfigWarns() {
-      return mConfigWarns;
-    }
-
-    /**
-     * @return the overall report status
-     */
-    public Status getStatus() {
-      return mStatus;
-    }
-  }
 
   /**
    * Constructs a new {@link ServerConfigurationChecker}.
@@ -142,8 +77,9 @@ public class ServerConfigurationChecker {
     }
 
     // Update configuration status
-    Status status = confErrors.values().stream().anyMatch(a -> a.size() > 0) ? Status.FAILED
-        : confWarns.values().stream().anyMatch(a -> a.size() > 0) ? Status.WARN : Status.PASSED;
+    ConfigStatus status = confErrors.values().stream().anyMatch(a -> a.size() > 0)
+        ? ConfigStatus.FAILED : confWarns.values().stream().anyMatch(a -> a.size() > 0)
+        ? ConfigStatus.WARN : ConfigStatus.PASSED;
 
     mConfigCheckReport = new ConfigCheckReport(confErrors, confWarns, status);
   }
