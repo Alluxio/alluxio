@@ -363,9 +363,8 @@ public class AlluxioMasterProcess implements MasterProcess {
     TTransportFactory transportFactory;
     try {
       String serverName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
-      transportFactory = new MultiplexServerTransport.Factory(mTransportProvider
-          .getServerTransportFactory(serverName));
-      //transportFactory = mTransportProvider.getServerTransportFactory(serverName);
+      transportFactory = new MultiplexServerTransport.Factory(
+          mTransportProvider.getServerTransportFactory(serverName));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

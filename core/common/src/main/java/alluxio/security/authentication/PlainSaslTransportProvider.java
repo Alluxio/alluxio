@@ -93,7 +93,7 @@ public final class PlainSaslTransportProvider implements TransportProvider {
    * @param username User Name of PlainClient
    * @param password Password of PlainClient
    * @param impersonationUser impersonation user (not used if null)
-   * @param baseTransport Address of the server
+   * @param baseTransport base transport
    * @return Wrapped transport with PLAIN mechanism
    */
   public TTransport getClientTransport(String username, String password, String impersonationUser,

@@ -89,7 +89,6 @@ public abstract class AbstractClient implements Client {
   /** Handler to the transport provider according to the authentication type. */
   protected final TransportProvider mTransportProvider;
 
-  private TTransport mTransport;
   private final Subject mParentSubject;
 
   /**
@@ -210,17 +209,14 @@ public abstract class AbstractClient implements Client {
     } finally {
       transport.close();
     }
-    // merge cluster default into Configuration
+    // merge conf returned by master as the cluster default into Configuration
     Properties clusterProps = new Properties();
     for (ConfigProperty property : clusterConfig) {
       String name = property.getName();
       if (PropertyKey.isValid(name)) {
         PropertyKey key = PropertyKey.fromString(name);
-        if (key.getScope().contains(PropertyKey.Scope.CLIENT)
-            || key.getScope().contains(PropertyKey.Scope.ALL)) {
-          clusterProps.put(key, property.getValue());
-          LOG.error("{} ({}) -> {}", key, key.getScope(), property.getValue());
-        }
+        clusterProps.put(key, property.getValue());
+        LOG.debug("{} ({}) -> {}", key, key.getScope(), property.getValue());
       }
     }
     Configuration.merge(clusterProps, Source.CLUSTER_DEFAULT);
@@ -257,12 +253,12 @@ public abstract class AbstractClient implements Client {
 
       // The plain socket transport
       TTransport baseTransport = ThriftUtils.createThriftSocket(mAddress);
-      mTransport = new MultiplexClientTransport(
-          mTransportProvider.getClientTransport(mParentSubject, baseTransport), baseTransport
-      );
-      mProtocol = ThriftUtils.createThriftProtocol(mTransport, getServiceName());
+      // The wrapper transport
+      TTransport wrapperTransport =
+          mTransportProvider.getClientTransport(mParentSubject, baseTransport);
+      mProtocol = ThriftUtils.createThriftProtocol(wrapperTransport, getServiceName());
       try {
-        mTransport.open();
+        mProtocol.getTransport().open();
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
         mConnected = true;
         afterConnect();
