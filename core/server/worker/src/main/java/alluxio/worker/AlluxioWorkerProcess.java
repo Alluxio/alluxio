@@ -20,7 +20,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.ChannelType;
-import alluxio.network.thrift.MultiplexServerTransport;
+import alluxio.network.thrift.BootstrapServerTransport;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UfsManager;
@@ -331,7 +331,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     TTransportFactory transportFactory;
     try {
       String serverName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC);
-      transportFactory = new MultiplexServerTransport.Factory(mTransportProvider
+      transportFactory = new BootstrapServerTransport.Factory(mTransportProvider
           .getServerTransportFactory(serverName));
     } catch (IOException e) {
       throw Throwables.propagate(e);

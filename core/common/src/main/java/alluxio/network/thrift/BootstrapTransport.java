@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.network.thrift;
 
 import org.apache.thrift.transport.TTransport;
@@ -5,56 +16,23 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.annotation.Nullable;
-
 /**
  * A transport that is the wrapper of two different types of transports.
  */
-public abstract class MultiplexTransport extends TTransport {
-  private static final Logger LOG = LoggerFactory.getLogger(MultiplexTransport.class);
+public abstract class BootstrapTransport extends TTransport {
+  private static final Logger LOG = LoggerFactory.getLogger(BootstrapTransport.class);
 
-  /** Transport underlying this one. */
-  protected TTransport mUnderlyingTransport;
+  /** The base transport underlying which we can peek into. */
+  protected PeekableTransport mUnderlyingTransport;
+  /** The logic transport to work on, can be base transport or the real transport. */
   protected TTransport mTransport;
 
-  protected static final int TYPE_BYTES = 1;
+  protected static final int BOOTSTRAP_HEADER_LENGTH = 8;
+  protected static final byte[] BOOTSTRAP_HEADER = new byte[] {127, -128, 34, 12, -120, 22, -37,
+      85};
 
-  /**
-   * Type of the transport.
-   */
-  public enum TransportType {
-    /** transport for bootstrap. */
-    BOOTSTRAP((byte) 0x01),
-    /** transport for common communication. */
-    FINAL((byte) 0x02);
-    private final byte value;
-    private static final Map<Byte, TransportType> reverseMap = new HashMap<>();
-
-    static {
-      for (TransportType s : TransportType.values()) {
-        reverseMap.put(s.getValue(), s);
-      }
-    }
-
-    TransportType(byte val) {
-      this.value = val;
-    }
-
-    public byte getValue() {
-      return value;
-    }
-
-    @Nullable
-    public static TransportType byValue(byte val) {
-      return reverseMap.get(val);
-    }
-  }
-
-  public MultiplexTransport(TTransport baseTransport) {
-    mUnderlyingTransport = baseTransport;
+  public BootstrapTransport(TTransport baseTransport) {
+    mUnderlyingTransport = new PeekableTransport(baseTransport);
   }
 
   @Override

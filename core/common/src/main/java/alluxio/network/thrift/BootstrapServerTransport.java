@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.network.thrift;
 
 import org.apache.thrift.transport.TTransport;
@@ -7,16 +18,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-public class MultiplexServerTransport extends MultiplexTransport {
-  private static final Logger LOG = LoggerFactory.getLogger(MultiplexServerTransport.class);
+public class BootstrapServerTransport extends BootstrapTransport {
+  private static final Logger LOG = LoggerFactory.getLogger(BootstrapServerTransport.class);
 
   private TTransportFactory mTransportFactory;
 
-  public MultiplexServerTransport(TTransport baseTransport, TTransportFactory tf) {
+  public BootstrapServerTransport(TTransport baseTransport, TTransportFactory tf) {
     super(baseTransport);
     mTransportFactory = tf;
   }
@@ -27,9 +39,9 @@ public class MultiplexServerTransport extends MultiplexTransport {
     if (!mUnderlyingTransport.isOpen()) {
       mUnderlyingTransport.open();
     }
-    byte[] messageHeader = new byte[TYPE_BYTES];
+    byte[] messageHeader = new byte[BOOTSTRAP_HEADER_LENGTH];
     try {
-      mUnderlyingTransport.read(messageHeader, 0, TYPE_BYTES);
+      mUnderlyingTransport.peek(messageHeader, 0, BOOTSTRAP_HEADER_LENGTH);
     } catch (TTransportException e) {
       if (e.getType() == TTransportException.END_OF_FILE) {
         mUnderlyingTransport.close();
@@ -38,13 +50,11 @@ public class MultiplexServerTransport extends MultiplexTransport {
       }
       throw e;
     }
-    byte typeByte = messageHeader[0];
-    TransportType type = TransportType.byValue(typeByte);
-    if (type == null) {
-      throw new TTransportException("Invalid transport type " + typeByte);
-    } else if (type == TransportType.BOOTSTRAP) {
+
+    if (Arrays.equals(messageHeader, BOOTSTRAP_HEADER)) {
+      mUnderlyingTransport.consumeBuffer(BOOTSTRAP_HEADER_LENGTH);
       mTransport = mUnderlyingTransport;
-    } else if (type == TransportType.FINAL) {
+    } else {
       mTransport = mTransportFactory.getTransport(mUnderlyingTransport);
     }
     if (!mTransport.isOpen()) {
@@ -61,9 +71,9 @@ public class MultiplexServerTransport extends MultiplexTransport {
      * instance receives the same <code>MultiplexServerTransport</code>. <code>WeakHashMap</code> is
      * used to ensure that we don't leak memory.
      */
-    private static Map<TTransport, WeakReference<MultiplexServerTransport>> transportMap =
+    private static Map<TTransport, WeakReference<BootstrapServerTransport>> transportMap =
         Collections
-            .synchronizedMap(new WeakHashMap<TTransport, WeakReference<MultiplexServerTransport>>());
+            .synchronizedMap(new WeakHashMap<TTransport, WeakReference<BootstrapServerTransport>>());
     private TTransportFactory mTransportFactory;
 
     public Factory(TTransportFactory tf) {
@@ -73,9 +83,9 @@ public class MultiplexServerTransport extends MultiplexTransport {
     @Override
     public TTransport getTransport(TTransport base) {
       LOG.debug("Transport Factory getTransport: {}", base);
-      WeakReference<MultiplexServerTransport> ret = transportMap.get(base);
+      WeakReference<BootstrapServerTransport> ret = transportMap.get(base);
       if (ret == null || ret.get() == null) {
-        MultiplexServerTransport transport = new MultiplexServerTransport(base, mTransportFactory);
+        BootstrapServerTransport transport = new BootstrapServerTransport(base, mTransportFactory);
         ret = new WeakReference<>(transport);
         try {
           transport.open();

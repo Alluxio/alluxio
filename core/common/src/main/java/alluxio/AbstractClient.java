@@ -18,7 +18,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
-import alluxio.network.thrift.MultiplexClientTransport;
+import alluxio.network.thrift.BootstrapClientTransport;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
@@ -188,7 +188,7 @@ public abstract class AbstractClient implements Client {
         RuntimeConstants.VERSION, mAddress);
     // A plain socket transport to bootstrap
     TTransport baseTransport = ThriftUtils.createThriftSocket(mAddress);
-    TTransport transport = new MultiplexClientTransport(baseTransport);
+    TTransport transport = new BootstrapClientTransport(baseTransport);
     TProtocol protocol = ThriftUtils.createThriftProtocol(transport,
         Constants.META_MASTER_SERVICE_NAME);
     List<ConfigProperty> clusterConfig;
@@ -213,10 +213,11 @@ public abstract class AbstractClient implements Client {
     Properties clusterProps = new Properties();
     for (ConfigProperty property : clusterConfig) {
       String name = property.getName();
-      if (PropertyKey.isValid(name)) {
+      if (PropertyKey.isValid(name) && property.getValue() != null) {
         PropertyKey key = PropertyKey.fromString(name);
         clusterProps.put(key, property.getValue());
-        LOG.debug("{} ({}) -> {}", key, key.getScope(), property.getValue());
+        LOG.debug("Loading cluster default: {} ({}) -> {}",
+            key, key.getScope(), property.getValue());
       }
     }
     Configuration.merge(clusterProps, Source.CLUSTER_DEFAULT);
