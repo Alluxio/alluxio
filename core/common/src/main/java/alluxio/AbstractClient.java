@@ -221,8 +221,9 @@ public abstract class AbstractClient implements Client {
       }
     }
     Configuration.merge(clusterProps, Source.CLUSTER_DEFAULT);
+    Configuration.validate();
     // This needs to be the last
-    sHandshakeComplete.set(false);
+    sHandshakeComplete.set(true);
   }
 
   /**
