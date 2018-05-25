@@ -19,6 +19,7 @@ import alluxio.PropertyKey.Builder;
 import alluxio.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,6 +37,11 @@ public final class PropertyKeyTest {
       .setIsHidden(false)
       .setIgnoredSiteProperty(false)
       .build();
+
+  @After
+  public void after() {
+    PropertyKey.unregister(mTestProperty);
+  }
 
   /**
    * Tests parsing string to PropertyKey by {@link PropertyKey#fromString}.

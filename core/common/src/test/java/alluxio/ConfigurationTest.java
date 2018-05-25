@@ -16,8 +16,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.Configuration.Source;
 import alluxio.PropertyKey.Template;
+import alluxio.conf.Source;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -63,10 +63,12 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void alias() {
-    Configuration.merge(ImmutableMap.of("alluxio.master.worker.timeout.ms", "100"),
-        Source.SYSTEM_PROPERTY);
-    assertEquals(100, Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS));
+  public void alias() throws Exception {
+    try (Closeable p =
+        new SystemPropertyRule("alluxio.master.worker.timeout.ms", "100").toResource()) {
+      Configuration.reset();
+      assertEquals(100, Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS));
+    }
   }
 
   @Test
@@ -436,6 +438,13 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void getTemplatedKey() {
+    Configuration.set(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS, "test");
+    assertEquals("test",
+        Configuration.get(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0)));
+  }
+
+  @Test
   public void variableSubstitution() {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.WORK_DIR, "value",
@@ -471,7 +480,7 @@ public class ConfigurationTest {
   public void systemVariableSubstitution() throws Exception {
     try (Closeable p =
         new SystemPropertyRule(PropertyKey.MASTER_HOSTNAME.toString(), "new_master").toResource()) {
-      Configuration.init();
+      Configuration.reset();
       assertEquals("new_master", Configuration.get(PropertyKey.MASTER_HOSTNAME));
     }
   }
@@ -479,18 +488,15 @@ public class ConfigurationTest {
   @Test
   public void systemPropertySubstitution() throws Exception {
     try (Closeable p = new SystemPropertyRule("user.home", "/home").toResource()) {
-      Configuration.init();
-      Configuration.merge(ImmutableMap.of(PropertyKey.WORK_DIR, "${user.home}/work"),
-          Source.SITE_PROPERTY);
+      Configuration.reset();
+      Configuration.set(PropertyKey.WORK_DIR, "${user.home}/work");
       assertEquals("/home/work", Configuration.get(PropertyKey.WORK_DIR));
     }
   }
 
   @Test
   public void circularSubstitution() throws Exception {
-    Configuration.merge(
-        ImmutableMap.of(PropertyKey.HOME, String.format("${%s}", PropertyKey.HOME.toString())),
-        Source.SITE_PROPERTY);
+    Configuration.set(PropertyKey.HOME, String.format("${%s}", PropertyKey.HOME.toString()));
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(PropertyKey.HOME.toString());
     Configuration.get(PropertyKey.HOME);
@@ -531,14 +537,14 @@ public class ConfigurationTest {
   public void validateTieredLocality() throws Exception {
     // Pre-load the Configuration class so that the exception is thrown when we call init(), not
     // during class loading.
-    Configuration.init();
+    Configuration.reset();
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put(Template.LOCALITY_TIER.format("unknownTier").toString(), "val");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       mThrown.expect(IllegalStateException.class);
       mThrown.expectMessage("Tier unknownTier is configured by alluxio.locality.unknownTier, but "
           + "does not exist in the tier list [node, rack] configured by alluxio.locality.order");
-      Configuration.init();
+      Configuration.reset();
     }
   }
 
@@ -559,7 +565,7 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      Configuration.init();
+      Configuration.reset();
       assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
           Configuration.get(PropertyKey.LOGGER_TYPE));
     }
@@ -578,7 +584,7 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      Configuration.init();
+      Configuration.reset();
       assertEquals("TEST_LOGGER", Configuration.get(PropertyKey.LOGGER_TYPE));
     }
   }
@@ -587,7 +593,7 @@ public class ConfigurationTest {
   public void setIgnoredPropertiesInSiteProperties() throws Exception {
     // Need to initialize the configuration instance first, other wise in after
     // ConfigurationTestUtils.resetConfiguration() will fail due to failed class init.
-    Configuration.init();
+    Configuration.reset();
     Properties siteProps = new Properties();
     siteProps.setProperty(PropertyKey.LOGS_DIR.toString(), "/tmp/logs1");
     File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
@@ -597,7 +603,7 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       mThrown.expect(IllegalStateException.class);
-      Configuration.init();
+      Configuration.reset();
     }
   }
 
@@ -611,7 +617,7 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      Configuration.init();
+      Configuration.reset();
       assertEquals(
           Source.SYSTEM_PROPERTY, Configuration.getSource(PropertyKey.LOGS_DIR));
       assertEquals("/tmp/logs1", Configuration.get(PropertyKey.LOGS_DIR));
@@ -631,7 +637,7 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      Configuration.init();
+      Configuration.reset();
       assertEquals("host-1", Configuration.get(PropertyKey.MASTER_HOSTNAME));
       assertEquals("123", Configuration.get(PropertyKey.WEB_THREADS));
     }
@@ -650,7 +656,7 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      Configuration.init();
+      Configuration.reset();
       // set only in site prop
       assertEquals(Source.SITE_PROPERTY,
           Configuration.getSource(PropertyKey.MASTER_HOSTNAME));
