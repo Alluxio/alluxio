@@ -245,7 +245,6 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     runLoadMetadata(WriteType.MUST_CACHE, false, false, true);
   }
 
-  @Ignore
   @Test
   public void concurrentListFiles() throws Exception {
     runLoadMetadata(null, false, true, true);
