@@ -83,6 +83,7 @@ struct ListStatusTOptions {
   1: optional bool loadDirectChildren
   2: optional LoadMetadataTType loadMetadataType
   3: optional FileSystemMasterCommonTOptions commonOptions
+  4: optional bool recursive
 }
 struct ListStatusTResponse {
   1: list<FileInfo> fileInfoList

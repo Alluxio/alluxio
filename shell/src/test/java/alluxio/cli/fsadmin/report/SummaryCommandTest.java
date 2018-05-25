@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fsadmin.command;
+package alluxio.cli.fsadmin.report;
 
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.client.MetaMasterClient;

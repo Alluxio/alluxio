@@ -20,10 +20,10 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.meta.MetaMaster;
-import alluxio.master.meta.checkconf.ServerConfigurationChecker.ConfigCheckReport;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+import alluxio.wire.ConfigCheckReport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -212,7 +212,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
-    request.setAttribute("configCheckStatus", report.getStatus());
+    request.setAttribute("configCheckStatus", report.getConfigStatus());
     request.setAttribute("configCheckErrors", report.getConfigErrors());
     request.setAttribute("configCheckWarns", report.getConfigWarns());
     request.setAttribute("configCheckErrorNum",
@@ -220,8 +220,18 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("configCheckWarnNum",
         report.getConfigWarns().values().stream().mapToInt(List::size).sum());
 
+    setUfsAttributes(request);
+  }
+
+  private void setUfsAttributes(HttpServletRequest request) {
     String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsRoot);
+    UnderFileSystem ufs = null;
+    try {
+      ufs = UnderFileSystem.Factory.createForRoot();
+    } catch (Exception e) {
+      LOG.error("Failed to create root UFS {}: {}", ufsRoot, e.getMessage());
+      return;
+    }
 
     String totalSpace = "UNKNOWN";
     try {

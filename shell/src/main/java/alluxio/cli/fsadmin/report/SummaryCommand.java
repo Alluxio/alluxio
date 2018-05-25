@@ -51,8 +51,7 @@ public class SummaryCommand {
    * @param printStream stream to print summary information to
    */
   public SummaryCommand(MetaMasterClient metaMasterClient,
-      BlockMasterClient blockMasterClient,
-      PrintStream printStream) {
+      BlockMasterClient blockMasterClient, PrintStream printStream) {
     mMetaMasterClient = metaMasterClient;
     mBlockMasterClient = blockMasterClient;
     mPrintStream = printStream;

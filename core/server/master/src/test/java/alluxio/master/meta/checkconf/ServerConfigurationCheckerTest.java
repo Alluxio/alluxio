@@ -14,10 +14,11 @@ package alluxio.master.meta.checkconf;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.PropertyKey;
-import alluxio.PropertyKey.Scope;
-import alluxio.master.meta.checkconf.ServerConfigurationChecker.Status;
 import alluxio.wire.Address;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.Scope;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Before;
@@ -69,20 +70,20 @@ public class ServerConfigurationCheckerTest {
     // When records have nothing different, no errors or warns will be found
     mRecordOne.registerNewConf(addressOne, Arrays.asList(masterEnforceProp, workerWarnProp));
     mRecordTwo.registerNewConf(addressTwo, Arrays.asList(masterEnforceProp, workerWarnProp));
-    checkResults(0, 0, Status.PASSED);
+    checkResults(0, 0, ConfigStatus.PASSED);
 
     // When records have a wrong warn property, checker should be able to find config warns
     ConfigProperty wrongWorkerWarnProp = new ConfigProperty().setName(workerWarnProp.getName())
         .setSource(workerWarnProp.getSource()).setValue("WrongValue");
     mRecordOne.registerNewConf(addressOne, Arrays.asList(masterEnforceProp, wrongWorkerWarnProp));
-    checkResults(0, 1, Status.WARN);
+    checkResults(0, 1, ConfigStatus.WARN);
 
     // When records have a wrong enforce property, checker should be able to find config errors
     ConfigProperty wrongMasterEnforceProp = new ConfigProperty()
         .setName(masterEnforceProp.getName())
         .setSource(masterEnforceProp.getSource()).setValue("WrongValue");
     mRecordTwo.registerNewConf(addressTwo, Arrays.asList(wrongMasterEnforceProp, workerWarnProp));
-    checkResults(1, 1, Status.FAILED);
+    checkResults(1, 1, ConfigStatus.FAILED);
 
     ConfigProperty wrongServerEnforceProp = new ConfigProperty()
         .setName(serverEnforceProp.getName())
@@ -91,7 +92,7 @@ public class ServerConfigurationCheckerTest {
         Arrays.asList(masterEnforceProp, workerWarnProp, serverEnforceProp));
     mRecordTwo.registerNewConf(addressTwo,
         Arrays.asList(masterEnforceProp, workerWarnProp, wrongServerEnforceProp));
-    checkResults(1, 0, Status.FAILED);
+    checkResults(1, 0, ConfigCheckReport.ConfigStatus.FAILED);
   }
 
   /**
@@ -102,11 +103,11 @@ public class ServerConfigurationCheckerTest {
    * @param expectedStatus the expected config check status
    */
   private void checkResults(int expectedErrorNum, int expectedWarnNum,
-      Status expectedStatus) {
+      ConfigStatus expectedStatus) {
     mConfigChecker.regenerateReport();
-    ServerConfigurationChecker.ConfigCheckReport report = mConfigChecker.getConfigCheckReport();
+    ConfigCheckReport report = mConfigChecker.getConfigCheckReport();
     assertEquals(expectedErrorNum, report.getConfigErrors().size());
     assertEquals(expectedWarnNum, report.getConfigWarns().size());
-    assertEquals(expectedStatus, report.getStatus());
+    assertEquals(expectedStatus, report.getConfigStatus());
   }
 }

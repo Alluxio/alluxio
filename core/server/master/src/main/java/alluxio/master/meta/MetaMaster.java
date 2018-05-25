@@ -13,10 +13,10 @@ package alluxio.master.meta;
 
 import alluxio.exception.status.NotFoundException;
 import alluxio.master.Master;
-import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.thrift.MetaCommand;
 import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.wire.Address;
+import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
 
 import java.net.InetSocketAddress;
@@ -30,7 +30,7 @@ public interface MetaMaster extends Master {
   /**
    * @return the server-side configuration checker report
    */
-  ServerConfigurationChecker.ConfigCheckReport getConfigCheckReport();
+  ConfigCheckReport getConfigCheckReport();
 
   /**
    * @return configuration information list
