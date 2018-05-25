@@ -185,6 +185,7 @@ public final class FileSystemContext implements Closeable {
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
     mClosed.set(false);
 
+    // Only send metrics if enabled and the port is set (can be zero when tests are setting up).
     if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)
         && Configuration.getInt(PropertyKey.MASTER_RPC_PORT) != 0) {
       // setup metrics master client sync
