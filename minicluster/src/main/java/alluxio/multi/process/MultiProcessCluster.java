@@ -228,21 +228,21 @@ public final class MultiProcessCluster implements TestRule {
    * Wait for the number of live workers in worker configuration store
    * reached the worker number of this cluster.
    *
-   * @param nodeNum the work num of this cluster
    * @param timeoutMs maximum amount of time to wait, in milliseconds
    * @return  the meta master client
    */
-  public synchronized MetaMasterClient waitForNodeNumAndGetClient(int nodeNum, int timeoutMs) {
+  public synchronized MetaMasterClient waitForNodeNumAndGetClient(int timeoutMs) {
     final MetaMasterClient metaMasterClient = getMetaMasterClient();
-    CommonUtils.waitFor("All the workers have registered with configuration",
+    CommonUtils.waitFor("all nodes registered with configuration",
         new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         try {
           MasterInfo masterInfo = metaMasterClient.getMasterInfo(new HashSet<>(Arrays
-              .asList(MasterInfo.MasterInfoField.CONF_MASTER_NUM, MasterInfo.MasterInfoField.CONF_MASTER_NUM)));
+              .asList(MasterInfo.MasterInfoField.CONF_MASTER_NUM,
+                  MasterInfo.MasterInfoField.CONF_WORKER_NUM)));
           int liveNodeNum = masterInfo.getConfMasterNum() + masterInfo.getConfWorkerNum();
-          return liveNodeNum == nodeNum;
+          return liveNodeNum == (mNumMasters + mNumWorkers);
         } catch (UnavailableException e) {
           return false;
         } catch (Exception e) {

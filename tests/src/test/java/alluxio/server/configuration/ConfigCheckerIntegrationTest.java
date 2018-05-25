@@ -18,7 +18,6 @@ import alluxio.PropertyKey.Scope;
 import alluxio.client.MetaMasterClient;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.testutils.BaseIntegrationTest;
-import alluxio.util.FormatUtils;
 import alluxio.wire.MasterInfo;
 
 import org.junit.Assert;
@@ -43,19 +42,18 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         = generateProperties(TEST_NUM_MASTERS, Scope.MASTER);
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setClusterName("ConfigCheckerMultiMastersTest")
-        .setNumWorkers(TEST_NUM_MASTERS)
-        .setNumWorkers(1)
+        .setNumMasters(TEST_NUM_MASTERS)
+        .setNumWorkers(0)
         .setDeployMode(MultiProcessCluster.DeployMode.ZOOKEEPER_HA)
         .setMasterProperties(masterProperties)
         .build();
     try {
       cluster.start();
       MetaMasterClient client = cluster
-          .waitForNodeNumAndGetClient(TEST_NUM_MASTERS, 60 * Constants.SECOND_MS);
+          .waitForNodeNumAndGetClient(30 * Constants.SECOND_MS);
       Assert.assertEquals(TEST_NUM_MASTERS, client.getMasterInfo(
           new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.CONF_MASTER_NUM)))
           .getConfMasterNum());
-      cluster.notifySuccess();
     } finally {
       cluster.destroy();
     }
@@ -63,7 +61,8 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void MultiWorkers() throws Exception {
-    Map<Integer, Map<PropertyKey, String>> workerProperties = generateProperties(TEST_NUM_WORKERS, PropertyKey.Scope.WORKER);
+    Map<Integer, Map<PropertyKey, String>> workerProperties
+        = generateProperties(TEST_NUM_WORKERS, PropertyKey.Scope.WORKER);
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setClusterName("ConfigCheckerMultiWorkersTest")
         .setNumMasters(1)
@@ -73,7 +72,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
     try {
       cluster.start();
       MetaMasterClient client = cluster
-          .waitForNodeNumAndGetClient(TEST_NUM_WORKERS, 60 * Constants.SECOND_MS);
+          .waitForNodeNumAndGetClient(30 * Constants.SECOND_MS);
       Assert.assertEquals(TEST_NUM_WORKERS, client.getMasterInfo(
           new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.CONF_WORKER_NUM)))
           .getConfWorkerNum());
@@ -94,16 +93,17 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .filter(entry -> (entry.getKey() >= TEST_NUM_MASTERS))
         .collect(Collectors.toMap(entry -> entry.getKey() - TEST_NUM_MASTERS, Map.Entry::getValue));
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
-        .setClusterName("ConfigCheckerMultiWorkersTest")
+        .setClusterName("ConfigCheckerMultiNodesTest")
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(TEST_NUM_WORKERS)
+        .setDeployMode(MultiProcessCluster.DeployMode.ZOOKEEPER_HA)
         .setMasterProperties(masterProperties)
         .setWorkerProperties(workerProperties)
         .build();
     try {
       cluster.start();
       MetaMasterClient client = cluster.waitForNodeNumAndGetClient(
-          TEST_NUM_MASTERS + TEST_NUM_WORKERS, 60 * Constants.SECOND_MS);
+          30 * Constants.SECOND_MS);
       Assert.assertEquals(TEST_NUM_MASTERS, client.getMasterInfo(
           new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.CONF_MASTER_NUM)))
           .getConfMasterNum());
@@ -126,12 +126,12 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
   private Map<Integer, Map<PropertyKey, String>> generateProperties(int nodeNum,
       Scope scope) {
     Map<Integer, Map<PropertyKey, String>> properties = new HashMap<>();
-    PropertyKey key = scope.equals(Scope.MASTER) ? PropertyKey. MASTER_SERVING_THREAD_TIMEOUT
+    PropertyKey key = scope.equals(Scope.MASTER) ? PropertyKey.MASTER_SERVING_THREAD_TIMEOUT
         : scope.equals(Scope.WORKER) ? PropertyKey.WORKER_FREE_SPACE_TIMEOUT
         : PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS;
     for (int i = 0; i < nodeNum; i++) {
       Map<PropertyKey, String> prop = new HashMap<>();
-      prop.put(key, (Configuration.getMs(key) + i) / Constants.SECOND_MS + "sec");
+      prop.put(key, ((Configuration.getMs(key) / Constants.SECOND_MS) + i) + "sec");
       properties.put(i, prop);
     }
     return properties;
