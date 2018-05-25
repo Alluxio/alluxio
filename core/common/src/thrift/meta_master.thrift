@@ -70,6 +70,38 @@ struct RegisterMasterTOptions {
 }
 struct RegisterMasterTResponse {}
 
+enum ConfigStatus {
+  PASSED
+  WARN
+  FAILED
+}
+
+enum Scope {
+  MASTER
+  WORKER
+  CLIENT
+  SERVER
+  ALL
+  NONE
+}
+
+struct InconsistentProperty {
+  1: string name
+  2: map<string, list<string>> values
+}
+
+struct ConfigCheckReport {
+  1: map<Scope, list<InconsistentProperty>> errors
+  2: map<Scope, list<InconsistentProperty>> warns
+  3: ConfigStatus status
+}
+
+struct GetConfigReportTOptions {}
+
+struct GetConfigReportTResponse {
+  1: ConfigCheckReport report
+}
+
 /**
   * This interface contains meta master service endpoints for Alluxio clients.
   */
@@ -94,6 +126,14 @@ service MetaMasterClientService extends common.AlluxioService {
    */
   GetMetricsTResponse getMetrics(
     /** the method options */ 1: GetMetricsTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns server-side configuration report.
+   */
+  GetConfigReportTResponse getConfigReport(
+    /** the method options */ 1: GetConfigReportTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 }

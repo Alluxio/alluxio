@@ -15,6 +15,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.network.ChannelType;
 import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.Scope;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -74,45 +75,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * (e.g. AWS credentials, journal location).
      */
     ENFORCE,
-  }
-
-  /**
-   * Scope where the property applies to.
-   */
-  public enum Scope {
-    /**
-     * Property is used in masters.
-     */
-    MASTER(0b1),
-    /**
-     * Property is used in workers.
-     */
-    WORKER(0b10),
-    /**
-     * Property is used in clients.
-     */
-    CLIENT(0b100),
-    /**
-     * Property is used in masters and workers.
-     */
-    SERVER(0b11),
-    ALL(0b111),
-    NONE(0b0)
-    ;
-
-    private final int mValue;
-    Scope(int val) {
-      mValue = val;
-    }
-
-    /**
-     * Check whether the scope contains another scope.
-     * @param scope the target scope to check
-     * @return true if the scope contains the target scope
-     */
-    public boolean contains(Scope scope) {
-      return (mValue | scope.mValue) == mValue;
-    }
   }
 
   /**

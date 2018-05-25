@@ -11,8 +11,8 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.cli.fsadmin.command.ReportCommand;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
+import alluxio.cli.fsadmin.command.ReportCommand;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
@@ -54,7 +54,7 @@ public class CapacityCommand {
   private TreeMap<String, Map<String, String>> mCapacityTierInfoMap;
   private Map<String, Map<String, String>> mUsedTierInfoMap;
 
-   /**
+  /**
    * Creates a new instance of {@link CapacityCommand}.
    *
    * @param blockMasterClient client to connect to block master

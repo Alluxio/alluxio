@@ -12,12 +12,12 @@
 package alluxio;
 
 import alluxio.PropertyKey.Template;
-import alluxio.PropertyKey.Scope;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.Scope;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;

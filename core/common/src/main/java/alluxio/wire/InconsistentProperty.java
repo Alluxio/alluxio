@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.meta.checkconf;
+package alluxio.wire;
 
 import com.google.common.base.Objects;
 
@@ -35,6 +35,16 @@ public final class InconsistentProperty {
    * Creates a new instance of {@link InconsistentProperty}.
    */
   public InconsistentProperty() {}
+
+  /**
+   * Creates a new instance of {@link InconsistentProperty} from thrift representation.
+   *
+   * @param inconsistentProperty the thrift inconsistent property
+   */
+  protected InconsistentProperty(alluxio.thrift.InconsistentProperty inconsistentProperty) {
+    mName = inconsistentProperty.getName();
+    mValues = inconsistentProperty.getValues();
+  }
 
   /**
    * @return the name of this property
@@ -91,5 +101,24 @@ public final class InconsistentProperty {
         .add("key", mName)
         .add("values", mValues)
         .toString();
+  }
+
+  /**
+   * @return an inconsistent property of thrift construct
+   */
+  public alluxio.thrift.InconsistentProperty toThrift() {
+    return new alluxio.thrift.InconsistentProperty()
+        .setName(mName).setValues(mValues);
+  }
+
+  /**
+   * Creates a new instance of {@link InconsistentProperty} from thrift representation.
+   *
+   * @param inconsistentProperty the thrift representation of an inconsistent property
+   * @return the instance
+   */
+  public static InconsistentProperty fromThrift(
+      alluxio.thrift.InconsistentProperty inconsistentProperty) {
+    return new InconsistentProperty(inconsistentProperty);
   }
 }

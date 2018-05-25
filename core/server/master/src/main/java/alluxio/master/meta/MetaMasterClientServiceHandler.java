@@ -18,6 +18,8 @@ import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.GetConfigReportTOptions;
+import alluxio.thrift.GetConfigReportTResponse;
 import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetConfigurationTResponse;
 import alluxio.thrift.GetMasterInfoTOptions;
@@ -61,6 +63,13 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   @Override
   public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
     return new GetServiceVersionTResponse(Constants.META_MASTER_CLIENT_SERVICE_VERSION);
+  }
+
+  @Override
+  public GetConfigReportTResponse getConfigReport(final GetConfigReportTOptions options)
+      throws TException {
+    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigReportTResponse>) ()
+        -> new GetConfigReportTResponse(mMetaMaster.getConfigCheckReport().toThrift()));
   }
 
   @Override
