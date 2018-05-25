@@ -978,13 +978,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_INIT_FROM_BACKUP =
       new Builder(Name.MASTER_JOURNAL_INIT_FROM_BACKUP)
-          .setDescription("A uri for a backup to initialize the journal from. If set, when the"
+          .setDescription("A uri for a backup to initialize the journal from. When the"
               + " master becomes primary, if it sees that its journal is freshly formatted, it will"
-              + " restore its state from the backup. When running multiple masters, this must be"
-              + " configured on all masters since it isn't known during startup which master will"
-              + " become the first primary.")
+              + " restore its state from the backup. When running multiple masters, this property"
+              + " must be configured on all masters since it isn't known during startup which"
+              + " master will become the first primary.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =
       new Builder(Name.MASTER_JOURNAL_TYPE)

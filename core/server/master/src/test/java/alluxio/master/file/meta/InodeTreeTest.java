@@ -62,7 +62,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Unit tests for {@link InodeTree}.

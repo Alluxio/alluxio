@@ -25,6 +25,7 @@ public class ExportJournalOptions {
 
   /**
    * @param targetDirectory path of the directory to export the journal to
+   * @param localFileSystem whether to write to the local filesystem instead of the root UFS
    */
   public ExportJournalOptions(String targetDirectory, boolean localFileSystem) {
     mTargetDirectory = Preconditions.checkNotNull(targetDirectory, "targetDirectoryUri");
