@@ -21,8 +21,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Metadata for an Alluxio standby masters.
- * This class is not thread safe, so external locking is required.
+ * Master information.
  */
 @NotThreadSafe
 public final class MasterInfo {

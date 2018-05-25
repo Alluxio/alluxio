@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -82,6 +83,7 @@ public final class InodeTreeTest {
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
+  private int mPort;
   private MetricsMaster mMetricsMaster;
 
   /** Rule to create a new temporary folder during each test. */
@@ -107,12 +109,13 @@ public final class InodeTreeTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new DefaultSafeModeManager();
     mStartTimeMs = System.currentTimeMillis();
+    mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     JournalSystem journalSystem = new NoopJournalSystem();
     mMetricsMaster = new MetricsMasterFactory()
-        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     BlockMaster blockMaster = new BlockMasterFactory()
-        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs);
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);

@@ -14,9 +14,8 @@ package alluxio.wire;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-import java.io.Serializable;
-
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.Serializable;
 
 /**
  * The address of a node.
@@ -49,7 +48,7 @@ public final class Address implements Serializable {
    *
    * @param masterAddress the thrift master address
    */
-  protected Address(alluxio.thrift.MasterAddress masterAddress) {
+  protected Address(alluxio.thrift.MasterNetAddress masterAddress) {
     mHost = masterAddress.getHost();
     mRpcPort = masterAddress.getRpcPort();
   }
@@ -89,8 +88,8 @@ public final class Address implements Serializable {
   /**
    * @return a master address of thrift construct
    */
-  public alluxio.thrift.MasterAddress toThrift() {
-    return new alluxio.thrift.MasterAddress()
+  public alluxio.thrift.MasterNetAddress toThrift() {
+    return new alluxio.thrift.MasterNetAddress()
         .setHost(mHost).setRpcPort(mRpcPort);
   }
 
@@ -100,7 +99,7 @@ public final class Address implements Serializable {
    * @param address the thrift representation of a master address
    * @return the instance
    */
-  public static Address fromThrift(alluxio.thrift.MasterAddress address) {
+  public static Address fromThrift(alluxio.thrift.MasterNetAddress address) {
     return new Address(address);
   }
 

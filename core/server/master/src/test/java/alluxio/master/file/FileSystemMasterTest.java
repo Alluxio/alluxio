@@ -137,6 +137,7 @@ public final class FileSystemMasterTest {
   private FileSystemMaster mFileSystemMaster;
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
+  private int mPort;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
   private long mWorkerId1;
@@ -1999,17 +2000,19 @@ public final class FileSystemMasterTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     mStartTimeMs = System.currentTimeMillis();
+    mStartTimeMs = System.currentTimeMillis();
+    mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
     mMetricsMaster = new MetricsMasterFactory()
-        .create(mRegistry, mJournalSystem, mSafeModeManager, mStartTimeMs);
+        .create(mRegistry, mJournalSystem, mSafeModeManager, mStartTimeMs, mPort);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
-    mBlockMaster =
-        new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager, mStartTimeMs);
+    mBlockMaster = new BlockMasterFactory()
+        .create(mRegistry, mJournalSystem, mSafeModeManager, mStartTimeMs, mPort);
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster,
-        new MasterContext(mJournalSystem, mSafeModeManager, mStartTimeMs),
+        new MasterContext(mJournalSystem, mSafeModeManager, mStartTimeMs, mPort),
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();
