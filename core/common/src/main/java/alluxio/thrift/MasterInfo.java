@@ -38,15 +38,15 @@ import org.slf4j.LoggerFactory;
 public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInfo._Fields>, java.io.Serializable, Cloneable, Comparable<MasterInfo> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("MasterInfo");
 
-  private static final org.apache.thrift.protocol.TField CONF_MASTER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("confMasterNum", org.apache.thrift.protocol.TType.I32, (short)1);
-  private static final org.apache.thrift.protocol.TField CONF_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("confWorkerNum", org.apache.thrift.protocol.TType.I32, (short)2);
-  private static final org.apache.thrift.protocol.TField MASTER_ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("masterAddress", org.apache.thrift.protocol.TType.STRING, (short)3);
-  private static final org.apache.thrift.protocol.TField RPC_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("rpcPort", org.apache.thrift.protocol.TType.I32, (short)4);
-  private static final org.apache.thrift.protocol.TField SAFE_MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("safeMode", org.apache.thrift.protocol.TType.BOOL, (short)5);
-  private static final org.apache.thrift.protocol.TField START_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("startTimeMs", org.apache.thrift.protocol.TType.I64, (short)6);
-  private static final org.apache.thrift.protocol.TField UP_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("upTimeMs", org.apache.thrift.protocol.TType.I64, (short)7);
-  private static final org.apache.thrift.protocol.TField VERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("version", org.apache.thrift.protocol.TType.STRING, (short)8);
-  private static final org.apache.thrift.protocol.TField WEB_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("webPort", org.apache.thrift.protocol.TType.I32, (short)9);
+  private static final org.apache.thrift.protocol.TField LEADER_MASTER_ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("leaderMasterAddress", org.apache.thrift.protocol.TType.STRING, (short)1);
+  private static final org.apache.thrift.protocol.TField MASTER_ADDRESSES_FIELD_DESC = new org.apache.thrift.protocol.TField("masterAddresses", org.apache.thrift.protocol.TType.LIST, (short)2);
+  private static final org.apache.thrift.protocol.TField RPC_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("rpcPort", org.apache.thrift.protocol.TType.I32, (short)3);
+  private static final org.apache.thrift.protocol.TField SAFE_MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("safeMode", org.apache.thrift.protocol.TType.BOOL, (short)4);
+  private static final org.apache.thrift.protocol.TField START_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("startTimeMs", org.apache.thrift.protocol.TType.I64, (short)5);
+  private static final org.apache.thrift.protocol.TField UP_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("upTimeMs", org.apache.thrift.protocol.TType.I64, (short)6);
+  private static final org.apache.thrift.protocol.TField VERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("version", org.apache.thrift.protocol.TType.STRING, (short)7);
+  private static final org.apache.thrift.protocol.TField WEB_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("webPort", org.apache.thrift.protocol.TType.I32, (short)8);
+  private static final org.apache.thrift.protocol.TField WORKER_ADDRESSES_FIELD_DESC = new org.apache.thrift.protocol.TField("workerAddresses", org.apache.thrift.protocol.TType.LIST, (short)9);
   private static final org.apache.thrift.protocol.TField ZOOKEEPER_ADDRESSES_FIELD_DESC = new org.apache.thrift.protocol.TField("zookeeperAddresses", org.apache.thrift.protocol.TType.LIST, (short)10);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -55,28 +55,28 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     schemes.put(TupleScheme.class, new MasterInfoTupleSchemeFactory());
   }
 
-  private int confMasterNum; // required
-  private int confWorkerNum; // required
-  private String masterAddress; // required
+  private String leaderMasterAddress; // required
+  private List<alluxio.thrift.MasterNetAddress> masterAddresses; // required
   private int rpcPort; // required
   private boolean safeMode; // required
   private long startTimeMs; // required
   private long upTimeMs; // required
   private String version; // required
   private int webPort; // required
+  private List<alluxio.thrift.MasterNetAddress> workerAddresses; // required
   private List<String> zookeeperAddresses; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    CONF_MASTER_NUM((short)1, "confMasterNum"),
-    CONF_WORKER_NUM((short)2, "confWorkerNum"),
-    MASTER_ADDRESS((short)3, "masterAddress"),
-    RPC_PORT((short)4, "rpcPort"),
-    SAFE_MODE((short)5, "safeMode"),
-    START_TIME_MS((short)6, "startTimeMs"),
-    UP_TIME_MS((short)7, "upTimeMs"),
-    VERSION((short)8, "version"),
-    WEB_PORT((short)9, "webPort"),
+    LEADER_MASTER_ADDRESS((short)1, "leaderMasterAddress"),
+    MASTER_ADDRESSES((short)2, "masterAddresses"),
+    RPC_PORT((short)3, "rpcPort"),
+    SAFE_MODE((short)4, "safeMode"),
+    START_TIME_MS((short)5, "startTimeMs"),
+    UP_TIME_MS((short)6, "upTimeMs"),
+    VERSION((short)7, "version"),
+    WEB_PORT((short)8, "webPort"),
+    WORKER_ADDRESSES((short)9, "workerAddresses"),
     ZOOKEEPER_ADDRESSES((short)10, "zookeeperAddresses");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -92,24 +92,24 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // CONF_MASTER_NUM
-          return CONF_MASTER_NUM;
-        case 2: // CONF_WORKER_NUM
-          return CONF_WORKER_NUM;
-        case 3: // MASTER_ADDRESS
-          return MASTER_ADDRESS;
-        case 4: // RPC_PORT
+        case 1: // LEADER_MASTER_ADDRESS
+          return LEADER_MASTER_ADDRESS;
+        case 2: // MASTER_ADDRESSES
+          return MASTER_ADDRESSES;
+        case 3: // RPC_PORT
           return RPC_PORT;
-        case 5: // SAFE_MODE
+        case 4: // SAFE_MODE
           return SAFE_MODE;
-        case 6: // START_TIME_MS
+        case 5: // START_TIME_MS
           return START_TIME_MS;
-        case 7: // UP_TIME_MS
+        case 6: // UP_TIME_MS
           return UP_TIME_MS;
-        case 8: // VERSION
+        case 7: // VERSION
           return VERSION;
-        case 9: // WEB_PORT
+        case 8: // WEB_PORT
           return WEB_PORT;
+        case 9: // WORKER_ADDRESSES
+          return WORKER_ADDRESSES;
         case 10: // ZOOKEEPER_ADDRESSES
           return ZOOKEEPER_ADDRESSES;
         default:
@@ -152,23 +152,20 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   }
 
   // isset id assignments
-  private static final int __CONFMASTERNUM_ISSET_ID = 0;
-  private static final int __CONFWORKERNUM_ISSET_ID = 1;
-  private static final int __RPCPORT_ISSET_ID = 2;
-  private static final int __SAFEMODE_ISSET_ID = 3;
-  private static final int __STARTTIMEMS_ISSET_ID = 4;
-  private static final int __UPTIMEMS_ISSET_ID = 5;
-  private static final int __WEBPORT_ISSET_ID = 6;
+  private static final int __RPCPORT_ISSET_ID = 0;
+  private static final int __SAFEMODE_ISSET_ID = 1;
+  private static final int __STARTTIMEMS_ISSET_ID = 2;
+  private static final int __UPTIMEMS_ISSET_ID = 3;
+  private static final int __WEBPORT_ISSET_ID = 4;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.CONF_MASTER_NUM, new org.apache.thrift.meta_data.FieldMetaData("confMasterNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.CONF_WORKER_NUM, new org.apache.thrift.meta_data.FieldMetaData("confWorkerNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.MASTER_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("masterAddress", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.LEADER_MASTER_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("leaderMasterAddress", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.MASTER_ADDRESSES, new org.apache.thrift.meta_data.FieldMetaData("masterAddresses", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, alluxio.thrift.MasterNetAddress.class))));
     tmpMap.put(_Fields.RPC_PORT, new org.apache.thrift.meta_data.FieldMetaData("rpcPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.SAFE_MODE, new org.apache.thrift.meta_data.FieldMetaData("safeMode", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -181,6 +178,9 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.WEB_PORT, new org.apache.thrift.meta_data.FieldMetaData("webPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.WORKER_ADDRESSES, new org.apache.thrift.meta_data.FieldMetaData("workerAddresses", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, alluxio.thrift.MasterNetAddress.class))));
     tmpMap.put(_Fields.ZOOKEEPER_ADDRESSES, new org.apache.thrift.meta_data.FieldMetaData("zookeeperAddresses", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
@@ -192,23 +192,20 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   }
 
   public MasterInfo(
-    int confMasterNum,
-    int confWorkerNum,
-    String masterAddress,
+    String leaderMasterAddress,
+    List<alluxio.thrift.MasterNetAddress> masterAddresses,
     int rpcPort,
     boolean safeMode,
     long startTimeMs,
     long upTimeMs,
     String version,
     int webPort,
+    List<alluxio.thrift.MasterNetAddress> workerAddresses,
     List<String> zookeeperAddresses)
   {
     this();
-    this.confMasterNum = confMasterNum;
-    setConfMasterNumIsSet(true);
-    this.confWorkerNum = confWorkerNum;
-    setConfWorkerNumIsSet(true);
-    this.masterAddress = masterAddress;
+    this.leaderMasterAddress = leaderMasterAddress;
+    this.masterAddresses = masterAddresses;
     this.rpcPort = rpcPort;
     setRpcPortIsSet(true);
     this.safeMode = safeMode;
@@ -220,6 +217,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     this.version = version;
     this.webPort = webPort;
     setWebPortIsSet(true);
+    this.workerAddresses = workerAddresses;
     this.zookeeperAddresses = zookeeperAddresses;
   }
 
@@ -228,10 +226,15 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
    */
   public MasterInfo(MasterInfo other) {
     __isset_bitfield = other.__isset_bitfield;
-    this.confMasterNum = other.confMasterNum;
-    this.confWorkerNum = other.confWorkerNum;
-    if (other.isSetMasterAddress()) {
-      this.masterAddress = other.masterAddress;
+    if (other.isSetLeaderMasterAddress()) {
+      this.leaderMasterAddress = other.leaderMasterAddress;
+    }
+    if (other.isSetMasterAddresses()) {
+      List<alluxio.thrift.MasterNetAddress> __this__masterAddresses = new ArrayList<alluxio.thrift.MasterNetAddress>(other.masterAddresses.size());
+      for (alluxio.thrift.MasterNetAddress other_element : other.masterAddresses) {
+        __this__masterAddresses.add(new alluxio.thrift.MasterNetAddress(other_element));
+      }
+      this.masterAddresses = __this__masterAddresses;
     }
     this.rpcPort = other.rpcPort;
     this.safeMode = other.safeMode;
@@ -241,6 +244,13 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       this.version = other.version;
     }
     this.webPort = other.webPort;
+    if (other.isSetWorkerAddresses()) {
+      List<alluxio.thrift.MasterNetAddress> __this__workerAddresses = new ArrayList<alluxio.thrift.MasterNetAddress>(other.workerAddresses.size());
+      for (alluxio.thrift.MasterNetAddress other_element : other.workerAddresses) {
+        __this__workerAddresses.add(new alluxio.thrift.MasterNetAddress(other_element));
+      }
+      this.workerAddresses = __this__workerAddresses;
+    }
     if (other.isSetZookeeperAddresses()) {
       List<String> __this__zookeeperAddresses = new ArrayList<String>(other.zookeeperAddresses);
       this.zookeeperAddresses = __this__zookeeperAddresses;
@@ -253,11 +263,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
   @Override
   public void clear() {
-    setConfMasterNumIsSet(false);
-    this.confMasterNum = 0;
-    setConfWorkerNumIsSet(false);
-    this.confWorkerNum = 0;
-    this.masterAddress = null;
+    this.leaderMasterAddress = null;
+    this.masterAddresses = null;
     setRpcPortIsSet(false);
     this.rpcPort = 0;
     setSafeModeIsSet(false);
@@ -269,76 +276,70 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     this.version = null;
     setWebPortIsSet(false);
     this.webPort = 0;
+    this.workerAddresses = null;
     this.zookeeperAddresses = null;
   }
 
-  public int getConfMasterNum() {
-    return this.confMasterNum;
+  public String getLeaderMasterAddress() {
+    return this.leaderMasterAddress;
   }
 
-  public MasterInfo setConfMasterNum(int confMasterNum) {
-    this.confMasterNum = confMasterNum;
-    setConfMasterNumIsSet(true);
+  public MasterInfo setLeaderMasterAddress(String leaderMasterAddress) {
+    this.leaderMasterAddress = leaderMasterAddress;
     return this;
   }
 
-  public void unsetConfMasterNum() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __CONFMASTERNUM_ISSET_ID);
+  public void unsetLeaderMasterAddress() {
+    this.leaderMasterAddress = null;
   }
 
-  /** Returns true if field confMasterNum is set (has been assigned a value) and false otherwise */
-  public boolean isSetConfMasterNum() {
-    return EncodingUtils.testBit(__isset_bitfield, __CONFMASTERNUM_ISSET_ID);
+  /** Returns true if field leaderMasterAddress is set (has been assigned a value) and false otherwise */
+  public boolean isSetLeaderMasterAddress() {
+    return this.leaderMasterAddress != null;
   }
 
-  public void setConfMasterNumIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CONFMASTERNUM_ISSET_ID, value);
-  }
-
-  public int getConfWorkerNum() {
-    return this.confWorkerNum;
-  }
-
-  public MasterInfo setConfWorkerNum(int confWorkerNum) {
-    this.confWorkerNum = confWorkerNum;
-    setConfWorkerNumIsSet(true);
-    return this;
-  }
-
-  public void unsetConfWorkerNum() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __CONFWORKERNUM_ISSET_ID);
-  }
-
-  /** Returns true if field confWorkerNum is set (has been assigned a value) and false otherwise */
-  public boolean isSetConfWorkerNum() {
-    return EncodingUtils.testBit(__isset_bitfield, __CONFWORKERNUM_ISSET_ID);
-  }
-
-  public void setConfWorkerNumIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CONFWORKERNUM_ISSET_ID, value);
-  }
-
-  public String getMasterAddress() {
-    return this.masterAddress;
-  }
-
-  public MasterInfo setMasterAddress(String masterAddress) {
-    this.masterAddress = masterAddress;
-    return this;
-  }
-
-  public void unsetMasterAddress() {
-    this.masterAddress = null;
-  }
-
-  /** Returns true if field masterAddress is set (has been assigned a value) and false otherwise */
-  public boolean isSetMasterAddress() {
-    return this.masterAddress != null;
-  }
-
-  public void setMasterAddressIsSet(boolean value) {
+  public void setLeaderMasterAddressIsSet(boolean value) {
     if (!value) {
-      this.masterAddress = null;
+      this.leaderMasterAddress = null;
+    }
+  }
+
+  public int getMasterAddressesSize() {
+    return (this.masterAddresses == null) ? 0 : this.masterAddresses.size();
+  }
+
+  public java.util.Iterator<alluxio.thrift.MasterNetAddress> getMasterAddressesIterator() {
+    return (this.masterAddresses == null) ? null : this.masterAddresses.iterator();
+  }
+
+  public void addToMasterAddresses(alluxio.thrift.MasterNetAddress elem) {
+    if (this.masterAddresses == null) {
+      this.masterAddresses = new ArrayList<alluxio.thrift.MasterNetAddress>();
+    }
+    this.masterAddresses.add(elem);
+  }
+
+  public List<alluxio.thrift.MasterNetAddress> getMasterAddresses() {
+    return this.masterAddresses;
+  }
+
+  public MasterInfo setMasterAddresses(List<alluxio.thrift.MasterNetAddress> masterAddresses) {
+    this.masterAddresses = masterAddresses;
+    return this;
+  }
+
+  public void unsetMasterAddresses() {
+    this.masterAddresses = null;
+  }
+
+  /** Returns true if field masterAddresses is set (has been assigned a value) and false otherwise */
+  public boolean isSetMasterAddresses() {
+    return this.masterAddresses != null;
+  }
+
+  public void setMasterAddressesIsSet(boolean value) {
+    if (!value) {
+      this.masterAddresses = null;
     }
   }
 
@@ -481,6 +482,45 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __WEBPORT_ISSET_ID, value);
   }
 
+  public int getWorkerAddressesSize() {
+    return (this.workerAddresses == null) ? 0 : this.workerAddresses.size();
+  }
+
+  public java.util.Iterator<alluxio.thrift.MasterNetAddress> getWorkerAddressesIterator() {
+    return (this.workerAddresses == null) ? null : this.workerAddresses.iterator();
+  }
+
+  public void addToWorkerAddresses(alluxio.thrift.MasterNetAddress elem) {
+    if (this.workerAddresses == null) {
+      this.workerAddresses = new ArrayList<alluxio.thrift.MasterNetAddress>();
+    }
+    this.workerAddresses.add(elem);
+  }
+
+  public List<alluxio.thrift.MasterNetAddress> getWorkerAddresses() {
+    return this.workerAddresses;
+  }
+
+  public MasterInfo setWorkerAddresses(List<alluxio.thrift.MasterNetAddress> workerAddresses) {
+    this.workerAddresses = workerAddresses;
+    return this;
+  }
+
+  public void unsetWorkerAddresses() {
+    this.workerAddresses = null;
+  }
+
+  /** Returns true if field workerAddresses is set (has been assigned a value) and false otherwise */
+  public boolean isSetWorkerAddresses() {
+    return this.workerAddresses != null;
+  }
+
+  public void setWorkerAddressesIsSet(boolean value) {
+    if (!value) {
+      this.workerAddresses = null;
+    }
+  }
+
   public int getZookeeperAddressesSize() {
     return (this.zookeeperAddresses == null) ? 0 : this.zookeeperAddresses.size();
   }
@@ -522,27 +562,19 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case CONF_MASTER_NUM:
+    case LEADER_MASTER_ADDRESS:
       if (value == null) {
-        unsetConfMasterNum();
+        unsetLeaderMasterAddress();
       } else {
-        setConfMasterNum((Integer)value);
+        setLeaderMasterAddress((String)value);
       }
       break;
 
-    case CONF_WORKER_NUM:
+    case MASTER_ADDRESSES:
       if (value == null) {
-        unsetConfWorkerNum();
+        unsetMasterAddresses();
       } else {
-        setConfWorkerNum((Integer)value);
-      }
-      break;
-
-    case MASTER_ADDRESS:
-      if (value == null) {
-        unsetMasterAddress();
-      } else {
-        setMasterAddress((String)value);
+        setMasterAddresses((List<alluxio.thrift.MasterNetAddress>)value);
       }
       break;
 
@@ -594,6 +626,14 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       }
       break;
 
+    case WORKER_ADDRESSES:
+      if (value == null) {
+        unsetWorkerAddresses();
+      } else {
+        setWorkerAddresses((List<alluxio.thrift.MasterNetAddress>)value);
+      }
+      break;
+
     case ZOOKEEPER_ADDRESSES:
       if (value == null) {
         unsetZookeeperAddresses();
@@ -607,14 +647,11 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case CONF_MASTER_NUM:
-      return getConfMasterNum();
+    case LEADER_MASTER_ADDRESS:
+      return getLeaderMasterAddress();
 
-    case CONF_WORKER_NUM:
-      return getConfWorkerNum();
-
-    case MASTER_ADDRESS:
-      return getMasterAddress();
+    case MASTER_ADDRESSES:
+      return getMasterAddresses();
 
     case RPC_PORT:
       return getRpcPort();
@@ -634,6 +671,9 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     case WEB_PORT:
       return getWebPort();
 
+    case WORKER_ADDRESSES:
+      return getWorkerAddresses();
+
     case ZOOKEEPER_ADDRESSES:
       return getZookeeperAddresses();
 
@@ -648,12 +688,10 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     }
 
     switch (field) {
-    case CONF_MASTER_NUM:
-      return isSetConfMasterNum();
-    case CONF_WORKER_NUM:
-      return isSetConfWorkerNum();
-    case MASTER_ADDRESS:
-      return isSetMasterAddress();
+    case LEADER_MASTER_ADDRESS:
+      return isSetLeaderMasterAddress();
+    case MASTER_ADDRESSES:
+      return isSetMasterAddresses();
     case RPC_PORT:
       return isSetRpcPort();
     case SAFE_MODE:
@@ -666,6 +704,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       return isSetVersion();
     case WEB_PORT:
       return isSetWebPort();
+    case WORKER_ADDRESSES:
+      return isSetWorkerAddresses();
     case ZOOKEEPER_ADDRESSES:
       return isSetZookeeperAddresses();
     }
@@ -685,30 +725,21 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     if (that == null)
       return false;
 
-    boolean this_present_confMasterNum = true;
-    boolean that_present_confMasterNum = true;
-    if (this_present_confMasterNum || that_present_confMasterNum) {
-      if (!(this_present_confMasterNum && that_present_confMasterNum))
+    boolean this_present_leaderMasterAddress = true && this.isSetLeaderMasterAddress();
+    boolean that_present_leaderMasterAddress = true && that.isSetLeaderMasterAddress();
+    if (this_present_leaderMasterAddress || that_present_leaderMasterAddress) {
+      if (!(this_present_leaderMasterAddress && that_present_leaderMasterAddress))
         return false;
-      if (this.confMasterNum != that.confMasterNum)
-        return false;
-    }
-
-    boolean this_present_confWorkerNum = true;
-    boolean that_present_confWorkerNum = true;
-    if (this_present_confWorkerNum || that_present_confWorkerNum) {
-      if (!(this_present_confWorkerNum && that_present_confWorkerNum))
-        return false;
-      if (this.confWorkerNum != that.confWorkerNum)
+      if (!this.leaderMasterAddress.equals(that.leaderMasterAddress))
         return false;
     }
 
-    boolean this_present_masterAddress = true && this.isSetMasterAddress();
-    boolean that_present_masterAddress = true && that.isSetMasterAddress();
-    if (this_present_masterAddress || that_present_masterAddress) {
-      if (!(this_present_masterAddress && that_present_masterAddress))
+    boolean this_present_masterAddresses = true && this.isSetMasterAddresses();
+    boolean that_present_masterAddresses = true && that.isSetMasterAddresses();
+    if (this_present_masterAddresses || that_present_masterAddresses) {
+      if (!(this_present_masterAddresses && that_present_masterAddresses))
         return false;
-      if (!this.masterAddress.equals(that.masterAddress))
+      if (!this.masterAddresses.equals(that.masterAddresses))
         return false;
     }
 
@@ -766,6 +797,15 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         return false;
     }
 
+    boolean this_present_workerAddresses = true && this.isSetWorkerAddresses();
+    boolean that_present_workerAddresses = true && that.isSetWorkerAddresses();
+    if (this_present_workerAddresses || that_present_workerAddresses) {
+      if (!(this_present_workerAddresses && that_present_workerAddresses))
+        return false;
+      if (!this.workerAddresses.equals(that.workerAddresses))
+        return false;
+    }
+
     boolean this_present_zookeeperAddresses = true && this.isSetZookeeperAddresses();
     boolean that_present_zookeeperAddresses = true && that.isSetZookeeperAddresses();
     if (this_present_zookeeperAddresses || that_present_zookeeperAddresses) {
@@ -782,20 +822,15 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_confMasterNum = true;
-    list.add(present_confMasterNum);
-    if (present_confMasterNum)
-      list.add(confMasterNum);
+    boolean present_leaderMasterAddress = true && (isSetLeaderMasterAddress());
+    list.add(present_leaderMasterAddress);
+    if (present_leaderMasterAddress)
+      list.add(leaderMasterAddress);
 
-    boolean present_confWorkerNum = true;
-    list.add(present_confWorkerNum);
-    if (present_confWorkerNum)
-      list.add(confWorkerNum);
-
-    boolean present_masterAddress = true && (isSetMasterAddress());
-    list.add(present_masterAddress);
-    if (present_masterAddress)
-      list.add(masterAddress);
+    boolean present_masterAddresses = true && (isSetMasterAddresses());
+    list.add(present_masterAddresses);
+    if (present_masterAddresses)
+      list.add(masterAddresses);
 
     boolean present_rpcPort = true;
     list.add(present_rpcPort);
@@ -827,6 +862,11 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     if (present_webPort)
       list.add(webPort);
 
+    boolean present_workerAddresses = true && (isSetWorkerAddresses());
+    list.add(present_workerAddresses);
+    if (present_workerAddresses)
+      list.add(workerAddresses);
+
     boolean present_zookeeperAddresses = true && (isSetZookeeperAddresses());
     list.add(present_zookeeperAddresses);
     if (present_zookeeperAddresses)
@@ -843,32 +883,22 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetConfMasterNum()).compareTo(other.isSetConfMasterNum());
+    lastComparison = Boolean.valueOf(isSetLeaderMasterAddress()).compareTo(other.isSetLeaderMasterAddress());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetConfMasterNum()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.confMasterNum, other.confMasterNum);
+    if (isSetLeaderMasterAddress()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.leaderMasterAddress, other.leaderMasterAddress);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetConfWorkerNum()).compareTo(other.isSetConfWorkerNum());
+    lastComparison = Boolean.valueOf(isSetMasterAddresses()).compareTo(other.isSetMasterAddresses());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetConfWorkerNum()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.confWorkerNum, other.confWorkerNum);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetMasterAddress()).compareTo(other.isSetMasterAddress());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetMasterAddress()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.masterAddress, other.masterAddress);
+    if (isSetMasterAddresses()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.masterAddresses, other.masterAddresses);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -933,6 +963,16 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetWorkerAddresses()).compareTo(other.isSetWorkerAddresses());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetWorkerAddresses()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.workerAddresses, other.workerAddresses);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = Boolean.valueOf(isSetZookeeperAddresses()).compareTo(other.isSetZookeeperAddresses());
     if (lastComparison != 0) {
       return lastComparison;
@@ -963,19 +1003,19 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     StringBuilder sb = new StringBuilder("MasterInfo(");
     boolean first = true;
 
-    sb.append("confMasterNum:");
-    sb.append(this.confMasterNum);
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("confWorkerNum:");
-    sb.append(this.confWorkerNum);
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("masterAddress:");
-    if (this.masterAddress == null) {
+    sb.append("leaderMasterAddress:");
+    if (this.leaderMasterAddress == null) {
       sb.append("null");
     } else {
-      sb.append(this.masterAddress);
+      sb.append(this.leaderMasterAddress);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("masterAddresses:");
+    if (this.masterAddresses == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.masterAddresses);
     }
     first = false;
     if (!first) sb.append(", ");
@@ -1005,6 +1045,14 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     if (!first) sb.append(", ");
     sb.append("webPort:");
     sb.append(this.webPort);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("workerAddresses:");
+    if (this.workerAddresses == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.workerAddresses);
+    }
     first = false;
     if (!first) sb.append(", ");
     sb.append("zookeeperAddresses:");
@@ -1059,31 +1107,34 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
           break;
         }
         switch (schemeField.id) {
-          case 1: // CONF_MASTER_NUM
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.confMasterNum = iprot.readI32();
-              struct.setConfMasterNumIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 2: // CONF_WORKER_NUM
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.confWorkerNum = iprot.readI32();
-              struct.setConfWorkerNumIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 3: // MASTER_ADDRESS
+          case 1: // LEADER_MASTER_ADDRESS
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.masterAddress = iprot.readString();
-              struct.setMasterAddressIsSet(true);
+              struct.leaderMasterAddress = iprot.readString();
+              struct.setLeaderMasterAddressIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // RPC_PORT
+          case 2: // MASTER_ADDRESSES
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
+                struct.masterAddresses = new ArrayList<alluxio.thrift.MasterNetAddress>(_list8.size);
+                alluxio.thrift.MasterNetAddress _elem9;
+                for (int _i10 = 0; _i10 < _list8.size; ++_i10)
+                {
+                  _elem9 = new alluxio.thrift.MasterNetAddress();
+                  _elem9.read(iprot);
+                  struct.masterAddresses.add(_elem9);
+                }
+                iprot.readListEnd();
+              }
+              struct.setMasterAddressesIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 3: // RPC_PORT
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.rpcPort = iprot.readI32();
               struct.setRpcPortIsSet(true);
@@ -1091,7 +1142,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 5: // SAFE_MODE
+          case 4: // SAFE_MODE
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
               struct.safeMode = iprot.readBool();
               struct.setSafeModeIsSet(true);
@@ -1099,7 +1150,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 6: // START_TIME_MS
+          case 5: // START_TIME_MS
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.startTimeMs = iprot.readI64();
               struct.setStartTimeMsIsSet(true);
@@ -1107,7 +1158,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 7: // UP_TIME_MS
+          case 6: // UP_TIME_MS
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.upTimeMs = iprot.readI64();
               struct.setUpTimeMsIsSet(true);
@@ -1115,7 +1166,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 8: // VERSION
+          case 7: // VERSION
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.version = iprot.readString();
               struct.setVersionIsSet(true);
@@ -1123,7 +1174,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 9: // WEB_PORT
+          case 8: // WEB_PORT
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.webPort = iprot.readI32();
               struct.setWebPortIsSet(true);
@@ -1131,16 +1182,35 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 9: // WORKER_ADDRESSES
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list11 = iprot.readListBegin();
+                struct.workerAddresses = new ArrayList<alluxio.thrift.MasterNetAddress>(_list11.size);
+                alluxio.thrift.MasterNetAddress _elem12;
+                for (int _i13 = 0; _i13 < _list11.size; ++_i13)
+                {
+                  _elem12 = new alluxio.thrift.MasterNetAddress();
+                  _elem12.read(iprot);
+                  struct.workerAddresses.add(_elem12);
+                }
+                iprot.readListEnd();
+              }
+              struct.setWorkerAddressesIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           case 10: // ZOOKEEPER_ADDRESSES
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
-                struct.zookeeperAddresses = new ArrayList<String>(_list8.size);
-                String _elem9;
-                for (int _i10 = 0; _i10 < _list8.size; ++_i10)
+                org.apache.thrift.protocol.TList _list14 = iprot.readListBegin();
+                struct.zookeeperAddresses = new ArrayList<String>(_list14.size);
+                String _elem15;
+                for (int _i16 = 0; _i16 < _list14.size; ++_i16)
                 {
-                  _elem9 = iprot.readString();
-                  struct.zookeeperAddresses.add(_elem9);
+                  _elem15 = iprot.readString();
+                  struct.zookeeperAddresses.add(_elem15);
                 }
                 iprot.readListEnd();
               }
@@ -1164,15 +1234,21 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      oprot.writeFieldBegin(CONF_MASTER_NUM_FIELD_DESC);
-      oprot.writeI32(struct.confMasterNum);
-      oprot.writeFieldEnd();
-      oprot.writeFieldBegin(CONF_WORKER_NUM_FIELD_DESC);
-      oprot.writeI32(struct.confWorkerNum);
-      oprot.writeFieldEnd();
-      if (struct.masterAddress != null) {
-        oprot.writeFieldBegin(MASTER_ADDRESS_FIELD_DESC);
-        oprot.writeString(struct.masterAddress);
+      if (struct.leaderMasterAddress != null) {
+        oprot.writeFieldBegin(LEADER_MASTER_ADDRESS_FIELD_DESC);
+        oprot.writeString(struct.leaderMasterAddress);
+        oprot.writeFieldEnd();
+      }
+      if (struct.masterAddresses != null) {
+        oprot.writeFieldBegin(MASTER_ADDRESSES_FIELD_DESC);
+        {
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.masterAddresses.size()));
+          for (alluxio.thrift.MasterNetAddress _iter17 : struct.masterAddresses)
+          {
+            _iter17.write(oprot);
+          }
+          oprot.writeListEnd();
+        }
         oprot.writeFieldEnd();
       }
       oprot.writeFieldBegin(RPC_PORT_FIELD_DESC);
@@ -1195,13 +1271,25 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       oprot.writeFieldBegin(WEB_PORT_FIELD_DESC);
       oprot.writeI32(struct.webPort);
       oprot.writeFieldEnd();
+      if (struct.workerAddresses != null) {
+        oprot.writeFieldBegin(WORKER_ADDRESSES_FIELD_DESC);
+        {
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.workerAddresses.size()));
+          for (alluxio.thrift.MasterNetAddress _iter18 : struct.workerAddresses)
+          {
+            _iter18.write(oprot);
+          }
+          oprot.writeListEnd();
+        }
+        oprot.writeFieldEnd();
+      }
       if (struct.zookeeperAddresses != null) {
         oprot.writeFieldBegin(ZOOKEEPER_ADDRESSES_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.zookeeperAddresses.size()));
-          for (String _iter11 : struct.zookeeperAddresses)
+          for (String _iter19 : struct.zookeeperAddresses)
           {
-            oprot.writeString(_iter11);
+            oprot.writeString(_iter19);
           }
           oprot.writeListEnd();
         }
@@ -1225,45 +1313,48 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     public void write(org.apache.thrift.protocol.TProtocol prot, MasterInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetConfMasterNum()) {
+      if (struct.isSetLeaderMasterAddress()) {
         optionals.set(0);
       }
-      if (struct.isSetConfWorkerNum()) {
+      if (struct.isSetMasterAddresses()) {
         optionals.set(1);
       }
-      if (struct.isSetMasterAddress()) {
+      if (struct.isSetRpcPort()) {
         optionals.set(2);
       }
-      if (struct.isSetRpcPort()) {
+      if (struct.isSetSafeMode()) {
         optionals.set(3);
       }
-      if (struct.isSetSafeMode()) {
+      if (struct.isSetStartTimeMs()) {
         optionals.set(4);
       }
-      if (struct.isSetStartTimeMs()) {
+      if (struct.isSetUpTimeMs()) {
         optionals.set(5);
       }
-      if (struct.isSetUpTimeMs()) {
+      if (struct.isSetVersion()) {
         optionals.set(6);
       }
-      if (struct.isSetVersion()) {
+      if (struct.isSetWebPort()) {
         optionals.set(7);
       }
-      if (struct.isSetWebPort()) {
+      if (struct.isSetWorkerAddresses()) {
         optionals.set(8);
       }
       if (struct.isSetZookeeperAddresses()) {
         optionals.set(9);
       }
       oprot.writeBitSet(optionals, 10);
-      if (struct.isSetConfMasterNum()) {
-        oprot.writeI32(struct.confMasterNum);
+      if (struct.isSetLeaderMasterAddress()) {
+        oprot.writeString(struct.leaderMasterAddress);
       }
-      if (struct.isSetConfWorkerNum()) {
-        oprot.writeI32(struct.confWorkerNum);
-      }
-      if (struct.isSetMasterAddress()) {
-        oprot.writeString(struct.masterAddress);
+      if (struct.isSetMasterAddresses()) {
+        {
+          oprot.writeI32(struct.masterAddresses.size());
+          for (alluxio.thrift.MasterNetAddress _iter20 : struct.masterAddresses)
+          {
+            _iter20.write(oprot);
+          }
+        }
       }
       if (struct.isSetRpcPort()) {
         oprot.writeI32(struct.rpcPort);
@@ -1283,12 +1374,21 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       if (struct.isSetWebPort()) {
         oprot.writeI32(struct.webPort);
       }
+      if (struct.isSetWorkerAddresses()) {
+        {
+          oprot.writeI32(struct.workerAddresses.size());
+          for (alluxio.thrift.MasterNetAddress _iter21 : struct.workerAddresses)
+          {
+            _iter21.write(oprot);
+          }
+        }
+      }
       if (struct.isSetZookeeperAddresses()) {
         {
           oprot.writeI32(struct.zookeeperAddresses.size());
-          for (String _iter12 : struct.zookeeperAddresses)
+          for (String _iter22 : struct.zookeeperAddresses)
           {
-            oprot.writeString(_iter12);
+            oprot.writeString(_iter22);
           }
         }
       }
@@ -1299,50 +1399,70 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(10);
       if (incoming.get(0)) {
-        struct.confMasterNum = iprot.readI32();
-        struct.setConfMasterNumIsSet(true);
+        struct.leaderMasterAddress = iprot.readString();
+        struct.setLeaderMasterAddressIsSet(true);
       }
       if (incoming.get(1)) {
-        struct.confWorkerNum = iprot.readI32();
-        struct.setConfWorkerNumIsSet(true);
+        {
+          org.apache.thrift.protocol.TList _list23 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.masterAddresses = new ArrayList<alluxio.thrift.MasterNetAddress>(_list23.size);
+          alluxio.thrift.MasterNetAddress _elem24;
+          for (int _i25 = 0; _i25 < _list23.size; ++_i25)
+          {
+            _elem24 = new alluxio.thrift.MasterNetAddress();
+            _elem24.read(iprot);
+            struct.masterAddresses.add(_elem24);
+          }
+        }
+        struct.setMasterAddressesIsSet(true);
       }
       if (incoming.get(2)) {
-        struct.masterAddress = iprot.readString();
-        struct.setMasterAddressIsSet(true);
-      }
-      if (incoming.get(3)) {
         struct.rpcPort = iprot.readI32();
         struct.setRpcPortIsSet(true);
       }
-      if (incoming.get(4)) {
+      if (incoming.get(3)) {
         struct.safeMode = iprot.readBool();
         struct.setSafeModeIsSet(true);
       }
-      if (incoming.get(5)) {
+      if (incoming.get(4)) {
         struct.startTimeMs = iprot.readI64();
         struct.setStartTimeMsIsSet(true);
       }
-      if (incoming.get(6)) {
+      if (incoming.get(5)) {
         struct.upTimeMs = iprot.readI64();
         struct.setUpTimeMsIsSet(true);
       }
-      if (incoming.get(7)) {
+      if (incoming.get(6)) {
         struct.version = iprot.readString();
         struct.setVersionIsSet(true);
       }
-      if (incoming.get(8)) {
+      if (incoming.get(7)) {
         struct.webPort = iprot.readI32();
         struct.setWebPortIsSet(true);
       }
+      if (incoming.get(8)) {
+        {
+          org.apache.thrift.protocol.TList _list26 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.workerAddresses = new ArrayList<alluxio.thrift.MasterNetAddress>(_list26.size);
+          alluxio.thrift.MasterNetAddress _elem27;
+          for (int _i28 = 0; _i28 < _list26.size; ++_i28)
+          {
+            _elem27 = new alluxio.thrift.MasterNetAddress();
+            _elem27.read(iprot);
+            struct.workerAddresses.add(_elem27);
+          }
+        }
+        struct.setWorkerAddressesIsSet(true);
+      }
       if (incoming.get(9)) {
         {
-          org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.zookeeperAddresses = new ArrayList<String>(_list13.size);
-          String _elem14;
-          for (int _i15 = 0; _i15 < _list13.size; ++_i15)
+          org.apache.thrift.protocol.TList _list29 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.zookeeperAddresses = new ArrayList<String>(_list29.size);
+          String _elem30;
+          for (int _i31 = 0; _i31 < _list29.size; ++_i31)
           {
-            _elem14 = iprot.readString();
-            struct.zookeeperAddresses.add(_elem14);
+            _elem30 = iprot.readString();
+            struct.zookeeperAddresses.add(_elem30);
           }
         }
         struct.setZookeeperAddressesIsSet(true);

@@ -116,10 +116,11 @@ public class ServerConfigurationStore {
   }
 
   /**
-   * @return the number of live nodes
+   * @return the addresses of live nodes
    */
-  public synchronized int getLiveNodeNum() {
-    return mConfMap.size() - mLostNodes.size();
+  public synchronized List<Address> getLiveNodeAddresses() {
+    return mConfMap.keySet().stream()
+        .filter(address -> !mLostNodes.contains(address)).collect(Collectors.toList());
   }
 
   /**

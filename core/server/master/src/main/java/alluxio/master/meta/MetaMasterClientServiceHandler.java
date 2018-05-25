@@ -29,6 +29,7 @@ import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.MasterInfo;
 import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.wire.Address;
 import alluxio.wire.MetricValue;
 
 import com.codahale.metrics.Counter;
@@ -81,14 +82,12 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
       for (MasterInfoField field : options.getFilter() != null ? options.getFilter()
           : Arrays.asList(MasterInfoField.values())) {
         switch (field) {
-          case CONF_MASTER_NUM:
-            info.setConfMasterNum(mMetaMaster.getConfMasterNum());
+          case LEADER_MASTER_ADDRESS:
+            info.setLeaderMasterAddress(mMetaMaster.getRpcAddress().toString());
             break;
-          case CONF_WORKER_NUM:
-            info.setConfWorkerNum(mMetaMaster.getConfWorkerNum());
-            break;
-          case MASTER_ADDRESS:
-            info.setMasterAddress(mMetaMaster.getRpcAddress().toString());
+          case MASTER_ADDRESSES:
+            info.setMasterAddresses(mMetaMaster.getMasterAddresses()
+                .stream().map(Address::toThrift).collect(Collectors.toList()));
             break;
           case RPC_PORT:
             info.setRpcPort(mMetaMaster.getRpcAddress().getPort());
@@ -107,6 +106,10 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
             break;
           case WEB_PORT:
             info.setWebPort(mMetaMaster.getWebPort());
+            break;
+          case WORKER_ADDRESSES:
+            info.setWorkerAddresses(mMetaMaster.getWorkerAddresses()
+                .stream().map(Address::toThrift).collect(Collectors.toList()));
             break;
           case ZOOKEEPER_ADDRESSES:
             if (Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {

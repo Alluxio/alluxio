@@ -123,9 +123,6 @@ public final class Address implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-        .add("host", mHost)
-        .add("rpcPort", mRpcPort)
-        .toString();
+    return mHost + ":" + mRpcPort;
   }
 }

@@ -9,28 +9,28 @@ struct GetConfigurationTResponse{
 }
 
 enum MasterInfoField {
-  CONF_MASTER_NUM
-  CONF_WORKER_NUM
-  MASTER_ADDRESS
+  LEADER_MASTER_ADDRESS
+  MASTER_ADDRESSES
   RPC_PORT
   SAFE_MODE
   START_TIME_MS
   UP_TIME_MS
   VERSION
   WEB_PORT
+  WORKER_ADDRESSES
   ZOOKEEPER_ADDRESSES
 }
 
 struct MasterInfo {
-  1: i32 confMasterNum
-  2: i32 confWorkerNum
-  3: string masterAddress
-  4: i32 rpcPort
-  5: bool safeMode
-  6: i64 startTimeMs
-  7: i64 upTimeMs
-  8: string version
-  9: i32 webPort
+  1: string leaderMasterAddress
+  2: list<common.MasterNetAddress> masterAddresses
+  3: i32 rpcPort
+  4: bool safeMode
+  5: i64 startTimeMs
+  6: i64 upTimeMs
+  7: string version
+  8: i32 webPort
+  9: list<common.MasterNetAddress> workerAddresses
   10: list<string> zookeeperAddresses // Null means zookeeper is not enabled
 }
 

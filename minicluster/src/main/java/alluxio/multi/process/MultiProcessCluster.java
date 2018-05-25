@@ -238,9 +238,10 @@ public final class MultiProcessCluster implements TestRule {
       public Boolean apply(Void input) {
         try {
           MasterInfo masterInfo = metaMasterClient.getMasterInfo(new HashSet<>(Arrays
-              .asList(MasterInfo.MasterInfoField.CONF_MASTER_NUM,
-                  MasterInfo.MasterInfoField.CONF_WORKER_NUM)));
-          int liveNodeNum = masterInfo.getConfMasterNum() + masterInfo.getConfWorkerNum();
+              .asList(MasterInfo.MasterInfoField.MASTER_ADDRESSES,
+                  MasterInfo.MasterInfoField.WORKER_ADDRESSES)));
+          int liveNodeNum = masterInfo.getMasterAddresses().size()
+              + masterInfo.getWorkerAddresses().size();
           return liveNodeNum == (mNumMasters + mNumWorkers);
         } catch (UnavailableException e) {
           return false;

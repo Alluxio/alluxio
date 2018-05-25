@@ -235,13 +235,13 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public int getConfMasterNum() {
-    return mMasterConfigStore.getLiveNodeNum();
+  public List<Address> getMasterAddresses() {
+    return mMasterConfigStore.getLiveNodeAddresses();
   }
 
   @Override
-  public int getConfWorkerNum() {
-    return mWorkerConfigStore.getLiveNodeNum();
+  public List<Address> getWorkerAddresses() {
+    return mWorkerConfigStore.getLiveNodeAddresses();
   }
 
   @Override
