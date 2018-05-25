@@ -17,8 +17,11 @@ import alluxio.PropertyKey;
 import alluxio.client.MetaMasterClient;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.MasterInfo;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,8 +41,9 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void MultiMasters() throws Exception {
+    PropertyKey key = PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS;
     Map<Integer, Map<PropertyKey, String>> masterProperties
-        = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
+        = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, key);
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setClusterName("ConfigCheckerMultiMastersTest")
         .setNumMasters(TEST_NUM_MASTERS)
@@ -54,6 +58,11 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(TEST_NUM_MASTERS, client.getMasterInfo(
           new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.MASTER_ADDRESSES)))
           .getMasterAddresses().size());
+
+      ConfigCheckReport report = client.getConfigReport();
+      Assert.assertEquals(ConfigStatus.WARN, report.getConfigStatus());
+      Assert.assertThat(report.getConfigWarns().toString(),
+          CoreMatchers.containsString(key.getName()));
       cluster.notifySuccess();
     } finally {
       cluster.destroy();
@@ -62,8 +71,9 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void MultiWorkers() throws Exception {
+    PropertyKey key = PropertyKey.WORKER_FREE_SPACE_TIMEOUT;
     Map<Integer, Map<PropertyKey, String>> workerProperties
-        = generatePropertyWithDifferentValues(TEST_NUM_WORKERS, PropertyKey.WORKER_FREE_SPACE_TIMEOUT);
+        = generatePropertyWithDifferentValues(TEST_NUM_WORKERS, key);
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setClusterName("ConfigCheckerMultiWorkersTest")
         .setNumMasters(1)
@@ -82,6 +92,11 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(TEST_NUM_WORKERS, client.getMasterInfo(
           new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.WORKER_ADDRESSES)))
           .getWorkerAddresses().size());
+
+      ConfigCheckReport report = client.getConfigReport();
+      Assert.assertEquals(ConfigStatus.WARN, report.getConfigStatus());
+      Assert.assertThat(report.getConfigWarns().toString(),
+          CoreMatchers.containsString(key.getName()));
       cluster.notifySuccess();
     } finally {
       cluster.destroy();
@@ -90,9 +105,10 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void MultiNodes() throws Exception {
+    PropertyKey key = PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS;
     // Prepare properties
     Map<Integer, Map<PropertyKey, String>> properties = generatePropertyWithDifferentValues(
-        TEST_NUM_MASTERS + TEST_NUM_WORKERS, PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS);
+        TEST_NUM_MASTERS + TEST_NUM_WORKERS, key);
     Map<Integer, Map<PropertyKey, String>> masterProperties = properties.entrySet().stream()
         .filter(entry -> (entry.getKey() < TEST_NUM_MASTERS))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -119,6 +135,11 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(TEST_NUM_WORKERS, client.getMasterInfo(
           new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.WORKER_ADDRESSES)))
           .getWorkerAddresses().size());
+
+      ConfigCheckReport report = client.getConfigReport();
+      Assert.assertEquals(ConfigStatus.FAILED, report.getConfigStatus());
+      Assert.assertThat(report.getConfigErrors().toString(),
+          CoreMatchers.containsString(key.getName()));
       cluster.notifySuccess();
     } finally {
       cluster.destroy();
@@ -133,7 +154,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
    * @return generated properties
    */
   private Map<Integer, Map<PropertyKey, String>> generatePropertyWithDifferentValues(
-      int nodeNum,PropertyKey key) {
+      int nodeNum, PropertyKey key) {
     Map<Integer, Map<PropertyKey, String>> properties = new HashMap<>();
     for (int i = 0; i < nodeNum; i++) {
       Map<PropertyKey, String> prop = new HashMap<>();
