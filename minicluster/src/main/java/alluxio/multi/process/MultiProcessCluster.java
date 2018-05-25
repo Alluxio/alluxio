@@ -233,8 +233,7 @@ public final class MultiProcessCluster implements TestRule {
    */
   public synchronized MetaMasterClient waitForNodeNumAndGetClient(int timeoutMs) {
     final MetaMasterClient metaMasterClient = getMetaMasterClient();
-    CommonUtils.waitFor("all nodes registered with configuration",
-        new Function<Void, Boolean>() {
+    CommonUtils.waitFor("all nodes registered", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         try {
