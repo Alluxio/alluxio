@@ -211,6 +211,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("inconsistentPaths", 0);
     }
 
+<<<<<<< HEAD
     ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
     request.setAttribute("configCheckStatus", report.getConfigStatus());
     request.setAttribute("configCheckErrors", report.getConfigErrors());
@@ -220,8 +221,20 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("configCheckWarnNum",
         report.getConfigWarns().values().stream().mapToInt(List::size).sum());
 
+=======
+    setUfsAttributes(request);
+  }
+
+  private void setUfsAttributes(HttpServletRequest request) {
+>>>>>>> master
     String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsRoot);
+    UnderFileSystem ufs = null;
+    try {
+      ufs = UnderFileSystem.Factory.createForRoot();
+    } catch (Exception e) {
+      LOG.error("Failed to create root UFS {}: {}", ufsRoot, e.getMessage());
+      return;
+    }
 
     String totalSpace = "UNKNOWN";
     try {
