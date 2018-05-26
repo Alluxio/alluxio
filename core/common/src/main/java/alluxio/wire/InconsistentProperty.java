@@ -11,6 +11,9 @@
 
 package alluxio.wire;
 
+import com.google.common.base.Objects;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,10 +27,9 @@ import java.util.Map;
  */
 public final class InconsistentProperty {
   /** The name of the property that has errors/warnings. */
-  private String mName;
-  /**
-   * Record the values and corresponding hostnames. */
-  private Map<String, List<String>> mValues;
+  private String mName = "";
+  /** Record the values and corresponding hostnames. */
+  private Map<String, List<String>> mValues = new HashMap<>();
 
   /**
    * Creates a new instance of {@link InconsistentProperty}.
@@ -74,6 +76,31 @@ public final class InconsistentProperty {
   public InconsistentProperty setValues(Map<String, List<String>> values) {
     mValues = values;
     return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof InconsistentProperty)) {
+      return false;
+    }
+    InconsistentProperty that = (InconsistentProperty) o;
+    return mName.equals(that.mName) && mValues.equals(that.mValues);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mName, mValues);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("key", mName)
+        .add("values", mValues)
+        .toString();
   }
 
   /**
