@@ -14,7 +14,6 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.conf.Source;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.metrics.MetricsSystem;
@@ -196,33 +195,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-<<<<<<< HEAD
-  public List<ConfigProperty> getConfiguration() {
-    List<ConfigProperty> configInfoList = new ArrayList<>();
-    String alluxioConfPrefix = "alluxio";
-    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      String key = entry.getKey();
-      String value = entry.getValue();
-      if (key.startsWith(alluxioConfPrefix)) {
-        PropertyKey propertyKey = PropertyKey.fromString(key);
-        Source source = Configuration.getSource(propertyKey);
-        String sourceStr;
-        if (source == Source.SITE_PROPERTY) {
-          sourceStr =
-              String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
-        } else {
-          sourceStr = source.name();
-        }
-        configInfoList.add(new ConfigProperty()
-            .setName(key).setValue(value).setSource(sourceStr));
-      }
-    }
-    return configInfoList;
-  }
-
-  @Override
-=======
->>>>>>> remotes/upstream/config-checker
   public void waitForReady() {
     CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override

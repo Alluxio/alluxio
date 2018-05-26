@@ -13,11 +13,8 @@ package alluxio.web;
 
 import alluxio.PropertyKey;
 import alluxio.master.file.FileSystemMaster;
-<<<<<<< HEAD
-import alluxio.util.ConfigurationUtils;
-=======
 import alluxio.master.meta.MetaMaster;
->>>>>>> remotes/upstream/config-checker
+import alluxio.util.ConfigurationUtils;
 import alluxio.wire.ConfigProperty;
 
 import com.google.common.collect.Sets;
