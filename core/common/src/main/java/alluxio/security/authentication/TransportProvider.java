@@ -77,6 +77,7 @@ public interface TransportProvider {
   TTransport getClientTransport(InetSocketAddress serverAddress) throws UnauthenticatedException;
 
   /**
+   * @param subject the subject, set to null if not present
    * @param baseTransport the base transport (socket) to use for this client transport
    * @return a TTransport for client
    */

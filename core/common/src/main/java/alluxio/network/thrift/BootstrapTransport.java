@@ -28,11 +28,13 @@ public abstract class BootstrapTransport extends TTransport {
   protected TTransport mTransport;
 
   /** The magic number to look for in message header to indicate this is a bootstrap rpc. */
-  protected static final byte[] BOOTSTRAP_HEADER = new byte[] {127, -128, 34, 12, -120, 22, -37,
-      85};
+  static final byte[] BOOTSTRAP_HEADER = new byte[] {127, -128, 34, 12, -120, 22, -37, 85};
   /** The size of this magic number in bytes. */
-  protected static final int BOOTSTRAP_HEADER_LENGTH = 8;
+  static final int BOOTSTRAP_HEADER_LENGTH = 8;
 
+  /**
+   * @param baseTransport the base transport
+   */
   public BootstrapTransport(TTransport baseTransport) {
     mUnderlyingTransport = new PeekableTransport(baseTransport);
   }

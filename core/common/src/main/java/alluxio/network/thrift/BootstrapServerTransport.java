@@ -32,6 +32,10 @@ public class BootstrapServerTransport extends BootstrapTransport {
 
   private TTransportFactory mTransportFactory;
 
+  /**
+   * @param baseTransport base transport
+   * @param tf transport factory to create the fallback transport
+   */
   public BootstrapServerTransport(TTransport baseTransport, TTransportFactory tf) {
     super(baseTransport);
     mTransportFactory = tf;
@@ -71,15 +75,18 @@ public class BootstrapServerTransport extends BootstrapTransport {
    */
   public static class Factory extends TTransportFactory {
     /**
-     * The map to keep the <code>MultiplexServerTransport</code> and ensure the same base transport
+     * The map to keep the <code>BootstrapServerTransport</code> and ensure the same base transport
      * instance receives the same <code>MultiplexServerTransport</code>. <code>WeakHashMap</code> is
      * used to ensure that we don't leak memory.
      */
-    private static Map<TTransport, WeakReference<BootstrapServerTransport>> transportMap =
-        Collections
-            .synchronizedMap(new WeakHashMap<TTransport, WeakReference<BootstrapServerTransport>>());
+    private static Map<TTransport, WeakReference<BootstrapServerTransport>> sTransportMap =
+        Collections.synchronizedMap(
+            new WeakHashMap<TTransport, WeakReference<BootstrapServerTransport>>());
     private TTransportFactory mTransportFactory;
 
+    /**
+     * @param tf transport factory
+     */
     public Factory(TTransportFactory tf) {
       mTransportFactory = tf;
     }
@@ -87,7 +94,7 @@ public class BootstrapServerTransport extends BootstrapTransport {
     @Override
     public TTransport getTransport(TTransport base) {
       LOG.debug("Transport Factory getTransport: {}", base);
-      WeakReference<BootstrapServerTransport> ret = transportMap.get(base);
+      WeakReference<BootstrapServerTransport> ret = sTransportMap.get(base);
       if (ret == null || ret.get() == null) {
         BootstrapServerTransport transport = new BootstrapServerTransport(base, mTransportFactory);
         ret = new WeakReference<>(transport);
@@ -97,7 +104,7 @@ public class BootstrapServerTransport extends BootstrapTransport {
           LOG.debug("failed to open server transport", e);
           throw new RuntimeException(e);
         }
-        transportMap.put(base, ret);
+        sTransportMap.put(base, ret);
       }
       return ret.get();
     }

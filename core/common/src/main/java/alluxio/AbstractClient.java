@@ -177,7 +177,7 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * Handshakes with meta master
+   * Handshakes with meta master.
    */
   private synchronized void handshake() throws AlluxioStatusException {
     if (isConnected() || sHandshakeComplete.get()) {
