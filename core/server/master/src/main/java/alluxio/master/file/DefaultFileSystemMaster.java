@@ -995,7 +995,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                 nextDescendantType, statusList);
           } catch (FileDoesNotExistException e) {
             LOG.debug("ListStatus failed for path {} because file does not exist",
-                mInodeTree.getPath(child).getPath(), e);
+                child.getName(), e);
           } catch (UnavailableException e) {
             LOG.debug("ListStatus failed for path {} because service is not available",
                 mInodeTree.getPath(child).getPath(), e);
