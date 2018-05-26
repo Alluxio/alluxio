@@ -49,16 +49,20 @@ public final class MasterInfo implements Serializable {
    */
   private MasterInfo(alluxio.thrift.MasterInfo masterInfo) {
     mLeaderMasterAddress = masterInfo.getLeaderMasterAddress();
-    mMasterAddresses = masterInfo.getMasterAddresses().stream()
-        .map(Address::fromThrift).collect(Collectors.toList());
+    if (masterInfo.isSetMasterAddresses()) {
+      mMasterAddresses = masterInfo.getMasterAddresses().stream()
+          .map(Address::fromThrift).collect(Collectors.toList());
+    }
     mRpcPort = masterInfo.getRpcPort();
     mSafeMode = masterInfo.isSafeMode();
     mStartTimeMs = masterInfo.getStartTimeMs();
     mUpTimeMs = masterInfo.getUpTimeMs();
     mVersion = masterInfo.getVersion();
     mWebPort = masterInfo.getWebPort();
-    mWorkerAddresses = masterInfo.getWorkerAddresses().stream()
-        .map(Address::fromThrift).collect(Collectors.toList());
+    if (masterInfo.isSetWorkerAddresses()) {
+      mWorkerAddresses = masterInfo.getWorkerAddresses().stream()
+          .map(Address::fromThrift).collect(Collectors.toList());
+    }
     mZookeeperAddresses = masterInfo.getZookeeperAddresses();
   }
 
@@ -226,14 +230,20 @@ public final class MasterInfo implements Serializable {
    * @return thrift representation of the master information
    */
   protected alluxio.thrift.MasterInfo toThrift() {
-    return new alluxio.thrift.MasterInfo().setLeaderMasterAddress(mLeaderMasterAddress)
-        .setMasterAddresses(mMasterAddresses.stream()
-            .map(Address::toThrift).collect(Collectors.toList()))
+    alluxio.thrift.MasterInfo masterInfo = new alluxio.thrift.MasterInfo()
+        .setLeaderMasterAddress(mLeaderMasterAddress)
         .setRpcPort(mRpcPort).setSafeMode(mSafeMode).setStartTimeMs(mStartTimeMs)
         .setUpTimeMs(mUpTimeMs).setVersion(mVersion).setWebPort(mWebPort)
-        .setWorkerAddresses(mWorkerAddresses.stream()
-            .map(Address::toThrift).collect(Collectors.toList()))
         .setZookeeperAddresses(mZookeeperAddresses);
+    if (mMasterAddresses != null) {
+      masterInfo.setMasterAddresses(mMasterAddresses.stream()
+          .map(Address::toThrift).collect(Collectors.toList()));
+    }
+    if (mWorkerAddresses != null) {
+      masterInfo.setWorkerAddresses(mWorkerAddresses.stream()
+          .map(Address::toThrift).collect(Collectors.toList()));
+    }
+    return masterInfo;
   }
 
   /**

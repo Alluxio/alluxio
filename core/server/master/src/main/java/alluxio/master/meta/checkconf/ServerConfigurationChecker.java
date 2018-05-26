@@ -47,6 +47,7 @@ public class ServerConfigurationChecker {
     mWorkerStore = workerStore;
     mConfigCheckReport = new ConfigCheckReport();
     mMasterStore.registerChangeListener(this::regenerateReport);
+    mWorkerStore.registerChangeListener(this::regenerateReport);
   }
 
   /**
