@@ -876,7 +876,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
-      UnavailableException, IOException {
+      UnavailableException {
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(path, listStatusOptions.getCommonOptions(), InodeTree.LockMode.READ);
@@ -993,15 +993,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               InodeTree.LockMode.READ)) {
             listStatusInternal(childInodePath, auditContext,
                 nextDescendantType, statusList);
-          } catch (FileDoesNotExistException e) {
-            LOG.debug("ListStatus failed for path {} because file does not exist",
-                child.getName(), e);
-          } catch (UnavailableException e) {
-            LOG.debug("ListStatus failed for path {} because service is not available",
-                mInodeTree.getPath(child).getPath(), e);
-          } catch (AccessControlException e) {
-            LOG.debug("ListStatus failed for path {} because user does not have access",
-                mInodeTree.getPath(child).getPath(), e);
           }
         }
       }
