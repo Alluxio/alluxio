@@ -21,14 +21,21 @@ import com.google.common.base.Preconditions;
 public final class MasterContext {
   private final JournalSystem mJournalSystem;
   private final SafeModeManager mSafeModeManager;
+  private final long mStartTimeMs;
+  private final int mPort;
 
   /**
    * @param journalSystem the journal system to use for tracking master operations
    * @param safeModeManager the manager for master safe mode
+   * @param startTimeMs the master process start time in milliseconds
+   * @param port the rpc port
    */
-  public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager) {
+  public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager,
+      long startTimeMs, int port) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mSafeModeManager = Preconditions.checkNotNull(safeModeManager, "safeModeManager");
+    mStartTimeMs = startTimeMs;
+    mPort = port;
   }
 
   /**
@@ -43,5 +50,19 @@ public final class MasterContext {
    */
   public SafeModeManager getSafeModeManager() {
     return mSafeModeManager;
+  }
+
+  /**
+   * @return the master process start time in milliseconds
+   */
+  public long getStartTimeMs() {
+    return mStartTimeMs;
+  }
+
+  /**
+   * @return the rpc port
+   */
+  public int getPort() {
+    return mPort;
   }
 }

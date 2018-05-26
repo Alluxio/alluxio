@@ -31,16 +31,19 @@ final class MasterUtils {
    *
    * @param journalSystem the journal system to use for creating journals
    * @param registry the master registry
+   * @param safeModeManager the safe mode manager
+   * @param startTimeMs the start time of the master process in milliseconds
+   * @param port the rpc port
    */
   public static void createMasters(final JournalSystem journalSystem, final MasterRegistry registry,
-      final SafeModeManager safeModeManager) {
+      final SafeModeManager safeModeManager, final long startTimeMs, int port) {
     List<Callable<Void>> callables = new ArrayList<>();
     for (final MasterFactory factory : ServiceUtils.getMasterServiceLoader()) {
       callables.add(new Callable<Void>() {
         @Override
         public Void call() throws Exception {
           if (factory.isEnabled()) {
-            factory.create(registry, journalSystem, safeModeManager);
+            factory.create(registry, journalSystem, safeModeManager, startTimeMs, port);
           }
           return null;
         }

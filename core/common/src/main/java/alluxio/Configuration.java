@@ -18,6 +18,8 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
+import alluxio.wire.ConfigProperty;
+import alluxio.wire.Scope;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -450,6 +452,22 @@ public final class Configuration {
   }
 
   /**
+   * @param key the property key
+   * @return the formatted source for the given key
+   */
+  public static String getFormattedSource(PropertyKey key) {
+    Source source = getSource(key);
+    String sourceStr;
+    if (source == Source.SITE_PROPERTY) {
+      sourceStr =
+          String.format("%s (%s)", source.name(), getSitePropertiesFile());
+    } else {
+      sourceStr = source.name();
+    }
+    return sourceStr;
+  }
+
+  /**
    * @return the path of the site property file
    */
   @Nullable
@@ -571,6 +589,20 @@ public final class Configuration {
     checkUserFileBufferBytes();
     checkZkConfiguration();
     checkTieredLocality();
+  }
+
+  /**
+   * Gets the configuration of a given scope.
+   *
+   * @param scope the property key scope
+   * @return a list of configurations inside the property scope
+   */
+  public static List<ConfigProperty> getConfiguration(Scope scope) {
+    return toMap().keySet().stream().map(PropertyKey::fromString)
+        .filter(key -> key.getScope().contains(scope))
+        .map(key -> new ConfigProperty().setName(key.getName())
+            .setValue(get(key)).setSource(getFormattedSource(key)))
+        .collect(Collectors.toList());
   }
 
   private Configuration() {} // prevent instantiation

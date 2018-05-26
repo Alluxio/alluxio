@@ -16,11 +16,9 @@ import alluxio.Process;
 import alluxio.PropertyKey;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
-import alluxio.wire.ConfigProperty;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -87,9 +85,4 @@ public interface MasterProcess extends Process {
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   boolean isServing();
-
-  /**
-   * @return configuration information list
-   */
-  List<ConfigProperty> getConfiguration();
 }

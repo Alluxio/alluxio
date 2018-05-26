@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.master.meta;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -21,9 +21,14 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.master.MasterProcess;
+import alluxio.master.MasterRegistry;
+import alluxio.master.SafeModeManager;
+import alluxio.master.TestSafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.DefaultFileSystemMaster;
@@ -32,6 +37,7 @@ import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.MetricsSystem;
+import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -93,6 +99,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
   private SafeModeManager mSafeModeManager;
+  private long mStartTimeMs;
+  private int mPort;
   private MetricsMaster mMetricsMaster;
 
   @Rule
@@ -118,11 +126,14 @@ public final class AlluxioMasterRestServiceHandlerTest {
     ServletContext context = mock(ServletContext.class);
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
+    mStartTimeMs = System.currentTimeMillis();
+    mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    mMetricsMaster = new MetricsMasterFactory()
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
-    mBlockMaster =
-        new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    mBlockMaster = new BlockMasterFactory()
+        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
@@ -135,9 +146,9 @@ public final class AlluxioMasterRestServiceHandlerTest {
     List<String> tiers = Arrays.asList("MEM", "SSD");
 
     mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
-        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS);
+        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, new RegisterWorkerTOptions());
     mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
-        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS);
+        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, new RegisterWorkerTOptions());
   }
 
   private void registerFileSystemMock() throws IOException {

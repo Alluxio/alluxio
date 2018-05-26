@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.conf.Source;
@@ -23,7 +22,6 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
-import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
@@ -31,7 +29,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
-import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -49,8 +46,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -155,7 +150,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       // Create masters.
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
-      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
+      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager, mStartTimeMs, mPort);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -201,6 +196,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
+<<<<<<< HEAD
   public List<ConfigProperty> getConfiguration() {
     List<ConfigProperty> configInfoList = new ArrayList<>();
     String alluxioConfPrefix = "alluxio";
@@ -225,6 +221,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
+=======
+>>>>>>> remotes/upstream/config-checker
   public void waitForReady() {
     CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override
@@ -354,9 +352,6 @@ public class AlluxioMasterProcess implements MasterProcess {
     for (Master master : mRegistry.getServers()) {
       registerServices(processor, master.getServices());
     }
-    // register meta services
-    processor.registerProcessor(Constants.META_MASTER_SERVICE_NAME,
-        new MetaMasterClientService.Processor<>(new MetaMasterClientServiceHandler(this)));
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;

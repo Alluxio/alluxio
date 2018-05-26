@@ -194,7 +194,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       os.write(BufferUtils.getIncreasingByteArray(0, BLOCK_SIZE_BYTES * 3 + 1));
       os.cancel();
     }
-    long gracePeriod = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS) * 2;
+    long gracePeriod = Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL) * 2;
     CommonUtils.sleepMs(gracePeriod);
     List<WorkerInfo> workers =
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
