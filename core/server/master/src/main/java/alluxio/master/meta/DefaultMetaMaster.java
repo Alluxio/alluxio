@@ -203,6 +203,10 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
           (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL)));
+      getExecutorService().submit(
+          new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
+          new LogConfigReportHeartbeatExecutor(),
+          (int) Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)));
     } else {
       // Standby master should setup MetaMasterSync to communicate with the leader master
       MetaMasterMasterClient metaMasterClient =
@@ -349,8 +353,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
     @Override
     public void heartbeat() {
-      int masterTimeoutMs =
-          (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
+      long masterTimeoutMs = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
       for (MasterInfo master : mMasters) {
         synchronized (master) {
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
@@ -363,6 +366,28 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           }
         }
       }
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
+  }
+
+  /**
+   * Periodic log config check report.
+   */
+  private final class LogConfigReportHeartbeatExecutor implements HeartbeatExecutor {
+
+    /**
+     * Constructs a new {@link LogConfigReportHeartbeatExecutor}.
+     */
+    public LogConfigReportHeartbeatExecutor() {
+    }
+
+    @Override
+    public void heartbeat() {
+      mConfigChecker.logConfigReport();
     }
 
     @Override

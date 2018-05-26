@@ -13,6 +13,7 @@ package alluxio.wire;
 
 import com.google.common.base.Objects;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,10 +27,9 @@ import java.util.Map;
  */
 public final class InconsistentProperty {
   /** The name of the property that has errors/warnings. */
-  private String mName;
-  /**
-   * Record the values and corresponding hostnames. */
-  private Map<String, List<String>> mValues;
+  private String mName = "";
+  /** Record the values and corresponding hostnames. */
+  private Map<String, List<String>> mValues = new HashMap<>();
 
   /**
    * Creates a new instance of {@link InconsistentProperty}.

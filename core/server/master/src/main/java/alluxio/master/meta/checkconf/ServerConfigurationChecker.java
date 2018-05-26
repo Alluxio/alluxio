@@ -19,15 +19,28 @@ import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.InconsistentProperty;
 import alluxio.wire.Scope;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This class is responsible for checking server-side configuration.
  */
 public class ServerConfigurationChecker {
+  private static final Logger LOG = LoggerFactory.getLogger(ServerConfigurationChecker.class);
+  private static final int LOG_CONF_SIZE = 5;
+  private static final String CONSISTENT_CONFIGURATION_INFO
+      = "All server-side configuration are consistent.";
+  private static final String INCONSISTENT_CONFIGURATION_INFO
+      = "Inconsistent configuration detected. "
+      + "Only a limited set of inconsistent configuration will be shown here. "
+      + "For details, please visit Alluxio web UI or "
+      + "run fsadmin doctor CLI.";
   /** Contain all the master configuration information. */
   private final ServerConfigurationStore mMasterStore;
   /** Contain all the worker configuration information. */
@@ -82,6 +95,10 @@ public class ServerConfigurationChecker {
         ? ConfigStatus.FAILED : confWarns.values().stream().anyMatch(a -> a.size() > 0)
         ? ConfigStatus.WARN : ConfigStatus.PASSED;
 
+    if (!status.equals(mConfigCheckReport.getConfigStatus())) {
+      logConfigReport();
+    }
+
     mConfigCheckReport = new ConfigCheckReport(confErrors, confWarns, status);
   }
 
@@ -90,6 +107,26 @@ public class ServerConfigurationChecker {
    */
   public synchronized ConfigCheckReport getConfigCheckReport() {
     return mConfigCheckReport;
+  }
+
+  /**
+   * Logs the configuration check report information.
+   */
+  public synchronized void logConfigReport() {
+    ConfigStatus reportStatus = mConfigCheckReport.getConfigStatus();
+    if (reportStatus.equals(ConfigStatus.PASSED)) {
+      LOG.info(CONSISTENT_CONFIGURATION_INFO);
+    } else if (reportStatus.equals(ConfigStatus.WARN)) {
+      LOG.warn("{}\nWarnings: {}", INCONSISTENT_CONFIGURATION_INFO,
+          mConfigCheckReport.getConfigWarns().values().stream()
+              .map(Object::toString).limit(LOG_CONF_SIZE).collect(Collectors.joining(", ")));
+    } else {
+      LOG.error("{}\nErrors: {}\nWarnings: {}", INCONSISTENT_CONFIGURATION_INFO,
+          mConfigCheckReport.getConfigErrors().values().stream()
+              .map(Object::toString).limit(LOG_CONF_SIZE).collect(Collectors.joining(", ")),
+          mConfigCheckReport.getConfigWarns().values().stream()
+              .map(Object::toString).limit(LOG_CONF_SIZE).collect(Collectors.joining(", ")));
+    }
   }
 
   /**
