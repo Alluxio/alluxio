@@ -351,14 +351,14 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
           case 1: // CONFIG_LIST
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list34 = iprot.readListBegin();
-                struct.configList = new ArrayList<alluxio.thrift.ConfigProperty>(_list34.size);
-                alluxio.thrift.ConfigProperty _elem35;
-                for (int _i36 = 0; _i36 < _list34.size; ++_i36)
+                org.apache.thrift.protocol.TList _list50 = iprot.readListBegin();
+                struct.configList = new ArrayList<alluxio.thrift.ConfigProperty>(_list50.size);
+                alluxio.thrift.ConfigProperty _elem51;
+                for (int _i52 = 0; _i52 < _list50.size; ++_i52)
                 {
-                  _elem35 = new alluxio.thrift.ConfigProperty();
-                  _elem35.read(iprot);
-                  struct.configList.add(_elem35);
+                  _elem51 = new alluxio.thrift.ConfigProperty();
+                  _elem51.read(iprot);
+                  struct.configList.add(_elem51);
                 }
                 iprot.readListEnd();
               }
@@ -386,9 +386,9 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
         oprot.writeFieldBegin(CONFIG_LIST_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.configList.size()));
-          for (alluxio.thrift.ConfigProperty _iter37 : struct.configList)
+          for (alluxio.thrift.ConfigProperty _iter53 : struct.configList)
           {
-            _iter37.write(oprot);
+            _iter53.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -419,9 +419,9 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
       if (struct.isSetConfigList()) {
         {
           oprot.writeI32(struct.configList.size());
-          for (alluxio.thrift.ConfigProperty _iter38 : struct.configList)
+          for (alluxio.thrift.ConfigProperty _iter54 : struct.configList)
           {
-            _iter38.write(oprot);
+            _iter54.write(oprot);
           }
         }
       }
@@ -433,14 +433,14 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TList _list39 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.configList = new ArrayList<alluxio.thrift.ConfigProperty>(_list39.size);
-          alluxio.thrift.ConfigProperty _elem40;
-          for (int _i41 = 0; _i41 < _list39.size; ++_i41)
+          org.apache.thrift.protocol.TList _list55 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.configList = new ArrayList<alluxio.thrift.ConfigProperty>(_list55.size);
+          alluxio.thrift.ConfigProperty _elem56;
+          for (int _i57 = 0; _i57 < _list55.size; ++_i57)
           {
-            _elem40 = new alluxio.thrift.ConfigProperty();
-            _elem40.read(iprot);
-            struct.configList.add(_elem40);
+            _elem56 = new alluxio.thrift.ConfigProperty();
+            _elem56.read(iprot);
+            struct.configList.add(_elem56);
           }
         }
         struct.setConfigListIsSet(true);

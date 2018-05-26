@@ -241,6 +241,16 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
+  public List<Address> getMasterAddresses() {
+    return mMasterConfigStore.getLiveNodeAddresses();
+  }
+
+  @Override
+  public List<Address> getWorkerAddresses() {
+    return mWorkerConfigStore.getLiveNodeAddresses();
+  }
+
+  @Override
   public long getMasterId(Address address) {
     MasterInfo existingMaster = mMasters.getFirstByField(ADDRESS_INDEX, address);
     if (existingMaster != null) {

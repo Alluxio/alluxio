@@ -9,25 +9,29 @@ struct GetConfigurationTResponse{
 }
 
 enum MasterInfoField {
-  MASTER_ADDRESS
+  LEADER_MASTER_ADDRESS
+  MASTER_ADDRESSES
   RPC_PORT
   SAFE_MODE
   START_TIME_MS
   UP_TIME_MS
   VERSION
   WEB_PORT
+  WORKER_ADDRESSES
   ZOOKEEPER_ADDRESSES
 }
 
 struct MasterInfo {
- 1: string masterAddress
- 2: i32 rpcPort
- 3: bool safeMode
- 4: i64 startTimeMs
- 5: i64 upTimeMs
- 6: string version
- 7: i32 webPort
- 8: list<string> zookeeperAddresses // Null means zookeeper is not enabled
+  1: string leaderMasterAddress
+  2: list<common.MasterNetAddress> masterAddresses
+  3: i32 rpcPort
+  4: bool safeMode
+  5: i64 startTimeMs
+  6: i64 upTimeMs
+  7: string version
+  8: i32 webPort
+  9: list<common.MasterNetAddress> workerAddresses
+  10: list<string> zookeeperAddresses // Null means zookeeper is not enabled
 }
 
 enum MetaCommand {

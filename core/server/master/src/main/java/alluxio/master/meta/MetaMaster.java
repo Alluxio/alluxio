@@ -38,6 +38,11 @@ public interface MetaMaster extends Master {
   List<ConfigProperty> getConfiguration();
 
   /**
+   * @return the addresses of live masters
+   */
+  List<Address> getMasterAddresses();
+
+  /**
    * Returns a master id for the given master, creating one if the master is new.
    *
    * @param address the master hostname
@@ -64,6 +69,11 @@ public interface MetaMaster extends Master {
    * @return the master's web port
    */
   int getWebPort();
+
+  /**
+   * @return the addresses of live workers
+   */
+  List<Address> getWorkerAddresses();
 
   /**
    * @return true if Alluxio is running in safe mode, false otherwise

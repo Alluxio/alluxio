@@ -116,6 +116,14 @@ public class ServerConfigurationStore {
   }
 
   /**
+   * @return the addresses of live nodes
+   */
+  public synchronized List<Address> getLiveNodeAddresses() {
+    return mConfMap.keySet().stream()
+        .filter(address -> !mLostNodes.contains(address)).collect(Collectors.toList());
+  }
+
+  /**
    * Registers callback functions to use when this store has any changes.
    *
    * @param function the function to register
