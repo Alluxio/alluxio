@@ -61,7 +61,7 @@ public class MetaMasterMasterService {
     public RegisterMasterTResponse registerMaster(long masterId, RegisterMasterTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
-     * Periodic standby master heartbeat to indicate the master is lost or not.
+     * Heartbeats to indicate the master is lost or not.
      * 
      * @param masterId the id of the master
      * 

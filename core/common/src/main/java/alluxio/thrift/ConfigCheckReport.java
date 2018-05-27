@@ -565,26 +565,26 @@ public class ConfigCheckReport implements org.apache.thrift.TBase<ConfigCheckRep
           case 1: // ERRORS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map60 = iprot.readMapBegin();
-                struct.errors = new HashMap<Scope,List<InconsistentProperty>>(2*_map60.size);
-                Scope _key61;
-                List<InconsistentProperty> _val62;
-                for (int _i63 = 0; _i63 < _map60.size; ++_i63)
+                org.apache.thrift.protocol.TMap _map76 = iprot.readMapBegin();
+                struct.errors = new HashMap<Scope,List<InconsistentProperty>>(2*_map76.size);
+                Scope _key77;
+                List<InconsistentProperty> _val78;
+                for (int _i79 = 0; _i79 < _map76.size; ++_i79)
                 {
-                  _key61 = alluxio.thrift.Scope.findByValue(iprot.readI32());
+                  _key77 = alluxio.thrift.Scope.findByValue(iprot.readI32());
                   {
-                    org.apache.thrift.protocol.TList _list64 = iprot.readListBegin();
-                    _val62 = new ArrayList<InconsistentProperty>(_list64.size);
-                    InconsistentProperty _elem65;
-                    for (int _i66 = 0; _i66 < _list64.size; ++_i66)
+                    org.apache.thrift.protocol.TList _list80 = iprot.readListBegin();
+                    _val78 = new ArrayList<InconsistentProperty>(_list80.size);
+                    InconsistentProperty _elem81;
+                    for (int _i82 = 0; _i82 < _list80.size; ++_i82)
                     {
-                      _elem65 = new InconsistentProperty();
-                      _elem65.read(iprot);
-                      _val62.add(_elem65);
+                      _elem81 = new InconsistentProperty();
+                      _elem81.read(iprot);
+                      _val78.add(_elem81);
                     }
                     iprot.readListEnd();
                   }
-                  struct.errors.put(_key61, _val62);
+                  struct.errors.put(_key77, _val78);
                 }
                 iprot.readMapEnd();
               }
@@ -596,26 +596,26 @@ public class ConfigCheckReport implements org.apache.thrift.TBase<ConfigCheckRep
           case 2: // WARNS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map67 = iprot.readMapBegin();
-                struct.warns = new HashMap<Scope,List<InconsistentProperty>>(2*_map67.size);
-                Scope _key68;
-                List<InconsistentProperty> _val69;
-                for (int _i70 = 0; _i70 < _map67.size; ++_i70)
+                org.apache.thrift.protocol.TMap _map83 = iprot.readMapBegin();
+                struct.warns = new HashMap<Scope,List<InconsistentProperty>>(2*_map83.size);
+                Scope _key84;
+                List<InconsistentProperty> _val85;
+                for (int _i86 = 0; _i86 < _map83.size; ++_i86)
                 {
-                  _key68 = alluxio.thrift.Scope.findByValue(iprot.readI32());
+                  _key84 = alluxio.thrift.Scope.findByValue(iprot.readI32());
                   {
-                    org.apache.thrift.protocol.TList _list71 = iprot.readListBegin();
-                    _val69 = new ArrayList<InconsistentProperty>(_list71.size);
-                    InconsistentProperty _elem72;
-                    for (int _i73 = 0; _i73 < _list71.size; ++_i73)
+                    org.apache.thrift.protocol.TList _list87 = iprot.readListBegin();
+                    _val85 = new ArrayList<InconsistentProperty>(_list87.size);
+                    InconsistentProperty _elem88;
+                    for (int _i89 = 0; _i89 < _list87.size; ++_i89)
                     {
-                      _elem72 = new InconsistentProperty();
-                      _elem72.read(iprot);
-                      _val69.add(_elem72);
+                      _elem88 = new InconsistentProperty();
+                      _elem88.read(iprot);
+                      _val85.add(_elem88);
                     }
                     iprot.readListEnd();
                   }
-                  struct.warns.put(_key68, _val69);
+                  struct.warns.put(_key84, _val85);
                 }
                 iprot.readMapEnd();
               }
@@ -651,14 +651,14 @@ public class ConfigCheckReport implements org.apache.thrift.TBase<ConfigCheckRep
         oprot.writeFieldBegin(ERRORS_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.LIST, struct.errors.size()));
-          for (Map.Entry<Scope, List<InconsistentProperty>> _iter74 : struct.errors.entrySet())
+          for (Map.Entry<Scope, List<InconsistentProperty>> _iter90 : struct.errors.entrySet())
           {
-            oprot.writeI32(_iter74.getKey().getValue());
+            oprot.writeI32(_iter90.getKey().getValue());
             {
-              oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, _iter74.getValue().size()));
-              for (InconsistentProperty _iter75 : _iter74.getValue())
+              oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, _iter90.getValue().size()));
+              for (InconsistentProperty _iter91 : _iter90.getValue())
               {
-                _iter75.write(oprot);
+                _iter91.write(oprot);
               }
               oprot.writeListEnd();
             }
@@ -671,14 +671,14 @@ public class ConfigCheckReport implements org.apache.thrift.TBase<ConfigCheckRep
         oprot.writeFieldBegin(WARNS_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.LIST, struct.warns.size()));
-          for (Map.Entry<Scope, List<InconsistentProperty>> _iter76 : struct.warns.entrySet())
+          for (Map.Entry<Scope, List<InconsistentProperty>> _iter92 : struct.warns.entrySet())
           {
-            oprot.writeI32(_iter76.getKey().getValue());
+            oprot.writeI32(_iter92.getKey().getValue());
             {
-              oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, _iter76.getValue().size()));
-              for (InconsistentProperty _iter77 : _iter76.getValue())
+              oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, _iter92.getValue().size()));
+              for (InconsistentProperty _iter93 : _iter92.getValue())
               {
-                _iter77.write(oprot);
+                _iter93.write(oprot);
               }
               oprot.writeListEnd();
             }
@@ -723,14 +723,14 @@ public class ConfigCheckReport implements org.apache.thrift.TBase<ConfigCheckRep
       if (struct.isSetErrors()) {
         {
           oprot.writeI32(struct.errors.size());
-          for (Map.Entry<Scope, List<InconsistentProperty>> _iter78 : struct.errors.entrySet())
+          for (Map.Entry<Scope, List<InconsistentProperty>> _iter94 : struct.errors.entrySet())
           {
-            oprot.writeI32(_iter78.getKey().getValue());
+            oprot.writeI32(_iter94.getKey().getValue());
             {
-              oprot.writeI32(_iter78.getValue().size());
-              for (InconsistentProperty _iter79 : _iter78.getValue())
+              oprot.writeI32(_iter94.getValue().size());
+              for (InconsistentProperty _iter95 : _iter94.getValue())
               {
-                _iter79.write(oprot);
+                _iter95.write(oprot);
               }
             }
           }
@@ -739,14 +739,14 @@ public class ConfigCheckReport implements org.apache.thrift.TBase<ConfigCheckRep
       if (struct.isSetWarns()) {
         {
           oprot.writeI32(struct.warns.size());
-          for (Map.Entry<Scope, List<InconsistentProperty>> _iter80 : struct.warns.entrySet())
+          for (Map.Entry<Scope, List<InconsistentProperty>> _iter96 : struct.warns.entrySet())
           {
-            oprot.writeI32(_iter80.getKey().getValue());
+            oprot.writeI32(_iter96.getKey().getValue());
             {
-              oprot.writeI32(_iter80.getValue().size());
-              for (InconsistentProperty _iter81 : _iter80.getValue())
+              oprot.writeI32(_iter96.getValue().size());
+              for (InconsistentProperty _iter97 : _iter96.getValue())
               {
-                _iter81.write(oprot);
+                _iter97.write(oprot);
               }
             }
           }
@@ -763,50 +763,50 @@ public class ConfigCheckReport implements org.apache.thrift.TBase<ConfigCheckRep
       BitSet incoming = iprot.readBitSet(3);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TMap _map82 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.LIST, iprot.readI32());
-          struct.errors = new HashMap<Scope,List<InconsistentProperty>>(2*_map82.size);
-          Scope _key83;
-          List<InconsistentProperty> _val84;
-          for (int _i85 = 0; _i85 < _map82.size; ++_i85)
+          org.apache.thrift.protocol.TMap _map98 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.LIST, iprot.readI32());
+          struct.errors = new HashMap<Scope,List<InconsistentProperty>>(2*_map98.size);
+          Scope _key99;
+          List<InconsistentProperty> _val100;
+          for (int _i101 = 0; _i101 < _map98.size; ++_i101)
           {
-            _key83 = alluxio.thrift.Scope.findByValue(iprot.readI32());
+            _key99 = alluxio.thrift.Scope.findByValue(iprot.readI32());
             {
-              org.apache.thrift.protocol.TList _list86 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-              _val84 = new ArrayList<InconsistentProperty>(_list86.size);
-              InconsistentProperty _elem87;
-              for (int _i88 = 0; _i88 < _list86.size; ++_i88)
+              org.apache.thrift.protocol.TList _list102 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+              _val100 = new ArrayList<InconsistentProperty>(_list102.size);
+              InconsistentProperty _elem103;
+              for (int _i104 = 0; _i104 < _list102.size; ++_i104)
               {
-                _elem87 = new InconsistentProperty();
-                _elem87.read(iprot);
-                _val84.add(_elem87);
+                _elem103 = new InconsistentProperty();
+                _elem103.read(iprot);
+                _val100.add(_elem103);
               }
             }
-            struct.errors.put(_key83, _val84);
+            struct.errors.put(_key99, _val100);
           }
         }
         struct.setErrorsIsSet(true);
       }
       if (incoming.get(1)) {
         {
-          org.apache.thrift.protocol.TMap _map89 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.LIST, iprot.readI32());
-          struct.warns = new HashMap<Scope,List<InconsistentProperty>>(2*_map89.size);
-          Scope _key90;
-          List<InconsistentProperty> _val91;
-          for (int _i92 = 0; _i92 < _map89.size; ++_i92)
+          org.apache.thrift.protocol.TMap _map105 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.LIST, iprot.readI32());
+          struct.warns = new HashMap<Scope,List<InconsistentProperty>>(2*_map105.size);
+          Scope _key106;
+          List<InconsistentProperty> _val107;
+          for (int _i108 = 0; _i108 < _map105.size; ++_i108)
           {
-            _key90 = alluxio.thrift.Scope.findByValue(iprot.readI32());
+            _key106 = alluxio.thrift.Scope.findByValue(iprot.readI32());
             {
-              org.apache.thrift.protocol.TList _list93 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-              _val91 = new ArrayList<InconsistentProperty>(_list93.size);
-              InconsistentProperty _elem94;
-              for (int _i95 = 0; _i95 < _list93.size; ++_i95)
+              org.apache.thrift.protocol.TList _list109 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+              _val107 = new ArrayList<InconsistentProperty>(_list109.size);
+              InconsistentProperty _elem110;
+              for (int _i111 = 0; _i111 < _list109.size; ++_i111)
               {
-                _elem94 = new InconsistentProperty();
-                _elem94.read(iprot);
-                _val91.add(_elem94);
+                _elem110 = new InconsistentProperty();
+                _elem110.read(iprot);
+                _val107.add(_elem110);
               }
             }
-            struct.warns.put(_key90, _val91);
+            struct.warns.put(_key106, _val107);
           }
         }
         struct.setWarnsIsSet(true);

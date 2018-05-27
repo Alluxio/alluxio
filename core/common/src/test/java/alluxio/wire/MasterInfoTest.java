@@ -40,13 +40,15 @@ public class MasterInfoTest {
   }
 
   private void checkEquality(MasterInfo a, MasterInfo b) {
-    Assert.assertEquals(a.getMasterAddress(), b.getMasterAddress());
+    Assert.assertEquals(a.getLeaderMasterAddress(), b.getLeaderMasterAddress());
+    Assert.assertEquals(a.getMasterAddresses(), b.getMasterAddresses());
     Assert.assertEquals(a.getRpcPort(), b.getRpcPort());
     Assert.assertEquals(a.isSafeMode(), b.isSafeMode());
     Assert.assertEquals(a.getStartTimeMs(), b.getStartTimeMs());
     Assert.assertEquals(a.getUpTimeMs(), b.getUpTimeMs());
     Assert.assertEquals(a.getVersion(), b.getVersion());
     Assert.assertEquals(a.getWebPort(), b.getWebPort());
+    Assert.assertEquals(a.getWorkerAddresses(), b.getWorkerAddresses());
     Assert.assertEquals(a.getZookeeperAddresses(), b.getZookeeperAddresses());
     Assert.assertEquals(a, b);
   }
@@ -55,25 +57,38 @@ public class MasterInfoTest {
     MasterInfo result = new MasterInfo();
     Random random = new Random();
 
-    String masterAddress = CommonUtils.randomAlphaNumString(random.nextInt(10));
+    String leaderMasterAddress = CommonUtils.randomAlphaNumString(random.nextInt(10));
+    List<Address> masterAddresses = Arrays.asList(
+        new Address(CommonUtils.randomAlphaNumString(random.nextInt(10)),
+            random.nextInt(10)),
+        new Address(CommonUtils.randomAlphaNumString(random.nextInt(10)),
+            random.nextInt(10)));
     int rpcPort = random.nextInt(2000);
+    boolean safeMode = random.nextBoolean();
     long startTimeMs = random.nextLong();
     long uptimeMs = random.nextLong();
     String version = CommonUtils.randomAlphaNumString(random.nextInt(10));
     int webPort = random.nextInt(2000);
-    boolean safeMode = random.nextBoolean();
+    List<Address> workerAddresses = Arrays.asList(
+        new Address(CommonUtils.randomAlphaNumString(random.nextInt(10)),
+            random.nextInt(10)),
+        new Address(CommonUtils.randomAlphaNumString(random.nextInt(10)),
+            random.nextInt(10)));
+
     List<String> zookeeperAddresses = Arrays.asList(
         CommonUtils.randomAlphaNumString(random.nextInt(10)),
         CommonUtils.randomAlphaNumString(random.nextInt(10)),
         CommonUtils.randomAlphaNumString(random.nextInt(10)));
 
-    result.setMasterAddress(masterAddress);
+    result.setLeaderMasterAddress(leaderMasterAddress);
+    result.setMasterAddresses(masterAddresses);
     result.setRpcPort(rpcPort);
     result.setSafeMode(safeMode);
     result.setStartTimeMs(startTimeMs);
     result.setUpTimeMs(uptimeMs);
     result.setVersion(version);
     result.setWebPort(webPort);
+    result.setWorkerAddresses(workerAddresses);
     result.setZookeeperAddresses(zookeeperAddresses);
     return result;
   }
