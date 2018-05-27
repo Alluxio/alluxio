@@ -15,8 +15,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.PropertyKey;
-import alluxio.PropertyKey.Builder;
-import alluxio.PropertyKey.ConsistencyCheckLevel;
 import alluxio.wire.Address;
 import alluxio.wire.ConfigProperty;
 
