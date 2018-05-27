@@ -40,10 +40,8 @@ public class ServerConfigurationStoreTest {
 
   @Before
   public void before() {
-    PropertyKey keyEnforce = new Builder("TestKey1")
-        .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE).build();
-    PropertyKey keyWarn = new Builder("TestKey2")
-        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).build();
+    PropertyKey keyEnforce = PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS;
+    PropertyKey keyWarn = PropertyKey.WORKER_FREE_SPACE_TIMEOUT;
     mConfigListOne = Arrays.asList(
         new ConfigProperty().setName(keyEnforce.getName()).setSource("Test").setValue("Value"),
         new ConfigProperty().setName(keyWarn.getName()).setSource("Test").setValue("Value2"));
