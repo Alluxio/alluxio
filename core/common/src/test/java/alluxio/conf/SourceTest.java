@@ -22,7 +22,8 @@ public class SourceTest {
   @Test
   public void compareTo() {
     assertEquals(-1, Source.UNKNOWN.compareTo(Source.DEFAULT));
-    assertEquals(-1, Source.DEFAULT.compareTo(Source.SITE_PROPERTY));
+    assertEquals(-1, Source.DEFAULT.compareTo(Source.CLUSTER_DEFAULT));
+    assertEquals(-1, Source.CLUSTER_DEFAULT.compareTo(Source.SITE_PROPERTY));
     assertEquals(-1, Source.SITE_PROPERTY.compareTo(Source.SYSTEM_PROPERTY));
     assertEquals(-1, Source.SYSTEM_PROPERTY.compareTo(Source.RUNTIME));
   }

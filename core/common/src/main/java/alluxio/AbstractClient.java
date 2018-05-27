@@ -215,10 +215,17 @@ public abstract class AbstractClient implements Client {
       String name = property.getName();
       if (PropertyKey.isValid(name) && property.getValue() != null) {
         PropertyKey key = PropertyKey.fromString(name);
-        clusterProps.put(key, property.getValue());
-        LOG.debug("Loading cluster default: {} ({}) -> {}",
-            key, key.getScope(), property.getValue());
+        String value = property.getValue();
+        clusterProps.put(key, value);
+        LOG.debug("Loading cluster default: {} ({}) -> {}", key, key.getScope(), value);
       }
+    }
+    String clientVersion = Configuration.get(PropertyKey.VERSION);
+    String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
+    if (!clientVersion.equals(clusterVersion)) {
+      LOG.warn("Alluxio client version ({}) does not match Alluxio cluster version ({})",
+          clientVersion, clusterVersion);
+      clusterProps.remove(PropertyKey.VERSION);
     }
     Configuration.merge(clusterProps, Source.CLUSTER_DEFAULT);
     Configuration.validate();

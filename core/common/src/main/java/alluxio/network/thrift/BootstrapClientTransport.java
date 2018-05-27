@@ -17,8 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The client side transport of <code>MultiplexTransport</code>. The type of client transport is
- * decided when constructing the class.
+ * The client side transport of <code>BootstrapTransport</code>.
  */
 public class BootstrapClientTransport extends BootstrapTransport {
   private static final Logger LOG = LoggerFactory.getLogger(BootstrapClientTransport.class);

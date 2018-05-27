@@ -48,18 +48,19 @@ public class BootstrapServerTransport extends BootstrapTransport {
       mUnderlyingTransport.open();
     }
     byte[] messageHeader = new byte[BOOTSTRAP_HEADER_LENGTH];
+    int bytes = 0;
     try {
-      mUnderlyingTransport.peek(messageHeader, 0, BOOTSTRAP_HEADER_LENGTH);
+      bytes = mUnderlyingTransport.peek(messageHeader, 0, BOOTSTRAP_HEADER_LENGTH);
     } catch (TTransportException e) {
       if (e.getType() == TTransportException.END_OF_FILE) {
+        LOG.debug("No data in the stream {}", mUnderlyingTransport);
         mUnderlyingTransport.close();
-        LOG.debug("No data in the stream");
-        throw new TTransportException("No data data in the stream");
+        throw new TTransportException("No data data in the stream.");
       }
       throw e;
     }
 
-    if (Arrays.equals(messageHeader, BOOTSTRAP_HEADER)) {
+    if (bytes == BOOTSTRAP_HEADER_LENGTH && Arrays.equals(messageHeader, BOOTSTRAP_HEADER)) {
       mUnderlyingTransport.consumeBuffer(BOOTSTRAP_HEADER_LENGTH);
       mTransport = mUnderlyingTransport;
     } else {

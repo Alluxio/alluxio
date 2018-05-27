@@ -21,7 +21,7 @@ import com.google.common.base.Preconditions;
  * read position.
  */
 public class PeekableTransport extends TTransport {
-  protected TTransport mUnderlyingTransport;
+  private TTransport mUnderlyingTransport;
   private byte[] mBuffer;
   private int mPos;
   private int mBufferSize;
@@ -45,16 +45,20 @@ public class PeekableTransport extends TTransport {
 
   @Override
   public void close() {
+    reset();
     mUnderlyingTransport.close();
   }
 
   @Override
   public int read(byte[] buf, int off, int len) throws TTransportException {
     int bytesRemaining = getBytesRemainingInBuffer();
-    int readFromBuffer = (len > bytesRemaining ? bytesRemaining : len);
+    int readFromBuffer = len > bytesRemaining ? bytesRemaining : len;
     if (readFromBuffer > 0) {
       System.arraycopy(mBuffer, mPos, buf, off, readFromBuffer);
       consumeBuffer(readFromBuffer);
+      if (getBytesRemainingInBuffer() == 0) {
+        reset();
+      }
     }
     int readFromTransport =
         mUnderlyingTransport.read(buf, off + readFromBuffer, len - readFromBuffer);
@@ -114,5 +118,14 @@ public class PeekableTransport extends TTransport {
    */
   public void consumeBuffer(int len) {
     mPos += len;
+  }
+
+  /**
+   * Resets the buffer to null;
+   */
+  private void reset() {
+    mBufferSize = 0;
+    mPos = 0;
+    mBuffer = null;
   }
 }
