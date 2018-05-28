@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -24,6 +25,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
+import alluxio.thrift.LoadMetadataTType;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -56,7 +58,9 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
+
 import alluxio.MetaCache;
+import alluxio.wire.LoadMetadataType;
 
 /**
  * Main FUSE implementation class.
@@ -319,6 +323,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int getattr(String path, FileStat stat) {
     //final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    if (path.endsWith("/@f")) path = path.replace("/@f", ""); //qiniu
     final AlluxioURI turi = MetaCache.getURI(path);
     LOG.trace("getattr({}) [Alluxio: {}]", path, turi);
     String seed = "/@alluxio@";
@@ -570,6 +575,11 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int readdir(String path, Pointer buff, FuseFillDir filter,
       @off_t long offset, FuseFileInfo fi) {
     //final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    ListStatusOptions options = ListStatusOptions.defaults(); //qiniu
+    if (path.endsWith("/@f")) {
+        path = path.replace("/@f", "");
+        options.setLoadMetadataType(LoadMetadataType.Always);
+    }
     final AlluxioURI turi = MetaCache.getURI(path);
     LOG.trace("readdir({}) [Alluxio: {}]", path, turi);
 
@@ -581,7 +591,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       if (!status.isFolder()) {
         return -ErrorCodes.ENOTDIR();
       }
-      final List<URIStatus> ls = mFileSystem.listStatus(turi);
+      final List<URIStatus> ls = mFileSystem.listStatus(turi, options); //qiniu
       // standard . and .. entries
       filter.apply(buff, ".", null, 0);
       filter.apply(buff, "..", null, 0);
