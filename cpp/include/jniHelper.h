@@ -180,8 +180,7 @@ class JniHelper {
       ReportError(className, methodName, signature);
       return 0;
     }
-    std::string newClassName = className;
-    ClassCache::instance(t.env)->CacheClassName(res, newClassName);
+    ClassCache::instance(t.env)->CacheClassName(res, className);
     return res;
   }
 
