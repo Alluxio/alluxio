@@ -239,6 +239,7 @@ CreateFileOptions* CreateFileOptions::setLocationPolicy(
     FileWriteLocationPolicy* locationPolicy) {
   LocalFirstPolicy* policy =
       reinterpret_cast<LocalFirstPolicy*>(locationPolicy);
+  JniHelper::DeleteClassName(policy->getOptions());
   JniHelper::CacheClassName(policy->getOptions(),
       "alluxio/client/file/policy/FileWriteLocationPolicy");
   return reinterpret_cast<CreateFileOptions*>(SetMemberValue(
@@ -437,6 +438,7 @@ std::map<std::string, std::string> MountOptions::getProperties() {
     jobject keyItem = JniHelper::GetEnv()->
         GetObjectArrayElement((jobjectArray)keyArray, i);
     std::string key = JniHelper::JstringToString((jstring)keyItem);
+    JniHelper::DeleteClassName(keyItem);
     JniHelper::CacheClassName(keyItem, "java/lang/Object");
     jobject valueItem = JniHelper::CallObjectMethod(jProperties,
         "java/util/Map", "get", "java/lang/Object", (jobject)keyItem);
@@ -479,6 +481,7 @@ MountOptions* MountOptions::setProperties(
     JniHelper::CallObjectMethod(jMap, "java/util/Map", "put",
         "java/lang/Object", (jobject)jkey, (jobject)jvalue);
   }
+  JniHelper::DeleteClassName(jMap);
   JniHelper::CacheClassName(jMap, "java/util/Map");
   return reinterpret_cast<MountOptions*>(SetMemberValue(
       "alluxio/client/file/options/MountOptions",
@@ -622,6 +625,7 @@ OpenFileOptions* OpenFileOptions::setLocationPolicy(
     FileWriteLocationPolicy* locationPolicy) {
   LocalFirstPolicy* policy =
      reinterpret_cast<LocalFirstPolicy*>(locationPolicy);
+  JniHelper::DeleteClassName(policy->getOptions());
   JniHelper::CacheClassName(policy->getOptions(),
       "alluxio/client/file/policy/FileWriteLocationPolicy");
   return reinterpret_cast<OpenFileOptions*>(SetMemberValue(
@@ -634,6 +638,7 @@ OpenFileOptions* OpenFileOptions::setCacheLocationPolicy(
     FileWriteLocationPolicy* locationPolicy) {
   LocalFirstPolicy* policy =
       reinterpret_cast<LocalFirstPolicy*>(locationPolicy);
+  JniHelper::DeleteClassName(policy->getOptions());
   JniHelper::CacheClassName(policy->getOptions(),
       "alluxio/client/file/policy/FileWriteLocationPolicy");
   return reinterpret_cast<OpenFileOptions*>(SetMemberValue(
@@ -662,6 +667,7 @@ OpenFileOptions* OpenFileOptions::setUfsReadLocationPolicy(
     BlockLocationPolicy* policy) {
   DeterministicHashPolicy* newPolicy =
       reinterpret_cast<DeterministicHashPolicy*>(policy);
+  JniHelper::DeleteClassName(newPolicy->getOptions());
   JniHelper::CacheClassName(newPolicy->getOptions(),
       "alluxio/client/block/policy/BlockLocationPolicy");
   return reinterpret_cast<OpenFileOptions*>(SetMemberValue(

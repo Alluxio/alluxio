@@ -168,6 +168,7 @@ std::vector<BlockWorkerInfo>* GetWorkerOptions::getBlockWorkerInfos() {
       "alluxio/client/block/policy/options/GetWorkerOptions",
       "getBlockWorkerInfos",
       "java/lang/Iterable");
+    JniHelper::DeleteClassName(jBlockWorkerInfos);
     JniHelper::CacheClassName(jBlockWorkerInfos, "java/util/List");
     int listSize = JniHelper::CallIntMethod(jBlockWorkerInfos,
         "java/util/List", "size");
@@ -208,10 +209,12 @@ GetWorkerOptions* GetWorkerOptions::setBlockWorkerInfos(
   for (int i = 0; i < listSize; i++) {
     BlockWorkerInfo workerInfo = mBlockWorkerInfos[i];
     jobject jBlockWorkerInfo = workerInfo.ToJBlockWorkerInfo();
+    JniHelper::DeleteClassName(jBlockWorkerInfo);
     JniHelper::CacheClassName(jBlockWorkerInfo, "java/lang/Object");
     env->CallVoidMethod(jBlockWorkerInfos, add, i, jBlockWorkerInfo);
     JniHelper::DeleteObjectRef(jBlockWorkerInfo);
   }
+  JniHelper::DeleteClassName(jBlockWorkerInfos);
   JniHelper::CacheClassName(jBlockWorkerInfos, "java/util/List");
   GetWorkerOptions* opt = reinterpret_cast<GetWorkerOptions*>(SetMemberValue(
       "alluxio/client/block/policy/options/GetWorkerOptions",

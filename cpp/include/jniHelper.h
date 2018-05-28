@@ -160,6 +160,7 @@ class JniHelper {
       ReportError(className, methodName, signature);
       return NULL;
     }
+    ClassCache::instance(t.env)->CacheClassName(res, returnClassName);
     return res;
   }
 
@@ -179,6 +180,8 @@ class JniHelper {
       ReportError(className, methodName, signature);
       return 0;
     }
+    std::string newClassName = className;
+    ClassCache::instance(t.env)->CacheClassName(res, newClassName);
     return res;
   }
 
@@ -458,6 +461,10 @@ class JniHelper {
 
   static void CacheClassName(jobject obj, const std::string& classname) {
     ClassCache::instance(JniHelper::GetEnv())->CacheClassName(obj, classname);
+  }
+
+  static void DeleteClassName(jobject obj) {
+    ClassCache::instance(JniHelper::GetEnv())->deleteClassName(obj);
   }
 
   static jstring SringToJstring(JNIEnv *env, const char *pat);
