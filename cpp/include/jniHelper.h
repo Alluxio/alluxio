@@ -160,7 +160,6 @@ class JniHelper {
       ReportError(className, methodName, signature);
       return NULL;
     }
-    ClassCache::instance(t.env)->CacheClassName(res, returnClassName);
     return res;
   }
 
@@ -180,7 +179,6 @@ class JniHelper {
       ReportError(className, methodName, signature);
       return 0;
     }
-    ClassCache::instance(t.env)->CacheClassName(res, className);
     return res;
   }
 
@@ -231,6 +229,25 @@ class JniHelper {
       LocalRefMapType localRefs;
       res = t.env->CallLongMethod(obj, t.methodID,
                                  Convert(&localRefs, &t, xs)...);
+      DeleteLocalRefs(t.env, &localRefs);
+    } else {
+      ReportError(className, methodName, signature);
+    }
+    return static_cast<int64_t>(res);
+  }
+
+  template <typename... Ts>
+  static int64_t CallStaticLongMethod(const std::string& className,
+                                      const std::string& methodName,
+                                      Ts... xs) {
+    jlong res;
+    JniMethodInfo t;
+    std::string signature = "(" + std::string(GetJniSignature(xs...)) + ")J";
+    if (JniHelper::GetMethodInfo(&t, className.c_str(), methodName.c_str(),
+                                 signature.c_str(), true)) {
+      LocalRefMapType localRefs;
+      res = t.env->CallStaticLongMethod(t.classID, t.methodID,
+                                        Convert(&localRefs, &t, xs)...);
       DeleteLocalRefs(t.env, &localRefs);
     } else {
       ReportError(className, methodName, signature);

@@ -9,9 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include<string.h>
-#include<assert.h>
-#include<iostream>
+#include <string.h>
+#include <assert.h>
 
 #include <options.h>
 #include "fileSystem.h"
@@ -19,29 +18,55 @@
 
 using ::alluxio::CreateDirectoryOptions;
 using ::alluxio::CreateFileOptions;
+using ::alluxio::DeleteOptions;
 using ::alluxio::MountOptions;
 using ::alluxio::ExistsOptions;
+using ::alluxio::FreeOptions;
+using ::alluxio::ListStatusOptions;
+using ::alluxio::OpenFileOptions;
+using ::alluxio::SetAttributeOptions;
+using ::alluxio::GetStatusOptions;
 using ::alluxio::FileSystem;
 using ::alluxio::LocalAlluxioCluster;
 using ::alluxio::TtlAction;
 using ::alluxio::Mode;
 using ::alluxio::Bits;
+using ::alluxio::ReadType;
+using ::alluxio::WriteType;
 using ::alluxio::LoadMetadataType;
+using ::alluxio::CreateOptions;
+using ::alluxio::GetWorkerOptions;
+using ::alluxio::WorkerNetAddress;
+using ::alluxio::BlockWorkerInfo;
+using ::alluxio::FileWriteLocationPolicy;
+using ::alluxio::LocalFirstAvoidEvictionPolicy;
+using ::alluxio::LocalFirstPolicy;
+using ::alluxio::MostAvailableFirstPolicy;
+using ::alluxio::RoundRobinPolicy;
+using ::alluxio::SpecificHostPolicy;
+using ::alluxio::BlockLocationPolicy;
+using ::alluxio::DeterministicHashPolicy;
+
 
 void CreateDirectoryOptionsTest() {
   CreateDirectoryOptions* createDirectoryOptions;
   createDirectoryOptions = CreateDirectoryOptions::getDefaultOptions();
+  createDirectoryOptions->setAllowExists(false);
   bool allowExists = createDirectoryOptions->isAllowExists();
+  assert(allowExists == false);
+  createDirectoryOptions->setTtl(10);
   int64_t ttl = createDirectoryOptions->getTtl();
+  assert(ttl == 10);
+  createDirectoryOptions->setRecursive(false);
   bool recursive = createDirectoryOptions->isRecursive();
+  assert(recursive == false);
   createDirectoryOptions->setWriteType(new WriteType(5));
   WriteType* writeType = createDirectoryOptions->getWriteType();
-  int wValue = writeType->getValue();
-  assert(wValue == 5);
+  assert(writeType->getValue() == 5);
   createDirectoryOptions->setTtlAction(new TtlAction("FREE"));
   TtlAction* ttlAction = createDirectoryOptions->getTtlAction();
   assert(ttlAction->isFree() == true);
-  Mode* mode = createDirectoryOptions->getMode();
+  Mode* mode = Mode::getDefaultMode();
   mode->setOwnerBits(new Bits("---"));
   createDirectoryOptions->setMode(mode);
   Mode* newMode = createDirectoryOptions->getMode();
@@ -62,6 +87,37 @@ void CreateFileOptionsTest() {
   assert(writeTier == 1);
   assert(ttl == 50);
   assert(recursive == true);
+  createFileOptions->setWriteType(new WriteType(3));
+  WriteType* writeType = createFileOptions->getWriteType();
+  assert(writeType->getValue() == 3);
+  createFileOptions->setTtlAction(new TtlAction("FREE"));
+  TtlAction* ttlAction = createFileOptions->getTtlAction();
+  assert(ttlAction->isFree() == true);
+  Mode* mode = Mode::getDefaultMode();
+  mode->setOtherBits(new Bits("rwx"));
+  createFileOptions->setMode(mode);
+  Mode* newMode = createFileOptions->getMode();
+  assert(newMode->getOtherBits()->toString().compare("rwx") == 0);
+  FileWriteLocationPolicy* policy = NULL;
+  policy = SpecificHostPolicy::getPolicy("host1");
+  createFileOptions->setLocationPolicy(policy);
+  FileWriteLocationPolicy* newPolicy = createFileOptions->getLocationPolicy();
+  std::string policyClass = createFileOptions->getLocationPolicyClass();
+  assert(policyClass.compare(
+      "alluxio.client.file.policy.SpecificHostPolicy") == 0);
+}
+
+void DeleteOptionsTest() {
+  DeleteOptions* deleteOptions = DeleteOptions::getDefaultOptions();
+  deleteOptions->setRecursive(true);
+  bool recursive = deleteOptions->isRecursive();
+  assert(recursive == true);
+  deleteOptions->setAlluxioOnly(true);
+  bool alluxioOnly = deleteOptions->isAlluxioOnly();
+  assert(alluxioOnly == true);
+  deleteOptions->setUnchecked(true);
+  bool unchecked = deleteOptions->isUnchecked();
+  assert(unchecked == true);
 }
 
 void ExistsOptionsTest() {
@@ -71,24 +127,155 @@ void ExistsOptionsTest() {
   assert(loadMetadataType->getValue() == 1);
 }
 
+void FreeOptionsTest() {
+  FreeOptions* freeOptions = FreeOptions::getDefaultOptions();
+  freeOptions->setForced(true);
+  bool forced = freeOptions->isForced();
+  assert(forced == true);
+  freeOptions->setRecursive(true);
+  bool recursive = freeOptions->isRecursive();
+  assert(recursive == true);
+}
+
+void ListStatusOptionsTest() {
+  ListStatusOptions* listStatusOptions = ListStatusOptions::getDefaultOptions();
+  listStatusOptions->setLoadMetadataType(new LoadMetadataType(2));
+  LoadMetadataType* loadMetadataType = listStatusOptions->getLoadMetadataType();
+  assert(loadMetadataType->getValue() == 2);
+}
+
 void MountOptionsTest() {
   MountOptions* mountOptions = MountOptions::getDefaultOptions();
   mountOptions->setReadOnly(true);
   bool readOnly = mountOptions->isReadOnly();
   mountOptions->setShared(false);
   bool shared = mountOptions->isShared();
-  std::cout << "begin\n";
   std::map<std::string, std::string> properties;
   properties.insert(std::make_pair("what", "none"));
   mountOptions->setProperties(properties);
-  std::cout << "end\n";
   std::map<std::string, std::string> nProperties;
   nProperties = mountOptions->getProperties();
-  std::map<std::string, std::string>::iterator iter;
-  std::cout << nProperties.size() << "\n";
-  for (iter = nProperties.begin(); iter != nProperties.end(); iter ++) {
-    std::cout << iter->first << ":" << iter->second << "\n";
-  }
+  std::map<std::string, std::string>::iterator it;
+  it = nProperties.begin();
+  assert(it->first.compare("what") == 0);
+  assert(it->second.compare("none") == 0);
+}
+
+void OpenFileOptionsTest() {
+  OpenFileOptions* openFileOptions = OpenFileOptions::getDefaultOptions();
+  FileWriteLocationPolicy* policy = NULL;
+  policy = SpecificHostPolicy::getPolicy("host1");
+  openFileOptions->setLocationPolicy(policy);
+  FileWriteLocationPolicy* newPolicy = openFileOptions->getLocationPolicy();
+  std::string policyClass = openFileOptions->getLocationPolicyClass();
+  assert(policyClass.compare(
+      "alluxio.client.file.policy.SpecificHostPolicy") == 0);
+  openFileOptions->setLocationPolicyClass(
+      "alluxio.client.file.policy.RoundRobinPolicy");
+  policyClass = openFileOptions->getLocationPolicyClass();
+  assert(policyClass.compare(
+      "alluxio.client.file.policy.RoundRobinPolicy") == 0);
+  policy = MostAvailableFirstPolicy::getPolicy();
+  openFileOptions->setCacheLocationPolicy(policy);
+  newPolicy = openFileOptions->getCacheLocationPolicy();
+  policyClass = openFileOptions->getCacheLocationPolicyClass();
+  assert(policyClass.compare(
+      "alluxio.client.file.policy.MostAvailableFirstPolicy") == 0);
+  openFileOptions->setCacheLocationPolicyClass(
+      "alluxio.client.file.policy.RoundRobinPolicy");
+  policyClass = openFileOptions->getCacheLocationPolicyClass();
+  assert(policyClass.compare(
+      "alluxio.client.file.policy.RoundRobinPolicy") == 0);
+  openFileOptions->setReadType(new ReadType(2));
+  ReadType* readType = openFileOptions->getReadType();
+  assert(readType->getValue() == 2);
+  openFileOptions->setMaxUfsReadConcurrency(3);
+  int maxUfsReadConcurrency = openFileOptions->getMaxUfsReadConcurrency();
+  assert(maxUfsReadConcurrency == 3);
+  BlockLocationPolicy* bPolicy = NULL;
+  bPolicy = DeterministicHashPolicy::getPolicy();
+  openFileOptions->setUfsReadLocationPolicy(bPolicy);
+  BlockLocationPolicy* nPolicy = openFileOptions->getUfsReadLocationPolicy();
+  policyClass = openFileOptions->getUfsReadLocationPolicyClass();
+  assert(policyClass.compare(
+      "alluxio.client.block.policy.DeterministicHashPolicy") == 0);
+  openFileOptions->setUfsReadLocationPolicyClass(
+      "alluxio.client.file.policy.RoundRobinPolicy");
+  policyClass = openFileOptions->getUfsReadLocationPolicyClass();
+  assert(policyClass.compare(
+      "alluxio.client.file.policy.RoundRobinPolicy") == 0);
+}
+
+void SetAttributeOptionsTest() {
+  SetAttributeOptions* setAttributeOptions =
+      SetAttributeOptions::getDefaultOptions();
+  setAttributeOptions->setPinned(true);
+  bool pinned = setAttributeOptions->getPinned();
+  assert(pinned == true);
+  setAttributeOptions->setTtl(10);
+  int64_t ttl = setAttributeOptions->getTtl();
+  assert(ttl == 10);
+  setAttributeOptions->setTtlAction(new TtlAction("FREE"));
+  TtlAction* ttlAction = setAttributeOptions->getTtlAction();
+  assert(ttlAction->isFree() == true);
+  setAttributeOptions->setPersisted(true);
+  bool persisted = setAttributeOptions->getPersisted();
+  assert(persisted == true);
+  Mode* mode = Mode::getDefaultMode();
+  mode->setOwnerBits(new Bits("rwx"));
+  setAttributeOptions->setMode(mode);
+  Mode* newMode = setAttributeOptions->getMode();
+  assert(newMode->getOwnerBits()->toString().compare("rwx") == 0);
+  setAttributeOptions->setRecursive(true);
+  bool recursive = setAttributeOptions->isRecursive();
+  assert(recursive == true);
+  Status status1 = setAttributeOptions->setOwner("user1");
+  Status status2 = setAttributeOptions->setGroup("group1");
+  assert(status1.ok());
+  assert(status2.ok());
+  std::string owner = setAttributeOptions->getOwner();
+  std::string group = setAttributeOptions->getGroup();
+  assert(owner.compare("user1") == 0);
+  assert(group.compare("group1") == 0);
+}
+
+void GetStatusOptionsTest() {
+  GetStatusOptions* getStatusOptions = GetStatusOptions::getDefaultOptions();
+  getStatusOptions->setLoadMetadataType(new LoadMetadataType(2));
+  LoadMetadataType* loadMetadataType = getStatusOptions->getLoadMetadataType();
+  assert(loadMetadataType->getValue() == 2);
+}
+
+void getWorkerOptionsTest() {
+  WorkerNetAddress* netAddress = new WorkerNetAddress("host1", 1, 1, 1, "1");
+  WorkerNetAddress* netAddress2 = new WorkerNetAddress(
+      "192.168.195.132", 2, 2, 2, "2");
+  BlockWorkerInfo* workerInfo = new BlockWorkerInfo(netAddress, 20, 2);
+  BlockWorkerInfo* workerInfo2 = new BlockWorkerInfo(netAddress2, 10, 2);
+  std::vector<BlockWorkerInfo> workerInfoList;
+  workerInfoList.push_back(*workerInfo);
+  workerInfoList.push_back(*workerInfo2);
+  GetWorkerOptions* getWorkerOptions = GetWorkerOptions::getDefaultOptions();
+  getWorkerOptions->setBlockWorkerInfos(&workerInfoList);
+  std::vector<BlockWorkerInfo>* newInfoList =
+      getWorkerOptions->getBlockWorkerInfos();
+  assert(newInfoList->begin()->getUsedBytes() == 2);
+  FileWriteLocationPolicy* policy = NULL;
+  policy = LocalFirstAvoidEvictionPolicy::getPolicy();
+  WorkerNetAddress* newAddress = policy->getWorkerForNextBlock(
+      getWorkerOptions->getBlockWorkerInfos(),
+      getWorkerOptions->getBlockSize());
+  assert(newAddress->getHost().compare("192.168.195.132") == 0);
+  BlockLocationPolicy* newPolicy = NULL;
+  newPolicy = DeterministicHashPolicy::getPolicy();
+  WorkerNetAddress* address = newPolicy->getWorker(getWorkerOptions);
+  assert(address->getHost().compare("host1") == 0);
+  newPolicy = SpecificHostPolicy::getPolicy("192.168.195.132");
+  address = newPolicy->getWorker(getWorkerOptions);
+  assert(address->getHost().compare("192.168.195.132") == 0);
+  newPolicy = MostAvailableFirstPolicy::getPolicy();
+  address = newPolicy->getWorker(getWorkerOptions);
+  assert(address->getHost().compare("host1") == 0);
 }
 
 int main(void) {
@@ -98,8 +285,15 @@ int main(void) {
   miniCluster->getClient(&fileSystem);
   CreateDirectoryOptionsTest();
   CreateFileOptionsTest();
+  DeleteOptionsTest();
   ExistsOptionsTest();
+  FreeOptionsTest();
+  ListStatusOptionsTest();
   MountOptionsTest();
+  OpenFileOptionsTest();
+  SetAttributeOptionsTest();
+  GetStatusOptionsTest();
+  getWorkerOptionsTest();
   delete miniCluster;
   return 0;
 }

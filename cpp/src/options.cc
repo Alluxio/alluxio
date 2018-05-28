@@ -10,8 +10,6 @@
  */
 
 #include <options.h>
-#include <iostream>
-#include <iterator>
 
 using ::jnihelper::JniHelper;
 using ::alluxio::CreateDirectoryOptions;
@@ -29,6 +27,15 @@ using ::alluxio::ReadType;
 using ::alluxio::TtlAction;
 using ::alluxio::Mode;
 using ::alluxio::LoadMetadataType;
+using ::alluxio::BlockLocationPolicy;
+using ::alluxio::FileWriteLocationPolicy;
+using ::alluxio::DeterministicHashPolicy;
+using ::alluxio::LocalFirstAvoidEvictionPolicy;
+using ::alluxio::LocalFirstPolicy;
+using ::alluxio::MostAvailableFirstPolicy;
+using ::alluxio::RoundRobinPolicy;
+using ::alluxio::SpecificHostPolicy;
+
 
 WriteType* CreateDirectoryOptions::getWriteType() {
   jobject jWriteType = JniHelper::CallObjectMethod(
@@ -82,12 +89,12 @@ CreateDirectoryOptions* CreateDirectoryOptions::setMode(Mode* mode) {
   CreateDirectoryOptions* opt = reinterpret_cast<CreateDirectoryOptions*>(
     SetMemberValue("alluxio/client/file/options/CreateDirectoryOptions",
                    "setMode",
-                   mode->getOpt()));
+                   mode->getOptions()));
   return opt;
 }
 
-CreateDirectoryOptions* CreateDirectoryOptions::setWriteType
-(WriteType* writeType) {
+CreateDirectoryOptions* CreateDirectoryOptions::setWriteType(
+    WriteType* writeType) {
   jobject jWriteType = writeType->tojWriteType();
   CreateDirectoryOptions* opt = reinterpret_cast<CreateDirectoryOptions*>(
     SetMemberValue("alluxio/client/file/options/CreateDirectoryOptions",
@@ -97,8 +104,8 @@ CreateDirectoryOptions* CreateDirectoryOptions::setWriteType
   return opt;
 }
 
-CreateDirectoryOptions* CreateDirectoryOptions::setTtlAction
-(TtlAction* ttlAction) {
+CreateDirectoryOptions* CreateDirectoryOptions::setTtlAction(
+    TtlAction* ttlAction) {
   jobject jTtlAction = ttlAction->tojTtlAction();
   CreateDirectoryOptions* opt = reinterpret_cast<CreateDirectoryOptions*>(
     SetMemberValue("alluxio/client/file/options/CreateDirectoryOptions",
@@ -135,6 +142,34 @@ int64_t CreateFileOptions::getBlockSizeBytes() {
       options, "alluxio/client/file/options/CreateFileOptions",
       "getBlockSizeBytes");
   return blockSizeBytes;
+}
+
+FileWriteLocationPolicy* CreateFileOptions::getLocationPolicy() {
+  jobject jPolicy = JniHelper::CallObjectMethod(options,
+      "alluxio/client/file/options/CreateFileOptions", "getLocationPolicy",
+      "alluxio/client/file/policy/FileWriteLocationPolicy");
+  std::string jName = JniHelper::GetObjectClassName(jPolicy);
+  int index = jName.rfind("/", jName.length() - 1);
+  std::string policyName = jName.substr(index + 1, jName.length() - index -1);
+  FileWriteLocationPolicy* policy = NULL;
+  if (policyName.compare("LocalFirstAvoidEvictionPolicy") == 0) {
+    policy = new LocalFirstAvoidEvictionPolicy(jPolicy);
+  }
+  if (policyName.compare("LocalFirstPolicy") == 0) {
+    policy = new LocalFirstPolicy(jPolicy);
+  }
+  if (policyName.compare("MostAvailableFirstPolicy") == 0) {
+    policy = new MostAvailableFirstPolicy(jPolicy);
+  }
+  if (policyName.compare("RoundRobinPolicy") == 0) {
+    policy = new RoundRobinPolicy(jPolicy);
+  }
+  if (policyName.compare("SpecificHostPolicy") == 0) {
+    std::string hostname = JniHelper::CallStringMethod(jPolicy,
+        "alluxio/client/file/policy/SpecificHostPolicy", "toString");
+    policy = new SpecificHostPolicy(jPolicy, hostname);
+  }
+  return policy;
 }
 
 int64_t CreateFileOptions::getTtl() {
@@ -193,15 +228,27 @@ bool CreateFileOptions::isRecursive() {
 }
 
 CreateFileOptions* CreateFileOptions::setBlockSizeBytes
-(int64_t blockSizeBytes) {
+    (int64_t blockSizeBytes) {
   return reinterpret_cast<CreateFileOptions*>(SetMemberValue(
       "alluxio/client/file/options/CreateFileOptions",
       "setBlockSizeBytes",
       blockSizeBytes));
 }
 
+CreateFileOptions* CreateFileOptions::setLocationPolicy(
+    FileWriteLocationPolicy* locationPolicy) {
+  LocalFirstPolicy* policy =
+      reinterpret_cast<LocalFirstPolicy*>(locationPolicy);
+  JniHelper::CacheClassName(policy->getOptions(),
+      "alluxio/client/file/policy/FileWriteLocationPolicy");
+  return reinterpret_cast<CreateFileOptions*>(SetMemberValue(
+      "alluxio/client/file/options/CreateFileOptions",
+      "setLocationPolicy",
+      policy->getOptions()));
+}
+
 CreateFileOptions* CreateFileOptions::setLocationPolicyClass
-(std::string className) {
+    (std::string className) {
   return reinterpret_cast<CreateFileOptions*>(SetMemberValue(
       "alluxio/client/file/options/CreateFileOptions",
       "setLocationPolicyClass",
@@ -219,7 +266,7 @@ CreateFileOptions* CreateFileOptions::setMode(Mode* mode) {
   CreateFileOptions* opt = reinterpret_cast<CreateFileOptions*>(
     SetMemberValue("alluxio/client/file/options/CreateFileOptions",
                    "setMode",
-                   mode->getOpt()));
+                   mode->getOptions()));
   return opt;
 }
 
@@ -309,8 +356,8 @@ LoadMetadataType* ExistsOptions::getLoadMetadataType() {
   return new LoadMetadataType(value);
 }
 
-ExistsOptions* ExistsOptions::setLoadMetadataType
-(LoadMetadataType* loadMetadataType) {
+ExistsOptions* ExistsOptions::setLoadMetadataType(
+    LoadMetadataType* loadMetadataType) {
   jobject jLoadMetadataType = loadMetadataType->tojLoadMetadataType();
   ExistsOptions* opt = reinterpret_cast<ExistsOptions*>(
     SetMemberValue("alluxio/client/file/options/ExistsOptions",
@@ -358,8 +405,8 @@ LoadMetadataType* ListStatusOptions::getLoadMetadataType() {
   return new LoadMetadataType(value);
 }
 
-ListStatusOptions* ListStatusOptions::setLoadMetadataType
-(LoadMetadataType* loadMetadataType) {
+ListStatusOptions* ListStatusOptions::setLoadMetadataType(
+    LoadMetadataType* loadMetadataType) {
   jobject jLoadMetadataType = loadMetadataType->tojLoadMetadataType();
   ListStatusOptions* opt = reinterpret_cast<ListStatusOptions*>(
     SetMemberValue("alluxio/client/file/options/ListStatusOptions",
@@ -378,21 +425,21 @@ bool MountOptions::isReadOnly() {
 
 std::map<std::string, std::string> MountOptions::getProperties() {
   jobject jProperties = JniHelper::CallObjectMethod(options,
-      "alluxio/client/file/options/MountOptions", "getProperties", "java/util/Map");
+      "alluxio/client/file/options/MountOptions",
+      "getProperties", "java/util/Map");
   int mapSize = JniHelper::CallIntMethod(jProperties, "java/util/Map", "size");
   jobject keySet = JniHelper::CallObjectMethod(jProperties, "java/util/Map",
-                                               "keySet", "java/util/Set");
-  jobject keyArray = JniHelper::CallObjectMethod(keySet, "java/util/Set", "toArray",
-                                                 "[Ljava/lang/Object");
+      "keySet", "java/util/Set");
+  jobject keyArray = JniHelper::CallObjectMethod(keySet, "java/util/Set",
+      "toArray", "[Ljava/lang/Object");
   std::map<std::string, std::string> result;
-  //std::cout<<mapSize<<"\n";
   for (int i = 0; i < mapSize; i ++) {
     jobject keyItem = JniHelper::GetEnv()->
         GetObjectArrayElement((jobjectArray)keyArray, i);
     std::string key = JniHelper::JstringToString((jstring)keyItem);
     JniHelper::CacheClassName(keyItem, "java/lang/Object");
-    jobject valueItem = JniHelper::CallObjectMethod(jProperties, "java/util/Map",
-        "get", "java/lang/Object", (jobject)keyItem);
+    jobject valueItem = JniHelper::CallObjectMethod(jProperties,
+        "java/util/Map", "get", "java/lang/Object", (jobject)keyItem);
     std::string value = JniHelper::JstringToString((jstring)valueItem);
     result.insert(std::make_pair(key, value));
     JniHelper::DeleteObjectRef(keyItem);
@@ -419,15 +466,9 @@ MountOptions* MountOptions::setReadOnly(bool readOnly) {
 }
 
 
-MountOptions* MountOptions::setProperties
-(std::map<std::string, std::string> properties) {
+MountOptions* MountOptions::setProperties(
+    std::map<std::string, std::string> properties) {
   JNIEnv* env = JniHelper::GetEnv();
-  jclass jMapClass = env->FindClass("alluxio/client/file/options/MountOptions");
-  jmethodID set = env->GetMethodID(jMapClass, "setProperties",
-      "(Ljava/util/Map;)Lalluxio/client/file/options/MountOptions;");
-  //jobject jMap = JniHelper::CallObjectMethod(options,
-      //"alluxio/client/file/options/MountOptions", "getProperties", "java/util/Map");
-  //JniHelper::CallVoidMethod(jMap, "java/util/Map", "clear");
   jobject jMap = JniHelper::CreateObjectMethod("java/util/HashMap");
   std::map<std::string, std::string>::iterator it;
   for (it = properties.begin(); it != properties.end(); it++) {
@@ -438,11 +479,11 @@ MountOptions* MountOptions::setProperties
     JniHelper::CallObjectMethod(jMap, "java/util/Map", "put",
         "java/lang/Object", (jobject)jkey, (jobject)jvalue);
   }
-  int mapSize = JniHelper::CallIntMethod(jMap, "java/util/Map", "size");
-  std::cout<<mapSize<<"\n";
   JniHelper::CacheClassName(jMap, "java/util/Map");
-  env->CallObjectMethod(options, set, jMap);
-  return this;
+  return reinterpret_cast<MountOptions*>(SetMemberValue(
+      "alluxio/client/file/options/MountOptions",
+      "setProperties",
+      jMap));
 }
 
 MountOptions* MountOptions::setShared(bool shared) {
@@ -450,6 +491,62 @@ MountOptions* MountOptions::setShared(bool shared) {
       "alluxio/client/file/options/MountOptions",
       "setShared",
       shared));
+}
+
+FileWriteLocationPolicy* OpenFileOptions::getLocationPolicy() {
+  jobject jPolicy = JniHelper::CallObjectMethod(options,
+      "alluxio/client/file/options/OpenFileOptions", "getLocationPolicy",
+      "alluxio/client/file/policy/FileWriteLocationPolicy");
+  std::string jName = JniHelper::GetObjectClassName(jPolicy);
+  int index = jName.rfind("/", jName.length() - 1);
+  std::string policyName = jName.substr(index + 1, jName.length() - index -1);
+  FileWriteLocationPolicy* policy = NULL;
+  if (policyName.compare("LocalFirstAvoidEvictionPolicy") == 0) {
+    policy = new LocalFirstAvoidEvictionPolicy(jPolicy);
+  }
+  if (policyName.compare("LocalFirstPolicy") == 0) {
+    policy = new LocalFirstPolicy(jPolicy);
+  }
+  if (policyName.compare("MostAvailableFirstPolicy") == 0) {
+    policy = new MostAvailableFirstPolicy(jPolicy);
+  }
+  if (policyName.compare("RoundRobinPolicy") == 0) {
+    policy = new RoundRobinPolicy(jPolicy);
+  }
+  if (policyName.compare("SpecificHostPolicy") == 0) {
+    std::string hostname = JniHelper::CallStringMethod(jPolicy,
+        "alluxio/client/file/policy/SpecificHostPolicy", "toString");
+    policy = new SpecificHostPolicy(jPolicy, hostname);
+  }
+  return policy;
+}
+
+FileWriteLocationPolicy* OpenFileOptions::getCacheLocationPolicy() {
+  jobject jPolicy = JniHelper::CallObjectMethod(options,
+      "alluxio/client/file/options/OpenFileOptions", "getCacheLocationPolicy",
+      "alluxio/client/file/policy/FileWriteLocationPolicy");
+  std::string jName = JniHelper::GetObjectClassName(jPolicy);
+  int index = jName.rfind("/", jName.length() - 1);
+  std::string policyName = jName.substr(index + 1, jName.length() - index -1);
+  FileWriteLocationPolicy* policy = NULL;
+  if (policyName.compare("LocalFirstAvoidEvictionPolicy") == 0) {
+    policy = new LocalFirstAvoidEvictionPolicy(jPolicy);
+  }
+  if (policyName.compare("LocalFirstPolicy") == 0) {
+    policy = new LocalFirstPolicy(jPolicy);
+  }
+  if (policyName.compare("MostAvailableFirstPolicy") == 0) {
+    policy = new MostAvailableFirstPolicy(jPolicy);
+  }
+  if (policyName.compare("RoundRobinPolicy") == 0) {
+    policy = new RoundRobinPolicy(jPolicy);
+  }
+  if (policyName.compare("SpecificHostPolicy") == 0) {
+    std::string hostname = JniHelper::CallStringMethod(jPolicy,
+        "alluxio/client/file/policy/SpecificHostPolicy", "toString");
+    policy = new SpecificHostPolicy(jPolicy, hostname);
+  }
+  return policy;
 }
 
 std::string OpenFileOptions::getLocationPolicyClass() {
@@ -464,6 +561,37 @@ std::string OpenFileOptions::getCacheLocationPolicyClass() {
       options, "alluxio/client/file/options/OpenFileOptions",
       "getCacheLocationPolicyClass");
   return cacheLocationPolicyClass;
+}
+
+BlockLocationPolicy* OpenFileOptions::getUfsReadLocationPolicy() {
+  jobject jPolicy = JniHelper::CallObjectMethod(options,
+      "alluxio/client/file/options/OpenFileOptions", "getUfsReadLocationPolicy",
+      "alluxio/client/block/policy/BlockLocationPolicy");
+  std::string jName = JniHelper::GetObjectClassName(jPolicy);
+  int index = jName.rfind("/", jName.length() - 1);
+  std::string policyName = jName.substr(index + 1, jName.length() - index -1);
+  BlockLocationPolicy* policy = NULL;
+  if (policyName.compare("LocalFirstAvoidEvictionPolicy") == 0) {
+    policy = new LocalFirstAvoidEvictionPolicy(jPolicy);
+  }
+  if (policyName.compare("LocalFirstPolicy") == 0) {
+    policy = new LocalFirstPolicy(jPolicy);
+  }
+  if (policyName.compare("MostAvailableFirstPolicy") == 0) {
+    policy = new MostAvailableFirstPolicy(jPolicy);
+  }
+  if (policyName.compare("RoundRobinPolicy") == 0) {
+    policy = new RoundRobinPolicy(jPolicy);
+  }
+  if (policyName.compare("SpecificHostPolicy") == 0) {
+    std::string hostname = JniHelper::CallStringMethod(jPolicy,
+        "alluxio/client/file/policy/SpecificHostPolicy", "toString");
+    policy = new SpecificHostPolicy(jPolicy, hostname);
+  }
+  if (policyName.compare("DeterministicHashPolicy") == 0) {
+    policy = new DeterministicHashPolicy(jPolicy);
+  }
+  return policy;
 }
 
 std::string OpenFileOptions::getUfsReadLocationPolicyClass() {
@@ -490,24 +618,60 @@ int OpenFileOptions::getMaxUfsReadConcurrency() {
   return maxUfsReadConcurrency;
 }
 
-OpenFileOptions* OpenFileOptions::setLocationPolicyClass
-(std::string className) {
+OpenFileOptions* OpenFileOptions::setLocationPolicy(
+    FileWriteLocationPolicy* locationPolicy) {
+  LocalFirstPolicy* policy =
+     reinterpret_cast<LocalFirstPolicy*>(locationPolicy);
+  JniHelper::CacheClassName(policy->getOptions(),
+      "alluxio/client/file/policy/FileWriteLocationPolicy");
+  return reinterpret_cast<OpenFileOptions*>(SetMemberValue(
+      "alluxio/client/file/options/OpenFileOptions",
+      "setLocationPolicy",
+      policy->getOptions()));
+}
+
+OpenFileOptions* OpenFileOptions::setCacheLocationPolicy(
+    FileWriteLocationPolicy* locationPolicy) {
+  LocalFirstPolicy* policy =
+      reinterpret_cast<LocalFirstPolicy*>(locationPolicy);
+  JniHelper::CacheClassName(policy->getOptions(),
+      "alluxio/client/file/policy/FileWriteLocationPolicy");
+  return reinterpret_cast<OpenFileOptions*>(SetMemberValue(
+      "alluxio/client/file/options/OpenFileOptions",
+      "setCacheLocationPolicy",
+      policy->getOptions()));
+}
+
+OpenFileOptions* OpenFileOptions::setLocationPolicyClass(
+    std::string className) {
   return reinterpret_cast<OpenFileOptions*>(SetMemberValue(
       "alluxio/client/file/options/OpenFileOptions",
       "setLocationPolicyClass",
       className));
 }
 
-OpenFileOptions* OpenFileOptions::setCacheLocationPolicyClass
-(std::string className) {
+OpenFileOptions* OpenFileOptions::setCacheLocationPolicyClass(
+    std::string className) {
   return reinterpret_cast<OpenFileOptions*>(SetMemberValue(
       "alluxio/client/file/options/OpenFileOptions",
       "setCacheLocationPolicyClass",
       className));
 }
 
-OpenFileOptions* OpenFileOptions::setUfsReadLocationPolicyClass
-(std::string className) {
+OpenFileOptions* OpenFileOptions::setUfsReadLocationPolicy(
+    BlockLocationPolicy* policy) {
+  DeterministicHashPolicy* newPolicy =
+      reinterpret_cast<DeterministicHashPolicy*>(policy);
+  JniHelper::CacheClassName(newPolicy->getOptions(),
+      "alluxio/client/block/policy/BlockLocationPolicy");
+  return reinterpret_cast<OpenFileOptions*>(SetMemberValue(
+      "alluxio/client/file/options/OpenFileOptions",
+      "setUfsReadLocationPolicy",
+      newPolicy->getOptions()));
+}
+
+OpenFileOptions* OpenFileOptions::setUfsReadLocationPolicyClass(
+    std::string className) {
   return reinterpret_cast<OpenFileOptions*>(SetMemberValue(
       "alluxio/client/file/options/OpenFileOptions",
       "setUfsReadLocationPolicyClass",
@@ -524,8 +688,8 @@ OpenFileOptions* OpenFileOptions::setReadType(ReadType* readType) {
   return opt;
 }
 
-OpenFileOptions* OpenFileOptions::setMaxUfsReadConcurrency
-(int maxUfsReadConcurrency) {
+OpenFileOptions* OpenFileOptions::setMaxUfsReadConcurrency(
+    int maxUfsReadConcurrency) {
   return reinterpret_cast<OpenFileOptions*>(SetMemberValue(
       "alluxio/client/file/options/OpenFileOptions",
       "setMaxUfsReadConcurrency",
@@ -533,16 +697,20 @@ OpenFileOptions* OpenFileOptions::setMaxUfsReadConcurrency
 }
 
 bool SetAttributeOptions::getPinned() {
-  bool pinned = JniHelper::CallBooleanMethod(
+  jobject tmp = JniHelper::CallObjectMethod(
       options, "alluxio/client/file/options/SetAttributeOptions",
-      "getPinned");
+      "getPinned", "java/lang/Boolean");
+  bool pinned = JniHelper::CallBooleanMethod(
+      tmp, "java/lang/Boolean", "booleanValue");
   return pinned;
 }
 
 int64_t SetAttributeOptions::getTtl() {
-  int64_t ttl = JniHelper::CallLongMethod(
+  jobject tmp = JniHelper::CallObjectMethod(
       options, "alluxio/client/file/options/SetAttributeOptions",
-      "getTtl");
+      "getTtl", "java/lang/Long");
+  int64_t ttl = JniHelper::CallLongMethod(
+      tmp, "java/lang/Long", "longValue");
   return ttl;
 }
 
@@ -557,9 +725,11 @@ TtlAction* SetAttributeOptions::getTtlAction() {
 }
 
 bool SetAttributeOptions::getPersisted() {
-  bool persisted = JniHelper::CallBooleanMethod(
+  jobject tmp = JniHelper::CallObjectMethod(
       options, "alluxio/client/file/options/SetAttributeOptions",
-      "getPersisted");
+      "getPersisted", "java/lang/Boolean");
+  bool persisted = JniHelper::CallBooleanMethod(
+      tmp, "java/lang/Boolean", "booleanValue");
   return persisted;
 }
 
@@ -587,7 +757,7 @@ std::string SetAttributeOptions::getGroup() {
 bool SetAttributeOptions::isRecursive() {
   bool recursive = JniHelper::CallBooleanMethod(
       options, "alluxio/client/file/options/SetAttributeOptions",
-      "recursive");
+      "isRecursive");
   return recursive;
 }
 
@@ -626,7 +796,7 @@ SetAttributeOptions* SetAttributeOptions::setMode(Mode* mode) {
   SetAttributeOptions* opt = reinterpret_cast<SetAttributeOptions*>(
     SetMemberValue("alluxio/client/file/options/SetAttributeOptions",
                    "setMode",
-                   mode->getOpt()));
+                   mode->getOptions()));
   return opt;
 }
 
@@ -645,7 +815,7 @@ Status SetAttributeOptions::setOwner(std::string owner) {
 Status SetAttributeOptions::setGroup(std::string group) {
   try {
     SetMemberValue("alluxio/client/file/options/SetAttributeOptions",
-                   "setOwner",
+                   "setGroup",
                    group);
     Status status = JniHelper::AlluxioExceptionCheck();
     return status;
@@ -671,8 +841,8 @@ LoadMetadataType* GetStatusOptions::getLoadMetadataType() {
   return new LoadMetadataType(value);
 }
 
-GetStatusOptions* GetStatusOptions::setLoadMetadataType
-(LoadMetadataType* loadMetadataType) {
+GetStatusOptions* GetStatusOptions::setLoadMetadataType(
+    LoadMetadataType* loadMetadataType) {
   jobject jLoadMetadataType = loadMetadataType->tojLoadMetadataType();
   GetStatusOptions* opt = reinterpret_cast<GetStatusOptions*>(
     SetMemberValue("alluxio/client/file/options/GetStatusOptions",
