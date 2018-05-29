@@ -52,11 +52,10 @@ public enum AclAction {
   }
 
   /**
-   * @param action the {@link AclAction}
    * @return the protobuf representation of action
    */
-  public static File.AclAction toProtoBuf(AclAction action) {
-    switch (action) {
+  public File.AclAction toProtoBuf() {
+    switch (this) {
       case READ:
         return File.AclAction.READ;
       case WRITE:
@@ -64,7 +63,7 @@ public enum AclAction {
       case EXECUTE:
         return File.AclAction.EXECUTE;
       default:
-        throw new IllegalStateException("Unknown acl action: " + action);
+        throw new IllegalStateException("Unknown acl action: " + this);
     }
   }
 

@@ -26,6 +26,7 @@ import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -207,6 +208,40 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public String getUfsFingerprint() {
     return mUfsFingerprint;
+  }
+
+  /**
+   * Removes the extended ACL entries. The base entries are retained.
+   *
+   * @return the updated object
+   */
+  public T removeExtendedAcl() {
+    mAcl.removeExtendedEntries();
+    return getThis();
+  }
+
+  /**
+   * Removes ACL entries.
+   *
+   * @param entries the ACL entries to remove
+   * @return the updated object
+   */
+  public T removeAcl(List<AclEntry> entries) throws IOException {
+    for (AclEntry entry : entries) {
+      mAcl.removeEntry(entry);
+    }
+    return getThis();
+  }
+
+  /**
+   * Replaces all existing ACL entries with a new list of entries.
+   *
+   * @param entries the new list of ACL entries
+   * @return the updated object
+   */
+  public T replaceAcl(List<AclEntry> entries) {
+    mAcl.clearEntries();
+    return setAcl(entries);
   }
 
   /**

@@ -194,7 +194,7 @@ public final class AclActions {
   public static File.AclActions toProtoBuf(AclActions actions) {
     File.AclActions.Builder builder = File.AclActions.newBuilder();
     for (AclAction action : actions.getActions()) {
-      File.AclAction pAction = AclAction.toProtoBuf(action);
+      File.AclAction pAction = action.toProtoBuf();
       builder.addActions(pAction);
     }
     return builder.build();

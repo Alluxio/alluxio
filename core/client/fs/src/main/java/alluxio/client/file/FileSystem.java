@@ -26,6 +26,7 @@ import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
+import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.client.lineage.LineageContext;
@@ -35,7 +36,9 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.SetAclAction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -335,6 +338,18 @@ public interface FileSystem {
    * @throws FileDoesNotExistException if the given file does not exist
    */
   void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Sets the ACL for a path.
+   *
+   * @param path the path to set the ACL for
+   * @param action the set action to perform
+   * @param entries the ACL entries
+   * @param options options to associate with this operation
+   * @throws FileDoesNotExistException if the given file does not exist
+   */
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
