@@ -34,6 +34,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
+import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -253,7 +254,13 @@ public class AlluxioMasterProcess implements MasterProcess {
   private void initFromBackup(AlluxioURI backup) throws IOException {
     LOG.info("Initializing journal from backup {}", backup);
     int count = 0;
-    try (UnderFileSystem ufs = UnderFileSystem.Factory.create(backup.toString());
+    UnderFileSystem ufs;
+    if (URIUtils.isLocalFilesystem(backup.toString())) {
+      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
+    } else {
+      ufs = UnderFileSystem.Factory.createForRoot();
+    }
+    try (UnderFileSystem closeUfs = ufs;
          InputStream ufsIn = ufs.open(backup.getPath());
          GzipCompressorInputStream gzIn = new GzipCompressorInputStream(ufsIn);
          JournalEntryStreamReader reader = new JournalEntryStreamReader(gzIn)) {

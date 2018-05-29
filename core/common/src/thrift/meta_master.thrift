@@ -43,9 +43,10 @@ struct ExportJournalTOptions {
  2: bool localFileSystem
 }
 struct ExportJournalTResponse {
+ // The URI of the created backup file.
  1: string backupUri
- // If we export to local filesystem, this field will be populated with the hostname of the host we
- // wrote the journal on.
+ // The hostname of the master which wrote the journal backup. This is useful
+ // when the backup was written to local disk of that host.
  2: string hostname
 }
 
