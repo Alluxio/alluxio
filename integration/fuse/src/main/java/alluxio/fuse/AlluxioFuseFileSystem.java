@@ -59,6 +59,7 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 import alluxio.MetaCache;
+import alluxio.wire.LoadMetadataType;
 
 /**
  * Main FUSE implementation class.
