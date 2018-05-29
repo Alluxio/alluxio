@@ -360,7 +360,7 @@ public class TieredBlockStore implements BlockStore {
     if (RESERVER_ENABLED) {
       RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
       while (retryPolicy.attempt()) {
-        MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation,true);
+        MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation,
             true);
         if (result.getSuccess()) {
           synchronized (mBlockStoreEventListeners) {
@@ -377,7 +377,6 @@ public class TieredBlockStore implements BlockStore {
     } else {
       RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
       while (retryPolicy.attempt()) {
-        MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation,true);
         MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation,
             true);
         if (result.getSuccess()) {
