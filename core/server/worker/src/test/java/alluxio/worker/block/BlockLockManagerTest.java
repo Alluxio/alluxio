@@ -89,7 +89,7 @@ public final class BlockLockManagerTest {
   }
 
   /**
-   * Tests the {@link BlockLockManager#tryLockBlock(long, long, BlockLockType, long, TimeUnit)}
+   * Tests the {@link BlockLockManager#tryLockBlock(long, long, BlockLockType)}
    * method.
    */
   @Test

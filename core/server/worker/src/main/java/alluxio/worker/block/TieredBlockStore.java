@@ -360,7 +360,7 @@ public class TieredBlockStore implements BlockStore {
     if (RESERVER_ENABLED) {
       RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
       while (retryPolicy.attempt()) {
-        MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
+        MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation,true);
         if (result.getSuccess()) {
           synchronized (mBlockStoreEventListeners) {
             for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -376,7 +376,7 @@ public class TieredBlockStore implements BlockStore {
     } else {
       RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
       while (retryPolicy.attempt()) {
-        MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
+        MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation,true);
         if (result.getSuccess()) {
           synchronized (mBlockStoreEventListeners) {
             for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -757,7 +757,7 @@ public class TieredBlockStore implements BlockStore {
         MoveBlockResult moveResult;
         try {
           moveResult = moveBlockInternal(Sessions.createInternalSessionId(),
-              blockId, oldLocation, newLocation);
+              blockId, oldLocation, newLocation,false);
         } catch (InvalidWorkerStateException e) {
           // Evictor is not working properly
           LOG.error("Failed to demote blockId {}, this is temp block", blockId);
@@ -802,16 +802,18 @@ public class TieredBlockStore implements BlockStore {
    * @param blockId block id
    * @param oldLocation the source location of the block
    * @param newLocation new location to move this block
+   * @param wait lock the block until get a valid lock id
    * @return the resulting information about the move operation
    * @throws BlockDoesNotExistException if block is not found
    * @throws BlockAlreadyExistsException if a block with same id already exists in new location
    * @throws InvalidWorkerStateException if the block to move is a temp block
    */
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
-      BlockStoreLocation oldLocation, BlockStoreLocation newLocation)
+      BlockStoreLocation oldLocation, BlockStoreLocation newLocation,boolean wait)
       throws BlockDoesNotExistException, BlockAlreadyExistsException,
       InvalidWorkerStateException, IOException {
-    long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE);
+    long lockId = wait ? mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE) :
+        mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE);
     if (lockId == BlockLockManager.INVALID_LOCK_ID) {
       return new MoveBlockResult(false, 0, null, null);
     }
