@@ -25,7 +25,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
-import alluxio.thrift.LoadMetadataTType;
+import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -55,7 +55,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -323,21 +322,23 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int getattr(String path, FileStat stat) {
     //final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
-    if (path.endsWith("/@f")) path = path.replace("/@f", ""); //qiniu
-    final AlluxioURI turi = MetaCache.getURI(path);
+    AlluxioURI turi = MetaCache.getURI(path);
     LOG.trace("getattr({}) [Alluxio: {}]", path, turi);
-    String seed = "/@alluxio@";
-    int idx = path.lastIndexOf(seed);
-    if (idx >= 0) {
-        String p = path.substring(idx).replace(seed, "");
-        MetaCache.debug_meta_cache(p);
-        return -ErrorCodes.ENOENT();
-    }
 
-    try {
-      if (!mFileSystem.exists(turi)) {
-        return -ErrorCodes.ENOENT();
+    try {   //qiniu
+      try {
+          if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
+      } catch (Exception e) {
+          int idx = path.lastIndexOf("/@");
+          if (idx >= 0) {
+              path = path.substring(0, idx);
+              turi = MetaCache.getURI(path);
+              if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
+          } else {
+              throw e;
+          }
       }
+
       URIStatus status = mFileSystem.getStatus(turi);
 
       stat.st_size.set(status.getLength());
@@ -576,16 +577,27 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       @off_t long offset, FuseFileInfo fi) {
     //final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     ListStatusOptions options = ListStatusOptions.defaults(); //qiniu
-    if (path.endsWith("/@f")) {
-        path = path.replace("/@f", "");
-        options.setLoadMetadataType(LoadMetadataType.Always);
-    }
-    final AlluxioURI turi = MetaCache.getURI(path);
+    AlluxioURI turi = MetaCache.getURI(path);
     LOG.trace("readdir({}) [Alluxio: {}]", path, turi);
 
     try {
-      if (!mFileSystem.exists(turi)) {
-        return -ErrorCodes.ENOENT();
+      try {
+          if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
+      } catch (Exception e) {
+          int idx = path.lastIndexOf("/@");
+          if (idx >= 0) {
+              String dbg_txt = path.substring(idx).replace("/@", "");
+              path = path.substring(0, idx);
+              if (dbg_txt.equals("f")) {
+                options.setLoadMetadataType(LoadMetadataType.Always);
+              } else {
+                MetaCache.debug_meta_cache(dbg_txt);
+              }
+              turi = MetaCache.getURI(path);
+              if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
+          } else {
+              throw e;
+          }
       }
       final URIStatus status = mFileSystem.getStatus(turi);
       if (!status.isFolder()) {
