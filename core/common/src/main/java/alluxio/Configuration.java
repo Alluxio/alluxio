@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,7 +40,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -69,6 +69,8 @@ public final class Configuration {
 
   /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
+  /** String to use when the property key has null default value. */
+  public static final String VALUE_NOT_SET_STRING = "NOT_SET";
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Source of the truth of all property values (default or customized). */
@@ -599,11 +601,21 @@ public final class Configuration {
    * @return a list of configurations inside the property scope
    */
   public static List<ConfigProperty> getConfiguration(Scope scope) {
-    return toMap().keySet().stream().map(PropertyKey::fromString)
-        .filter(key -> key.getScope().contains(scope))
-        .map(key -> new ConfigProperty().setName(key.getName())
-            .setValue(get(key)).setSource(getFormattedSource(key)))
-        .collect(Collectors.toList());
+    List<ConfigProperty> list = new ArrayList<>();
+    for (Map.Entry<String, String> entry : toMap().entrySet()) {
+      PropertyKey key = PropertyKey.fromString(entry.getKey());
+      if (key.getScope().contains(scope)) {
+        ConfigProperty configProperty = new ConfigProperty()
+            .setName(key.getName()).setSource(getFormattedSource(key));
+        try {
+          configProperty.setValue(get(key));
+        } catch (RuntimeException e) {
+          configProperty.setValue(VALUE_NOT_SET_STRING);
+        }
+        list.add(configProperty);
+      }
+    }
+    return list;
   }
 
   private Configuration() {} // prevent instantiation
