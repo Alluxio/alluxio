@@ -11,30 +11,46 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.JournalEntryAssociation;
+import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.thrift.ThriftUtils;
+import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.LockResource;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
+import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.ExportJournalOptions;
+import alluxio.wire.ExportJournalResponse;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.server.TServer;
@@ -47,10 +63,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -70,6 +93,12 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The port for the RPC server. */
   private final int mPort;
+
+  /**
+   * Lock for pausing modifications to master state. Holding the this lock allows a thread to
+   * guarantee that no other threads will modify master state.
+   */
+  private final Lock mPauseStateLock;
 
   /** The socket for thrift rpc server. */
   private TServerSocket mRpcServerSocket;
@@ -154,10 +183,101 @@ public class AlluxioMasterProcess implements MasterProcess {
       // Create masters.
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
-      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
+      MasterContext context = new MasterContext(mJournalSystem, mSafeModeManager);
+      mPauseStateLock = context.pauseStateLock();
+      MasterUtils.createMasters(mRegistry, context);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public ExportJournalResponse exportJournal(ExportJournalOptions options) throws IOException {
+    String dir = options.getTargetDirectory();
+    UnderFileSystem ufs;
+    if (options.isLocalFileSystem()) {
+      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
+      LOG.info("Exporting journal backup to local filesystem in directory {}", dir);
+    } else {
+      ufs = UnderFileSystem.Factory.createForRoot();
+      LOG.info("Exporting journal backup to root UFS in directory {}", dir);
+    }
+    if (!ufs.isDirectory(dir)) {
+      if (!ufs.mkdirs(dir, MkdirsOptions.defaults().setCreateParent(true))) {
+        throw new IOException(String.format("Failed to create directory %s", dir));
+      }
+    }
+    String exportFilePath;
+    try (LockResource lr = new LockResource(mPauseStateLock)) {
+      Instant now = Instant.now();
+      String exportFileName = String.format("alluxio-journal-%s-%s.gz",
+          DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
+          now.toEpochMilli());
+      exportFilePath = PathUtils.concatPath(dir, exportFileName);
+      OutputStream ufsStream = ufs.create(exportFilePath);
+      try {
+        OutputStream zipStream = new GzipCompressorOutputStream(ufsStream);
+        for (Master master : mRegistry.getServers()) {
+          Iterator<JournalEntry> it = master.getJournalEntryIterator();
+          while (it.hasNext()) {
+            it.next().toBuilder().clearSequenceNumber().build().writeDelimitedTo(zipStream);
+          }
+        }
+        // This closes the underlying ufs stream.
+        zipStream.close();
+      } catch (Throwable t) {
+        try {
+          ufsStream.close();
+        } catch (Throwable t2) {
+          LOG.error("Failed to close backup stream to {}", exportFilePath, t2);
+          t.addSuppressed(t2);
+        }
+        try {
+          ufs.deleteFile(exportFilePath);
+        } catch (Throwable t2) {
+          LOG.error("Failed to clean up partially-written backup at {}", exportFilePath, t2);
+          t.addSuppressed(t2);
+        }
+        throw t;
+      }
+    }
+    String rootUfs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    if (options.isLocalFileSystem()) {
+      rootUfs = "file:///";
+    }
+    String backupUri =
+        new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(exportFilePath)).toString();
+    return new ExportJournalResponse(backupUri,
+        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
+  }
+
+  private void initFromBackup(AlluxioURI backup) throws IOException {
+    LOG.info("Initializing journal from backup {}", backup);
+    int count = 0;
+    UnderFileSystem ufs;
+    if (URIUtils.isLocalFilesystem(backup.toString())) {
+      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
+    } else {
+      ufs = UnderFileSystem.Factory.createForRoot();
+    }
+    try (UnderFileSystem closeUfs = ufs;
+         InputStream ufsIn = ufs.open(backup.getPath());
+         GzipCompressorInputStream gzIn = new GzipCompressorInputStream(ufsIn);
+         JournalEntryStreamReader reader = new JournalEntryStreamReader(gzIn)) {
+      List<Master> masters = mRegistry.getServers();
+      JournalEntry entry;
+      Map<String, Master> mastersByName = Maps.uniqueIndex(masters, Master::getName);
+      while ((entry = reader.readEntry()) != null) {
+        String masterName = JournalEntryAssociation.getMasterForEntry(entry);
+        Master master = mastersByName.get(masterName);
+        master.processJournalEntry(entry);
+        try (JournalContext jc = master.createJournalContext()) {
+          jc.append(entry);
+          count++;
+        }
+      }
+    }
+    LOG.info("Imported {} entries from backup", count);
   }
 
   @Override
@@ -260,6 +380,16 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected void startMasters(boolean isLeader) {
     try {
       if (isLeader) {
+        if (Configuration.containsKey(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
+          AlluxioURI backup =
+              new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP));
+          if (mJournalSystem.isEmpty()) {
+            initFromBackup(backup);
+          } else {
+            LOG.info("The journal system is not freshly formatted, skipping restoring backup from "
+                + backup);
+          }
+        }
         mSafeModeManager.notifyPrimaryMasterStarted();
       }
       mRegistry.start(isLeader);

@@ -30,6 +30,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.DefaultSafeModeManager;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
@@ -196,10 +197,11 @@ public final class PermissionCheckTest {
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     JournalSystem journalSystem = new NoopJournalSystem();
     mSafeModeManager = new DefaultSafeModeManager();
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
-    mFileSystemMaster =
-        new FileSystemMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+
+    MasterContext masterContext = new MasterContext(journalSystem, mSafeModeManager);
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
+    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
     mRegistry.start(true);
 
     createDirAndFileForTest();

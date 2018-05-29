@@ -47,7 +47,7 @@ public final class AlluxioSecondaryMaster implements Process {
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       // Create masters.
-      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
+      MasterUtils.createMasters(mRegistry, new MasterContext(mJournalSystem, mSafeModeManager));
       // Check that journals of each service have been formatted.
       if (!mJournalSystem.isFormatted()) {
         throw new RuntimeException(

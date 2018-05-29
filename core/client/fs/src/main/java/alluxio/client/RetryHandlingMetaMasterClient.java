@@ -16,11 +16,13 @@ import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.ExportJournalTOptions;
 import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMetricsTOptions;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.ExportJournalResponse;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 import alluxio.wire.MetricValue;
@@ -77,11 +79,19 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
+  public synchronized ExportJournalResponse exportJournal(String targetDirectory,
+      boolean localFileSystem) throws IOException {
+    return retryRPC(
+        () -> ExportJournalResponse.fromThrift(mClient.exportJournal(new ExportJournalTOptions()
+            .setTargetDirectory(targetDirectory).setLocalFileSystem(localFileSystem))));
+  }
+
+  @Override
   public synchronized List<ConfigProperty> getConfiguration() throws IOException {
-    return retryRPC(() -> (mClient.getConfiguration(new GetConfigurationTOptions())
+    return retryRPC(() -> mClient.getConfiguration(new GetConfigurationTOptions())
           .getConfigList().stream()
           .map(ConfigProperty::fromThrift)
-          .collect(Collectors.toList())));
+          .collect(Collectors.toList()));
   }
 
   @Override

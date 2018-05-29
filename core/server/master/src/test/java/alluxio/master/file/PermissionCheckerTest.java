@@ -22,6 +22,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.DefaultSafeModeManager;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
@@ -179,10 +180,10 @@ public final class PermissionCheckerTest {
     sRegistry = new MasterRegistry();
     sSafeModeManager = new DefaultSafeModeManager();
     JournalSystem journalSystem = new NoopJournalSystem();
-    sMetricsMaster = new MetricsMasterFactory().create(sRegistry, journalSystem, sSafeModeManager);
+    MasterContext masterContext = new MasterContext(journalSystem, sSafeModeManager);
+    sMetricsMaster = new MetricsMasterFactory().create(sRegistry, masterContext);
     sRegistry.add(MetricsMaster.class, sMetricsMaster);
-    BlockMaster blockMaster =
-        new BlockMasterFactory().create(sRegistry, journalSystem, sSafeModeManager);
+    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, masterContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);

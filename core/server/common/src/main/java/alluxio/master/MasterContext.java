@@ -15,20 +15,32 @@ import alluxio.master.journal.JournalSystem;
 
 import com.google.common.base.Preconditions;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 /**
  * Stores context information for Alluxio masters.
  */
 public final class MasterContext {
   private final JournalSystem mJournalSystem;
   private final SafeModeManager mSafeModeManager;
+  private final ReadWriteLock mStateLock;
 
   /**
+   * Creates a new master context.
+   *
+   * The stateLock is used to allow us to pause master state changes so that we can take backups of
+   * master state. All state modifications should hold the read lock so that holding the
+   * write lock allows a thread to pause state modifications.
+   *
    * @param journalSystem the journal system to use for tracking master operations
    * @param safeModeManager the manager for master safe mode
    */
   public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mSafeModeManager = Preconditions.checkNotNull(safeModeManager, "safeModeManager");
+    mStateLock = new ReentrantReadWriteLock();
   }
 
   /**
@@ -43,5 +55,19 @@ public final class MasterContext {
    */
   public SafeModeManager getSafeModeManager() {
     return mSafeModeManager;
+  }
+
+  /**
+   * @return the lock which must be held to modify master state
+   */
+  public Lock stateChangeLock() {
+    return mStateLock.readLock();
+  }
+
+  /**
+   * @return the lock which prevents master state from changing
+   */
+  public Lock pauseStateLock() {
+    return mStateLock.writeLock();
   }
 }

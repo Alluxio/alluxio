@@ -16,6 +16,7 @@ import alluxio.Server;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
+import alluxio.resource.LockResource;
 import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.google.common.base.Preconditions;
@@ -28,6 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -56,6 +58,9 @@ public abstract class AbstractMaster implements Master {
   /** The manager for safe mode state. */
   protected final SafeModeManager mSafeModeManager;
 
+  /** A lock which must be taken before modifying persistent (journaled) state. */
+  private final Lock mStateChangeLock;
+
   /**
    * @param masterContext the context for Alluxio master
    * @param clock the Clock to use for determining the time
@@ -67,6 +72,7 @@ public abstract class AbstractMaster implements Master {
     Preconditions.checkNotNull(masterContext, "masterContext");
     mJournal = masterContext.getJournalSystem().createJournal(this);
     mSafeModeManager = masterContext.getSafeModeManager();
+    mStateChangeLock = masterContext.stateChangeLock();
     mClock = clock;
     mExecutorServiceFactory = executorServiceFactory;
   }
@@ -129,10 +135,13 @@ public abstract class AbstractMaster implements Master {
     return mExecutorService;
   }
 
-  /**
-   * @return new instance of {@link JournalContext}
-   */
-  protected JournalContext createJournalContext() throws UnavailableException {
-    return mJournal.createJournalContext();
+  @Override
+  public JournalContext createJournalContext() throws UnavailableException {
+    // All modifications to journaled state must happen inside of a journal context so that we can
+    // persist the state change. As a mechanism to allow for state pauses, we acquire the state
+    // change lock before entering any code paths that could modify journaled state.
+    try (LockResource l = new LockResource(mStateChangeLock)) {
+      return mJournal.createJournalContext();
+    }
   }
 }

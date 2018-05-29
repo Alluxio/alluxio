@@ -27,6 +27,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.DefaultSafeModeManager;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
@@ -106,10 +107,10 @@ public final class InodeTreeTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new DefaultSafeModeManager();
     JournalSystem journalSystem = new NoopJournalSystem();
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    MasterContext context = new MasterContext(journalSystem, mSafeModeManager);
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, context);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
-    BlockMaster blockMaster =
-        new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, context);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);

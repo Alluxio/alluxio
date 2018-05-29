@@ -96,13 +96,13 @@ public class BlockMasterTest {
     mSafeModeManager = new TestSafeModeManager();
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    MasterContext masterContext = new MasterContext(journalSystem, mSafeModeManager);
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster =
-        new DefaultBlockMaster(mMetricsMaster, new MasterContext(journalSystem, mSafeModeManager),
-            mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mBlockMaster = new DefaultBlockMaster(mMetricsMaster, masterContext, mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
   }

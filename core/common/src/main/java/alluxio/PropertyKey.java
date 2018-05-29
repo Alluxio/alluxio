@@ -976,6 +976,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_INIT_FROM_BACKUP =
+      new Builder(Name.MASTER_JOURNAL_INIT_FROM_BACKUP)
+          .setDescription("A uri for a backup to initialize the journal from. When the"
+              + " master becomes primary, if it sees that its journal is freshly formatted, it will"
+              + " restore its state from the backup. When running multiple masters, this property"
+              + " must be configured on all masters since it isn't known during startup which"
+              + " master will become the first primary.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =
       new Builder(Name.MASTER_JOURNAL_TYPE)
           .setDefaultValue("UFS")
@@ -3039,6 +3049,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_FLUSH_RETRY_INTERVAL =
         "alluxio.master.journal.retry.interval";
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
+    public static final String MASTER_JOURNAL_INIT_FROM_BACKUP =
+        "alluxio.master.journal.init.from.backup";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_FORMATTER_CLASS =
         "alluxio.master.journal.formatter.class";

@@ -119,10 +119,10 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    MasterContext masterContext = new MasterContext(journalSystem, mSafeModeManager);
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
-    mBlockMaster =
-        new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(

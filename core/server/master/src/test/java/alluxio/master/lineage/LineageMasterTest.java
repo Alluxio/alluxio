@@ -34,8 +34,6 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.metrics.MetricsMaster;
-import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -67,7 +65,6 @@ public final class LineageMasterTest {
   private Job mJob;
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
-  private MetricsMaster mMetricsMaster;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -81,8 +78,6 @@ public final class LineageMasterTest {
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem = new NoopJournalSystem();
     mSafeModeManager = new DefaultSafeModeManager();
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
-    mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mFileSystemMaster = mock(FileSystemMaster.class);
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
