@@ -361,6 +361,7 @@ public class TieredBlockStore implements BlockStore {
       RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
       while (retryPolicy.attempt()) {
         MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation,true);
+            true);
         if (result.getSuccess()) {
           synchronized (mBlockStoreEventListeners) {
             for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -377,6 +378,8 @@ public class TieredBlockStore implements BlockStore {
       RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
       while (retryPolicy.attempt()) {
         MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation,true);
+        MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation,
+            true);
         if (result.getSuccess()) {
           synchronized (mBlockStoreEventListeners) {
             for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -757,7 +760,7 @@ public class TieredBlockStore implements BlockStore {
         MoveBlockResult moveResult;
         try {
           moveResult = moveBlockInternal(Sessions.createInternalSessionId(),
-              blockId, oldLocation, newLocation,false);
+              blockId, oldLocation, newLocation, false);
         } catch (InvalidWorkerStateException e) {
           // Evictor is not working properly
           LOG.error("Failed to demote blockId {}, this is temp block", blockId);
@@ -809,7 +812,7 @@ public class TieredBlockStore implements BlockStore {
    * @throws InvalidWorkerStateException if the block to move is a temp block
    */
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
-      BlockStoreLocation oldLocation, BlockStoreLocation newLocation,boolean wait)
+      BlockStoreLocation oldLocation, BlockStoreLocation newLocation, boolean wait)
       throws BlockDoesNotExistException, BlockAlreadyExistsException,
       InvalidWorkerStateException, IOException {
     long lockId = wait ? mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE) :
