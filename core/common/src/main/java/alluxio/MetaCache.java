@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.URIStatus;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.cache.CacheBuilder;
@@ -28,13 +27,15 @@ import java.util.List;
 import java.nio.file.Path;
 
 import javax.annotation.concurrent.ThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements the file meta cache
  */
 @ThreadSafe
 public class MetaCache {
-  //private final Logger LOG = LoggerFactory.getLogger(MetaCache.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MetaCache.class);
 
   private static Path alluxioRootPath = null;
   private static int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
@@ -53,50 +54,49 @@ public class MetaCache {
   }
 
   public static void debug_meta_cache(String p) {
-      if (p.startsWith("start_attr_cache")) {
-          MetaCache.set_attr_cache(1);
-          System.out.println("Alluxio attr cache enabled.");
-      } else if (p.startsWith("stop_attr_cache")) {
+      if (p.startsWith("a0")) {
           MetaCache.set_attr_cache(0);
           System.out.println("Alluxio attr cache disabled.");
-      } else if (p.startsWith("show_attr_cache")) {
-          System.out.println("Alluxio attr cache state:" + attr_cache_enabled);
-          System.out.println("Alluxio attr cache size:" + fcache.size());
-      } else if (p.startsWith("purge_attr_cache")) {
+      } else if (p.startsWith("a1")) {
+          MetaCache.set_attr_cache(1);
+          System.out.println("Alluxio attr cache enabled.");
+      } else if (p.startsWith("ap")) {
           MetaCache.set_attr_cache(2);
           System.out.println("Alluxio attr cache purged.");
-      } else if (p.startsWith("start_block_cache")) {
-          MetaCache.set_block_cache(1);
-          System.out.println("Alluxio block cache enabled.");
-      } else if (p.startsWith("stop_block_cache")) {
+      } else if (p.startsWith("as")) {
+          System.out.println("Alluxio attr cache state:" + attr_cache_enabled);
+          System.out.println("Alluxio attr cache size:" + fcache.size());
+      } else if (p.startsWith("ac")) {
+          p = p.substring(2);
+          System.out.println("Attr cache for " + p + ":" + MetaCache.getStatus(p));
+      } else if (p.startsWith("b0")) {
           MetaCache.set_block_cache(0);
           System.out.println("Alluxio block cache disabled.");
-      } else if (p.startsWith("purge_block_cache")) {
+      } else if (p.startsWith("b1")) {
+          MetaCache.set_block_cache(1);
+          System.out.println("Alluxio block cache enabled.");
+      } else if (p.startsWith("bp")) {
           MetaCache.set_block_cache(2);
           System.out.println("Alluxio block cache purged.");
-      } else if (p.startsWith("show_block_cache")) {
+      } else if (p.startsWith("bs")) {
           System.out.println("Alluxio block cache state:" + block_cache_enabled);
           System.out.println("Alluxio block cache size:" + bcache.size());
-      } else if (p.startsWith("start_worker_cache")) {
-          MetaCache.set_worker_cache(1);
-          System.out.println("Alluxio worker cache enabled.");
-      } else if (p.startsWith("stop_worker_cache")) {
+      } else if (p.startsWith("bc")) {
+          p = p.substring(2);
+          Long l = Long.parseLong(p);
+          System.out.println("Cached block for " + l + ":" + MetaCache.getBlockInfoCache(l));
+      } else if (p.startsWith("w0")) {
           MetaCache.set_worker_cache(0);
           System.out.println("Alluxio worker cache disabled.");
-      } else if (p.startsWith("purge_worker_cache")) {
+      } else if (p.startsWith("w1")) {
+          MetaCache.set_worker_cache(1);
+          System.out.println("Alluxio worker cache enabled.");
+      } else if (p.startsWith("wp")) {
           MetaCache.set_worker_cache(2);
           System.out.println("Alluxio worker cache purged.");
-      } else if (p.startsWith("show_worker_cache")) {
+      } else if (p.startsWith("ws")) {
           System.out.println("Cached workers state:" + worker_cache_enabled);
           System.out.println("Cached workers:" + MetaCache.getWorkerInfoList());
-      } else {
-          p = p.replace("@", "/");
-          if (p.startsWith("/")) {
-              System.out.println("Attr cache for " + p + ":" + MetaCache.getStatus(p));
-          } else {
-              Long l = Long.parseLong(p);
-              System.out.println("Cached block for " + l + ":" + MetaCache.getBlockInfoCache(l));
-          }
       }
   }
 
