@@ -72,7 +72,7 @@ public abstract class AbstractClient implements Client {
   protected TProtocol mProtocol;
 
   /** Whether the client needs to handshake with master first. */
-  private static boolean sHandshakeNeeded =
+  private static final boolean HANDSHAKE_NEEDED =
       Configuration.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED);
   /** Whether the handshake is complete. */
   private static AtomicBoolean sHandshakeComplete = new AtomicBoolean(false);
@@ -184,16 +184,13 @@ public abstract class AbstractClient implements Client {
   /**
    * Handshakes with meta master.
    */
-  private synchronized void handshake() throws AlluxioStatusException {
+  private void doHandshake() throws AlluxioStatusException {
     if (isConnected() || sHandshakeComplete.get()) {
       return;
     }
     synchronized (AbstractClient.class) {
-      InetSocketAddress address = getAddress();
-      LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
-          RuntimeConstants.VERSION, address);
       // A plain socket transport to bootstrap
-      TTransport baseTransport = ThriftUtils.createThriftSocket(address);
+      TTransport baseTransport = ThriftUtils.createThriftSocket(mAddress);
       TTransport transport = new BootstrapClientTransport(baseTransport);
       TProtocol protocol = ThriftUtils.createThriftProtocol(transport,
           Constants.META_MASTER_SERVICE_NAME);
@@ -216,6 +213,7 @@ public abstract class AbstractClient implements Client {
       Properties clusterProps = new Properties();
       for (ConfigProperty property : clusterConfig) {
         String name = property.getName();
+        // TODO(binfan): support propagating unsetting properties from master
         if (PropertyKey.isValid(name) && property.getValue() != null) {
           PropertyKey key = PropertyKey.fromString(name);
           if (!key.getScope().contains(PropertyKey.Scope.CLIENT)) {
@@ -240,6 +238,20 @@ public abstract class AbstractClient implements Client {
     }
   }
 
+  private void doConnect() throws IOException, TTransportException {
+    // The plain socket transport
+    TTransport baseTransport = ThriftUtils.createThriftSocket(mAddress);
+    // The wrapper transport
+    TTransport wrapperTransport =
+        mTransportProvider.getClientTransport(mParentSubject, baseTransport);
+    mProtocol = ThriftUtils.createThriftProtocol(wrapperTransport, getServiceName());
+    mProtocol.getTransport().open();
+    LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
+    mConnected = true;
+    afterConnect();
+    checkVersion(getClient(), getServiceVersion());
+  }
+
   /**
    * Connects with the remote.
    */
@@ -249,10 +261,6 @@ public abstract class AbstractClient implements Client {
     }
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
-
-    if (sHandshakeNeeded && !sHandshakeComplete.get()) {
-      handshake();
-    }
 
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
     while (retryPolicy.attempt()) {
@@ -268,22 +276,17 @@ public abstract class AbstractClient implements Client {
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
-      LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
-          RuntimeConstants.VERSION, getServiceName(), mAddress);
 
-      // The plain socket transport
-      TTransport baseTransport = ThriftUtils.createThriftSocket(mAddress);
-      // The wrapper transport
-      TTransport wrapperTransport =
-          mTransportProvider.getClientTransport(mParentSubject, baseTransport);
-      mProtocol = ThriftUtils.createThriftProtocol(wrapperTransport, getServiceName());
       try {
-        mProtocol.getTransport().open();
-        LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
-        mConnected = true;
-        afterConnect();
-        checkVersion(getClient(), getServiceVersion());
-        return;
+        // Bootstrap once
+        if (HANDSHAKE_NEEDED && !sHandshakeComplete.get()) {
+          LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
+              RuntimeConstants.VERSION, mAddress);
+          doHandshake();
+        }
+        LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
+            RuntimeConstants.VERSION, getServiceName(), mAddress);
+        doConnect();
       } catch (IOException | TTransportException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
@@ -295,7 +298,6 @@ public abstract class AbstractClient implements Client {
           throw new UnavailableException(message, e);
         }
       }
-      // TODO(peis): Consider closing the connection here as well.
     }
     // Reaching here indicates that we did not successfully connect.
     if (mAddress == null) {
