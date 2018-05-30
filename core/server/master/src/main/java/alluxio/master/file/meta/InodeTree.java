@@ -685,9 +685,14 @@ public class InodeTree implements JournalEntryIterable {
         }
         lastInode.setPinned(currentInodeDirectory.isPinned());
 
+        // Update state while holding the write lock.
+        // lastInode should be added to mInodes before getting added to its parent list, because it
+        // becomes visible at this point.
+        mInodes.add(lastInode);
         if (!currentInodeDirectory.addChild(lastInode)) {
           // Could not add the child inode to the parent. Continue and try again.
           // Cleanup is not necessary, since other state is updated later, after a successful add.
+          mInodes.remove(lastInode);
           lockList.unlockLast();
           lastInode = null;
           continue;
@@ -702,9 +707,6 @@ public class InodeTree implements JournalEntryIterable {
 
         // Journal the new inode.
         rpcContext.getJournalContext().append(lastInode.toJournalEntry());
-
-        // Update state while holding the write lock.
-        mInodes.add(lastInode);
 
         createdInodes.add(lastInode);
         extensibleInodePath.getInodes().add(lastInode);
