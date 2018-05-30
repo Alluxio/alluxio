@@ -58,9 +58,9 @@ $ bin/alluxio fsadmin exportJournal
 By default, this will write a backup named 
 `alluxio-journal-YYYY-MM-DD-timestamp.gz` to the "/alluxio_backups" directory of 
 the root under file system. This default backup directory can be configured by
-setting `alluxio.master.default.backup.directory`, e.g.
+setting `alluxio.master.backup.directory`, e.g.
 ```
-alluxio.master.default.backup.directory=/alluxio/backups
+alluxio.master.backup.directory=/alluxio/backups
 ```
 
 See the [backup command documentation](Admin-CLI.html#backup) for additional options for specifying

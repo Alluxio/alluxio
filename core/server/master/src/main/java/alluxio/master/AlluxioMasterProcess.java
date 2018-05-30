@@ -194,6 +194,9 @@ public class AlluxioMasterProcess implements MasterProcess {
   @Override
   public BackupResponse backup(BackupOptions options) throws IOException {
     String dir = options.getTargetDirectory();
+    if (dir == null) {
+      dir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
+    }
     UnderFileSystem ufs;
     if (options.isLocalFileSystem()) {
       ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());

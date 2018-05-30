@@ -893,6 +893,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_BACKUP_DIRECTORY =
+      new Builder(Name.MASTER_BACKUP_DIRECTORY)
+          .setDefaultValue("/alluxio_backups")
+          .setDescription("Default directory for writing master metadata backups.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_BIND_HOST =
       new Builder(Name.MASTER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
@@ -3031,6 +3038,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.audit.logging.enabled";
     public static final String MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
         "alluxio.master.audit.logging.queue.capacity";
+    public static final String MASTER_BACKUP_DIRECTORY =
+        "alluxio.master.backup.directory";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
         "alluxio.master.client.socket.cleanup.interval";
