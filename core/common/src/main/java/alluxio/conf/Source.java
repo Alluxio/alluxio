@@ -24,7 +24,7 @@ public enum Source {
    */
   DEFAULT,
   /**
-   * The default property value from <code>PropertyKey</code> for the cluster time.
+   * The default property value as loaded from the masters of the cluster.
    */
   CLUSTER_DEFAULT,
   /**

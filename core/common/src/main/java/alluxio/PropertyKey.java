@@ -2172,6 +2172,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum number of workers to retry before the client gives up on "
               + " reading a block")
           .build();
+  public static final PropertyKey USER_CONF_CLUSTER_DEFAULT_ENABLED =
+      new Builder(Name.USER_CONF_CLUSTER_DEFAULT_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("When this property is true, an Alluxio client will load the default "
+              + "values of configuration properties set by Alluxio master.")
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_DATE_FORMAT_PATTERN =
       new Builder(Name.USER_DATE_FORMAT_PATTERN)
           .setDefaultValue("MM-dd-yyyy HH:mm:ss:SSS")
@@ -2816,21 +2823,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(1)
           .setDescription("The number of CPUs to run an Alluxio worker for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey INTEGRATION_WORKER_RESOURCE_MEM =
       new Builder(Name.INTEGRATION_WORKER_RESOURCE_MEM)
           .setDefaultValue("1024MB")
           .setDescription("The amount of memory to run an Alluxio worker for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey INTEGRATION_YARN_WORKERS_PER_HOST_MAX =
       new Builder(Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX)
           .setDefaultValue(1)
           .setDescription("The number of workers to run on an Alluxio host for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
           .build();
 
   //
@@ -3275,6 +3279,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
         "alluxio.user.block.worker.client.read.retry";
+    public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
+        "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
         "alluxio.user.failed.space.request.limits";

@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The client side transport of <code>BootstrapTransport</code>.
+ * The client side transport of {@link BootstrapTransport}.
  */
 public class BootstrapClientTransport extends BootstrapTransport {
   private static final Logger LOG = LoggerFactory.getLogger(BootstrapClientTransport.class);
@@ -42,7 +42,7 @@ public class BootstrapClientTransport extends BootstrapTransport {
   }
 
   private void sendHeader() throws TTransportException {
-    mUnderlyingTransport.write(BOOTSTRAP_HEADER, 0, BOOTSTRAP_HEADER_LENGTH);
+    mUnderlyingTransport.write(BOOTSTRAP_HEADER, 0, BOOTSTRAP_HEADER.length);
     mUnderlyingTransport.flush();
   }
 }

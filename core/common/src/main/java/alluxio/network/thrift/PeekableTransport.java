@@ -21,8 +21,8 @@ import com.google.common.base.Preconditions;
  * read position.
  */
 public class PeekableTransport extends TTransport {
-  private TTransport mUnderlyingTransport;
-  private byte[] mBuffer;
+  private TTransport mBaseTransport;
+  private byte[] mPeekBuffer;
   private int mPos;
   private int mBufferSize;
 
@@ -30,49 +30,48 @@ public class PeekableTransport extends TTransport {
    * @param baseTransport the base transport to peek
    */
   public PeekableTransport(TTransport baseTransport) {
-    mUnderlyingTransport = baseTransport;
+    mBaseTransport = baseTransport;
   }
 
   @Override
   public boolean isOpen() {
-    return mUnderlyingTransport.isOpen();
+    return mBaseTransport.isOpen();
   }
 
   @Override
   public void open() throws TTransportException {
-    mUnderlyingTransport.open();
+    mBaseTransport.open();
   }
 
   @Override
   public void close() {
-    reset();
-    mUnderlyingTransport.close();
+    resetBuffer();
+    mBaseTransport.close();
   }
 
   @Override
   public int read(byte[] buf, int off, int len) throws TTransportException {
-    int bytesRemaining = getBytesRemainingInBuffer();
-    int readFromBuffer = len > bytesRemaining ? bytesRemaining : len;
+    int readFromBuffer = Math.min(getBytesRemainingInBuffer(), len);
     if (readFromBuffer > 0) {
-      System.arraycopy(mBuffer, mPos, buf, off, readFromBuffer);
+      System.arraycopy(mPeekBuffer, mPos, buf, off, readFromBuffer);
       consumeBuffer(readFromBuffer);
       if (getBytesRemainingInBuffer() == 0) {
-        reset();
+        resetBuffer();
       }
     }
     int readFromTransport =
-        mUnderlyingTransport.read(buf, off + readFromBuffer, len - readFromBuffer);
+        mBaseTransport.read(buf, off + readFromBuffer, len - readFromBuffer);
     return readFromBuffer + readFromTransport;
   }
 
   @Override
   public void write(byte[] buf, int off, int len) throws TTransportException {
-    mUnderlyingTransport.write(buf, off, len);
+    mBaseTransport.write(buf, off, len);
   }
 
   @Override
   public void flush() throws TTransportException {
-    mUnderlyingTransport.flush();
+    mBaseTransport.flush();
   }
 
   /**
@@ -86,13 +85,13 @@ public class PeekableTransport extends TTransport {
    * @throws TTransportException if there was an error reading data
    */
   public int peek(byte[] buf, int off, int len) throws TTransportException {
-    Preconditions.checkState(mBuffer == null, "Currently we only support peek once");
-    int bytesRead = mUnderlyingTransport.read(buf, off, len);
+    Preconditions.checkState(mPeekBuffer == null, "Currently we only support peek once");
+    int bytesRead = mBaseTransport.read(buf, off, len);
     if (bytesRead > 0) {
-      mBuffer = new byte[bytesRead];
+      mPeekBuffer = new byte[bytesRead];
       mBufferSize = bytesRead;
       mPos = 0;
-      System.arraycopy(buf, off, mBuffer, mPos, mBufferSize);
+      System.arraycopy(buf, off, mPeekBuffer, mPos, mBufferSize);
     }
     return bytesRead;
   }
@@ -121,11 +120,11 @@ public class PeekableTransport extends TTransport {
   }
 
   /**
-   * Resets the buffer to null;
+   * Resets the buffer to null and updates the position states.
    */
-  private void reset() {
+  private void resetBuffer() {
     mBufferSize = 0;
     mPos = 0;
-    mBuffer = null;
+    mPeekBuffer = null;
   }
 }

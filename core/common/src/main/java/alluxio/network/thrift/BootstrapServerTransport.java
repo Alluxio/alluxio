@@ -47,10 +47,10 @@ public class BootstrapServerTransport extends BootstrapTransport {
     if (!mUnderlyingTransport.isOpen()) {
       mUnderlyingTransport.open();
     }
-    byte[] messageHeader = new byte[BOOTSTRAP_HEADER_LENGTH];
+    byte[] messageHeader = new byte[BOOTSTRAP_HEADER.length];
     int bytes = 0;
     try {
-      bytes = mUnderlyingTransport.peek(messageHeader, 0, BOOTSTRAP_HEADER_LENGTH);
+      bytes = mUnderlyingTransport.peek(messageHeader, 0, BOOTSTRAP_HEADER.length);
     } catch (TTransportException e) {
       if (e.getType() == TTransportException.END_OF_FILE) {
         LOG.debug("No data in the stream {}", mUnderlyingTransport);
@@ -60,8 +60,8 @@ public class BootstrapServerTransport extends BootstrapTransport {
       throw e;
     }
 
-    if (bytes == BOOTSTRAP_HEADER_LENGTH && Arrays.equals(messageHeader, BOOTSTRAP_HEADER)) {
-      mUnderlyingTransport.consumeBuffer(BOOTSTRAP_HEADER_LENGTH);
+    if (bytes == BOOTSTRAP_HEADER.length && Arrays.equals(messageHeader, BOOTSTRAP_HEADER)) {
+      mUnderlyingTransport.consumeBuffer(BOOTSTRAP_HEADER.length);
       mTransport = mUnderlyingTransport;
     } else {
       mTransport = mTransportFactory.getTransport(mUnderlyingTransport);
@@ -76,9 +76,10 @@ public class BootstrapServerTransport extends BootstrapTransport {
    */
   public static class Factory extends TTransportFactory {
     /**
-     * The map to keep the <code>BootstrapServerTransport</code> and ensure the same base transport
-     * instance receives the same <code>MultiplexServerTransport</code>. <code>WeakHashMap</code> is
-     * used to ensure that we don't leak memory.
+     * The map to keep the BootstrapServerTransport and ensure the same base transport
+     * instance receives the same BootstrapServerTransport. <code>WeakHashMap</code> is
+     * used to ensure that we don't leak memory. This workaround is inspired by the
+     * implementation of <code>org.apache.thrift.transport.TSaslServerTransport</code>.
      */
     private static Map<TTransport, WeakReference<BootstrapServerTransport>> sTransportMap =
         Collections.synchronizedMap(
