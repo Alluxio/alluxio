@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import alluxio.AlluxioURI;
 import alluxio.thrift.ExportJournalTResponse;
 
 import com.google.common.base.Preconditions;
@@ -20,7 +21,7 @@ import com.google.common.base.Preconditions;
  */
 public class ExportJournalResponse {
   // The URI of the backed up file.
-  private String mBackupUri;
+  private AlluxioURI mBackupUri;
   // The hostname of the master that did the export.
   private String mHostname;
 
@@ -28,7 +29,7 @@ public class ExportJournalResponse {
    * @param backupUri the URI of the backed up file
    * @param hostname the hostname of the master that did the export
    */
-  public ExportJournalResponse(String backupUri, String hostname) {
+  public ExportJournalResponse(AlluxioURI backupUri, String hostname) {
     mBackupUri = Preconditions.checkNotNull(backupUri, "backupUri");
     mHostname = Preconditions.checkNotNull(hostname, "hostname");
   }
@@ -38,20 +39,20 @@ public class ExportJournalResponse {
    * @return wire type options corresponding to the thrift options
    */
   public static ExportJournalResponse fromThrift(ExportJournalTResponse tResp) {
-    return new ExportJournalResponse(tResp.getBackupUri(), tResp.getHostname());
+    return new ExportJournalResponse(new AlluxioURI(tResp.getBackupUri()), tResp.getHostname());
   }
 
   /**
    * @return the thrift options corresponding to these options
    */
   public ExportJournalTResponse toThrift() {
-    return new ExportJournalTResponse().setBackupUri(mBackupUri).setHostname(mHostname);
+    return new ExportJournalTResponse().setBackupUri(mBackupUri.toString()).setHostname(mHostname);
   }
 
   /**
    * @return the URI of the backed up file
    */
-  public String getBackupUri() {
+  public AlluxioURI getBackupUri() {
     return mBackupUri;
   }
 
