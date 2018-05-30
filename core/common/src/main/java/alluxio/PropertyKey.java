@@ -268,7 +268,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.LOGGER_TYPE)
           .setDefaultValue("Console")
           .setDescription("The type of logger.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
   public static final PropertyKey LOGS_DIR =
       new Builder(Name.LOGS_DIR)

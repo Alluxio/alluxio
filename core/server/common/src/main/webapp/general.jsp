@@ -72,12 +72,13 @@
                   </tr>
                 <% } %>
                 <tr>
-                  <th>Server Configuration Check:</th>
                   <% ConfigCheckReport configReport = ((ConfigCheckReport) request.getAttribute("configCheckReport")); %>
                   <% ConfigCheckReport.ConfigStatus status = (ConfigCheckReport.ConfigStatus) request.getAttribute("configCheckStatus");%>
                   <% if (status.equals(ConfigCheckReport.ConfigStatus.FAILED)) { %>
+                    <th><font color="red">Server Configuration Check:<font color="red"></th>
                     <th><font color="red"><%= status %><font color="red"></th>
                   <% } else { %>
+                    <th>Server Configuration Check:</th>
                     <th><%= status %></th>
                   <% } %>
                 </tr>
@@ -171,6 +172,53 @@
     </div>
   </div>
   <% } %>
+  <!--  show storage usage summary -->
+  <div class="row-fluid">
+    <div class="accordion span14" id="accordion3">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion3" href="#data3">
+            <h4>Storage Usage Summary</h4>
+          </a>
+        </div>
+        <div id="data3" class="accordion-body collapse in">
+          <div class="accordion-inner">
+            <table class="table table-hover table-condensed">
+              <thead>
+                <th>Storage Alias</th>
+                <th>Space Capacity</th>
+                <th>Space Used</th>
+                <th>Space Usage</th>
+              </thead>
+              <tbody>
+                <% for (WebInterfaceGeneralServlet.StorageTierInfo info : ((WebInterfaceGeneralServlet.StorageTierInfo[]) request.getAttribute("storageTierInfos"))) { %>
+                  <tr>
+                    <th><%= info.getStorageTierAlias() %></th>
+                    <th><%= info.getCapacity() %></th>
+                    <th><%= info.getUsedCapacity() %></th>
+                    <th>
+                      <div class="progress custom-progress">
+                        <div class="bar bar-success" style="width: <%= info.getFreeSpacePercent() %>%;">
+                          <% if (info.getFreeSpacePercent() >= info.getUsedSpacePercent()) { %>
+                            <%= info.getFreeSpacePercent() %>%Free
+                          <% } %>
+                        </div>
+                        <div class="bar bar-danger" style="width: <%= info.getUsedSpacePercent() %>%;">
+                          <% if (info.getFreeSpacePercent() < info.getUsedSpacePercent()) { %>
+                            <%= info.getUsedSpacePercent() %>%Used
+                          <% } %>
+                        </div>
+                      </div>
+                    </th>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <!--  show inconsistent configuration  -->
   <% if (inconsistentProperties != 0) { %>
   <div class="row-fluid">
@@ -240,52 +288,6 @@
     </div>
   </div>
   <% } %>
-  <div class="row-fluid">
-    <div class="accordion span14" id="accordion3">
-      <div class="accordion-group">
-        <div class="accordion-heading">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion3" href="#data3">
-            <h4>Storage Usage Summary</h4>
-          </a>
-        </div>
-        <div id="data3" class="accordion-body collapse in">
-          <div class="accordion-inner">
-            <table class="table table-hover table-condensed">
-              <thead>
-                <th>Storage Alias</th>
-                <th>Space Capacity</th>
-                <th>Space Used</th>
-                <th>Space Usage</th>
-              </thead>
-              <tbody>
-                <% for (WebInterfaceGeneralServlet.StorageTierInfo info : ((WebInterfaceGeneralServlet.StorageTierInfo[]) request.getAttribute("storageTierInfos"))) { %>
-                  <tr>
-                    <th><%= info.getStorageTierAlias() %></th>
-                    <th><%= info.getCapacity() %></th>
-                    <th><%= info.getUsedCapacity() %></th>
-                    <th>
-                      <div class="progress custom-progress">
-                        <div class="bar bar-success" style="width: <%= info.getFreeSpacePercent() %>%;">
-                          <% if (info.getFreeSpacePercent() >= info.getUsedSpacePercent()) { %>
-                            <%= info.getFreeSpacePercent() %>%Free
-                          <% } %>
-                        </div>
-                        <div class="bar bar-danger" style="width: <%= info.getUsedSpacePercent() %>%;">
-                          <% if (info.getFreeSpacePercent() < info.getUsedSpacePercent()) { %>
-                            <%= info.getUsedSpacePercent() %>%Used
-                          <% } %>
-                        </div>
-                      </div>
-                    </th>
-                  </tr>
-                <% } %>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 <!--  Hide variables for now
   <div class="row-fluid">
     <div class="accordion span14" id="accordion5">

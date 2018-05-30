@@ -69,8 +69,6 @@ public final class Configuration {
 
   /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
-  /** String to use when the property key has null default value. */
-  public static final String VALUE_NOT_SET_STRING = "NOT_SET";
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Source of the truth of all property values (default or customized). */
@@ -604,14 +602,9 @@ public final class Configuration {
     List<ConfigProperty> list = new ArrayList<>();
     for (Map.Entry<String, String> entry : toMap().entrySet()) {
       PropertyKey key = PropertyKey.fromString(entry.getKey());
-      if (key.getScope().contains(scope)) {
+      if (key.getScope().contains(scope) && containsKey(key)) {
         ConfigProperty configProperty = new ConfigProperty()
-            .setName(key.getName()).setSource(getFormattedSource(key));
-        try {
-          configProperty.setValue(get(key));
-        } catch (RuntimeException e) {
-          configProperty.setValue(VALUE_NOT_SET_STRING);
-        }
+            .setName(key.getName()).setValue(get(key)).setSource(getFormattedSource(key));
         list.add(configProperty);
       }
     }

@@ -337,7 +337,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
         .map(ConfigProperty::fromThrift).collect(Collectors.toList());
     mMasterConfigStore.registerNewConf(master.getAddress(), configList);
 
-    LOG.info("registerMaster(): master: {} options: {}", master, options);
+    LOG.info("registerMaster(): master: {}", master);
   }
 
   /**
