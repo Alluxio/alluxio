@@ -149,6 +149,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       // Create masters.
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
+      mStartTimeMs = System.currentTimeMillis();
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager, mStartTimeMs, mPort);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -352,7 +353,6 @@ public class AlluxioMasterProcess implements MasterProcess {
     mThriftServer = new TThreadPoolServer(args);
 
     // start thrift rpc server
-    mStartTimeMs = System.currentTimeMillis();
     mSafeModeManager.notifyRpcServerStarted();
     mThriftServer.serve();
   }
