@@ -34,7 +34,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterInquireClient;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileBlockInfo;
@@ -56,7 +56,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -458,16 +457,32 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
-    boolean masterAddIsSameAsDefault = checkMasterAddress();
+    // Create the master inquire client that we would have after merging the hadoop conf into
+    // Alluxio Configuration.
+    MasterInquireClient.Factory.Config inquireClientConf =
+        MasterInquireClient.Factory.Config.defaults();
+    inquireClientConf.setZookeeperEnabled(conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(),
+        inquireClientConf.isZookeeperEnabled()));
+    inquireClientConf.setZookeeperAddress(
+        conf.get(PropertyKey.ZOOKEEPER_ADDRESS.getName(), inquireClientConf.getZookeeperAddress()));
+    inquireClientConf.setElectionPath(conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(),
+        inquireClientConf.getElectionPath()));
+    inquireClientConf.setLeaderPath(
+        conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(), inquireClientConf.getLeaderPath()));
+    inquireClientConf.setConnectHost(mUri.getHost());
+    inquireClientConf.setConnectPort(mUri.getPort());
+    MasterInquireClient configClient = MasterInquireClient.Factory.create(inquireClientConf);
+    MasterInquireClient contextClient = FileSystemContext.get().getMasterInquireClient();
+    boolean connectDetailsMatch = configClient.equals(contextClient);
 
-    if (sInitialized && masterAddIsSameAsDefault) {
+    if (sInitialized && connectDetailsMatch) {
       updateFileSystemAndContext();
       return;
     }
     synchronized (INIT_LOCK) {
       // If someone has initialized the object since the last check, return
       if (sInitialized) {
-        if (masterAddIsSameAsDefault) {
+        if (connectDetailsMatch) {
           updateFileSystemAndContext();
           return;
         } else {
@@ -534,26 +549,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mContext = FileSystemContext.get();
       mFileSystem = FileSystem.Factory.get();
     }
-  }
-
-  /**
-   * @return true if the master address in mUri is the same as the one in the default file
-   *         system context.
-   */
-  private boolean checkMasterAddress() {
-    InetSocketAddress masterAddress = null;
-    try {
-      masterAddress = FileSystemContext.get().getMasterAddress();
-    } catch (UnavailableException e) {
-      LOG.warn("Failed to determine master RPC address: {}", e.toString());
-      return false;
-    }
-    boolean sameHost = masterAddress.getHostString().equals(mUri.getHost());
-    boolean samePort = masterAddress.getPort() == mUri.getPort();
-    if (sameHost && samePort) {
-      return true;
-    }
-    return false;
   }
 
   /**

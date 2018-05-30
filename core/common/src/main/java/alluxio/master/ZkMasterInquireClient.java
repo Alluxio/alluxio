@@ -19,6 +19,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
+import com.google.common.base.Objects;
 import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -179,5 +180,24 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
   @Override
   public void close() {
     mClient.close();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ZkMasterInquireClient)) {
+      return false;
+    }
+    ZkMasterInquireClient that = (ZkMasterInquireClient) o;
+    return mZookeeperAddress.equals(that.mZookeeperAddress)
+        && mElectionPath.equals(that.mElectionPath)
+        && mLeaderPath.equals(that.mLeaderPath);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mZookeeperAddress, mElectionPath, mLeaderPath);
   }
 }
