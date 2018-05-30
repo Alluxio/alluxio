@@ -43,11 +43,11 @@ public class MetaMasterClientService {
   public interface Iface extends alluxio.thrift.AlluxioService.Iface {
 
     /**
-     * Exports the journal to the specified URI
+     * Backs up the Alluxio master to the specified URI
      * 
      * @param options the method options
      */
-    public ExportJournalTResponse exportJournal(ExportJournalTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public BackupTResponse backup(BackupTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Returns a list of Alluxio runtime configuration information.
@@ -74,7 +74,7 @@ public class MetaMasterClientService {
 
   public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
-    public void exportJournal(ExportJournalTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void backup(BackupTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void getConfiguration(GetConfigurationTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -104,30 +104,30 @@ public class MetaMasterClientService {
       super(iprot, oprot);
     }
 
-    public ExportJournalTResponse exportJournal(ExportJournalTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public BackupTResponse backup(BackupTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_exportJournal(options);
-      return recv_exportJournal();
+      send_backup(options);
+      return recv_backup();
     }
 
-    public void send_exportJournal(ExportJournalTOptions options) throws org.apache.thrift.TException
+    public void send_backup(BackupTOptions options) throws org.apache.thrift.TException
     {
-      exportJournal_args args = new exportJournal_args();
+      backup_args args = new backup_args();
       args.setOptions(options);
-      sendBase("exportJournal", args);
+      sendBase("backup", args);
     }
 
-    public ExportJournalTResponse recv_exportJournal() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public BackupTResponse recv_backup() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      exportJournal_result result = new exportJournal_result();
-      receiveBase(result, "exportJournal");
+      backup_result result = new backup_result();
+      receiveBase(result, "backup");
       if (result.isSetSuccess()) {
         return result.success;
       }
       if (result.e != null) {
         throw result.e;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "exportJournal failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "backup failed: unknown result");
     }
 
     public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
@@ -226,35 +226,35 @@ public class MetaMasterClientService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void exportJournal(ExportJournalTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void backup(BackupTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      exportJournal_call method_call = new exportJournal_call(options, resultHandler, this, ___protocolFactory, ___transport);
+      backup_call method_call = new backup_call(options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class exportJournal_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private ExportJournalTOptions options;
-      public exportJournal_call(ExportJournalTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class backup_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private BackupTOptions options;
+      public backup_call(BackupTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("exportJournal", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        exportJournal_args args = new exportJournal_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("backup", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        backup_args args = new backup_args();
         args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public ExportJournalTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public BackupTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_exportJournal();
+        return (new Client(prot)).recv_backup();
       }
     }
 
@@ -367,30 +367,30 @@ public class MetaMasterClientService {
     }
 
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
-      processMap.put("exportJournal", new exportJournal());
+      processMap.put("backup", new backup());
       processMap.put("getConfiguration", new getConfiguration());
       processMap.put("getMasterInfo", new getMasterInfo());
       processMap.put("getMetrics", new getMetrics());
       return processMap;
     }
 
-    public static class exportJournal<I extends Iface> extends org.apache.thrift.ProcessFunction<I, exportJournal_args> {
-      public exportJournal() {
-        super("exportJournal");
+    public static class backup<I extends Iface> extends org.apache.thrift.ProcessFunction<I, backup_args> {
+      public backup() {
+        super("backup");
       }
 
-      public exportJournal_args getEmptyArgsInstance() {
-        return new exportJournal_args();
+      public backup_args getEmptyArgsInstance() {
+        return new backup_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public exportJournal_result getResult(I iface, exportJournal_args args) throws org.apache.thrift.TException {
-        exportJournal_result result = new exportJournal_result();
+      public backup_result getResult(I iface, backup_args args) throws org.apache.thrift.TException {
+        backup_result result = new backup_result();
         try {
-          result.success = iface.exportJournal(args.options);
+          result.success = iface.backup(args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -483,27 +483,27 @@ public class MetaMasterClientService {
     }
 
     private static <I extends AsyncIface> Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
-      processMap.put("exportJournal", new exportJournal());
+      processMap.put("backup", new backup());
       processMap.put("getConfiguration", new getConfiguration());
       processMap.put("getMasterInfo", new getMasterInfo());
       processMap.put("getMetrics", new getMetrics());
       return processMap;
     }
 
-    public static class exportJournal<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, exportJournal_args, ExportJournalTResponse> {
-      public exportJournal() {
-        super("exportJournal");
+    public static class backup<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, backup_args, BackupTResponse> {
+      public backup() {
+        super("backup");
       }
 
-      public exportJournal_args getEmptyArgsInstance() {
-        return new exportJournal_args();
+      public backup_args getEmptyArgsInstance() {
+        return new backup_args();
       }
 
-      public AsyncMethodCallback<ExportJournalTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<BackupTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<ExportJournalTResponse>() { 
-          public void onComplete(ExportJournalTResponse o) {
-            exportJournal_result result = new exportJournal_result();
+        return new AsyncMethodCallback<BackupTResponse>() { 
+          public void onComplete(BackupTResponse o) {
+            backup_result result = new backup_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -516,7 +516,7 @@ public class MetaMasterClientService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            exportJournal_result result = new exportJournal_result();
+            backup_result result = new backup_result();
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
@@ -542,8 +542,8 @@ public class MetaMasterClientService {
         return false;
       }
 
-      public void start(I iface, exportJournal_args args, org.apache.thrift.async.AsyncMethodCallback<ExportJournalTResponse> resultHandler) throws TException {
-        iface.exportJournal(args.options,resultHandler);
+      public void start(I iface, backup_args args, org.apache.thrift.async.AsyncMethodCallback<BackupTResponse> resultHandler) throws TException {
+        iface.backup(args.options,resultHandler);
       }
     }
 
@@ -720,18 +720,18 @@ public class MetaMasterClientService {
 
   }
 
-  public static class exportJournal_args implements org.apache.thrift.TBase<exportJournal_args, exportJournal_args._Fields>, java.io.Serializable, Cloneable, Comparable<exportJournal_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("exportJournal_args");
+  public static class backup_args implements org.apache.thrift.TBase<backup_args, backup_args._Fields>, java.io.Serializable, Cloneable, Comparable<backup_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("backup_args");
 
     private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new exportJournal_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new exportJournal_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new backup_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new backup_argsTupleSchemeFactory());
     }
 
-    private ExportJournalTOptions options; // required
+    private BackupTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -799,16 +799,16 @@ public class MetaMasterClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ExportJournalTOptions.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, BackupTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(exportJournal_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(backup_args.class, metaDataMap);
     }
 
-    public exportJournal_args() {
+    public backup_args() {
     }
 
-    public exportJournal_args(
-      ExportJournalTOptions options)
+    public backup_args(
+      BackupTOptions options)
     {
       this();
       this.options = options;
@@ -817,14 +817,14 @@ public class MetaMasterClientService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public exportJournal_args(exportJournal_args other) {
+    public backup_args(backup_args other) {
       if (other.isSetOptions()) {
-        this.options = new ExportJournalTOptions(other.options);
+        this.options = new BackupTOptions(other.options);
       }
     }
 
-    public exportJournal_args deepCopy() {
-      return new exportJournal_args(this);
+    public backup_args deepCopy() {
+      return new backup_args(this);
     }
 
     @Override
@@ -835,14 +835,14 @@ public class MetaMasterClientService {
     /**
      * the method options
      */
-    public ExportJournalTOptions getOptions() {
+    public BackupTOptions getOptions() {
       return this.options;
     }
 
     /**
      * the method options
      */
-    public exportJournal_args setOptions(ExportJournalTOptions options) {
+    public backup_args setOptions(BackupTOptions options) {
       this.options = options;
       return this;
     }
@@ -868,7 +868,7 @@ public class MetaMasterClientService {
         if (value == null) {
           unsetOptions();
         } else {
-          setOptions((ExportJournalTOptions)value);
+          setOptions((BackupTOptions)value);
         }
         break;
 
@@ -901,12 +901,12 @@ public class MetaMasterClientService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof exportJournal_args)
-        return this.equals((exportJournal_args)that);
+      if (that instanceof backup_args)
+        return this.equals((backup_args)that);
       return false;
     }
 
-    public boolean equals(exportJournal_args that) {
+    public boolean equals(backup_args that) {
       if (that == null)
         return false;
 
@@ -935,7 +935,7 @@ public class MetaMasterClientService {
     }
 
     @Override
-    public int compareTo(exportJournal_args other) {
+    public int compareTo(backup_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -969,7 +969,7 @@ public class MetaMasterClientService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("exportJournal_args(");
+      StringBuilder sb = new StringBuilder("backup_args(");
       boolean first = true;
 
       sb.append("options:");
@@ -1007,15 +1007,15 @@ public class MetaMasterClientService {
       }
     }
 
-    private static class exportJournal_argsStandardSchemeFactory implements SchemeFactory {
-      public exportJournal_argsStandardScheme getScheme() {
-        return new exportJournal_argsStandardScheme();
+    private static class backup_argsStandardSchemeFactory implements SchemeFactory {
+      public backup_argsStandardScheme getScheme() {
+        return new backup_argsStandardScheme();
       }
     }
 
-    private static class exportJournal_argsStandardScheme extends StandardScheme<exportJournal_args> {
+    private static class backup_argsStandardScheme extends StandardScheme<backup_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, exportJournal_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, backup_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -1027,7 +1027,7 @@ public class MetaMasterClientService {
           switch (schemeField.id) {
             case 2: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.options = new ExportJournalTOptions();
+                struct.options = new BackupTOptions();
                 struct.options.read(iprot);
                 struct.setOptionsIsSet(true);
               } else { 
@@ -1045,7 +1045,7 @@ public class MetaMasterClientService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, exportJournal_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, backup_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -1060,16 +1060,16 @@ public class MetaMasterClientService {
 
     }
 
-    private static class exportJournal_argsTupleSchemeFactory implements SchemeFactory {
-      public exportJournal_argsTupleScheme getScheme() {
-        return new exportJournal_argsTupleScheme();
+    private static class backup_argsTupleSchemeFactory implements SchemeFactory {
+      public backup_argsTupleScheme getScheme() {
+        return new backup_argsTupleScheme();
       }
     }
 
-    private static class exportJournal_argsTupleScheme extends TupleScheme<exportJournal_args> {
+    private static class backup_argsTupleScheme extends TupleScheme<backup_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, exportJournal_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, backup_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetOptions()) {
@@ -1082,11 +1082,11 @@ public class MetaMasterClientService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, exportJournal_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, backup_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.options = new ExportJournalTOptions();
+          struct.options = new BackupTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
         }
@@ -1095,19 +1095,19 @@ public class MetaMasterClientService {
 
   }
 
-  public static class exportJournal_result implements org.apache.thrift.TBase<exportJournal_result, exportJournal_result._Fields>, java.io.Serializable, Cloneable, Comparable<exportJournal_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("exportJournal_result");
+  public static class backup_result implements org.apache.thrift.TBase<backup_result, backup_result._Fields>, java.io.Serializable, Cloneable, Comparable<backup_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("backup_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new exportJournal_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new exportJournal_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new backup_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new backup_resultTupleSchemeFactory());
     }
 
-    private ExportJournalTResponse success; // required
+    private BackupTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -1176,18 +1176,18 @@ public class MetaMasterClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ExportJournalTResponse.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, BackupTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(exportJournal_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(backup_result.class, metaDataMap);
     }
 
-    public exportJournal_result() {
+    public backup_result() {
     }
 
-    public exportJournal_result(
-      ExportJournalTResponse success,
+    public backup_result(
+      BackupTResponse success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
@@ -1198,17 +1198,17 @@ public class MetaMasterClientService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public exportJournal_result(exportJournal_result other) {
+    public backup_result(backup_result other) {
       if (other.isSetSuccess()) {
-        this.success = new ExportJournalTResponse(other.success);
+        this.success = new BackupTResponse(other.success);
       }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
-    public exportJournal_result deepCopy() {
-      return new exportJournal_result(this);
+    public backup_result deepCopy() {
+      return new backup_result(this);
     }
 
     @Override
@@ -1217,11 +1217,11 @@ public class MetaMasterClientService {
       this.e = null;
     }
 
-    public ExportJournalTResponse getSuccess() {
+    public BackupTResponse getSuccess() {
       return this.success;
     }
 
-    public exportJournal_result setSuccess(ExportJournalTResponse success) {
+    public backup_result setSuccess(BackupTResponse success) {
       this.success = success;
       return this;
     }
@@ -1245,7 +1245,7 @@ public class MetaMasterClientService {
       return this.e;
     }
 
-    public exportJournal_result setE(alluxio.thrift.AlluxioTException e) {
+    public backup_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -1271,7 +1271,7 @@ public class MetaMasterClientService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((ExportJournalTResponse)value);
+          setSuccess((BackupTResponse)value);
         }
         break;
 
@@ -1317,12 +1317,12 @@ public class MetaMasterClientService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof exportJournal_result)
-        return this.equals((exportJournal_result)that);
+      if (that instanceof backup_result)
+        return this.equals((backup_result)that);
       return false;
     }
 
-    public boolean equals(exportJournal_result that) {
+    public boolean equals(backup_result that) {
       if (that == null)
         return false;
 
@@ -1365,7 +1365,7 @@ public class MetaMasterClientService {
     }
 
     @Override
-    public int compareTo(exportJournal_result other) {
+    public int compareTo(backup_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -1409,7 +1409,7 @@ public class MetaMasterClientService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("exportJournal_result(");
+      StringBuilder sb = new StringBuilder("backup_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -1455,15 +1455,15 @@ public class MetaMasterClientService {
       }
     }
 
-    private static class exportJournal_resultStandardSchemeFactory implements SchemeFactory {
-      public exportJournal_resultStandardScheme getScheme() {
-        return new exportJournal_resultStandardScheme();
+    private static class backup_resultStandardSchemeFactory implements SchemeFactory {
+      public backup_resultStandardScheme getScheme() {
+        return new backup_resultStandardScheme();
       }
     }
 
-    private static class exportJournal_resultStandardScheme extends StandardScheme<exportJournal_result> {
+    private static class backup_resultStandardScheme extends StandardScheme<backup_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, exportJournal_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, backup_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -1475,7 +1475,7 @@ public class MetaMasterClientService {
           switch (schemeField.id) {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new ExportJournalTResponse();
+                struct.success = new BackupTResponse();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
@@ -1502,7 +1502,7 @@ public class MetaMasterClientService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, exportJournal_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, backup_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -1522,16 +1522,16 @@ public class MetaMasterClientService {
 
     }
 
-    private static class exportJournal_resultTupleSchemeFactory implements SchemeFactory {
-      public exportJournal_resultTupleScheme getScheme() {
-        return new exportJournal_resultTupleScheme();
+    private static class backup_resultTupleSchemeFactory implements SchemeFactory {
+      public backup_resultTupleScheme getScheme() {
+        return new backup_resultTupleScheme();
       }
     }
 
-    private static class exportJournal_resultTupleScheme extends TupleScheme<exportJournal_result> {
+    private static class backup_resultTupleScheme extends TupleScheme<backup_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, exportJournal_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, backup_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -1550,11 +1550,11 @@ public class MetaMasterClientService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, exportJournal_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, backup_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = new ExportJournalTResponse();
+          struct.success = new BackupTResponse();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }

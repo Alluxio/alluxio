@@ -13,7 +13,7 @@ package alluxio.client;
 
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.wire.ConfigProperty;
-import alluxio.wire.ExportJournalResponse;
+import alluxio.wire.BackupResponse;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 import alluxio.wire.MetricValue;
@@ -36,7 +36,7 @@ public interface MetaMasterClient extends Closeable {
    * @param localFileSystem whether to write to the master's local filesystem instead of the UFS
    * @return the server response
    */
-  ExportJournalResponse exportJournal(String dir, boolean localFileSystem) throws IOException;
+  BackupResponse backup(String dir, boolean localFileSystem) throws IOException;
 
   /**
    * Gets the runtime configuration information.

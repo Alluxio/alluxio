@@ -418,7 +418,7 @@ public final class MultiProcessCluster implements TestRule {
   /**
    * Formats the cluster journal.
    */
-  public void formatJournal() {
+  public synchronized void formatJournal() {
     try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER,
         mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER)).toResource()) {
       Format.format(Format.Mode.MASTER);
@@ -430,7 +430,7 @@ public final class MultiProcessCluster implements TestRule {
   /**
    * @return a client for determining the serving master
    */
-  public MasterInquireClient getMasterInquireClient() {
+  public synchronized MasterInquireClient getMasterInquireClient() {
     switch (mDeployMode) {
       case NON_HA:
         Preconditions.checkState(mMasters.size() == 1,
