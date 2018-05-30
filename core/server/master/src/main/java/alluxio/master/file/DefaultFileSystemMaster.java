@@ -58,7 +58,6 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.TempInodePathForChild;
 import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.meta.UfsAbsentPathCache;
@@ -2589,8 +2588,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               // loading all descendants.
               continue;
             }
-            try (TempInodePathForChild tempInodePath =
-                new TempInodePathForChild(inodePath, childStatus.getName())) {
+            try (LockedInodePath tempInodePath =
+                inodePath.createTempPathForChild(childStatus.getName())) {
               DescendantType loadDescendantType =
                   (options.getLoadDescendantType() == DescendantType.ONE) ? DescendantType.NONE :
                       DescendantType.ALL;
@@ -3287,27 +3286,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             continue;
           }
         } else {
-          try (InodeLockList mountPointLockList =
-                   mInodeTree.lockDescendant(inodePath, lockingScheme.getMode(), mountPointUri)) {
-            if (!mountPointLockList.getInodes().isEmpty()) {
-              List<Inode<?>> inodes = mountPointLockList.getInodes();
-              // Get the last inode in the list which is an inode corresponding to the mountPoint
-              Inode<?> mountPointInode = inodes.get(inodes.size() - 1);
-
-              // Construct an locked inodepath using TempInodePathForDescendant
-              try (TempInodePathForDescendant tempInodePath =
-                       new TempInodePathForDescendant(inodePath)) {
-                tempInodePath.setDescendant(mountPointInode, mountPointUri);
-
-                try {
-                  loadMetadataAndJournal(rpcContext, tempInodePath, LoadMetadataOptions.defaults()
-                      .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
-                } catch (Exception e) {
-                  LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
-                }
-                mUfsSyncPathCache.notifySyncedPath(mountPoint);
-              }
+          try (LockedInodePath descendantPath =
+                   mInodeTree.lockDescendantPath(inodePath, lockingScheme.getMode(), mountPointUri)) {
+            try {
+              loadMetadataAndJournal(rpcContext, descendantPath, LoadMetadataOptions.defaults()
+                  .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
+            } catch (Exception e) {
+              LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
             }
+            mUfsSyncPathCache.notifySyncedPath(mountPoint);
+
           }
         }
       } catch (InvalidPathException e) {

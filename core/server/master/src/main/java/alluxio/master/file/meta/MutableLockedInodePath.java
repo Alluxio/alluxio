@@ -30,42 +30,22 @@ public class MutableLockedInodePath extends LockedInodePath {
    * Creates an instance of {@link MutableLockedInodePath}.
    *
    * @param uri the URI
-   * @param inodes the inodes
    * @param lockList the lock list of the inodes
    * @param lockMode the lock mode for the path
    * @throws InvalidPathException if the path passed is invalid
    */
   // TODO(gpang): restructure class hierarchy, rename class
-  public MutableLockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockList,
+  public MutableLockedInodePath(AlluxioURI uri, InodeLockList lockList,
       InodeTree.LockMode lockMode)
       throws InvalidPathException {
-    super(uri, inodes, lockList, lockMode);
+    super(uri, lockList, lockMode);
   }
 
-  /**
-   * Returns the closest ancestor of the target inode (last inode in the full path).
-   *
-   * @return the closest ancestor inode
-   * @throws FileDoesNotExistException if an ancestor does not exist
-   */
-  public synchronized Inode<?> getAncestorInode() throws FileDoesNotExistException {
-    int ancestorIndex = mPathComponents.length - 2;
-    if (ancestorIndex < 0) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
-    }
-    ancestorIndex = Math.min(ancestorIndex, mInodes.size() - 1);
-    return mInodes.get(ancestorIndex);
-  }
-
-  String[] getPathComponents() {
+  synchronized String[] getPathComponents() {
     return mPathComponents;
   }
 
-  List<Inode<?>> getInodes() {
-    return mInodes;
-  }
-
-  InodeLockList getLockList() {
+  synchronized InodeLockList getLockList() {
     return mLockList;
   }
 }

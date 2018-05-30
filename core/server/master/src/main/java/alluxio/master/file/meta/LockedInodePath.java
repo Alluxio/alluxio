@@ -33,17 +33,15 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class LockedInodePath implements AutoCloseable {
   protected final AlluxioURI mUri;
   protected final String[] mPathComponents;
-  protected final ArrayList<Inode<?>> mInodes;
   protected final InodeLockList mLockList;
   protected InodeTree.LockMode mLockMode;
 
-  LockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockList,
+  LockedInodePath(AlluxioURI uri, InodeLockList lockList,
       InodeTree.LockMode lockMode)
       throws InvalidPathException {
-    Preconditions.checkArgument(!inodes.isEmpty());
+    Preconditions.checkArgument(!lockList.getInodes().isEmpty());
     mUri = uri;
     mPathComponents = PathUtils.getPathComponents(mUri.getPath());
-    mInodes = new ArrayList<>(inodes);
     mLockList = lockList;
     mLockMode = lockMode;
   }
@@ -75,7 +73,7 @@ public abstract class LockedInodePath implements AutoCloseable {
     if (!fullPathExists()) {
       return null;
     }
-    return mInodes.get(mInodes.size() - 1);
+    return getInodeList().get(getInodeList().size() - 1);
   }
 
   /**
@@ -114,32 +112,31 @@ public abstract class LockedInodePath implements AutoCloseable {
    */
   @Nullable
   public synchronized Inode getParentInodeOrNull() {
-    if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
+    if (mPathComponents.length < 2 || mLockList.getInodes().size() < (mPathComponents.length - 1)) {
       // The path is only the root, or the list of inodes is not long enough to contain the parent
       return null;
     }
-    return mInodes.get(mPathComponents.length - 2);
+    return mLockList.getInodes().get(mPathComponents.length - 2);
   }
 
   /**
    * @return the last existing inode on the inode path
    */
   public synchronized Inode getLastExistingInode() {
-    return mInodes.get(mInodes.size() - 1);
+    return mLockList.getInodes().get(mLockList.getInodes().size() - 1);
   }
-
   /**
    * @return a copy of the list of existing inodes, from the root
    */
   public synchronized List<Inode<?>> getInodeList() {
-    return Lists.newArrayList(mInodes);
+    return Lists.newArrayList(mLockList.getInodes());
   }
 
   /**
    * @return true if the entire path of inodes exists, false otherwise
    */
   public synchronized boolean fullPathExists() {
-    return mInodes.size() == mPathComponents.length;
+    return mLockList.getInodes().size() == mPathComponents.length;
   }
 
   /**
@@ -178,13 +175,46 @@ public abstract class LockedInodePath implements AutoCloseable {
   }
 
   /**
+   * Returns the closest ancestor of the target inode (last inode in the full path).
+   *
+   * @return the closest ancestor inode
+   * @throws FileDoesNotExistException if an ancestor does not exist
+   */
+  public synchronized Inode<?> getAncestorInode() throws FileDoesNotExistException {
+    int ancestorIndex = mPathComponents.length - 2;
+    if (ancestorIndex < 0) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
+    }
+    ancestorIndex = Math.min(ancestorIndex, mLockList.getInodes().size() - 1);
+    return mLockList.getInodes().get(ancestorIndex);
+  }
+
+  /**
+   * Constructs a temporary {@link LockedInodePath} from an existing {@link LockedInodePath}, for
+   * a direct child of the existing path. A new {@link LockedInodePath} object is returned. When
+   * the returned temporary path is closed, it does not close the existing path.
+   *
+   * @param childName the name of the direct child
+   * @return a {@link LockedInodePath} for the direct child
+   * @throws InvalidPathException if the path is invalid
+   */
+  public synchronized LockedInodePath createTempPathForChild(String childName)
+      throws InvalidPathException {
+    return new MutableLockedInodePath(mUri.join(childName), new CompositeInodeLockList(mLockList),
+        mLockMode);
+  }
+
+  List<Inode<?>> getInodes() {
+    return mLockList.mInodes;
+  }
+
+  /**
    * Unlocks the last inode that was locked.
    */
   public synchronized void unlockLast() {
-    if (mInodes.isEmpty()) {
+    if (mLockList.getInodes().isEmpty()) {
       return;
     }
-    mInodes.remove(mInodes.size() - 1);
     mLockList.unlockLast();
   }
 }

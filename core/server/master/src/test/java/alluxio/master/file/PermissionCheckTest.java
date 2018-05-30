@@ -34,12 +34,7 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
-import alluxio.master.file.meta.Inode;
-import alluxio.master.file.meta.InodeDirectory;
-import alluxio.master.file.meta.InodeFile;
-import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.LockedInodePath;
-import alluxio.master.file.meta.MutableLockedInodePath;
+import alluxio.master.file.meta.*;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -961,10 +956,10 @@ public final class PermissionCheckTest {
 
   private LockedInodePath getLockedInodePath(ArrayList<Triple<String, String, Mode>> permissions)
       throws Exception {
-    List<Inode<?>> inodes = new ArrayList<>();
-    inodes.add(getRootInode());
+    InodeLockList lockList = new InodeLockList();
+    lockList.lockRead(getRootInode());
     if (permissions.size() == 0) {
-      return new MutableLockedInodePath(new AlluxioURI("/"), inodes, null, InodeTree.LockMode.READ);
+      return new MutableLockedInodePath(new AlluxioURI("/"), lockList, InodeTree.LockMode.READ);
     }
     String uri = "";
     for (int i = 0; i < permissions.size(); i++) {
@@ -977,13 +972,13 @@ public final class PermissionCheckTest {
         Inode<?> inode = InodeFile.create(i + 1, i, (i + 1) + "", CommonUtils.getCurrentMs(),
             CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(owner)
                 .setGroup(group).setMode(mode));
-        inodes.add(inode);
+        lockList.lockRead(inode);
       } else {
         Inode<?> inode = InodeDirectory.create(i + 1, i, (i + 1) + "",
             CreateDirectoryOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
-        inodes.add(inode);
+        lockList.lockRead(inode);
       }
     }
-    return new MutableLockedInodePath(new AlluxioURI(uri), inodes, null, InodeTree.LockMode.READ);
+    return new MutableLockedInodePath(new AlluxioURI(uri), lockList, InodeTree.LockMode.READ);
   }
 }

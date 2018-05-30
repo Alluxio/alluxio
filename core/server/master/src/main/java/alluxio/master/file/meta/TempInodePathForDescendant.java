@@ -43,7 +43,7 @@ public final class TempInodePathForDescendant extends LockedInodePath {
    */
   public TempInodePathForDescendant(LockedInodePath inodePath)
       throws InvalidPathException {
-    super(inodePath.mUri, inodePath.mInodes, new InodeLockList(), inodePath.mLockMode);
+    super(inodePath.mUri, new CompositeInodeLockList(inodePath.mLockList), inodePath.mLockMode);
 
     mDescendantUri = new AlluxioURI(inodePath.getUri().toString());
     mDescendantInode = null;
