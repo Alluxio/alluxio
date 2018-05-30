@@ -56,7 +56,7 @@ public final class CreateFileOptions {
 
   private CreateFileOptions() {
     mCommonOptions = CommonOptions.defaults()
-        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_WRITE_CACHE_TTL_MS))
+        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_WRITE_CACHE_TTL))
         .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_WRITE_CACHE_TTL_EXPIRED_ACTION,
             TtlAction.class));
     mRecursive = true;

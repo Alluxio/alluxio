@@ -44,7 +44,7 @@ public final class GetStatusOptions {
 
   private GetStatusOptions() {
     mCommonOptions = CommonOptions.defaults()
-        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_READ_CACHE_TTL_MS))
+        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_READ_CACHE_TTL))
         .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_READ_CACHE_TTL_EXPIRED_ACTION,
             TtlAction.class));
     mLoadMetadataType =
