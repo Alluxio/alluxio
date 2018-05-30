@@ -17,6 +17,8 @@ import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
 
+import javax.annotation.Nullable;
+
 /**
  * Interface for providing HDFS ACLs.
  */
@@ -29,5 +31,6 @@ public interface HdfsAclProvider {
    * @return the {@link AccessControlList} representation, or null if ACL is unsupported/disabled
    * @throws IOException if ACL is supported but cannot be retrieved
    */
+  @Nullable
   AccessControlList getAcl(FileSystem hdfs, String path) throws IOException;
 }

@@ -143,18 +143,6 @@
 
     <profile>
       <id>hdfsAcl</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-common</artifactId>
-          <version>${ufs.hadoop.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-hdfs</artifactId>
-          <version>${ufs.hadoop.version}</version>
-        </dependency>
-      </dependencies>
       <build>
         <plugins>
           <plugin>

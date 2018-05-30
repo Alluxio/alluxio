@@ -74,6 +74,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
   private static final int MAX_TRY = 5;
   private static final String HDFS_USER = "";
+  /** Name of the class for the HDFS Acl provider. */
+  private static final String HDFS_ACL_PROVIDER_CLASS =
+      "alluxio.underfs.hdfs.acl.SupportedHdfsAclProvider";
 
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
@@ -106,7 +109,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     // Create the supported HdfsAclProvider if possible.
     HdfsAclProvider hdfsAclProvider = new NoopHdfsAclProvider();
     try {
-      Object o = Class.forName("alluxio.underfs.hdfs.acl.SupportedHdfsAclProvider").newInstance();
+      // The HDFS acl provider class may not be available, so the class must be created from a
+      // string literal.
+      Object o = Class.forName(HDFS_ACL_PROVIDER_CLASS).newInstance();
       if (o instanceof HdfsAclProvider) {
         hdfsAclProvider = (HdfsAclProvider) o;
       } else {
