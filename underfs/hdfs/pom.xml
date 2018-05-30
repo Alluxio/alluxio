@@ -140,6 +140,33 @@
         </plugins>
       </build>
     </profile>
+
+    <profile>
+      <id>hdfsAcl</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${ufs.hadoop.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs</artifactId>
+          <version>${ufs.hadoop.version}</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <excludes combine.self="override" />
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <build>
@@ -148,6 +175,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
+          <excludes>
+            <exclude>**/SupportedHdfsAclProvider.java</exclude>
+          </excludes>
           <testExcludes>
             <!-- Skip UFS contract tests unless -DtestHdfsBaseDir="hdfs://ip:port/alluxio_test" is specified -->
             <exclude>**/HdfsUnderFileSystemContractTest.java</exclude>
