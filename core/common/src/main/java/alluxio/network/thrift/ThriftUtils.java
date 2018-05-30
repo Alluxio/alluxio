@@ -34,7 +34,7 @@ import java.net.ServerSocket;
 public final class ThriftUtils {
   /** Timeout for client socket in ms. */
   private static final int SOCKET_TIMEOUT_MS = (int) Configuration
-      .getMs(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
+      .getMs(PropertyKey.USER_NETWORK_SOCKET_TIMEOUT);
   /** Timeout for server socket in ms. */
   private static final int SERVER_SOCKET_TIMEOUT_MS = (int) Configuration
       .getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);

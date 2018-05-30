@@ -218,6 +218,9 @@ public abstract class AbstractClient implements Client {
         String name = property.getName();
         if (PropertyKey.isValid(name) && property.getValue() != null) {
           PropertyKey key = PropertyKey.fromString(name);
+          if (!key.getScope().contains(PropertyKey.Scope.CLIENT)) {
+            continue;
+          }
           String value = property.getValue();
           clusterProps.put(key, value);
           LOG.debug("Loading cluster default: {} ({}) -> {}", key, key.getScope(), value);

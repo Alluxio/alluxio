@@ -384,6 +384,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "If multiple paths are specified, one will be selected at random per temporary "
               + "file. Currently, only files to be uploaded to object stores are stored in these "
               + "paths.")
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey VERSION =
       new Builder(Name.VERSION)
@@ -504,12 +505,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               "${%s}/core-site.xml:${%s}/hdfs-site.xml", Name.CONF_DIR, Name.CONF_DIR))
           .setDescription("Location of the HDFS configuration file.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_HDFS_IMPL =
       new Builder(Name.UNDERFS_HDFS_IMPL)
           .setDefaultValue("org.apache.hadoop.hdfs.DistributedFileSystem")
           .setDescription("The implementation class of the HDFS as the under storage system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_HDFS_PREFIXES =
       new Builder(Name.UNDERFS_HDFS_PREFIXES)
@@ -518,6 +521,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "implementation of UnderFileSystem. The delimiter is any whitespace "
               + "and/or ','.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_HDFS_REMOTE =
       new Builder(Name.UNDERFS_HDFS_REMOTE)
@@ -545,6 +549,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "mounted point with all Alluxio users. Note that this configuration has no "
               + "effect on HDFS nor local UFS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
       new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS)
@@ -973,7 +978,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_JOURNAL_FLUSH_RETRY_INTERVAL)
           .setDefaultValue("1sec")
           .setDescription("The amount of time to sleep between retrying journal flushes")
-          .setIsHidden(true)
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
       new Builder(Name.MASTER_JOURNAL_FOLDER)
@@ -1112,6 +1117,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)
           .setDefaultValue("1hr")
           .setDescription("The period for the block integrity check, disabled if <= 0.")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio master.")
@@ -2062,11 +2068,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Default location for remote log files.")
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey LOGSERVER_HOSTNAME =
       new Builder(Name.LOGSERVER_HOSTNAME)
           .setDescription("The hostname of Alluxio logserver.")
           .setIgnoredSiteProperty(true)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey LOGSERVER_PORT =
       new Builder(Name.LOGSERVER_PORT)
@@ -2074,6 +2082,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Default port number to receive logs from alluxio servers.")
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey LOGSERVER_THREADS_MAX =
       new Builder(Name.LOGSERVER_THREADS_MAX)
@@ -2081,6 +2090,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum number of threads used by logserver to service"
               + " logging requests.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey LOGSERVER_THREADS_MIN =
       new Builder(Name.LOGSERVER_THREADS_MIN)
@@ -2088,6 +2098,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The minimum number of threads used by logserver to service"
               + " logging requests.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
           .build();
 
   //
@@ -2177,6 +2188,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(true)
           .setDescription("When this property is true, an Alluxio client will load the default "
               + "values of configuration properties set by Alluxio master.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_SOCKET_TIMEOUT =
+      new Builder(Name.USER_NETWORK_SOCKET_TIMEOUT)
+          .setAlias(new String[]{
+              "alluxio.security.authentication.socket.timeout",
+              "alluxio.security.authentication.socket.timeout.ms"})
+          .setDefaultValue("10min")
+          .setDescription("The time out of a socket created by a user to connect to the master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_DATE_FORMAT_PATTERN =
@@ -2660,14 +2681,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "'alluxio.security.authentication.AuthenticationProvider'.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
-  public static final PropertyKey SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
-      new Builder(Name.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.security.authentication.socket.timeout.ms"})
-          .setDefaultValue("10min")
-          .setDescription("The maximum amount of time for a user to create "
-              + "a Thrift socket which will connect to the master.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .build();
   public static final PropertyKey SECURITY_AUTHENTICATION_TYPE =
       new Builder(Name.SECURITY_AUTHENTICATION_TYPE)
           .setDefaultValue("SIMPLE")
@@ -2746,12 +2759,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(1)
           .setDescription("The number of CPUs to run an Alluxio master for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MASTER_RESOURCE_MEM =
       new Builder(Name.INTEGRATION_MASTER_RESOURCE_MEM)
           .setDefaultValue("1024MB")
           .setDescription("The amount of memory to run an Alluxio master for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_JAR_URL =
       new Builder(Name.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
@@ -2760,24 +2775,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               Name.VERSION, Name.VERSION))
           .setDescription("Url to download an Alluxio distribution from during Mesos deployment.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_MASTER_NAME =
       new Builder(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME)
           .setDefaultValue("AlluxioMaster")
           .setDescription("The name of the master process to use within Mesos.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT =
       new Builder(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT)
           .setDescription("The number of Alluxio master process to run within Mesos.")
           .setDefaultValue(1)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_WORKER_NAME =
       new Builder(Name.INTEGRATION_MESOS_ALLUXIO_WORKER_NAME)
           .setDefaultValue("AlluxioWorker")
           .setDescription("The name of the worker process to use within Mesos.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_JDK_PATH =
       new Builder(Name.INTEGRATION_MESOS_JDK_PATH)
@@ -2785,6 +2804,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("If installing java from a remote URL during mesos deployment, this must "
               + "be set to the directory name of the untarred jdk.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_JDK_URL =
       new Builder(Name.INTEGRATION_MESOS_JDK_URL)
@@ -2794,47 +2814,55 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "using this property, alluxio.integration.mesos.jdk.path must also be set "
               + "correctly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_PRINCIPAL =
       new Builder(Name.INTEGRATION_MESOS_PRINCIPAL)
           .setDefaultValue("alluxio")
           .setDescription("The Mesos principal for the Alluxio Mesos Framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_ROLE =
       new Builder(Name.INTEGRATION_MESOS_ROLE)
           .setDefaultValue("*")
           .setDescription("Mesos role for the Alluxio Mesos Framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_SECRET =
       new Builder(Name.INTEGRATION_MESOS_SECRET)
           .setDescription("Secret token for authenticating with Mesos.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_USER =
       new Builder(Name.INTEGRATION_MESOS_USER)
           .setDescription("The Mesos user for the Alluxio Mesos Framework. Defaults to the current "
               + "user.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_WORKER_RESOURCE_CPU =
       new Builder(Name.INTEGRATION_WORKER_RESOURCE_CPU)
           .setDefaultValue(1)
           .setDescription("The number of CPUs to run an Alluxio worker for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_WORKER_RESOURCE_MEM =
       new Builder(Name.INTEGRATION_WORKER_RESOURCE_MEM)
           .setDefaultValue("1024MB")
           .setDescription("The amount of memory to run an Alluxio worker for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_YARN_WORKERS_PER_HOST_MAX =
       new Builder(Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX)
           .setDefaultValue(1)
           .setDescription("The number of workers to run on an Alluxio host for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.NONE)
           .build();
 
   //
@@ -3347,6 +3375,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.netty.reader.cancel.enabled";
     public static final String USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
         "alluxio.user.network.netty.reader.packet.size.bytes";
+    public static final String USER_NETWORK_SOCKET_TIMEOUT =
+        "alluxio.user.network.socket.timeout";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =
@@ -3382,8 +3412,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS =
         "alluxio.security.authentication.custom.provider.class";
-    public static final String SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
-        "alluxio.security.authentication.socket.timeout";
     public static final String SECURITY_AUTHENTICATION_TYPE =
         "alluxio.security.authentication.type";
     public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
