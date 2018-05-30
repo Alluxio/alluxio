@@ -225,7 +225,7 @@
     <div class="accordion span12" id="accordion5">
       <div class="accordion-group">
         <div class="accordion-heading">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion5" href="#data5">
             <h4>Inconsistent Properties Details</h4>
           </a>
         </div>

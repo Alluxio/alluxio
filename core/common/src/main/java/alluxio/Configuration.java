@@ -593,14 +593,14 @@ public final class Configuration {
   }
 
   /**
-   * Gets the configuration of a given scope.
+   * Gets the raw configuration of a given scope.
    *
    * @param scope the property key scope
-   * @return a list of configurations inside the property scope
+   * @return a list of raw configurations inside the property scope
    */
   public static List<ConfigProperty> getConfiguration(Scope scope) {
     List<ConfigProperty> list = new ArrayList<>();
-    for (Map.Entry<String, String> entry : toMap().entrySet()) {
+    for (Map.Entry<String, String> entry : toRawMap().entrySet()) {
       PropertyKey key = PropertyKey.fromString(entry.getKey());
       if (key.getScope().contains(scope) && containsKey(key)) {
         ConfigProperty configProperty = new ConfigProperty()
