@@ -276,7 +276,6 @@ public abstract class AbstractClient implements Client {
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
-
       try {
         // Bootstrap once
         if (HANDSHAKE_NEEDED && !sHandshakeComplete.get()) {
@@ -287,6 +286,7 @@ public abstract class AbstractClient implements Client {
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         doConnect();
+        return;
       } catch (IOException | TTransportException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
