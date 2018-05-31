@@ -514,7 +514,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     short bucketMode = DEFAULT_MODE;
     String accountOwner = DEFAULT_OWNER;
 
-    // if ACL enabled try to inherit bucket acl for all the objects.
+    // if ACL enabled try to inherit bucket acl for all the objects
     if (Boolean.parseBoolean(mConf.getValue(PropertyKey.UNDERFS_S3A_INHERIT_ACL))) {
       try {
         Owner owner = mClient.getS3AccountOwner();
