@@ -48,7 +48,7 @@ public class BootstrapServerTransport extends BootstrapTransport {
       mUnderlyingTransport.open();
     }
     byte[] messageHeader = new byte[BOOTSTRAP_HEADER.length];
-    int bytes = 0;
+    int bytes;
     try {
       bytes = mUnderlyingTransport.peek(messageHeader, 0, BOOTSTRAP_HEADER.length);
     } catch (TTransportException e) {

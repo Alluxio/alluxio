@@ -194,7 +194,7 @@ public abstract class AbstractClient implements Client {
       TTransport baseTransport = ThriftUtils.createThriftSocket(mAddress);
       TTransport transport = new BootstrapClientTransport(baseTransport);
       TProtocol protocol = ThriftUtils.createThriftProtocol(transport,
-          Constants.META_MASTER_SERVICE_NAME);
+          Constants.META_MASTER_CLIENT_SERVICE_NAME);
       List<ConfigProperty> clusterConfig;
       try {
         transport.open();

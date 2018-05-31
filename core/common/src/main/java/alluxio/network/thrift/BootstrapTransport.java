@@ -22,8 +22,10 @@ import org.slf4j.LoggerFactory;
 public abstract class BootstrapTransport extends TTransport {
   private static final Logger LOG = LoggerFactory.getLogger(BootstrapTransport.class);
 
-  /** The base transport underlying which we can peek into. */
-  protected PeekableTransport mUnderlyingTransport;
+  /** The base transport. */
+  protected final TTransport mBaseTransport;
+  /** The transport wrapper on the base transport which we can peek into. */
+  protected final PeekableTransport mUnderlyingTransport;
   /** The logic transport to work on, can be base transport or the real transport. */
   protected TTransport mTransport;
 
@@ -34,7 +36,8 @@ public abstract class BootstrapTransport extends TTransport {
    * @param baseTransport the base transport
    */
   public BootstrapTransport(TTransport baseTransport) {
-    mUnderlyingTransport = new PeekableTransport(baseTransport);
+    mBaseTransport = baseTransport;
+    mUnderlyingTransport = new PeekableTransport(mBaseTransport);
   }
 
   @Override
@@ -71,5 +74,12 @@ public abstract class BootstrapTransport extends TTransport {
       throw new TTransportException("transport is not open");
     }
     mTransport.flush();
+  }
+
+  /**
+   * @return the underlying transport that Sasl is using
+   */
+  public TTransport getBaseTransport() {
+    return mBaseTransport;
   }
 }
