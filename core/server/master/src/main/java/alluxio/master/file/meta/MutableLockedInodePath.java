@@ -12,11 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-
-import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 

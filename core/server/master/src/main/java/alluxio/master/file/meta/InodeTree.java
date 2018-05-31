@@ -736,6 +736,16 @@ public class InodeTree implements JournalEntryIterable {
     return file.getId();
   }
 
+  /**
+   * Locks from a specific point in the tree to the descendant, and return a lockedInodePath.
+   *
+   * @param inodePath the root to start locking
+   * @param lockMode the lock type to use
+   * @param descendantUri the path to the descendant that we are locking
+   * @return  an {@link InodeLockList} representing the list of descendants that got locked as
+   * a result of this call.
+   * @throws FileDoesNotExistException if inode does not exist
+   */
   public LockedInodePath lockDescendantPath(LockedInodePath inodePath, LockMode lockMode,
                                             AlluxioURI descendantUri) throws InvalidPathException {
     InodeLockList descendantLockList = lockDescendant(inodePath, lockMode, descendantUri);
@@ -1228,9 +1238,9 @@ public class InodeTree implements JournalEntryIterable {
    * Traverse the tree to find the rest of the given {@link LockedInodePath}. Hints for the lock
    * mode at each path.
    *
-   * @param pathComponents components of the path that are are traversing towards.
+   * @param pathComponents components of the path that are are traversing towards
    * @param inodes inodes that are already locked and will no longer require locking,
-   *               modified in the method to return all inode along the path.
+   *               modified in the method to return all inode along the path
    * @param nonPersistedInodes nonPersistedInodes, modified in the method to return
    *                           all nonPersistedInodes
    * @param lockList lockList containing all locked inodes, modified in the method

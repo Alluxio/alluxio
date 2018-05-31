@@ -3287,7 +3287,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           }
         } else {
           try (LockedInodePath descendantPath =
-                   mInodeTree.lockDescendantPath(inodePath, lockingScheme.getMode(), mountPointUri)) {
+                   mInodeTree.lockDescendantPath(inodePath, lockingScheme.getMode(),
+                       mountPointUri)) {
             try {
               loadMetadataAndJournal(rpcContext, descendantPath, LoadMetadataOptions.defaults()
                   .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));

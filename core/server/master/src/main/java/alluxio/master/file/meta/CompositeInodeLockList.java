@@ -35,6 +35,12 @@ public class CompositeInodeLockList extends InodeLockList {
     mBaseLockList = baseLockList;
   }
 
+  /**
+   * Constructs a new lock list, using an existing lock list as the base list.
+   *
+   * @param baseLockList the base {@link InodeLockList} to use
+   * @param descendantLockList the locklist extension
+   */
   public CompositeInodeLockList(InodeLockList baseLockList, InodeLockList descendantLockList) {
     mBaseLockList = baseLockList;
     mInodes = descendantLockList.mInodes;

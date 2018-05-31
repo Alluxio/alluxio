@@ -34,7 +34,14 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
-import alluxio.master.file.meta.*;
+
+import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeDirectory;
+import alluxio.master.file.meta.InodeFile;
+import alluxio.master.file.meta.InodeLockList;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.MutableLockedInodePath;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
