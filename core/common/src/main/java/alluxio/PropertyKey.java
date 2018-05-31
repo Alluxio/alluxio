@@ -15,6 +15,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.network.ChannelType;
 import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.Scope;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -76,45 +77,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * (e.g. AWS credentials, journal location).
      */
     ENFORCE,
-  }
-
-  /**
-   * Scope where the property applies to.
-   */
-  public enum Scope {
-    /**
-     * Property is used in masters.
-     */
-    MASTER(0b1),
-    /**
-     * Property is used in workers.
-     */
-    WORKER(0b10),
-    /**
-     * Property is used in clients.
-     */
-    CLIENT(0b100),
-    /**
-     * Property is used in masters and workers.
-     */
-    SERVER(0b11),
-    ALL(0b111),
-    NONE(0b0)
-    ;
-
-    private final int mValue;
-    Scope(int val) {
-      mValue = val;
-    }
-
-    /**
-     * Check whether the scope contains another scope.
-     * @param scope the target scope to check
-     * @return true if the scope contains the target scope
-     */
-    public boolean contains(Scope scope) {
-      return (mValue | scope.mValue) == mValue;
-    }
   }
 
   /**
@@ -306,7 +268,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.LOGGER_TYPE)
           .setDefaultValue("Console")
           .setDescription("The type of logger.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
   public static final PropertyKey LOGS_DIR =
       new Builder(Name.LOGS_DIR)
@@ -944,11 +906,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_HEARTBEAT_INTERVAL_MS =
-      new Builder(Name.MASTER_HEARTBEAT_INTERVAL_MS)
-          .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms"})
-          .setDefaultValue("1sec")
+  public static final PropertyKey MASTER_MASTER_HEARTBEAT_INTERVAL =
+      new Builder(Name.MASTER_MASTER_HEARTBEAT_INTERVAL)
+          .setDefaultValue("2min")
           .setDescription("The interval between Alluxio masters' heartbeats.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_WORKER_HEARTBEAT_INTERVAL =
+      new Builder(Name.MASTER_WORKER_HEARTBEAT_INTERVAL)
+          .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms",
+              "alluxio.master.heartbeat.interval"})
+          .setDefaultValue("10sec")
+          .setDescription("The interval between Alluxio master and worker heartbeats.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey MASTER_HEARTBEAT_TIMEOUT_MS =
+      new Builder(Name.MASTER_HEARTBEAT_TIMEOUT_MS)
+          .setDefaultValue("1min")
+          .setDescription("Timeout between leader master and standby master"
+              + " indicating a lost master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1103,6 +1081,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(String.format("${%s}/recompute.log", Name.LOGS_DIR))
           .setDescription("The path to the log that the recompute executor redirects the "
               + "job's stdout into.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
+      new Builder(Name.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)
+          .setDefaultValue("1h")
+          .setDescription("The interval for periodically logging the configuration check report.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1265,7 +1250,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(19999)
           .setDescription("The port Alluxio web UI runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.ALL)
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WHITELIST =
       new Builder(Name.MASTER_WHITELIST)
@@ -1983,7 +1968,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "`MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), "
               + "`CACHE_THROUGH` (try to cache, write to UnderFS synchronously), "
               + "`THROUGH` (no cache, write to UnderFS synchronously).")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey PROXY_S3_DELETE_TYPE =
       new Builder(Name.PROXY_S3_DELETE_TYPE)
@@ -1993,7 +1979,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "`%s` (delete both in Alluxio and UFS), "
                   + "`%s` (delete only the buckets or objects in Alluxio namespace).",
               Constants.S3_DELETE_IN_ALLUXIO_AND_UFS, Constants.S3_DELETE_IN_ALLUXIO_ONLY))
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX =
       new Builder(Name.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
@@ -2007,24 +1994,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1hour")
           .setDescription("The timeout for the input and output streams cache eviction in the "
               + "proxy.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey PROXY_WEB_BIND_HOST =
       new Builder(Name.PROXY_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname that the Alluxio proxy's web server runs on. See <a "
               + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey PROXY_WEB_HOSTNAME =
       new Builder(Name.PROXY_WEB_HOSTNAME)
           .setDescription("The hostname Alluxio proxy's web UI binds to.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey PROXY_WEB_PORT =
       new Builder(Name.PROXY_WEB_PORT)
           .setDefaultValue(39999)
           .setDescription("The port Alluxio proxy's web UI runs on.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
           .build();
 
   //
@@ -2648,26 +2640,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.FUSE_CACHED_PATHS_MAX)
           .setDefaultValue(500)
           .setDescription("Maximum number of Alluxio paths to cache for FUSE conversion.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey FUSE_DEBUG_ENABLED =
       new Builder(Name.FUSE_DEBUG_ENABLED)
           .setDefaultValue(false)
           .setDescription("Run FUSE in debug mode, and have the fuse process log every FS request.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey FUSE_FS_NAME =
       new Builder(Name.FUSE_FS_NAME)
           .setDefaultValue("alluxio-fuse")
           .setDescription("The FUSE file system name.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey FUSE_MAXWRITE_BYTES =
       new Builder(Name.FUSE_MAXWRITE_BYTES)
           .setDefaultValue("128KB")
           .setDescription("Maximum granularity of write operations, capped by the kernel to 128KB "
               + "max (as of Linux 3.16.0).")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
           .build();
 
   //
@@ -2803,7 +2799,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("jdk1.8.0_151")
           .setDescription("If installing java from a remote URL during mesos deployment, this must "
               + "be set to the directory name of the untarred jdk.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_JDK_URL =
@@ -2813,21 +2809,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "LOCAL which tells Mesos to use the local JDK on the system. When "
               + "using this property, alluxio.integration.mesos.jdk.path must also be set "
               + "correctly.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_PRINCIPAL =
       new Builder(Name.INTEGRATION_MESOS_PRINCIPAL)
           .setDefaultValue("alluxio")
           .setDescription("The Mesos principal for the Alluxio Mesos Framework.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_ROLE =
       new Builder(Name.INTEGRATION_MESOS_ROLE)
           .setDefaultValue("*")
           .setDescription("Mesos role for the Alluxio Mesos Framework.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_SECRET =
@@ -3074,8 +3070,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
         "alluxio.master.file.async.persist.handler";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file_prefix";
-    public static final String MASTER_HEARTBEAT_INTERVAL_MS =
-        "alluxio.master.heartbeat.interval";
+    public static final String MASTER_MASTER_HEARTBEAT_INTERVAL =
+        "alluxio.master.master.heartbeat.interval";
+    public static final String MASTER_WORKER_HEARTBEAT_INTERVAL =
+        "alluxio.master.worker.heartbeat.interval";
+    public static final String MASTER_HEARTBEAT_TIMEOUT_MS =
+        "alluxio.master.heartbeat.timeout";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
     public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
         "alluxio.master.journal.flush.batch.time";
@@ -3102,6 +3102,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lineage.recompute.interval";
     public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
         "alluxio.master.lineage.recompute.log.path";
+    public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
+        "alluxio.master.log.config.report.heartbeat.interval";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
         "alluxio.master.periodic.block.integrity.check.repair";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =

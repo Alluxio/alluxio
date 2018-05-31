@@ -29,6 +29,7 @@ import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.Scope;
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
@@ -216,7 +217,7 @@ public abstract class AbstractClient implements Client {
         // TODO(binfan): support propagating unsetting properties from master
         if (PropertyKey.isValid(name) && property.getValue() != null) {
           PropertyKey key = PropertyKey.fromString(name);
-          if (!key.getScope().contains(PropertyKey.Scope.CLIENT)) {
+          if (!key.getScope().contains(Scope.CLIENT)) {
             continue;
           }
           String value = property.getValue();

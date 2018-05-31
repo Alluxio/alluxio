@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fsadmin.command;
+package alluxio.cli.fsadmin.report;
 
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.client.MetaMasterClient;
@@ -46,7 +46,7 @@ public class SummaryCommandTest {
     // Prepare mock meta master client
     mMetaMasterClient = Mockito.mock(MetaMasterClient.class);
     MasterInfo masterInfo = new MasterInfo()
-        .setMasterAddress("testAddress")
+        .setLeaderMasterAddress("testAddress")
         .setWebPort(1231)
         .setRpcPort(8462)
         .setStartTimeMs(1131242343122L)
