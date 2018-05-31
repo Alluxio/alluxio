@@ -12,8 +12,13 @@
 package alluxio.testutils;
 
 import alluxio.Constants;
+import alluxio.util.io.PathUtils;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.log4j.Appender;
+import org.apache.log4j.FileAppender;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.PatternLayout;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
@@ -27,7 +32,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.List;
 
@@ -56,30 +60,41 @@ public abstract class BaseIntegrationTest {
 
   private TestWatcher logHandler() {
     return new TestWatcher() {
-      // When tests fail, save the logs.
-      protected void failed(Throwable t, Description description) {
-        try {
-          Files.copy(Paths.get(Constants.TESTS_LOG),
-              Paths.get(Constants.TEST_LOG_DIR, String.format("%s-%s.log",
-                  description.getClassName(), description.getMethodName())),
-              StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-          if (t != null) {
-            t.addSuppressed(e);
-          } else {
-            throw new RuntimeException(e);
-          }
-        }
-        return;
-      }
+      private String mLogPath;
+      private Appender mAppender;
 
-      // Before each test starts, truncate the log file.
+      @Override
       protected void starting(Description description) {
         try {
-          new FileWriter(Constants.TESTS_LOG).close();
+          mLogPath = logPath(description);
+          // In case the file already exists, truncate it.
+          new FileWriter(mLogPath).close();
+          mAppender = new FileAppender(new PatternLayout("%d{ISO8601} %-5p %c{2} (%F:%M) - %m%n"),
+              mLogPath);
+          LogManager.getRootLogger().addAppender(mAppender);
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
+      }
+
+      @Override
+      protected void succeeded(Description description) {
+        try {
+          Files.delete(Paths.get(mLogPath));
+        } catch (Throwable t) {
+          LOG.error("Failed to delete success log file {}", mLogPath);
+        }
+      }
+
+      @Override
+      protected void finished(Description description) {
+        LogManager.getRootLogger().removeAppender(mAppender);
+      }
+
+      private String logPath(Description description) {
+        String basename = String.format("tests-%s-%s.log", description.getClassName(),
+            description.getMethodName());
+        return PathUtils.concatPath(Constants.TEST_LOG_DIR, basename);
       }
     };
   }

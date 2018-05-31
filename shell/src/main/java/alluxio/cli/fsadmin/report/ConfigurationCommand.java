@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.MetaMasterClient;
+import alluxio.util.ConfigurationUtils;
 import alluxio.wire.ConfigProperty;
 
 import java.io.IOException;
@@ -52,7 +53,7 @@ public class ConfigurationCommand {
 
     for (ConfigProperty info : configList) {
       mPrintStream.print(String.format(CONFIG_INFO_FORMAT,
-          info.getName(), info.getValue(), info.getSource()));
+          info.getName(), ConfigurationUtils.valueAsString(info.getValue()), info.getSource()));
     }
     return 0;
   }

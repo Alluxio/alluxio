@@ -177,8 +177,8 @@ public final class JournalTool {
     }
     sHelp = cmd.hasOption("help");
     sMaster = cmd.getOptionValue("master", "FileSystemMaster");
-    sStart = Long.parseLong(cmd.getOptionValue("start", "0"));
-    sEnd = Long.parseLong(cmd.getOptionValue("end", Long.valueOf(Long.MAX_VALUE).toString()));
+    sStart = Long.decode(cmd.getOptionValue("start", "0"));
+    sEnd = Long.decode(cmd.getOptionValue("end", Long.valueOf(Long.MAX_VALUE).toString()));
     sJournalFile = cmd.getOptionValue("journalFile", "");
     return true;
   }

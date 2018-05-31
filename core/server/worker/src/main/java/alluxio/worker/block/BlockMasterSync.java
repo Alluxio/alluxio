@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.Configuration;
+import alluxio.ProcessUtils;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
@@ -154,9 +155,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
           if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
             throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
           }
-          LOG.error("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
           // TODO(andrew): Propagate the exception to the main thread and exit there.
-          System.exit(-1);
+          ProcessUtils.fatalError(LOG, "Master heartbeat timeout exceeded: %d",
+              mHeartbeatTimeoutMs);
         }
       }
     }
