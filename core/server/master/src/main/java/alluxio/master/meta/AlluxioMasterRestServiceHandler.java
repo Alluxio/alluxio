@@ -416,9 +416,9 @@ public final class AlluxioMasterRestServiceHandler {
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
     if (raw) {
-      return new TreeMap<>(Configuration.toRawMap());
+      return new TreeMap<>(Configuration.toRawMap(true));
     } else {
-      return new TreeMap<>(Configuration.toMap());
+      return new TreeMap<>(Configuration.toMap(true));
     }
   }
 

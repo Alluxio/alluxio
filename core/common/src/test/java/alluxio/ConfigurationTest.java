@@ -13,6 +13,7 @@ package alluxio;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -734,5 +735,27 @@ public class ConfigurationTest {
     Pattern confRegex = Pattern.compile(regexString);
     assertTrue(confRegex.matcher(rawMap.get("alluxio.locality.script")).find());
     assertTrue(confRegex.matcher(rawMap.get("alluxio.logs.dir")).find());
+  }
+
+  @Test
+  public void getDisplayValue() {
+    PropertyKey testKey = PropertyKey.S3A_SECRET_KEY;
+    String testValue = "12345";
+    assertEquals(PropertyKey.DisplayType.CREDENTIALS, testKey.getDisplayType());
+    Configuration.set(testKey, testValue);
+
+    assertNotEquals(testValue, Configuration.getDisplayValue(testKey));
+    assertNotEquals(testValue, Configuration.toMap(true).get(testKey.getName()));
+  }
+
+  @Test
+  public void getNestedDisplayValue() {
+    PropertyKey nestedProperty =
+        PropertyKey.fromString("alluxio.master.journal.ufs.option.aws.secretKey");
+    String testValue = "12345";
+    Configuration.set(nestedProperty, testValue);
+
+    assertNotEquals(testValue, Configuration.getDisplayValue(nestedProperty));
+    assertNotEquals(testValue, Configuration.toMap(true).get(nestedProperty.getName()));
   }
 }

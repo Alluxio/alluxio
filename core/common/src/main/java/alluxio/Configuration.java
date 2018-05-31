@@ -163,6 +163,17 @@ public final class Configuration {
   }
 
   /**
+   * Gets the display value for the given key in the {@link Properties}; if this key is not found, a
+   * RuntimeException is thrown.
+   *
+   * @param key the key to get the value for
+   * @return the display value for the given key
+   */
+  public static String getDisplayValue(PropertyKey key) {
+    return key.getDisplayValue(get(key));
+  }
+
+  /**
    * Checks if the configuration contains value for the given key.
    *
    * @param key the key to check
@@ -375,7 +386,16 @@ public final class Configuration {
    *         including all default properties
    */
   public static Map<String, String> toMap() {
-    Map<String, String> map = toRawMap();
+    return toMap(false);
+  }
+
+  /**
+   * @param useDisplayValue whether to return display values
+   * @return a view of the resolved properties represented by this configuration,
+   * including all default properties
+   */
+  public static Map<String, String> toMap(boolean useDisplayValue) {
+    Map<String, String> map = toRawMap(useDisplayValue);
     for (Map.Entry<String, String> entry : map.entrySet()) {
       String value = entry.getValue();
       if (value != null) {
@@ -392,8 +412,18 @@ public final class Configuration {
    *         including all default properties
    */
   public static Map<String, String> toRawMap() {
+    return toRawMap(false);
+  }
+
+  /**
+   * @param useDisplayValue whether to return display values
+   * @return a map of the raw properties represented by this configuration,
+   *         including all default properties
+   */
+  public static Map<String, String> toRawMap(boolean useDisplayValue) {
     Map<String, String> rawMap = new HashMap<>();
-    PROPERTIES.forEach((key, value) -> rawMap.put(key.getName(), value));
+    PROPERTIES.forEach((key, value) ->
+        rawMap.put(key.getName(), useDisplayValue ? key.getDisplayValue(value) : value));
     return rawMap;
   }
 
@@ -600,7 +630,7 @@ public final class Configuration {
    */
   public static List<ConfigProperty> getConfiguration(Scope scope) {
     List<ConfigProperty> list = new ArrayList<>();
-    for (Map.Entry<String, String> entry : toRawMap().entrySet()) {
+    for (Map.Entry<String, String> entry : toRawMap(true).entrySet()) {
       PropertyKey key = PropertyKey.fromString(entry.getKey());
       if (key.getScope().contains(scope) && containsKey(key)) {
         ConfigProperty configProperty = new ConfigProperty()

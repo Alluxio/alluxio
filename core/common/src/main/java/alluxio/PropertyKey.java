@@ -80,6 +80,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
+   * Indicates how the property value should be displayed.
+   */
+  public enum DisplayType {
+    /**
+     * The property value should be displayed normally.
+     */
+    DEFAULT,
+    /**
+     * The property value contains credentials and should not be displayed directly.
+     */
+    CREDENTIALS,
+  }
+
+  /**
    * Builder to create {@link PropertyKey} instances. Note that, <code>Builder.build()</code> will
    * throw exception if there is an existing property built with the same name.
    */
@@ -88,11 +102,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private DefaultSupplier mDefaultSupplier;
     private Object mDefaultValue;
     private String mDescription;
-    private final String mName;
+    private String mName;
     private boolean mIgnoredSiteProperty;
     private boolean mIsHidden;
     private ConsistencyCheckLevel mConsistencyCheckLevel = ConsistencyCheckLevel.IGNORE;
     private Scope mScope = Scope.ALL;
+    private DisplayType mDisplayType = DisplayType.DEFAULT;
 
     /**
      * @param name name of the property
@@ -115,6 +130,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public Builder setAlias(String[] alias) {
       mAlias = Arrays.copyOf(alias, alias.length);
+      return this;
+    }
+
+    /**
+     * @param name name for the property
+     * @return the updated builder instance
+     */
+    public Builder setName(String name) {
+      mName = name;
       return this;
     }
 
@@ -192,6 +216,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
+     * @param displayType the displayType that indicates how the property value should be displayed
+     * @return the updated builder instance
+     */
+    public Builder setDisplayType(DisplayType displayType) {
+      mDisplayType = displayType;
+      return this;
+    }
+
+    /**
      * @return the created property key instance
      */
     public PropertyKey build() {
@@ -204,7 +237,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       }
 
       PropertyKey key = new PropertyKey(mName, mDescription, defaultSupplier, mAlias,
-          mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope);
+          mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType);
       Preconditions.checkState(PropertyKey.register(key), "Cannot register existing key \"%s\"",
           mName);
       return key;
@@ -726,16 +759,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDescription("The access key of GCS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
+      .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey GCS_SECRET_KEY = new Builder(Name.GCS_SECRET_KEY)
       .setDescription("The secret key of GCS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
+      .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey OSS_ACCESS_KEY = new Builder(Name.OSS_ACCESS_KEY)
       .setDescription("The access key of OSS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
+      .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey OSS_ENDPOINT_KEY = new Builder(Name.OSS_ENDPOINT_KEY)
       .setDescription("The endpoint key of OSS bucket.")
@@ -746,16 +782,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDescription("The secret key of OSS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
+      .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey S3A_ACCESS_KEY = new Builder(Name.S3A_ACCESS_KEY)
       .setDescription("The access key of S3 bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
+      .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey S3A_SECRET_KEY = new Builder(Name.S3A_SECRET_KEY)
       .setDescription("The secret key of S3 bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
+      .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey SWIFT_API_KEY = new Builder(Name.SWIFT_API_KEY)
       .setDescription("(deprecated) The API key used for user:tenant authentication.")
@@ -2807,6 +2846,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.INTEGRATION_MESOS_SECRET)
           .setDescription("Secret token for authenticating with Mesos.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setDisplayType(DisplayType.CREDENTIALS)
           .build();
   public static final PropertyKey INTEGRATION_MESOS_USER =
       new Builder(Name.INTEGRATION_MESOS_USER)
@@ -3429,13 +3469,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     MASTER_JOURNAL_UFS_OPTION("alluxio.master.journal.ufs.option",
         "alluxio\\.master\\.journal\\.ufs\\.option"),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
-        "alluxio\\.master\\.journal\\.ufs\\.option(\\.\\w+)++"),
+        "alluxio\\.master\\.journal\\.ufs\\.option\\.(?<nested>(\\w+\\.)*+\\w+)"),
     MASTER_MOUNT_TABLE_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
         "alluxio\\.master\\.mount\\.table.(\\w+)\\.alluxio"),
     MASTER_MOUNT_TABLE_OPTION("alluxio.master.mount.table.%s.option",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option"),
     MASTER_MOUNT_TABLE_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
-        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option(\\.\\w+)++"),
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option\\.(?<nested>(\\w+\\.)*+\\w+)"),
     MASTER_MOUNT_TABLE_READONLY("alluxio.master.mount.table.%s.readonly",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.readonly"),
     MASTER_MOUNT_TABLE_SHARED("alluxio.master.mount.table.%s.shared",
@@ -3443,12 +3483,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     MASTER_MOUNT_TABLE_UFS("alluxio.master.mount.table.%s.ufs",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.ufs"),
     MASTER_MOUNT_TABLE_ROOT_OPTION_PROPERTY("alluxio.master.mount.table.root.option.%s",
-        "alluxio\\.master\\.mount\\.table\\.root\\.option(\\.\\w+)++"),
+        "alluxio\\.master\\.mount\\.table\\.root\\.option\\.(?<nested>(\\w+\\.)*+\\w+)"),
     MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS("alluxio.master.tieredstore.global.level%d.alias",
         "alluxio\\.master\\.tieredstore\\.global\\.level(\\d+)\\.alias"),
     UNDERFS_AZURE_ACCOUNT_KEY(
         "fs.azure.account.key.%s.blob.core.windows.net",
-        "fs\\.azure\\.account\\.key\\.(\\w+)\\.blob\\.core\\.windows\\.net"),
+        "fs\\.azure\\.account\\.key\\.(\\w+)\\.blob\\.core\\.windows\\.net",
+        new Builder("fs.azure.account.key.%s.blob.core.windows.net")
+            .setDisplayType(DisplayType.CREDENTIALS)),
     WORKER_TIERED_STORE_LEVEL_ALIAS("alluxio.worker.tieredstore.level%d.alias",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.alias"),
     WORKER_TIERED_STORE_LEVEL_DIRS_PATH("alluxio.worker.tieredstore.level%d.dirs.path",
@@ -3467,6 +3509,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     private final String mFormat;
     private final Pattern mPattern;
+    private final Builder mPropertyBuilder;
 
     /**
      * Constructs a property key format.
@@ -3475,8 +3518,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @param re String of this property as regexp
      */
     Template(String format, String re) {
+      this(format, re, null);
+    }
+
+    /**
+     * Constructs a property key format.
+     *
+     * @param format String of this property as formatted string
+     * @param re String of this property as regexp
+     * @param propertyBuilder a property builder associated with this template
+     */
+    Template(String format, String re, Builder propertyBuilder) {
       mFormat = format;
       mPattern = Pattern.compile(re);
+      mPropertyBuilder = propertyBuilder;
     }
 
     @Override
@@ -3511,6 +3566,47 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public Matcher match(String input) {
       return mPattern.matcher(input);
+    }
+
+    /**
+     * @return the property builder to create actual property key
+     */
+    public Builder getPropertyBuilder() {
+      return mPropertyBuilder;
+    }
+
+    private PropertyKey getPropertyKey(String propertyName) {
+      Matcher matcher = match(propertyName);
+      if (!matcher.matches()) {
+        return null;
+      }
+      Builder builder = getPropertyBuilder();
+      // first try using the builder if the template has one
+      if (builder != null) {
+        return builder.setName(propertyName).build();
+      }
+      // if the template can extract a nested property, build the new property from the nested one
+      String nestedKeyName = null;
+      try {
+        nestedKeyName = matcher.group("nested");
+      } catch (IllegalArgumentException e) {
+        // ignore if group is not found
+      }
+
+      if (nestedKeyName != null && isValid(nestedKeyName)) {
+        PropertyKey nestedProperty = fromString(nestedKeyName);
+        return new Builder(propertyName)
+            .setDescription(nestedProperty.getDescription())
+            .setDefaultSupplier(nestedProperty.getDefaultSupplier())
+            .setIgnoredSiteProperty(nestedProperty.isIgnoredSiteProperty())
+            .setIsHidden(nestedProperty.isHidden())
+            .setConsistencyCheckLevel(nestedProperty.getConsistencyLevel())
+            .setScope(nestedProperty.getScope())
+            .setDisplayType(nestedProperty.getDisplayType())
+            .build();
+      }
+      // otherwise creates a default property
+      return new PropertyKey(propertyName);
     }
   }
 
@@ -3552,8 +3648,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
     // Try different templates and see if any template matches
     for (Template template : Template.values()) {
-      if (template.matches(input)) {
-        return new PropertyKey(input);
+      key = template.getPropertyKey(input);
+      if (key != null) {
+        return key;
       }
     }
     throw new IllegalArgumentException(
@@ -3591,6 +3688,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** The scope this property applies to. */
   private final Scope mScope;
 
+  /** The displayType which indicates how the property value should be displayed. **/
+  private final DisplayType mDisplayType;
+
   /**
    * @param name String of this property
    * @param description String description of this property key
@@ -3603,7 +3703,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   private PropertyKey(String name, String description, DefaultSupplier defaultSupplier,
       String[] aliases, boolean ignoredSiteProperty, boolean isHidden,
-      ConsistencyCheckLevel consistencyCheckLevel, Scope scope) {
+      ConsistencyCheckLevel consistencyCheckLevel, Scope scope, DisplayType displayType) {
     mName = Preconditions.checkNotNull(name, "name");
     // TODO(binfan): null check after we add description for each property key
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
@@ -3613,6 +3713,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     mIsHidden = isHidden;
     mConsistencyCheckLevel = consistencyCheckLevel;
     mScope = scope;
+    mDisplayType = displayType;
   }
 
   /**
@@ -3620,7 +3721,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   private PropertyKey(String name) {
     this(name, null, new DefaultSupplier(() -> null, "null"), null, false, false,
-        ConsistencyCheckLevel.IGNORE, Scope.ALL);
+        ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT);
   }
 
   /**
@@ -3762,6 +3863,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public Scope getScope() {
     return mScope;
+  }
+
+  /**
+   * @return the displayType which indicates how the property value should be displayed
+   */
+  public DisplayType getDisplayType() {
+    return mDisplayType;
+  }
+
+  /**
+   * Gets the display value for the actual value.
+   * @param value actual value of the property
+   * @return display value of the property
+   */
+  public String getDisplayValue(String value) {
+    switch (getDisplayType()) {
+      case DEFAULT:
+        return value;
+      case CREDENTIALS:
+        return "******";
+      default:
+        throw new IllegalStateException(String.format("Invalid displayType for property %s",
+            getName()));
+    }
   }
 
   /**

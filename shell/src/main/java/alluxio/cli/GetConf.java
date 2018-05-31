@@ -137,7 +137,7 @@ public final class GetConf {
     StringBuilder output = new StringBuilder();
     switch (args.length) {
       case 0:
-        TreeMap<String, String> keyValueSet = new TreeMap<>(Configuration.toMap());
+        TreeMap<String, String> keyValueSet = new TreeMap<>(Configuration.toMap(true));
         for (Entry<String, String> entry : keyValueSet.entrySet()) {
           String key = entry.getKey();
           String value = ConfigurationUtils.valueAsString(entry.getValue());
@@ -172,7 +172,8 @@ public final class GetConf {
             } else {
               System.out.println(String.format("%s", source.name()));
             }
-          } else if (cmd.hasOption(UNIT_OPTION_NAME)) {
+          } else if (cmd.hasOption(UNIT_OPTION_NAME)
+              && key.getDisplayType() != PropertyKey.DisplayType.CREDENTIALS) {
             String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
             try {
               ByteUnit byteUnit;
@@ -193,7 +194,7 @@ public final class GetConf {
             printHelp(String.format("%s is not a valid unit", arg));
             return 1;
           } else {
-            System.out.println(Configuration.get(key));
+            System.out.println(Configuration.getDisplayValue(key));
           }
         }
         break;
