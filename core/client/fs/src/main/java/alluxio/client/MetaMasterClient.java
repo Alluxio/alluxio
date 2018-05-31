@@ -12,6 +12,7 @@
 package alluxio.client;
 
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
@@ -27,6 +28,13 @@ import java.util.Set;
  * Interface for a meta master client.
  */
 public interface MetaMasterClient extends Closeable {
+  /**
+   * Gets the server-side configuration check report.
+   *
+   * @return configuration check report
+   */
+  ConfigCheckReport getConfigReport() throws IOException;
+
   /**
    * Gets the runtime configuration information.
    *

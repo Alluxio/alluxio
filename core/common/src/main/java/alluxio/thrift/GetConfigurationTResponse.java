@@ -46,7 +46,7 @@ public class GetConfigurationTResponse implements org.apache.thrift.TBase<GetCon
     schemes.put(TupleScheme.class, new GetConfigurationTResponseTupleSchemeFactory());
   }
 
-  private List<ConfigProperty> configList; // required
+  private List<alluxio.thrift.ConfigProperty> configList; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -112,7 +112,7 @@ public class GetConfigurationTResponse implements org.apache.thrift.TBase<GetCon
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.CONFIG_LIST, new org.apache.thrift.meta_data.FieldMetaData("configList", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ConfigProperty.class))));
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, alluxio.thrift.ConfigProperty.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(GetConfigurationTResponse.class, metaDataMap);
   }
@@ -121,7 +121,7 @@ public class GetConfigurationTResponse implements org.apache.thrift.TBase<GetCon
   }
 
   public GetConfigurationTResponse(
-    List<ConfigProperty> configList)
+    List<alluxio.thrift.ConfigProperty> configList)
   {
     this();
     this.configList = configList;
@@ -132,9 +132,9 @@ public class GetConfigurationTResponse implements org.apache.thrift.TBase<GetCon
    */
   public GetConfigurationTResponse(GetConfigurationTResponse other) {
     if (other.isSetConfigList()) {
-      List<ConfigProperty> __this__configList = new ArrayList<ConfigProperty>(other.configList.size());
-      for (ConfigProperty other_element : other.configList) {
-        __this__configList.add(new ConfigProperty(other_element));
+      List<alluxio.thrift.ConfigProperty> __this__configList = new ArrayList<alluxio.thrift.ConfigProperty>(other.configList.size());
+      for (alluxio.thrift.ConfigProperty other_element : other.configList) {
+        __this__configList.add(new alluxio.thrift.ConfigProperty(other_element));
       }
       this.configList = __this__configList;
     }
@@ -153,22 +153,22 @@ public class GetConfigurationTResponse implements org.apache.thrift.TBase<GetCon
     return (this.configList == null) ? 0 : this.configList.size();
   }
 
-  public java.util.Iterator<ConfigProperty> getConfigListIterator() {
+  public java.util.Iterator<alluxio.thrift.ConfigProperty> getConfigListIterator() {
     return (this.configList == null) ? null : this.configList.iterator();
   }
 
-  public void addToConfigList(ConfigProperty elem) {
+  public void addToConfigList(alluxio.thrift.ConfigProperty elem) {
     if (this.configList == null) {
-      this.configList = new ArrayList<ConfigProperty>();
+      this.configList = new ArrayList<alluxio.thrift.ConfigProperty>();
     }
     this.configList.add(elem);
   }
 
-  public List<ConfigProperty> getConfigList() {
+  public List<alluxio.thrift.ConfigProperty> getConfigList() {
     return this.configList;
   }
 
-  public GetConfigurationTResponse setConfigList(List<ConfigProperty> configList) {
+  public GetConfigurationTResponse setConfigList(List<alluxio.thrift.ConfigProperty> configList) {
     this.configList = configList;
     return this;
   }
@@ -194,7 +194,7 @@ public class GetConfigurationTResponse implements org.apache.thrift.TBase<GetCon
       if (value == null) {
         unsetConfigList();
       } else {
-        setConfigList((List<ConfigProperty>)value);
+        setConfigList((List<alluxio.thrift.ConfigProperty>)value);
       }
       break;
 
@@ -352,11 +352,11 @@ public class GetConfigurationTResponse implements org.apache.thrift.TBase<GetCon
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
-                struct.configList = new ArrayList<ConfigProperty>(_list0.size);
-                ConfigProperty _elem1;
+                struct.configList = new ArrayList<alluxio.thrift.ConfigProperty>(_list0.size);
+                alluxio.thrift.ConfigProperty _elem1;
                 for (int _i2 = 0; _i2 < _list0.size; ++_i2)
                 {
-                  _elem1 = new ConfigProperty();
+                  _elem1 = new alluxio.thrift.ConfigProperty();
                   _elem1.read(iprot);
                   struct.configList.add(_elem1);
                 }
@@ -386,7 +386,7 @@ public class GetConfigurationTResponse implements org.apache.thrift.TBase<GetCon
         oprot.writeFieldBegin(CONFIG_LIST_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.configList.size()));
-          for (ConfigProperty _iter3 : struct.configList)
+          for (alluxio.thrift.ConfigProperty _iter3 : struct.configList)
           {
             _iter3.write(oprot);
           }
@@ -419,7 +419,7 @@ public class GetConfigurationTResponse implements org.apache.thrift.TBase<GetCon
       if (struct.isSetConfigList()) {
         {
           oprot.writeI32(struct.configList.size());
-          for (ConfigProperty _iter4 : struct.configList)
+          for (alluxio.thrift.ConfigProperty _iter4 : struct.configList)
           {
             _iter4.write(oprot);
           }
@@ -434,11 +434,11 @@ public class GetConfigurationTResponse implements org.apache.thrift.TBase<GetCon
       if (incoming.get(0)) {
         {
           org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.configList = new ArrayList<ConfigProperty>(_list5.size);
-          ConfigProperty _elem6;
+          struct.configList = new ArrayList<alluxio.thrift.ConfigProperty>(_list5.size);
+          alluxio.thrift.ConfigProperty _elem6;
           for (int _i7 = 0; _i7 < _list5.size; ++_i7)
           {
-            _elem6 = new ConfigProperty();
+            _elem6 = new alluxio.thrift.ConfigProperty();
             _elem6.read(iprot);
             struct.configList.add(_elem6);
           }

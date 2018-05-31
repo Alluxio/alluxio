@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.master.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
@@ -17,6 +17,7 @@ import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
+import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;

@@ -13,6 +13,7 @@ package alluxio.cli.validation;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.wire.Scope;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -62,12 +63,12 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
       if (level == PropertyKey.ConsistencyCheckLevel.IGNORE) {
         continue;
       }
-      PropertyKey.Scope scope = propertyKey.getScope();
+      Scope scope = propertyKey.getScope();
       Set<String> targetNodes = ImmutableSet.of();
-      if (scope.contains(PropertyKey.Scope.MASTER)) {
+      if (scope.contains(Scope.MASTER)) {
         targetNodes = masters;
       }
-      if (scope.contains(PropertyKey.Scope.WORKER)) {
+      if (scope.contains(Scope.WORKER)) {
         targetNodes = Sets.union(targetNodes, workers);
       }
       if (targetNodes.size() < 2) {

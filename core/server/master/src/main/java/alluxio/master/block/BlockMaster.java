@@ -14,19 +14,24 @@ package alluxio.master.block;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.exception.BlockInfoException;
-import alluxio.exception.NoWorkerException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.metrics.Metric;
 import alluxio.thrift.Command;
+import alluxio.thrift.RegisterWorkerTOptions;
+import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -105,11 +110,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param tierAlias the alias of the storage tier where the worker is committing the block to
    * @param blockId the committing block id
    * @param length the length of the block
-   * @throws NoWorkerException if the workerId is not active
+   * @throws NotFoundException if the workerId is not active
    */
   // TODO(binfan): check the logic is correct or not when commitBlock is a retry
   void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId, long
-      length) throws NoWorkerException, UnavailableException;
+      length) throws NotFoundException, UnavailableException;
 
   /**
    * Marks a block as committed, but without a worker location. This means the block is only in ufs.
@@ -162,11 +167,13 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param totalBytesOnTiers a mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers a mapping from storage tier alias to the used byes
    * @param currentBlocksOnTiers a mapping from storage tier alias to a list of blocks
-   * @throws NoWorkerException if workerId cannot be found
+   * @param options the options that may contain worker configuration
+   * @throws NotFoundException if workerId cannot be found
    */
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException;
+      Map<String, List<Long>> currentBlocksOnTiers,
+      RegisterWorkerTOptions options) throws NotFoundException;
 
   /**
    * Updates metadata when a worker periodically heartbeats with the master.
@@ -193,4 +200,25 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param blockIds the ids of the lost blocks
    */
   void reportLostBlocks(List<Long> blockIds);
+
+  /**
+   * Registers callback functions to use when lost workers become alive.
+   *
+   * @param function the function to register
+   */
+  void registerLostWorkerFoundListener(Consumer<Address> function);
+
+  /**
+   * Registers callback functions to use when detecting lost workers.
+   *
+   * @param function the function to register
+   */
+  void registerWorkerLostListener(Consumer<Address> function);
+
+  /**
+   * Registers callback functions to use when workers register with configuration.
+   *
+   * @param function the function to register
+   */
+  void registerNewWorkerConfListener(BiConsumer<Address, List<ConfigProperty>> function);
 }
