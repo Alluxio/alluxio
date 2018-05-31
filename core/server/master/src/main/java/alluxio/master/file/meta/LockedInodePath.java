@@ -199,12 +199,11 @@ public abstract class LockedInodePath implements AutoCloseable {
    */
   public synchronized LockedInodePath createTempPathForChild(String childName)
       throws InvalidPathException {
+    Preconditions.checkNotNull(getInodeOrNull());
+    Preconditions.checkState(getInodeOrNull().isDirectory(),
+        "Trying to create TempPathForChild for a file inode");
     return new MutableLockedInodePath(mUri.join(childName), new CompositeInodeLockList(mLockList),
         mLockMode);
-  }
-
-  List<Inode<?>> getInodes() {
-    return mLockList.mInodes;
   }
 
   /**
