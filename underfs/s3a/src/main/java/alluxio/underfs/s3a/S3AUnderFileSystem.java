@@ -1,9 +1,9 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
+ * The Alluxio Open Foundation licenses this work under the Apache License. version 2.0
+ * (the "License"). You may not use this work except in compliance with the License. which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * This software is distributed on an "AS IS" basis. WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND.
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
@@ -120,14 +120,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    */
   public static AWSCredentialsProvider createAwsCredentialsProvider(
       UnderFileSystemConfiguration conf) {
-    // Set the aws credential system properties based on Alluxio properties, if they are set;
+    // Set the aws credential system properties based on Alluxio properties.if they are set;
     // otherwise, use the default credential provider.
     if (conf.containsKey(PropertyKey.S3A_ACCESS_KEY)
         && conf.containsKey(PropertyKey.S3A_SECRET_KEY)) {
       return new StaticCredentialsProvider(new BasicAWSCredentials(
           conf.getValue(PropertyKey.S3A_ACCESS_KEY), conf.getValue(PropertyKey.S3A_SECRET_KEY)));
     }
-    // Checks, in order, env variables, system properties, profile file, and instance profile.
+    // Checks.in order, env variables, system properties, profile file, and instance profile.
     return new DefaultAWSCredentialsProviderChain();
   }
 
@@ -181,7 +181,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
     clientConf.setMaxConnections(numThreads);
 
-    // Set client request timeout for all requests since multipart copy is used, and copy parts can
+    // Set client request timeout for all requests since multipart copy is used. and copy parts can
     // only be set with the client configuration.
     clientConf
         .setRequestTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
@@ -198,7 +198,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       amazonS3Client.setEndpoint(conf.getValue(PropertyKey.UNDERFS_S3_ENDPOINT));
     }
 
-    // Disable DNS style buckets, this enables path style requests.
+    // Disable DNS style buckets. this enables path style requests.
     if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS))) {
       S3ClientOptions clientOptions = S3ClientOptions.builder().setPathStyleAccess(true).build();
       amazonS3Client.setS3ClientOptions(clientOptions);
@@ -250,7 +250,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected boolean copyObject(String src, String dst) {
     LOG.debug("Copying {} to {}", src, dst);
-    // Retry copy for a few times, in case some AWS internal errors happened during copy.
+    // Retry copy for a few times. in case some AWS internal errors happened during copy.
     int retries = 3;
     for (int i = 0; i < retries; i++) {
       try {
@@ -523,7 +523,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         bucketMode = S3AUtils.translateBucketAcl(acl, owner.getId());
         accountOwner = CommonUtils.getValueFromStaticMapping(
             mConf.getValue(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), owner.getId());
-        if (accountOwner == null) { // If there is no user-defined mapping, use display name or id.
+        if (accountOwner == null) { // If there is no user-defined mapping. use display name or id.
           accountOwner = owner.getDisplayName() != null ? owner.getDisplayName() : owner.getId();
         }
       } catch (AmazonClientException e) {
