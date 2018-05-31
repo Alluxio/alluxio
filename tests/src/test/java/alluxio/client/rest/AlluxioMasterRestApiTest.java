@@ -18,7 +18,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.master.AlluxioMasterRestServiceHandler;
+import alluxio.master.meta.AlluxioMasterRestServiceHandler;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.metrics.MetricsSystem;

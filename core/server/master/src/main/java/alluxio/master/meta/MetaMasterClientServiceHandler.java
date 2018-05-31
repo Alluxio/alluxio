@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.master.meta;
 
 import alluxio.Configuration;
 import alluxio.Constants;
@@ -18,6 +18,8 @@ import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.GetConfigReportTOptions;
+import alluxio.thrift.GetConfigReportTResponse;
 import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetConfigurationTResponse;
 import alluxio.thrift.GetMasterInfoTOptions;
@@ -29,6 +31,7 @@ import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.MasterInfo;
 import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.wire.Address;
 import alluxio.wire.MetricValue;
 
 import com.codahale.metrics.Counter;
@@ -49,13 +52,13 @@ import java.util.stream.Collectors;
 public final class MetaMasterClientServiceHandler implements MetaMasterClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterClientServiceHandler.class);
 
-  private final MasterProcess mMasterProcess;
+  private final MetaMaster mMetaMaster;
 
   /**
-   * @param masterProcess the Alluxio master process
+   * @param metaMaster the Alluxio meta master
    */
-  MetaMasterClientServiceHandler(MasterProcess masterProcess) {
-    mMasterProcess = masterProcess;
+  public MetaMasterClientServiceHandler(MetaMaster metaMaster) {
+    mMetaMaster = metaMaster;
   }
 
   @Override
@@ -64,10 +67,17 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   }
 
   @Override
+  public GetConfigReportTResponse getConfigReport(final GetConfigReportTOptions options)
+      throws TException {
+    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigReportTResponse>) ()
+        -> new GetConfigReportTResponse(mMetaMaster.getConfigCheckReport().toThrift()));
+  }
+
+  @Override
   public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options)
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigurationTResponse>) ()
-        -> (new GetConfigurationTResponse(mMasterProcess.getConfiguration()
+        -> (new GetConfigurationTResponse(mMetaMaster.getConfiguration()
         .stream()
         .map(configProperty -> (configProperty.toThrift()))
         .collect(Collectors.toList()))));
@@ -81,26 +91,34 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
       for (MasterInfoField field : options.getFilter() != null ? options.getFilter()
           : Arrays.asList(MasterInfoField.values())) {
         switch (field) {
-          case MASTER_ADDRESS:
-            info.setMasterAddress(mMasterProcess.getRpcAddress().toString());
+          case LEADER_MASTER_ADDRESS:
+            info.setLeaderMasterAddress(mMetaMaster.getRpcAddress().toString());
+            break;
+          case MASTER_ADDRESSES:
+            info.setMasterAddresses(mMetaMaster.getMasterAddresses()
+                .stream().map(Address::toThrift).collect(Collectors.toList()));
             break;
           case RPC_PORT:
-            info.setRpcPort(mMasterProcess.getRpcAddress().getPort());
+            info.setRpcPort(mMetaMaster.getRpcAddress().getPort());
             break;
           case SAFE_MODE:
-            info.setSafeMode(mMasterProcess.isInSafeMode());
+            info.setSafeMode(mMetaMaster.isInSafeMode());
             break;
           case START_TIME_MS:
-            info.setStartTimeMs(mMasterProcess.getStartTimeMs());
+            info.setStartTimeMs(mMetaMaster.getStartTimeMs());
             break;
           case UP_TIME_MS:
-            info.setUpTimeMs(mMasterProcess.getUptimeMs());
+            info.setUpTimeMs(mMetaMaster.getUptimeMs());
             break;
           case VERSION:
             info.setVersion(RuntimeConstants.VERSION);
             break;
           case WEB_PORT:
-            info.setWebPort(mMasterProcess.getWebAddress().getPort());
+            info.setWebPort(mMetaMaster.getWebPort());
+            break;
+          case WORKER_ADDRESSES:
+            info.setWorkerAddresses(mMetaMaster.getWorkerAddresses()
+                .stream().map(Address::toThrift).collect(Collectors.toList()));
             break;
           case ZOOKEEPER_ADDRESSES:
             if (Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
