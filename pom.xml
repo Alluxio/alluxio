@@ -138,6 +138,13 @@
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
+    <!-- Host to report call home information to. -->
+    <call.home.host>http://diagnostics.alluxio.org</call.home.host>
+    <!-- Determines whether call home should be enforced.
+         This flag should only be set at compile time when generating distributions. -->
+    <call.home.enabled>false</call.home.enabled>
+    <!-- Determines how frequently to run the call home (in milliseconds). -->
+    <call.home.period>86400000</call.home.period>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
     <cxf.version>2.7.0</cxf.version>
     <findbugs.path>build/findbugs</findbugs.path>
@@ -500,6 +507,11 @@
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
         <version>4.4.6</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpmime</artifactId>
+        <version>4.5</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mesos</groupId>

@@ -10,6 +10,8 @@
 #
 
 alluxio.master.block.BlockMasterFactory
+alluxio.master.callhome.CallHomeMasterFactory
+alluxio.master.diagnostic.DiagnosticMasterFactory
 alluxio.master.file.FileSystemMasterFactory
 alluxio.master.lineage.LineageMasterFactory
 alluxio.master.metrics.MetricsMasterFactory

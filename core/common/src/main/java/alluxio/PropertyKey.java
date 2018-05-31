@@ -457,6 +457,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
 
+  //
+  // Diagnostic logs
+  //
+  public static final PropertyKey DIAGNOSTIC_LOG_INTERVAL_MS =
+      new Builder(Name.DIAGNOSTIC_LOG_INTERVAL_MS)
+          .setDescription("Period between two consecutive diagnostic executions.")
+          .setDefaultValue("86400000")
+          .setIsHidden(true)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey DIAGNOSTIC_LOG_LEVEL = new Builder(Name.DIAGNOSTIC_LOG_LEVEL)
+      .setDescription(
+          "The log level for gathering diagnostic information. The options are "
+              + "[NONE, PLAIN]")
+      .setDefaultValue("PLAIN")
+      .setIsHidden(true)
+      .setScope(Scope.MASTER)
+      .build();
+
   /**
    * UFS related properties.
    *
@@ -2939,6 +2958,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.zookeeper.leader.inquiry.retry";
     public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
     public static final String ZOOKEEPER_SESSION_TIMEOUT = "alluxio.zookeeper.session.timeout";
+
+    //
+    // Diagnostic logs
+    //
+    public static final String DIAGNOSTIC_LOG_INTERVAL_MS =
+        "alluxio.master.diagnostic.log.interval.ms";
+    public static final String DIAGNOSTIC_LOG_LEVEL = "alluxio.master.diagnostic.log.level";
 
     //
     // UFS related properties

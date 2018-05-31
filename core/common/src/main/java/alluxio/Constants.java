@@ -90,6 +90,8 @@ public final class Constants {
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
+  public static final String CALL_HOME_MASTER_NAME = "CallHomeMaster";
+  public static final String DIAGNOSTIC_MASTER_NAME = "DiagnosticMaster";
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String LINEAGE_MASTER_NAME = "LineageMaster";
   public static final String KEY_VALUE_MASTER_NAME = "KeyValueMaster";

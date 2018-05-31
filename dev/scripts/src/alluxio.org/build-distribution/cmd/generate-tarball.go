@@ -102,6 +102,9 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 	if includeYarnIntegration(hadoopVersion) {
 		args = append(args, "-Pyarn")
 	}
+	if callHomeFlag {
+		args = append(args, "-Dcall.home.enabled=true")
+	}
 	return args
 }
 
