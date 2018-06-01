@@ -816,10 +816,11 @@ public class InodeTree implements JournalEntryIterable {
       return;
     }
     InodeDirectory inodeDirectory = (InodeDirectory) inode;
-    InodeLockList lockList = new InodeLockList();
+
 
     for (Inode<?> child : inodeDirectory.getChildren()) {
       LockedInodePath lockedDescendantPath;
+      InodeLockList lockList = new InodeLockList();
       try {
         lockList.lockReadAndCheckParent(child, inodeDirectory);
         lockedDescendantPath = new MutableLockedInodePath(inodePath.getUri().join(child.getName()),
