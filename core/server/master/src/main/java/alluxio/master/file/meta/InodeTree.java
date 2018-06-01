@@ -816,8 +816,6 @@ public class InodeTree implements JournalEntryIterable {
       return;
     }
     InodeDirectory inodeDirectory = (InodeDirectory) inode;
-
-
     for (Inode<?> child : inodeDirectory.getChildren()) {
       LockedInodePath lockedDescendantPath;
       InodeLockList lockList = new InodeLockList();
@@ -902,19 +900,11 @@ public class InodeTree implements JournalEntryIterable {
     } else {
       assert inode instanceof InodeDirectory;
       // inode is a directory. Set the pinned state for all children.
-      try (TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath)) {
+      try {
         for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-          try {
-            child.lockWriteAndCheckParent(inode);
-          } catch (InvalidPathException e) {
-            // Inode is no longer a child of the directory, continue.
-            continue;
-          }
-          try {
-            tempInodePath.setDescendant(child, getPath(child));
-            setPinned(tempInodePath, pinned, opTimeMs);
-          } finally {
-            child.unlockWrite();
+          try (LockedInodePath childPath = lockDescendantPath(inodePath, LockMode.WRITE,
+              getPath(child))) {
+            setPinned(childPath, pinned, opTimeMs);
           }
         }
       } catch (InvalidPathException e) {
@@ -932,7 +922,7 @@ public class InodeTree implements JournalEntryIterable {
    * @throws FileDoesNotExistException if inode does not exist
    */
   public void setPinned(LockedInodePath inodePath, boolean pinned)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, InvalidPathException {
     setPinned(inodePath, pinned, System.currentTimeMillis());
   }
 

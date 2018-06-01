@@ -57,7 +57,6 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
@@ -3469,11 +3468,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             // Ignore non-persisted inodes.
             continue;
           }
-          try (TempInodePathForDescendant tempInodePath =
-                   new TempInodePathForDescendant(inodePath)) {
-            tempInodePath.setDescendant(inodeEntry.getValue(),
-                inodePath.getUri().join(inodeEntry.getKey()));
-
+          try (LockedInodePath tempInodePath = mInodeTree.lockDescendantPath(inodePath,
+              InodeTree.LockMode.READ, inodePath.getUri().join(inodeEntry.getKey()))) {
             // Recursively sync children
             if (syncDescendantType != DescendantType.ALL) {
               syncDescendantType = DescendantType.NONE;
