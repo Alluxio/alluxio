@@ -11,6 +11,8 @@
 
 package alluxio.master;
 
+import com.google.common.base.Objects;
+
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.List;
@@ -36,5 +38,22 @@ public class SingleMasterInquireClient implements MasterInquireClient {
   @Override
   public List<InetSocketAddress> getMasterRpcAddresses() {
     return Collections.singletonList(mAddress);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SingleMasterInquireClient)) {
+      return false;
+    }
+    SingleMasterInquireClient that = (SingleMasterInquireClient) o;
+    return mAddress.equals(that.mAddress);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mAddress);
   }
 }
