@@ -85,16 +85,16 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
     mLeaderPath = leaderPath;
 
     LOG.info("Creating new zookeeper client. address: {}", mZookeeperAddress);
-    mClient =
-        CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
-            Constants.SECOND_MS, 3));
-    mClient.start();
+    // Start the client lazily.
+    mClient = CuratorFrameworkFactory.newClient(mZookeeperAddress,
+        new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
 
     mMaxTry = Configuration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }
 
   @Override
   public synchronized InetSocketAddress getPrimaryRpcAddress() throws UnavailableException {
+    ensureStarted();
     long startTime = System.currentTimeMillis();
     int tried = 0;
     try {
@@ -150,6 +150,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
 
   @Override
   public synchronized List<InetSocketAddress> getMasterRpcAddresses() throws UnavailableException {
+    ensureStarted();
     int tried = 0;
     try {
       while (tried < mMaxTry) {
@@ -175,6 +176,20 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
     }
 
     throw new UnavailableException("Failed to query zookeeper for master RPC addresses");
+  }
+
+  private synchronized void ensureStarted() {
+    switch (mClient.getState()) {
+      case LATENT:
+        mClient.start();
+        return;
+      case STARTED:
+        return;
+      case STOPPED:
+        throw new IllegalStateException("Client has already been closed");
+      default:
+        throw new IllegalStateException("Unknown state: " + mClient.getState());
+    }
   }
 
   @Override

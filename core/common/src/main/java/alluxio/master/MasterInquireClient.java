@@ -85,6 +85,7 @@ public interface MasterInquireClient {
       private String mConnectHost;
       private int mConnectPort;
 
+      // Use Config.defaults() instead.
       private Config() {}
 
       /**

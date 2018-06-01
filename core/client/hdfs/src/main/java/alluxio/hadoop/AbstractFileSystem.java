@@ -457,23 +457,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
-    // Create the master inquire client that we would have after merging the hadoop conf into
-    // Alluxio Configuration.
-    MasterInquireClient.Factory.Config inquireClientConf =
-        MasterInquireClient.Factory.Config.defaults();
-    inquireClientConf.setZookeeperEnabled(conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(),
-        inquireClientConf.isZookeeperEnabled()));
-    inquireClientConf.setZookeeperAddress(
-        conf.get(PropertyKey.ZOOKEEPER_ADDRESS.getName(), inquireClientConf.getZookeeperAddress()));
-    inquireClientConf.setElectionPath(conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(),
-        inquireClientConf.getElectionPath()));
-    inquireClientConf.setLeaderPath(
-        conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(), inquireClientConf.getLeaderPath()));
-    inquireClientConf.setConnectHost(mUri.getHost());
-    inquireClientConf.setConnectPort(mUri.getPort());
-    MasterInquireClient configClient = MasterInquireClient.Factory.create(inquireClientConf);
-    MasterInquireClient contextClient = FileSystemContext.get().getMasterInquireClient();
-    boolean connectDetailsMatch = configClient.equals(contextClient);
+    boolean connectDetailsMatch = connectDetailsMatch(mUri, conf);
 
     if (sInitialized && connectDetailsMatch) {
       updateFileSystemAndContext();
@@ -535,6 +519,34 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     } finally {
       FileSystemContext.get().releaseMasterClient(client);
     }
+  }
+
+  /**
+   * Checks whether the connect details from the uri + hadoop conf + global Alluxio conf are the
+   * same as the connect details currently being used by {@link FileSystemContext}.
+   *
+   * @param uri the uri
+   * @param conf the hadoop conf
+   * @return whether the details match
+   */
+  private boolean connectDetailsMatch(URI uri, org.apache.hadoop.conf.Configuration conf) {
+    // Create the master inquire client that we would have after merging the hadoop conf into
+    // Alluxio Configuration.
+    MasterInquireClient.Factory.Config inquireClientConf =
+        MasterInquireClient.Factory.Config.defaults();
+    inquireClientConf.setZookeeperEnabled(conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(),
+        inquireClientConf.isZookeeperEnabled()));
+    inquireClientConf.setZookeeperAddress(
+        conf.get(PropertyKey.ZOOKEEPER_ADDRESS.getName(), inquireClientConf.getZookeeperAddress()));
+    inquireClientConf.setElectionPath(conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(),
+        inquireClientConf.getElectionPath()));
+    inquireClientConf.setLeaderPath(
+        conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(), inquireClientConf.getLeaderPath()));
+    inquireClientConf.setConnectHost(mUri.getHost());
+    inquireClientConf.setConnectPort(mUri.getPort());
+    MasterInquireClient configClient = MasterInquireClient.Factory.create(inquireClientConf);
+    MasterInquireClient contextClient = FileSystemContext.get().getMasterInquireClient();
+    return configClient.equals(contextClient);
   }
 
   /**
