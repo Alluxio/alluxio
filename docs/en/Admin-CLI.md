@@ -41,7 +41,7 @@ UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
 
 The `backup` command creates a backup of Alluxio metadata.
 
-Back up to the default backup folder
+Back up to the default backup folder (configured by `alluxio.master.backup.directory`)
 ```
 $ ./bin/alluxio fsadmin backup
 Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz

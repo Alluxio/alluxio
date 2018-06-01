@@ -52,13 +52,14 @@ unavailability while the backup is happening.
 
 To generate a backup, use the `fsadmin backup` CLI command.
 ```bash
-$ bin/alluxio fsadmin exportJournal
+$ bin/alluxio fsadmin backup
 ```
 
 By default, this will write a backup named 
-`alluxio-journal-YYYY-MM-DD-timestamp.gz` to the "/alluxio_backups" directory of 
-the root under file system. This default backup directory can be configured by
-setting `alluxio.master.backup.directory`, e.g.
+`alluxio-journal-YYYY-MM-DD-timestamp.gz` to the "/alluxio_backups" directory of
+the root under file system, e.g. hdfs://cluster/alluxio_backups. This default
+backup directory can be configured by setting `alluxio.master.backup.directory`
+
 ```
 alluxio.master.backup.directory=/alluxio/backups
 ```
