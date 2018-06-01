@@ -12,6 +12,8 @@
 package alluxio.security.authentication;
 
 import org.apache.thrift.transport.TSocket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 
@@ -22,6 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class TransportProviderUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(TransportProviderUtils.class);
 
   /**
    * Creates a new Thrift socket that will connect to the given address.
