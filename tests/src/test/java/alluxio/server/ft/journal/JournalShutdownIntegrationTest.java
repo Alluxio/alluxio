@@ -47,13 +47,10 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -67,18 +64,17 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   public static SystemPropertyRule sDisableHdfsCacheRule =
       new SystemPropertyRule("fs.hdfs.impl.disable.cache", "true");
 
-  @Override
-  protected List<TestRule> rules() {
-    return Arrays.asList(
-        new AuthenticatedUserRule("test"),
-        new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
+
+  @Rule
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
+
+  @Rule
+  public ConfigurationRule mConfigRule =
+      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
           .put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "100")
           .put(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
           .put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "32")
-          .put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec")
-          .build())
-    );
-  }
+          .put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec").build());
 
   private static final long SHUTDOWN_TIME_MS = 15 * Constants.SECOND_MS;
   private static final String TEST_FILE_DIR = "/files/";
@@ -130,7 +126,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    * We use the external cluster for this test due to flakiness issues when running in a single JVM.
    */
   @Test
-  @Ignore
   public void multiMasterJournalStopIntegration() throws Exception {
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setClusterName("multiMasterJournalStopIntegration")

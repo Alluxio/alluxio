@@ -19,6 +19,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
@@ -28,6 +29,8 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,18 +48,11 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
   private static FileSystem sFileSystem;
-  private static CreateFileOptions sWriteBoth;
-  private static CreateFileOptions sWriteAlluxio;
-  private static CreateFileOptions sWriteUnderStore;
-  private static String sTestPath;
+  private static String sTestPath = PathUtils.uniqPath();
 
   @BeforeClass
-  public static final void beforeClass() throws Exception {
+  public static void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
-    sWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
-    sWriteUnderStore = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
-    sTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
@@ -69,9 +65,9 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
 
   private static List<CreateFileOptions> getOptionSet() {
     List<CreateFileOptions> ret = new ArrayList<>(3);
-    ret.add(sWriteBoth);
-    ret.add(sWriteAlluxio);
-    ret.add(sWriteUnderStore);
+    ret.add(CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    ret.add(CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE));
+    ret.add(CreateFileOptions.defaults().setWriteType(WriteType.THROUGH));
     return ret;
   }
 
