@@ -20,6 +20,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +34,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterInquireClient;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
@@ -41,6 +43,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
@@ -134,6 +137,25 @@ public class AbstractFileSystemTest {
       final org.apache.hadoop.fs.FileSystem fs =
           org.apache.hadoop.fs.FileSystem.get(uri, getConf());
       assertTrue(fs instanceof FaultTolerantFileSystem);
+    }
+  }
+
+  @Test
+  public void useSameContextWithZookeeper() throws Exception {
+    URI uri = URI.create(Constants.HEADER + "dummyHost:-1/");
+    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
+        PropertyKey.ZOOKEEPER_ENABLED, "true",
+        PropertyKey.ZOOKEEPER_ADDRESS, "zkAddress")).toResource()) {
+      Configuration conf = getConf();
+      conf.set("fs.alluxio.impl.disable.cache", "true");
+      org.apache.hadoop.fs.FileSystem fs1 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+      verify(mMockFileSystemContext, times(1)).reset();
+      // The filesystem context should return a master inquire client based on the latest config
+      when(mMockFileSystemContext.getMasterInquireClient())
+          .thenReturn(MasterInquireClient.Factory.create());
+      // The first initialize should reset the context, but later initializes should not.
+      org.apache.hadoop.fs.FileSystem.get(uri, conf);
+      verify(mMockFileSystemContext, times(1)).reset();
     }
   }
 
