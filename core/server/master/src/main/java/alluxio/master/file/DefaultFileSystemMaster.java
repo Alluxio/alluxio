@@ -51,7 +51,6 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
-import alluxio.master.file.meta.InodeLockList;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
@@ -143,6 +142,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+import com.google.common.io.Closer;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TProcessor;
@@ -1066,17 +1066,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Possible ufs sync.
       syncMetadata(rpcContext, parent, lockingScheme, DescendantType.ALL);
 
-      try (InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
-        if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
-          inconsistentUris.add(parent.getUri());
-        }
-        for (Inode child : children.getInodes()) {
-          AlluxioURI currentPath = mInodeTree.getPath(child);
-          if (!checkConsistencyInternal(child, currentPath)) {
+      if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
+        inconsistentUris.add(parent.getUri());
+      }
+
+      List<LockedInodePath> children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ);
+      for (LockedInodePath child : children) {
+        try (LockedInodePath childToClose = child) {
+          AlluxioURI currentPath = childToClose.getUri();
+          if (!checkConsistencyInternal(childToClose.getInode(), currentPath)) {
             inconsistentUris.add(currentPath);
           }
         }
       }
+
       auditContext.setSucceeded(true);
     }
     return inconsistentUris;
@@ -1570,98 +1573,112 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     }
 
-    List<Pair<AlluxioURI, Inode>> delInodes = new ArrayList<>();
+    List<Pair<AlluxioURI, LockedInodePath>> delInodes = new ArrayList<>();
 
-    Pair<AlluxioURI, Inode> inodePair = new Pair<>(inodePath.getUri(), inode);
+    Pair<AlluxioURI, LockedInodePath> inodePair = new Pair<>(inodePath.getUri(), inodePath);
     delInodes.add(inodePair);
 
-    try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
+    List<LockedInodePath> lockedInodePathList =
+        mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE);
+    Closer closer = Closer.create();
+    try {
+      for (LockedInodePath lockedInodePath: lockedInodePathList) {
+        closer.register(lockedInodePath);
+      }
       // Traverse inodes top-down
-      for (Inode descendant : lockList.getInodes()) {
+      for (LockedInodePath lockedInodePath : lockedInodePathList) {
+        Inode descendant  = lockedInodePath.getInode();
         AlluxioURI descendantPath = mInodeTree.getPath(descendant);
-        Pair<AlluxioURI, Inode> descendantPair = new Pair<>(descendantPath, descendant);
+        Pair<AlluxioURI, LockedInodePath> descendantPair =
+            new Pair<>(descendantPath, lockedInodePath);
         delInodes.add(descendantPair);
       }
+
       // Prepare to delete persisted inodes
       UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
       if (!(replayed || deleteOptions.isAlluxioOnly())) {
         ufsDeleter = new SafeUfsDeleter(mMountTable, delInodes, deleteOptions);
       }
+
       // Inodes to delete from tree after attempting to delete from UFS
-      List<Pair<AlluxioURI, Inode>> inodesToDelete = new ArrayList<>();
+      List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete = new ArrayList<>();
       // Inodes that are not safe for recursive deletes
       Set<Long> unsafeInodes = new HashSet<>();
       // Alluxio URIs (and the reason for failure) which could not be deleted
       List<Pair<String, String>> failedUris = new ArrayList<>();
 
-      try (TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath)) {
-        // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
-        // file, we deal with the checkpoints and blocks as well.
-        for (int i = delInodes.size() - 1; i >= 0; i--) {
-          Pair<AlluxioURI, Inode> delInodePair = delInodes.get(i);
-          AlluxioURI alluxioUriToDel = delInodePair.getFirst();
-          Inode delInode = delInodePair.getSecond();
+      // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
+      // file, we deal with the checkpoints and blocks as well.
+      for (int i = delInodes.size() - 1; i >= 0; i--) {
+        Pair<AlluxioURI, LockedInodePath> delInodePair = delInodes.get(i);
+        AlluxioURI alluxioUriToDel = delInodePair.getFirst();
+        Inode delInode = delInodePair.getSecond().getInode();
 
-          String failureReason = null;
-          if (unsafeInodes.contains(delInode.getId())) {
-            failureReason = ExceptionMessage.DELETE_FAILED_DIR_NONEMPTY.getMessage();
-          } else if (!replayed && delInode.isPersisted()) {
-            try {
-              // If this is a mount point, we have deleted all the children and can unmount it
-              // TODO(calvin): Add tests (ALLUXIO-1831)
-              if (mMountTable.isMountPoint(alluxioUriToDel)) {
-                unmountInternal(alluxioUriToDel);
-              } else {
-                if (!(replayed || deleteOptions.isAlluxioOnly())) {
-                  try {
-                    checkUfsMode(alluxioUriToDel, OperationType.WRITE);
-                    // Attempt to delete node if all children were deleted successfully
-                    ufsDeleter.delete(alluxioUriToDel, delInode);
-                  } catch (AccessControlException e) {
-                    // In case ufs is not writable, we will still attempt to delete other entries
-                    // if any as they may be from a different mount point
-                    // TODO(adit): reason for failure is swallowed here
-                    LOG.warn(e.getMessage());
-                    failureReason = e.getMessage();
-                  } catch (IOException e) {
-                    failureReason = e.getMessage();
-                  }
+        String failureReason = null;
+        if (unsafeInodes.contains(delInode.getId())) {
+          failureReason = ExceptionMessage.DELETE_FAILED_DIR_NONEMPTY.getMessage();
+        } else if (!replayed && delInode.isPersisted()) {
+          try {
+            // If this is a mount point, we have deleted all the children and can unmount it
+            // TODO(calvin): Add tests (ALLUXIO-1831)
+            if (mMountTable.isMountPoint(alluxioUriToDel)) {
+              unmountInternal(alluxioUriToDel);
+            } else {
+              if (!(replayed || deleteOptions.isAlluxioOnly())) {
+                try {
+                  checkUfsMode(alluxioUriToDel, OperationType.WRITE);
+                  // Attempt to delete node if all children were deleted successfully
+                  ufsDeleter.delete(alluxioUriToDel, delInode);
+                } catch (AccessControlException e) {
+                  // In case ufs is not writable, we will still attempt to delete other entries
+                  // if any as they may be from a different mount point
+                  // TODO(adit): reason for failure is swallowed here
+                  LOG.warn(e.getMessage());
+                  failureReason = e.getMessage();
+                } catch (IOException e) {
+                  failureReason = e.getMessage();
                 }
               }
-            } catch (InvalidPathException e) {
-              LOG.warn("Failed to delete path from UFS: {}", e.getMessage());
             }
-          }
-          if (failureReason == null) {
-            inodesToDelete.add(new Pair<>(alluxioUriToDel, delInode));
-          } else {
-            unsafeInodes.add(delInode.getId());
-            // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
-            unsafeInodes.add(delInode.getParentId());
-            failedUris.add(new Pair<>(alluxioUriToDel.toString(), failureReason));
+          } catch (InvalidPathException e) {
+            LOG.warn("Failed to delete path from UFS: {}", e.getMessage());
           }
         }
-        // Delete Inodes
-        for (Pair<AlluxioURI, Inode> delInodePair : inodesToDelete) {
-          Inode delInode = delInodePair.getSecond();
-          tempInodePath.setDescendant(delInode, delInodePair.getFirst());
-          // Do not journal entries covered recursively for performance
-          if (delInode.getId() == inode.getId() || unsafeInodes.contains(delInode.getParentId())) {
-            mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs, deleteOptions);
-          } else {
-            mInodeTree.deleteInode(
-                new RpcContext(rpcContext.getBlockDeletionContext(), NoopJournalContext.INSTANCE),
-                tempInodePath, opTimeMs, deleteOptions);
-          }
-        }
-        if (!failedUris.isEmpty()) {
-          Collection<String> messages = failedUris.stream()
-              .map(pair -> String.format("%s (%s)", pair.getFirst(), pair.getSecond()))
-              .collect(Collectors.toList());
-          throw new FailedPreconditionException(
-              ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(messages, ", ")));
+        if (failureReason == null) {
+          inodesToDelete.add(new Pair<>(alluxioUriToDel, delInodePair.getSecond()));
+        } else {
+          unsafeInodes.add(delInode.getId());
+          // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
+          unsafeInodes.add(delInode.getParentId());
+          failedUris.add(new Pair<>(alluxioUriToDel.toString(), failureReason));
         }
       }
+
+      // Delete Inodes
+      for (Pair<AlluxioURI, LockedInodePath> delInodePair : inodesToDelete) {
+        Inode delInode = delInodePair.getSecond().getInode();
+        LockedInodePath tempInodePath = delInodePair.getSecond();
+        // Do not journal entries covered recursively for performance
+        if (delInode.getId() == inode.getId() || unsafeInodes.contains(delInode.getParentId())) {
+          mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs, deleteOptions);
+        } else {
+          mInodeTree.deleteInode(
+              new RpcContext(rpcContext.getBlockDeletionContext(), NoopJournalContext.INSTANCE),
+              tempInodePath, opTimeMs, deleteOptions);
+        }
+      }
+
+      if (!failedUris.isEmpty()) {
+        Collection<String> messages = failedUris.stream()
+            .map(pair -> String.format("%s (%s)", pair.getFirst(), pair.getSecond()))
+            .collect(Collectors.toList());
+        throw new FailedPreconditionException(
+            ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(messages, ", ")));
+      }
+    } catch (Throwable e) {
+      throw closer.rethrow(e);
+    } finally {
+      closer.close();
     }
 
     Metrics.PATHS_DELETED.inc(delInodes.size());
@@ -2355,7 +2372,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void free(AlluxioURI path, FreeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      UnexpectedAlluxioException, UnavailableException {
+      UnexpectedAlluxioException, IOException {
     Metrics.FREE_FILE_OPS.inc();
     // No need to syncMetadata before free.
     try (RpcContext rpcContext = createRpcContext();
@@ -2387,8 +2404,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws UnexpectedAlluxioException if the file or directory can not be freed
    */
   private void freeAndJournal(RpcContext rpcContext, LockedInodePath inodePath, FreeOptions options)
-      throws FileDoesNotExistException, UnexpectedAlluxioException, AccessControlException,
-      InvalidPathException, UnavailableException {
+      throws FileDoesNotExistException, UnexpectedAlluxioException, IOException {
     Inode<?> inode = inodePath.getInode();
     if (inode.isDirectory() && !options.isRecursive()
         && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
@@ -2399,38 +2415,45 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     long opTimeMs = System.currentTimeMillis();
     List<Inode<?>> freeInodes = new ArrayList<>();
     freeInodes.add(inode);
+    List<LockedInodePath> descendants = mInodeTree.lockDescendants(inodePath,
+        InodeTree.LockMode.WRITE);
+    Closer closer = Closer.create();
+    try {
+      for (LockedInodePath descedant : descendants) {
+        closer.register(descedant);
+      }
+      descendants.add(inodePath);
+      for (LockedInodePath descedant : descendants) {
+        Inode<?> freeInode = descedant.getInodeOrNull();
 
-    try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
-      freeInodes.addAll(lockList.getInodes());
-      try (TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath)) {
-        // We go through each inode.
-        for (int i = freeInodes.size() - 1; i >= 0; i--) {
-          Inode<?> freeInode = freeInodes.get(i);
-
-          if (freeInode.isFile()) {
-            if (freeInode.getPersistenceState() != PersistenceState.PERSISTED) {
-              throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
+        if (freeInode != null && freeInode.isFile()) {
+          if (freeInode.getPersistenceState() != PersistenceState.PERSISTED) {
+            throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
+                .getMessage(mInodeTree.getPath(freeInode)));
+          }
+          if (freeInode.isPinned()) {
+            if (!options.isForced()) {
+              throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
                   .getMessage(mInodeTree.getPath(freeInode)));
             }
-            if (freeInode.isPinned()) {
-              if (!options.isForced()) {
-                throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
-                    .getMessage(mInodeTree.getPath(freeInode)));
-              }
-              // the path to inode for getPath should already be locked.
-              tempInodePath.setDescendant(freeInode, mInodeTree.getPath(freeInode));
-              SetAttributeOptions setAttributeOptions =
-                  SetAttributeOptions.defaults().setRecursive(false).setPinned(false);
-              setAttributeInternal(tempInodePath, false, opTimeMs, setAttributeOptions);
-              journalSetAttribute(tempInodePath, opTimeMs, setAttributeOptions,
-                  rpcContext.getJournalContext());
-            }
-            // Remove corresponding blocks from workers.
-            mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
+
+            SetAttributeOptions setAttributeOptions =
+                SetAttributeOptions.defaults().setRecursive(false).setPinned(false);
+            setAttributeInternal(descedant, false, opTimeMs, setAttributeOptions);
+            journalSetAttribute(descedant, opTimeMs, setAttributeOptions,
+                rpcContext.getJournalContext());
           }
+          // Remove corresponding blocks from workers.
+          mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
         }
       }
+
+    } catch (Throwable e) {
+      throw closer.rethrow(e);
+    } finally {
+      closer.close();
     }
+
     Metrics.FILES_FREED.inc(freeInodes.size());
   }
 
@@ -3019,7 +3042,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void resetFile(long fileId)
       throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException, UnavailableException {
+      AccessControlException, IOException {
     // TODO(yupeng) check the file is not persisted
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath = mInodeTree
@@ -3116,31 +3139,30 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   private void setAttributeAndJournal(RpcContext rpcContext, LockedInodePath inodePath,
       boolean rootRequired, boolean ownerRequired, SetAttributeOptions options)
-      throws InvalidPathException, FileDoesNotExistException, AccessControlException {
+      throws InvalidPathException, FileDoesNotExistException, AccessControlException, IOException {
     Inode<?> targetInode = inodePath.getInode();
     long opTimeMs = System.currentTimeMillis();
     if (options.isRecursive() && targetInode.isDirectory()) {
-      try (InodeLockList lockList = mInodeTree
-          .lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
-        List<Inode<?>> inodeChildren = lockList.getInodes();
-        for (Inode<?> inode : inodeChildren) {
-          // the path to inode for getPath should already be locked.
-          try (LockedInodePath childPath = mInodeTree
-              .lockFullInodePath(mInodeTree.getPath(inode), InodeTree.LockMode.READ)) {
-            // TODO(gpang): a better way to check permissions
-            mPermissionChecker.checkSetAttributePermission(childPath, rootRequired, ownerRequired);
-          }
+      List<LockedInodePath> descendants = mInodeTree.lockDescendants(inodePath,
+          InodeTree.LockMode.WRITE);
+      Closer closer = Closer.create();
+      try {
+        for (LockedInodePath descendant : descendants) {
+          closer.register(descendant);
         }
-        try (TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath)) {
-          for (Inode<?> inode : inodeChildren) {
-            // the path to inode for getPath should already be locked.
-            tempInodePath.setDescendant(inode, mInodeTree.getPath(inode));
-            List<Inode<?>> persistedInodes =
-                setAttributeInternal(tempInodePath, false, opTimeMs, options);
-            journalPersistedInodes(persistedInodes, rpcContext.getJournalContext());
-            journalSetAttribute(tempInodePath, opTimeMs, options, rpcContext.getJournalContext());
-          }
+        for (LockedInodePath childPath : descendants) {
+          mPermissionChecker.checkSetAttributePermission(childPath, rootRequired, ownerRequired);
         }
+        for (LockedInodePath childPath : descendants) {
+          List<Inode<?>> persistedInodes =
+              setAttributeInternal(childPath, false, opTimeMs, options);
+          journalPersistedInodes(persistedInodes, rpcContext.getJournalContext());
+          journalSetAttribute(childPath, opTimeMs, options, rpcContext.getJournalContext());
+        }
+      } catch (Throwable e) {
+        throw closer.rethrow(e);
+      } finally {
+        closer.close();
       }
     }
     List<Inode<?>> persistedInodes = setAttributeInternal(inodePath, false, opTimeMs, options);

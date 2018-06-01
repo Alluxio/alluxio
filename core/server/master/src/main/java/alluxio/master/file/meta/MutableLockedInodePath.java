@@ -37,6 +37,19 @@ public class MutableLockedInodePath extends LockedInodePath {
     super(uri, lockList, lockMode);
   }
 
+  /**
+   * Creates an instance of {@link MutableLockedInodePath}.
+   *
+   * @param descendantUri the URI
+   * @param lockedInodePath lockedInodePath that is the parent
+   * @param descendants Locked descendants
+   * @throws InvalidPathException if the path passed is invalid
+   */
+  public MutableLockedInodePath(AlluxioURI descendantUri, LockedInodePath lockedInodePath,
+                                InodeLockList descendants) throws InvalidPathException {
+    super(descendantUri, lockedInodePath, descendants);
+  }
+
   synchronized String[] getPathComponents() {
     return mPathComponents;
   }

@@ -20,6 +20,7 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import java.io.Closeable;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -29,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class represents a path of locked {@link Inode}, starting from the root.
  */
 @ThreadSafe
-public abstract class LockedInodePath implements AutoCloseable {
+public abstract class LockedInodePath implements Closeable {
   protected final AlluxioURI mUri;
   protected final String[] mPathComponents;
   protected final InodeLockList mLockList;
@@ -43,6 +44,14 @@ public abstract class LockedInodePath implements AutoCloseable {
     mPathComponents = PathUtils.getPathComponents(mUri.getPath());
     mLockList = lockList;
     mLockMode = lockMode;
+  }
+
+  LockedInodePath(AlluxioURI descendantUri, LockedInodePath lockedInodePath,
+                  InodeLockList descendants) throws InvalidPathException {
+    mUri = descendantUri;
+    mPathComponents = PathUtils.getPathComponents(mUri.getPath());
+    mLockList = new CompositeInodeLockList(lockedInodePath.mLockList, descendants);
+    mLockMode = lockedInodePath.getLockMode();
   }
 
   /**
@@ -72,7 +81,8 @@ public abstract class LockedInodePath implements AutoCloseable {
     if (!fullPathExists()) {
       return null;
     }
-    return getInodeList().get(getInodeList().size() - 1);
+    List<Inode<?>> inodeList = Lists.newArrayList(mLockList.getInodes());
+    return inodeList.get(inodeList.size() - 1);
   }
 
   /**
@@ -206,6 +216,7 @@ public abstract class LockedInodePath implements AutoCloseable {
         mLockMode);
   }
 
+  // public synchronized LockedInodePath createTempPathForDescendant(String childName)
   /**
    * Unlocks the last inode that was locked.
    */

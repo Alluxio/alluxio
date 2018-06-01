@@ -802,41 +802,39 @@ public class InodeTree implements JournalEntryIterable {
    * @param inodePath the root {@link LockedInodePath} to retrieve all descendants from
    * @param lockMode the lock type to use
    * @return an {@link InodeLockList} representing the list of all descendants
-   * @throws FileDoesNotExistException if inode does not exist
    */
-  public InodeLockList lockDescendants(LockedInodePath inodePath, LockMode lockMode)
-      throws FileDoesNotExistException {
-    Inode<?> inode = inodePath.getInode();
-    InodeLockList inodeGroup = new InodeLockList();
-    if (!inode.isDirectory()) {
-      return inodeGroup;
-    }
-    return lockDescendantsInternal((InodeDirectory) inode, lockMode, inodeGroup);
+  public List<LockedInodePath> lockDescendants(LockedInodePath inodePath, LockMode lockMode) {
+    List<LockedInodePath> inodePathList = new ArrayList<>();
+    lockDescendantsInternal(inodePath, lockMode, inodePathList);
+    return inodePathList;
   }
 
-  private InodeLockList lockDescendantsInternal(InodeDirectory inodeDirectory,
-      LockMode lockMode, InodeLockList inodeGroup) {
+  private void lockDescendantsInternal(LockedInodePath inodePath, LockMode lockMode,
+                                      List<LockedInodePath> inodePathList) {
+    Inode<?> inode = inodePath.getInodeOrNull();
+    if (inode == null || !inode.isDirectory()) {
+      return;
+    }
+    InodeDirectory inodeDirectory = (InodeDirectory) inode;
+    InodeLockList lockList = new InodeLockList();
+
     for (Inode<?> child : inodeDirectory.getChildren()) {
-      if (lockMode == LockMode.READ) {
-        try {
-          inodeGroup.lockReadAndCheckParent(child, inodeDirectory);
-        } catch (InvalidPathException e) {
-          // Inode is no longer a child, continue.
-          continue;
-        }
-      } else {
-        try {
-          inodeGroup.lockWriteAndCheckParent(child, inodeDirectory);
-        } catch (InvalidPathException e) {
-          // Inode is no longer a child, continue.
-          continue;
-        }
+      LockedInodePath lockedDescendantPath;
+      try {
+        lockList.lockReadAndCheckParent(child, inodeDirectory);
+        lockedDescendantPath = new MutableLockedInodePath(inodePath.getUri().join(child.getName()),
+            inodePath, lockList);
+        inodePathList.add(lockedDescendantPath);
+      } catch (InvalidPathException e) {
+        // Inode is no longer a child, continue.
+        continue;
       }
-      if (child.isDirectory()) {
-        lockDescendantsInternal((InodeDirectory) child, lockMode, inodeGroup);
+
+      if (child.isDirectory() && lockedDescendantPath != null) {
+        lockDescendantsInternal(lockedDescendantPath, lockMode, inodePathList);
       }
     }
-    return inodeGroup;
+
   }
 
   /**

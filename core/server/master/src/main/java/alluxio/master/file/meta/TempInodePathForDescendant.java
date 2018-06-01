@@ -18,6 +18,7 @@ import alluxio.exception.InvalidPathException;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -72,6 +73,17 @@ public final class TempInodePathForDescendant extends LockedInodePath {
   public synchronized Inode<?> getInode() throws FileDoesNotExistException {
     if (mDescendantInode == null) {
       return super.getInode();
+    }
+    return mDescendantInode;
+  }
+
+  /**
+   * @return the target inode, or null if it does not exist
+   */
+  @Nullable
+  public synchronized Inode<?> getInodeOrNull() {
+    if (mDescendantInode == null) {
+      return super.getInodeOrNull();
     }
     return mDescendantInode;
   }
