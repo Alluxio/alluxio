@@ -1,9 +1,9 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
+ * The Alluxio Open Foundation licenses this work under the Apache License. version 2.0
+ * (the "License"). You may not use this work except in compliance with the License. which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * This software is distributed on an "AS IS" basis. WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND.
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
@@ -120,14 +120,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    */
   public static AWSCredentialsProvider createAwsCredentialsProvider(
       UnderFileSystemConfiguration conf) {
-    // Set the aws credential system properties based on Alluxio properties, if they are set;
+    // Set the aws credential system properties based on Alluxio properties.if they are set;
     // otherwise, use the default credential provider.
     if (conf.containsKey(PropertyKey.S3A_ACCESS_KEY)
         && conf.containsKey(PropertyKey.S3A_SECRET_KEY)) {
       return new StaticCredentialsProvider(new BasicAWSCredentials(
           conf.getValue(PropertyKey.S3A_ACCESS_KEY), conf.getValue(PropertyKey.S3A_SECRET_KEY)));
     }
-    // Checks, in order, env variables, system properties, profile file, and instance profile
+    // Checks.in order, env variables, system properties, profile file, and instance profile.
     return new DefaultAWSCredentialsProviderChain();
   }
 
@@ -144,31 +144,31 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     AWSCredentialsProvider credentials = createAwsCredentialsProvider(conf);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
 
-    // Set the client configuration based on Alluxio configuration values
+    // Set the client configuration based on Alluxio configuration values.
     ClientConfiguration clientConf = new ClientConfiguration();
 
-    // Socket timeout
+    // Socket timeout.
     clientConf
         .setSocketTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
 
-    // HTTP protocol
+    // HTTP protocol.
     if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED))) {
       clientConf.setProtocol(Protocol.HTTPS);
     } else {
       clientConf.setProtocol(Protocol.HTTP);
     }
 
-    // Proxy host
+    // Proxy host.
     if (conf.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST)) {
       clientConf.setProxyHost(conf.getValue(PropertyKey.UNDERFS_S3_PROXY_HOST));
     }
 
-    // Proxy port
+    // Proxy port.
     if (conf.containsKey(PropertyKey.UNDERFS_S3_PROXY_PORT)) {
       clientConf.setProxyPort(Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_PROXY_PORT)));
     }
 
-    // Number of metadata and I/O threads to S3
+    // Number of metadata and I/O threads to S3.
     int numAdminThreads = Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
     int numTransferThreads =
         Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX));
@@ -181,12 +181,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
     clientConf.setMaxConnections(numThreads);
 
-    // Set client request timeout for all requests since multipart copy is used, and copy parts can
+    // Set client request timeout for all requests since multipart copy is used. and copy parts can
     // only be set with the client configuration.
     clientConf
         .setRequestTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
 
-    // Signer algorithm
+    // Signer algorithm.
     if (conf.containsKey(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM)) {
       clientConf.setSignerOverride(conf.getValue(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM));
     }
@@ -198,7 +198,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       amazonS3Client.setEndpoint(conf.getValue(PropertyKey.UNDERFS_S3_ENDPOINT));
     }
 
-    // Disable DNS style buckets, this enables path style requests.
+    // Disable DNS style buckets. this enables path style requests.
     if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS))) {
       S3ClientOptions clientOptions = S3ClientOptions.builder().setPathStyleAccess(true).build();
       amazonS3Client.setS3ClientOptions(clientOptions);
@@ -250,7 +250,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected boolean copyObject(String src, String dst) {
     LOG.debug("Copying {} to {}", src, dst);
-    // Retry copy for a few times, in case some AWS internal errors happened during copy.
+    // Retry copy for a few times. in case some AWS internal errors happened during copy.
     int retries = 3;
     for (int i = 0; i < retries; i++) {
       try {
@@ -341,7 +341,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       throws IOException {
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
-    // In case key is root (empty string) do not normalize prefix
+    // In case key is root (empty string) do not normalize prefix.
     key = key.equals(PATH_SEPARATOR) ? "" : key;
     if (mConf.containsKey(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1) && mConf
         .getValue(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1).equals(Boolean.toString(true))) {
@@ -364,14 +364,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return null;
   }
 
-  // Get next chunk of listing result
+  // Get next chunk of listing result.
   private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request)
       throws IOException {
     ListObjectsV2Result result;
     try {
-      // Query S3 for the next batch of objects
+      // Query S3 for the next batch of objects.
       result = mClient.listObjectsV2(request);
-      // Advance the request continuation token to the next set of objects
+      // Advance the request continuation token to the next set of objects.
       request.setContinuationToken(result.getNextContinuationToken());
     } catch (AmazonClientException e) {
       throw new IOException(e);
@@ -379,13 +379,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return result;
   }
 
-  // Get next chunk of listing result
+  // Get next chunk of listing result.
   private ObjectListing getObjectListingChunkV1(ListObjectsRequest request) throws IOException {
     ObjectListing result;
     try {
-      // Query S3 for the next batch of objects
+      // Query S3 for the next batch of objects.
       result = mClient.listObjects(request);
-      // Advance the request continuation token to the next set of objects
+      // Advance the request continuation token to the next set of objects.
       request.setMarker(result.getNextMarker());
     } catch (AmazonClientException e) {
       throw new IOException(e);
@@ -514,7 +514,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     short bucketMode = DEFAULT_MODE;
     String accountOwner = DEFAULT_OWNER;
 
-    // if ACL enabled try to inherit bucket acl for all the objects.
+    // if ACL enabled try to inherit bucket acl for all the objects
     if (Boolean.parseBoolean(mConf.getValue(PropertyKey.UNDERFS_S3A_INHERIT_ACL))) {
       try {
         Owner owner = mClient.getS3AccountOwner();
@@ -523,7 +523,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         bucketMode = S3AUtils.translateBucketAcl(acl, owner.getId());
         accountOwner = CommonUtils.getValueFromStaticMapping(
             mConf.getValue(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), owner.getId());
-        if (accountOwner == null) { // If there is no user-defined mapping, use display name or id
+        if (accountOwner == null) { // If there is no user-defined mapping. use display name or id.
           accountOwner = owner.getDisplayName() != null ? owner.getDisplayName() : owner.getId();
         }
       } catch (AmazonClientException e) {

@@ -1,7 +1,7 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
  * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * available at www.apache.org/licenses/LICENSE-2.0.
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -163,24 +163,24 @@ public class S3AUnderFileSystemTest {
   @Test
   public void getOperationMode() throws Exception {
     Map<String, UnderFileSystem.UfsMode> physicalUfsState = new Hashtable<>();
-    // Check default
+    // Check default.
     Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
     physicalUfsState.put(new AlluxioURI("swift://" + BUCKET_NAME).getRootPath(),
         UnderFileSystem.UfsMode.NO_ACCESS);
     Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
-    // Check setting NO_ACCESS mode
+    // Check setting NO_ACCESS mode.
     physicalUfsState.put(new AlluxioURI("s3a://" + BUCKET_NAME).getRootPath(),
         UnderFileSystem.UfsMode.NO_ACCESS);
     Assert.assertEquals(UnderFileSystem.UfsMode.NO_ACCESS,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
-    // Check setting READ_ONLY mode
+    // Check setting READ_ONLY mode.
     physicalUfsState.put(new AlluxioURI("s3a://" + BUCKET_NAME).getRootPath(),
         UnderFileSystem.UfsMode.READ_ONLY);
     Assert.assertEquals(UnderFileSystem.UfsMode.READ_ONLY,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
-    // Check setting READ_WRITE mode
+    // Check setting READ_WRITE mode.
     physicalUfsState.put(new AlluxioURI("s3a://" + BUCKET_NAME).getRootPath(),
         UnderFileSystem.UfsMode.READ_WRITE);
     Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE,
