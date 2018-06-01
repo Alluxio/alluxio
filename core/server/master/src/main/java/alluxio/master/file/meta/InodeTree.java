@@ -903,7 +903,7 @@ public class InodeTree implements JournalEntryIterable {
       try {
         for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
           try (LockedInodePath childPath = lockDescendantPath(inodePath, LockMode.WRITE,
-              getPath(child))) {
+              inodePath.getUri().join(child.getName()))) {
             setPinned(childPath, pinned, opTimeMs);
           }
         }

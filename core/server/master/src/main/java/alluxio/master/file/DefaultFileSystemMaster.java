@@ -2403,7 +2403,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws UnexpectedAlluxioException if the file or directory can not be freed
    */
   private void freeAndJournal(RpcContext rpcContext, LockedInodePath inodePath, FreeOptions options)
-      throws FileDoesNotExistException, UnexpectedAlluxioException, IOException {
+      throws FileDoesNotExistException, UnexpectedAlluxioException,
+      IOException, InvalidPathException, AccessControlException {
     Inode<?> inode = inodePath.getInode();
     if (inode.isDirectory() && !options.isRecursive()
         && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
@@ -2446,9 +2447,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
         }
       }
-
-    } catch (Throwable e) {
-      throw closer.rethrow(e);
     } finally {
       closer.close();
     }
@@ -2657,7 +2655,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private void loadFileMetadataAndJournal(RpcContext rpcContext, LockedInodePath inodePath,
       MountTable.Resolution resolution, LoadMetadataOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException, FileAlreadyCompletedException, InvalidFileSizeException, IOException {
+      FileAlreadyCompletedException, InvalidFileSizeException, IOException {
     if (inodePath.fullPathExists()) {
       return;
     }
