@@ -11,6 +11,16 @@
 
 package alluxio.cli.fsadmin;
 
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
+import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterInquireClient;
+import alluxio.master.PollingMasterInquireClient;
+import alluxio.resource.CloseableResource;
+import alluxio.retry.ExponentialBackoffRetry;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,6 +45,25 @@ public final class FileSystemAdminShellUtils {
       return a.compareTo(b);
     }
     return aValue - bValue;
+  }
+
+  /**
+   * Checks if the master client service is available.
+   * Throws an exception if fails to determine that the master client service is running.
+   */
+  public static void checkMasterClientService() throws IOException {
+    try (CloseableResource<FileSystemMasterClient> client =
+      FileSystemContext.get().acquireMasterClientResource()) {
+      InetSocketAddress address = client.get().getAddress();
+
+      List<InetSocketAddress> addresses = Arrays.asList(address);
+      MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
+          new ExponentialBackoffRetry(50, 100, 2)
+      );
+      inquireClient.getPrimaryRpcAddress();
+    } catch (UnavailableException e) {
+      throw new IOException("Cannot connect to Alluxio leader master.");
+    }
   }
 
   /**

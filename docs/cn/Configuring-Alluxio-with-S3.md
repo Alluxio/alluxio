@@ -150,4 +150,4 @@ Alluxio通过S3 bucket的读写ACL来决定Alluxio文件的所有者权限模式
 
 ### 权限更改
 
-注意，对Alluxio目录或者文件进行chown/chgrp/chmod等操作不会对其底层S3 bucket或者对象的权限做出更改。
+对Alluxio目录或者文件进行`chown`, `chgrp`, `chmod`操作不会对其底层S3 bucket或者对象的权限做出更改。

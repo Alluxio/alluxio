@@ -59,6 +59,7 @@ import java.util.concurrent.TimeUnit;
  * Test master journal for cluster terminating. Assert that test can replay the log and reproduce
  * the correct state. Test both the single master and multi masters.
  */
+@Ignore
 public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   @ClassRule
   public static SystemPropertyRule sDisableHdfsCacheRule =

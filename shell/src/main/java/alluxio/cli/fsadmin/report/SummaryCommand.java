@@ -51,8 +51,7 @@ public class SummaryCommand {
    * @param printStream stream to print summary information to
    */
   public SummaryCommand(MetaMasterClient metaMasterClient,
-      BlockMasterClient blockMasterClient,
-      PrintStream printStream) {
+      BlockMasterClient blockMasterClient, PrintStream printStream) {
     mMetaMasterClient = metaMasterClient;
     mBlockMasterClient = blockMasterClient;
     mPrintStream = printStream;
@@ -76,13 +75,13 @@ public class SummaryCommand {
   private void printMetaMasterInfo() throws IOException {
     mIndentationLevel++;
     Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
-        .asList(MasterInfoField.MASTER_ADDRESS, MasterInfoField.WEB_PORT,
+        .asList(MasterInfoField.LEADER_MASTER_ADDRESS, MasterInfoField.WEB_PORT,
             MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
             MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
             MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES));
     MasterInfo masterInfo = mMetaMasterClient.getMasterInfo(masterInfoFilter);
 
-    print("Master Address: " + masterInfo.getMasterAddress());
+    print("Master Address: " + masterInfo.getLeaderMasterAddress());
     print("Web Port: " + masterInfo.getWebPort());
     print("Rpc Port: " + masterInfo.getRpcPort());
     print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs()));
