@@ -478,11 +478,14 @@ public final class InodeTreeTest {
     createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
 
     // all inodes under root
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.READ);
-        InodeLockList lockList = mTree.lockDescendants(inodePath, InodeTree.LockMode.READ)) {
-      List<Inode<?>> inodes = lockList.getInodes();
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.READ)) {
+      List<LockedInodePath> lockedInodePathList = mTree.lockDescendants(inodePath,
+          InodeTree.LockMode.READ);
       // /test, /nested, /nested/test, /nested/test/file
-      assertEquals(4, inodes.size());
+      assertEquals(4, lockedInodePathList.size());
+      for (LockedInodePath lockedInodePath : lockedInodePathList) {
+        lockedInodePath.close();
+      }
     }
   }
 
@@ -495,18 +498,22 @@ public final class InodeTreeTest {
 
     // all inodes under root
     try (LockedInodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.WRITE)) {
-      try (InodeLockList lockList = mTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
-        List<Inode<?>> inodes = lockList.getInodes();
-        // /nested, /nested/test
-        assertEquals(2, inodes.size());
+      List<LockedInodePath> lockedInodePathList = mTree.lockDescendants(inodePath,
+          InodeTree.LockMode.WRITE);
+      // /nested, /nested/test
+      assertEquals(2, lockedInodePathList.size());
+      for (LockedInodePath lockedInodePath : lockedInodePathList) {
+        lockedInodePath.close();
       }
       // delete the nested inode
       deleteInodeByPath(mTree, NESTED_URI);
 
-      try (InodeLockList lockList = mTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
-        List<Inode<?>> inodes = lockList.getInodes();
-        // only /nested left
-        assertEquals(1, inodes.size());
+      List<LockedInodePath> lockedInodePathList2 = mTree.lockDescendants(inodePath,
+          InodeTree.LockMode.WRITE);
+      // only /nested left
+      assertEquals(1, lockedInodePathList2.size());
+      for (LockedInodePath lockedInodePath : lockedInodePathList2) {
+        lockedInodePath.close();
       }
     }
   }
@@ -585,8 +592,11 @@ public final class InodeTreeTest {
 
     try (LockedInodePath inodePath =
         mTree.lockFullInodePath(new AlluxioURI("/"), InodeTree.LockMode.READ)) {
-      try (InodeLockList lockList = mTree.lockDescendants(inodePath, InodeTree.LockMode.READ)) {
-        assertEquals(0, lockList.getInodes().size());
+      List<LockedInodePath> lockedInodePathList = mTree.lockDescendants(inodePath,
+          InodeTree.LockMode.READ);
+      assertEquals(0, lockedInodePathList.size());
+      for (LockedInodePath lockedInodePath : lockedInodePathList) {
+        lockedInodePath.close();
       }
 
       mTree.addInodeDirectoryFromJournal(nested.toJournalEntry().getInodeDirectory());
@@ -633,20 +643,27 @@ public final class InodeTreeTest {
 
     try (LockedInodePath inodePath =
              mTree.lockFullInodePath(new AlluxioURI("/"), InodeTree.LockMode.READ)) {
-      try (InodeLockList lockList = mTree.lockDescendants(inodePath, InodeTree.LockMode.READ)) {
-        Assert.assertEquals(0, lockList.getInodes().size());
+      List<LockedInodePath> lockedInodePathList = mTree.lockDescendants(inodePath,
+          InodeTree.LockMode.READ);
+      assertEquals(0, lockedInodePathList.size());
+      for (LockedInodePath lockedInodePath : lockedInodePathList) {
+        lockedInodePath.close();
       }
       mTree.addInodeDirectoryFromJournal(nested.toJournalEntry().getInodeDirectory());
       mTree.addInodeDirectoryFromJournal(test.toJournalEntry().getInodeDirectory());
       mTree.addInodeFileFromJournal(file.toJournalEntry().getInodeFile());
-      try (InodeLockList lockList = mTree.lockDescendants(inodePath, InodeTree.LockMode.READ)) {
-        List<Inode<?>> children = lockList.getInodes();
-        Assert.assertEquals(inodeChildren.length, children.size());
-        for (Inode<?> child : children) {
-          Assert.assertEquals("", child.getOwner());
-          Assert.assertEquals("", child.getGroup());
-          Assert.assertEquals((short) 0600, child.getMode());
-        }
+
+      List<LockedInodePath> descendants = mTree.lockDescendants(inodePath, InodeTree.LockMode.READ);
+      assertEquals(inodeChildren.length, descendants.size());
+      for (LockedInodePath childPath : descendants) {
+        Inode<?> child = childPath.getInodeOrNull();
+        Assert.assertNotNull(child);
+        Assert.assertEquals("", child.getOwner());
+        Assert.assertEquals("", child.getGroup());
+        Assert.assertEquals((short) 0600, child.getMode());
+      }
+      for (LockedInodePath lockedInodePath : descendants) {
+        lockedInodePath.close();
       }
     }
   }
@@ -862,12 +879,13 @@ public final class InodeTreeTest {
   // verify that the tree has the given children
   private static void verifyChildrenNames(InodeTree tree, LockedInodePath inodePath,
       Set<String> childNames) throws Exception {
-    try (InodeLockList lockList = tree.lockDescendants(inodePath, InodeTree.LockMode.READ)) {
-      List<Inode<?>> children = lockList.getInodes();
-      assertEquals(childNames.size(), children.size());
-      for (Inode<?> child : children) {
-        assertTrue(childNames.contains(child.getName()));
-      }
+    List<LockedInodePath> childrenPath = tree.lockDescendants(inodePath, InodeTree.LockMode.READ);
+    assertEquals(childNames.size(), childrenPath.size());
+    for (LockedInodePath childPath : childrenPath) {
+      assertTrue(childNames.contains(childPath.getInode().getName()));
+    }
+    for (LockedInodePath childPath : childrenPath) {
+      childPath.close();
     }
   }
 }
