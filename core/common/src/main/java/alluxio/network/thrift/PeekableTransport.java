@@ -127,4 +127,11 @@ public class PeekableTransport extends TTransport {
     mPos = 0;
     mPeekBuffer = null;
   }
+
+  /**
+   * @return the underlying transport that this wrapper is on
+   */
+  public TTransport getBaseTransport() {
+    return mBaseTransport;
+  }
 }

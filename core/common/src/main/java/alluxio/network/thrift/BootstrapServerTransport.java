@@ -11,6 +11,8 @@
 
 package alluxio.network.thrift;
 
+import static alluxio.network.thrift.BootstrapClientTransport.BOOTSTRAP_HEADER;
+
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
@@ -27,48 +29,96 @@ import java.util.WeakHashMap;
  * The server side of bootstrap transport. This transport can fallback to the real RPC transport
  * if the magic number is not found in the message header.
  */
-public class BootstrapServerTransport extends BootstrapTransport {
+public class BootstrapServerTransport extends TTransport {
   private static final Logger LOG = LoggerFactory.getLogger(BootstrapServerTransport.class);
 
-  private TTransportFactory mTransportFactory;
+  /** The base transport which we can peek into. */
+  private final PeekableTransport mBaseTransport;
+  /** The logic transport to work on, can be base transport or the real transport. */
+  private TTransport mTransport;
+  /** The factory to create the logic transport on open. */
+  private final TTransportFactory mTransportFactory;
 
   /**
    * @param baseTransport base transport
    * @param tf transport factory to create the fallback transport
    */
   public BootstrapServerTransport(TTransport baseTransport, TTransportFactory tf) {
-    super(baseTransport);
+    mBaseTransport = new PeekableTransport(baseTransport);
     mTransportFactory = tf;
   }
 
   @Override
   public void open() throws TTransportException {
     LOG.debug("opening server transport");
-    if (!mUnderlyingTransport.isOpen()) {
-      mUnderlyingTransport.open();
+    if (!mBaseTransport.isOpen()) {
+      mBaseTransport.open();
     }
     byte[] messageHeader = new byte[BOOTSTRAP_HEADER.length];
     int bytes;
     try {
-      bytes = mUnderlyingTransport.peek(messageHeader, 0, BOOTSTRAP_HEADER.length);
+      bytes = mBaseTransport.peek(messageHeader, 0, BOOTSTRAP_HEADER.length);
     } catch (TTransportException e) {
       if (e.getType() == TTransportException.END_OF_FILE) {
-        LOG.debug("No data in the stream {}", mUnderlyingTransport);
-        mUnderlyingTransport.close();
+        LOG.debug("No data in the stream {}", mBaseTransport);
+        mBaseTransport.close();
         throw new TTransportException("No data data in the stream.");
       }
       throw e;
     }
 
     if (bytes == BOOTSTRAP_HEADER.length && Arrays.equals(messageHeader, BOOTSTRAP_HEADER)) {
-      mUnderlyingTransport.consumeBuffer(BOOTSTRAP_HEADER.length);
-      mTransport = mUnderlyingTransport;
+      mBaseTransport.consumeBuffer(BOOTSTRAP_HEADER.length);
+      mTransport = mBaseTransport;
     } else {
-      mTransport = mTransportFactory.getTransport(mUnderlyingTransport);
+      mTransport = mTransportFactory.getTransport(mBaseTransport);
     }
     if (!mTransport.isOpen()) {
       mTransport.open();
     }
+  }
+
+  @Override
+  public boolean isOpen() {
+    return mBaseTransport.isOpen() && mTransport != null && mTransport.isOpen();
+  }
+
+  @Override
+  public void close() {
+    if (isOpen()) {
+      mTransport.close();
+    }
+  }
+
+  @Override
+  public int read(byte[] buf, int off, int len) throws TTransportException {
+    if (!isOpen()) {
+      throw new TTransportException("transport is not open");
+    }
+    return mTransport.read(buf, off, len);
+  }
+
+  @Override
+  public void write(byte[] buf, int off, int len) throws TTransportException {
+    if (!isOpen()) {
+      throw new TTransportException("transport is not open");
+    }
+    mTransport.write(buf, off, len);
+  }
+
+  @Override
+  public void flush() throws TTransportException {
+    if (!isOpen()) {
+      throw new TTransportException("transport is not open");
+    }
+    mTransport.flush();
+  }
+
+  /**
+   * @return the underlying transport
+   */
+  public TTransport getBaseTransport() {
+    return mBaseTransport.getBaseTransport();
   }
 
   /**
