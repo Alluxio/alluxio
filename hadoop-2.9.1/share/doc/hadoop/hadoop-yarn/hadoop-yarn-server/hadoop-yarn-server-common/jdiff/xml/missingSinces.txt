@@ -1,0 +1,4 @@
+NO DOC BLOCK: org.apache.hadoop.yarn.server.webapp.dao.ContainerInfo Method getNodeId()
+NO DOC BLOCK: org.apache.hadoop.yarn.server.webapp.dao.AppInfo Method getReservedCpuVcores()
+NO DOC BLOCK: org.apache.hadoop.yarn.server.webapp.dao.AppInfo Method getReservedMemoryMB()
+NO DOC BLOCK: org.apache.hadoop.yarn.server.webapp.dao.ContainerInfo Field nodeId

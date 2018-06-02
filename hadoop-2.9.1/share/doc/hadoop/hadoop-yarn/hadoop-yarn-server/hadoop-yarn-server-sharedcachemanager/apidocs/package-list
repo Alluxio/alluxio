@@ -1,0 +1,4 @@
+org.apache.hadoop.yarn.server.sharedcachemanager
+org.apache.hadoop.yarn.server.sharedcachemanager.metrics
+org.apache.hadoop.yarn.server.sharedcachemanager.store
+org.apache.hadoop.yarn.server.sharedcachemanager.webapp

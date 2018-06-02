@@ -1,0 +1,22 @@
+MISSING @SINCE TAG: org.apache.hadoop.yarn.security.AccessRequest Class
+MISSING @SINCE TAG: org.apache.hadoop.yarn.state.StateTransitionListener Interface
+MISSING @SINCE TAG: org.apache.hadoop.yarn.event.AsyncDispatcher Constructor (java.lang.String)
+NO DOC BLOCK: org.apache.hadoop.yarn.security.ContainerTokenIdentifier Constructor (org.apache.hadoop.yarn.api.records.ContainerId, int, java.lang.String, java.lang.String, org.apache.hadoop.yarn.api.records.Resource, long, int, long, org.apache.hadoop.yarn.api.records.Priority, long, org.apache.hadoop.yarn.api.records.LogAggregationContext, java.lang.String, org.apache.hadoop.yarn.server.api.ContainerType, org.apache.hadoop.yarn.api.records.ExecutionType)
+MISSING @SINCE TAG: org.apache.hadoop.yarn.client.RMProxy Method createRetryPolicy(org.apache.hadoop.conf.Configuration, long, long, boolean)
+NO DOC BLOCK: org.apache.hadoop.yarn.util.timeline.TimelineUtils Method generateDefaultFlowName(java.lang.String, org.apache.hadoop.yarn.api.records.ApplicationId)
+MISSING @SINCE TAG: org.apache.hadoop.yarn.util.timeline.TimelineUtils Method generateFlowNameTag(java.lang.String)
+MISSING @SINCE TAG: org.apache.hadoop.yarn.util.timeline.TimelineUtils Method generateFlowRunIdTag(long)
+MISSING @SINCE TAG: org.apache.hadoop.yarn.util.timeline.TimelineUtils Method generateFlowVersionTag(java.lang.String)
+MISSING @SINCE TAG: org.apache.hadoop.yarn.security.ContainerTokenIdentifier Method getExecutionType()
+NO DOC BLOCK: org.apache.hadoop.yarn.util.AbstractLivelinessMonitor Method getExpireInterval(O)
+NO DOC BLOCK: org.apache.hadoop.yarn.util.SystemClock Method getInstance()
+NO DOC BLOCK: org.apache.hadoop.yarn.event.AsyncDispatcher Method isStopped()
+MISSING @SINCE TAG: org.apache.hadoop.yarn.state.StateMachineFactory Method make(OPERAND, STATE, org.apache.hadoop.yarn.state.StateTransitionListener)
+MISSING @SINCE TAG: org.apache.hadoop.yarn.logaggregation.AggregatedLogFormat.LogReader Method readAContainerLogsForALogType(java.io.DataInputStream, java.io.PrintStream, long, long)
+MISSING @SINCE TAG: org.apache.hadoop.yarn.logaggregation.AggregatedLogFormat.LogReader Method readContainerLogsForALogType(java.io.DataInputStream, java.io.PrintStream, long, java.util.List, long)
+NO DOC BLOCK: org.apache.hadoop.yarn.util.AbstractLivelinessMonitor Method register(O, long)
+NO DOC BLOCK: org.apache.hadoop.yarn.util.AbstractLivelinessMonitor Method setResetTimeOnStart(boolean)
+NO DOC BLOCK: org.apache.hadoop.yarn.util.timeline.TimelineUtils Field DEFAULT_FLOW_VERSION
+NO DOC BLOCK: org.apache.hadoop.yarn.util.timeline.TimelineUtils Field FLOW_NAME_TAG_PREFIX
+NO DOC BLOCK: org.apache.hadoop.yarn.util.timeline.TimelineUtils Field FLOW_RUN_ID_TAG_PREFIX
+NO DOC BLOCK: org.apache.hadoop.yarn.util.timeline.TimelineUtils Field FLOW_VERSION_TAG_PREFIX
