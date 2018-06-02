@@ -161,7 +161,7 @@ public final class GetConf {
         } else {
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
             Source source = Configuration.getSource(key);
-            System.out.println(String.format("%s", source));
+            System.out.println(source);
           } else if (cmd.hasOption(UNIT_OPTION_NAME)) {
             String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
             try {

@@ -267,13 +267,15 @@ public final class NetworkAddressUtils {
    * is wildcard, Alluxio will automatically determine an appropriate hostname from local machine.
    * The various possibilities shown in the following table:
    * <table>
-   * <caption>Hostname Scenarios</caption> <thead>
+   * <caption>Hostname Scenarios</caption>
+   * <thead>
    * <tr>
    * <th>Specified Hostname</th>
    * <th>Specified Bind Host</th>
    * <th>Returned Connect Host</th>
    * </tr>
-   * </thead> <tbody>
+   * </thead>
+   * <tbody>
    * <tr>
    * <td>hostname</td>
    * <td>hostname</td>

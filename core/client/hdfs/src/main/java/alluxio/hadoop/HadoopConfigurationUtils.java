@@ -55,7 +55,7 @@ public final class HadoopConfigurationUtils {
   }
 
   /**
-   * Merges Hadoop {@link org.apache.hadoop.conf.Configuration} into the Alluxio properties.
+   * Merges Hadoop {@link org.apache.hadoop.conf.Configuration} into the Alluxio configuration.
    *
    * @param source the {@link org.apache.hadoop.conf.Configuration} to merge
    * @param alluxioConfiguration the Alluxio configuration to merge to
