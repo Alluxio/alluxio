@@ -1070,13 +1070,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
 
       List<LockedInodePath> children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ);
-      for (LockedInodePath child : children) {
-        try (LockedInodePath childToClose = child) {
-          AlluxioURI currentPath = childToClose.getUri();
-          if (!checkConsistencyInternal(childToClose.getInode(), currentPath)) {
+      Closer closer = Closer.create();
+      try {
+        for (LockedInodePath child : children) {
+          closer.register(child);
+        }
+        for (LockedInodePath child : children) {
+          AlluxioURI currentPath = child.getUri();
+          if (!checkConsistencyInternal(child.getInode(), currentPath)) {
             inconsistentUris.add(currentPath);
           }
         }
+      } finally {
+        closer.close();
       }
 
       auditContext.setSucceeded(true);
