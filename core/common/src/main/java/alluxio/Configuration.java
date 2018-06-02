@@ -163,14 +163,36 @@ public final class Configuration {
   }
 
   /**
-   * Gets the display value for the given key in the {@link Properties}; if this key is not found, a
-   * RuntimeException is thrown.
+   * Gets the display value for the given key in the {@link Properties}; Credentials will be masked.
+   * If this key is not found, a RuntimeException is thrown.
    *
    * @param key the key to get the value for
    * @return the display value for the given key
    */
   public static String getDisplayValue(PropertyKey key) {
-    return key.getDisplayValue(get(key));
+    String value = get(key);
+    return getDisplayValue(key, value);
+  }
+
+  /**
+   * Gets the display value for the given key and value in the {@link Properties}.
+   * Credentials will be masked.
+   *
+   * @param key the key to get the value for
+   * @param value value of the property
+   * @return the display value for the given key
+   */
+  public static String getDisplayValue(PropertyKey key, String value) {
+    PropertyKey.DisplayType displayType = key.getDisplayType();
+    switch (key.getDisplayType()) {
+      case DEFAULT:
+        return value;
+      case CREDENTIALS:
+        return "******";
+      default:
+        throw new IllegalStateException(String.format("Invalid displayType %s for property %s",
+            displayType.name(), key.getName()));
+    }
   }
 
   /**
@@ -386,16 +408,40 @@ public final class Configuration {
    *         including all default properties
    */
   public static Map<String, String> toMap() {
-    return toMap(false);
+    return toMapInternal(false);
+  }
+
+  /**
+   * @return a view of the display values for resolved properties represented by this configuration,
+   *         including all default properties
+   */
+  public static Map<String, String> toDisplayMap() {
+    return toMapInternal(true);
+  }
+
+  /**
+   * @return a map of the raw properties represented by this configuration,
+   *         including all default properties
+   */
+  public static Map<String, String> toRawMap() {
+    return toRawMapInternal(false);
+  }
+
+  /**
+   * @return a map of display values for the raw properties represented by this configuration,
+   *         including all default properties
+   */
+  public static Map<String, String> toRawDisplayMap() {
+    return toRawMapInternal(true);
   }
 
   /**
    * @param useDisplayValue whether to return display values
    * @return a view of the resolved properties represented by this configuration,
-   * including all default properties
+   *         including all default properties
    */
-  public static Map<String, String> toMap(boolean useDisplayValue) {
-    Map<String, String> map = toRawMap(useDisplayValue);
+  private static Map<String, String> toMapInternal(boolean useDisplayValue) {
+    Map<String, String> map = toRawMapInternal(useDisplayValue);
     for (Map.Entry<String, String> entry : map.entrySet()) {
       String value = entry.getValue();
       if (value != null) {
@@ -408,22 +454,14 @@ public final class Configuration {
   }
 
   /**
-   * @return a map of the raw properties represented by this configuration,
-   *         including all default properties
-   */
-  public static Map<String, String> toRawMap() {
-    return toRawMap(false);
-  }
-
-  /**
    * @param useDisplayValue whether to return display values
    * @return a map of the raw properties represented by this configuration,
    *         including all default properties
    */
-  public static Map<String, String> toRawMap(boolean useDisplayValue) {
+  private static Map<String, String> toRawMapInternal(boolean useDisplayValue) {
     Map<String, String> rawMap = new HashMap<>();
     PROPERTIES.forEach((key, value) ->
-        rawMap.put(key.getName(), useDisplayValue ? key.getDisplayValue(value) : value));
+        rawMap.put(key.getName(), useDisplayValue ? getDisplayValue(key, value) : value));
     return rawMap;
   }
 
@@ -623,14 +661,14 @@ public final class Configuration {
   }
 
   /**
-   * Gets the raw configuration of a given scope.
+   * Gets the raw (no alias lookup) display configuration of a given scope.
    *
    * @param scope the property key scope
    * @return a list of raw configurations inside the property scope
    */
   public static List<ConfigProperty> getConfiguration(Scope scope) {
     List<ConfigProperty> list = new ArrayList<>();
-    for (Map.Entry<String, String> entry : toRawMap(true).entrySet()) {
+    for (Map.Entry<String, String> entry : toRawMapInternal(true).entrySet()) {
       PropertyKey key = PropertyKey.fromString(entry.getKey());
       if (key.getScope().contains(scope) && containsKey(key)) {
         ConfigProperty configProperty = new ConfigProperty()

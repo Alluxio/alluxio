@@ -313,8 +313,8 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    Set<Map.Entry<String, String>> properties = raw ? Configuration.toRawMap(true).entrySet() :
-        Configuration.toMap(true).entrySet();
+    Set<Map.Entry<String, String>> properties = raw ? Configuration.toRawDisplayMap().entrySet() :
+        Configuration.toDisplayMap().entrySet();
     SortedMap<String, String> configuration = new TreeMap<>();
     properties.forEach(entry -> configuration.put(entry.getKey(), entry.getValue()));
     return configuration;

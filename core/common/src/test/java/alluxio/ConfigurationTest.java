@@ -738,24 +738,76 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void getDisplayValue() {
+  public void getCredentialsDisplayValue() {
     PropertyKey testKey = PropertyKey.S3A_SECRET_KEY;
     String testValue = "12345";
     assertEquals(PropertyKey.DisplayType.CREDENTIALS, testKey.getDisplayType());
     Configuration.set(testKey, testValue);
 
     assertNotEquals(testValue, Configuration.getDisplayValue(testKey));
-    assertNotEquals(testValue, Configuration.toMap(true).get(testKey.getName()));
+    assertNotEquals(testValue, Configuration.toDisplayMap().get(testKey.getName()));
   }
 
   @Test
-  public void getNestedDisplayValue() {
+  public void getDefaultDisplayValue() {
+    PropertyKey testKey = PropertyKey.SECURITY_LOGIN_USERNAME;
+    String testValue = "12345";
+    assertEquals(PropertyKey.DisplayType.DEFAULT, testKey.getDisplayType());
+    Configuration.set(testKey, testValue);
+
+    assertEquals(testValue, Configuration.getDisplayValue(testKey));
+    assertEquals(testValue, Configuration.toDisplayMap().get(testKey.getName()));
+  }
+
+  @Test
+  public void getNestedCredentialsDisplayValue() {
     PropertyKey nestedProperty =
         PropertyKey.fromString("alluxio.master.journal.ufs.option.aws.secretKey");
     String testValue = "12345";
     Configuration.set(nestedProperty, testValue);
 
     assertNotEquals(testValue, Configuration.getDisplayValue(nestedProperty));
-    assertNotEquals(testValue, Configuration.toMap(true).get(nestedProperty.getName()));
+    assertNotEquals(testValue, Configuration.toDisplayMap().get(nestedProperty.getName()));
+    assertNotEquals(testValue, Configuration.toRawDisplayMap().get(nestedProperty.getName()));
+  }
+
+  @Test
+  public void getNestedDefaultDisplayValue() {
+    PropertyKey nestedProperty = PropertyKey.fromString(
+        "alluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration");
+    String testValue = "conf/core-site.xml:conf/hdfs-site.xml";
+    Configuration.set(nestedProperty, testValue);
+
+    assertEquals(testValue, Configuration.getDisplayValue(nestedProperty));
+    assertEquals(testValue, Configuration.toDisplayMap().get(nestedProperty.getName()));
+    assertEquals(testValue, Configuration.toRawDisplayMap().get(nestedProperty.getName()));
+  }
+
+  @Test
+  public void getTemplateCredentialsDisplayValue() {
+    PropertyKey templateProperty = PropertyKey.fromString(
+        "fs.azure.account.key.someone.blob.core.windows.net");
+    String testValue = "12345";
+    Configuration.set(templateProperty, testValue);
+
+    assertNotEquals(testValue, Configuration.getDisplayValue(templateProperty));
+    assertNotEquals(testValue, Configuration.toDisplayMap().get(templateProperty.getName()));
+    assertNotEquals(testValue, Configuration.toRawDisplayMap().get(templateProperty.getName()));
+  }
+
+  @Test
+  public void getCredentialsDisplayValueIdentical() {
+    PropertyKey testKey = PropertyKey.S3A_SECRET_KEY;
+    String testValue = "12345";
+    assertEquals(PropertyKey.DisplayType.CREDENTIALS, testKey.getDisplayType());
+
+    Configuration.set(testKey, testValue);
+    String displayValue1 = Configuration.getDisplayValue(testKey);
+
+    String testValue2 = "abc";
+    Configuration.set(testKey, testValue2);
+
+    String displayValue2 = Configuration.getDisplayValue(testKey);
+    assertEquals(displayValue1, displayValue2);
   }
 }

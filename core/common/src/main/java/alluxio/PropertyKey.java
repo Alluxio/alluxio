@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -3469,13 +3470,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     MASTER_JOURNAL_UFS_OPTION("alluxio.master.journal.ufs.option",
         "alluxio\\.master\\.journal\\.ufs\\.option"),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
-        "alluxio\\.master\\.journal\\.ufs\\.option\\.(?<nested>(\\w+\\.)*+\\w+)"),
+        "alluxio\\.master\\.journal\\.ufs\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
+        PropertyCreators.JOURNAL_PROPERTY_CREATOR),
     MASTER_MOUNT_TABLE_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
         "alluxio\\.master\\.mount\\.table.(\\w+)\\.alluxio"),
     MASTER_MOUNT_TABLE_OPTION("alluxio.master.mount.table.%s.option",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option"),
     MASTER_MOUNT_TABLE_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
-        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option\\.(?<nested>(\\w+\\.)*+\\w+)"),
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
+        PropertyCreators.UFS_PROPERTY_CREATOR),
     MASTER_MOUNT_TABLE_READONLY("alluxio.master.mount.table.%s.readonly",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.readonly"),
     MASTER_MOUNT_TABLE_SHARED("alluxio.master.mount.table.%s.shared",
@@ -3483,7 +3486,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     MASTER_MOUNT_TABLE_UFS("alluxio.master.mount.table.%s.ufs",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.ufs"),
     MASTER_MOUNT_TABLE_ROOT_OPTION_PROPERTY("alluxio.master.mount.table.root.option.%s",
-        "alluxio\\.master\\.mount\\.table\\.root\\.option\\.(?<nested>(\\w+\\.)*+\\w+)"),
+        "alluxio\\.master\\.mount\\.table\\.root\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
+        PropertyCreators.UFS_PROPERTY_CREATOR),
     MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS("alluxio.master.tieredstore.global.level%d.alias",
         "alluxio\\.master\\.tieredstore\\.global\\.level(\\d+)\\.alias"),
     UNDERFS_AZURE_ACCOUNT_KEY(
@@ -3507,9 +3511,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.low\\.ratio"),
     ;
 
+    // puts property creators in a nested class to avoid NPE in enum static initialization
+    private static class PropertyCreators {
+      private static final BiFunction<String, PropertyKey, PropertyKey> DEFAULT_PROPERTY_CREATOR =
+          Template.createPropertyCreator(Scope.ALL, ConsistencyCheckLevel.IGNORE);
+      private static final BiFunction<String, PropertyKey, PropertyKey> UFS_PROPERTY_CREATOR =
+          Template.createPropertyCreator(Scope.SERVER, ConsistencyCheckLevel.ENFORCE);
+      private static final BiFunction<String, PropertyKey, PropertyKey> JOURNAL_PROPERTY_CREATOR =
+          Template.createPropertyCreator(Scope.MASTER, ConsistencyCheckLevel.ENFORCE);
+    }
+
+    private static final String NESTED_GROUP = "nested";
     private final String mFormat;
     private final Pattern mPattern;
     private final Builder mPropertyBuilder;
+    private BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator =
+        PropertyCreators.DEFAULT_PROPERTY_CREATOR;
 
     /**
      * Constructs a property key format.
@@ -3518,11 +3535,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @param re String of this property as regexp
      */
     Template(String format, String re) {
-      this(format, re, null);
+      this(format, re, new Builder(""));
     }
 
     /**
-     * Constructs a property key format.
+     * Constructs a property key format with a builder to provide property attributes.
      *
      * @param format String of this property as formatted string
      * @param re String of this property as regexp
@@ -3532,6 +3549,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       mFormat = format;
       mPattern = Pattern.compile(re);
       mPropertyBuilder = propertyBuilder;
+    }
+
+    /**
+     * Constructs a nested property key format with a function to construct property key given
+     * base property key.
+     *
+     * @param format String of this property as formatted string
+     * @param re String of this property as regexp
+     * @param propertyCreator a function that creates property key given name and base property key
+     */
+    Template(String format, String re,
+        BiFunction<String, PropertyKey, PropertyKey> propertyCreator) {
+      this(format, re);
+      mPropertyCreator = propertyCreator;
     }
 
     @Override
@@ -3569,44 +3600,39 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
-     * @return the property builder to create actual property key
+     * Gets the property key if the property name matches the template.
+     * @param propertyName name of the property
+     * @return the property key, or null if the property name does not match the template
      */
-    public Builder getPropertyBuilder() {
-      return mPropertyBuilder;
-    }
-
+    @Nullable
     private PropertyKey getPropertyKey(String propertyName) {
       Matcher matcher = match(propertyName);
       if (!matcher.matches()) {
         return null;
       }
-      Builder builder = getPropertyBuilder();
-      // first try using the builder if the template has one
-      if (builder != null) {
-        return builder.setName(propertyName).build();
-      }
       // if the template can extract a nested property, build the new property from the nested one
       String nestedKeyName = null;
       try {
-        nestedKeyName = matcher.group("nested");
+        nestedKeyName = matcher.group(NESTED_GROUP);
       } catch (IllegalArgumentException e) {
         // ignore if group is not found
       }
-
       if (nestedKeyName != null && isValid(nestedKeyName)) {
         PropertyKey nestedProperty = fromString(nestedKeyName);
-        return new Builder(propertyName)
-            .setDescription(nestedProperty.getDescription())
-            .setDefaultSupplier(nestedProperty.getDefaultSupplier())
-            .setIgnoredSiteProperty(nestedProperty.isIgnoredSiteProperty())
-            .setIsHidden(nestedProperty.isHidden())
-            .setConsistencyCheckLevel(nestedProperty.getConsistencyLevel())
-            .setScope(nestedProperty.getScope())
-            .setDisplayType(nestedProperty.getDisplayType())
-            .build();
+        return mPropertyCreator.apply(propertyName, nestedProperty);
       }
-      // otherwise creates a default property
-      return new PropertyKey(propertyName);
+      // otherwise uses builder to create the property key
+      return mPropertyBuilder.setName(propertyName).build();
+    }
+
+    private static BiFunction<String, PropertyKey, PropertyKey> createPropertyCreator(Scope scope,
+        ConsistencyCheckLevel consistencyCheckLevel) {
+      return (name, baseProperty) -> new Builder(name)
+          .setDisplayType(baseProperty.getDisplayType())
+          .setDefaultSupplier(baseProperty.getDefaultSupplier())
+          .setScope(scope)
+          .setConsistencyCheckLevel(consistencyCheckLevel)
+          .build();
     }
   }
 
@@ -3870,23 +3896,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public DisplayType getDisplayType() {
     return mDisplayType;
-  }
-
-  /**
-   * Gets the display value for the actual value.
-   * @param value actual value of the property
-   * @return display value of the property
-   */
-  public String getDisplayValue(String value) {
-    switch (getDisplayType()) {
-      case DEFAULT:
-        return value;
-      case CREDENTIALS:
-        return "******";
-      default:
-        throw new IllegalStateException(String.format("Invalid displayType for property %s",
-            getName()));
-    }
   }
 
   /**

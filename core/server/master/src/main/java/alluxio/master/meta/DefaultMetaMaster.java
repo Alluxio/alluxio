@@ -228,7 +228,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   public List<ConfigProperty> getConfiguration() {
     List<ConfigProperty> configInfoList = new ArrayList<>();
     String alluxioConfPrefix = "alluxio";
-    for (Map.Entry<String, String> entry : Configuration.toMap(true).entrySet()) {
+    for (Map.Entry<String, String> entry : Configuration.toDisplayMap().entrySet()) {
       String key = entry.getKey();
       if (key.startsWith(alluxioConfPrefix)) {
         PropertyKey propertyKey = PropertyKey.fromString(key);

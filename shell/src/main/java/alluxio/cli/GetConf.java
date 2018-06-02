@@ -137,7 +137,7 @@ public final class GetConf {
     StringBuilder output = new StringBuilder();
     switch (args.length) {
       case 0:
-        TreeMap<String, String> keyValueSet = new TreeMap<>(Configuration.toMap(true));
+        TreeMap<String, String> keyValueSet = new TreeMap<>(Configuration.toDisplayMap());
         for (Entry<String, String> entry : keyValueSet.entrySet()) {
           String key = entry.getKey();
           String value = ConfigurationUtils.valueAsString(entry.getValue());
