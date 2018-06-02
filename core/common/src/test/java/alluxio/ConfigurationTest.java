@@ -658,8 +658,8 @@ public class ConfigurationTest {
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       Configuration.reset();
       // set only in site prop
-      assertEquals(Source.SITE_PROPERTY,
-          Configuration.getSource(PropertyKey.MASTER_HOSTNAME));
+      assertEquals(Source.Type.SITE_PROPERTY,
+          Configuration.getSource(PropertyKey.MASTER_HOSTNAME).getType());
       // set both in site and system prop
       assertEquals(Source.SYSTEM_PROPERTY,
           Configuration.getSource(PropertyKey.MASTER_WEB_PORT));
