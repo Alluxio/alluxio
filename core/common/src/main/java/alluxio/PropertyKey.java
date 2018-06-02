@@ -3514,11 +3514,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // puts property creators in a nested class to avoid NPE in enum static initialization
     private static class PropertyCreators {
       private static final BiFunction<String, PropertyKey, PropertyKey> DEFAULT_PROPERTY_CREATOR =
-          Template.createPropertyCreator(Scope.ALL, ConsistencyCheckLevel.IGNORE);
+          createPropertyCreator(Scope.ALL, ConsistencyCheckLevel.IGNORE);
       private static final BiFunction<String, PropertyKey, PropertyKey> UFS_PROPERTY_CREATOR =
-          Template.createPropertyCreator(Scope.SERVER, ConsistencyCheckLevel.ENFORCE);
+          createPropertyCreator(Scope.SERVER, ConsistencyCheckLevel.ENFORCE);
       private static final BiFunction<String, PropertyKey, PropertyKey> JOURNAL_PROPERTY_CREATOR =
-          Template.createPropertyCreator(Scope.MASTER, ConsistencyCheckLevel.ENFORCE);
+          createPropertyCreator(Scope.MASTER, ConsistencyCheckLevel.ENFORCE);
+
+      private static BiFunction<String, PropertyKey, PropertyKey> createPropertyCreator(Scope scope,
+          ConsistencyCheckLevel consistencyCheckLevel) {
+        return (name, baseProperty) -> new Builder(name)
+            .setDisplayType(baseProperty.getDisplayType())
+            .setDefaultSupplier(baseProperty.getDefaultSupplier())
+            .setScope(scope)
+            .setConsistencyCheckLevel(consistencyCheckLevel)
+            .build();
+      }
     }
 
     private static final String NESTED_GROUP = "nested";
@@ -3623,16 +3633,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       }
       // otherwise uses builder to create the property key
       return mPropertyBuilder.setName(propertyName).build();
-    }
-
-    private static BiFunction<String, PropertyKey, PropertyKey> createPropertyCreator(Scope scope,
-        ConsistencyCheckLevel consistencyCheckLevel) {
-      return (name, baseProperty) -> new Builder(name)
-          .setDisplayType(baseProperty.getDisplayType())
-          .setDefaultSupplier(baseProperty.getDefaultSupplier())
-          .setScope(scope)
-          .setConsistencyCheckLevel(consistencyCheckLevel)
-          .build();
     }
   }
 
