@@ -216,7 +216,6 @@ public abstract class LockedInodePath implements Closeable {
         mLockMode);
   }
 
-  // public synchronized LockedInodePath createTempPathForDescendant(String childName)
   /**
    * Unlocks the last inode that was locked.
    */

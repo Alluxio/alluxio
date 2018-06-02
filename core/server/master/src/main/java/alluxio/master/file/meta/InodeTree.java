@@ -655,12 +655,17 @@ public class InodeTree implements JournalEntryIterable {
           // The final path component already exists and is not persisted, so it should be added
           // to the non-persisted Inodes of traversalResult.
           syncPersistDirectory(rpcContext, (InodeDirectory) lastInode);
+
         } else if (!lastInode.isDirectory() || !(options instanceof CreateDirectoryOptions
             && ((CreateDirectoryOptions) options).isAllowExists())) {
           String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
           LOG.error(errorMessage);
+          lockList.unlockLast();
           throw new FileAlreadyExistsException(errorMessage);
         }
+        // We need to remove the last inode from the locklist because it is an inode
+        // that already exists. so it is already in the locklist
+        lockList.unlockLast();
       } else {
         // create the new inode, with a write lock
         if (options instanceof CreateDirectoryOptions) {
