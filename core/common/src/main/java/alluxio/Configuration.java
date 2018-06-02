@@ -18,14 +18,11 @@ import alluxio.wire.ConfigProperty;
 import alluxio.wire.Scope;
 
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -50,15 +47,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class Configuration {
-  private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
-
-  /** Regex string to find "${key}" for variable substitution. */
-  private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
-  /** Regex to find ${key} for variable substitution. */
-  private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
-
   private static final AlluxioProperties PROPERTIES = new AlluxioProperties();
-  private static final AlluxioConfiguration CONF = new AlluxioConfiguration(PROPERTIES);
+  private static final InstancedConfiguration CONF = new InstancedConfiguration(PROPERTIES);
 
   static {
     reset();
@@ -318,6 +308,13 @@ public final class Configuration {
    */
   public static List<ConfigProperty> getConfiguration(Scope scope) {
     return CONF.getConfiguration(scope);
+  }
+
+  /**
+   * @return the {@link InstancedConfiguration} object backing the global configuration
+   */
+  public static InstancedConfiguration global() {
+    return CONF;
   }
 
   private Configuration() {} // prevent instantiation

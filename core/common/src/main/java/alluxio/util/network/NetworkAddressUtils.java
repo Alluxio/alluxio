@@ -11,6 +11,7 @@
 
 package alluxio.util.network;
 
+import alluxio.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
@@ -199,7 +200,21 @@ public final class NetworkAddressUtils {
    *         communicate with service.
    */
   public static InetSocketAddress getConnectAddress(ServiceType service) {
-    return new InetSocketAddress(getConnectHost(service), getPort(service));
+    return getConnectAddress(service, Configuration.global());
+  }
+
+  /**
+   * Helper method to get the {@link InetSocketAddress} address for client to communicate with the
+   * service.
+   *
+   * @param service the service name used to connect
+   * @param config the configuration to use for looking up the connect address
+   * @return the service address that a client (typically outside the service machine) uses to
+   *         communicate with service.
+   */
+  public static InetSocketAddress getConnectAddress(ServiceType service,
+      AlluxioConfiguration config) {
+    return new InetSocketAddress(getConnectHost(service, config), getPort(service, config));
   }
 
   /**
@@ -208,15 +223,13 @@ public final class NetworkAddressUtils {
    * is wildcard, Alluxio will automatically determine an appropriate hostname from local machine.
    * The various possibilities shown in the following table:
    * <table>
-   * <caption>Hostname Scenarios</caption>
-   * <thead>
+   * <caption>Hostname Scenarios</caption> <thead>
    * <tr>
    * <th>Specified Hostname</th>
    * <th>Specified Bind Host</th>
    * <th>Returned Connect Host</th>
    * </tr>
-   * </thead>
-   * <tbody>
+   * </thead> <tbody>
    * <tr>
    * <td>hostname</td>
    * <td>hostname</td>
@@ -245,14 +258,59 @@ public final class NetworkAddressUtils {
    *         service.
    */
   public static String getConnectHost(ServiceType service) {
-    if (Configuration.containsKey(service.mHostNameKey)) {
-      String connectHost = Configuration.get(service.mHostNameKey);
+    return getConnectHost(service, Configuration.global());
+  }
+
+  /**
+   * Provides an externally resolvable hostname for client to communicate with the service. If the
+   * hostname is not explicitly specified, Alluxio will try to use the bind host. If the bind host
+   * is wildcard, Alluxio will automatically determine an appropriate hostname from local machine.
+   * The various possibilities shown in the following table:
+   * <table>
+   * <caption>Hostname Scenarios</caption> <thead>
+   * <tr>
+   * <th>Specified Hostname</th>
+   * <th>Specified Bind Host</th>
+   * <th>Returned Connect Host</th>
+   * </tr>
+   * </thead> <tbody>
+   * <tr>
+   * <td>hostname</td>
+   * <td>hostname</td>
+   * <td>hostname</td>
+   * </tr>
+   * <tr>
+   * <td>not defined</td>
+   * <td>hostname</td>
+   * <td>hostname</td>
+   * </tr>
+   * <tr>
+   * <td>hostname</td>
+   * <td>0.0.0.0 or not defined</td>
+   * <td>hostname</td>
+   * </tr>
+   * <tr>
+   * <td>not defined</td>
+   * <td>0.0.0.0 or not defined</td>
+   * <td>localhost</td>
+   * </tr>
+   * </tbody>
+   * </table>
+   *
+   * @param service Service type used to connect
+   * @param config configuration
+   * @return the externally resolvable hostname that the client can use to communicate with the
+   *         service.
+   */
+  public static String getConnectHost(ServiceType service, AlluxioConfiguration config) {
+    if (config.containsKey(service.mHostNameKey)) {
+      String connectHost = config.get(service.mHostNameKey);
       if (!connectHost.isEmpty() && !connectHost.equals(WILDCARD_ADDRESS)) {
         return connectHost;
       }
     }
-    if (Configuration.containsKey(service.mBindHostKey)) {
-      String bindHost = Configuration.get(service.mBindHostKey);
+    if (config.containsKey(service.mBindHostKey)) {
+      String bindHost = config.get(service.mBindHostKey);
       if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
         return bindHost;
       }
@@ -268,7 +326,19 @@ public final class NetworkAddressUtils {
    * @return the service port number
    */
   public static int getPort(ServiceType service) {
-    return Configuration.getInt(service.mPortKey);
+    return getPort(service, Configuration.global());
+  }
+
+  /**
+   * Gets the port number on a given service type. If user defined port number is not explicitly
+   * specified, Alluxio will use the default service port.
+   *
+   * @param service Service type used to connect
+   * @param config configuration
+   * @return the service port number
+   */
+  public static int getPort(ServiceType service, AlluxioConfiguration config) {
+    return config.getInt(service.mPortKey);
   }
 
   /**
