@@ -14,12 +14,15 @@ package alluxio.conf;
 /**
  * The source of a configuration property.
  */
-public class Source implements Comparable<Source> {
+public final class Source implements Comparable<Source> {
   public static final Source UNKNOWN = new Source(Type.UNKNOWN);
   public static final Source DEFAULT = new Source(Type.DEFAULT);
   public static final Source SYSTEM_PROPERTY = new Source(Type.SYSTEM_PROPERTY);
   public static final Source RUNTIME = new Source(Type.RUNTIME);
 
+  /**
+   * Source type.
+   */
   public enum Type {
     /**
      * The unknown source which has the lowest priority.

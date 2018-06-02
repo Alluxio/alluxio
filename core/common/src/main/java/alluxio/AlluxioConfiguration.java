@@ -81,7 +81,6 @@ public interface AlluxioConfiguration {
    */
   boolean getBoolean(PropertyKey key);
 
-
   /**
    * Gets the value for the given key as a list.
    *
@@ -90,7 +89,6 @@ public interface AlluxioConfiguration {
    * @return the list of values for the given key
    */
   List<String> getList(PropertyKey key, String delimiter);
-
 
   /**
    * Gets the value for the given key as an enum value.
