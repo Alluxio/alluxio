@@ -710,7 +710,7 @@ public final class InodeTreeTest {
       assertEquals(uri.getName(), inodePath.getInode().getName());
     }
   }
-  
+
   @Test
   public void lockingDescendent() throws Exception {
     InodeTree.CreatePathResult createResult =
