@@ -555,9 +555,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private void updateFileSystemAndContext() {
     Subject subject = getHadoopSubject();
     if (subject != null) {
+      LOG.debug("Using Hadoop subject: {}", subject);
       mContext = FileSystemContext.create(subject);
       mFileSystem = FileSystem.Factory.get(mContext);
     } else {
+      LOG.debug("No Hadoop subject. Using default FS Context.");
       mContext = FileSystemContext.get();
       mFileSystem = FileSystem.Factory.get();
     }
