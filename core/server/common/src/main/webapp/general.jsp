@@ -188,7 +188,7 @@
       </div>
     </div>
   </div>
-  <!--  show inconsistent path  -->
+  <!--  show inconsistent paths  -->
   <% if ((Integer) request.getAttribute("inconsistentPaths") != 0) { %>
   <div class="row-fluid">
     <div class="accordion span14" id="accordion4">
