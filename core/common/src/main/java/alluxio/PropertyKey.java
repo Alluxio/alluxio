@@ -3471,14 +3471,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.master\\.journal\\.ufs\\.option"),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
         "alluxio\\.master\\.journal\\.ufs\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
-        PropertyCreators.JOURNAL_PROPERTY_CREATOR),
+        PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),
     MASTER_MOUNT_TABLE_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
         "alluxio\\.master\\.mount\\.table.(\\w+)\\.alluxio"),
     MASTER_MOUNT_TABLE_OPTION("alluxio.master.mount.table.%s.option",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option"),
     MASTER_MOUNT_TABLE_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
-        PropertyCreators.UFS_PROPERTY_CREATOR),
+        PropertyCreators.NESTED_UFS_PROPERTY_CREATOR),
     MASTER_MOUNT_TABLE_READONLY("alluxio.master.mount.table.%s.readonly",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.readonly"),
     MASTER_MOUNT_TABLE_SHARED("alluxio.master.mount.table.%s.shared",
@@ -3487,14 +3487,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.ufs"),
     MASTER_MOUNT_TABLE_ROOT_OPTION_PROPERTY("alluxio.master.mount.table.root.option.%s",
         "alluxio\\.master\\.mount\\.table\\.root\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
-        PropertyCreators.UFS_PROPERTY_CREATOR),
+        PropertyCreators.NESTED_UFS_PROPERTY_CREATOR),
     MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS("alluxio.master.tieredstore.global.level%d.alias",
         "alluxio\\.master\\.tieredstore\\.global\\.level(\\d+)\\.alias"),
     UNDERFS_AZURE_ACCOUNT_KEY(
         "fs.azure.account.key.%s.blob.core.windows.net",
         "fs\\.azure\\.account\\.key\\.(\\w+)\\.blob\\.core\\.windows\\.net",
-        new Builder("fs.azure.account.key.%s.blob.core.windows.net")
-            .setDisplayType(DisplayType.CREDENTIALS)),
+        PropertyCreators.fromBuilder(new Builder("fs.azure.account.key.%s.blob.core.windows.net")
+            .setDisplayType(DisplayType.CREDENTIALS))),
     WORKER_TIERED_STORE_LEVEL_ALIAS("alluxio.worker.tieredstore.level%d.alias",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.alias"),
     WORKER_TIERED_STORE_LEVEL_DIRS_PATH("alluxio.worker.tieredstore.level%d.dirs.path",
@@ -3514,14 +3514,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // puts property creators in a nested class to avoid NPE in enum static initialization
     private static class PropertyCreators {
       private static final BiFunction<String, PropertyKey, PropertyKey> DEFAULT_PROPERTY_CREATOR =
-          createPropertyCreator(Scope.ALL, ConsistencyCheckLevel.IGNORE);
-      private static final BiFunction<String, PropertyKey, PropertyKey> UFS_PROPERTY_CREATOR =
-          createPropertyCreator(Scope.SERVER, ConsistencyCheckLevel.ENFORCE);
-      private static final BiFunction<String, PropertyKey, PropertyKey> JOURNAL_PROPERTY_CREATOR =
-          createPropertyCreator(Scope.MASTER, ConsistencyCheckLevel.ENFORCE);
+          fromBuilder(new Builder(""));
+      private static final BiFunction<String, PropertyKey, PropertyKey>
+          NESTED_UFS_PROPERTY_CREATOR =
+          createNestedPropertyCreator(Scope.SERVER, ConsistencyCheckLevel.ENFORCE);
+      private static final BiFunction<String, PropertyKey, PropertyKey>
+          NESTED_JOURNAL_PROPERTY_CREATOR =
+          createNestedPropertyCreator(Scope.MASTER, ConsistencyCheckLevel.ENFORCE);
 
-      private static BiFunction<String, PropertyKey, PropertyKey> createPropertyCreator(Scope scope,
-          ConsistencyCheckLevel consistencyCheckLevel) {
+      private static BiFunction<String, PropertyKey, PropertyKey> fromBuilder(Builder builder) {
+        return (name, baseProperty) -> builder.setName(name).build();
+      }
+
+      private static BiFunction<String, PropertyKey, PropertyKey> createNestedPropertyCreator(
+          Scope scope, ConsistencyCheckLevel consistencyCheckLevel) {
         return (name, baseProperty) -> new Builder(name)
             .setDisplayType(baseProperty.getDisplayType())
             .setDefaultSupplier(baseProperty.getDefaultSupplier())
@@ -3534,7 +3540,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private static final String NESTED_GROUP = "nested";
     private final String mFormat;
     private final Pattern mPattern;
-    private final Builder mPropertyBuilder;
     private BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator =
         PropertyCreators.DEFAULT_PROPERTY_CREATOR;
 
@@ -3545,20 +3550,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @param re String of this property as regexp
      */
     Template(String format, String re) {
-      this(format, re, new Builder(""));
-    }
-
-    /**
-     * Constructs a property key format with a builder to provide property attributes.
-     *
-     * @param format String of this property as formatted string
-     * @param re String of this property as regexp
-     * @param propertyBuilder a property builder associated with this template
-     */
-    Template(String format, String re, Builder propertyBuilder) {
       mFormat = format;
       mPattern = Pattern.compile(re);
-      mPropertyBuilder = propertyBuilder;
     }
 
     /**
@@ -3568,6 +3561,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @param format String of this property as formatted string
      * @param re String of this property as regexp
      * @param propertyCreator a function that creates property key given name and base property key
+     *                        (for nested properties only, will be null otherwise)
      */
     Template(String format, String re,
         BiFunction<String, PropertyKey, PropertyKey> propertyCreator) {
@@ -3611,6 +3605,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     /**
      * Gets the property key if the property name matches the template.
+     *
      * @param propertyName name of the property
      * @return the property key, or null if the property name does not match the template
      */
@@ -3627,12 +3622,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       } catch (IllegalArgumentException e) {
         // ignore if group is not found
       }
+      PropertyKey nestedProperty = null;
       if (nestedKeyName != null && isValid(nestedKeyName)) {
-        PropertyKey nestedProperty = fromString(nestedKeyName);
-        return mPropertyCreator.apply(propertyName, nestedProperty);
+        nestedProperty = fromString(nestedKeyName);
       }
-      // otherwise uses builder to create the property key
-      return mPropertyBuilder.setName(propertyName).build();
+      return mPropertyCreator.apply(propertyName, nestedProperty);
     }
   }
 
