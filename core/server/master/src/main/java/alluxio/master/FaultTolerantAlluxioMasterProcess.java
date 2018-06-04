@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.Configuration;
+import alluxio.ProcessUtils;
 import alluxio.PropertyKey;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
@@ -72,9 +73,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       startMasters(false);
       LOG.info("Secondary started");
       mLeaderSelector.waitForState(State.PRIMARY);
-      mJournalSystem.setMode(Mode.PRIMARY);
       stopMasters();
       LOG.info("Secondary stopped");
+      mJournalSystem.setMode(Mode.PRIMARY);
 
       startMasters(true);
       mServingThread = new Thread(() -> {
@@ -85,8 +86,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
           if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
             return;
           }
-          LOG.error("Exception thrown in main serving thread. System exiting.", t);
-          System.exit(-1);
+          ProcessUtils.fatalError(LOG, t, "Exception thrown in main serving thread");
         }
       }, "MasterServingThread");
       mServingThread.start();
@@ -101,11 +101,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       mJournalSystem.setMode(Mode.SECONDARY);
       mServingThread.join(mServingThreadTimeoutMs);
       if (mServingThread.isAlive()) {
-        LOG.error(
-            "Failed to stop serving thread after {}ms. Printing serving thread stack trace "
-                + "and exiting.\n{}",
+        ProcessUtils.fatalError(LOG,
+            "Failed to stop serving thread after %dms. Serving thread stack trace:%n%s",
             mServingThreadTimeoutMs, ThreadUtils.formatStackTrace(mServingThread));
-        System.exit(-1);
       }
       mServingThread = null;
       stopMasters();

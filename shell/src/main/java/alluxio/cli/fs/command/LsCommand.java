@@ -226,15 +226,12 @@ public final class LsCommand extends AbstractFileSystemCommand {
     if (forceLoadMetadata) {
       options.setLoadMetadataType(LoadMetadataType.Always);
     }
+    options.setRecursive(recursive);
     List<URIStatus> statuses = mFileSystem.listStatus(path, options);
     List<URIStatus> sorted = sortByFieldAndOrder(statuses, sortField, reverse);
     for (URIStatus status : sorted) {
       if (!pinnedOnly || status.isPinned()) {
         printLsString(status, hSize);
-      }
-      if (recursive && status.isFolder()) {
-        ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true,
-            forceLoadMetadata, false, hSize, pinnedOnly, sortField, reverse);
       }
     }
   }
@@ -261,7 +258,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
-        cl.hasOption("p"), cl.getOptionValue("sort", "name"), cl.hasOption("r"));
+        cl.hasOption("p"), cl.getOptionValue("sort", "path"), cl.hasOption("r"));
   }
 
   @Override

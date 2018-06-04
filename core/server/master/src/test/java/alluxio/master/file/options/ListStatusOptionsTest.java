@@ -27,22 +27,28 @@ public class ListStatusOptionsTest {
   public void defaults() {
     ListStatusOptions options = ListStatusOptions.defaults();
     Assert.assertEquals(LoadMetadataType.Once, options.getLoadMetadataType());
+    Assert.assertEquals(false, options.isRecursive());
   }
 
   @Test
   public void fields() {
     ListStatusOptions options = ListStatusOptions.defaults();
     Assert.assertEquals(LoadMetadataType.Once, options.getLoadMetadataType());
+    Assert.assertEquals(false, options.isRecursive());
     options.setLoadMetadataType(LoadMetadataType.Always);
     Assert.assertEquals(LoadMetadataType.Always, options.getLoadMetadataType());
+    options.setRecursive(true);
+    Assert.assertEquals(true, options.isRecursive());
   }
 
   @Test
   public void fromThrift() {
     ListStatusTOptions listStatusTOptions = new ListStatusTOptions();
     listStatusTOptions.setLoadMetadataType(LoadMetadataTType.Always);
+    listStatusTOptions.setRecursive(true);
     ListStatusOptions options = new ListStatusOptions(listStatusTOptions);
     Assert.assertEquals(LoadMetadataType.Always, options.getLoadMetadataType());
+    Assert.assertEquals(true, options.isRecursive());
   }
 
   @Test

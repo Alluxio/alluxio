@@ -37,7 +37,7 @@ public final class FileSystemContextTest {
 
     // Acquire all the clients
     for (int i = 0; i < Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS); i++) {
-      clients.add(FileSystemContext.INSTANCE.acquireMasterClient());
+      clients.add(FileSystemContext.get().acquireMasterClient());
     }
     Thread acquireThread = new Thread(new AcquireClient());
     acquireThread.start();
@@ -53,7 +53,7 @@ public final class FileSystemContextTest {
 
     // Release all the clients
     for (FileSystemMasterClient client : clients) {
-      FileSystemContext.INSTANCE.releaseMasterClient(client);
+      FileSystemContext.get().releaseMasterClient(client);
     }
 
     // Wait for the spawned thread to complete. If it is unable to acquire a master client before
@@ -69,8 +69,8 @@ public final class FileSystemContextTest {
   class AcquireClient implements Runnable {
     @Override
     public void run() {
-      FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
-      FileSystemContext.INSTANCE.releaseMasterClient(client);
+      FileSystemMasterClient client = FileSystemContext.get().acquireMasterClient();
+      FileSystemContext.get().releaseMasterClient(client);
     }
   }
 }

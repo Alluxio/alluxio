@@ -17,10 +17,9 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
-import alluxio.exception.status.UnimplementedException;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.security.authentication.TProtocols;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
@@ -37,7 +36,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
@@ -50,9 +48,13 @@ import javax.security.auth.Subject;
 public abstract class AbstractClient implements Client {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
 
-  /** The pattern of exception message when client and server transport frame sizes do not match. */
-  private static final Pattern FRAME_SIZE_EXCEPTION_PATTERN =
-      Pattern.compile("Frame size \\((\\d+)\\) larger than max length");
+  private static Supplier<RetryPolicy> defaultRetry() {
+    Duration maxRetryDuration = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
+    Duration baseSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+    Duration maxSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+    return () -> ExponentialTimeBoundedRetry.builder().withMaxDuration(maxRetryDuration)
+        .withInitialSleep(baseSleepMs).withMaxSleep(maxSleepMs).build();
+  }
 
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
@@ -86,14 +88,6 @@ public abstract class AbstractClient implements Client {
    */
   public AbstractClient(Subject subject, InetSocketAddress address) {
     this(subject, address, defaultRetry());
-  }
-
-  private static Supplier<RetryPolicy> defaultRetry() {
-    Duration maxRetryDuration = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
-    Duration baseSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
-    Duration maxSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
-    return () -> ExponentialTimeBoundedRetry.builder().withMaxDuration(maxRetryDuration)
-        .withInitialSleep(baseSleepMs).withMaxSleep(maxSleepMs).build();
   }
 
   /**
@@ -198,7 +192,7 @@ public abstract class AbstractClient implements Client {
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
 
-      mProtocol = TProtocols.createProtocol(
+      mProtocol = ThriftUtils.createThriftProtocol(
           mTransportProvider.getClientTransport(mParentSubject, mAddress), getServiceName());
       try {
         mProtocol.getTransport().open();
@@ -207,17 +201,7 @@ public abstract class AbstractClient implements Client {
         afterConnect();
         checkVersion(getClient(), getServiceVersion());
         return;
-      } catch (IOException e) {
-        if (e.getMessage() != null && FRAME_SIZE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
-          // See an error like "Frame size (67108864) larger than max length (16777216)!",
-          // pointing to the helper page.
-          String message = String.format("Failed to connect with %s @ %s: %s. "
-              + "This exception may be caused by incorrect network configuration. "
-              + "Please consult %s for common solutions to address this problem.",
-              getServiceName(), mAddress, e.getMessage(), RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
-          throw new UnimplementedException(message, e);
-        }
-      } catch (TTransportException e) {
+      } catch (IOException | TTransportException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         if (e.getCause() instanceof java.net.SocketTimeoutException) {

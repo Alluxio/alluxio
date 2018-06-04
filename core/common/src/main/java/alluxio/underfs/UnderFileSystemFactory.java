@@ -11,12 +11,15 @@
 
 package alluxio.underfs;
 
+import alluxio.extensions.ExtensionFactory;
+
 import javax.annotation.Nullable;
 
 /**
  * Interface for under file system factories.
  */
-public interface UnderFileSystemFactory {
+public interface UnderFileSystemFactory
+    extends ExtensionFactory<UnderFileSystem, UnderFileSystemConfiguration> {
 
   /**
    * Creates a new client for accessing the given path. An {@link IllegalArgumentException} is

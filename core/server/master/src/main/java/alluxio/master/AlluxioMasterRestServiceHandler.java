@@ -204,12 +204,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getStartTimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mMasterProcess.getStartTimeMs();
-      }
-    });
+    return RestUtils.call(() -> mMasterProcess.getStartTimeMs());
   }
 
   /**

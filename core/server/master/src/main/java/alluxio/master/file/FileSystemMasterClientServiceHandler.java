@@ -77,8 +77,13 @@ import alluxio.thrift.UpdateUfsModeTOptions;
 import alluxio.thrift.UpdateUfsModeTResponse;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.MountPointInfo;
+<<<<<<< HEAD
 import alluxio.wire.SetAclAction;
 import alluxio.wire.ThriftUtils;
+||||||| merged common ancestors
+import alluxio.wire.ThriftUtils;
+=======
+>>>>>>> master
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
@@ -242,8 +247,8 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetStatusTResponse>() {
       @Override
       public GetStatusTResponse call() throws AlluxioException, IOException {
-        return new GetStatusTResponse(ThriftUtils.toThrift(
-            mFileSystemMaster.getFileInfo(new AlluxioURI(path), new GetStatusOptions(options))));
+        return new GetStatusTResponse(mFileSystemMaster
+            .getFileInfo(new AlluxioURI(path), new GetStatusOptions(options)).toThrift());
       }
 
       @Override
@@ -263,7 +268,7 @@ public final class FileSystemMasterClientServiceHandler implements
         List<FileInfo> result = new ArrayList<>();
         for (alluxio.wire.FileInfo fileInfo : mFileSystemMaster
             .listStatus(new AlluxioURI(path), new ListStatusOptions(options))) {
-          result.add(ThriftUtils.toThrift(fileInfo));
+          result.add(fileInfo.toThrift());
         }
         return new ListStatusTResponse(result);
       }
@@ -330,7 +335,7 @@ public final class FileSystemMasterClientServiceHandler implements
         for (Map.Entry<String, MountPointInfo> entry :
                 mountTableWire.entrySet()) {
           MountPointInfo mMountPointInfo = entry.getValue();
-          alluxio.thrift.MountPointInfo mountPointThrift = ThriftUtils.toThrift(mMountPointInfo);
+          alluxio.thrift.MountPointInfo mountPointThrift = mMountPointInfo.toThrift();
           mountTableThrift.put(entry.getKey(), mountPointThrift);
         }
         return new GetMountTableTResponse(mountTableThrift);

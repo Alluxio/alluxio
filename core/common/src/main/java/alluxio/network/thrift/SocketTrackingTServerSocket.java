@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.thrift;
+package alluxio.network.thrift;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
