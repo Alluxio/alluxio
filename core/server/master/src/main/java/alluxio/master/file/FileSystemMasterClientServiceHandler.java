@@ -77,13 +77,7 @@ import alluxio.thrift.UpdateUfsModeTOptions;
 import alluxio.thrift.UpdateUfsModeTResponse;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.MountPointInfo;
-<<<<<<< HEAD
 import alluxio.wire.SetAclAction;
-import alluxio.wire.ThriftUtils;
-||||||| merged common ancestors
-import alluxio.wire.ThriftUtils;
-=======
->>>>>>> master
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;

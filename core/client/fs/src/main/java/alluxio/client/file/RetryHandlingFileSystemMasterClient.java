@@ -38,15 +38,9 @@ import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.UnmountTOptions;
-<<<<<<< HEAD
-import alluxio.wire.SetAclAction;
-import alluxio.wire.ThriftUtils;
-||||||| merged common ancestors
-import alluxio.wire.ThriftUtils;
-=======
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
->>>>>>> master
+import alluxio.wire.SetAclAction;
 
 import org.apache.thrift.TException;
 
