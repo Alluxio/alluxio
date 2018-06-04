@@ -30,11 +30,10 @@ import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
 
-import com.google.common.collect.ImmutableList;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -47,14 +46,12 @@ import java.util.List;
 public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public MultiProcessCluster mCluster;
 
-  @Override
-  protected List<TestRule> rules() {
-    return ImmutableList.of(new ConfigurationRule(new HashMap<PropertyKey, String>() {
+  @Rule
+  public ConfigurationRule configurationRule = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
         put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false");
       }
-    }));
-  }
+  });
 
   @Before
   public void before() {

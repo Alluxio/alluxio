@@ -14,10 +14,11 @@ package alluxio.master;
 import alluxio.Constants;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.retry.RetryPolicy;
 import alluxio.network.thrift.ThriftUtils;
+import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 
+import com.google.common.base.Objects;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
@@ -88,7 +89,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       throws UnauthenticatedException, TTransportException {
     TTransport transport = TransportProvider.Factory.create().getClientTransport(address);
     TProtocol protocol =
-        ThriftUtils.createThriftProtocol(transport, Constants.META_MASTER_SERVICE_NAME);
+        ThriftUtils.createThriftProtocol(transport, Constants.META_MASTER_CLIENT_SERVICE_NAME);
     protocol.getTransport().open();
     protocol.getTransport().close();
   }
@@ -96,5 +97,22 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   @Override
   public List<InetSocketAddress> getMasterRpcAddresses() {
     return mMasterAddresses;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof PollingMasterInquireClient)) {
+      return false;
+    }
+    PollingMasterInquireClient that = (PollingMasterInquireClient) o;
+    return mMasterAddresses.equals(that.mMasterAddresses);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mMasterAddresses);
   }
 }

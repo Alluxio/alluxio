@@ -32,6 +32,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.DefaultSafeModeManager;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
+import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
@@ -50,8 +51,6 @@ import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -117,6 +116,8 @@ public final class PermissionCheckTest {
 
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
+  private long mStartTimeMs;
+  private int mPort;
   private MetricsMaster mMetricsMaster;
   private FileSystemMaster mFileSystemMaster;
   private BlockMaster mBlockMaster;
@@ -195,10 +196,8 @@ public final class PermissionCheckTest {
     GroupMappingServiceTestUtils.resetCache();
     mRegistry = new MasterRegistry();
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
-    JournalSystem journalSystem = new NoopJournalSystem();
     mSafeModeManager = new DefaultSafeModeManager();
-
-    MasterContext masterContext = new MasterContext(journalSystem, mSafeModeManager);
+    MasterContext masterContext = MasterTestUtils.testMasterContext();
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);

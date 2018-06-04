@@ -13,6 +13,7 @@ package alluxio.client;
 
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.wire.BackupResponse;
+import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
@@ -40,6 +41,13 @@ public interface MetaMasterClient extends Closeable {
    * @return the server response
    */
   BackupResponse backup(@Nullable String dir, boolean localFileSystem) throws IOException;
+
+  /**
+   * Gets the server-side configuration check report.
+   *
+   * @return configuration check report
+   */
+  ConfigCheckReport getConfigReport() throws IOException;
 
   /**
    * Gets the runtime configuration information.

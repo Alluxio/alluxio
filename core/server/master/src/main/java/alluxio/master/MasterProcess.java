@@ -16,14 +16,9 @@ import alluxio.Process;
 import alluxio.PropertyKey;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.BackupOptions;
-import alluxio.wire.BackupResponse;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -52,14 +47,6 @@ public interface MasterProcess extends Process {
 
     private Factory() {} // prevent instantiation
   }
-
-  /**
-   * Backs up the master.
-   *
-   * @param options method options
-   * @return the uri of the created backup
-   */
-  BackupResponse backup(BackupOptions options) throws IOException;
 
   /**
    * @param clazz the class of the master to get
@@ -97,9 +84,4 @@ public interface MasterProcess extends Process {
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   boolean isServing();
-
-  /**
-   * @return configuration information list
-   */
-  List<ConfigProperty> getConfiguration();
 }

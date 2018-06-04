@@ -48,6 +48,14 @@ import javax.security.auth.Subject;
 public abstract class AbstractClient implements Client {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
 
+  private static Supplier<RetryPolicy> defaultRetry() {
+    Duration maxRetryDuration = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
+    Duration baseSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+    Duration maxSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+    return () -> ExponentialTimeBoundedRetry.builder().withMaxDuration(maxRetryDuration)
+        .withInitialSleep(baseSleepMs).withMaxSleep(maxSleepMs).build();
+  }
+
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
   protected InetSocketAddress mAddress;
@@ -80,14 +88,6 @@ public abstract class AbstractClient implements Client {
    */
   public AbstractClient(Subject subject, InetSocketAddress address) {
     this(subject, address, defaultRetry());
-  }
-
-  private static Supplier<RetryPolicy> defaultRetry() {
-    Duration maxRetryDuration = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
-    Duration baseSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
-    Duration maxSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
-    return () -> ExponentialTimeBoundedRetry.builder().withMaxDuration(maxRetryDuration)
-        .withInitialSleep(baseSleepMs).withMaxSleep(maxSleepMs).build();
   }
 
   /**

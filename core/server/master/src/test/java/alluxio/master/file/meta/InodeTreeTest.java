@@ -26,10 +26,9 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.DefaultSafeModeManager;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
-import alluxio.master.SafeModeManager;
+import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
@@ -37,8 +36,6 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.authorization.Mode;
@@ -81,7 +78,6 @@ public final class InodeTreeTest {
   private static CreateDirectoryOptions sNestedDirectoryOptions;
   private InodeTree mTree;
   private MasterRegistry mRegistry;
-  private SafeModeManager mSafeModeManager;
   private MetricsMaster mMetricsMaster;
 
   /** Rule to create a new temporary folder during each test. */
@@ -105,9 +101,7 @@ public final class InodeTreeTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new DefaultSafeModeManager();
-    JournalSystem journalSystem = new NoopJournalSystem();
-    MasterContext context = new MasterContext(journalSystem, mSafeModeManager);
+    MasterContext context = MasterTestUtils.testMasterContext();
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, context);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, context);

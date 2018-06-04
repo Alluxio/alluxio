@@ -36,5 +36,4 @@ public interface MasterFactory {
    * @return a new {@link Master} instance
    */
   Master create(MasterRegistry registry, MasterContext context);
-
 }
