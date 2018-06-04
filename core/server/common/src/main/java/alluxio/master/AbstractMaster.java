@@ -58,8 +58,20 @@ public abstract class AbstractMaster implements Master {
   /** The manager for safe mode state. */
   protected final SafeModeManager mSafeModeManager;
 
-  /** A lock which must be taken before modifying persistent (journaled) state. */
-  private final Lock mStateChangeLock;
+  /** The manager for creating and restoring backups. */
+  protected final BackupManager mBackupManager;
+
+  /**
+   * A lock which must be taken before modifying persistent (journaled) state. This is a counterpart
+   * to {@link #mPauseStateLock}.
+   */
+  protected final Lock mStateChangeLock;
+
+  /**
+   * A lock which prevents any changes to persistent (journaled) state. This is a counterpart to
+   * {@link #mStateChangeLock}.
+   */
+  protected final Lock mPauseStateLock;
 
   /**
    * @param masterContext the context for Alluxio master
@@ -72,7 +84,9 @@ public abstract class AbstractMaster implements Master {
     Preconditions.checkNotNull(masterContext, "masterContext");
     mJournal = masterContext.getJournalSystem().createJournal(this);
     mSafeModeManager = masterContext.getSafeModeManager();
+    mBackupManager = masterContext.getBackupManager();
     mStateChangeLock = masterContext.stateChangeLock();
+    mPauseStateLock = masterContext.pauseStateLock();
     mClock = clock;
     mExecutorServiceFactory = executorServiceFactory;
   }

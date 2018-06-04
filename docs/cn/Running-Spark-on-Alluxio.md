@@ -69,27 +69,17 @@ spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,
 
 ## 检查Spark与Alluxio的集成性 (支持Spark 2.X)
 
-在Alluxio上运行Spark之前，你需要确认你的Spark配置已经正确设置集成了Alluxio。Spark集成检查器可以帮助你确认。 
+在Alluxio上运行Spark之前，你需要确认你的Spark配置已经正确设置集成了Alluxio。Spark集成检查器可以帮助你确认。
 
 当你运行Saprk集群(或单机运行)时,你可以在Alluxio项目目录运行以下命令:
 
 ```bash
-$ checker/bin/alluxio-checker.sh spark <spark master uri> <spark partition number(optional)>
+$ integration/checker/bin/alluxio-checker.sh spark <spark master uri> [partition number]
 ```
 
-## 检查Spark和Alluxio的一体化（支持Spark 2.x）
-
-在Alluxio上运行Spark前，你可能想确定你的Spark与Alluxio一体化的配置已经正确设置了。Spark一体化检查器可以帮你实现这一点。
-
-当你拥有一个正在运行的Spark集群（或者Spark单机），你可以在Alluxio项目目录下运行以下的命令：
-
-```bash
-$ checker/bin/alluxio-checker.sh spark <spark master uri> <spark partition number(optional)>
-```
-
-这将会报告可能阻止你在Alluxio上运行Spark的潜在问题。
-
-你可以使用`-h`来显示关于这个命令的有用信息。这条命令将报告潜在的问题，可能会阻碍你在Alluxio上运行Spark。 
+这里`partition number`是一个可选参数。
+你可以使用`-h`来显示关于这个命令的有用信息。这条命令将报告潜在的问题，可能会阻碍你在Alluxio上运行Spark。
+这将会报告你在Alluxio上运行Spark会遇到的潜在问题。
 
 
 ## 使用Alluxio作为输入输出
@@ -253,5 +243,3 @@ alluxio.zookeeper.address=[zookeeper_hostname]:2181
   </property>
 </configuration>
 ```
-
-

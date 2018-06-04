@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.MetaMasterClient;
+import alluxio.util.ConfigurationUtils;
 import alluxio.wire.ConfigProperty;
 
 import java.io.IOException;
@@ -21,7 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Prints runtime configuration information.
+ * Prints server-side configuration check report.
  */
 public class ConfigurationCommand {
   private static final String CONFIG_INFO_FORMAT = "%s = %s (source = %s)%n";
@@ -41,10 +42,8 @@ public class ConfigurationCommand {
 
   /**
    * Runs report configuration command.
-   *
-   * @return 0 on success, 1 otherwise
    */
-  public int run() throws IOException {
+  public void run() throws IOException {
     List<ConfigProperty> configList = mMetaMasterClient.getConfiguration();
     Collections.sort(configList, Comparator.comparing(ConfigProperty::getSource));
 
@@ -52,8 +51,7 @@ public class ConfigurationCommand {
 
     for (ConfigProperty info : configList) {
       mPrintStream.print(String.format(CONFIG_INFO_FORMAT,
-          info.getName(), info.getValue(), info.getSource()));
+          info.getName(), ConfigurationUtils.valueAsString(info.getValue()), info.getSource()));
     }
-    return 0;
   }
 }

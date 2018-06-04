@@ -11,7 +11,9 @@
 
 --%>
 <%@ page import="java.util.*" %>
+<%@ page import="java.lang.*" %>
 <%@ page import="alluxio.web.*" %>
+<%@ page import="alluxio.wire.*" %>
 
 <html>
 <head>
@@ -69,6 +71,31 @@
                     <th><font color="red"><%= request.getAttribute("inconsistentPaths") %></font></th>
                   </tr>
                 <% } %>
+                <tr>
+                  <% ConfigCheckReport configReport = ((ConfigCheckReport) request.getAttribute("configCheckReport")); %>
+                  <% ConfigCheckReport.ConfigStatus status = (ConfigCheckReport.ConfigStatus) request.getAttribute("configCheckStatus");%>
+                  <% if (status.equals(ConfigCheckReport.ConfigStatus.FAILED)) { %>
+                    <th><font color="red">Server Configuration Check:<font color="red"></th>
+                    <th><font color="red"><%= status %><font color="red"></th>
+                  <% } else { %>
+                    <th>Server Configuration Check:</th>
+                    <th><%= status %></th>
+                  <% } %>
+                </tr>
+                <% int errorSize = (int) request.getAttribute("configCheckErrorNum"); %>
+                <% int warnSize = (int) request.getAttribute("configCheckWarnNum"); %>
+                <% int inconsistentProperties = errorSize + warnSize; %>
+                <% if (inconsistentProperties != 0) { %>
+                  <tr>
+                    <% if (errorSize != 0) { %>
+                      <th><font color="red">Inconsistent Properties:</font></th>
+                      <th><font color="red"><%= inconsistentProperties %></font></th>
+                    <% } else { %>
+                      <th>Inconsistent Properties:</th>
+                      <th><%= inconsistentProperties %></th>
+                    <% } %>
+                  </tr>
+                <% } %>
               </tbody>
             </table>
           </div>
@@ -114,38 +141,7 @@
       </div>
     </div>
   </div>
-  <!--  show inconsistent path  -->
-  <% if ((Integer) request.getAttribute("inconsistentPaths") != 0) { %>
-  <div class="row-fluid">
-    <div class="accordion span14" id="accordion4">
-      <div class="accordion-group">
-        <div class="accordion-heading">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
-            <h4>Inconsistent Files Details</h4>
-          </a>
-        </div>
-        <div id="data4" class="accordion-body collapse in">
-          <div class="accordion-inner">
-            <table class="table table-hover table-condensed">
-              <thead>
-                <th> <font color="red">On Startup, <%= request.getAttribute("inconsistentPaths") %> inconsistent files were found. This check is only checked once at startup, and you can restart the Alluxio Master for the latest information. <br/> The following files may be corrupted: </font></th>
-              </thead>
-              <tbody>
-                <% List array = (List) request.getAttribute("inconsistentPathItems");
-                   for (int i = 0; i < array.size(); i++) { %>
-                  <tr>
-                    <th><font color="red"><%= array.get(i) %></font></th>
-                  </tr>
-                <% }%>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <% } %>
-
+  <!--  show storage usage summary -->
   <div class="row-fluid">
     <div class="accordion span14" id="accordion3">
       <div class="accordion-group">
@@ -192,6 +188,106 @@
       </div>
     </div>
   </div>
+  <!--  show inconsistent paths  -->
+  <% if ((Integer) request.getAttribute("inconsistentPaths") != 0) { %>
+  <div class="row-fluid">
+    <div class="accordion span14" id="accordion4">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+            <h4>Inconsistent Files Details</h4>
+          </a>
+        </div>
+        <div id="data4" class="accordion-body collapse in">
+          <div class="accordion-inner">
+            <table class="table table-hover table-condensed">
+              <thead>
+                <th> <font color="red">On Startup, <%= request.getAttribute("inconsistentPaths") %> inconsistent files were found. This check is only checked once at startup, and you can restart the Alluxio Master for the latest information. <br/> The following files may be corrupted: </font></th>
+              </thead>
+              <tbody>
+                <% List array = (List) request.getAttribute("inconsistentPathItems");
+                   for (int i = 0; i < array.size(); i++) { %>
+                  <tr>
+                    <th><font color="red"><%= array.get(i) %></font></th>
+                  </tr>
+                <% }%>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+  <!--  show inconsistent configuration  -->
+  <% if (inconsistentProperties != 0) { %>
+  <div class="row-fluid">
+    <div class="accordion span12" id="accordion5">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion5" href="#data5">
+            <h4>Inconsistent Properties Details</h4>
+          </a>
+        </div>
+        <div id="data5" class="accordion-body collapse in">
+          <div class="accordion-inner">
+            <table class="table table-hover table-condensed">
+              <thead>
+                <th class="span2">Scope</th>
+                <th class="span4">Property</th>
+                <th class="span6">Value</th>
+              </thead>
+              <tbody>
+                <% if (errorSize != 0) { %>
+                  <tr>
+                    <th colspan="3"> <font color="red">Errors (those properties are required to be identical)</font></th>
+                  </tr>
+                  <% for (Map.Entry<Scope, List<InconsistentProperty>> error : ((Map<Scope, List<InconsistentProperty>>) request.getAttribute("configCheckErrors")).entrySet()) { %>
+                    <% for (InconsistentProperty inconsistentProperty: error.getValue()) { %>
+                      <% String scope = error.getKey().toString(); %>
+                      <% String name = inconsistentProperty.getName(); %>
+                      <% for (Map.Entry<String, List<String>> entry : inconsistentProperty.getValues().entrySet()) { %>
+                        <tr>
+                          <th class="span2"><font color="red"><%= scope %></font></th>
+                          <th class="span4"><font color="red"><%= name %></font></th>
+                          <% String value = String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()));%>
+                          <th class="span8"><font color="red"><%= value %></font></th>
+                        </tr>
+                        <% scope = ""; %>
+                        <% name = ""; %>
+                      <% } %>
+                    <% } %>
+                  <% } %>
+                <% } %>
+                <% if (warnSize != 0) { %>
+                  <tr>
+                    <th colspan="3">Warnings (those properties are recommended to be identical)</th>
+                  </tr>
+                  <% for (Map.Entry<Scope, List<InconsistentProperty>> warn : ((Map<Scope, List<InconsistentProperty>>) request.getAttribute("configCheckWarns")).entrySet()) { %>
+                    <% for (InconsistentProperty inconsistentProperty: warn.getValue()) { %>
+                      <% String scope = warn.getKey().toString(); %>
+                      <% String name = inconsistentProperty.getName(); %>
+                      <% for (Map.Entry<String, List<String>> entry : inconsistentProperty.getValues().entrySet()) { %>
+                        <tr>
+                          <th class="span2"><%= scope %></th>
+                          <th class="span4"><%= name %></th>
+                          <% String value = String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()));%>
+                          <th class="span8"><%= value %></th>
+                        </tr>
+                        <% scope = ""; %>
+                        <% name = ""; %>
+                      <% } %>
+                    <% } %>
+                  <% } %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
 <!--  Hide variables for now
   <div class="row-fluid">
     <div class="accordion span14" id="accordion5">

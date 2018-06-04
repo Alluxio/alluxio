@@ -32,7 +32,7 @@ public final class ConfigurationTestUtils {
    * while any object may be using the {@link Configuration}.
    */
   public static void resetConfiguration() {
-    Configuration.init();
+    Configuration.reset();
   }
 
   /**

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fsadmin.command;
+package alluxio.cli.fsadmin.report;
 
 import alluxio.cli.fsadmin.report.ConfigurationCommand;
 import alluxio.client.MetaMasterClient;
@@ -44,8 +44,8 @@ public class ConfigurationCommandTest {
   public void configuration() throws IOException {
     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
          PrintStream printStream = new PrintStream(outputStream, true, "utf-8")) {
-      ConfigurationCommand configurationCommand = new ConfigurationCommand(mMetaMasterClient,
-          printStream);
+      ConfigurationCommand configurationCommand
+          = new ConfigurationCommand(mMetaMasterClient, printStream);
       configurationCommand.run();
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
       // CHECKSTYLE.OFF: LineLengthExceed - Much more readable

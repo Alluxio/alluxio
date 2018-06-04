@@ -17,11 +17,13 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BackupTOptions;
+import alluxio.thrift.GetConfigReportTOptions;
 import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMetricsTOptions;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.BackupResponse;
+import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
@@ -65,7 +67,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
 
   @Override
   protected String getServiceName() {
-    return Constants.META_MASTER_SERVICE_NAME;
+    return Constants.META_MASTER_CLIENT_SERVICE_NAME;
   }
 
   @Override
@@ -84,6 +86,12 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
     return retryRPC(
         () -> BackupResponse.fromThrift(mClient.backup(new BackupTOptions()
             .setTargetDirectory(targetDirectory).setLocalFileSystem(localFileSystem))));
+  }
+
+  @Override
+  public synchronized ConfigCheckReport getConfigReport() throws IOException {
+    return retryRPC(() -> ConfigCheckReport.fromThrift(mClient
+        .getConfigReport(new GetConfigReportTOptions()).getReport()));
   }
 
   @Override

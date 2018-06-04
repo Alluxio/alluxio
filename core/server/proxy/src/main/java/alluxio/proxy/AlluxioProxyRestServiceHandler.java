@@ -12,7 +12,6 @@
 package alluxio.proxy;
 
 import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.web.ProxyWebServer;
@@ -94,18 +93,10 @@ public final class AlluxioProxyRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    Set<Map.Entry<String, String>> properties = Configuration.toMap().entrySet();
+    Set<Map.Entry<String, String>> properties = raw ? Configuration.toRawMap().entrySet() :
+        Configuration.toMap().entrySet();
     SortedMap<String, String> configuration = new TreeMap<>();
-    for (Map.Entry<String, String> entry : properties) {
-      String key = entry.getKey();
-      if (PropertyKey.isValid(key)) {
-        if (raw) {
-          configuration.put(key, entry.getValue());
-        } else {
-          configuration.put(key, Configuration.get(PropertyKey.fromString(key)));
-        }
-      }
-    }
+    properties.forEach(entry -> configuration.put(entry.getKey(), entry.getValue()));
     return configuration;
   }
 }

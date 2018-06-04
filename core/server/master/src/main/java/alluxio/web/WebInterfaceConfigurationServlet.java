@@ -12,11 +12,11 @@
 package alluxio.web;
 
 import alluxio.PropertyKey;
-import alluxio.master.MasterProcess;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.meta.MetaMaster;
+import alluxio.util.ConfigurationUtils;
 import alluxio.wire.ConfigProperty;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
@@ -40,17 +40,17 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
 
   private final transient FileSystemMaster mFsMaster;
-  private final transient MasterProcess mMasterProcess;
+  private final transient MetaMaster mMetaMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceConfigurationServlet}.
    *
    * @param fsMaster file system master to get white list
-   * @param masterProcess the Alluxio master process to get configuration
+   * @param metaMaster the meta master to get configuration
    */
-  public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster, MasterProcess masterProcess) {
+  public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster, MetaMaster metaMaster) {
     mFsMaster = fsMaster;
-    mMasterProcess = Preconditions.checkNotNull(masterProcess, "masterProcess");
+    mMetaMaster = metaMaster;
   }
 
   /**
@@ -73,11 +73,12 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
     TreeSet<Triple<String, String, String>> rtn = new TreeSet<>();
     Set<String> alluxioConfExcludes = Sets.newHashSet(
         PropertyKey.MASTER_WHITELIST.toString());
-    for (ConfigProperty configProperty : mMasterProcess.getConfiguration()) {
+    for (ConfigProperty configProperty : mMetaMaster.getConfiguration()) {
       String confName = configProperty.getName();
       if (!alluxioConfExcludes.contains(confName)) {
         rtn.add(new ImmutableTriple<>(confName,
-            configProperty.getValue(), configProperty.getSource()));
+            ConfigurationUtils.valueAsString(configProperty.getValue()),
+            configProperty.getSource()));
       }
     }
     return rtn;

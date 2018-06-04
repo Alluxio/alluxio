@@ -13,44 +13,29 @@ package alluxio.master;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryAssociation;
-import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.thrift.ThriftUtils;
-import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.resource.LockResource;
 import alluxio.security.authentication.TransportProvider;
-import alluxio.thrift.MetaMasterClientService;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.BackupOptions;
-import alluxio.wire.BackupResponse;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.server.TServer;
@@ -64,14 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
@@ -125,8 +103,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The RPC server. */
   private TServer mThriftServer;
 
-  /** The start time for when the master started serving the RPC server. */
-  private long mStartTimeMs = -1;
+  /** The start time for when the master started. */
+  private final long mStartTimeMs = System.currentTimeMillis();
 
   /** The journal system for writing journal entries and restoring master state. */
   protected final JournalSystem mJournalSystem;
@@ -136,6 +114,9 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager;
+
+  /** The manager for creating and restoring backups. */
+  private final BackupManager mBackupManager;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -183,103 +164,14 @@ public class AlluxioMasterProcess implements MasterProcess {
       // Create masters.
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
-      MasterContext context = new MasterContext(mJournalSystem, mSafeModeManager);
+      mBackupManager = new BackupManager(mRegistry);
+      MasterContext context =
+          new MasterContext(mJournalSystem, mSafeModeManager, mBackupManager, mStartTimeMs, mPort);
       mPauseStateLock = context.pauseStateLock();
       MasterUtils.createMasters(mRegistry, context);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-  }
-
-  @Override
-  public BackupResponse backup(BackupOptions options) throws IOException {
-    String dir = options.getTargetDirectory();
-    if (dir == null) {
-      dir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
-    }
-    UnderFileSystem ufs;
-    if (options.isLocalFileSystem()) {
-      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
-      LOG.info("Backing up to local filesystem in directory {}", dir);
-    } else {
-      ufs = UnderFileSystem.Factory.createForRoot();
-      LOG.info("Backing up to root UFS in directory {}", dir);
-    }
-    if (!ufs.isDirectory(dir)) {
-      if (!ufs.mkdirs(dir, MkdirsOptions.defaults().setCreateParent(true))) {
-        throw new IOException(String.format("Failed to create directory %s", dir));
-      }
-    }
-    String backupFilePath;
-    try (LockResource lr = new LockResource(mPauseStateLock)) {
-      Instant now = Instant.now();
-      String backupFileName = String.format("alluxio-backup-%s-%s.gz",
-          DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
-          now.toEpochMilli());
-      backupFilePath = PathUtils.concatPath(dir, backupFileName);
-      OutputStream ufsStream = ufs.create(backupFilePath);
-      try {
-        OutputStream zipStream = new GzipCompressorOutputStream(ufsStream);
-        for (Master master : mRegistry.getServers()) {
-          Iterator<JournalEntry> it = master.getJournalEntryIterator();
-          while (it.hasNext()) {
-            it.next().toBuilder().clearSequenceNumber().build().writeDelimitedTo(zipStream);
-          }
-        }
-        // This closes the underlying ufs stream.
-        zipStream.close();
-      } catch (Throwable t) {
-        try {
-          ufsStream.close();
-        } catch (Throwable t2) {
-          LOG.error("Failed to close backup stream to {}", backupFilePath, t2);
-          t.addSuppressed(t2);
-        }
-        try {
-          ufs.deleteFile(backupFilePath);
-        } catch (Throwable t2) {
-          LOG.error("Failed to clean up partially-written backup at {}", backupFilePath, t2);
-          t.addSuppressed(t2);
-        }
-        throw t;
-      }
-    }
-    String rootUfs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    if (options.isLocalFileSystem()) {
-      rootUfs = "file:///";
-    }
-    AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
-    return new BackupResponse(backupUri,
-        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
-  }
-
-  private void initFromBackup(AlluxioURI backup) throws IOException {
-    LOG.info("Initializing master from backup {}", backup);
-    int count = 0;
-    UnderFileSystem ufs;
-    if (URIUtils.isLocalFilesystem(backup.toString())) {
-      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
-    } else {
-      ufs = UnderFileSystem.Factory.createForRoot();
-    }
-    try (UnderFileSystem closeUfs = ufs;
-         InputStream ufsIn = ufs.open(backup.getPath());
-         GzipCompressorInputStream gzIn = new GzipCompressorInputStream(ufsIn);
-         JournalEntryStreamReader reader = new JournalEntryStreamReader(gzIn)) {
-      List<Master> masters = mRegistry.getServers();
-      JournalEntry entry;
-      Map<String, Master> mastersByName = Maps.uniqueIndex(masters, Master::getName);
-      while ((entry = reader.readEntry()) != null) {
-        String masterName = JournalEntryAssociation.getMasterForEntry(entry);
-        Master master = mastersByName.get(masterName);
-        master.processJournalEntry(entry);
-        try (JournalContext jc = master.createJournalContext()) {
-          jc.append(entry);
-          count++;
-        }
-      }
-    }
-    LOG.info("Imported {} entries from backup", count);
   }
 
   @Override
@@ -319,30 +211,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   @Override
   public boolean isServing() {
     return mThriftServer != null && mThriftServer.isServing();
-  }
-
-  @Override
-  public List<ConfigProperty> getConfiguration() {
-    List<ConfigProperty> configInfoList = new ArrayList<>();
-    String alluxioConfPrefix = "alluxio";
-    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      String key = entry.getKey();
-      String value = entry.getValue();
-      if (key.startsWith(alluxioConfPrefix) && value != null) {
-        PropertyKey propertyKey = PropertyKey.fromString(key);
-        Configuration.Source source = Configuration.getSource(propertyKey);
-        String sourceStr;
-        if (source == Configuration.Source.SITE_PROPERTY) {
-          sourceStr =
-              String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
-        } else {
-          sourceStr = source.name();
-        }
-        configInfoList.add(new ConfigProperty()
-            .setName(key).setValue(entry.getValue()).setSource(sourceStr));
-      }
-    }
-    return configInfoList;
   }
 
   @Override
@@ -398,6 +266,20 @@ public class AlluxioMasterProcess implements MasterProcess {
       LOG.info("All masters started");
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private void initFromBackup(AlluxioURI backup) throws IOException {
+    UnderFileSystem ufs;
+    if (URIUtils.isLocalFilesystem(backup.toString())) {
+      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
+    } else {
+      ufs = UnderFileSystem.Factory.createForRoot();
+    }
+    try (UnderFileSystem closeUfs = ufs;
+         InputStream ufsIn = ufs.open(backup.getPath())) {
+      LOG.info("Initializing metadata from backup {}", backup);
+      mBackupManager.initFromBackup(ufsIn);
     }
   }
 
@@ -485,9 +367,6 @@ public class AlluxioMasterProcess implements MasterProcess {
     for (Master master : mRegistry.getServers()) {
       registerServices(processor, master.getServices());
     }
-    // register meta services
-    processor.registerProcessor(Constants.META_MASTER_SERVICE_NAME,
-        new MetaMasterClientService.Processor<>(new MetaMasterClientServiceHandler(this)));
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;
@@ -516,7 +395,6 @@ public class AlluxioMasterProcess implements MasterProcess {
     mThriftServer = new TThreadPoolServer(args);
 
     // start thrift rpc server
-    mStartTimeMs = System.currentTimeMillis();
     mSafeModeManager.notifyRpcServerStarted();
     mThriftServer.serve();
   }

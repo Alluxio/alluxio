@@ -120,6 +120,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.ListOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
@@ -151,8 +152,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -607,7 +610,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mLostFilesDetectionService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
               new LostFileDetector(this, mInodeTree),
-              (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+              (int) Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL)));
       if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
         mStartupConsistencyCheck = getExecutorService().submit(() -> startupCheckConsistency(
             ExecutorServiceFactories
@@ -876,7 +879,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
-      UnavailableException, IOException {
+      UnavailableException {
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(path, listStatusOptions.getCommonOptions(), InodeTree.LockMode.READ);
@@ -993,15 +996,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               InodeTree.LockMode.READ)) {
             listStatusInternal(childInodePath, auditContext,
                 nextDescendantType, statusList);
-          } catch (FileDoesNotExistException e) {
-            LOG.debug("ListStatus failed for path {} because file does not exist",
-                mInodeTree.getPath(child).getPath(), e);
-          } catch (UnavailableException e) {
-            LOG.debug("ListStatus failed for path {} because service is not available",
-                mInodeTree.getPath(child).getPath(), e);
-          } catch (AccessControlException e) {
-            LOG.debug("ListStatus failed for path {} because user does not have access",
-                mInodeTree.getPath(child).getPath(), e);
           }
         }
       }
@@ -2578,12 +2572,22 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
 
         if (options.getLoadDescendantType() != DescendantType.NONE) {
-          UfsStatus[] children = ufs.listStatus(ufsUri.toString());
+          ListOptions listOptions = ListOptions.defaults();
+          if (options.getLoadDescendantType() == DescendantType.ALL) {
+            listOptions.setRecursive(true);
+          } else {
+            listOptions.setRecursive(false);
+          }
+          UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
+          Arrays.sort(children, Comparator.comparing(UfsStatus::getName));
+
           for (UfsStatus childStatus : children) {
             if (PathUtils.isTemporaryFileName(childStatus.getName())) {
               continue;
             }
-            if (inode.getChild(childStatus.getName()) != null && (childStatus.isFile()
+            AlluxioURI childURI = new AlluxioURI(
+                PathUtils.concatPath(inodePath.getUri(), childStatus.getName()));
+            if (mInodeTree.inodePathExists(childURI) && (childStatus.isFile()
                 || options.getLoadDescendantType() != DescendantType.ALL)) {
               // stop traversing if this is an existing file, or an existing directory without
               // loading all descendants.
@@ -2591,14 +2595,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             }
             try (TempInodePathForChild tempInodePath =
                 new TempInodePathForChild(inodePath, childStatus.getName())) {
-              DescendantType loadDescendantType =
-                  (options.getLoadDescendantType() == DescendantType.ONE) ? DescendantType.NONE :
-                      DescendantType.ALL;
               LoadMetadataOptions loadMetadataOptions =
-                  LoadMetadataOptions.defaults().setLoadDescendantType(loadDescendantType)
+                  LoadMetadataOptions.defaults().setLoadDescendantType(DescendantType.NONE)
                       .setCreateAncestors(false).setUfsStatus(childStatus);
               loadMetadataAndJournal(rpcContext, tempInodePath, loadMetadataOptions);
+
+              if (options.getLoadDescendantType() == DescendantType.ALL
+                  && tempInodePath.getInode().isDirectory()) {
+                InodeDirectory inodeDirectory = (InodeDirectory) tempInodePath.getInode();
+                inodeDirectory.setDirectChildrenLoaded(true);
+              }
             }
+
           }
           inode.setDirectChildrenLoaded(true);
         }
