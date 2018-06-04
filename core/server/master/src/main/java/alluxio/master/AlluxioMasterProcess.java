@@ -91,8 +91,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The RPC server. */
   private TServer mThriftServer;
 
-  /** The start time for when the master started serving the RPC server. */
-  private long mStartTimeMs = -1;
+  /** The start time for when the master started. */
+  private final long mStartTimeMs = System.currentTimeMillis();
 
   /** The journal system for writing journal entries and restoring master state. */
   protected final JournalSystem mJournalSystem;
@@ -149,7 +149,6 @@ public class AlluxioMasterProcess implements MasterProcess {
       // Create masters.
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
-      mStartTimeMs = System.currentTimeMillis();
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager, mStartTimeMs, mPort);
     } catch (Exception e) {
       throw new RuntimeException(e);
