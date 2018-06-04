@@ -13,7 +13,6 @@ package alluxio.wire;
 
 import alluxio.annotation.PublicApi;
 import alluxio.grpc.LoadMetadataPType;
-import alluxio.thrift.LoadMetadataTType;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -53,36 +52,10 @@ public enum LoadMetadataType {
 
   /**
    * @param loadMetadataType the {@link LoadMetadataType}
-   * @return the thrift representation of this enum
-   */
-  public static LoadMetadataTType toThrift(LoadMetadataType loadMetadataType) {
-    return LoadMetadataTType.findByValue(loadMetadataType.getValue());
-  }
-
-  /**
-   * @param loadMetadataType the {@link LoadMetadataType}
    * @return the proto representation of this enum
    */
   public static LoadMetadataPType toProto(LoadMetadataType loadMetadataType) {
     return LoadMetadataPType.forNumber(loadMetadataType.getValue());
-  }
-
-  /**
-   * @param loadMetadataTType the thrift representation of loadMetadataType
-   * @return the {@link LoadMetadataType}
-   */
-  @Nullable
-  public static LoadMetadataType fromThrift(LoadMetadataTType loadMetadataTType) {
-    switch (loadMetadataTType.getValue()) {
-      case 0:
-        return Never;
-      case 1:
-        return Once;
-      case 2:
-        return Always;
-      default:
-        return null;
-    }
   }
 
   /**

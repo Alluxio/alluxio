@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.thrift.FileSystemMasterCommonTOptions;
 
 import com.google.common.base.Objects;
 
@@ -42,20 +41,6 @@ public final class CommonOptions implements Serializable {
 
   protected CommonOptions() {
     mSyncIntervalMs = Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-  }
-
-  /**
-   * Creates a new instance of {@link CommonOptions} from {@link FileSystemMasterCommonTOptions}.
-   *
-   * @param options Thrift options
-   */
-  public CommonOptions(FileSystemMasterCommonTOptions options) {
-    this();
-    if (options != null) {
-      if (options.isSetSyncIntervalMs()) {
-        mSyncIntervalMs = options.getSyncIntervalMs();
-      }
-    }
   }
 
   /**
@@ -122,15 +107,6 @@ public final class CommonOptions implements Serializable {
     return Objects.toStringHelper(this)
         .add("syncIntervalMs", mSyncIntervalMs)
         .toString();
-  }
-
-  /**
-   * @return thrift representation of the lineage information
-   */
-  public FileSystemMasterCommonTOptions toThrift() {
-    FileSystemMasterCommonTOptions options = new FileSystemMasterCommonTOptions();
-    options.setSyncIntervalMs(mSyncIntervalMs);
-    return options;
   }
 
   /**

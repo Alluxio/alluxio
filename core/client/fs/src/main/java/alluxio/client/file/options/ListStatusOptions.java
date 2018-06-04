@@ -114,8 +114,8 @@ public final class ListStatusOptions {
     options.setLoadDirectChildren(
         mLoadMetadataType == LoadMetadataType.Once || mLoadMetadataType == LoadMetadataType.Always);
 
-    options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
-    options.setCommonOptions(mCommonOptions.toThrift());
+//    options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
+//    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }
