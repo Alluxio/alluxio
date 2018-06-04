@@ -562,7 +562,9 @@ public final class FileInfo implements Serializable {
         .setMountId(info.getMountId())
         .setInAlluxioPercentage(info.getInAlluxioPercentage())
         .setUfsFingerprint(info.isSetUfsFingerprint() ? info.getUfsFingerprint()
-            : Constants.INVALID_UFS_FINGERPRINT);
+            : Constants.INVALID_UFS_FINGERPRINT)
+        .setAclEntries(info.isSetAcl()
+            ? (AccessControlList.fromThrift(info.getAcl())).toStringEntries() : new ArrayList<>());
   }
 
   @Override
