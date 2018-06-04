@@ -17,8 +17,8 @@ import alluxio.PropertyKey;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.wire.ConfigProperty;
-import alluxio.wire.ExportJournalOptions;
-import alluxio.wire.ExportJournalResponse;
+import alluxio.wire.BackupOptions;
+import alluxio.wire.BackupResponse;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -54,12 +54,12 @@ public interface MasterProcess extends Process {
   }
 
   /**
-   * Exports the journal.
+   * Backs up the master.
    *
    * @param options method options
    * @return the uri of the created backup
    */
-  ExportJournalResponse exportJournal(ExportJournalOptions options) throws IOException;
+  BackupResponse backup(BackupOptions options) throws IOException;
 
   /**
    * @param clazz the class of the master to get

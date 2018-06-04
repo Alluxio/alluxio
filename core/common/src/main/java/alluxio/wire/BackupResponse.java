@@ -11,24 +11,25 @@
 
 package alluxio.wire;
 
-import alluxio.thrift.ExportJournalTResponse;
+import alluxio.AlluxioURI;
+import alluxio.thrift.BackupTResponse;
 
 import com.google.common.base.Preconditions;
 
 /**
- * Response for the exportJournal RPC.
+ * Response for the backup RPC.
  */
-public class ExportJournalResponse {
+public class BackupResponse {
   // The URI of the backed up file.
-  private String mBackupUri;
-  // The hostname of the master that did the export.
+  private AlluxioURI mBackupUri;
+  // The hostname of the master that did the backup.
   private String mHostname;
 
   /**
    * @param backupUri the URI of the backed up file
-   * @param hostname the hostname of the master that did the export
+   * @param hostname the hostname of the master that did the backup
    */
-  public ExportJournalResponse(String backupUri, String hostname) {
+  public BackupResponse(AlluxioURI backupUri, String hostname) {
     mBackupUri = Preconditions.checkNotNull(backupUri, "backupUri");
     mHostname = Preconditions.checkNotNull(hostname, "hostname");
   }
@@ -37,26 +38,26 @@ public class ExportJournalResponse {
    * @param tResp thrift options
    * @return wire type options corresponding to the thrift options
    */
-  public static ExportJournalResponse fromThrift(ExportJournalTResponse tResp) {
-    return new ExportJournalResponse(tResp.getBackupUri(), tResp.getHostname());
+  public static BackupResponse fromThrift(BackupTResponse tResp) {
+    return new BackupResponse(new AlluxioURI(tResp.getBackupUri()), tResp.getHostname());
   }
 
   /**
    * @return the thrift options corresponding to these options
    */
-  public ExportJournalTResponse toThrift() {
-    return new ExportJournalTResponse().setBackupUri(mBackupUri).setHostname(mHostname);
+  public BackupTResponse toThrift() {
+    return new BackupTResponse().setBackupUri(mBackupUri.toString()).setHostname(mHostname);
   }
 
   /**
    * @return the URI of the backed up file
    */
-  public String getBackupUri() {
+  public AlluxioURI getBackupUri() {
     return mBackupUri;
   }
 
   /**
-   * @return the hostname of the master that did the export
+   * @return the hostname of the master that did the backup
    */
   public String getHostname() {
     return mHostname;

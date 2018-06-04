@@ -42,8 +42,8 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
 import alluxio.wire.ConfigProperty;
-import alluxio.wire.ExportJournalOptions;
-import alluxio.wire.ExportJournalResponse;
+import alluxio.wire.BackupOptions;
+import alluxio.wire.BackupResponse;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -192,29 +192,32 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public ExportJournalResponse exportJournal(ExportJournalOptions options) throws IOException {
+  public BackupResponse backup(BackupOptions options) throws IOException {
     String dir = options.getTargetDirectory();
+    if (dir == null) {
+      dir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
+    }
     UnderFileSystem ufs;
     if (options.isLocalFileSystem()) {
       ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
-      LOG.info("Exporting journal backup to local filesystem in directory {}", dir);
+      LOG.info("Backing up to local filesystem in directory {}", dir);
     } else {
       ufs = UnderFileSystem.Factory.createForRoot();
-      LOG.info("Exporting journal backup to root UFS in directory {}", dir);
+      LOG.info("Backing up to root UFS in directory {}", dir);
     }
     if (!ufs.isDirectory(dir)) {
       if (!ufs.mkdirs(dir, MkdirsOptions.defaults().setCreateParent(true))) {
         throw new IOException(String.format("Failed to create directory %s", dir));
       }
     }
-    String exportFilePath;
+    String backupFilePath;
     try (LockResource lr = new LockResource(mPauseStateLock)) {
       Instant now = Instant.now();
-      String exportFileName = String.format("alluxio-journal-%s-%s.gz",
+      String backupFileName = String.format("alluxio-backup-%s-%s.gz",
           DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
           now.toEpochMilli());
-      exportFilePath = PathUtils.concatPath(dir, exportFileName);
-      OutputStream ufsStream = ufs.create(exportFilePath);
+      backupFilePath = PathUtils.concatPath(dir, backupFileName);
+      OutputStream ufsStream = ufs.create(backupFilePath);
       try {
         OutputStream zipStream = new GzipCompressorOutputStream(ufsStream);
         for (Master master : mRegistry.getServers()) {
@@ -229,13 +232,13 @@ public class AlluxioMasterProcess implements MasterProcess {
         try {
           ufsStream.close();
         } catch (Throwable t2) {
-          LOG.error("Failed to close backup stream to {}", exportFilePath, t2);
+          LOG.error("Failed to close backup stream to {}", backupFilePath, t2);
           t.addSuppressed(t2);
         }
         try {
-          ufs.deleteFile(exportFilePath);
+          ufs.deleteFile(backupFilePath);
         } catch (Throwable t2) {
-          LOG.error("Failed to clean up partially-written backup at {}", exportFilePath, t2);
+          LOG.error("Failed to clean up partially-written backup at {}", backupFilePath, t2);
           t.addSuppressed(t2);
         }
         throw t;
@@ -245,14 +248,13 @@ public class AlluxioMasterProcess implements MasterProcess {
     if (options.isLocalFileSystem()) {
       rootUfs = "file:///";
     }
-    String backupUri =
-        new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(exportFilePath)).toString();
-    return new ExportJournalResponse(backupUri,
+    AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
+    return new BackupResponse(backupUri,
         NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
-    LOG.info("Initializing journal from backup {}", backup);
+    LOG.info("Initializing master from backup {}", backup);
     int count = 0;
     UnderFileSystem ufs;
     if (URIUtils.isLocalFilesystem(backup.toString())) {

@@ -11,24 +11,25 @@
 
 package alluxio.wire;
 
-import alluxio.thrift.ExportJournalTOptions;
+import alluxio.thrift.BackupTOptions;
 
-import com.google.common.base.Preconditions;
+import javax.annotation.Nullable;
 
 /**
- * Options for exporting the Alluxio master journal.
+ * Options for backing up the Alluxio master.
  */
-public class ExportJournalOptions {
-  // Directory to export the journal to.
+public class BackupOptions {
+  @Nullable
   private String mTargetDirectory;
   private boolean mLocalFileSystem;
 
   /**
-   * @param targetDirectory path of the directory to export the journal to
+   * @param targetDirectory the directory to write a backup to; null means to use the default backup
+   *        directory
    * @param localFileSystem whether to write to the local filesystem instead of the root UFS
    */
-  public ExportJournalOptions(String targetDirectory, boolean localFileSystem) {
-    mTargetDirectory = Preconditions.checkNotNull(targetDirectory, "targetDirectoryUri");
+  public BackupOptions(@Nullable String targetDirectory, boolean localFileSystem) {
+    mTargetDirectory = targetDirectory;
     mLocalFileSystem = localFileSystem;
   }
 
@@ -36,21 +37,22 @@ public class ExportJournalOptions {
    * @param tOpts thrift options
    * @return wire type options corresponding to the thrift options
    */
-  public static ExportJournalOptions fromThrift(ExportJournalTOptions tOpts) {
-    return new ExportJournalOptions(tOpts.getTargetDirectory(), tOpts.isLocalFileSystem());
+  public static BackupOptions fromThrift(BackupTOptions tOpts) {
+    return new BackupOptions(tOpts.getTargetDirectory(), tOpts.isLocalFileSystem());
   }
 
   /**
    * @return the thrift options corresponding to these options
    */
-  public ExportJournalTOptions toThrift() {
-    return new ExportJournalTOptions().setTargetDirectory(mTargetDirectory)
+  public BackupTOptions toThrift() {
+    return new BackupTOptions().setTargetDirectory(mTargetDirectory)
         .setLocalFileSystem(mLocalFileSystem);
   }
 
   /**
-   * @return the directory to export the journal to
+   * @return the directory to write a backup to; null means to use the default backup directory
    */
+  @Nullable
   public String getTargetDirectory() {
     return mTargetDirectory;
   }
