@@ -13,6 +13,8 @@ package alluxio.master.file.meta;
 
 import alluxio.exception.InvalidPathException;
 
+import com.google.common.collect.Lists;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -167,7 +169,14 @@ public class InodeLockList implements AutoCloseable {
    * @return the list of inodes locked in this lock list, in order of when the inodes were locked
    */
   public synchronized List<Inode<?>> getInodes() {
-    return mInodes;
+    return Lists.newArrayList(mInodes);
+  }
+
+  /**
+   * @return true if the locklist is empty
+   */
+  public synchronized boolean isEmpty() {
+    return mInodes.isEmpty();
   }
 
   @Override

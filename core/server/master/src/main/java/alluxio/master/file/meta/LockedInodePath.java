@@ -39,18 +39,27 @@ public abstract class LockedInodePath implements Closeable {
   LockedInodePath(AlluxioURI uri, InodeLockList lockList,
       InodeTree.LockMode lockMode)
       throws InvalidPathException {
-    Preconditions.checkArgument(!lockList.getInodes().isEmpty());
+    Preconditions.checkArgument(!lockList.isEmpty());
     mUri = uri;
     mPathComponents = PathUtils.getPathComponents(mUri.getPath());
     mLockList = lockList;
     mLockMode = lockMode;
   }
 
+  /**
+   * Creates a new instance of {@link LockedInodePath}, that is the descendant of an existing
+   * lockedInodePath.
+   *
+   * @param descendantUri the uri of the descendant
+   * @param lockedInodePath the lockedInodePath that is the parent of the descendant
+   * @param lockList the lockList which contains all the locks from the parent (not including)
+   *                to the descendant.
+   */
   LockedInodePath(AlluxioURI descendantUri, LockedInodePath lockedInodePath,
-                  InodeLockList descendants) throws InvalidPathException {
+                  InodeLockList lockList) throws InvalidPathException {
     mUri = descendantUri;
     mPathComponents = PathUtils.getPathComponents(mUri.getPath());
-    mLockList = new CompositeInodeLockList(lockedInodePath.mLockList, descendants);
+    mLockList = new CompositeInodeLockList(lockedInodePath.mLockList, lockList);
     mLockMode = lockedInodePath.getLockMode();
   }
 
@@ -138,7 +147,7 @@ public abstract class LockedInodePath implements Closeable {
    * @return a copy of the list of existing inodes, from the root
    */
   public synchronized List<Inode<?>> getInodeList() {
-    return Lists.newArrayList(mLockList.getInodes());
+    return mLockList.getInodes();
   }
 
   /**

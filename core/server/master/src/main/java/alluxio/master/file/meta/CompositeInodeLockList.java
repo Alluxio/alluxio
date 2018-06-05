@@ -54,4 +54,12 @@ public class CompositeInodeLockList extends InodeLockList {
     ret.addAll(mInodes);
     return ret;
   }
+
+  /**
+   * @return true if the locklist is empty
+   */
+  @Override
+  public synchronized boolean isEmpty() {
+    return mBaseLockList.isEmpty() && mInodes.isEmpty();
+  }
 }
