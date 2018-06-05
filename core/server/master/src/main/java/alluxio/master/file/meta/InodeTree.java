@@ -828,27 +828,13 @@ public class InodeTree implements JournalEntryIterable {
     InodeDirectory inodeDirectory = (InodeDirectory) inode;
     for (Inode<?> child : inodeDirectory.getChildren()) {
       LockedInodePath lockedDescendantPath;
-      InodeLockList lockList = new InodeLockList();
-      if (lockMode == LockMode.READ) {
-        try {
-          lockList.lockReadAndCheckParent(child, inodeDirectory);
-          lockedDescendantPath = new MutableLockedInodePath(
-              inodePath.getUri().join(child.getName()), inodePath, lockList);
-          inodePathList.add(lockedDescendantPath);
-        } catch (InvalidPathException e) {
-          // Inode is no longer a child, continue.
-          continue;
-        }
-      } else {
-        try {
-          lockList.lockWriteAndCheckParent(child, inodeDirectory);
-          lockedDescendantPath = new MutableLockedInodePath(
-              inodePath.getUri().join(child.getName()), inodePath, lockList);
-          inodePathList.add(lockedDescendantPath);
-        } catch (InvalidPathException e) {
-          // Inode is no longer a child, continue.
-          continue;
-        }
+      try {
+        lockedDescendantPath =
+            inodePath.createTempPathForExistingChild(child);
+        inodePathList.add(lockedDescendantPath);
+      } catch (InvalidPathException | FileDoesNotExistException e) {
+        // Inode is no longer a child, continue.
+        continue;
       }
       if (child.isDirectory()) {
         lockDescendantsInternal(lockedDescendantPath, lockMode, inodePathList);
