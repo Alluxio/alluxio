@@ -18,7 +18,6 @@ import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 
-import com.google.common.base.Objects;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
@@ -100,19 +99,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof PollingMasterInquireClient)) {
-      return false;
-    }
-    PollingMasterInquireClient that = (PollingMasterInquireClient) o;
-    return mMasterAddresses.equals(that.mMasterAddresses);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(mMasterAddresses);
+  public ConnectString getConnectString() {
+    return MasterInquireClient.ConnectString.multiMasterConnectString(mMasterAddresses);
   }
 }
