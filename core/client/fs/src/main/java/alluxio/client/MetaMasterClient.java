@@ -32,10 +32,10 @@ import javax.annotation.Nullable;
  */
 public interface MetaMasterClient extends Closeable {
   /**
-   * Exports a backup of the journal to the specified directory. The backup is written to the
+   * Writes a backup of the journal to the specified directory. The backup is written to the
    * directory with a file name containing the date when the file was written.
    *
-   * @param dir the directory in the UFS to export to, or null to use the default alluxio backup
+   * @param dir the directory in the UFS to write to, or null to use the default alluxio backup
    *        directory
    * @param localFileSystem whether to write to the master's local filesystem instead of the UFS
    * @return the server response

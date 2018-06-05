@@ -74,7 +74,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     File backups = AlluxioTestDirectory.createTemporaryDirectory("backups");
     mCluster.start();
     List<Thread> opThreads = new ArrayList<>();
-    // Run background threads to perform metadata operations while the journal exports and imports
+    // Run background threads to perform metadata operations while the journal backups and restores
     // are happening.
     for (int i = 0; i < 10; i++) {
       AlluxioOperationThread thread = new AlluxioOperationThread(mCluster.getFileSystemClient());

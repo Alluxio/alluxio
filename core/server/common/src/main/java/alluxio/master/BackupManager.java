@@ -88,6 +88,6 @@ public class BackupManager {
         }
       }
     }
-    LOG.info("Imported {} entries from backup", count);
+    LOG.info("Restored {} entries from backup", count);
   }
 }

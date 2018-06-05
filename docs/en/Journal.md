@@ -9,11 +9,11 @@ priority: 0
 * Table of Contents
 {:toc}
 
-Alluxio maintains a journal to support persistence of metadata operations. 
+Alluxio maintains a journal to support persistence of metadata operations.
 When a request modifies Alluxio state, e.g. creating or renaming files, the
 Alluxio master will write a journal entry for the operation before returning
-a successful response to the client. The journal entry is written to a 
-persistent storage such as disk or HDFS, so even if the Alluxio 
+a successful response to the client. The journal entry is written to a
+persistent storage such as disk or HDFS, so even if the Alluxio
 master process is killed, state will be recovered on restart.
 
 # Configuration
@@ -23,8 +23,8 @@ The most important configuration value to set for the journal is
 to all masters. In single-master mode, a local filesystem path is fine. With
 multiple masters distributed across different machines, the shared folder should
 be in a distributed system that supports flush such as HDFS or NFS. It is not
-recommended to put the journal in an object store. With an object store, every 
-update to the journal requires a new object to be created, which is 
+recommended to put the journal in an object store. With an object store, every
+update to the journal requires a new object to be created, which is
 prohibitively slow for most serious use cases.
 
 **Configuration examples:**
@@ -46,7 +46,7 @@ $ bin/alluxio formatMaster
 
 # Backup
 
-Alluxio supports taking journal backups so that Alluxio metadata can be restored 
+Alluxio supports taking journal backups so that Alluxio metadata can be restored
 to a previous point in time. Generating a backup causes temporary service
 unavailability while the backup is happening.
 
@@ -55,7 +55,7 @@ To generate a backup, use the `fsadmin backup` CLI command.
 $ bin/alluxio fsadmin backup
 ```
 
-By default, this will write a backup named 
+By default, this will write a backup named
 `alluxio-journal-YYYY-MM-DD-timestamp.gz` to the "/alluxio_backups" directory of
 the root under file system, e.g. hdfs://cluster/alluxio_backups. This default
 backup directory can be configured by setting `alluxio.master.backup.directory`
@@ -69,8 +69,8 @@ where to write a backup.
 
 # Restore
 
-To restore the Alluxio system from a journal backup, stop the system, format the 
-journal, then restart the system, passing the URI of the backup with the `-i` 
+To restore the Alluxio system from a journal backup, stop the system, format the
+journal, then restart the system, passing the URI of the backup with the `-i`
 (import) flag.
 
 ```
@@ -82,8 +82,8 @@ $ bin/alluxio-start.sh -i <backup_uri> masters
 The `<backup_uri>` should be a full URI path that is available to all masters, e.g.
 `hdfs://[namenodeserver]:[namenodeport]/alluxio_backups/alluxio-journal-YYYY-MM-DD-timestamp.gz`
 
-If the restore succeeds, you should see a log message along the lines of 
+If the restore succeeds, you should see a log message along the lines of
 ```
-INFO AlluxioMasterProcess - Imported 57 entries from backup
+INFO AlluxioMasterProcess - Restored 57 entries from backup
 ```
 in the primary master logs.
