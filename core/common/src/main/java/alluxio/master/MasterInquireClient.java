@@ -56,17 +56,17 @@ public interface MasterInquireClient {
     }
 
     /**
-     * @param config configuration for creating the master inquire client
+     * @param conf configuration for creating the master inquire client
      * @return a master inquire client
      */
-    public static MasterInquireClient create(AlluxioConfiguration config) {
-      if (config.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        return ZkMasterInquireClient.getClient(config.get(PropertyKey.ZOOKEEPER_ADDRESS),
-            config.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
-            config.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
+    public static MasterInquireClient create(AlluxioConfiguration conf) {
+      if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+        return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
+            conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
+            conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
       } else {
         return new SingleMasterInquireClient(
-            NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, config));
+            NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf));
       }
     }
 

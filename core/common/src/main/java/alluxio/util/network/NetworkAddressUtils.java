@@ -208,13 +208,13 @@ public final class NetworkAddressUtils {
    * service.
    *
    * @param service the service name used to connect
-   * @param config the configuration to use for looking up the connect address
+   * @param conf the configuration to use for looking up the connect address
    * @return the service address that a client (typically outside the service machine) uses to
    *         communicate with service.
    */
   public static InetSocketAddress getConnectAddress(ServiceType service,
-      AlluxioConfiguration config) {
-    return new InetSocketAddress(getConnectHost(service, config), getPort(service, config));
+      AlluxioConfiguration conf) {
+    return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
   }
 
   /**
@@ -300,19 +300,19 @@ public final class NetworkAddressUtils {
    * </table>
    *
    * @param service Service type used to connect
-   * @param config configuration
+   * @param conf configuration
    * @return the externally resolvable hostname that the client can use to communicate with the
    *         service.
    */
-  public static String getConnectHost(ServiceType service, AlluxioConfiguration config) {
-    if (config.containsKey(service.mHostNameKey)) {
-      String connectHost = config.get(service.mHostNameKey);
+  public static String getConnectHost(ServiceType service, AlluxioConfiguration conf) {
+    if (conf.containsKey(service.mHostNameKey)) {
+      String connectHost = conf.get(service.mHostNameKey);
       if (!connectHost.isEmpty() && !connectHost.equals(WILDCARD_ADDRESS)) {
         return connectHost;
       }
     }
-    if (config.containsKey(service.mBindHostKey)) {
-      String bindHost = config.get(service.mBindHostKey);
+    if (conf.containsKey(service.mBindHostKey)) {
+      String bindHost = conf.get(service.mBindHostKey);
       if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
         return bindHost;
       }
