@@ -226,9 +226,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
+     * Creates and registers the property key.
+     *
      * @return the created property key instance
      */
     public PropertyKey build() {
+      PropertyKey key = buildUnregistered();
+      Preconditions.checkState(PropertyKey.register(key), "Cannot register existing key \"%s\"",
+          mName);
+      return key;
+    }
+
+    /**
+     * Creates the property key without registering it with default property list.
+     *
+     * @return the created property key instance
+     */
+    private PropertyKey buildUnregistered() {
       DefaultSupplier defaultSupplier = mDefaultSupplier;
       if (defaultSupplier == null) {
         String defaultString = String.valueOf(mDefaultValue);
@@ -239,8 +253,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
       PropertyKey key = new PropertyKey(mName, mDescription, defaultSupplier, mAlias,
           mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType);
-      Preconditions.checkState(PropertyKey.register(key), "Cannot register existing key \"%s\"",
-          mName);
       return key;
     }
 
@@ -3523,7 +3535,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           createNestedPropertyCreator(Scope.MASTER, ConsistencyCheckLevel.ENFORCE);
 
       private static BiFunction<String, PropertyKey, PropertyKey> fromBuilder(Builder builder) {
-        return (name, baseProperty) -> builder.setName(name).build();
+        return (name, baseProperty) -> builder.setName(name).buildUnregistered();
       }
 
       private static BiFunction<String, PropertyKey, PropertyKey> createNestedPropertyCreator(
@@ -3533,7 +3545,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             .setDefaultSupplier(baseProperty.getDefaultSupplier())
             .setScope(scope)
             .setConsistencyCheckLevel(consistencyCheckLevel)
-            .build();
+            .buildUnregistered();
       }
     }
 
