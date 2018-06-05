@@ -9,12 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.service;
+package alluxio.service.file;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.service.file.options.GetStatusOptions;
 import alluxio.wire.FileInfo;
 
 import java.io.IOException;

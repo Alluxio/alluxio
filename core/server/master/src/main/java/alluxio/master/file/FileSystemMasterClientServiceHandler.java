@@ -25,7 +25,6 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.DescendantType;
 import alluxio.master.file.options.FreeOptions;
-import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
@@ -232,8 +231,9 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetStatusTResponse>() {
       @Override
       public GetStatusTResponse call() throws AlluxioException, IOException {
-        return new GetStatusTResponse(ThriftUtils.toThrift(
-            mFileSystemMaster.getFileInfo(new AlluxioURI(path), new GetStatusOptions(options))));
+        return null;
+//        return new GetStatusTResponse(ThriftUtils.toThrift(
+//            mFileSystemMaster.getFileInfo(new AlluxioURI(path), new GetStatusOptions(options))));
       }
 
       @Override

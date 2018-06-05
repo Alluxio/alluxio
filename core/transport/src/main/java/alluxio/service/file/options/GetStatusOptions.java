@@ -9,24 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.options;
-
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.thrift.GetStatusTOptions;
-import alluxio.wire.CommonOptions;
-import alluxio.wire.LoadMetadataType;
-
-import com.google.common.base.Objects;
+package alluxio.service.file.options;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.google.common.base.Objects;
+
+import alluxio.annotation.PublicApi;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.wire.CommonOptions;
+import alluxio.wire.LoadMetadataType;
+
 /**
- * Method options for getStatus.
+ * Method options for getting the status of a path.
  */
+@PublicApi
 @NotThreadSafe
-public final class GetStatusOptions {
-  private CommonOptions mCommonOptions;
-  private LoadMetadataType mLoadMetadataType;
+@JsonInclude(Include.NON_EMPTY)
+public class GetStatusOptions {
+  protected CommonOptions mCommonOptions;
+  protected LoadMetadataType mLoadMetadataType;
 
   /**
    * @return the default {@link GetStatusOptions}
@@ -35,27 +39,9 @@ public final class GetStatusOptions {
     return new GetStatusOptions();
   }
 
-  private GetStatusOptions() {
-    super();
+  protected GetStatusOptions() {
     mCommonOptions = CommonOptions.defaults();
     mLoadMetadataType = LoadMetadataType.Once;
-  }
-
-  /**
-   * Create an instance of {@link GetStatusOptions} from a {@link GetStatusTOptions}.
-   *
-   * @param options the thrift representation of getFileInfo options
-   */
-  public GetStatusOptions(GetStatusTOptions options) {
-    this();
-    if (options != null) {
-      if (options.isSetCommonOptions()) {
-        mCommonOptions = new CommonOptions(options.getCommonOptions());
-      }
-      if (options.isSetLoadMetadataType()) {
-        mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
-      }
-    }
   }
 
   /**
@@ -99,9 +85,7 @@ public final class GetStatusOptions {
   }
 
   /**
-   * Sets the {@link GetStatusOptions#mLoadMetadataType}.
-   *
-   * @param loadMetadataType the load metadata type
+   * @param loadMetadataType the loadMetataType
    * @return the updated options
    */
   public GetStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
@@ -118,13 +102,13 @@ public final class GetStatusOptions {
       return false;
     }
     GetStatusOptions that = (GetStatusOptions) o;
-    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
-        && Objects.equal(mCommonOptions, that.mCommonOptions);
+    return Objects.equal(mCommonOptions, that.mCommonOptions)
+        && Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType, mCommonOptions);
+    return Objects.hashCode(mCommonOptions, mLoadMetadataType);
   }
 
   @Override
@@ -133,5 +117,15 @@ public final class GetStatusOptions {
         .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
+  }
+
+  /**
+   * @return thrift representation of the options
+   */
+  public GetStatusPOptions toProto() {
+    return GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataType.toProto(mLoadMetadataType))
+        .setCommonOptions(mCommonOptions.toProto())
+        .build();
   }
 }

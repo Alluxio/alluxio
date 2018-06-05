@@ -17,8 +17,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.FileSystemMasterServiceGrpc;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPResponse;
-import alluxio.master.file.options.GetStatusOptions;
-import alluxio.service.FileSystemMasterService;
+import alluxio.service.file.FileSystemMasterService;
+import alluxio.service.file.options.GetStatusOptions;
 import alluxio.wire.ProtoUtils;
 
 import io.grpc.stub.StreamObserver;

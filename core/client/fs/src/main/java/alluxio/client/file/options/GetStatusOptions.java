@@ -31,10 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class GetStatusOptions {
-  private CommonOptions mCommonOptions;
-  private LoadMetadataType mLoadMetadataType;
-
+public final class GetStatusOptions extends alluxio.service.file.options.GetStatusOptions {
   /**
    * @return the default {@link GetStatusOptions}
    */
@@ -46,83 +43,5 @@ public final class GetStatusOptions {
     mCommonOptions = CommonOptions.defaults();
     mLoadMetadataType =
         Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class);
-  }
-
-  /**
-   * @return the common options
-   */
-  public CommonOptions getCommonOptions() {
-    return mCommonOptions;
-  }
-
-  /**
-   * @return the load metadata type
-   */
-  public LoadMetadataType getLoadMetadataType() {
-    return mLoadMetadataType;
-  }
-
-  /**
-   * @param options the common options
-   * @return the updated options object
-   */
-  public GetStatusOptions setCommonOptions(CommonOptions options) {
-    mCommonOptions = options;
-    return this;
-  }
-
-  /**
-   * @param loadMetadataType the loadMetataType
-   * @return the updated options
-   */
-  public GetStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
-    mLoadMetadataType = loadMetadataType;
-    return this;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof GetStatusOptions)) {
-      return false;
-    }
-    GetStatusOptions that = (GetStatusOptions) o;
-    return Objects.equal(mCommonOptions, that.mCommonOptions)
-        && Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(mCommonOptions, mLoadMetadataType);
-  }
-
-  @Override
-  public String toString() {
-    return Objects.toStringHelper(this)
-        .add("commonOptions", mCommonOptions)
-        .add("loadMetadataType", mLoadMetadataType.toString())
-        .toString();
-  }
-
-  /**
-   * @return thrift representation of the options
-   */
-  public GetStatusTOptions toThrift() {
-    GetStatusTOptions options = new GetStatusTOptions();
-    options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
-    options.setCommonOptions(mCommonOptions.toThrift());
-    return options;
-  }
-
-  /**
-   * @return thrift representation of the options
-   */
-  public GetStatusPOptions toProto() {
-    return GetStatusPOptions.newBuilder()
-        .setLoadMetadataType(LoadMetadataType.toProto(mLoadMetadataType))
-        .setCommonOptions(mCommonOptions.toProto())
-        .build();
   }
 }
