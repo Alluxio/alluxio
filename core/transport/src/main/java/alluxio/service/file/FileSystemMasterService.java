@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.service.file.options.GetStatusOptions;
 import alluxio.wire.FileInfo;
 
