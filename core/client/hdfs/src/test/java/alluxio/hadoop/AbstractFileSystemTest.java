@@ -35,6 +35,7 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
+import alluxio.master.MasterInquireClient.ConnectString;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
@@ -54,6 +55,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -95,6 +97,7 @@ public class AbstractFileSystemTest {
   private FileSystemContext mMockFileSystemContext;
   private FileSystemContext mMockFileSystemContextCustomized;
   private FileSystemMasterClient mMockFileSystemMasterClient;
+  private MasterInquireClient mMockMasterInquireClient;
 
   @Rule
   public ExpectedException mExpectedException = ExpectedException.none();
@@ -529,6 +532,9 @@ public class AbstractFileSystemTest {
   private void mockFileSystemContextAndMasterClient() throws Exception {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     mMockFileSystemContextCustomized = PowerMockito.mock(FileSystemContext.class);
+    mMockMasterInquireClient = Mockito.mock(MasterInquireClient.class);
+    when(mMockMasterInquireClient.getConnectString()).thenReturn(
+        ConnectString.singleMasterConnectString(new InetSocketAddress("defaultHost", 1)));
     PowerMockito.mockStatic(FileSystemContext.class);
     Whitebox.setInternalState(FileSystemContext.class, "sInstance", mMockFileSystemContext);
     PowerMockito.when(FileSystemContext.create(any(Subject.class)))
@@ -539,6 +545,7 @@ public class AbstractFileSystemTest {
         .thenReturn(mMockFileSystemMasterClient);
     when(mMockFileSystemContextCustomized.acquireMasterClient())
         .thenReturn(mMockFileSystemMasterClient);
+    when(mMockFileSystemContext.getMasterInquireClient()).thenReturn(mMockMasterInquireClient);
     doNothing().when(mMockFileSystemMasterClient).connect();
     when(mMockFileSystemContext.getMasterAddress())
         .thenReturn(new InetSocketAddress("defaultHost", 1));
