@@ -45,7 +45,9 @@ MOPT (Mount Option) is one of:
 
 -f         format Journal, UnderFS Data and Workers Folder on master.
 -h         display this help.
--i backup  a journal backup to restore the master from.
+-i backup  a journal backup to restore the master from. The backup should be
+           a URI path within the root under filesystem, e.g.
+           hdfs://mycluster/alluxio_backups/alluxio-journal-YYYY-MM-DD-timestamp.gz.
 -m         launch monitor process to ensure the target processes come up.
 -N         do not try to kill previous running processes before starting new ones.
 -w         wait for processes to end before returning."
