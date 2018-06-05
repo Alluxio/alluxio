@@ -64,6 +64,5 @@ public interface PermissionChecker {
    * @throws InvalidPathException if the path is invalid
    */
   void checkSetAttributePermission(LockedInodePath inodePath, boolean superuserRequired,
-                                   boolean ownerRequired)
-      throws AccessControlException, InvalidPathException;
+      boolean ownerRequired) throws AccessControlException, InvalidPathException;
 }
