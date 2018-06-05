@@ -47,10 +47,10 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public MultiProcessCluster mCluster;
 
   @Rule
-  public ConfigurationRule configurationRule = new ConfigurationRule(new HashMap<PropertyKey, String>() {
-      {
-        put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false");
-      }
+  public ConfigurationRule mConf = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    {
+      put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false");
+    }
   });
 
   @Before

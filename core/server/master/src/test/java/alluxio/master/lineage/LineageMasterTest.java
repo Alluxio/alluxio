@@ -66,7 +66,6 @@ public final class LineageMasterTest {
 
   private MetricsMaster mMetricsMaster;
 
-
   /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();

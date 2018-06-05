@@ -82,7 +82,6 @@ public class MasterTestUtils {
     return registry;
   }
 
-
   /**
    * Waits for the startup consistency check to complete with a limit of 1 minute.
    *
