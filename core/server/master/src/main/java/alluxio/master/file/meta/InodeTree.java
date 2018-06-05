@@ -777,7 +777,7 @@ public class InodeTree implements JournalEntryIterable {
    * @throws FileDoesNotExistException if inode does not exist
    */
   private InodeLockList lockDescendant(LockedInodePath inodePath, LockMode lockMode,
-                                      AlluxioURI descendantUri) throws InvalidPathException {
+                                       AlluxioURI descendantUri) throws InvalidPathException {
     // Check if the descendant is really the descendant of inodePath
     if (!PathUtils.hasPrefix(descendantUri.getPath(), inodePath.getUri().getPath())
         || descendantUri.getPath().equals(inodePath.getUri().getPath())) {

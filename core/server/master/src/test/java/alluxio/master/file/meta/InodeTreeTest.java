@@ -719,15 +719,15 @@ public final class InodeTreeTest {
     assertTrue(dirInode.isDirectory());
     try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(dirInode.getId(),
          InodeTree.LockMode.READ);
-         InodeLockList inodeLockList = mTree.lockDescendant(lockedDirPath,
+         LockedInodePath path = mTree.lockDescendantPath(lockedDirPath,
              InodeTree.LockMode.READ, NESTED_FILE_URI);
         ) {
-      assertEquals(2, inodeLockList.getInodes().size());
+      assertEquals(4, path.getInodeList().size());
     }
     // Testing descendant is the same as the LockedInodePath.
     try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(dirInode.getId(),
         InodeTree.LockMode.READ);
-         InodeLockList inodeLockList = mTree.lockDescendant(lockedDirPath,
+         LockedInodePath path = mTree.lockDescendantPath(lockedDirPath,
              InodeTree.LockMode.READ, lockedDirPath.getUri())
     ) {
       Assert.fail();
@@ -740,7 +740,7 @@ public final class InodeTreeTest {
     assertTrue(dirInode.isDirectory());
     try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(subDirInode.getId(),
         InodeTree.LockMode.READ);
-         InodeLockList inodeLockList = mTree.lockDescendant(lockedDirPath,
+         LockedInodePath path = mTree.lockDescendantPath(lockedDirPath,
              InodeTree.LockMode.READ, new AlluxioURI(""));
     ) {
       Assert.fail();

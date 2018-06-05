@@ -225,6 +225,16 @@ public abstract class LockedInodePath implements Closeable {
         mLockMode);
   }
 
+  /**
+   * Constructs a temporary {@link LockedInodePath} from an existing {@link LockedInodePath}, for
+   * a direct child of the existing path. A new {@link LockedInodePath} object is returned. When
+   * the returned temporary path is closed, it does not close the existing path.
+   *
+   * @param child the inode of the direct child
+   * @return a {@link LockedInodePath} for the direct child
+   * @throws InvalidPathException if the path is invalid
+   * @throws FileDoesNotExistException if the file does not exist
+   */
   public synchronized LockedInodePath createTempPathForExistingChild(Inode<?> child)
       throws InvalidPathException, FileDoesNotExistException {
     InodeLockList lockList = new CompositeInodeLockList(mLockList);
