@@ -41,7 +41,7 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
   }
 
   /**
-   * Creates a new instance of {@link DoctorCommand}.
+   * @param context fsadmin command context
    */
   public DoctorCommand(Context context) {
     super(context);
