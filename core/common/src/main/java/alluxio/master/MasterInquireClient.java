@@ -92,7 +92,7 @@ public interface MasterInquireClient {
     }
 
     private static String format(InetSocketAddress addr) {
-      return addr.getHostString() + ": " + addr.getPort();
+      return addr.getHostString() + ":" + addr.getPort();
     }
 
     @Override
@@ -110,6 +110,11 @@ public interface MasterInquireClient {
     @Override
     public int hashCode() {
       return Objects.hashCode(mString);
+    }
+
+    @Override
+    public String toString() {
+      return mString;
     }
   }
 
