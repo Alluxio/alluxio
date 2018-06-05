@@ -89,10 +89,7 @@
               <artifactSet>
                 <includes>
                   <include>com.google.protobuf:protobuf-java</include>
-                  <include>io.grpc:grpc-core</include>
-                  <include>io.grpc:grpc-netty</include>
-                  <include>io.grpc:grpc-protobuf</include>
-                  <include>io.grpc:grpc-stub</include>
+                  <include>io.grpc:*</include>
                 </includes>
               </artifactSet>
               <relocations>
