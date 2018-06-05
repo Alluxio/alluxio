@@ -103,6 +103,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
+import alluxio.service.file.FileSystemMasterService;
 import alluxio.service.file.options.GetStatusOptions;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -177,7 +178,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The master that handles all file system metadata management.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster {
+public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster, FileSystemMasterService {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
