@@ -518,7 +518,6 @@ public class InodeTree implements JournalEntryIterable {
     LOG.debug("createPath {}", path);
 
     TraversalResult traversalResult = traverseToInode(inodePath, inodePath.getLockMode());
-    //InodeLockList lockList = traversalResult.getInodeLockList();
     MutableLockedInodePath extensibleInodePath = (MutableLockedInodePath) inodePath;
     String[] pathComponents = extensibleInodePath.getPathComponents();
     String name = path.getName();
@@ -653,6 +652,9 @@ public class InodeTree implements JournalEntryIterable {
       }
       if (lastInode != null) {
         // inode to create already exists
+        // We need to remove the last inode from the locklist because it was locked during
+        // traversal and locked here again
+        extensibleInodePath.getLockList().unlockLast();
         if (lastInode.isDirectory() && options instanceof CreateDirectoryOptions && !lastInode
             .isPersisted() && options.isPersisted()) {
           // The final path component already exists and is not persisted, so it should be added
@@ -663,12 +665,9 @@ public class InodeTree implements JournalEntryIterable {
             && ((CreateDirectoryOptions) options).isAllowExists())) {
           String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
           LOG.error(errorMessage);
-          extensibleInodePath.getLockList().unlockLast();
           throw new FileAlreadyExistsException(errorMessage);
         }
-        // We need to remove the last inode from the locklist because it is an inode
-        // that already exists. so it is already in the locklist
-        extensibleInodePath.getLockList().unlockLast();
+
       } else {
         // create the new inode, with a write lock
         if (options instanceof CreateDirectoryOptions) {
@@ -720,7 +719,6 @@ public class InodeTree implements JournalEntryIterable {
         rpcContext.getJournalContext().append(lastInode.toJournalEntry());
 
         createdInodes.add(lastInode);
-        // extensibleInodePath.getInodes().add(lastInode);
       }
     }
 
