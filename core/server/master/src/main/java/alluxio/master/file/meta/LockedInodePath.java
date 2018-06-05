@@ -225,6 +225,22 @@ public abstract class LockedInodePath implements Closeable {
         mLockMode);
   }
 
+  public synchronized LockedInodePath createTempPathForExistingChild(Inode<?> child)
+      throws InvalidPathException, FileDoesNotExistException {
+    InodeLockList lockList = new CompositeInodeLockList(mLockList);
+    LockedInodePath lockedDescendantPath;
+    if (mLockMode == InodeTree.LockMode.READ) {
+      lockList.lockReadAndCheckParent(child, getInode());
+      lockedDescendantPath = new MutableLockedInodePath(
+          getUri().join(child.getName()), this, lockList);
+    } else {
+      lockList.lockWriteAndCheckParent(child, getInode());
+      lockedDescendantPath = new MutableLockedInodePath(
+          getUri().join(child.getName()), this, lockList);
+    }
+    return lockedDescendantPath;
+  }
+
   /**
    * Unlocks the last inode that was locked.
    */
