@@ -42,7 +42,7 @@ public final class DeleteOptions {
     this();
     if (options != null) {
       if (options.isSetCommonOptions()) {
-        mCommonOptions = new CommonOptions(options.getCommonOptions());
+//        mCommonOptions = new CommonOptions(options.getCommonOptions());
       }
       mRecursive = options.isRecursive();
       mAlluxioOnly = options.isAlluxioOnly();

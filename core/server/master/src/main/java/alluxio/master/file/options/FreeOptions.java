@@ -50,7 +50,7 @@ public final class FreeOptions {
     this();
     if (options != null) {
       if (options.isSetCommonOptions()) {
-        mCommonOptions = new CommonOptions(options.getCommonOptions());
+//        mCommonOptions = new CommonOptions(options.getCommonOptions());
       }
       mForced = options.isForced();
       mRecursive = options.isRecursive();

@@ -101,7 +101,7 @@ public final class CompleteFileOptions {
    */
   public CompleteFileTOptions toThrift() {
     CompleteFileTOptions options = new CompleteFileTOptions();
-    options.setCommonOptions(mCommonOptions.toThrift());
+//    options.setCommonOptions(mCommonOptions.toThrift());
     options.setUfsLength(mUfsLength);
     return options;
   }

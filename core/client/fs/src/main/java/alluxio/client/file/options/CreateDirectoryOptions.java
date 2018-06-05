@@ -230,7 +230,7 @@ public final class CreateDirectoryOptions {
     if (mMode != null) {
       options.setMode(mMode.toShort());
     }
-    options.setCommonOptions(mCommonOptions.toThrift());
+//    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

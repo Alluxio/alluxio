@@ -54,7 +54,7 @@ public final class SetAttributeOptions {
     this();
     if (options != null) {
       if (options.isSetCommonOptions()) {
-        mCommonOptions = new CommonOptions(options.getCommonOptions());
+//        mCommonOptions = new CommonOptions(options.getCommonOptions());
       }
       mPinned = options.isSetPinned() ? options.isPinned() : null;
       mTtl = options.isSetTtl() ? options.getTtl() : null;

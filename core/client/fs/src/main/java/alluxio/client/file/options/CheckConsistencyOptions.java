@@ -81,7 +81,7 @@ public final class CheckConsistencyOptions {
    */
   public CheckConsistencyTOptions toThrift() {
     CheckConsistencyTOptions options = new CheckConsistencyTOptions();
-    options.setCommonOptions(mCommonOptions.toThrift());
+//    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

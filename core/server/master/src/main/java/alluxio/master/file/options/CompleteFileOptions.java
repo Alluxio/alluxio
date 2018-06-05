@@ -43,7 +43,7 @@ public final class CompleteFileOptions {
     this();
     if (options != null) {
       if (options.isSetCommonOptions()) {
-        mCommonOptions = new CommonOptions(options.getCommonOptions());
+//        mCommonOptions = new CommonOptions(options.getCommonOptions());
       }
       mUfsLength = options.getUfsLength();
     }

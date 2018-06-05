@@ -86,7 +86,7 @@ public final class RenameOptions {
    */
   public RenameTOptions toThrift() {
     RenameTOptions options = new RenameTOptions();
-    options.setCommonOptions(mCommonOptions.toThrift());
+//    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

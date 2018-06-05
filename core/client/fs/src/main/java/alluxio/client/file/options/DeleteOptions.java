@@ -155,7 +155,7 @@ public final class DeleteOptions {
     options.setRecursive(mRecursive);
     options.setAlluxioOnly(mAlluxioOnly);
     options.setUnchecked(mUnchecked);
-    options.setCommonOptions(mCommonOptions.toThrift());
+//    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

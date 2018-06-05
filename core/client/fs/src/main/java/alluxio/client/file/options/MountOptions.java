@@ -164,7 +164,7 @@ public final class MountOptions {
       options.setProperties(mProperties);
     }
     options.setShared(mShared);
-    options.setCommonOptions(mCommonOptions.toThrift());
+//    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

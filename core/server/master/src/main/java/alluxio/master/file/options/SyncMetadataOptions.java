@@ -41,7 +41,7 @@ public final class SyncMetadataOptions {
     this();
     if (options != null) {
       if (options.isSetCommonOptions()) {
-        mCommonOptions = new CommonOptions(options.getCommonOptions());
+//        mCommonOptions = new CommonOptions(options.getCommonOptions());
       }
     }
   }

@@ -136,7 +136,7 @@ public final class FreeOptions {
     FreeTOptions options = new FreeTOptions();
     options.setForced(mForced);
     options.setRecursive(mRecursive);
-    options.setCommonOptions(mCommonOptions.toThrift());
+//    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

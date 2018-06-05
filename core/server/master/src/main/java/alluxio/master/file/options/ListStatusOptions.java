@@ -49,10 +49,10 @@ public final class ListStatusOptions {
     this();
     if (options != null) {
       if (options.isSetCommonOptions()) {
-        mCommonOptions = new CommonOptions(options.getCommonOptions());
+//        mCommonOptions = new CommonOptions(options.getCommonOptions());
       }
       if (options.isSetLoadMetadataType()) {
-        mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
+//        mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
       } else if (!options.isLoadDirectChildren()) {
         mLoadMetadataType = LoadMetadataType.Never;
       }

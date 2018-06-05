@@ -57,7 +57,7 @@ public final class MountOptions {
     this();
     if (options != null) {
       if (options.isSetCommonOptions()) {
-        mCommonOptions = new CommonOptions(options.getCommonOptions());
+//        mCommonOptions = new CommonOptions(options.getCommonOptions());
       }
       if (options.isSetReadOnly()) {
         mReadOnly = options.isReadOnly();

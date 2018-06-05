@@ -254,7 +254,7 @@ public final class SetAttributeOptions {
       options.setMode(mMode.toShort());
     }
     options.setRecursive(mRecursive);
-    options.setCommonOptions(mCommonOptions.toThrift());
+//    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 

@@ -20,7 +20,6 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
@@ -30,6 +29,7 @@ import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.master.MasterClientConfig;
+import alluxio.service.file.options.GetStatusOptions;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.GetMountTableTResponse;
@@ -86,6 +86,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   protected void afterConnect() {
     mClient = new FileSystemMasterClientService.Client(mProtocol);
+    // TODO(adit): remove me
     mBlockingStub.getStatus(GetStatusPRequest.newBuilder()
         .setPath("/")
         .setOptions(GetStatusOptions.defaults().toProto())
@@ -157,8 +158,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized URIStatus getStatus(final AlluxioURI path, final GetStatusOptions options)
       throws AlluxioStatusException {
-    return retryRPC(() -> new URIStatus(ThriftUtils
-            .fromThrift(mClient.getStatus(path.getPath(), options.toThrift()).getFileInfo())));
+    // TODO(adit):
+    return null;
+//    return retryRPC(() -> new URIStatus(ThriftUtils
+//            .fromThrift(mClient.getStatus(path.getPath(), options.toThrift()).getFileInfo())));
   }
 
   @Override

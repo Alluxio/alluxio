@@ -49,7 +49,7 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     this();
     if (options != null) {
       if (options.isSetCommonOptions()) {
-        mCommonOptions = new CommonOptions(options.getCommonOptions());
+//        mCommonOptions = new CommonOptions(options.getCommonOptions());
       }
       mAllowExists = options.isAllowExists();
       mPersisted = options.isPersisted();

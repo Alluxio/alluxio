@@ -52,7 +52,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     this();
     if (options != null) {
       if (options.isSetCommonOptions()) {
-        mCommonOptions = new CommonOptions(options.getCommonOptions());
+//        mCommonOptions = new CommonOptions(options.getCommonOptions());
       }
       mBlockSizeBytes = options.getBlockSizeBytes();
       mPersisted = options.isPersisted();
