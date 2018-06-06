@@ -12,6 +12,7 @@
 package alluxio.util.grpc;
 
 
+import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.netty.NettyChannelBuilder;
 
 /**
@@ -28,7 +29,7 @@ public final class GrpcChannelBuilder {
   }
 
   private GrpcChannelBuilder(NettyChannelBuilder nettyChannelBuilder) {
-    mNettyChannelBuilder = nettyChannelBuilder;
+    mNettyChannelBuilder = nettyChannelBuilder.nameResolverFactory(new DnsNameResolverProvider());
   }
 
   public GrpcChannelBuilder usePlaintext(boolean skipNegotiation) {
