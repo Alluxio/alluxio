@@ -22,6 +22,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -87,6 +88,20 @@ public class MetricsMasterTest {
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics3);
     assertEquals(13L, getGauge("metricA"));
     assertEquals(20L, getGauge("metricB"));
+  }
+
+  @Test
+  public void testMultiValueAggregator() {
+    mMetricsMaster.addMultiValueAggregator(
+        new SingleTagValueAggregator(MetricsSystem.InstanceType.WORKER, "metric", "tag"));
+    List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metric.tag:v1", 10),
+        Metric.from("worker.192_1_1_1.metric.tag:v2", 20));
+    mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
+    List<Metric> metrics2 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metric.tag:v1", 1),
+        Metric.from("worker.192_1_1_2.metric.tag:v2", 2));
+    mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
+    assertEquals(11L, getGauge("metric.v1"));
+    assertEquals(22L, getGauge("metric.v2"));
   }
 
   @Test

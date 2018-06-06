@@ -145,7 +145,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
         .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO))
         .getValue();
     Long bytesReadUfs = (Long) mr.getGauges()
-        .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS))
+        .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL))
         .getValue();
 
     request.setAttribute("totalBytesReadLocal", FormatUtils.getSizeFromBytes(bytesReadLocal));
