@@ -17,7 +17,7 @@ import static java.util.stream.Collectors.toMap;
 import alluxio.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.InstancedConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;

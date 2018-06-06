@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.ConfigProperty;

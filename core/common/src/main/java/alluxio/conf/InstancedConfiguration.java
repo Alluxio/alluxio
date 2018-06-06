@@ -9,11 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.conf;
 
+import alluxio.AlluxioConfiguration;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.PropertyKey.Template;
-import alluxio.conf.AlluxioProperties;
-import alluxio.conf.Source;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.FormatUtils;
