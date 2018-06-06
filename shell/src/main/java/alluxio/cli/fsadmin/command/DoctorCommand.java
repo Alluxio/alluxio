@@ -11,15 +11,10 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
-
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.doctor.ConfigurationCommand;
-import alluxio.client.MetaMasterClient;
-import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.master.MasterClientConfig;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -30,9 +25,8 @@ import java.io.IOException;
 /**
  * Shows errors or warnings that users should pay attention to.
  */
-public final class DoctorCommand implements Command {
+public final class DoctorCommand extends AbstractFsAdminCommand {
   public static final String HELP_OPTION_NAME = "h";
-  private final MetaMasterClient mMetaMasterClient;
 
   private static final Option HELP_OPTION =
       Option.builder(HELP_OPTION_NAME)
@@ -47,10 +41,10 @@ public final class DoctorCommand implements Command {
   }
 
   /**
-   * Creates a new instance of {@link DoctorCommand}.
+   * @param context fsadmin command context
    */
-  public DoctorCommand() {
-    mMetaMasterClient = new RetryHandlingMetaMasterClient(MasterClientConfig.defaults());
+  public DoctorCommand(Context context) {
+    super(context);
   }
 
   @Override
@@ -87,8 +81,8 @@ public final class DoctorCommand implements Command {
       case ALL:// intended to fall through
         // TODO(lu) add other Alluxio errors and warnings and separate from CONFIGURATION
       case CONFIGURATION:
-        ConfigurationCommand configurationCommand
-            = new ConfigurationCommand(mMetaMasterClient, System.out);
+        ConfigurationCommand configurationCommand =
+            new ConfigurationCommand(mMetaClient, System.out);
         configurationCommand.run();
         break;
       default:

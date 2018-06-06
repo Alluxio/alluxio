@@ -18,7 +18,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -27,9 +26,9 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.DefaultSafeModeManager;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
-import alluxio.master.SafeModeManager;
+import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
@@ -37,8 +36,6 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.authorization.Mode;
@@ -81,9 +78,6 @@ public final class InodeTreeTest {
   private static CreateDirectoryOptions sNestedDirectoryOptions;
   private InodeTree mTree;
   private MasterRegistry mRegistry;
-  private SafeModeManager mSafeModeManager;
-  private long mStartTimeMs;
-  private int mPort;
   private MetricsMaster mMetricsMaster;
 
   /** Rule to create a new temporary folder during each test. */
@@ -107,15 +101,10 @@ public final class InodeTreeTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new DefaultSafeModeManager();
-    mStartTimeMs = System.currentTimeMillis();
-    mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
-    JournalSystem journalSystem = new NoopJournalSystem();
-    mMetricsMaster = new MetricsMasterFactory()
-        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
+    MasterContext context = MasterTestUtils.testMasterContext();
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, context);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
-    BlockMaster blockMaster = new BlockMasterFactory()
-        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
+    BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, context);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);
