@@ -28,8 +28,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * <p>
- * All the runtime configuration properties of Alluxio. This class works like a dictionary and
- * serves each Alluxio configuration property as a key-value pair.
+ * Global configuration properties of Alluxio. This class works like a dictionary and serves each
+ * Alluxio configuration property as a key-value pair.
  *
  * <p>
  * Alluxio configuration properties are loaded into this class in the following order with
@@ -44,6 +44,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The default properties are defined in the {@link PropertyKey} class in the codebase. Alluxio
  * users can override values of these default properties by creating {@code alluxio-site.properties}
  * and putting it under java {@code CLASSPATH} when running Alluxio (e.g., ${ALLUXIO_HOME}/conf/)
+ *
+ * <p>
+ * This class defines many convenient static methods which delegate to an internal
+ * {@link InstancedConfiguration}. To use this global configuration in a method that takes
+ * {@link AlluxioConfiguration} as an argument, pass {@link Configuration#global()}.
  */
 @NotThreadSafe
 public final class Configuration {
