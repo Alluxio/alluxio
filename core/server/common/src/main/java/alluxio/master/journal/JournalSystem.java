@@ -141,6 +141,15 @@ public interface JournalSystem {
   boolean isFormatted() throws IOException;
 
   /**
+   * Returns whether the journal is formatted and has not had any entries written to it yet. This
+   * can only be determined when the journal system is in primary mode because entries are written
+   * to the primary first.
+   *
+   * @return whether the journal system is freshly formatted
+   */
+  boolean isEmpty();
+
+  /**
    * Builder for constructing a journal system.
    */
   class Builder {

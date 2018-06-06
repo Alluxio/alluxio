@@ -20,7 +20,7 @@ import java.util.List;
  * Interface of the metrics master that aggregates the cluster-level metrics from workers and
  * clients.
  */
-public interface MetricsMaster extends Master  {
+public interface MetricsMaster extends Master {
   /**
    * Handles the client's heartbeat request for metrics collection.
    *
