@@ -11,17 +11,16 @@
 
 package alluxio.master;
 
-import static java.util.stream.Collectors.joining;
-
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
+import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -44,79 +43,19 @@ public interface MasterInquireClient {
   List<InetSocketAddress> getMasterRpcAddresses() throws UnavailableException;
 
   /**
-   * Returns a canonical connect string representing how this client connects to the master.
+   * Returns canonical connect details representing how this client connects to the master.
    *
-   * @return the connect string
+   * @return the connect details
    */
-  ConnectString getConnectString();
+  ConnectDetails getConnectDetails();
 
   /**
-   * Class for representing master inquire connect strings.
+   * Interface for representing master inquire connect details.
    *
-   * Canonical connect strings are unique so that if two inquire clients have the same
-   * connect string, they connect to the same cluster.
-   *
-   * Examples: "zk://host1:port1,host2:port2/leader/path", "master:19998"
+   * Connect info should be unique so that if two inquire clients have the same connect info, they
+   * connect to the same cluster.
    */
-  class ConnectString {
-    private final String mString;
-
-    private ConnectString(String string) {
-      mString = string;
-    }
-
-    /**
-     * @param zkAddress zookeeper address, e.g. "zkhost1:port1,zkhost2:port2"
-     * @param leaderPath zookeeper leader path
-     * @return a zookeeper connect string
-     */
-    public static ConnectString zkConnectString(String zkAddress, String leaderPath) {
-      return new ConnectString("zk://" + zkAddress + leaderPath);
-    }
-
-    /**
-     * @param addr master address
-     * @return a single master connect string
-     */
-    public static ConnectString singleMasterConnectString(InetSocketAddress addr) {
-      return new ConnectString(format(addr));
-    }
-
-    /**
-     * @param masterAddresses master addresses
-     * @return a multi master connect string
-     */
-    public static ConnectString multiMasterConnectString(List<InetSocketAddress> masterAddresses) {
-      return new ConnectString(
-          masterAddresses.stream().map(ConnectString::format).collect(joining(",")));
-    }
-
-    private static String format(InetSocketAddress addr) {
-      return addr.getHostString() + ":" + addr.getPort();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (!(o instanceof ConnectString)) {
-        return false;
-      }
-      ConnectString that = (ConnectString) o;
-      return mString.equals(that.mString);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(mString);
-    }
-
-    @Override
-    public String toString() {
-      return mString;
-    }
-  }
+  interface ConnectDetails {}
 
   /**
    * Factory for getting a master inquire client.
@@ -138,8 +77,8 @@ public interface MasterInquireClient {
      */
     public static MasterInquireClient create(Config config) {
       if (config.isZookeeperEnabled()) {
-        return ZkMasterInquireClient.getClient(config.getZookeeperAddress(),
-            config.getElectionPath(), config.getLeaderPath());
+        return ZkMasterInquireClient.getClient(config.getZookeeperAddress(), config.getLeaderPath(),
+            config.getElectionPath());
       } else {
         return new SingleMasterInquireClient(
             new InetSocketAddress(config.getConnectHost(), config.getConnectPort()));
@@ -150,12 +89,12 @@ public interface MasterInquireClient {
      * @param config inquire client configuration
      * @return the connect string represented by the configuration
      */
-    public static ConnectString getConnectString(Config config) {
+    public static ConnectDetails getConnectDetails(Config config) {
       if (config.isZookeeperEnabled()) {
-        return ConnectString.zkConnectString(config.getZookeeperAddress(),
+        return new ZkMasterConnectDetails(config.getZookeeperAddress(),
             config.getLeaderPath());
       } else {
-        return ConnectString.singleMasterConnectString(
+        return new SingleMasterConnectDetails(
             new InetSocketAddress(config.getConnectHost(), config.getConnectPort()));
       }
     }

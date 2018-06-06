@@ -35,7 +35,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.MasterInquireClient;
-import alluxio.master.MasterInquireClient.ConnectString;
+import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
@@ -547,10 +547,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     inquireClientConf.setConnectHost(mUri.getHost());
     inquireClientConf.setConnectPort(mUri.getPort());
 
-    ConnectString configConnectString = Factory.getConnectString(inquireClientConf);
-    ConnectString contextConnectString =
-        FileSystemContext.get().getMasterInquireClient().getConnectString();
-    return configConnectString.equals(contextConnectString);
+    ConnectDetails configConnectDetails = Factory.getConnectDetails(inquireClientConf);
+    ConnectDetails contextConnectDetails =
+        FileSystemContext.get().getMasterInquireClient().getConnectDetails();
+    return configConnectDetails.equals(contextConnectDetails);
   }
 
   /**

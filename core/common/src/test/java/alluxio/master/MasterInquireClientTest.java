@@ -15,7 +15,9 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
-import alluxio.master.MasterInquireClient.ConnectString;
+import alluxio.master.MasterInquireClient.ConnectDetails;
+import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
+import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -31,8 +33,8 @@ import java.util.HashMap;
 public final class MasterInquireClientTest {
   @Test
   public void defaultConnectString() {
-    ConnectString cs = ConnectString
-        .singleMasterConnectString(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
+    ConnectDetails cs = new SingleMasterConnectDetails(
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
     assertCurrentConnectString(cs);
     assertEquals(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC) + ":"
         + NetworkAddressUtils.getPort(ServiceType.MASTER_RPC), cs.toString());
@@ -48,7 +50,7 @@ public final class MasterInquireClientTest {
         put(PropertyKey.MASTER_RPC_PORT, Integer.toString(port));
       }
     }).toResource()) {
-      ConnectString cs = ConnectString.singleMasterConnectString(new InetSocketAddress(host, port));
+      ConnectDetails cs = new SingleMasterConnectDetails(new InetSocketAddress(host, port));
       assertCurrentConnectString(cs);
       assertEquals("testhost:123", cs.toString());
     }
@@ -64,20 +66,20 @@ public final class MasterInquireClientTest {
         put(PropertyKey.ZOOKEEPER_LEADER_PATH, leaderPath);
       }
     }).toResource()) {
-      ConnectString singleConnect = ConnectString
-          .singleMasterConnectString(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
+      ConnectDetails singleConnect = new SingleMasterConnectDetails(
+          NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
       assertCurrentConnectString(singleConnect);
       try (Closeable c2 =
           new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true").toResource()) {
-        ConnectString zkConnect = ConnectString.zkConnectString(zkAddr, leaderPath);
+        ConnectDetails zkConnect = new ZkMasterConnectDetails(zkAddr, leaderPath);
         assertCurrentConnectString(zkConnect);
         assertEquals("zk://zkAddr:1234/my/leader/path", zkConnect.toString());
       }
     }
   }
 
-  private static void assertCurrentConnectString(ConnectString cs) {
+  private static void assertCurrentConnectString(ConnectDetails cs) {
     assertEquals(cs, MasterInquireClient.Factory
-        .getConnectString(MasterInquireClient.Factory.Config.defaults()));
+        .getConnectDetails(MasterInquireClient.Factory.Config.defaults()));
   }
 }

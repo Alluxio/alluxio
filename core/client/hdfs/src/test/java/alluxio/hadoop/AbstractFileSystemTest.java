@@ -35,7 +35,7 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
-import alluxio.master.MasterInquireClient.ConnectString;
+import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
@@ -533,8 +533,8 @@ public class AbstractFileSystemTest {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     mMockFileSystemContextCustomized = PowerMockito.mock(FileSystemContext.class);
     mMockMasterInquireClient = Mockito.mock(MasterInquireClient.class);
-    when(mMockMasterInquireClient.getConnectString()).thenReturn(
-        ConnectString.singleMasterConnectString(new InetSocketAddress("defaultHost", 1)));
+    when(mMockMasterInquireClient.getConnectDetails()).thenReturn(
+        new SingleMasterConnectDetails(new InetSocketAddress("defaultHost", 1)));
     PowerMockito.mockStatic(FileSystemContext.class);
     Whitebox.setInternalState(FileSystemContext.class, "sInstance", mMockFileSystemContext);
     PowerMockito.when(FileSystemContext.create(any(Subject.class)))

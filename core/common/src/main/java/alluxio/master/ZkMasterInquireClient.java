@@ -33,6 +33,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -44,11 +45,11 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
   private static final Logger LOG = LoggerFactory.getLogger(ZkMasterInquireClient.class);
 
   /** Map from key spliced by the address for Zookeeper and path of leader to created client. */
-  private static HashMap<String, ZkMasterInquireClient> sCreatedClients = new HashMap<>();
+  private static HashMap<ZkMasterConnectDetails, ZkMasterInquireClient> sCreatedClients =
+      new HashMap<>();
 
-  private final String mZookeeperAddress;
+  private final ZkMasterConnectDetails mConnectInfo;
   private final String mElectionPath;
-  private final String mLeaderPath;
   private final CuratorFramework mClient;
   private final int mMaxTry;
 
@@ -58,34 +59,30 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
    * @param zookeeperAddress the address for Zookeeper
    * @param electionPath the path of the master election
    * @param leaderPath the path of the leader
-   *
    * @return the client
    */
   public static synchronized ZkMasterInquireClient getClient(String zookeeperAddress,
       String electionPath, String leaderPath) {
-    String key = zookeeperAddress + leaderPath;
-    if (!sCreatedClients.containsKey(key)) {
-      sCreatedClients.put(key,
-          new ZkMasterInquireClient(zookeeperAddress, electionPath, leaderPath));
+    ZkMasterConnectDetails connectInfo = new ZkMasterConnectDetails(zookeeperAddress, leaderPath);
+    if (!sCreatedClients.containsKey(connectInfo)) {
+      sCreatedClients.put(connectInfo, new ZkMasterInquireClient(connectInfo, electionPath));
     }
-    return sCreatedClients.get(key);
+    return sCreatedClients.get(connectInfo);
   }
 
   /**
    * Constructor for {@link ZkMasterInquireClient}.
    *
-   * @param zookeeperAddress the address for Zookeeper
+   * @param connectInfo connect info
    * @param electionPath the path of the master election
-   * @param leaderPath the path of the leader
    */
-  private ZkMasterInquireClient(String zookeeperAddress, String electionPath, String leaderPath) {
-    mZookeeperAddress = zookeeperAddress;
+  private ZkMasterInquireClient(ZkMasterConnectDetails connectInfo, String electionPath) {
+    mConnectInfo = connectInfo;
     mElectionPath = electionPath;
-    mLeaderPath = leaderPath;
 
-    LOG.info("Creating new zookeeper client. address: {}", mZookeeperAddress);
+    LOG.info("Creating new zookeeper client for {}", connectInfo);
     // Start the client lazily.
-    mClient = CuratorFrameworkFactory.newClient(mZookeeperAddress,
+    mClient = CuratorFrameworkFactory.newClient(connectInfo.getZkAddress(),
         new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
 
     mMaxTry = Configuration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
@@ -108,10 +105,11 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
         CommonUtils.sleepMs(20);
       }
       curatorClient.blockUntilConnectedOrTimedOut();
+      String leaderPath = mConnectInfo.getLeaderPath();
       while (tried < mMaxTry) {
         ZooKeeper zookeeper = curatorClient.getZooKeeper();
-        if (zookeeper.exists(mLeaderPath, false) != null) {
-          List<String> masters = zookeeper.getChildren(mLeaderPath, null);
+        if (zookeeper.exists(leaderPath, false) != null) {
+          List<String> masters = zookeeper.getChildren(leaderPath, null);
           LOG.debug("Master addresses: {}", masters);
           if (masters.size() >= 1) {
             if (masters.size() == 1) {
@@ -121,7 +119,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
             long maxTime = 0;
             String leader = "";
             for (String master : masters) {
-              Stat stat = zookeeper.exists(PathUtils.concatPath(mLeaderPath, master), null);
+              Stat stat = zookeeper.exists(PathUtils.concatPath(leaderPath, master), null);
               if (stat != null && stat.getCtime() > maxTime) {
                 maxTime = stat.getCtime();
                 leader = master;
@@ -131,15 +129,15 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
             return NetworkAddressUtils.parseInetSocketAddress(leader);
           }
         } else {
-          LOG.info("{} does not exist ({})", mLeaderPath, ++tried);
+          LOG.info("{} does not exist ({})", leaderPath, ++tried);
         }
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     } catch (Exception e) {
-      LOG.error("Error getting the leader master address from zookeeper. Zookeeper address: {}",
-          mZookeeperAddress, e);
+      LOG.error("Error getting the leader master address from zookeeper. Zookeeper: {}",
+          mConnectInfo, e);
     } finally {
       LOG.debug("Finished getPrimaryRpcAddress() in {}ms", System.currentTimeMillis() - startTime);
     }
@@ -170,8 +168,8 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
         }
       }
     } catch (Exception e) {
-      LOG.error("Error getting the master addresses from zookeeper. Zookeeper address: {}",
-          mZookeeperAddress, e);
+      LOG.error("Error getting the master addresses from zookeeper. Zookeeper: {}", mConnectInfo,
+          e);
     }
 
     throw new UnavailableException("Failed to query zookeeper for master RPC addresses");
@@ -197,7 +195,61 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
   }
 
   @Override
-  public ConnectString getConnectString() {
-    return MasterInquireClient.ConnectString.zkConnectString(mZookeeperAddress, mLeaderPath);
+  public ConnectDetails getConnectDetails() {
+    return mConnectInfo;
+  }
+
+  /**
+   * Details used to connect to the leader Alluxio master via Zookeeper.
+   */
+  public static class ZkMasterConnectDetails implements ConnectDetails {
+    private final String mZkAddress;
+    private final String mLeaderPath;
+
+    /**
+     * @param zkAddress a zookeeper address
+     * @param leaderPath a leader path
+     */
+    public ZkMasterConnectDetails(String zkAddress, String leaderPath) {
+      mZkAddress = zkAddress;
+      mLeaderPath = leaderPath;
+    }
+
+    /**
+     * @return the zookeeper address
+     */
+    public String getZkAddress() {
+      return mZkAddress;
+    }
+
+    /**
+     * @return the leader path
+     */
+    public String getLeaderPath() {
+      return mLeaderPath;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof ZkMasterConnectDetails)) {
+        return false;
+      }
+      ZkMasterConnectDetails that = (ZkMasterConnectDetails) o;
+      return mZkAddress.equals(that.mZkAddress)
+          && mLeaderPath.equals(that.mLeaderPath);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(mZkAddress, mLeaderPath);
+    }
+
+    @Override
+    public String toString() {
+      return "zk://" + mZkAddress + mLeaderPath;
+    }
   }
 }
