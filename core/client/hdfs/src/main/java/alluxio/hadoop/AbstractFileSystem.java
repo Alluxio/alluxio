@@ -543,7 +543,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     inquireClientConf.setElectionPath(conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(),
         inquireClientConf.getElectionPath()));
     inquireClientConf.setLeaderPath(
-        conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(), inquireClientConf.getLeaderPath()));
+        conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH.getName(), inquireClientConf.getLeaderPath()));
     inquireClientConf.setConnectHost(mUri.getHost());
     inquireClientConf.setConnectPort(mUri.getPort());
 

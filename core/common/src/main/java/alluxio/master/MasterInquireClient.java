@@ -77,8 +77,8 @@ public interface MasterInquireClient {
      */
     public static MasterInquireClient create(Config config) {
       if (config.isZookeeperEnabled()) {
-        return ZkMasterInquireClient.getClient(config.getZookeeperAddress(), config.getLeaderPath(),
-            config.getElectionPath());
+        return ZkMasterInquireClient.getClient(config.getZookeeperAddress(),
+            config.getElectionPath(), config.getLeaderPath());
       } else {
         return new SingleMasterInquireClient(
             new InetSocketAddress(config.getConnectHost(), config.getConnectPort()));
