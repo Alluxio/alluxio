@@ -11,7 +11,7 @@ priority: 7
 
 Alluxio-FUSE可以在一台Unix机器上的本地文件系统中挂载一个Alluxio分布式文件系统。通过使用该特性，一些标准的命令行工具（例如`ls`、 `cat`以及`echo`）可以直接访问Alluxio分布式文件系统中的数据。此外更重要的是用不同语言实现的应用程序如C, C++, Python, Ruby, Perl, Java都可以通过标准的POSIX接口(例如`open, write, read`)来读写Alluxio，而不需要任何Alluxio的客户端整合与设置。
 
-Alluxio-FUSE是基于[FUSE]((http://fuse.sourceforge.net/))这个项目，并且都支持大多数的文件系统操作。但是由于Alluxio固有的属性，例如它的一次写不可改变的文件数据模型，该挂载的文件系统与POSIX标准不完全一致，尚有一定的局限性。因此，请先阅读[局限性](#assumptions-and-limitations)，从而了解该特性的作用以及局限。
+Alluxio-FUSE是基于[FUSE](http://fuse.sourceforge.net/)这个项目，并且都支持大多数的文件系统操作。但是由于Alluxio固有的属性，例如它的一次写不可改变的文件数据模型，该挂载的文件系统与POSIX标准不完全一致，尚有一定的局限性。因此，请先阅读[局限性](#局限性)，从而了解该特性的作用以及局限。
 
 ## 安装要求
 

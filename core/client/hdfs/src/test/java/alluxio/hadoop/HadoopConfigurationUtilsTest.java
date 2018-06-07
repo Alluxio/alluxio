@@ -42,7 +42,7 @@ public final class HadoopConfigurationUtilsTest {
   public void mergeEmptyHadoopConfiguration() {
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
     long beforeSize = Configuration.toMap().size();
-    HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig);
+    HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, Configuration.global());
     long afterSize = Configuration.toMap().size();
     Assert.assertEquals(beforeSize, afterSize);
   }
@@ -59,7 +59,7 @@ public final class HadoopConfigurationUtilsTest {
 
     // This hadoop config will not be loaded into Alluxio configuration.
     hadoopConfig.set("hadoop.config.parameter", "hadoop config value");
-    HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig);
+    HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, Configuration.global());
     Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(PropertyKey.S3A_ACCESS_KEY));
     Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(PropertyKey.S3A_SECRET_KEY));
     Assert.assertEquals(Source.RUNTIME, Configuration.getSource(PropertyKey.S3A_ACCESS_KEY));

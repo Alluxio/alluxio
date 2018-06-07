@@ -63,6 +63,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -92,11 +93,12 @@ public final class MultiProcessCluster implements TestRule {
   private final int mNumMasters;
   private final int mNumWorkers;
   private final String mClusterName;
-  private final DeployMode mDeployMode;
   /** Closer for closing all resources that must be closed when the cluster is destroyed. */
   private final Closer mCloser;
   private final List<Master> mMasters;
   private final List<Worker> mWorkers;
+
+  private DeployMode mDeployMode;
 
   /** Base directory for storing configuration and logs. */
   private File mWorkDir;
@@ -325,6 +327,13 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
+   * Starts all masters.
+   */
+  public synchronized void startMasters() {
+    mMasters.forEach(master -> master.start());
+  }
+
+  /**
    * Starts the specified master.
    *
    * @param i the index of the master to start
@@ -347,10 +356,37 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
+   * Stops all masters.
+   */
+  public synchronized void stopMasters() {
+    mMasters.forEach(master -> master.close());
+  }
+
+  /**
    * @param i the index of the master to stop
    */
   public synchronized void stopMaster(int i) throws IOException {
     mMasters.get(i).close();
+  }
+
+  /**
+   * Updates master configuration for all masters. This will take effect on a master the next time
+   * the master is started.
+   *
+   * @param key the key to update
+   * @param value the value to set, or null to unset the key
+   */
+  public synchronized void updateMasterConf(PropertyKey key, @Nullable String value) {
+    mMasters.forEach(master -> master.updateConf(key, value));
+  }
+
+  /**
+   * Updates the cluster's deploy mode.
+   *
+   * @param mode the mode to set
+   */
+  public synchronized void updateDeployMode(DeployMode mode) {
+    mDeployMode = mode;
   }
 
   /**
@@ -440,14 +476,22 @@ public final class MultiProcessCluster implements TestRule {
     return worker;
   }
 
-  private void formatJournal() throws Exception {
+  /**
+   * Formats the cluster journal.
+   */
+  public synchronized void formatJournal() throws IOException {
     try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER,
         mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER)).toResource()) {
       Format.format(Format.Mode.MASTER);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
-  private MasterInquireClient getMasterInquireClient() {
+  /**
+   * @return a client for determining the serving master
+   */
+  public synchronized MasterInquireClient getMasterInquireClient() {
     switch (mDeployMode) {
       case NON_HA:
         Preconditions.checkState(mMasters.size() == 1,
