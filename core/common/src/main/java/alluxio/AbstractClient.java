@@ -34,6 +34,7 @@ import alluxio.wire.Scope;
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
@@ -191,13 +192,13 @@ public abstract class AbstractClient implements Client {
     }
     synchronized (AbstractClient.class) {
       // A plain socket transport to bootstrap
-      TTransport baseTransport = ThriftUtils.createThriftSocket(mAddress);
-      TTransport transport = new BootstrapClientTransport(baseTransport);
-      TProtocol protocol = ThriftUtils.createThriftProtocol(transport,
+      TSocket socket = ThriftUtils.createThriftSocket(mAddress);
+      TTransport bootstrapTransport = new BootstrapClientTransport(socket);
+      TProtocol protocol = ThriftUtils.createThriftProtocol(bootstrapTransport,
           Constants.META_MASTER_CLIENT_SERVICE_NAME);
       List<ConfigProperty> clusterConfig;
       try {
-        transport.open();
+        bootstrapTransport.open();
         MetaMasterClientService.Client client = new MetaMasterClientService.Client(protocol);
         clusterConfig = client.getConfiguration(new GetConfigurationTOptions())
             .getConfigList()
@@ -205,10 +206,11 @@ public abstract class AbstractClient implements Client {
             .map(ConfigProperty::fromThrift)
             .collect(Collectors.toList());
       } catch (TException e) {
-        throw new UnavailableException("Failed to handshake with master to load cluster default "
-            + "configuration values", e);
+        throw new UnavailableException(String.format(
+            "Failed to handshake with master %s to load cluster default configuration values",
+            mAddress), e);
       } finally {
-        transport.close();
+        bootstrapTransport.close();
       }
       // merge conf returned by master as the cluster default into Configuration
       Properties clusterProps = new Properties();
@@ -241,11 +243,11 @@ public abstract class AbstractClient implements Client {
 
   private void doConnect() throws IOException, TTransportException {
     // The plain socket transport
-    TTransport baseTransport = ThriftUtils.createThriftSocket(mAddress);
+    TSocket socket = ThriftUtils.createThriftSocket(mAddress);
     // The wrapper transport
-    TTransport wrapperTransport =
-        mTransportProvider.getClientTransport(mParentSubject, baseTransport);
-    mProtocol = ThriftUtils.createThriftProtocol(wrapperTransport, getServiceName());
+    TTransport clientTransport =
+        mTransportProvider.getClientTransport(mParentSubject, socket);
+    mProtocol = ThriftUtils.createThriftProtocol(clientTransport, getServiceName());
     mProtocol.getTransport().open();
     LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
     mConnected = true;
