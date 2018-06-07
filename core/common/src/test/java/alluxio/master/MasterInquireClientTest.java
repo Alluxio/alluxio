@@ -13,6 +13,7 @@ package alluxio.master;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.master.MasterInquireClient.ConnectDetails;
@@ -79,7 +80,6 @@ public final class MasterInquireClientTest {
   }
 
   private static void assertCurrentConnectString(ConnectDetails cs) {
-    assertEquals(cs, MasterInquireClient.Factory
-        .getConnectDetails(MasterInquireClient.Factory.Config.defaults()));
+    assertEquals(cs, MasterInquireClient.Factory.getConnectDetails(Configuration.global()));
   }
 }
