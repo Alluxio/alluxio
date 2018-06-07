@@ -13,6 +13,7 @@ package alluxio.conf;
 
 import alluxio.AlluxioConfiguration;
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
@@ -78,12 +79,33 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public String get(PropertyKey key) {
-    String rawValue = mProperties.get(key);
-    if (rawValue == null) {
+    return get(key, ConfigurationValueOptions.defaults().checkNullValue(true));
+  }
+
+  @Override
+  public String get(PropertyKey key, ConfigurationValueOptions options) {
+    String value = mProperties.get(key);
+    if (options.shouldCheckNullValue() && value == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
     }
-    return lookup(rawValue);
+    if (!options.shouldUseRawValue()) {
+      value = lookup(value);
+    }
+    if (options.shouldUseDisplayValue()) {
+      PropertyKey.DisplayType displayType = key.getDisplayType();
+      switch (displayType) {
+        case DEFAULT:
+          break;
+        case CREDENTIALS:
+          value = "******";
+          break;
+        default:
+          throw new IllegalStateException(String.format("Invalid displayType %s for property %s",
+              displayType.name(), key.getName()));
+      }
+    }
+    return value;
   }
 
   @Override
@@ -224,24 +246,21 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public Map<String, String> toMap() {
-    Map<String, String> map = toRawMap();
-    for (Map.Entry<String, String> entry : map.entrySet()) {
-      String value = entry.getValue();
-      if (value != null) {
-        map.put(entry.getKey(), lookup(value));
-      } else {
-        map.put(entry.getKey(), value);
-      }
-    }
+  public Map<String, String> toMap(ConfigurationValueOptions options) {
+    Map<String, String> map = new HashMap<>();
+    mProperties.forEach((key, value) ->
+        map.put(key.getName(), get(key, options)));
     return map;
   }
 
   @Override
+  public Map<String, String> toMap() {
+    return toMap(ConfigurationValueOptions.defaults());
+  }
+
+  @Override
   public Map<String, String> toRawMap() {
-    Map<String, String> rawMap = new HashMap<>();
-    mProperties.forEach((key, value) -> rawMap.put(key.getName(), value));
-    return rawMap;
+    return toMap(ConfigurationValueOptions.defaults().useRawValue(true));
   }
 
   @Override
@@ -252,7 +271,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   @Override
   public List<ConfigProperty> getConfiguration(Scope scope) {
     List<ConfigProperty> list = new ArrayList<>();
-    for (Map.Entry<String, String> entry : toRawMap().entrySet()) {
+    for (Map.Entry<String, String> entry : toMap(ConfigurationValueOptions.defaults()
+        .useRawValue(true).useDisplayValue(true)).entrySet()) {
       PropertyKey key = PropertyKey.fromString(entry.getKey());
       if (key.getScope().contains(scope) && containsKey(key)) {
         ConfigProperty configProperty = new ConfigProperty().setName(key.getName())

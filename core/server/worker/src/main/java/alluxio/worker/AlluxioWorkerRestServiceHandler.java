@@ -12,6 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
@@ -314,7 +315,7 @@ public final class AlluxioWorkerRestServiceHandler {
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
     Set<Map.Entry<String, String>> properties = Configuration.toMap(
-        Configuration.ValueOptions.defaults().useDisplayValue(true).useRawValue(raw))
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw))
         .entrySet();
     SortedMap<String, String> configuration = new TreeMap<>();
     properties.forEach(entry -> configuration.put(entry.getKey(), entry.getValue()));

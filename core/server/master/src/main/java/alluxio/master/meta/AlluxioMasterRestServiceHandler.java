@@ -13,6 +13,7 @@ package alluxio.master.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.RestUtils;
@@ -416,7 +417,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
     return new TreeMap<>(Configuration.toMap(
-        Configuration.ValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 
   private Map<String, Long> getMetricsInternal() {

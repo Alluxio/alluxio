@@ -745,9 +745,9 @@ public class ConfigurationTest {
     Configuration.set(testKey, testValue);
 
     assertNotEquals(testValue, Configuration.get(testKey,
-        Configuration.ValueOptions.defaults().useDisplayValue(true)));
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
     assertNotEquals(testValue, Configuration.toMap(
-        Configuration.ValueOptions.defaults().useDisplayValue(true))
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
         .get(testKey.getName()));
   }
 
@@ -759,9 +759,9 @@ public class ConfigurationTest {
     Configuration.set(testKey, testValue);
 
     assertEquals(testValue, Configuration.get(testKey,
-        Configuration.ValueOptions.defaults().useDisplayValue(true)));
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
     assertEquals(testValue, Configuration.toMap(
-        Configuration.ValueOptions.defaults().useDisplayValue(true))
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
         .get(testKey.getName()));
   }
 
@@ -773,12 +773,12 @@ public class ConfigurationTest {
     Configuration.set(nestedProperty, testValue);
 
     assertNotEquals(testValue, Configuration.get(nestedProperty,
-        Configuration.ValueOptions.defaults().useDisplayValue(true)));
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
     assertNotEquals(testValue, Configuration.toMap(
-        Configuration.ValueOptions.defaults().useDisplayValue(true))
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
         .get(nestedProperty.getName()));
     assertNotEquals(testValue, Configuration.toMap(
-        Configuration.ValueOptions.defaults().useDisplayValue(true).useRawValue(true))
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true))
         .get(nestedProperty.getName()));
   }
 
@@ -790,12 +790,12 @@ public class ConfigurationTest {
     Configuration.set(nestedProperty, testValue);
 
     assertEquals(testValue, Configuration.get(nestedProperty,
-        Configuration.ValueOptions.defaults().useDisplayValue(true)));
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
     assertEquals(testValue, Configuration.toMap(
-        Configuration.ValueOptions.defaults().useDisplayValue(true))
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
         .get(nestedProperty.getName()));
     assertEquals(testValue, Configuration.toMap(
-        Configuration.ValueOptions.defaults().useDisplayValue(true).useRawValue(true))
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true))
         .get(nestedProperty.getName()));
   }
 
@@ -807,12 +807,12 @@ public class ConfigurationTest {
     Configuration.set(templateProperty, testValue);
 
     assertNotEquals(testValue, Configuration.get(templateProperty,
-        Configuration.ValueOptions.defaults().useDisplayValue(true)));
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
     assertNotEquals(testValue, Configuration.toMap(
-        Configuration.ValueOptions.defaults().useDisplayValue(true))
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
         .get(templateProperty.getName()));
     assertNotEquals(testValue, Configuration.toMap(
-        Configuration.ValueOptions.defaults().useDisplayValue(true).useRawValue(true))
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true))
         .get(templateProperty.getName()));
   }
 
@@ -824,13 +824,13 @@ public class ConfigurationTest {
 
     Configuration.set(testKey, testValue);
     String displayValue1 = Configuration.get(testKey,
-        Configuration.ValueOptions.defaults().useDisplayValue(true));
+        ConfigurationValueOptions.defaults().useDisplayValue(true));
 
     String testValue2 = "abc";
     Configuration.set(testKey, testValue2);
 
     String displayValue2 = Configuration.get(testKey,
-        Configuration.ValueOptions.defaults().useDisplayValue(true));
+        ConfigurationValueOptions.defaults().useDisplayValue(true));
     assertEquals(displayValue1, displayValue2);
   }
 }

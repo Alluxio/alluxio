@@ -12,6 +12,7 @@
 package alluxio.cli;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
@@ -138,7 +139,7 @@ public final class GetConf {
     switch (args.length) {
       case 0:
         TreeMap<String, String> keyValueSet = new TreeMap<>(Configuration.toMap(
-            Configuration.ValueOptions.defaults().useDisplayValue(true)));
+            ConfigurationValueOptions.defaults().useDisplayValue(true)));
         for (Entry<String, String> entry : keyValueSet.entrySet()) {
           String key = entry.getKey();
           String value = ConfigurationUtils.valueAsString(entry.getValue());
@@ -162,27 +163,9 @@ public final class GetConf {
         } else {
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
             Source source = Configuration.getSource(key);
-<<<<<<< HEAD
-            if (source == Source.SITE_PROPERTY) {
-              System.out.println(String.format("%s: %s", source.name(),
-                  Configuration.getSitePropertiesFile()));
-            } else {
-              System.out.println(String.format("%s", source.name()));
-            }
+            System.out.println(source);
           } else if (cmd.hasOption(UNIT_OPTION_NAME)
               && key.getDisplayType() != PropertyKey.DisplayType.CREDENTIALS) {
-||||||| merged common ancestors
-            if (source == Source.SITE_PROPERTY) {
-              System.out.println(String.format("%s: %s", source.name(),
-                  Configuration.getSitePropertiesFile()));
-            } else {
-              System.out.println(String.format("%s", source.name()));
-            }
-          } else if (cmd.hasOption(UNIT_OPTION_NAME)) {
-=======
-            System.out.println(source);
-          } else if (cmd.hasOption(UNIT_OPTION_NAME)) {
->>>>>>> master
             String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
             try {
               ByteUnit byteUnit;
@@ -204,7 +187,7 @@ public final class GetConf {
             return 1;
           } else {
             System.out.println(Configuration.get(key,
-                Configuration.ValueOptions.defaults().useDisplayValue(true)));
+                ConfigurationValueOptions.defaults().useDisplayValue(true)));
           }
         }
         break;

@@ -13,6 +13,7 @@ package alluxio.master.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Server;
@@ -296,7 +297,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     List<ConfigProperty> configInfoList = new ArrayList<>();
     String alluxioConfPrefix = "alluxio";
     for (Map.Entry<String, String> entry : Configuration.toMap(
-        Configuration.ValueOptions.defaults().useDisplayValue(true)).entrySet()) {
+        ConfigurationValueOptions.defaults().useDisplayValue(true)).entrySet()) {
       String key = entry.getKey();
       if (key.startsWith(alluxioConfPrefix)) {
         PropertyKey propertyKey = PropertyKey.fromString(key);

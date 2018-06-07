@@ -134,8 +134,7 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key) {
-<<<<<<< HEAD
-    return get(key, ValueOptions.defaults().checkNullValue(true));
+    return CONF.get(key);
   }
 
   /**
@@ -146,39 +145,8 @@ public final class Configuration {
    * @param options options for getting configuration value
    * @return the value for the given key
    */
-  public static String get(PropertyKey key, ValueOptions options) {
-    String value = PROPERTIES.get(key);
-    if (options.shouldCheckNullValue() && value == null) {
-      // if key is not found among the default properties
-      throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
-    }
-    if (!options.shouldUseRawValue()) {
-      value = lookup(value);
-    }
-    if (options.shouldUseDisplayValue()) {
-      PropertyKey.DisplayType displayType = key.getDisplayType();
-      switch (displayType) {
-        case DEFAULT:
-          break;
-        case CREDENTIALS:
-          value = "******";
-          break;
-        default:
-          throw new IllegalStateException(String.format("Invalid displayType %s for property %s",
-              displayType.name(), key.getName()));
-      }
-    }
-    return value;
-||||||| merged common ancestors
-    String rawValue = PROPERTIES.get(key);
-    if (rawValue == null) {
-      // if key is not found among the default properties
-      throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
-    }
-    return lookup(rawValue);
-=======
-    return CONF.get(key);
->>>>>>> master
+  public static String get(PropertyKey key, ConfigurationValueOptions options) {
+    return CONF.get(key, options);
   }
 
   /**
@@ -318,83 +286,12 @@ public final class Configuration {
   }
 
   /**
-   * Options for getting configuration values.
-   */
-  public static final class ValueOptions {
-    private boolean mUseDisplayValue;
-    private boolean mUseRawValue;
-    private boolean mCheckNullValue;
-
-    /**
-     * @return the default {@link ValueOptions}
-     */
-    public static ValueOptions defaults() {
-      return new ValueOptions();
-    }
-
-    private ValueOptions() {
-      // prevents instantiation
-    }
-
-    /**
-     * @return whether to check null value
-     */
-    public boolean shouldCheckNullValue() {
-      return mCheckNullValue;
-    }
-
-    /**
-     * @return whether to use display value
-     */
-    public boolean shouldUseDisplayValue() {
-      return mUseDisplayValue;
-    }
-
-    /**
-     * @return whether to use raw value
-     */
-    public boolean shouldUseRawValue() {
-      return mUseRawValue;
-    }
-
-    /**
-     * @param checkNullValue whether to check null value
-     * @return the {@link ValueOptions} instance
-     */
-    public ValueOptions checkNullValue(boolean checkNullValue) {
-      mCheckNullValue = checkNullValue;
-      return this;
-    }
-
-    /**
-     * @param useRawValue whether to use raw value
-     * @return the {@link ValueOptions} instance
-     */
-    public ValueOptions useRawValue(boolean useRawValue) {
-      mUseRawValue = useRawValue;
-      return this;
-    }
-
-    /**
-     * @param useDisplayValue whether to use display value
-     * @return the {@link ValueOptions} instance
-     */
-    public ValueOptions useDisplayValue(boolean useDisplayValue) {
-      mUseDisplayValue = useDisplayValue;
-      return this;
-    }
-  }
-
-  /**
    * @param options option for getting configuration values
    * @return a view of the properties represented by this configuration,
    *         including all default properties
    */
-  public static Map<String, String> toMap(ValueOptions options) {
-    Map<String, String> map = new HashMap<>();
-    PROPERTIES.forEach((key, value) ->
-        map.put(key.getName(), get(key, options)));
-    return map;
+  public static Map<String, String> toMap(ConfigurationValueOptions options) {
+    return CONF.toMap(options);
   }
 
   /**
@@ -402,22 +299,7 @@ public final class Configuration {
    *         including all default properties
    */
   public static Map<String, String> toMap() {
-<<<<<<< HEAD
-    return toMap(ValueOptions.defaults());
-||||||| merged common ancestors
-    Map<String, String> map = toRawMap();
-    for (Map.Entry<String, String> entry : map.entrySet()) {
-      String value = entry.getValue();
-      if (value != null) {
-        map.put(entry.getKey(), lookup(value));
-      } else {
-        map.put(entry.getKey(), value);
-      }
-    }
-    return map;
-=======
     return CONF.toMap();
->>>>>>> master
   }
 
   /**
@@ -425,109 +307,7 @@ public final class Configuration {
    *         including all default properties
    */
   public static Map<String, String> toRawMap() {
-<<<<<<< HEAD
-    return toMap(ValueOptions.defaults().useRawValue(true));
-  }
-
-  /**
-   * Lookup key names to handle ${key} stuff.
-   *
-   * @param base the String to look for
-   * @return resolved String value
-   */
-  private static String lookup(final String base) {
-    return lookupRecursively(base, new HashSet<>());
-  }
-
-  /**
-   * Actual recursive lookup replacement.
-   *
-   * @param base the string to resolve
-   * @param seen strings already seen during this lookup, used to prevent unbound recursion
-   * @return the resolved string
-   */
-  @Nullable
-  private static String lookupRecursively(String base, Set<String> seen) {
-    // check argument
-    if (base == null) {
-      return null;
-    }
-
-    String resolved = base;
-    // Lets find pattern match to ${key}.
-    // TODO(hsaputra): Consider using Apache Commons StrSubstitutor.
-    Matcher matcher = CONF_REGEX.matcher(base);
-    while (matcher.find()) {
-      String match = matcher.group(2).trim();
-      if (!seen.add(match)) {
-        throw new RuntimeException("Circular dependency found while resolving " + match);
-      }
-      if (!PropertyKey.isValid(match)) {
-        throw new RuntimeException("Invalid property key " + match);
-      }
-      String value = lookupRecursively(PROPERTIES.get(PropertyKey.fromString(match)), seen);
-      seen.remove(match);
-      if (value == null) {
-        throw new RuntimeException("No value specified for configuration property " + match);
-      }
-      LOG.debug("Replacing {} with {}", matcher.group(1), value);
-      resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(value));
-    }
-    return resolved;
-||||||| merged common ancestors
-    Map<String, String> rawMap = new HashMap<>();
-    PROPERTIES.forEach((key, value) -> rawMap.put(key.getName(), value));
-    return rawMap;
-  }
-
-  /**
-   * Lookup key names to handle ${key} stuff.
-   *
-   * @param base the String to look for
-   * @return resolved String value
-   */
-  private static String lookup(final String base) {
-    return lookupRecursively(base, new HashSet<>());
-  }
-
-  /**
-   * Actual recursive lookup replacement.
-   *
-   * @param base the string to resolve
-   * @param seen strings already seen during this lookup, used to prevent unbound recursion
-   * @return the resolved string
-   */
-  @Nullable
-  private static String lookupRecursively(String base, Set<String> seen) {
-    // check argument
-    if (base == null) {
-      return null;
-    }
-
-    String resolved = base;
-    // Lets find pattern match to ${key}.
-    // TODO(hsaputra): Consider using Apache Commons StrSubstitutor.
-    Matcher matcher = CONF_REGEX.matcher(base);
-    while (matcher.find()) {
-      String match = matcher.group(2).trim();
-      if (!seen.add(match)) {
-        throw new RuntimeException("Circular dependency found while resolving " + match);
-      }
-      if (!PropertyKey.isValid(match)) {
-        throw new RuntimeException("Invalid property key " + match);
-      }
-      String value = lookupRecursively(PROPERTIES.get(PropertyKey.fromString(match)), seen);
-      seen.remove(match);
-      if (value == null) {
-        throw new RuntimeException("No value specified for configuration property " + match);
-      }
-      LOG.debug("Replacing {} with {}", matcher.group(1), value);
-      resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(value));
-    }
-    return resolved;
-=======
     return CONF.toRawMap();
->>>>>>> master
   }
 
   /**
@@ -554,30 +334,6 @@ public final class Configuration {
    * @return a list of raw configurations inside the property scope
    */
   public static List<ConfigProperty> getConfiguration(Scope scope) {
-<<<<<<< HEAD
-    List<ConfigProperty> list = new ArrayList<>();
-    for (Map.Entry<String, String> entry : toMap(ValueOptions.defaults()
-        .useRawValue(true).useDisplayValue(true)).entrySet()) {
-      PropertyKey key = PropertyKey.fromString(entry.getKey());
-      if (key.getScope().contains(scope) && containsKey(key)) {
-        ConfigProperty configProperty = new ConfigProperty()
-            .setName(key.getName()).setValue(get(key)).setSource(getFormattedSource(key));
-        list.add(configProperty);
-      }
-    }
-    return list;
-||||||| merged common ancestors
-    List<ConfigProperty> list = new ArrayList<>();
-    for (Map.Entry<String, String> entry : toRawMap().entrySet()) {
-      PropertyKey key = PropertyKey.fromString(entry.getKey());
-      if (key.getScope().contains(scope) && containsKey(key)) {
-        ConfigProperty configProperty = new ConfigProperty()
-            .setName(key.getName()).setValue(get(key)).setSource(getFormattedSource(key));
-        list.add(configProperty);
-      }
-    }
-    return list;
-=======
     return CONF.getConfiguration(scope);
   }
 
@@ -586,7 +342,6 @@ public final class Configuration {
    */
   public static InstancedConfiguration global() {
     return CONF;
->>>>>>> master
   }
 
   private Configuration() {} // prevent instantiation
