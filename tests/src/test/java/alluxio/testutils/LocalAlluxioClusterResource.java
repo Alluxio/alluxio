@@ -187,6 +187,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
       mStartCluster = true;
       mNumWorkers = 1;
       mConfiguration = new HashMap<>();
+      // HACKHACK: by default turn off the metrics collection
+      mConfiguration.put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false");
     }
 
     /**
