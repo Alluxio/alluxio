@@ -15,9 +15,9 @@ package alluxio;
  * Options for getting configuration values.
  */
 public final class ConfigurationValueOptions {
-  private boolean mUseDisplayValue;
-  private boolean mUseRawValue;
-  private boolean mCheckNullValue;
+  private boolean mUseDisplayValue = false;
+  private boolean mUseRawValue = false;
+  private boolean mCheckNullValue = false;
 
   /**
    * @return the default {@link ConfigurationValueOptions}
