@@ -539,7 +539,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioConf);
     ConnectDetails newDetails = Factory.getConnectDetails(alluxioConf);
 
-    return newDetails.equals(FileSystemContext.get().getMasterInquireClient());
+    return newDetails.equals(FileSystemContext.get().getMasterInquireClient().getConnectDetails());
   }
 
   /**
