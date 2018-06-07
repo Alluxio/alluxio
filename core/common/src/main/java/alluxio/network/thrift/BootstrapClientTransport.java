@@ -11,6 +11,7 @@
 
 package alluxio.network.thrift;
 
+import com.google.common.base.Preconditions;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class BootstrapClientTransport extends TTransport {
    * @param baseTransport the base transport
    */
   public BootstrapClientTransport(TTransport baseTransport) {
-    mTransport = baseTransport;
+    mTransport = Preconditions.checkNotNull(baseTransport);
   }
 
   @Override
@@ -48,7 +49,7 @@ public class BootstrapClientTransport extends TTransport {
 
   @Override
   public boolean isOpen() {
-    return mTransport != null && mTransport.isOpen();
+    return mTransport.isOpen();
   }
 
   @Override
@@ -60,7 +61,7 @@ public class BootstrapClientTransport extends TTransport {
 
   @Override
   public int read(byte[] buf, int off, int len) throws TTransportException {
-    if (!isOpen()) {
+    if (!mTransport.isOpen()) {
       throw new TTransportException("transport is not open");
     }
     return mTransport.read(buf, off, len);
@@ -68,7 +69,7 @@ public class BootstrapClientTransport extends TTransport {
 
   @Override
   public void write(byte[] buf, int off, int len) throws TTransportException {
-    if (!isOpen()) {
+    if (!mTransport.isOpen()) {
       throw new TTransportException("transport is not open");
     }
     mTransport.write(buf, off, len);
@@ -76,7 +77,7 @@ public class BootstrapClientTransport extends TTransport {
 
   @Override
   public void flush() throws TTransportException {
-    if (!isOpen()) {
+    if (!mTransport.isOpen()) {
       throw new TTransportException("transport is not open");
     }
     mTransport.flush();
