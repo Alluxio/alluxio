@@ -14,6 +14,7 @@ package alluxio.multi.process;
 import alluxio.PropertyKey;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,6 +75,13 @@ public final class Master implements Closeable {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * @return the configuration used by this master
+   */
+  public Map<PropertyKey, String> getConf() {
+    return ImmutableMap.copyOf(mProperties);
   }
 
   @Override
