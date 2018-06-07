@@ -93,11 +93,12 @@ public final class MultiProcessCluster implements TestRule {
   private final int mNumMasters;
   private final int mNumWorkers;
   private final String mClusterName;
-  private final DeployMode mDeployMode;
   /** Closer for closing all resources that must be closed when the cluster is destroyed. */
   private final Closer mCloser;
   private final List<Master> mMasters;
   private final List<Worker> mWorkers;
+
+  private DeployMode mDeployMode;
 
   /** Base directory for storing configuration and logs. */
   private File mWorkDir;
@@ -380,6 +381,15 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
+   * Updates the cluster's deploy mode.
+   *
+   * @param mode the mode to set
+   */
+  public synchronized void updateDeployMode(DeployMode mode) {
+    mDeployMode = mode;
+  }
+
+  /**
    * @param i the index of the worker to stop
    */
   public synchronized void stopWorker(int i) throws IOException {
@@ -469,7 +479,7 @@ public final class MultiProcessCluster implements TestRule {
   /**
    * Formats the cluster journal.
    */
-  public synchronized void formatJournal() {
+  public synchronized void formatJournal() throws IOException {
     try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER,
         mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER)).toResource()) {
       Format.format(Format.Mode.MASTER);

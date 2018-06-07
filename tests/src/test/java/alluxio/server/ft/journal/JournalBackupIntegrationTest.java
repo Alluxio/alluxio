@@ -31,11 +31,11 @@ import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,24 +53,34 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     }
   });
 
-  @Before
-  public void before() {
+  @After
+  public void after() throws Exception {
+    if (mCluster != null) {
+      mCluster.destroy();
+    }
+  }
+
+  // This test needs to stop and start master many times, so it can take up to a minute to complete.
+  @Test
+  public void backupRestoreZk() throws Exception {
     mCluster = MultiProcessCluster.newBuilder()
-        .setClusterName("backupRestore")
+        .setClusterName("backupRestoreZk")
         .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setNumMasters(3)
         // Masters become primary faster
-        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
-        .build();
-  }
-
-  @After
-  public void after() throws Exception {
-    mCluster.destroy();
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec").build();
+    backupRestoreTest(true);
   }
 
   @Test
-  public void backupRestore() throws Exception {
+  public void backupRestoreSingleMaster() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder()
+        .setClusterName("backupRestoreSingle")
+        .setNumMasters(1).build();
+    backupRestoreTest(false);
+  }
+
+  private void backupRestoreTest(boolean testFailover) throws Exception {
     File backups = AlluxioTestDirectory.createTemporaryDirectory("backups");
     mCluster.start();
     List<Thread> opThreads = new ArrayList<>();
@@ -110,10 +120,12 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
       assertTrue(fs.exists(dir1));
       assertFalse(fs.exists(dir2));
 
-      // Verify that failover works correctly.
-      mCluster.waitForAndKillPrimaryMaster(30 * Constants.SECOND_MS);
-      assertTrue(fs.exists(dir1));
-      assertFalse(fs.exists(dir2));
+      if (testFailover) {
+        // Verify that failover works correctly.
+        mCluster.waitForAndKillPrimaryMaster(30 * Constants.SECOND_MS);
+        assertTrue(fs.exists(dir1));
+        assertFalse(fs.exists(dir2));
+      }
 
       mCluster.notifySuccess();
     } finally {
@@ -121,7 +133,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  private void restartMastersFromBackup(AlluxioURI backup) {
+  private void restartMastersFromBackup(AlluxioURI backup) throws IOException {
     mCluster.stopMasters();
     mCluster.formatJournal();
     mCluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backup.toString());
