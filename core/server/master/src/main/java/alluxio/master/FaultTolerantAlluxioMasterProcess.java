@@ -16,9 +16,9 @@ import alluxio.ProcessUtils;
 import alluxio.PropertyKey;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
+import alluxio.util.interfaces.Scoped;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -69,36 +70,61 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       throw new RuntimeException(e);
     }
 
+    startMasters(false);
     while (!Thread.interrupted()) {
-      startMasters(false);
-      LOG.info("Secondary started");
       mLeaderSelector.waitForState(State.PRIMARY);
+      if (gainPrimacy()) {
+        mLeaderSelector.waitForState(State.SECONDARY);
+        losePrimacy();
+      }
+    }
+  }
+
+  /**
+   * @return true if the master successfully upgrades to primary
+   */
+  private boolean gainPrimacy() throws Exception {
+    AtomicBoolean lostPrimacy = new AtomicBoolean(false);
+    try (Scoped scoped = mLeaderSelector.onStateChange(state -> lostPrimacy.set(true))) {
+      if (mLeaderSelector.getState() != State.PRIMARY) {
+        lostPrimacy.set(true);
+      }
       stopMasters();
       LOG.info("Secondary stopped");
-      mJournalSystem.setMode(Mode.PRIMARY);
-
-      startMasters(true);
-      mServingThread = new Thread(() -> {
-        try {
-          startServing(" (gained leadership)", " (lost leadership)");
-        } catch (Throwable t) {
-          Throwable root = ExceptionUtils.getRootCause(t);
-          if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
-            return;
-          }
-          ProcessUtils.fatalError(LOG, t, "Exception thrown in main serving thread");
+      mJournalSystem.gainPrimacy();
+      if (lostPrimacy.get()) {
+        losePrimacy();
+        return false;
+      }
+    }
+    startMasters(true);
+    mServingThread = new Thread(() -> {
+      try {
+        startServing(" (gained leadership)", " (lost leadership)");
+      } catch (Throwable t) {
+        Throwable root = ExceptionUtils.getRootCause(t);
+        if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
+          return;
         }
-      }, "MasterServingThread");
-      mServingThread.start();
-      waitForReady();
-      LOG.info("Primary started");
-      mLeaderSelector.waitForState(State.SECONDARY);
+        ProcessUtils.fatalError(LOG, t, "Exception thrown in main serving thread");
+      }
+    }, "MasterServingThread");
+    mServingThread.start();
+    waitForReady();
+    LOG.info("Primary started");
+    return true;
+  }
+
+  private void losePrimacy() throws Exception {
+    if (mServingThread != null) {
       stopServing();
-      // Put the journal in secondary mode ASAP to avoid interfering with the new primary. This must
-      // happen after stopServing because downgrading the journal system will reset master state,
-      // which could cause NPEs for outstanding RPC threads. We need to first close all client
-      // sockets in stopServing so that clients don't see NPEs.
-      mJournalSystem.setMode(Mode.SECONDARY);
+    }
+    // Put the journal in secondary mode ASAP to avoid interfering with the new primary. This must
+    // happen after stopServing because downgrading the journal system will reset master state,
+    // which could cause NPEs for outstanding RPC threads. We need to first close all client
+    // sockets in stopServing so that clients don't see NPEs.
+    mJournalSystem.losePrimacy();
+    if (mServingThread != null) {
       mServingThread.join(mServingThreadTimeoutMs);
       if (mServingThread.isAlive()) {
         ProcessUtils.fatalError(LOG,
@@ -109,6 +135,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       stopMasters();
       LOG.info("Primary stopped");
     }
+    startMasters(false);
   }
 
   @Override

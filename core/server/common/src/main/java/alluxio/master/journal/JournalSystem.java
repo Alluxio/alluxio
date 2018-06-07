@@ -73,7 +73,8 @@ public interface JournalSystem {
 
   /**
    * The mode of the journal system. Journal systems begin in SECONDARY mode by default. The
-   * {@link #setMode(Mode)} method may be used to transition between journal modes.
+   * {@link #gainPrimacy()} and {@link #losePrimacy()} methods may be used to transition between
+   * journal modes.
    */
   enum Mode {
     /**
@@ -119,16 +120,14 @@ public interface JournalSystem {
   void stop() throws InterruptedException, IOException;
 
   /**
-   * Sets the mode of the journal to either primary or secondary. This method requires that the
-   * journal system has been started.
-   *
-   * When journal entries are applied, the journal will only update the state machine if in
-   * secondary mode. In primary mode, it is expected that the state machine will update its own
-   * state before it writes entries to the journal.
-   *
-   * @param mode the mode to set
+   * Transitions the journal to primary mode.
    */
-  void setMode(Mode mode);
+  void gainPrimacy();
+
+  /**
+   * Transitions the journal to secondary mode.
+   */
+  void losePrimacy();
 
   /**
    * Formats the journal system.
