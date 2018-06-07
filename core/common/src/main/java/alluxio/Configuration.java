@@ -154,45 +154,40 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key) {
-    String rawValue = PROPERTIES.get(key);
-    if (rawValue == null) {
+    return get(key, ValueOptions.defaults().checkNullValue(true));
+  }
+
+  /**
+   * Gets the value for the given key in the {@link Properties}; if this key is not found, a
+   * RuntimeException is thrown.
+   *
+   * @param key the key to get the value for
+   * @param options options for getting configuration value
+   * @return the value for the given key
+   */
+  public static String get(PropertyKey key, ValueOptions options) {
+    String value = PROPERTIES.get(key);
+    if (options.shouldCheckNullValue() && value == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
     }
-    return lookup(rawValue);
-  }
-
-  /**
-   * Gets the display value for the given key in the {@link Properties}; Credentials will be masked.
-   * If this key is not found, a RuntimeException is thrown.
-   *
-   * @param key the key to get the value for
-   * @return the display value for the given key
-   */
-  public static String getDisplayValue(PropertyKey key) {
-    String value = get(key);
-    return getDisplayValue(key, value);
-  }
-
-  /**
-   * Gets the display value for the given key and value in the {@link Properties}.
-   * Credentials will be masked.
-   *
-   * @param key the key to get the value for
-   * @param value value of the property
-   * @return the display value for the given key
-   */
-  public static String getDisplayValue(PropertyKey key, String value) {
-    PropertyKey.DisplayType displayType = key.getDisplayType();
-    switch (key.getDisplayType()) {
-      case DEFAULT:
-        return value;
-      case CREDENTIALS:
-        return "******";
-      default:
-        throw new IllegalStateException(String.format("Invalid displayType %s for property %s",
-            displayType.name(), key.getName()));
+    if (!options.shouldUseRawValue()) {
+      value = lookup(value);
     }
+    if (options.shouldUseDisplayValue()) {
+      PropertyKey.DisplayType displayType = key.getDisplayType();
+      switch (displayType) {
+        case DEFAULT:
+          break;
+        case CREDENTIALS:
+          value = "******";
+          break;
+        default:
+          throw new IllegalStateException(String.format("Invalid displayType %s for property %s",
+              displayType.name(), key.getName()));
+      }
+    }
+    return value;
   }
 
   /**
@@ -404,19 +399,91 @@ public final class Configuration {
   }
 
   /**
+   * Options for getting configuration values.
+   */
+  public static final class ValueOptions {
+    private boolean mUseDisplayValue;
+    private boolean mUseRawValue;
+    private boolean mCheckNullValue;
+
+    /**
+     * @return the default {@link ValueOptions}
+     */
+    public static ValueOptions defaults() {
+      return new ValueOptions();
+    }
+
+    private ValueOptions() {
+      // prevents instantiation
+    }
+
+    /**
+     * @return whether to check null value
+     */
+    public boolean shouldCheckNullValue() {
+      return mCheckNullValue;
+    }
+
+    /**
+     * @return whether to use display value
+     */
+    public boolean shouldUseDisplayValue() {
+      return mUseDisplayValue;
+    }
+
+    /**
+     * @return whether to use raw value
+     */
+    public boolean shouldUseRawValue() {
+      return mUseRawValue;
+    }
+
+    /**
+     * @param checkNullValue whether to check null value
+     * @return the {@link ValueOptions} instance
+     */
+    public ValueOptions checkNullValue(boolean checkNullValue) {
+      mCheckNullValue = checkNullValue;
+      return this;
+    }
+
+    /**
+     * @param useRawValue whether to use raw value
+     * @return the {@link ValueOptions} instance
+     */
+    public ValueOptions useRawValue(boolean useRawValue) {
+      mUseRawValue = useRawValue;
+      return this;
+    }
+
+    /**
+     * @param useDisplayValue whether to use display value
+     * @return the {@link ValueOptions} instance
+     */
+    public ValueOptions useDisplayValue(boolean useDisplayValue) {
+      mUseDisplayValue = useDisplayValue;
+      return this;
+    }
+  }
+
+  /**
+   * @param options option for getting configuration values
+   * @return a view of the properties represented by this configuration,
+   *         including all default properties
+   */
+  public static Map<String, String> toMap(ValueOptions options) {
+    Map<String, String> map = new HashMap<>();
+    PROPERTIES.forEach((key, value) ->
+        map.put(key.getName(), get(key, options)));
+    return map;
+  }
+
+  /**
    * @return a view of the resolved properties represented by this configuration,
    *         including all default properties
    */
   public static Map<String, String> toMap() {
-    return toMapInternal(false);
-  }
-
-  /**
-   * @return a view of the display values for resolved properties represented by this configuration,
-   *         including all default properties
-   */
-  public static Map<String, String> toDisplayMap() {
-    return toMapInternal(true);
+    return toMap(ValueOptions.defaults());
   }
 
   /**
@@ -424,45 +491,7 @@ public final class Configuration {
    *         including all default properties
    */
   public static Map<String, String> toRawMap() {
-    return toRawMapInternal(false);
-  }
-
-  /**
-   * @return a map of display values for the raw properties represented by this configuration,
-   *         including all default properties
-   */
-  public static Map<String, String> toRawDisplayMap() {
-    return toRawMapInternal(true);
-  }
-
-  /**
-   * @param useDisplayValue whether to return display values
-   * @return a view of the resolved properties represented by this configuration,
-   *         including all default properties
-   */
-  private static Map<String, String> toMapInternal(boolean useDisplayValue) {
-    Map<String, String> map = toRawMapInternal(useDisplayValue);
-    for (Map.Entry<String, String> entry : map.entrySet()) {
-      String value = entry.getValue();
-      if (value != null) {
-        map.put(entry.getKey(), lookup(value));
-      } else {
-        map.put(entry.getKey(), value);
-      }
-    }
-    return map;
-  }
-
-  /**
-   * @param useDisplayValue whether to return display values
-   * @return a map of the raw properties represented by this configuration,
-   *         including all default properties
-   */
-  private static Map<String, String> toRawMapInternal(boolean useDisplayValue) {
-    Map<String, String> rawMap = new HashMap<>();
-    PROPERTIES.forEach((key, value) ->
-        rawMap.put(key.getName(), useDisplayValue ? getDisplayValue(key, value) : value));
-    return rawMap;
+    return toMap(ValueOptions.defaults().useRawValue(true));
   }
 
   /**
@@ -668,7 +697,8 @@ public final class Configuration {
    */
   public static List<ConfigProperty> getConfiguration(Scope scope) {
     List<ConfigProperty> list = new ArrayList<>();
-    for (Map.Entry<String, String> entry : toRawMapInternal(true).entrySet()) {
+    for (Map.Entry<String, String> entry : toMap(ValueOptions.defaults()
+        .useRawValue(true).useDisplayValue(true)).entrySet()) {
       PropertyKey key = PropertyKey.fromString(entry.getKey());
       if (key.getScope().contains(scope) && containsKey(key)) {
         ConfigProperty configProperty = new ConfigProperty()

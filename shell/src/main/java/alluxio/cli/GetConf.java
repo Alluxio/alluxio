@@ -137,7 +137,8 @@ public final class GetConf {
     StringBuilder output = new StringBuilder();
     switch (args.length) {
       case 0:
-        TreeMap<String, String> keyValueSet = new TreeMap<>(Configuration.toDisplayMap());
+        TreeMap<String, String> keyValueSet = new TreeMap<>(Configuration.toMap(
+            Configuration.ValueOptions.defaults().useDisplayValue(true)));
         for (Entry<String, String> entry : keyValueSet.entrySet()) {
           String key = entry.getKey();
           String value = ConfigurationUtils.valueAsString(entry.getValue());
@@ -194,7 +195,8 @@ public final class GetConf {
             printHelp(String.format("%s is not a valid unit", arg));
             return 1;
           } else {
-            System.out.println(Configuration.getDisplayValue(key));
+            System.out.println(Configuration.get(key,
+                Configuration.ValueOptions.defaults().useDisplayValue(true)));
           }
         }
         break;

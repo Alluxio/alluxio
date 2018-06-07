@@ -415,11 +415,8 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    if (raw) {
-      return new TreeMap<>(Configuration.toRawDisplayMap());
-    } else {
-      return new TreeMap<>(Configuration.toDisplayMap());
-    }
+    return new TreeMap<>(Configuration.toMap(
+        Configuration.ValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 
   private Map<String, Long> getMetricsInternal() {
