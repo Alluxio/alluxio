@@ -21,11 +21,13 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -51,6 +53,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
 
   private boolean mDirectChildrenLoaded;
 
+  private AccessControlList mDefaultAcl;
+
   /**
    * Creates a new instance of {@link InodeDirectory}.
    *
@@ -60,6 +64,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     super(id, true);
     mMountPoint = false;
     mDirectChildrenLoaded = false;
+    mDefaultAcl = new AccessControlList();
   }
 
   @Override
@@ -228,6 +233,20 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    */
   public synchronized InodeDirectory setDirectChildrenLoaded(boolean directChildrenLoaded) {
     mDirectChildrenLoaded = directChildrenLoaded;
+    return getThis();
+  }
+
+  /**
+   * Sets ACL entries into the internal ACL.
+   * The entries will overwrite any existing correspondent entries in the internal ACL.
+   *
+   * @param entries the ACL entries
+   * @return the updated object
+   */
+  public InodeDirectory setDefaultAcl(List<AclEntry> entries) {
+    for (AclEntry entry : entries) {
+      mDefaultAcl.setEntry(entry);
+    }
     return getThis();
   }
 

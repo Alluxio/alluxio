@@ -66,6 +66,11 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
       .hasArg(false)
       .desc("Removes all of the ACL entries, except for the base entries.")
       .build();
+  private static final Option DEFAULT_OPTION = Option.builder("d")
+      .required(false)
+      .hasArg(false)
+      .desc("Operations apply to the default ACL")
+      .build();
   // TODO(gpang): support remove defaults
 
   /**
@@ -83,7 +88,7 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION).addOption(SET_OPTION).addOption(MODIFY_OPTION)
-        .addOption(REMOVE_OPTION).addOption(REMOVE_ALL_OPTION);
+        .addOption(REMOVE_OPTION).addOption(REMOVE_ALL_OPTION).addOption(DEFAULT_OPTION);
   }
 
   @Override
@@ -146,7 +151,7 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "setfacl [-R] [--set | -m | -x <acl_entries> <path>] | [-b | -k <path>]";
+    return "setfacl [-d] [-R] [--set | -m | -x <acl_entries> <path>] | [-b | -k <path>]";
   }
 
   @Override

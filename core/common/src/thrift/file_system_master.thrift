@@ -162,6 +162,7 @@ struct FileInfo {
   26: i32 inAlluxioPercentage
   27: string ufsFingerprint
   28: TAcl acl
+  29: TAcl defaultAcl
 }
 
 struct MountTOptions {
@@ -220,6 +221,7 @@ enum TSetAclAction {
 struct SetAclTOptions {
   1: optional FileSystemMasterCommonTOptions commonOptions
   2: optional bool recursive
+  3: optional bool opdefault
 }
 struct SetAclTResponse {}
 

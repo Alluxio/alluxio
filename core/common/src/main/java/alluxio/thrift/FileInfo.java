@@ -65,6 +65,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final org.apache.thrift.protocol.TField IN_ALLUXIO_PERCENTAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("inAlluxioPercentage", org.apache.thrift.protocol.TType.I32, (short)26);
   private static final org.apache.thrift.protocol.TField UFS_FINGERPRINT_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsFingerprint", org.apache.thrift.protocol.TType.STRING, (short)27);
   private static final org.apache.thrift.protocol.TField ACL_FIELD_DESC = new org.apache.thrift.protocol.TField("acl", org.apache.thrift.protocol.TType.STRUCT, (short)28);
+  private static final org.apache.thrift.protocol.TField DEFAULT_ACL_FIELD_DESC = new org.apache.thrift.protocol.TField("defaultAcl", org.apache.thrift.protocol.TType.STRUCT, (short)29);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -99,6 +100,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private int inAlluxioPercentage; // required
   private String ufsFingerprint; // required
   private TAcl acl; // required
+  private TAcl defaultAcl; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -132,7 +134,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     MOUNT_ID((short)25, "mountId"),
     IN_ALLUXIO_PERCENTAGE((short)26, "inAlluxioPercentage"),
     UFS_FINGERPRINT((short)27, "ufsFingerprint"),
-    ACL((short)28, "acl");
+    ACL((short)28, "acl"),
+    DEFAULT_ACL((short)29, "defaultAcl");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -201,6 +204,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           return UFS_FINGERPRINT;
         case 28: // ACL
           return ACL;
+        case 29: // DEFAULT_ACL
+          return DEFAULT_ACL;
         default:
           return null;
       }
@@ -317,6 +322,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.ACL, new org.apache.thrift.meta_data.FieldMetaData("acl", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, TAcl.class)));
+    tmpMap.put(_Fields.DEFAULT_ACL, new org.apache.thrift.meta_data.FieldMetaData("defaultAcl", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, TAcl.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileInfo.class, metaDataMap);
   }
@@ -351,7 +358,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     long mountId,
     int inAlluxioPercentage,
     String ufsFingerprint,
-    TAcl acl)
+    TAcl acl,
+    TAcl defaultAcl)
   {
     this();
     this.fileId = fileId;
@@ -397,6 +405,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     setInAlluxioPercentageIsSet(true);
     this.ufsFingerprint = ufsFingerprint;
     this.acl = acl;
+    this.defaultAcl = defaultAcl;
   }
 
   /**
@@ -458,6 +467,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     if (other.isSetAcl()) {
       this.acl = new TAcl(other.acl);
     }
+    if (other.isSetDefaultAcl()) {
+      this.defaultAcl = new TAcl(other.defaultAcl);
+    }
   }
 
   public FileInfo deepCopy() {
@@ -509,6 +521,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.inAlluxioPercentage = 0;
     this.ufsFingerprint = null;
     this.acl = null;
+    this.defaultAcl = null;
   }
 
   public long getFileId() {
@@ -1181,6 +1194,30 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     }
   }
 
+  public TAcl getDefaultAcl() {
+    return this.defaultAcl;
+  }
+
+  public FileInfo setDefaultAcl(TAcl defaultAcl) {
+    this.defaultAcl = defaultAcl;
+    return this;
+  }
+
+  public void unsetDefaultAcl() {
+    this.defaultAcl = null;
+  }
+
+  /** Returns true if field defaultAcl is set (has been assigned a value) and false otherwise */
+  public boolean isSetDefaultAcl() {
+    return this.defaultAcl != null;
+  }
+
+  public void setDefaultAclIsSet(boolean value) {
+    if (!value) {
+      this.defaultAcl = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case FILE_ID:
@@ -1399,6 +1436,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       break;
 
+    case DEFAULT_ACL:
+      if (value == null) {
+        unsetDefaultAcl();
+      } else {
+        setDefaultAcl((TAcl)value);
+      }
+      break;
+
     }
   }
 
@@ -1485,6 +1530,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     case ACL:
       return getAcl();
 
+    case DEFAULT_ACL:
+      return getDefaultAcl();
+
     }
     throw new IllegalStateException();
   }
@@ -1550,6 +1598,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       return isSetUfsFingerprint();
     case ACL:
       return isSetAcl();
+    case DEFAULT_ACL:
+      return isSetDefaultAcl();
     }
     throw new IllegalStateException();
   }
@@ -1810,6 +1860,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return false;
     }
 
+    boolean this_present_defaultAcl = true && this.isSetDefaultAcl();
+    boolean that_present_defaultAcl = true && that.isSetDefaultAcl();
+    if (this_present_defaultAcl || that_present_defaultAcl) {
+      if (!(this_present_defaultAcl && that_present_defaultAcl))
+        return false;
+      if (!this.defaultAcl.equals(that.defaultAcl))
+        return false;
+    }
+
     return true;
   }
 
@@ -1951,6 +2010,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     list.add(present_acl);
     if (present_acl)
       list.add(acl);
+
+    boolean present_defaultAcl = true && (isSetDefaultAcl());
+    list.add(present_defaultAcl);
+    if (present_defaultAcl)
+      list.add(defaultAcl);
 
     return list.hashCode();
   }
@@ -2233,6 +2297,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetDefaultAcl()).compareTo(other.isSetDefaultAcl());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetDefaultAcl()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.defaultAcl, other.defaultAcl);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -2404,6 +2478,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       sb.append(this.acl);
     }
     first = false;
+    if (!first) sb.append(", ");
+    sb.append("defaultAcl:");
+    if (this.defaultAcl == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.defaultAcl);
+    }
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -2413,6 +2495,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     // check for sub-struct validity
     if (acl != null) {
       acl.validate();
+    }
+    if (defaultAcl != null) {
+      defaultAcl.validate();
     }
   }
 
@@ -2690,6 +2775,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 29: // DEFAULT_ACL
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.defaultAcl = new TAcl();
+              struct.defaultAcl.read(iprot);
+              struct.setDefaultAclIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -2822,6 +2916,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         struct.acl.write(oprot);
         oprot.writeFieldEnd();
       }
+      if (struct.defaultAcl != null) {
+        oprot.writeFieldBegin(DEFAULT_ACL_FIELD_DESC);
+        struct.defaultAcl.write(oprot);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -2921,7 +3020,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetAcl()) {
         optionals.set(26);
       }
-      oprot.writeBitSet(optionals, 27);
+      if (struct.isSetDefaultAcl()) {
+        optionals.set(27);
+      }
+      oprot.writeBitSet(optionals, 28);
       if (struct.isSetFileId()) {
         oprot.writeI64(struct.fileId);
       }
@@ -3015,12 +3117,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetAcl()) {
         struct.acl.write(oprot);
       }
+      if (struct.isSetDefaultAcl()) {
+        struct.defaultAcl.write(oprot);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, FileInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(27);
+      BitSet incoming = iprot.readBitSet(28);
       if (incoming.get(0)) {
         struct.fileId = iprot.readI64();
         struct.setFileIdIsSet(true);
@@ -3148,6 +3253,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         struct.acl = new TAcl();
         struct.acl.read(iprot);
         struct.setAclIsSet(true);
+      }
+      if (incoming.get(27)) {
+        struct.defaultAcl = new TAcl();
+        struct.defaultAcl.read(iprot);
+        struct.setDefaultAclIsSet(true);
       }
     }
   }

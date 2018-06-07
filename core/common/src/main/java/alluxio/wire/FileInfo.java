@@ -61,6 +61,7 @@ public final class FileInfo implements Serializable {
   private String mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
   // A list of String ACL entries, to support json serialization.
   private ArrayList<String> mAclEntries = new ArrayList<>();
+  private ArrayList<String> mDefaultAclEntries = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -255,6 +256,14 @@ public final class FileInfo implements Serializable {
   public List<String> getAclEntries() {
     return mAclEntries;
   }
+
+  /**
+   * @return the default ACL entries for this file
+   */
+  public List<String> getDefaultAclEntries() {
+    return mDefaultAclEntries;
+  }
+
 
   /**
    * @param fileId the file id to use
@@ -504,6 +513,16 @@ public final class FileInfo implements Serializable {
   public FileInfo setAclEntries(List<String> acl) {
     mAclEntries = new ArrayList<>();
     mAclEntries.addAll(acl);
+    return this;
+  }
+
+  /**
+   * @param acl the ACL entries to use
+   * @return the file information
+   */
+  public FileInfo setDefaultAclEntries(List<String> acl) {
+    mDefaultAclEntries = new ArrayList<>();
+    mDefaultAclEntries.addAll(acl);
     return this;
   }
 

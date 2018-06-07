@@ -30,6 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class SetAclOptions {
   private CommonOptions mCommonOptions;
   private boolean mRecursive;
+  private boolean mDefault;
 
   /**
    * @return the default {@link SetAclOptions}
@@ -41,6 +42,7 @@ public final class SetAclOptions {
   private SetAclOptions() {
     mCommonOptions = CommonOptions.defaults();
     mRecursive = false;
+    mDefault = false;
   }
 
   /**
@@ -55,6 +57,10 @@ public final class SetAclOptions {
    */
   public boolean getRecursive() {
     return mRecursive;
+  }
+
+  public boolean getDefault() {
+    return mDefault;
   }
 
   /**
@@ -75,6 +81,11 @@ public final class SetAclOptions {
     return this;
   }
 
+  public SetAclOptions setDefault(boolean opDefault) {
+    mDefault = opDefault;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -85,12 +96,13 @@ public final class SetAclOptions {
     }
     SetAclOptions that = (SetAclOptions) o;
     return Objects.equal(mCommonOptions, that.mCommonOptions)
-        && Objects.equal(mRecursive, that.mRecursive);
+        && Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mDefault, that.mDefault);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCommonOptions, mRecursive);
+    return Objects.hashCode(mCommonOptions, mRecursive, mDefault);
   }
 
   @Override
@@ -98,6 +110,7 @@ public final class SetAclOptions {
     return Objects.toStringHelper(this)
         .add("commonOptions", mCommonOptions)
         .add("recursive", mRecursive)
+        .add("default", mDefault)
         .toString();
   }
 
@@ -108,6 +121,7 @@ public final class SetAclOptions {
     SetAclTOptions options = new SetAclTOptions();
     options.setCommonOptions(mCommonOptions.toThrift());
     options.setRecursive(mRecursive);
+    options.setOpdefault(mDefault);
     return options;
   }
 }
