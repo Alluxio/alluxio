@@ -77,12 +77,7 @@ public interface FileSystem {
           String key = entry.getKey();
           String value = entry.getValue();
           Source source = Configuration.getSource(PropertyKey.fromString(key));
-          if (source == Source.SITE_PROPERTY) {
-            LOG.debug("{}={} ({}: {})",
-                key, value, source.name(), Configuration.getSitePropertiesFile());
-          } else {
-            LOG.debug("{}={} ({})", key, value, source.name());
-          }
+          LOG.debug("{}={} ({})", key, value, source);
         }
       }
       if (Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED)) {
