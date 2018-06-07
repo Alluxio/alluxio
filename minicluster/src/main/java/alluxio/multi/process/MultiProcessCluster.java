@@ -162,9 +162,14 @@ public final class MultiProcessCluster implements TestRule {
     for (Entry<PropertyKey, String> entry : ConfigurationTestUtils.testConfigurationDefaults(
         NetworkAddressUtils.getLocalHostName(), mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
-      if (!mProperties.containsKey(entry.getKey())) {
-        mProperties.put(entry.getKey(), entry.getValue());
+      if (mProperties.containsKey(entry.getKey())) {
+        continue;
       }
+      // Keep the default RPC timeout.
+      if (entry.getKey().equals(PropertyKey.USER_RPC_RETRY_MAX_DURATION)) {
+        continue;
+      }
+      mProperties.put(entry.getKey(), entry.getValue());
     }
 
     new File(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
