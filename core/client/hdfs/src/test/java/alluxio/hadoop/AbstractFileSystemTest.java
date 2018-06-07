@@ -13,15 +13,15 @@ package alluxio.hadoop;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
@@ -508,9 +508,10 @@ public class AbstractFileSystemTest {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     mMockFileSystemContextCustomized = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.mockStatic(FileSystemContext.class);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mMockFileSystemContext);
+    Whitebox.setInternalState(FileSystemContext.class, "sInstance", mMockFileSystemContext);
     PowerMockito.when(FileSystemContext.create(any(Subject.class)))
         .thenReturn(mMockFileSystemContextCustomized);
+    PowerMockito.when(FileSystemContext.get()).thenReturn(mMockFileSystemContext);
     mMockFileSystemMasterClient = mock(FileSystemMasterClient.class);
     when(mMockFileSystemContext.acquireMasterClient())
         .thenReturn(mMockFileSystemMasterClient);

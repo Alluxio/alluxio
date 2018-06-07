@@ -12,16 +12,13 @@
 package alluxio.server.ft.journal;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.MasterRegistry;
-import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
@@ -31,6 +28,9 @@ import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.MasterRegistry;
+import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.testutils.BaseIntegrationTest;
@@ -67,6 +67,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   public static SystemPropertyRule sDisableHdfsCacheRule =
       new SystemPropertyRule("fs.hdfs.impl.disable.cache", "true");
 
+  @Override
   protected List<TestRule> rules() {
     return Arrays.asList(
         new AuthenticatedUserRule("test"),
@@ -97,7 +98,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
     ConfigurationTestUtils.resetConfiguration();
-    FileSystemContext.INSTANCE.reset();
+    FileSystemContext.get().reset();
   }
 
   @Test

@@ -54,7 +54,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
     mServicePrefix = LineageMasterClientRestServiceHandler.SERVICE_PREFIX;
-    mLineageClient = LineageFileSystem.get(FileSystemContext.INSTANCE, LineageContext.INSTANCE);
+    mLineageClient = LineageFileSystem.get(FileSystemContext.get(), LineageContext.INSTANCE);
     mMasterProcess = mResource.get().getLocalAlluxioMaster().getMasterProcess();
   }
 

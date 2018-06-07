@@ -38,8 +38,9 @@ import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.UnmountTOptions;
+import alluxio.wire.FileInfo;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
-import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
 
@@ -156,7 +157,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized URIStatus getStatus(final AlluxioURI path, final GetStatusOptions options)
       throws AlluxioStatusException {
-    return retryRPC(() -> new URIStatus(ThriftUtils
+    return retryRPC(() -> new URIStatus(FileInfo
             .fromThrift(mClient.getStatus(path.getPath(), options.toThrift()).getFileInfo())));
   }
 
@@ -178,7 +179,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       for (Map.Entry<String, alluxio.thrift.MountPointInfo> entry : mountTableThrift.entrySet()) {
         alluxio.thrift.MountPointInfo mMountPointInfoThrift = entry.getValue();
         alluxio.wire.MountPointInfo mMountPointInfoWire =
-            ThriftUtils.fromThrift(mMountPointInfoThrift);
+            MountPointInfo.fromThrift(mMountPointInfoThrift);
         mountTableWire.put(entry.getKey(), mMountPointInfoWire);
       }
       return mountTableWire;
@@ -192,7 +193,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       List<URIStatus> result = new ArrayList<>();
       for (alluxio.thrift.FileInfo fileInfo : mClient.listStatus(path.getPath(), options.toThrift())
           .getFileInfoList()) {
-        result.add(new URIStatus(ThriftUtils.fromThrift(fileInfo)));
+        result.add(new URIStatus(FileInfo.fromThrift(fileInfo)));
       }
       return result;
     });
