@@ -45,12 +45,6 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   private static final long RETRY_DAYS = 100000;
   private static final long UNINITIALIZED_MASTER_ID = -1L;
 
-  /** Milliseconds between heartbeats before a timeout. */
-  private final int mHeartbeatTimeoutMs;
-
-  /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
-  private long mLastSuccessfulHeartbeatMs;
-
   /** The address of this standby master. */
   private final Address mMasterAddress;
 
@@ -69,8 +63,6 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   public MetaMasterSync(Address masterAddress, MetaMasterMasterClient masterClient) {
     mMasterAddress = masterAddress;
     mMasterClient = masterClient;
-    mHeartbeatTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
-    mLastSuccessfulHeartbeatMs = System.currentTimeMillis() - mHeartbeatTimeoutMs;
   }
 
   /**
@@ -85,7 +77,6 @@ public final class MetaMasterSync implements HeartbeatExecutor {
       }
       command = mMasterClient.heartbeat(mMasterId.get());
       handleCommand(command);
-      mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException e) {
       // An error occurred, log and ignore it or error if heartbeat timeout is reached
       if (command == null) {
@@ -94,15 +85,6 @@ public final class MetaMasterSync implements HeartbeatExecutor {
         LOG.error("Failed to execute leader master heartbeat command: {}", command, e);
       }
       mMasterClient.disconnect();
-      if (mHeartbeatTimeoutMs > 0) {
-        if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs >= mHeartbeatTimeoutMs) {
-          if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-            throw new RuntimeException("Leader Master heartbeat timeout exceeded: "
-                + mHeartbeatTimeoutMs);
-          }
-          LOG.error("Leader Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
-        }
-      }
     }
   }
 
