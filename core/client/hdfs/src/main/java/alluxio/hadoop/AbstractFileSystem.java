@@ -17,7 +17,6 @@ import static java.util.stream.Collectors.toMap;
 import alluxio.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
@@ -31,12 +30,14 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.lineage.LineageContext;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.master.MasterInquireClient;
+import alluxio.master.MasterInquireClient.ConnectDetails;
+import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileBlockInfo;
@@ -536,9 +537,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Alluxio Configuration.
     AlluxioConfiguration alluxioConf = new InstancedConfiguration(Configuration.global());
     HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioConf);
-    MasterInquireClient confClient = MasterInquireClient.Factory.create(alluxioConf);
+    ConnectDetails newDetails = Factory.getConnectDetails(alluxioConf);
 
-    return confClient.equals(FileSystemContext.get().getMasterInquireClient());
+    return newDetails.equals(FileSystemContext.get().getMasterInquireClient().getConnectDetails());
   }
 
   /**
