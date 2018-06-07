@@ -15,16 +15,25 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 
 /**
- * This class represents a list of locked inodePaths
+ * This class represents a list of locked inodePaths.
  */
 @ThreadSafe
 public class LockedInodePathList implements AutoCloseable {
   private final List<LockedInodePath> mInodePathList;
 
+  /**
+   * Creates a new instance of {@link LockedInodePathList}.
+   *
+   * @param inodePathList the list to be closed
+   */
   public LockedInodePathList(List<LockedInodePath> inodePathList) {
     mInodePathList = inodePathList;
   }
 
+  /**
+   * get the associated inodePathList.
+   * @return the list of inodePaths
+   */
   public List<LockedInodePath> getInodePathList() {
     return mInodePathList;
   }
