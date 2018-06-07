@@ -54,6 +54,7 @@ import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.LockedInodePathList;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
@@ -1069,20 +1070,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         inconsistentUris.add(parent.getUri());
       }
 
-      List<LockedInodePath> children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ);
-      Closer closer = Closer.create();
-      try {
-        for (LockedInodePath child : children) {
-          closer.register(child);
-        }
-        for (LockedInodePath child : children) {
+      try (LockedInodePathList children =
+               mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
+        for (LockedInodePath child : children.getInodePathList()) {
           AlluxioURI currentPath = child.getUri();
           if (!checkConsistencyInternal(child.getInode(), currentPath)) {
             inconsistentUris.add(currentPath);
           }
         }
-      } finally {
-        closer.close();
       }
 
       auditContext.setSucceeded(true);
@@ -1583,15 +1578,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Pair<AlluxioURI, LockedInodePath> inodePair = new Pair<>(inodePath.getUri(), inodePath);
     delInodes.add(inodePair);
 
-    List<LockedInodePath> lockedInodePathList =
-        mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE);
-    Closer closer = Closer.create();
-    try {
-      for (LockedInodePath lockedInodePath: lockedInodePathList) {
-        closer.register(lockedInodePath);
-      }
+    try (LockedInodePathList lockedInodePathList =
+        mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       // Traverse inodes top-down
-      for (LockedInodePath lockedInodePath : lockedInodePathList) {
+      for (LockedInodePath lockedInodePath : lockedInodePathList.getInodePathList()) {
         Inode descendant  = lockedInodePath.getInode();
         AlluxioURI descendantPath = mInodeTree.getPath(descendant);
         Pair<AlluxioURI, LockedInodePath> descendantPair =
@@ -1680,10 +1670,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw new FailedPreconditionException(
             ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(messages, ", ")));
       }
-    } catch (Throwable e) {
-      throw closer.rethrow(e);
-    } finally {
-      closer.close();
     }
 
     Metrics.PATHS_DELETED.inc(delInodes.size());
@@ -2422,7 +2408,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     List<Inode<?>> freeInodes = new ArrayList<>();
     freeInodes.add(inode);
     List<LockedInodePath> descendants = mInodeTree.lockDescendants(inodePath,
-        InodeTree.LockMode.WRITE);
+        InodeTree.LockMode.WRITE).getInodePathList();
     Closer closer = Closer.create();
     try {
       for (LockedInodePath descedant : descendants) {
@@ -3146,26 +3132,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Inode<?> targetInode = inodePath.getInode();
     long opTimeMs = System.currentTimeMillis();
     if (options.isRecursive() && targetInode.isDirectory()) {
-      List<LockedInodePath> descendants = mInodeTree.lockDescendants(inodePath,
-          InodeTree.LockMode.WRITE);
-      Closer closer = Closer.create();
-      try {
-        for (LockedInodePath descendant : descendants) {
-          closer.register(descendant);
-        }
-        for (LockedInodePath childPath : descendants) {
+      try (LockedInodePathList descendants = mInodeTree.lockDescendants(inodePath,
+          InodeTree.LockMode.WRITE)) {
+        for (LockedInodePath childPath : descendants.getInodePathList()) {
           mPermissionChecker.checkSetAttributePermission(childPath, rootRequired, ownerRequired);
         }
-        for (LockedInodePath childPath : descendants) {
+        for (LockedInodePath childPath : descendants.getInodePathList()) {
           List<Inode<?>> persistedInodes =
               setAttributeInternal(childPath, false, opTimeMs, options);
           journalPersistedInodes(persistedInodes, rpcContext.getJournalContext());
           journalSetAttribute(childPath, opTimeMs, options, rpcContext.getJournalContext());
         }
-      } catch (Throwable e) {
-        throw closer.rethrow(e);
-      } finally {
-        closer.close();
       }
     }
     List<Inode<?>> persistedInodes = setAttributeInternal(inodePath, false, opTimeMs, options);

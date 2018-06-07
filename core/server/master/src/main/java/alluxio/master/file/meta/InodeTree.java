@@ -811,10 +811,10 @@ public class InodeTree implements JournalEntryIterable {
    * @param lockMode the lock type to use
    * @return an {@link InodeLockList} representing the list of all descendants
    */
-  public List<LockedInodePath> lockDescendants(LockedInodePath inodePath, LockMode lockMode) {
+  public LockedInodePathList lockDescendants(LockedInodePath inodePath, LockMode lockMode) {
     List<LockedInodePath> inodePathList = new ArrayList<>();
     lockDescendantsInternal(inodePath, lockMode, inodePathList);
-    return inodePathList;
+    return new LockedInodePathList(inodePathList);
   }
 
   private void lockDescendantsInternal(LockedInodePath inodePath, LockMode lockMode,
