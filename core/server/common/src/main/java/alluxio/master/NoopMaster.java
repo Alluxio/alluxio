@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.Server;
 import alluxio.exception.ExceptionMessage;
+import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.apache.thrift.TProcessor;
@@ -80,5 +81,10 @@ public class NoopMaster implements Master {
 
   @Override
   public void resetState() {
+  }
+
+  @Override
+  public JournalContext createJournalContext() {
+    throw new IllegalStateException("Cannot create journal contexts for NoopMaster");
   }
 }

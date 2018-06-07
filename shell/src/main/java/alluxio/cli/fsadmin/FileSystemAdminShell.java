@@ -14,7 +14,15 @@ package alluxio.cli.fsadmin;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fsadmin.command.Context;
+import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.block.RetryHandlingBlockMasterClient;
+import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.master.MasterClientConfig;
 import alluxio.util.ConfigurationUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -22,6 +30,13 @@ import java.util.Map;
  * Shell for admin to manage file system.
  */
 public final class FileSystemAdminShell extends AbstractShell {
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemAdminShell.class);
+
+  /**
+   * Context shared with fsadmin commands.
+   */
+  private Context mContext;
+
   /**
    * Construct a new instance of {@link FileSystemAdminShell}.
    */
@@ -50,7 +65,13 @@ public final class FileSystemAdminShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
+    Context context = new Context(
+        new RetryHandlingFileSystemMasterClient(MasterClientConfig.defaults()),
+        new RetryHandlingBlockMasterClient(MasterClientConfig.defaults()),
+        new RetryHandlingMetaMasterClient(MasterClientConfig.defaults()),
+        System.out
+    );
     return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(),
-        new Class[] {}, new Object[] {});
+        new Class[] {Context.class}, new Object[] {context});
   }
 }

@@ -145,12 +145,7 @@ public final class GetConf {
           output.append(String.format("%s=%s", key, value));
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
             Source source = Configuration.getSource(PropertyKey.fromString(key));
-            if (source == Source.SITE_PROPERTY) {
-              output.append(String.format(" (%s: %s)", source.name(),
-                  Configuration.getSitePropertiesFile()));
-            } else {
-              output.append(String.format(" (%s)", source.name()));
-            }
+            output.append(String.format(" (%s)", source));
           }
           output.append("\n");
         }
@@ -167,6 +162,7 @@ public final class GetConf {
         } else {
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
             Source source = Configuration.getSource(key);
+<<<<<<< HEAD
             if (source == Source.SITE_PROPERTY) {
               System.out.println(String.format("%s: %s", source.name(),
                   Configuration.getSitePropertiesFile()));
@@ -175,6 +171,18 @@ public final class GetConf {
             }
           } else if (cmd.hasOption(UNIT_OPTION_NAME)
               && key.getDisplayType() != PropertyKey.DisplayType.CREDENTIALS) {
+||||||| merged common ancestors
+            if (source == Source.SITE_PROPERTY) {
+              System.out.println(String.format("%s: %s", source.name(),
+                  Configuration.getSitePropertiesFile()));
+            } else {
+              System.out.println(String.format("%s", source.name()));
+            }
+          } else if (cmd.hasOption(UNIT_OPTION_NAME)) {
+=======
+            System.out.println(source);
+          } else if (cmd.hasOption(UNIT_OPTION_NAME)) {
+>>>>>>> master
             String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
             try {
               ByteUnit byteUnit;

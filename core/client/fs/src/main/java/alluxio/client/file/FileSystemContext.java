@@ -266,6 +266,13 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
+   * @return the master inquire client
+   */
+  public synchronized MasterInquireClient getMasterInquireClient() {
+    return mMasterInquireClient;
+  }
+
+  /**
    * Acquires a file system master client from the file system master client pool.
    *
    * @return the acquired file system master client

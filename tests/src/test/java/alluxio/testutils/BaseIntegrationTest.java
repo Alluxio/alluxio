@@ -14,14 +14,12 @@ package alluxio.testutils;
 import alluxio.Constants;
 import alluxio.util.io.PathUtils;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.log4j.Appender;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.PatternLayout;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
-import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.rules.Timeout;
 import org.junit.runner.Description;
@@ -32,31 +30,16 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Base class used for specifying the maximum time a test should run for.
  */
 public abstract class BaseIntegrationTest {
-  /** Logger is required so the log file is initialized, otherwise truncate can fail. */
-  @SuppressFBWarnings("UUF_UNUSED_FIELD")
   private static final Logger LOG = LoggerFactory.getLogger(BaseIntegrationTest.class);
 
   @Rule
-  public RuleChain mRules = createRuleChain();
-
-  private RuleChain createRuleChain() {
-    RuleChain chain = RuleChain.emptyRuleChain();
-    chain = chain.around(logHandler());
-    for (TestRule rule : rules()) {
-      chain = chain.around(rule);
-    }
-    // Make Timeout the innermost rule so that other rules run in the main thread. Everything inside
-    // Timeout is executed in a new thread.
-    chain = chain.around(Timeout.millis(Constants.MAX_TEST_DURATION_MS));
-    return chain;
-  }
+  public RuleChain mRules = RuleChain.outerRule(logHandler())
+      .around(Timeout.millis(Constants.MAX_TEST_DURATION_MS));
 
   private TestWatcher logHandler() {
     return new TestWatcher() {
@@ -97,15 +80,5 @@ public abstract class BaseIntegrationTest {
         return PathUtils.concatPath(Constants.TEST_LOG_DIR, basename);
       }
     };
-  }
-
-  /**
-   * Subclasses should define their rules in this method so that they can be deterministically
-   * ordered and properly nested relative to the global logging and timeout rules.
-   *
-   * @return the list of rules used by the subclass
-   */
-  protected List<TestRule> rules() {
-    return Collections.EMPTY_LIST;
   }
 }

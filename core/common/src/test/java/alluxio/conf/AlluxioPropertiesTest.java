@@ -76,7 +76,7 @@ public class AlluxioPropertiesTest {
     assertEquals("value1", mProperties.get(mKeyWithValue));
     assertEquals("value2", mProperties.get(mKeyWithoutValue));
 
-    mProperties.put(mKeyWithValue, "valueLowerPriority", Source.SITE_PROPERTY);
+    mProperties.put(mKeyWithValue, "valueLowerPriority", Source.siteProperty(""));
     assertEquals("value1", mProperties.get(mKeyWithValue));
     mProperties.put(mKeyWithValue, "valueSamePriority", Source.SYSTEM_PROPERTY);
     assertEquals("valueSamePriority", mProperties.get(mKeyWithValue));

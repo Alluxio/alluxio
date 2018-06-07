@@ -18,6 +18,8 @@ import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.BackupTOptions;
+import alluxio.thrift.BackupTResponse;
 import alluxio.thrift.GetConfigReportTOptions;
 import alluxio.thrift.GetConfigReportTResponse;
 import alluxio.thrift.GetConfigurationTOptions;
@@ -32,6 +34,7 @@ import alluxio.thrift.MasterInfo;
 import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.Address;
+import alluxio.wire.BackupOptions;
 import alluxio.wire.MetricValue;
 
 import com.codahale.metrics.Counter;
@@ -64,6 +67,13 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   @Override
   public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
     return new GetServiceVersionTResponse(Constants.META_MASTER_CLIENT_SERVICE_VERSION);
+  }
+
+  @Override
+  public BackupTResponse backup(BackupTOptions options) throws AlluxioTException {
+    return RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<BackupTResponse>) () -> mMetaMaster
+            .backup(BackupOptions.fromThrift(options)).toThrift());
   }
 
   @Override

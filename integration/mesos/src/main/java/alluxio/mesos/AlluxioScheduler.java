@@ -169,7 +169,8 @@ public class AlluxioScheduler implements Scheduler {
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
                                     .setName("ALLUXIO_MESOS_SITE_PROPERTIES_CONTENT")
-                                    .setValue(Configuration.getSitePropertiesFile())
+                                    // TODO(andrew): set the site properties here
+                                    .setValue("")
                                     .build())
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
@@ -214,7 +215,8 @@ public class AlluxioScheduler implements Scheduler {
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
                                     .setName("ALLUXIO_MESOS_SITE_PROPERTIES_CONTENT")
-                                    .setValue(Configuration.getSitePropertiesFile())
+                                    // TODO(andrew): set the site properties here
+                                    .setValue("")
                                     .build())
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
