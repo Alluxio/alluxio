@@ -16,9 +16,12 @@ import alluxio.master.Master;
 import alluxio.thrift.MetaCommand;
 import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.wire.Address;
+import alluxio.wire.BackupOptions;
+import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
@@ -26,6 +29,14 @@ import java.util.List;
  * The interface of meta master.
  */
 public interface MetaMaster extends Master {
+
+  /**
+   * Backs up the master.
+   *
+   * @param options method options
+   * @return the uri of the created backup
+   */
+  BackupResponse backup(BackupOptions options) throws IOException;
 
   /**
    * @return the server-side configuration checker report

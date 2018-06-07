@@ -45,10 +45,23 @@ struct GetMasterIdTResponse {
   1: i64 masterId
 }
 
+struct BackupTOptions {
+ // The directory to write a backup to within the root UFS.
+ 1: string targetDirectory
+ // Whether to write to the local filesystem instead of the root UFS.
+ 2: bool localFileSystem
+}
+struct BackupTResponse {
+ // The URI of the created backup file.
+ 1: string backupUri
+ // The hostname of the master which wrote the backup. This is useful
+ // when the backup was written to local disk of that host.
+ 2: string hostname
+}
+
 struct GetMasterInfoTOptions {
   1: set<MasterInfoField> filter
 }
-
 struct GetMasterInfoTResponse {
   1: MasterInfo masterInfo
 }
@@ -110,6 +123,13 @@ struct GetConfigReportTResponse {
   * This interface contains meta master service endpoints for Alluxio clients.
   */
 service MetaMasterClientService extends common.AlluxioService {
+  /**
+   * Backs up the Alluxio master to the specified URI
+   */
+  BackupTResponse backup(
+    /** the method options */ 2: BackupTOptions options,
+    ) throws (1: exception.AlluxioTException e)
+
   /**
    * Returns a list of Alluxio runtime configuration information.
    */

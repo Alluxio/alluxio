@@ -65,6 +65,14 @@ public class AlluxioProperties {
   public AlluxioProperties() {}
 
   /**
+   * @param alluxioProperties properties to copy
+   */
+  public AlluxioProperties(AlluxioProperties alluxioProperties) {
+    mUserProps.putAll(alluxioProperties.mUserProps);
+    mSources.putAll(alluxioProperties.mSources);
+  }
+
+  /**
    * @param key the key to query
    * @return the value, or null if the key has no value set
    */

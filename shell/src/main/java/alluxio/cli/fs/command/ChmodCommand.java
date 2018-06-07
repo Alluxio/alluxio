@@ -41,7 +41,6 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
           .desc("change mode recursively")
           .build();
 
-  private final ModeParser mParser = new ModeParser();
   private String mModeString = "";
 
   /**
@@ -83,7 +82,7 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
    */
   private void chmod(AlluxioURI path, String modeStr, boolean recursive) throws
       AlluxioException, IOException {
-    Mode mode = mParser.parse(modeStr);
+    Mode mode = ModeParser.parse(modeStr);
     SetAttributeOptions options =
         SetAttributeOptions.defaults().setMode(mode).setRecursive(recursive);
     mFileSystem.setAttribute(path, options);

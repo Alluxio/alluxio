@@ -38,6 +38,7 @@ public final class AlluxioSecondaryMaster implements Process {
   private final JournalSystem mJournalSystem;
   private final CountDownLatch mLatch;
   private final SafeModeManager mSafeModeManager;
+  private final BackupManager mBackupManager;
   private final long mStartTimeMs;
   private final int mPort;
 
@@ -50,10 +51,12 @@ public final class AlluxioSecondaryMaster implements Process {
       mJournalSystem = new JournalSystem.Builder().setLocation(journalLocation).build();
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
+      mBackupManager = new BackupManager(mRegistry);
       mStartTimeMs = System.currentTimeMillis();
-      // Create masters.
       mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
-      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager, mStartTimeMs, mPort);
+      // Create masters.
+      MasterUtils.createMasters(mRegistry,
+          new MasterContext(mJournalSystem, mSafeModeManager, mBackupManager, mStartTimeMs, mPort));
       // Check that journals of each service have been formatted.
       if (!mJournalSystem.isFormatted()) {
         throw new RuntimeException(
