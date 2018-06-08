@@ -15,6 +15,7 @@ import com.google.common.base.Objects;
 
 import java.io.Serializable;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -26,6 +27,7 @@ public final class ConfigProperty implements Serializable {
 
   private String mName;
   private String mSource;
+  @Nullable
   private String mValue;
 
   /**
@@ -61,6 +63,7 @@ public final class ConfigProperty implements Serializable {
   /**
    * @return the value of this configuration property
    */
+  @Nullable
   public String getValue() {
     return mValue;
   }
@@ -87,7 +90,7 @@ public final class ConfigProperty implements Serializable {
    * @param value the configuration value to use
    * @return the configuration property
    */
-  public ConfigProperty setValue(String value) {
+  public ConfigProperty setValue(@Nullable String value) {
     mValue = value;
     return this;
   }
@@ -120,7 +123,7 @@ public final class ConfigProperty implements Serializable {
     ConfigProperty that = (ConfigProperty) o;
     return mName.equals(that.mName)
         && mSource.equals(that.mSource)
-        && mValue.equals(that.mValue);
+        && Objects.equal(mValue, that.mValue);
   }
 
   @Override
