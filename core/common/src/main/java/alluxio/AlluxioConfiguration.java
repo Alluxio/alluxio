@@ -34,6 +34,16 @@ public interface AlluxioConfiguration {
   String get(PropertyKey key);
 
   /**
+   * Gets the value for the given key in the {@link Properties}; if this key is not found, a
+   * RuntimeException is thrown.
+   *
+   * @param key the key to get the value for
+   * @param options options for getting configuration value
+   * @return the value for the given key
+   */
+  String get(PropertyKey key, ConfigurationValueOptions options);
+
+  /**
    * Checks if the configuration contains value for the given key.
    *
    * @param key the key to check
@@ -142,6 +152,14 @@ public interface AlluxioConfiguration {
    * @return a map from nested properties aggregated by the prefix
    */
   Map<String, String> getNestedProperties(PropertyKey prefixKey);
+
+  /**
+   * @return a map of the properties represented by this configuration,
+   *         including all default properties
+   *
+   * @param options options for getting configuration value
+   */
+  Map<String, String> toMap(ConfigurationValueOptions options);
 
   /**
    * @return a view of the resolved properties represented by this configuration,
