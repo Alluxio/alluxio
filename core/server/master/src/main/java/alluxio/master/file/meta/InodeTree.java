@@ -624,8 +624,6 @@ public class InodeTree implements JournalEntryIterable {
       }
 
       createdInodes.add(dir);
-      // No need to add to InodePath because we already add to its locklist
-      // extensibleInodePath.getInodes().add(dir);
       currentInodeDirectory = dir;
     }
 

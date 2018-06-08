@@ -90,7 +90,7 @@ public abstract class LockedInodePath implements Closeable {
     if (!fullPathExists()) {
       return null;
     }
-    List<Inode<?>> inodeList = Lists.newArrayList(mLockList.getInodes());
+    List<Inode<?>> inodeList = mLockList.getInodes();
     return inodeList.get(inodeList.size() - 1);
   }
 
@@ -209,8 +209,8 @@ public abstract class LockedInodePath implements Closeable {
 
   /**
    * Constructs a temporary {@link LockedInodePath} from an existing {@link LockedInodePath}, for
-   * a direct child of the existing path. A new {@link LockedInodePath} object is returned. When
-   * the returned temporary path is closed, it does not close the existing path.
+   * a direct child of the existing path. The child does not exist yet, this method simply adds
+   * the child to the path.
    *
    * @param childName the name of the direct child
    * @return a {@link LockedInodePath} for the direct child
@@ -227,8 +227,9 @@ public abstract class LockedInodePath implements Closeable {
 
   /**
    * Constructs a temporary {@link LockedInodePath} from an existing {@link LockedInodePath}, for
-   * a direct child of the existing path. A new {@link LockedInodePath} object is returned. When
-   * the returned temporary path is closed, it does not close the existing path.
+   * a direct child of the existing path. The child must exist and this method will lock the child.
+   * A new {@link LockedInodePath} object is returned. When the returned temporary path is closed,
+   * it does not close the existing path.
    *
    * @param child the inode of the direct child
    * @return a {@link LockedInodePath} for the direct child
