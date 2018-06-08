@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -227,7 +226,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   @Override
   public void start() throws Exception {
     mJournalSystem.start();
-    mJournalSystem.setMode(Mode.PRIMARY);
+    mJournalSystem.gainPrimacy();
     startMasters(true);
     startServing();
   }
