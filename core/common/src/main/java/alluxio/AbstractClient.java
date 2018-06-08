@@ -17,14 +17,19 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.LoginUser;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.util.SecurityUtils;
 
+import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
@@ -274,6 +279,14 @@ public abstract class AbstractClient implements Client {
      * @throws TException when any exception defined in thrift happens
      */
     V call() throws TException;
+
+    /**
+     * @return the name of the rpc which may be used for display, null if this rpc should not be
+     * displayed in user facing text such as logging or metrics
+     */
+    default String getName() {
+      return null;
+    }
   }
 
   /**
@@ -289,13 +302,21 @@ public abstract class AbstractClient implements Client {
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws AlluxioStatusException {
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
     Exception ex = null;
+    Timer.Context metricContext = null;
+    if (rpc.getName() != null) {
+      metricContext = MetricsSystem.clientTimer(getQualifiedMetricName(rpc.getName())).time();
+    }
     while (retryPolicy.attempt()) {
       if (mClosed) {
         throw new FailedPreconditionException("Client is closed");
       }
       connect();
       try {
-        return rpc.call();
+        V result = rpc.call();
+        if (metricContext != null) {
+          metricContext.close();
+        }
+        return result;
       } catch (AlluxioTException e) {
         AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
         if (se.getStatus() == Status.UNAVAILABLE) {
@@ -307,9 +328,25 @@ public abstract class AbstractClient implements Client {
         ex = e;
       }
       LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
+      if (rpc.getName() != null) {
+        MetricsSystem.clientCounter(getQualifiedMetricName(rpc.getName() + "Retries")).inc();
+      }
       disconnect();
     }
     throw new UnavailableException("Failed after " + retryPolicy.getAttemptCount()
             + " attempts: " + ex.toString(), ex);
+  }
+
+  // TODO(calvin): General tag logic should be in getMetricName
+  private String getQualifiedMetricName(String metricName) {
+    try {
+      if (SecurityUtils.isAuthenticationEnabled() && LoginUser.get() != null) {
+        return Metric.getMetricNameWithTags(metricName, "User", LoginUser.get().getName());
+      } else {
+        return metricName;
+      }
+    } catch (IOException e) {
+      return metricName;
+    }
   }
 }
