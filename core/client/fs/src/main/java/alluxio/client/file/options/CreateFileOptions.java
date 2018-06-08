@@ -56,8 +56,8 @@ public final class CreateFileOptions {
 
   private CreateFileOptions() {
     mCommonOptions = CommonOptions.defaults()
-        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_WRITE_TTL))
-        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TTL_ACTION,
+        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
+        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION,
             TtlAction.class));
     mRecursive = true;
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);

@@ -2293,13 +2293,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_WRITE_TTL =
-      new Builder(Name.USER_FILE_WRITE_TTL)
+  public static final PropertyKey USER_FILE_CREATE_TTL =
+      new Builder(Name.USER_FILE_CREATE_TTL)
           .setDefaultValue(Constants.NO_TTL)
           .setDescription("Time to live for files created by a user, no ttl by default.")
           .build();
-  public static final PropertyKey USER_FILE_WRITE_TTL_ACTION =
-      new Builder(Name.USER_FILE_WRITE_TTL_ACTION)
+  public static final PropertyKey USER_FILE_CREATE_TTL_ACTION =
+      new Builder(Name.USER_FILE_CREATE_TTL_ACTION)
           .setDefaultValue("DELETE")
           .setDescription("When file's ttl is expired, the action performs on it. "
               + "DELETE by default")
@@ -3311,10 +3311,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.seek.buffer.size.bytes";
     public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
         "alluxio.user.file.waitcompleted.poll";
-    public static final String USER_FILE_WRITE_TTL =
-        "alluxio.user.file.write.ttl";
-    public static final String USER_FILE_WRITE_TTL_ACTION =
-        "alluxio.user.file.write.ttl.action";
+    public static final String USER_FILE_CREATE_TTL =
+        "alluxio.user.file.create.ttl";
+    public static final String USER_FILE_CREATE_TTL_ACTION =
+        "alluxio.user.file.create.ttl.action";
     public static final String USER_FILE_WRITE_LOCATION_POLICY =
         "alluxio.user.file.write.location.policy.class";
     public static final String USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =

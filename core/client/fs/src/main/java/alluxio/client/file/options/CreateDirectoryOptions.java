@@ -48,8 +48,8 @@ public final class CreateDirectoryOptions {
 
   private CreateDirectoryOptions() {
     mCommonOptions = CommonOptions.defaults()
-        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_WRITE_TTL))
-        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TTL_ACTION,
+        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
+        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION,
             TtlAction.class));
     mRecursive = false;
     mAllowExists = false;
