@@ -71,6 +71,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
 
     startMasters(false);
+    LOG.info("Secondary started");
     while (!Thread.interrupted()) {
       mLeaderSelector.waitForState(State.PRIMARY);
       if (gainPrimacy()) {
@@ -81,18 +82,25 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   }
 
   /**
-   * @return true if the master successfully upgrades to primary
+   * Upgrades the master to primary mode.
+   *
+   * If the master loses primacy during the journal upgrade, this method will clean up the partial
+   * upgrade, leaving the master in secondary mode.
+   *
+   * @return whether the master successfully upgraded to primary
    */
   private boolean gainPrimacy() throws Exception {
-    AtomicBoolean lostPrimacy = new AtomicBoolean(false);
-    try (Scoped scoped = mLeaderSelector.onStateChange(state -> lostPrimacy.set(true))) {
+    // Don't upgrade if this master's primacy is unstable.
+    AtomicBoolean unstable = new AtomicBoolean(false);
+    try (Scoped scoped = mLeaderSelector.onStateChange(state -> unstable.set(true))) {
       if (mLeaderSelector.getState() != State.PRIMARY) {
-        lostPrimacy.set(true);
+        unstable.set(true);
       }
       stopMasters();
       LOG.info("Secondary stopped");
       mJournalSystem.gainPrimacy();
-      if (lostPrimacy.get()) {
+      // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method
+      if (unstable.get()) {
         losePrimacy();
         return false;
       }
@@ -136,6 +144,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       LOG.info("Primary stopped");
     }
     startMasters(false);
+    LOG.info("Secondary started");
   }
 
   @Override
