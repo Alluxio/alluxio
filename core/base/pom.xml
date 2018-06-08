@@ -36,6 +36,8 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+      <!-- TODO -->
+      <version>19.0</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>

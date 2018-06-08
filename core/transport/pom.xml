@@ -38,6 +38,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+      <version>19.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>
@@ -88,14 +89,21 @@
             <configuration>
               <artifactSet>
                 <includes>
+                  <include>com.google.guava:*</include>
                   <include>com.google.protobuf:protobuf-java</include>
                   <include>io.grpc:*</include>
                 </includes>
               </artifactSet>
               <relocations>
                 <relocation>
-                  <pattern>com.google.protobuf</pattern>
+                  <shadedPattern>${shading.prefix}.com.google.common</shadedPattern>
+                  <pattern>com.google.common</pattern>
+                </relocation>
+                <relocation>
                   <shadedPattern>${shading.prefix}.com.google.protobuf</shadedPattern>
+                  <pattern>com.google.protobuf</pattern>
+                </relocation>
+                <relocation>
                   <pattern>io.grpc</pattern>
                   <shadedPattern>${shading.prefix}.io.grpc</shadedPattern>
                 </relocation>
