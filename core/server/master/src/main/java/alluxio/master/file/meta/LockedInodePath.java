@@ -18,7 +18,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import java.io.Closeable;
 import java.util.List;
