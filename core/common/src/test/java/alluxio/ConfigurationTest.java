@@ -386,6 +386,12 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void getUnsetValueThrowsException() {
+    mThrown.expect(RuntimeException.class);
+    Configuration.get(PropertyKey.S3A_ACCESS_KEY);
+  }
+
+  @Test
   public void getNestedProperties() {
     Configuration.set(
         PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
