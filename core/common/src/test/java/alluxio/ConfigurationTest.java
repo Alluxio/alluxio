@@ -13,6 +13,7 @@ package alluxio;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -734,5 +735,102 @@ public class ConfigurationTest {
     Pattern confRegex = Pattern.compile(regexString);
     assertTrue(confRegex.matcher(rawMap.get("alluxio.locality.script")).find());
     assertTrue(confRegex.matcher(rawMap.get("alluxio.logs.dir")).find());
+  }
+
+  @Test
+  public void getCredentialsDisplayValue() {
+    PropertyKey testKey = PropertyKey.S3A_SECRET_KEY;
+    String testValue = "12345";
+    assertEquals(PropertyKey.DisplayType.CREDENTIALS, testKey.getDisplayType());
+    Configuration.set(testKey, testValue);
+
+    assertNotEquals(testValue, Configuration.get(testKey,
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
+    assertNotEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
+        .get(testKey.getName()));
+  }
+
+  @Test
+  public void getDefaultDisplayValue() {
+    PropertyKey testKey = PropertyKey.SECURITY_LOGIN_USERNAME;
+    String testValue = "12345";
+    assertEquals(PropertyKey.DisplayType.DEFAULT, testKey.getDisplayType());
+    Configuration.set(testKey, testValue);
+
+    assertEquals(testValue, Configuration.get(testKey,
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
+    assertEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
+        .get(testKey.getName()));
+  }
+
+  @Test
+  public void getNestedCredentialsDisplayValue() {
+    PropertyKey nestedProperty =
+        PropertyKey.fromString("alluxio.master.journal.ufs.option.aws.secretKey");
+    String testValue = "12345";
+    Configuration.set(nestedProperty, testValue);
+
+    assertNotEquals(testValue, Configuration.get(nestedProperty,
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
+    assertNotEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
+        .get(nestedProperty.getName()));
+    assertNotEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true))
+        .get(nestedProperty.getName()));
+  }
+
+  @Test
+  public void getNestedDefaultDisplayValue() {
+    PropertyKey nestedProperty = PropertyKey.fromString(
+        "alluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration");
+    String testValue = "conf/core-site.xml:conf/hdfs-site.xml";
+    Configuration.set(nestedProperty, testValue);
+
+    assertEquals(testValue, Configuration.get(nestedProperty,
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
+    assertEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
+        .get(nestedProperty.getName()));
+    assertEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true))
+        .get(nestedProperty.getName()));
+  }
+
+  @Test
+  public void getTemplateCredentialsDisplayValue() {
+    PropertyKey templateProperty = PropertyKey.fromString(
+        "fs.azure.account.key.someone.blob.core.windows.net");
+    String testValue = "12345";
+    Configuration.set(templateProperty, testValue);
+
+    assertNotEquals(testValue, Configuration.get(templateProperty,
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
+    assertNotEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
+        .get(templateProperty.getName()));
+    assertNotEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true))
+        .get(templateProperty.getName()));
+  }
+
+  @Test
+  public void getCredentialsDisplayValueIdentical() {
+    PropertyKey testKey = PropertyKey.S3A_SECRET_KEY;
+    String testValue = "12345";
+    assertEquals(PropertyKey.DisplayType.CREDENTIALS, testKey.getDisplayType());
+
+    Configuration.set(testKey, testValue);
+    String displayValue1 = Configuration.get(testKey,
+        ConfigurationValueOptions.defaults().useDisplayValue(true));
+
+    String testValue2 = "abc";
+    Configuration.set(testKey, testValue2);
+
+    String displayValue2 = Configuration.get(testKey,
+        ConfigurationValueOptions.defaults().useDisplayValue(true));
+    assertEquals(displayValue1, displayValue2);
   }
 }
