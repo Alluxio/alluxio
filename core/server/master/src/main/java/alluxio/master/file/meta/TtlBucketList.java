@@ -45,7 +45,6 @@ public final class TtlBucketList {
    * @param inode the inode to be contained
    * @return the bucket containing the inode, or null if no such bucket exists
    */
-
   @Nullable
   private TtlBucket getBucketContaining(Inode<?> inode) {
     if (inode.getTtl() == Constants.NO_TTL) {
