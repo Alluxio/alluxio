@@ -17,7 +17,6 @@ package alluxio;
 public final class ConfigurationValueOptions {
   private boolean mUseDisplayValue = false;
   private boolean mUseRawValue = false;
-  private boolean mCheckNullValue = false;
 
   /**
    * @return the default {@link ConfigurationValueOptions}
@@ -28,13 +27,6 @@ public final class ConfigurationValueOptions {
 
   private ConfigurationValueOptions() {
     // prevents instantiation
-  }
-
-  /**
-   * @return whether to check null value
-   */
-  public boolean shouldCheckNullValue() {
-    return mCheckNullValue;
   }
 
   /**
@@ -49,15 +41,6 @@ public final class ConfigurationValueOptions {
    */
   public boolean shouldUseRawValue() {
     return mUseRawValue;
-  }
-
-  /**
-   * @param checkNullValue whether to check null value
-   * @return the {@link ConfigurationValueOptions} instance
-   */
-  public ConfigurationValueOptions checkNullValue(boolean checkNullValue) {
-    mCheckNullValue = checkNullValue;
-    return this;
   }
 
   /**

@@ -79,16 +79,12 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public String get(PropertyKey key) {
-    return get(key, ConfigurationValueOptions.defaults().checkNullValue(true));
+    return get(key, ConfigurationValueOptions.defaults());
   }
 
   @Override
   public String get(PropertyKey key, ConfigurationValueOptions options) {
     String value = mProperties.get(key);
-    if (options.shouldCheckNullValue() && value == null) {
-      // if key is not found among the default properties
-      throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
-    }
     if (!options.shouldUseRawValue()) {
       value = lookup(value);
     }
