@@ -25,17 +25,4 @@ should be included.
 
 For more details on how to use the generated tar, go
 [to the docs](http://alluxio.org/documentation/Running-Alluxio-Locally.html).
-
-change
-
-return Restutils.call(new Restutils.RestCallable<Long>(){
-    @override
-    public Long call() throws Exception{
-        return mMasterProcess.getStartTimeMs();
-    }
-    });
-    
-    to
-    
-    return RestUtils.call(() -> mMasterProcess.getStartTimeMs());
    
