@@ -38,7 +38,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>19.0</version>
+      <version>20.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>
@@ -92,6 +92,7 @@
                   <include>com.google.guava:*</include>
                   <include>com.google.protobuf:protobuf-java</include>
                   <include>io.grpc:*</include>
+                  <include>io.opencensus:*</include>
                 </includes>
               </artifactSet>
               <relocations>
@@ -106,6 +107,10 @@
                 <relocation>
                   <pattern>io.grpc</pattern>
                   <shadedPattern>${shading.prefix}.io.grpc</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io.opencensus</pattern>
+                  <shadedPattern>${shading.prefix}.io.opencensus</shadedPattern>
                 </relocation>
               </relocations>
               <filters>
