@@ -3141,6 +3141,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       List<AclEntry> entries, long opTimeMs, SetAclOptions options)
       throws IOException, FileDoesNotExistException {
     Inode<?> targetInode = inodePath.getInode();
+    if (options.getDefault() && targetInode.isFile()) {
+      throw new UnsupportedOperationException("Cannot set default ACL on a file")
+    }
+
+    boolean opOnDefault = options.getDefault();
+
     // TODO(gpang): handle recursive
     // TODO(gpang): apply to UFS
     switch (action) {

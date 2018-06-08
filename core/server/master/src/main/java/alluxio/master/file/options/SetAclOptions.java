@@ -76,6 +76,13 @@ public final class SetAclOptions {
   }
 
   /**
+   * @return true if operation should be performed on the default ACL
+   */
+  public boolean getDefault() {
+    return mOpdefault;
+  }
+
+  /**
    * @param options the common options
    * @return the updated options object
    */
