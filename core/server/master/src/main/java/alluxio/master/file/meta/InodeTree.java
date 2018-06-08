@@ -671,7 +671,8 @@ public class InodeTree implements JournalEntryIterable {
           lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
           if (directoryOptions.isPersisted()) {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
-            // TODO (david): remove this syncPersistDirectory to improve performance of recursive ls.
+            // TODO(david): remove this call to syncPersistDirectory to improve performance
+            // of recursive ls.
             syncPersistDirectory(RpcContext.NOOP, (InodeDirectory) lastInode);
           }
         } else if (options instanceof CreateFileOptions) {
