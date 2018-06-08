@@ -48,7 +48,7 @@ public class InconsistentProperty implements org.apache.thrift.TBase<Inconsisten
   }
 
   private String name; // required
-  private Map<String,List<String>> values; // required
+  private Map<OptionalString,List<String>> values; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -119,7 +119,7 @@ public class InconsistentProperty implements org.apache.thrift.TBase<Inconsisten
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.VALUES, new org.apache.thrift.meta_data.FieldMetaData("values", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
-            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, OptionalString.class), 
             new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
                 new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -131,7 +131,7 @@ public class InconsistentProperty implements org.apache.thrift.TBase<Inconsisten
 
   public InconsistentProperty(
     String name,
-    Map<String,List<String>> values)
+    Map<OptionalString,List<String>> values)
   {
     this();
     this.name = name;
@@ -146,13 +146,13 @@ public class InconsistentProperty implements org.apache.thrift.TBase<Inconsisten
       this.name = other.name;
     }
     if (other.isSetValues()) {
-      Map<String,List<String>> __this__values = new HashMap<String,List<String>>(other.values.size());
-      for (Map.Entry<String, List<String>> other_element : other.values.entrySet()) {
+      Map<OptionalString,List<String>> __this__values = new HashMap<OptionalString,List<String>>(other.values.size());
+      for (Map.Entry<OptionalString, List<String>> other_element : other.values.entrySet()) {
 
-        String other_element_key = other_element.getKey();
+        OptionalString other_element_key = other_element.getKey();
         List<String> other_element_value = other_element.getValue();
 
-        String __this__values_copy_key = other_element_key;
+        OptionalString __this__values_copy_key = new OptionalString(other_element_key);
 
         List<String> __this__values_copy_value = new ArrayList<String>(other_element_value);
 
@@ -200,18 +200,18 @@ public class InconsistentProperty implements org.apache.thrift.TBase<Inconsisten
     return (this.values == null) ? 0 : this.values.size();
   }
 
-  public void putToValues(String key, List<String> val) {
+  public void putToValues(OptionalString key, List<String> val) {
     if (this.values == null) {
-      this.values = new HashMap<String,List<String>>();
+      this.values = new HashMap<OptionalString,List<String>>();
     }
     this.values.put(key, val);
   }
 
-  public Map<String,List<String>> getValues() {
+  public Map<OptionalString,List<String>> getValues() {
     return this.values;
   }
 
-  public InconsistentProperty setValues(Map<String,List<String>> values) {
+  public InconsistentProperty setValues(Map<OptionalString,List<String>> values) {
     this.values = values;
     return this;
   }
@@ -245,7 +245,7 @@ public class InconsistentProperty implements org.apache.thrift.TBase<Inconsisten
       if (value == null) {
         unsetValues();
       } else {
-        setValues((Map<String,List<String>>)value);
+        setValues((Map<OptionalString,List<String>>)value);
       }
       break;
 
@@ -448,12 +448,13 @@ public class InconsistentProperty implements org.apache.thrift.TBase<Inconsisten
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map58 = iprot.readMapBegin();
-                struct.values = new HashMap<String,List<String>>(2*_map58.size);
-                String _key59;
+                struct.values = new HashMap<OptionalString,List<String>>(2*_map58.size);
+                OptionalString _key59;
                 List<String> _val60;
                 for (int _i61 = 0; _i61 < _map58.size; ++_i61)
                 {
-                  _key59 = iprot.readString();
+                  _key59 = new OptionalString();
+                  _key59.read(iprot);
                   {
                     org.apache.thrift.protocol.TList _list62 = iprot.readListBegin();
                     _val60 = new ArrayList<String>(_list62.size);
@@ -497,10 +498,10 @@ public class InconsistentProperty implements org.apache.thrift.TBase<Inconsisten
       if (struct.values != null) {
         oprot.writeFieldBegin(VALUES_FIELD_DESC);
         {
-          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.LIST, struct.values.size()));
-          for (Map.Entry<String, List<String>> _iter65 : struct.values.entrySet())
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRUCT, org.apache.thrift.protocol.TType.LIST, struct.values.size()));
+          for (Map.Entry<OptionalString, List<String>> _iter65 : struct.values.entrySet())
           {
-            oprot.writeString(_iter65.getKey());
+            _iter65.getKey().write(oprot);
             {
               oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, _iter65.getValue().size()));
               for (String _iter66 : _iter65.getValue())
@@ -545,9 +546,9 @@ public class InconsistentProperty implements org.apache.thrift.TBase<Inconsisten
       if (struct.isSetValues()) {
         {
           oprot.writeI32(struct.values.size());
-          for (Map.Entry<String, List<String>> _iter67 : struct.values.entrySet())
+          for (Map.Entry<OptionalString, List<String>> _iter67 : struct.values.entrySet())
           {
-            oprot.writeString(_iter67.getKey());
+            _iter67.getKey().write(oprot);
             {
               oprot.writeI32(_iter67.getValue().size());
               for (String _iter68 : _iter67.getValue())
@@ -570,13 +571,14 @@ public class InconsistentProperty implements org.apache.thrift.TBase<Inconsisten
       }
       if (incoming.get(1)) {
         {
-          org.apache.thrift.protocol.TMap _map69 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.LIST, iprot.readI32());
-          struct.values = new HashMap<String,List<String>>(2*_map69.size);
-          String _key70;
+          org.apache.thrift.protocol.TMap _map69 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRUCT, org.apache.thrift.protocol.TType.LIST, iprot.readI32());
+          struct.values = new HashMap<OptionalString,List<String>>(2*_map69.size);
+          OptionalString _key70;
           List<String> _val71;
           for (int _i72 = 0; _i72 < _map69.size; ++_i72)
           {
-            _key70 = iprot.readString();
+            _key70 = new OptionalString();
+            _key70.read(iprot);
             {
               org.apache.thrift.protocol.TList _list73 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
               _val71 = new ArrayList<String>(_list73.size);

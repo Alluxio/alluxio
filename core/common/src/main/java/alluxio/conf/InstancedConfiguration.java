@@ -270,9 +270,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     for (Map.Entry<String, String> entry : toMap(ConfigurationValueOptions.defaults()
         .useRawValue(true).useDisplayValue(true)).entrySet()) {
       PropertyKey key = PropertyKey.fromString(entry.getKey());
-      if (key.getScope().contains(scope) && containsKey(key)) {
-        ConfigProperty configProperty = new ConfigProperty().setName(key.getName())
-            .setValue(get(key)).setSource(Configuration.getSource(key).toString());
+      if (key.getScope().contains(scope)) {
+        ConfigProperty configProperty = new ConfigProperty()
+            .setName(key.getName())
+            .setValue(containsKey(key) ? get(key) : null)
+            .setSource(Configuration.getSource(key).toString());
         list.add(configProperty);
       }
     }

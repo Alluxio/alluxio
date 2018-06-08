@@ -13,13 +13,17 @@ package alluxio.master.meta.checkconf;
 
 import alluxio.PropertyKey;
 
+import java.util.Optional;
+
+import javax.annotation.Nullable;
+
 /**
  * An Alluxio configuration record.
  */
 public final class ConfigRecord {
   private PropertyKey mKey;
   private String mSource;
-  private String mValue;
+  private Optional<String> mValue;
 
   /**
    * Creates a new instance of {@link ConfigRecord}.
@@ -33,10 +37,10 @@ public final class ConfigRecord {
    * @param source the source of the value
    * @param value the property value
    */
-  public ConfigRecord(PropertyKey key, String source, String value) {
+  public ConfigRecord(PropertyKey key, String source, @Nullable String value) {
     mKey = key;
     mSource = source;
-    mValue = value;
+    mValue = Optional.ofNullable(value);
   }
 
   /**
@@ -56,7 +60,7 @@ public final class ConfigRecord {
   /**
    * @return the value of this property
    */
-  public String getValue() {
+  public Optional<String> getValue() {
     return mValue;
   }
 
@@ -82,8 +86,8 @@ public final class ConfigRecord {
    * @param value the value to use
    * @return the configuration record
    */
-  public ConfigRecord setValue(String value) {
-    mValue = value;
+  public ConfigRecord setValue(@Nullable String value) {
+    mValue = Optional.ofNullable(value);
     return this;
   }
 }
