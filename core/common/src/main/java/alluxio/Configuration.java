@@ -138,6 +138,18 @@ public final class Configuration {
   }
 
   /**
+   * Gets the value for the given key in the {@link Properties}; if this key is not found, a
+   * RuntimeException is thrown.
+   *
+   * @param key the key to get the value for
+   * @param options options for getting configuration value
+   * @return the value for the given key
+   */
+  public static String get(PropertyKey key, ConfigurationValueOptions options) {
+    return CONF.get(key, options);
+  }
+
+  /**
    * Checks if the configuration contains value for the given key.
    *
    * @param key the key to check
@@ -274,6 +286,15 @@ public final class Configuration {
   }
 
   /**
+   * @param options option for getting configuration values
+   * @return a view of the properties represented by this configuration,
+   *         including all default properties
+   */
+  public static Map<String, String> toMap(ConfigurationValueOptions options) {
+    return CONF.toMap(options);
+  }
+
+  /**
    * @return a view of the resolved properties represented by this configuration,
    *         including all default properties
    */
@@ -307,7 +328,7 @@ public final class Configuration {
   }
 
   /**
-   * Gets the raw configuration of a given scope.
+   * Gets the raw (no alias lookup) display configuration of a given scope.
    *
    * @param scope the property key scope
    * @return a list of raw configurations inside the property scope
