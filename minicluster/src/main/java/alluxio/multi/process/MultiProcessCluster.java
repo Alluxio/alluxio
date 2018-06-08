@@ -229,7 +229,6 @@ public final class MultiProcessCluster implements TestRule {
    * reached the number of nodes in this cluster and gets meta master client.
    *
    * @param timeoutMs maximum amount of time to wait, in milliseconds
-   * @return  the meta master client
    */
   public synchronized void waitForAllNodesRegistered(int timeoutMs) {
     MetaMasterClient metaMasterClient = getMetaMasterClient();

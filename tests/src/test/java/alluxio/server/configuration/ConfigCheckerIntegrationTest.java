@@ -49,7 +49,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
   public MultiProcessCluster mCluster;
 
   @After
-  public void after() throws Exception{
+  public void after() throws Exception {
     mCluster.destroy();
   }
 
