@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -171,8 +170,7 @@ public class AlluxioScheduler implements Scheduler {
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
                                     .setName("ALLUXIO_MESOS_SITE_PROPERTIES_CONTENT")
-                                    // TODO(andrew): set the site properties here
-                                    .setValue("")
+                                    .setValue(createAlluxioSiteProperties())
                                     .build())
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
@@ -217,8 +215,7 @@ public class AlluxioScheduler implements Scheduler {
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
                                     .setName("ALLUXIO_MESOS_SITE_PROPERTIES_CONTENT")
-                                    // TODO(andrew): set the site properties here
-                                    .setValue("")
+                                    .setValue(createAlluxioSiteProperties())
                                     .build())
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
@@ -265,8 +262,10 @@ public class AlluxioScheduler implements Scheduler {
 
   private String createAlluxioSiteProperties() {
     StringBuilder siteProperties = new StringBuilder();
-    for (Entry<String, String> entry : Configuration.toMap().keySet().stream().filter(key -> !Configuration.getSource(key).getType().equals(Type.DEFAULT)))
-      siteProperties.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
+    for (PropertyKey key : Configuration.keySet()) {
+      if (Configuration.containsKey(key) && Configuration.getSource(key).getType() != Type.DEFAULT) {
+        siteProperties.append(String.format("%s=%s%n", key.getName(), Configuration.get(key)));
+      }
     }
     return siteProperties.toString();
   }
