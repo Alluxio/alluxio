@@ -68,6 +68,12 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
         "    UnmountOps                                   0",
         "",
         "Other metrics information: ",
+        "    AsyncCacheDuplicateRequests  (0)",
+        "    AsyncCacheFailedBlocks  (0)",
+        "    AsyncCacheRemoteBlocks  (0)",
+        "    AsyncCacheRequests  (0)",
+        "    AsyncCacheSucceededBlocks  (0)",
+        "    AsyncCacheUfsBlocks  (0)",
         "    BlocksAccessed  (0)");
     List<String> testOutput = Arrays.asList(output.split("\n")).subList(0, expectedOutput.size());
     Assert.assertThat(testOutput,
