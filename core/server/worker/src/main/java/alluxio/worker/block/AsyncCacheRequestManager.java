@@ -18,12 +18,14 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
+import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,14 +69,17 @@ public class AsyncCacheRequestManager {
    * @param request the async cache request fields will be available
    */
   public void submitRequest(Protocol.AsyncCacheRequest request) {
+    ASYNC_CACHE_REQUESTS.inc();
     long blockId = request.getBlockId();
     long blockLength = request.getLength();
     if (mPendingRequests.putIfAbsent(blockId, request) != null) {
       // This block is already planned.
+      ASYNC_CACHE_DUPLICATE_REQUESTS.inc();
       return;
     }
     try {
       mAsyncCacheExecutor.submit(() -> {
+        boolean result = false;
         try {
           // Check if the block has already been cached on this worker
           long lockId = mBlockWorker.lockBlockNoException(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
@@ -84,15 +89,17 @@ public class AsyncCacheRequestManager {
             } catch (BlockDoesNotExistException e) {
               LOG.error("Failed to unlock block on async caching. We should never reach here", e);
             }
+            ASYNC_CACHE_DUPLICATE_REQUESTS.inc();
             return;
           }
           Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
           boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
           // Depends on the request, cache the target block from different sources
-          boolean result;
           if (isSourceLocal) {
+            ASYNC_CACHE_UFS_BLOCKS.inc();
             result = cacheBlockFromUfs(blockId, blockLength, openUfsBlockOptions);
           } else {
+            ASYNC_CACHE_REMOTE_BLOCKS.inc();
             InetSocketAddress sourceAddress =
                 new InetSocketAddress(request.getSourceHost(), request.getSourcePort());
             result = cacheBlockFromRemoteWorker(
@@ -102,6 +109,11 @@ public class AsyncCacheRequestManager {
         } catch (Exception e) {
           LOG.warn("Failed to complete async cache request {} from UFS", request, e.getMessage());
         } finally {
+          if (result) {
+            ASYNC_CACHE_SUCCEEDED_BLOCKS.inc();
+          } else {
+            ASYNC_CACHE_FAILED_BLOCKS.inc();
+          }
           mPendingRequests.remove(blockId);
         }
       });
@@ -110,6 +122,7 @@ public class AsyncCacheRequestManager {
       // netty thread pool is drained due to highly concurrent caching workloads. In these cases,
       // return as async caching is at best effort.
       LOG.warn("Failed to submit async cache request {}: {}", request, e.getMessage());
+      ASYNC_CACHE_FAILED_BLOCKS.inc();
       mPendingRequests.remove(blockId);
     }
   }
@@ -203,4 +216,18 @@ public class AsyncCacheRequestManager {
       return false;
     }
   }
+
+  // Metrics
+  private static final Counter ASYNC_CACHE_REQUESTS =
+      MetricsSystem.workerCounter("AsyncCacheRequests");
+  private static final Counter ASYNC_CACHE_DUPLICATE_REQUESTS =
+      MetricsSystem.workerCounter("AsyncCacheDuplicateRequests");
+  private static final Counter ASYNC_CACHE_FAILED_BLOCKS =
+      MetricsSystem.workerCounter("AsyncCacheFailedBlocks");
+  private static final Counter ASYNC_CACHE_REMOTE_BLOCKS =
+      MetricsSystem.workerCounter("AsyncCacheRemoteBlocks");
+  private static final Counter ASYNC_CACHE_SUCCEEDED_BLOCKS =
+      MetricsSystem.workerCounter("AsyncCacheSucceededBlocks");
+  private static final Counter ASYNC_CACHE_UFS_BLOCKS =
+      MetricsSystem.workerCounter("AsyncCacheUfsBlocks");
 }
