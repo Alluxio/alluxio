@@ -79,6 +79,7 @@ public class AsyncCacheRequestManager {
     }
     try {
       mAsyncCacheExecutor.submit(() -> {
+        boolean result = false;
         try {
           // Check if the block has already been cached on this worker
           long lockId = mBlockWorker.lockBlockNoException(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
@@ -94,7 +95,6 @@ public class AsyncCacheRequestManager {
           Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
           boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
           // Depends on the request, cache the target block from different sources
-          boolean result;
           if (isSourceLocal) {
             ASYNC_CACHE_UFS_BLOCKS.inc();
             result = cacheBlockFromUfs(blockId, blockLength, openUfsBlockOptions);
@@ -105,16 +105,15 @@ public class AsyncCacheRequestManager {
             result = cacheBlockFromRemoteWorker(
                     blockId, blockLength, sourceAddress, openUfsBlockOptions);
           }
+          LOG.debug("Result of async caching block {}: {}", blockId, result);
+        } catch (Exception e) {
+          LOG.warn("Failed to complete async cache request {} from UFS", request, e.getMessage());
+        } finally {
           if (result) {
             ASYNC_CACHE_SUCCEEDED_BLOCKS.inc();
           } else {
             ASYNC_CACHE_FAILED_BLOCKS.inc();
           }
-          LOG.debug("Result of async caching block {}: {}", blockId, result);
-        } catch (Exception e) {
-          LOG.warn("Failed to complete async cache request {} from UFS", request, e.getMessage());
-          ASYNC_CACHE_FAILED_BLOCKS.inc();
-        } finally {
           mPendingRequests.remove(blockId);
         }
       });
