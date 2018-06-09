@@ -12,15 +12,12 @@
 package alluxio.conf;
 
 import alluxio.AlluxioConfiguration;
-import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.FormatUtils;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.Scope;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -31,9 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -107,6 +102,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   @Override
   public boolean containsKey(PropertyKey key) {
     return mProperties.hasValueSet(key);
+  }
+
+  @Override
+  public Set<PropertyKey> keySet() {
+    return mProperties.keySet();
   }
 
   @Override
@@ -242,43 +242,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public Map<String, String> toMap(ConfigurationValueOptions options) {
-    Map<String, String> map = new HashMap<>();
-    mProperties.forEach((key, value) ->
-        map.put(key.getName(), get(key, options)));
-    return map;
-  }
-
-  @Override
-  public Map<String, String> toMap() {
-    return toMap(ConfigurationValueOptions.defaults());
-  }
-
-  @Override
-  public Map<String, String> toRawMap() {
-    return toMap(ConfigurationValueOptions.defaults().useRawValue(true));
-  }
-
-  @Override
   public Source getSource(PropertyKey key) {
     return mProperties.getSource(key);
-  }
-
-  @Override
-  public List<ConfigProperty> getConfiguration(Scope scope) {
-    List<ConfigProperty> list = new ArrayList<>();
-    for (Map.Entry<String, String> entry : toMap(ConfigurationValueOptions.defaults()
-        .useRawValue(true).useDisplayValue(true)).entrySet()) {
-      PropertyKey key = PropertyKey.fromString(entry.getKey());
-      if (key.getScope().contains(scope)) {
-        ConfigProperty configProperty = new ConfigProperty()
-            .setName(key.getName())
-            .setValue(containsKey(key) ? get(key) : null)
-            .setSource(Configuration.getSource(key).toString());
-        list.add(configProperty);
-      }
-    }
-    return list;
   }
 
   @Override
@@ -288,17 +253,13 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public void validate() {
-    for (Map.Entry<String, String> entry : toMap().entrySet()) {
-      String propertyName = entry.getKey();
-      Preconditions.checkState(PropertyKey.isValid(propertyName), propertyName);
-      PropertyKey propertyKey = PropertyKey.fromString(propertyName);
+    for (PropertyKey key : keySet()) {
       Preconditions.checkState(
-          getSource(propertyKey).getType() != Source.Type.SITE_PROPERTY
-              || !propertyKey.isIgnoredSiteProperty(),
+          getSource(key).getType() != Source.Type.SITE_PROPERTY || !key.isIgnoredSiteProperty(),
           "%s is not accepted in alluxio-site.properties, "
               + "and must be specified as a JVM property. "
-              + "If no JVM property is present, Alluxio will use default value '%s'.", propertyName,
-          propertyKey.getDefaultValue());
+              + "If no JVM property is present, Alluxio will use default value '%s'.",
+          key.getName(), key.getDefaultValue());
     }
     checkTimeouts();
     checkWorkerPorts();

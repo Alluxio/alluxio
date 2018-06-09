@@ -12,13 +12,12 @@
 package alluxio;
 
 import alluxio.conf.Source;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.Scope;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Alluxio configuration.
@@ -44,12 +43,37 @@ public interface AlluxioConfiguration {
   String get(PropertyKey key, ConfigurationValueOptions options);
 
   /**
+   * @param key the key to get the value for
+   * @param defaultValue the value to return if no value is set for the specified key
+   * @return the value
+   */
+  default String getOrDefault(PropertyKey key, String defaultValue) {
+    return containsKey(key) ? get(key) : defaultValue;
+  }
+
+  /**
+   * @param key the key to get the value for
+   * @param defaultValue the value to return if no value is set for the specified key
+   * @param options options for getting configuration value
+   * @return the value
+   */
+  default String getOrDefault(PropertyKey key, String defaultValue,
+      ConfigurationValueOptions options) {
+    return containsKey(key) ? get(key, options) : defaultValue;
+  }
+
+  /**
    * Checks if the configuration contains value for the given key.
    *
    * @param key the key to check
    * @return true if there is value for the key, false otherwise
    */
   boolean containsKey(PropertyKey key);
+
+  /**
+   * @return the keys configured by the configuration
+   */
+  Set<PropertyKey> keySet();
 
   /**
    * Gets the integer representation of the value for the given key.
@@ -154,38 +178,10 @@ public interface AlluxioConfiguration {
   Map<String, String> getNestedProperties(PropertyKey prefixKey);
 
   /**
-   * @return a map of the properties represented by this configuration,
-   *         including all default properties
-   *
-   * @param options options for getting configuration value
-   */
-  Map<String, String> toMap(ConfigurationValueOptions options);
-
-  /**
-   * @return a view of the resolved properties represented by this configuration,
-   *         including all default properties
-   */
-  Map<String, String> toMap();
-
-  /**
-   * @return a map of the raw properties represented by this configuration,
-   *         including all default properties
-   */
-  Map<String, String> toRawMap();
-
-  /**
    * @param key the property key
    * @return the source for the given key
    */
   Source getSource(PropertyKey key);
-
-  /**
-   * Gets the raw configuration of a given scope.
-   *
-   * @param scope the property key scope
-   * @return a list of raw configurations inside the property scope
-   */
-  List<ConfigProperty> getConfiguration(Scope scope);
 
   /**
    * Merges the current configuration properties with new properties. If a property exists

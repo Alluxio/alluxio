@@ -17,6 +17,7 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryUtils;
 import alluxio.thrift.MetaCommand;
+import alluxio.util.ConfigurationUtils;
 import alluxio.wire.Address;
 import alluxio.wire.Scope;
 
@@ -148,8 +149,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
       throw new RuntimeException("Failed to get a master id from leader master: " + e.getMessage());
     }
 
-    mMasterClient.register(mMasterId.get(),
-        Configuration.getConfiguration(Scope.MASTER));
+    mMasterClient.register(mMasterId.get(), ConfigurationUtils.getConfiguration(Scope.MASTER));
   }
 
   @Override

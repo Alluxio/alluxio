@@ -34,7 +34,6 @@ import com.qmino.miredot.annotations.ReturnType;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -314,12 +313,8 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    Set<Map.Entry<String, String>> properties = Configuration.toMap(
-        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw))
-        .entrySet();
-    SortedMap<String, String> configuration = new TreeMap<>();
-    properties.forEach(entry -> configuration.put(entry.getKey(), entry.getValue()));
-    return configuration;
+    return new TreeMap<>(Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 
   private Map<String, Long> getMetricsInternal() {

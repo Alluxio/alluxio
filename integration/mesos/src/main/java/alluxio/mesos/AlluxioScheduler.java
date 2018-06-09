@@ -14,6 +14,7 @@ package alluxio.mesos;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.conf.Source.Type;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -259,6 +261,14 @@ public class AlluxioScheduler implements Scheduler {
       Protos.Filters filters = Protos.Filters.newBuilder().setRefuseSeconds(1).build();
       driver.acceptOffers(offerIds, operations, filters);
     }
+  }
+
+  private String createAlluxioSiteProperties() {
+    StringBuilder siteProperties = new StringBuilder();
+    for (Entry<String, String> entry : Configuration.toMap().keySet().stream().filter(key -> !Configuration.getSource(key).getType().equals(Type.DEFAULT)))
+      siteProperties.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
+    }
+    return siteProperties.toString();
   }
 
   private static String createStartAlluxioCommand(String command) {

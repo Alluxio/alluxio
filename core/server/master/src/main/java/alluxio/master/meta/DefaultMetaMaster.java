@@ -41,6 +41,7 @@ import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -210,7 +211,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     if (isPrimary) {
       // Add the configuration of the current leader master
       mMasterConfigStore.registerNewConf(mMasterAddress,
-          Configuration.getConfiguration(Scope.MASTER));
+          ConfigurationUtils.getConfiguration(Scope.MASTER));
 
       // The service that detects lost standby master nodes
       getExecutorService().submit(new HeartbeatThread(
@@ -296,14 +297,13 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   public List<ConfigProperty> getConfiguration() {
     List<ConfigProperty> configInfoList = new ArrayList<>();
     String alluxioConfPrefix = "alluxio";
-    for (Map.Entry<String, String> entry : Configuration.toMap(
-        ConfigurationValueOptions.defaults().useDisplayValue(true)).entrySet()) {
-      String key = entry.getKey();
-      if (key.startsWith(alluxioConfPrefix)) {
-        PropertyKey propertyKey = PropertyKey.fromString(key);
-        String source = Configuration.getSource(propertyKey).toString();
-        configInfoList.add(new ConfigProperty()
-            .setName(key).setValue(entry.getValue()).setSource(source));
+    for (PropertyKey key : Configuration.keySet()) {
+      if (key.getName().startsWith(alluxioConfPrefix)) {
+        String source = Configuration.getSource(key).toString();
+        String value =
+            Configuration.get(key, ConfigurationValueOptions.defaults().useDisplayValue(true));
+        configInfoList
+            .add(new ConfigProperty().setName(key.getName()).setValue(value).setSource(source));
       }
     }
     return configInfoList;

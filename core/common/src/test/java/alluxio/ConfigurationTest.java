@@ -725,7 +725,8 @@ public class ConfigurationTest {
     String testValue = String.format("${%s}.test", "alluxio.extensions.dir");
     Configuration.set(testKey, testValue);
 
-    Map<String, String> rawMap = Configuration.toRawMap();
+    Map<String, String> rawMap =
+        Configuration.toMap(ConfigurationValueOptions.defaults().useRawValue(true));
 
     // Test if the value of the created nested property remains raw
     assertEquals(testValue, rawMap.get(testKey.toString()));
