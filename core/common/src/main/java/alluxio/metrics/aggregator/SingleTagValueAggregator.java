@@ -72,7 +72,7 @@ public class SingleTagValueAggregator implements MultiValueMetricsAggregator {
         updated.put(ufsName, (long) (value + metric.getValue()));
       }
     }
-    synchronized (mAggregates) {
+    synchronized (this) {
       mAggregates = updated;
     }
     return mAggregates;
