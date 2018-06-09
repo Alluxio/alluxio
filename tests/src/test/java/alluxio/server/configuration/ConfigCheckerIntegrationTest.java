@@ -124,7 +124,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void unsetVsSet() throws Exception {
     Map<Integer, Map<PropertyKey, String>> masterProperties = ImmutableMap.of(
-        1, ImmutableMap.of(PropertyKey.GCS_SECRET_KEY, "gcs secret"));
+        1, ImmutableMap.of(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION, "option"));
 
     mCluster = MultiProcessCluster.newBuilder()
         .setClusterName("ConfigCheckerUnsetVsSet")
@@ -136,11 +136,11 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
     mCluster.start();
     ConfigCheckReport report = getReport();
     Map<Scope, List<InconsistentProperty>> errors = report.getConfigErrors();
-    assertTrue(errors.containsKey(Scope.SERVER));
-    assertEquals(1, errors.get(Scope.SERVER).size());
-    InconsistentProperty property = errors.get(Scope.SERVER).get(0);
-    assertEquals(PropertyKey.GCS_SECRET_KEY.getName(), property.getName());
-    assertTrue(property.getValues().containsKey(Optional.of("gcs secret")));
+    assertTrue(errors.containsKey(Scope.MASTER));
+    assertEquals(1, errors.get(Scope.MASTER).size());
+    InconsistentProperty property = errors.get(Scope.MASTER).get(0);
+    assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION.getName(), property.getName());
+    assertTrue(property.getValues().containsKey(Optional.of("option")));
     assertTrue(property.getValues().containsKey(Optional.empty()));
     mCluster.notifySuccess();
   }

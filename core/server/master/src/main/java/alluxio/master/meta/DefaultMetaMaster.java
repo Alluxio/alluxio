@@ -300,8 +300,8 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     for (PropertyKey key : Configuration.keySet()) {
       if (key.getName().startsWith(alluxioConfPrefix)) {
         String source = Configuration.getSource(key).toString();
-        String value =
-            Configuration.get(key, ConfigurationValueOptions.defaults().useDisplayValue(true));
+        String value = Configuration.getOrDefault(key, null,
+            ConfigurationValueOptions.defaults().useDisplayValue(true));
         configInfoList
             .add(new ConfigProperty().setName(key.getName()).setValue(value).setSource(source));
       }
