@@ -102,9 +102,13 @@ enum Scope {
   NONE
 }
 
+struct OptionalString {
+  1: string value
+}
+
 struct InconsistentProperty {
   1: string name
-  2: map<string, list<string>> values
+  2: map<OptionalString, list<string>> values
 }
 
 struct ConfigCheckReport {

@@ -246,11 +246,11 @@
                     <% for (InconsistentProperty inconsistentProperty: error.getValue()) { %>
                       <% String scope = error.getKey().toString(); %>
                       <% String name = inconsistentProperty.getName(); %>
-                      <% for (Map.Entry<String, List<String>> entry : inconsistentProperty.getValues().entrySet()) { %>
+                      <% for (Map.Entry<Optional<String>, List<String>> entry : inconsistentProperty.getValues().entrySet()) { %>
                         <tr>
                           <th class="span2"><font color="red"><%= scope %></font></th>
                           <th class="span4"><font color="red"><%= name %></font></th>
-                          <% String value = String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()));%>
+                          <% String value = String.format("%s (%s)", entry.getKey().orElse("no value set"), String.join(", ", entry.getValue()));%>
                           <th class="span8"><font color="red"><%= value %></font></th>
                         </tr>
                         <% scope = ""; %>
@@ -267,11 +267,11 @@
                     <% for (InconsistentProperty inconsistentProperty: warn.getValue()) { %>
                       <% String scope = warn.getKey().toString(); %>
                       <% String name = inconsistentProperty.getName(); %>
-                      <% for (Map.Entry<String, List<String>> entry : inconsistentProperty.getValues().entrySet()) { %>
+                      <% for (Map.Entry<Optional<String>, List<String>> entry : inconsistentProperty.getValues().entrySet()) { %>
                         <tr>
                           <th class="span2"><%= scope %></th>
                           <th class="span4"><%= name %></th>
-                          <% String value = String.format("%s (%s)", entry.getKey(), String.join(", ", entry.getValue()));%>
+                          <% String value = String.format("%s (%s)", entry.getKey().orElse("no value set"), String.join(", ", entry.getValue()));%>
                           <th class="span8"><%= value %></th>
                         </tr>
                         <% scope = ""; %>

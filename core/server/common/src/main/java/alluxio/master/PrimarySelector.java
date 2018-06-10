@@ -13,9 +13,11 @@ package alluxio.master;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.util.interfaces.Scoped;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.function.Consumer;
 
 /**
  * Interface for a class which can determine whether the local master is the primary.
@@ -60,6 +62,22 @@ public interface PrimarySelector {
    * Stops the primary selector.
    */
   void stop() throws IOException;
+
+  /**
+   * @return the current state
+   */
+  State getState();
+
+  /**
+   * Registers a listener to be executed whenever the selector's state updates.
+   *
+   * The listener will be executed synchronously in the state update thread, so it should run
+   * quickly.
+   *
+   * @param listener the listener
+   * @return an object which will unregister the listener when closed
+   */
+  Scoped onStateChange(Consumer<State> listener);
 
   /**
    * Blocks until the primary selector enters the specified state.

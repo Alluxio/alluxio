@@ -85,6 +85,10 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   @Override
   public String get(PropertyKey key, ConfigurationValueOptions options) {
     String value = mProperties.get(key);
+    if (value == null) {
+      // if value or default value is not set in configuration for the given key
+      throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
+    }
     if (!options.shouldUseRawValue()) {
       value = lookup(value);
     }
@@ -245,7 +249,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   public Map<String, String> toMap(ConfigurationValueOptions options) {
     Map<String, String> map = new HashMap<>();
     mProperties.forEach((key, value) ->
-        map.put(key.getName(), get(key, options)));
+        map.put(key.getName(), containsKey(key) ? get(key, options) : null));
     return map;
   }
 
@@ -270,9 +274,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     for (Map.Entry<String, String> entry : toMap(ConfigurationValueOptions.defaults()
         .useRawValue(true).useDisplayValue(true)).entrySet()) {
       PropertyKey key = PropertyKey.fromString(entry.getKey());
-      if (key.getScope().contains(scope) && containsKey(key)) {
-        ConfigProperty configProperty = new ConfigProperty().setName(key.getName())
-            .setValue(get(key)).setSource(Configuration.getSource(key).toString());
+      if (key.getScope().contains(scope)) {
+        ConfigProperty configProperty = new ConfigProperty()
+            .setName(key.getName())
+            .setValue(containsKey(key) ? get(key) : null)
+            .setSource(Configuration.getSource(key).toString());
         list.add(configProperty);
       }
     }

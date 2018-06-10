@@ -26,7 +26,6 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.file.StartupConsistencyCheck.Status;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.util.CommonUtils;
@@ -77,7 +76,9 @@ public class MasterTestUtils {
     new BlockMasterFactory().create(registry, masterContext);
     new FileSystemMasterFactory().create(registry, masterContext);
     journalSystem.start();
-    journalSystem.setMode(isLeader ? Mode.PRIMARY : Mode.SECONDARY);
+    if (isLeader) {
+      journalSystem.gainPrimacy();
+    }
     registry.start(isLeader);
     return registry;
   }

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -68,13 +69,13 @@ public class ServerConfigurationChecker {
    */
   public synchronized void regenerateReport() {
     // Generate the configuration map from master and worker configuration records
-    Map<PropertyKey, Map<String, List<String>>> confMap = generateConfMap();
+    Map<PropertyKey, Map<Optional<String>, List<String>>> confMap = generateConfMap();
 
     // Update the errors and warnings configuration
     Map<Scope, List<InconsistentProperty>> confErrors = new HashMap<>();
     Map<Scope, List<InconsistentProperty>> confWarns = new HashMap<>();
 
-    for (Map.Entry<PropertyKey, Map<String, List<String>>> entry : confMap.entrySet()) {
+    for (Map.Entry<PropertyKey, Map<Optional<String>, List<String>>> entry : confMap.entrySet()) {
       if (entry.getValue().size() >= 2) {
         PropertyKey key = entry.getKey();
         InconsistentProperty inconsistentProperty = new InconsistentProperty()
@@ -135,8 +136,8 @@ public class ServerConfigurationChecker {
    *
    * @return the generated configuration map
    */
-  private Map<PropertyKey, Map<String, List<String>>> generateConfMap() {
-    Map<PropertyKey, Map<String, List<String>>> confMap = new HashMap<>();
+  private Map<PropertyKey, Map<Optional<String>, List<String>>> generateConfMap() {
+    Map<PropertyKey, Map<Optional<String>, List<String>>> confMap = new HashMap<>();
     fillConfMap(confMap, mMasterStore.getConfMap());
     fillConfMap(confMap, mWorkerStore.getConfMap());
     return confMap;
@@ -148,7 +149,7 @@ public class ServerConfigurationChecker {
    * @param targetMap the map to fill
    * @param recordMap the map to get data from
    */
-  private void fillConfMap(Map<PropertyKey, Map<String, List<String>>> targetMap,
+  private void fillConfMap(Map<PropertyKey, Map<Optional<String>, List<String>>> targetMap,
       Map<Address, List<ConfigRecord>> recordMap) {
     for (Map.Entry<Address, List<ConfigRecord>> record : recordMap.entrySet()) {
       Address address = record.getKey();
@@ -158,9 +159,9 @@ public class ServerConfigurationChecker {
         if (key.getConsistencyLevel() == ConsistencyCheckLevel.IGNORE) {
           continue;
         }
-        String value = conf.getValue();
+        Optional<String> value = conf.getValue();
         targetMap.putIfAbsent(key, new HashMap<>());
-        Map<String, List<String>> values = targetMap.get(key);
+        Map<Optional<String>, List<String>> values = targetMap.get(key);
         values.putIfAbsent(value, new ArrayList<>());
         values.get(value).add(addressStr);
       }

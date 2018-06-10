@@ -16,6 +16,8 @@ import com.google.common.base.Objects;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Records a property that is required or recommended to be consistent but is not within its scope.
@@ -29,7 +31,7 @@ public final class InconsistentProperty {
   /** The name of the property that has errors/warnings. */
   private String mName = "";
   /** Record the values and corresponding hostnames. */
-  private Map<String, List<String>> mValues = new HashMap<>();
+  private Map<Optional<String>, List<String>> mValues = new HashMap<>();
 
   /**
    * Creates a new instance of {@link InconsistentProperty}.
@@ -43,7 +45,10 @@ public final class InconsistentProperty {
    */
   protected InconsistentProperty(alluxio.thrift.InconsistentProperty inconsistentProperty) {
     mName = inconsistentProperty.getName();
-    mValues = inconsistentProperty.getValues();
+    mValues = inconsistentProperty.getValues().entrySet().stream()
+        .collect(Collectors.toMap(
+            e -> OptionalString.fromThrift(e.getKey()).getValue(),
+            e -> e.getValue()));
   }
 
   /**
@@ -56,7 +61,7 @@ public final class InconsistentProperty {
   /**
    * @return the values of this property
    */
-  public Map<String, List<String>> getValues() {
+  public Map<Optional<String>, List<String>> getValues() {
     return mValues;
   }
 
@@ -73,7 +78,7 @@ public final class InconsistentProperty {
    * @param values the values to use
    * @return the inconsistent property
    */
-  public InconsistentProperty setValues(Map<String, List<String>> values) {
+  public InconsistentProperty setValues(Map<Optional<String>, List<String>> values) {
     mValues = values;
     return this;
   }
@@ -107,8 +112,9 @@ public final class InconsistentProperty {
    * @return an inconsistent property of thrift construct
    */
   public alluxio.thrift.InconsistentProperty toThrift() {
-    return new alluxio.thrift.InconsistentProperty()
-        .setName(mName).setValues(mValues);
+    return new alluxio.thrift.InconsistentProperty().setName(mName)
+        .setValues(mValues.entrySet().stream().collect(
+            Collectors.toMap(e -> new OptionalString(e.getKey()).toThrift(), e -> e.getValue())));
   }
 
   /**

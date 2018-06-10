@@ -56,9 +56,7 @@ import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -163,9 +161,14 @@ public final class MultiProcessCluster implements TestRule {
     for (Entry<PropertyKey, String> entry : ConfigurationTestUtils.testConfigurationDefaults(
         NetworkAddressUtils.getLocalHostName(), mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
-      if (!mProperties.containsKey(entry.getKey())) {
-        mProperties.put(entry.getKey(), entry.getValue());
+      if (mProperties.containsKey(entry.getKey())) {
+        continue;
       }
+      // Keep the default RPC timeout.
+      if (entry.getKey().equals(PropertyKey.USER_RPC_RETRY_MAX_DURATION)) {
+        continue;
+      }
+      mProperties.put(entry.getKey(), entry.getValue());
     }
     mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
         PathUtils.concatPath(mWorkDir, "underFSStorage"));
@@ -233,28 +236,21 @@ public final class MultiProcessCluster implements TestRule {
    * reached the number of nodes in this cluster and gets meta master client.
    *
    * @param timeoutMs maximum amount of time to wait, in milliseconds
-   * @return  the meta master client
    */
-  public synchronized MetaMasterClient waitForAllNodesRegistered(int timeoutMs) {
-    final MetaMasterClient metaMasterClient = getMetaMasterClient();
-    CommonUtils.waitFor("all nodes registered", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        try {
-          MasterInfo masterInfo = metaMasterClient.getMasterInfo(new HashSet<>(Arrays
-              .asList(MasterInfo.MasterInfoField.MASTER_ADDRESSES,
-                  MasterInfo.MasterInfoField.WORKER_ADDRESSES)));
-          int liveNodeNum = masterInfo.getMasterAddresses().size()
-              + masterInfo.getWorkerAddresses().size();
-          return liveNodeNum == (mNumMasters + mNumWorkers);
-        } catch (UnavailableException e) {
-          return false;
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
+  public synchronized void waitForAllNodesRegistered(int timeoutMs) {
+    MetaMasterClient metaMasterClient = getMetaMasterClient();
+    CommonUtils.waitFor("all nodes registered", x -> {
+      try {
+        MasterInfo masterInfo = metaMasterClient.getMasterInfo(null);
+        int liveNodeNum = masterInfo.getMasterAddresses().size()
+            + masterInfo.getWorkerAddresses().size();
+        return liveNodeNum == (mNumMasters + mNumWorkers);
+      } catch (UnavailableException e) {
+        return false;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-    return metaMasterClient;
   }
 
   /**
