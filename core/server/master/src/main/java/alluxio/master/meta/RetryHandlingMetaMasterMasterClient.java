@@ -37,15 +37,15 @@ import javax.annotation.concurrent.ThreadSafe;
  * to provide retries.
  */
 @ThreadSafe
-public final class MetaMasterMasterClient extends AbstractMasterClient {
+public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterClient {
   private MetaMasterMasterService.Client mClient = null;
 
   /**
-   * Creates a instance of {@link MetaMasterMasterClient}.
+   * Creates a instance of {@link RetryHandlingMetaMasterMasterClient}.
    *
    * @param conf master client configuration
    */
-  public MetaMasterMasterClient(MasterClientConfig conf) {
+  public RetryHandlingMetaMasterMasterClient(MasterClientConfig conf) {
     super(conf);
   }
 
