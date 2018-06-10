@@ -187,10 +187,12 @@ public abstract class AbstractClient implements Client {
    * Handshakes with meta master.
    */
   private void doHandshake() throws AlluxioStatusException {
-    if (isConnected() || sHandshakeComplete.get()) {
-      return;
-    }
     synchronized (AbstractClient.class) {
+      if (isConnected() || sHandshakeComplete.get()) {
+        return;
+      }
+      LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
+          RuntimeConstants.VERSION, mAddress);
       // A plain socket transport to bootstrap
       TSocket socket = ThriftUtils.createThriftSocket(mAddress);
       TTransport bootstrapTransport = new BootstrapClientTransport(socket);
@@ -238,10 +240,13 @@ public abstract class AbstractClient implements Client {
       Configuration.validate();
       // This needs to be the last
       sHandshakeComplete.set(true);
+      LOG.info("Alluxio client has bootstrap-connected with {}", mAddress);
     }
   }
 
   private void doConnect() throws IOException, TTransportException {
+    LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
+        RuntimeConstants.VERSION, getServiceName(), mAddress);
     // The plain socket transport
     TSocket socket = ThriftUtils.createThriftSocket(mAddress);
     // The wrapper transport
@@ -279,15 +284,17 @@ public abstract class AbstractClient implements Client {
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
-      try {
-        // Bootstrap once
-        if (HANDSHAKE_NEEDED && !sHandshakeComplete.get()) {
-          LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
-              RuntimeConstants.VERSION, mAddress);
+      // Bootstrap once
+      if (HANDSHAKE_NEEDED && !sHandshakeComplete.get()) {
+        try {
           doHandshake();
+        } catch (UnavailableException e) {
+          LOG.warn("Failed to handshake ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
+              getServiceName(), mAddress, e.getMessage());
+          continue;
         }
-        LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
-            RuntimeConstants.VERSION, getServiceName(), mAddress);
+      }
+      try {
         doConnect();
         return;
       } catch (IOException | TTransportException e) {
