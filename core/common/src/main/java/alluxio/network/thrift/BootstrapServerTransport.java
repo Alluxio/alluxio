@@ -34,9 +34,9 @@ public class BootstrapServerTransport extends TTransport {
 
   /** The base transport which we can peek into. */
   private final PeekableTransport mBaseTransport;
-  /** The logic transport to work on, can be base transport or the real transport. */
+  /** The logical transport to work on, can be the base transport or the real transport. */
   private TTransport mTransport;
-  /** The factory to create the logic transport on open. */
+  /** The factory to create the logical transport on open. */
   private final TTransportFactory mTransportFactory;
 
   /**
@@ -62,7 +62,7 @@ public class BootstrapServerTransport extends TTransport {
       if (e.getType() == TTransportException.END_OF_FILE) {
         LOG.debug("No data in the stream {}", mBaseTransport);
         mBaseTransport.close();
-        throw new TTransportException("No data data in the stream.");
+        throw new TTransportException("No data in the stream.");
       }
       throw e;
     }
@@ -80,7 +80,7 @@ public class BootstrapServerTransport extends TTransport {
 
   @Override
   public boolean isOpen() {
-    return mBaseTransport.isOpen() && mTransport != null && mTransport.isOpen();
+    return mTransport != null && mTransport.isOpen();
   }
 
   @Override
@@ -93,7 +93,7 @@ public class BootstrapServerTransport extends TTransport {
   @Override
   public int read(byte[] buf, int off, int len) throws TTransportException {
     if (!isOpen()) {
-      throw new TTransportException("transport is not open");
+      throw new TTransportException("transport is not open: " + mTransport);
     }
     return mTransport.read(buf, off, len);
   }
@@ -101,7 +101,7 @@ public class BootstrapServerTransport extends TTransport {
   @Override
   public void write(byte[] buf, int off, int len) throws TTransportException {
     if (!isOpen()) {
-      throw new TTransportException("transport is not open");
+      throw new TTransportException("transport is not open: " + mTransport);
     }
     mTransport.write(buf, off, len);
   }
@@ -109,7 +109,7 @@ public class BootstrapServerTransport extends TTransport {
   @Override
   public void flush() throws TTransportException {
     if (!isOpen()) {
-      throw new TTransportException("transport is not open");
+      throw new TTransportException("transport is not open: " + mTransport);
     }
     mTransport.flush();
   }
