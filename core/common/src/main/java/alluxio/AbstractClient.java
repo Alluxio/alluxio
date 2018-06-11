@@ -42,6 +42,7 @@ import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 
@@ -284,6 +285,7 @@ public abstract class AbstractClient implements Client {
      * @return the name of the rpc which may be used for display, null if this rpc should not be
      * displayed in user facing text such as logging or metrics
      */
+    @Nullable
     default String getName() {
       return null;
     }
@@ -306,32 +308,37 @@ public abstract class AbstractClient implements Client {
     if (rpc.getName() != null) {
       metricContext = MetricsSystem.clientTimer(getQualifiedMetricName(rpc.getName())).time();
     }
-    while (retryPolicy.attempt()) {
-      if (mClosed) {
-        throw new FailedPreconditionException("Client is closed");
-      }
-      connect();
-      try {
-        V result = rpc.call();
-        if (metricContext != null) {
-          metricContext.close();
+    try {
+      while (retryPolicy.attempt()) {
+        if (mClosed) {
+          throw new FailedPreconditionException("Client is closed");
         }
-        return result;
-      } catch (AlluxioTException e) {
-        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
-        if (se.getStatus() == Status.UNAVAILABLE) {
-          ex = se;
-        } else {
-          throw se;
+        connect();
+        try {
+          return rpc.call();
+        } catch (AlluxioTException e) {
+          AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
+          if (se.getStatus() == Status.UNAVAILABLE) {
+            ex = se;
+          } else {
+            throw se;
+          }
+        } catch (TException e) {
+          ex = e;
         }
-      } catch (TException e) {
-        ex = e;
+        LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
+        if (rpc.getName() != null) {
+          MetricsSystem.clientCounter(getQualifiedRetryMetricName(rpc.getName())).inc();
+        }
+        disconnect();
       }
-      LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
-      if (rpc.getName() != null) {
-        MetricsSystem.clientCounter(getQualifiedMetricName(rpc.getName() + "Retries")).inc();
+    } finally {
+      if (metricContext != null) {
+        metricContext.close();
       }
-      disconnect();
+    }
+    if (rpc.getName() != null) {
+      MetricsSystem.clientCounter(getQualifiedFailureMetricName(rpc.getName())).inc();
     }
     throw new UnavailableException("Failed after " + retryPolicy.getAttemptCount()
             + " attempts: " + ex.toString(), ex);
@@ -348,5 +355,15 @@ public abstract class AbstractClient implements Client {
     } catch (IOException e) {
       return metricName;
     }
+  }
+
+  // TODO(calvin): This should not be in this class
+  private String getQualifiedRetryMetricName(String metricName) {
+    return getQualifiedMetricName(metricName + "Retries");
+  }
+
+  // TODO(calvin): This should not be in this class
+  private String getQualifiedFailureMetricName(String metricName) {
+    return getQualifiedMetricName(metricName + "Failures");
   }
 }
