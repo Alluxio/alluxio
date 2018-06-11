@@ -46,8 +46,7 @@ public class SocketTrackingTServerSocket extends TServerSocket {
   /**
    * @param args the arguments for creating the server socket
    */
-  public SocketTrackingTServerSocket(ServerSocketTransportArgs args)
-      throws TTransportException {
+  public SocketTrackingTServerSocket(ServerSocketTransportArgs args) throws TTransportException {
     super(args);
     mExecutor = Executors
         .newSingleThreadScheduledExecutor(ThreadFactoryUtils.build("socket-closer-thread", true));
@@ -70,14 +69,23 @@ public class SocketTrackingTServerSocket extends TServerSocket {
     } catch (IOException e) {
       LOG.error("Could not close client sockets", e);
     }
-    mExecutor.shutdownNow();
-    try {
-      if (!mExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
-        LOG.warn("Failed to stop socket cleanup thread.");
+    shutdownExecutor();
+  }
+
+  /**
+   * Shuts down the executor service.
+   */
+  private void shutdownExecutor() {
+    if (mExecutor != null) {
+      mExecutor.shutdownNow();
+      try {
+        if (!mExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
+          LOG.warn("Failed to stop socket cleanup thread.");
+        }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return;
       }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return;
     }
   }
 
