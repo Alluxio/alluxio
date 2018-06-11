@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Iterator;
 import java.util.Set;
@@ -45,12 +44,11 @@ public class SocketTrackingTServerSocket extends TServerSocket {
   private final ScheduledExecutorService mExecutor;
 
   /**
-   * @param bindAddr bind address for the socket
-   * @param clientTimeout timeout for client sockets from accept
+   * @param args the arguments for creating the server socket
    */
-  public SocketTrackingTServerSocket(InetSocketAddress bindAddr, int clientTimeout)
+  public SocketTrackingTServerSocket(ServerSocketTransportArgs args)
       throws TTransportException {
-    super(bindAddr, clientTimeout);
+    super(args);
     mExecutor = Executors
         .newSingleThreadScheduledExecutor(ThreadFactoryUtils.build("socket-closer-thread", true));
     mExecutor.scheduleAtFixedRate(this::removeClosedSockets, CLEANUP_INTERVAL_MS,
