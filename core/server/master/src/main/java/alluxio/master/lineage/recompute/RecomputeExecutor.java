@@ -27,6 +27,7 @@ import com.google.common.util.concurrent.Futures;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -117,6 +118,8 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
             } catch (AccessControlException e) {
               LOG.error("the lost file {} cannot be accessed", fileId, e);
             } catch (UnavailableException e) {
+              LOG.error("failed to reset file {}", fileId, e);
+            } catch (IOException e) {
               LOG.error("failed to reset file {}", fileId, e);
             }
           }
