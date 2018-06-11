@@ -29,7 +29,6 @@ import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.ConfigProperty;
-import alluxio.wire.Scope;
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
@@ -201,7 +200,9 @@ public abstract class AbstractClient implements Client {
       List<ConfigProperty> clusterConfig;
       try {
         bootstrapTransport.open();
+        // We didn't use RetryHandlingMetaMasterClient because it inherits AbstractClient.
         MetaMasterClientService.Client client = new MetaMasterClientService.Client(protocol);
+        // The credential configuration properties use displayValue
         clusterConfig = client.getConfiguration(new GetConfigurationTOptions())
             .getConfigList()
             .stream()
@@ -221,9 +222,6 @@ public abstract class AbstractClient implements Client {
         // TODO(binfan): support propagating unsetting properties from master
         if (PropertyKey.isValid(name) && property.getValue() != null) {
           PropertyKey key = PropertyKey.fromString(name);
-          if (!key.getScope().contains(Scope.CLIENT)) {
-            continue;
-          }
           String value = property.getValue();
           clusterProps.put(key, value);
           LOG.debug("Loading cluster default: {} ({}) -> {}", key, key.getScope(), value);
