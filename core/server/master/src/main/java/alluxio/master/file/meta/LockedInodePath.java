@@ -18,9 +18,8 @@ import alluxio.exception.InvalidPathException;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
-import java.util.ArrayList;
+import java.io.Closeable;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -30,22 +29,37 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class represents a path of locked {@link Inode}, starting from the root.
  */
 @ThreadSafe
-public abstract class LockedInodePath implements AutoCloseable {
+public abstract class LockedInodePath implements Closeable {
   protected final AlluxioURI mUri;
   protected final String[] mPathComponents;
-  protected final ArrayList<Inode<?>> mInodes;
   protected final InodeLockList mLockList;
   protected InodeTree.LockMode mLockMode;
 
-  LockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockList,
+  LockedInodePath(AlluxioURI uri, InodeLockList lockList,
       InodeTree.LockMode lockMode)
       throws InvalidPathException {
-    Preconditions.checkArgument(!inodes.isEmpty());
+    Preconditions.checkArgument(!lockList.isEmpty());
     mUri = uri;
     mPathComponents = PathUtils.getPathComponents(mUri.getPath());
-    mInodes = new ArrayList<>(inodes);
     mLockList = lockList;
     mLockMode = lockMode;
+  }
+
+  /**
+   * Creates a new instance of {@link LockedInodePath}, that is the descendant of an existing
+   * lockedInodePath.
+   *
+   * @param descendantUri the uri of the descendant
+   * @param lockedInodePath the lockedInodePath that is the parent of the descendant
+   * @param lockList the lockList which contains all the locks from the parent (not including)
+   *                to the descendant.
+   */
+  LockedInodePath(AlluxioURI descendantUri, LockedInodePath lockedInodePath,
+                  InodeLockList lockList) throws InvalidPathException {
+    mUri = descendantUri;
+    mPathComponents = PathUtils.getPathComponents(mUri.getPath());
+    mLockList = new CompositeInodeLockList(lockedInodePath.mLockList, lockList);
+    mLockMode = lockedInodePath.getLockMode();
   }
 
   /**
@@ -75,7 +89,8 @@ public abstract class LockedInodePath implements AutoCloseable {
     if (!fullPathExists()) {
       return null;
     }
-    return mInodes.get(mInodes.size() - 1);
+    List<Inode<?>> inodeList = mLockList.getInodes();
+    return inodeList.get(inodeList.size() - 1);
   }
 
   /**
@@ -114,32 +129,31 @@ public abstract class LockedInodePath implements AutoCloseable {
    */
   @Nullable
   public synchronized Inode getParentInodeOrNull() {
-    if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
+    if (mPathComponents.length < 2 || mLockList.getInodes().size() < (mPathComponents.length - 1)) {
       // The path is only the root, or the list of inodes is not long enough to contain the parent
       return null;
     }
-    return mInodes.get(mPathComponents.length - 2);
+    return mLockList.getInodes().get(mPathComponents.length - 2);
   }
 
   /**
    * @return the last existing inode on the inode path
    */
   public synchronized Inode getLastExistingInode() {
-    return mInodes.get(mInodes.size() - 1);
+    return mLockList.getInodes().get(mLockList.getInodes().size() - 1);
   }
-
   /**
    * @return a copy of the list of existing inodes, from the root
    */
   public synchronized List<Inode<?>> getInodeList() {
-    return Lists.newArrayList(mInodes);
+    return mLockList.getInodes();
   }
 
   /**
    * @return true if the entire path of inodes exists, false otherwise
    */
   public synchronized boolean fullPathExists() {
-    return mInodes.size() == mPathComponents.length;
+    return mLockList.getInodes().size() == mPathComponents.length;
   }
 
   /**
@@ -178,13 +192,72 @@ public abstract class LockedInodePath implements AutoCloseable {
   }
 
   /**
+   * Returns the closest ancestor of the target inode (last inode in the full path).
+   *
+   * @return the closest ancestor inode
+   * @throws FileDoesNotExistException if an ancestor does not exist
+   */
+  public synchronized Inode<?> getAncestorInode() throws FileDoesNotExistException {
+    int ancestorIndex = mPathComponents.length - 2;
+    if (ancestorIndex < 0) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
+    }
+    ancestorIndex = Math.min(ancestorIndex, mLockList.getInodes().size() - 1);
+    return mLockList.getInodes().get(ancestorIndex);
+  }
+
+  /**
+   * Constructs a temporary {@link LockedInodePath} from an existing {@link LockedInodePath}, for
+   * a direct child of the existing path. The child does not exist yet, this method simply adds
+   * the child to the path.
+   *
+   * @param childName the name of the direct child
+   * @return a {@link LockedInodePath} for the direct child
+   * @throws InvalidPathException if the path is invalid
+   */
+  public synchronized LockedInodePath createTempPathForChild(String childName)
+      throws InvalidPathException {
+    Preconditions.checkNotNull(getInodeOrNull());
+    Preconditions.checkState(getInodeOrNull().isDirectory(),
+        "Trying to create TempPathForChild for a file inode");
+    return new MutableLockedInodePath(mUri.join(childName), new CompositeInodeLockList(mLockList),
+        mLockMode);
+  }
+
+  /**
+   * Constructs a temporary {@link LockedInodePath} from an existing {@link LockedInodePath}, for
+   * a direct child of the existing path. The child must exist and this method will lock the child.
+   * A new {@link LockedInodePath} object is returned. When the returned temporary path is closed,
+   * it does not close the existing path.
+   *
+   * @param child the inode of the direct child
+   * @return a {@link LockedInodePath} for the direct child
+   * @throws InvalidPathException if the path is invalid
+   * @throws FileDoesNotExistException if the file does not exist
+   */
+  public synchronized LockedInodePath createTempPathForExistingChild(Inode<?> child)
+      throws InvalidPathException, FileDoesNotExistException {
+    InodeLockList lockList = new CompositeInodeLockList(mLockList);
+    LockedInodePath lockedDescendantPath;
+    if (mLockMode == InodeTree.LockMode.READ) {
+      lockList.lockReadAndCheckParent(child, getInode());
+      lockedDescendantPath = new MutableLockedInodePath(
+          getUri().join(child.getName()), this, lockList);
+    } else {
+      lockList.lockWriteAndCheckParent(child, getInode());
+      lockedDescendantPath = new MutableLockedInodePath(
+          getUri().join(child.getName()), this, lockList);
+    }
+    return lockedDescendantPath;
+  }
+
+  /**
    * Unlocks the last inode that was locked.
    */
   public synchronized void unlockLast() {
-    if (mInodes.isEmpty()) {
+    if (mLockList.getInodes().isEmpty()) {
       return;
     }
-    mInodes.remove(mInodes.size() - 1);
     mLockList.unlockLast();
   }
 }
