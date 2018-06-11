@@ -26,6 +26,7 @@ import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -249,6 +250,31 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     }
     return getThis();
   }
+
+  /**
+   * Removes ACL entries.
+   *
+   * @param entries the ACL entries to remove
+   * @return the updated object
+   */
+  public InodeDirectory removeDefaultAcl(List<AclEntry> entries) throws IOException {
+    for (AclEntry entry : entries) {
+      mDefaultAcl.removeEntry(entry);
+    }
+    return getThis();
+  }
+
+  /**
+   * Replaces all existing ACL entries with a new list of entries.
+   *
+   * @param entries the new list of ACL entries
+   * @return the updated object
+   */
+  public InodeDirectory replaceDefaultAcl(List<AclEntry> entries) {
+    mDefaultAcl.clearEntries();
+    return setDefaultAcl(entries);
+  }
+
 
   /**
    * Generates client file info for a folder.

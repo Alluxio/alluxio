@@ -108,22 +108,41 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
       specifiedActions.add(SET_OPTION.getLongOpt());
       action = SetAclAction.REPLACE;
       String aclList = cl.getOptionValue(SET_OPTION.getLongOpt());
-      entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
-          .collect(Collectors.toList());
+      if (cl.hasOption(DEFAULT_OPTION.getOpt())) {
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::addDefault)
+            .map(AclEntry::fromCliString)
+            .collect(Collectors.toList());
+      } else {
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
+            .collect(Collectors.toList());
+      }
     }
     if (cl.hasOption(MODIFY_OPTION.getOpt())) {
       specifiedActions.add(MODIFY_OPTION.getOpt());
       action = SetAclAction.MODIFY;
       String aclList = cl.getOptionValue(MODIFY_OPTION.getOpt());
-      entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
-          .collect(Collectors.toList());
+      if (cl.hasOption(DEFAULT_OPTION.getOpt())) {
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::addDefault)
+            .map(AclEntry::fromCliString)
+            .collect(Collectors.toList());
+      } else {
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
+            .collect(Collectors.toList());
+      }
     }
     if (cl.hasOption(REMOVE_OPTION.getOpt())) {
       specifiedActions.add(REMOVE_OPTION.getOpt());
       action = SetAclAction.REMOVE;
       String aclList = cl.getOptionValue(REMOVE_OPTION.getOpt());
-      entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliStringWithoutPermissions)
-          .collect(Collectors.toList());
+
+      if (cl.hasOption(DEFAULT_OPTION.getOpt())) {
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::addDefault)
+            .map(AclEntry::fromCliStringWithoutPermissions)
+            .collect(Collectors.toList());
+      } else {
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliStringWithoutPermissions)
+            .collect(Collectors.toList());
+      }
     }
     if (cl.hasOption(REMOVE_ALL_OPTION.getOpt())) {
       specifiedActions.add(REMOVE_ALL_OPTION.getOpt());

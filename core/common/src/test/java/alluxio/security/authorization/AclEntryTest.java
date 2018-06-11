@@ -72,6 +72,11 @@ public class AclEntryTest {
   }
 
   @Test
+  public void cliStringDefault() {
+    checkCliString("default:user::rwx");
+  }
+
+  @Test
   public void cliStringInvalid() {
     checkCliStringInvalid(null);
     checkCliStringInvalid("");

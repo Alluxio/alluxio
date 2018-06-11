@@ -536,13 +536,14 @@ public final class FileInfo implements Serializable {
     }
 
     AccessControlList tAcl = AccessControlList.fromStringEntries(mOwner, mGroup, mAclEntries);
+    AccessControlList defaultAcl = AccessControlList.fromStringEntries(mOwner, mGroup, mDefaultAclEntries);
 
     alluxio.thrift.FileInfo info =
         new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, fileBlockInfos, TtlAction.toThrift(mTtlAction), mMountId,
-        mInAlluxioPercentage, mUfsFingerprint, tAcl.toThrift());
+        mInAlluxioPercentage, mUfsFingerprint, tAcl.toThrift(), defaultAcl.toThrift());
 
     return info;
   }

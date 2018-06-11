@@ -29,6 +29,12 @@ public final class AclEntry {
    * Type of this entry.
    */
   private AclEntryType mType;
+
+  /**
+   * Whether this entry applies to default ACL or not
+   */
+  private boolean mDefaultEntry;
+
   /**
    * Name of owning user, owning group, named user, named group.
    * If the entry is of type MASK or OTHER, this is an empty string.
@@ -66,6 +72,13 @@ public final class AclEntry {
     return new AclActions(mActions);
   }
 
+  /**
+   * @return whether the action applies to default ACL
+   */
+  public boolean isDefault() {
+    return mDefaultEntry;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -77,12 +90,13 @@ public final class AclEntry {
     AclEntry that = (AclEntry) o;
     return Objects.equal(mType, that.mType)
         && Objects.equal(mSubject, that.mSubject)
-        && Objects.equal(mActions, that.mActions);
+        && Objects.equal(mActions, that.mActions)
+        && Objects.equal(mDefaultEntry, that.mDefaultEntry);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mType, mSubject, mActions);
+    return Objects.hashCode(mType, mSubject, mActions, mDefaultEntry);
   }
 
   @Override
@@ -91,6 +105,7 @@ public final class AclEntry {
         .add("type", mType)
         .add("subject", mSubject)
         .add("actions", mActions)
+        .add("defaultEntry", mDefaultEntry)
         .toString();
   }
 
@@ -108,6 +123,10 @@ public final class AclEntry {
     sb.append(mActions.toCliString());
 
     return sb.toString();
+  }
+
+  public static String addDefault(String stringEntry) {
+    return "default:" + stringEntry;
   }
 
   /**
@@ -130,14 +149,19 @@ public final class AclEntry {
     }
     List<String> components = Arrays.stream(stringEntry.split(":")).map(String::trim).collect(
         Collectors.toList());
-    if (components.size() != 3) {
+    if (!(components.size() == 3 || (components.size() == 4 && components.get(0).equals("default")))) {
       throw new IllegalArgumentException("Unexpected acl components: " + stringEntry);
     }
 
     AclEntry.Builder builder = new AclEntry.Builder();
-    String type = components.get(0);
-    String subject = components.get(1);
-    String actions = components.get(2);
+
+    int startingIndex = 0;
+    if (components.size() == 4) {
+      startingIndex = 1;
+    }
+    String type = components.get(startingIndex + 0);
+    String subject = components.get(startingIndex + 1);
+    String actions = components.get(startingIndex + 2);
 
     if (type.isEmpty()) {
       throw new IllegalArgumentException("ACL entry type is empty: " + stringEntry);
