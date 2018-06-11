@@ -160,7 +160,7 @@ public final class GetConf {
           return 1;
         }
         PropertyKey key = PropertyKey.fromString(args[0]);
-        if (!Configuration.containsKey(key)) {
+        if (!Configuration.isSet(key)) {
           System.out.println("");
         } else {
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {

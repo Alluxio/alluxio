@@ -263,7 +263,7 @@ public class AlluxioScheduler implements Scheduler {
   private String createAlluxioSiteProperties() {
     StringBuilder siteProperties = new StringBuilder();
     for (PropertyKey key : Configuration.keySet()) {
-      if (Configuration.containsKey(key)
+      if (Configuration.isSet(key)
           && Configuration.getSource(key).getType() != Type.DEFAULT) {
         siteProperties.append(String.format("%s=%s%n", key.getName(), Configuration.get(key)));
       }
@@ -419,12 +419,12 @@ public class AlluxioScheduler implements Scheduler {
   }
 
   private static boolean installJavaFromUrl() {
-    return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_JDK_URL) && !Configuration
+    return Configuration.isSet(PropertyKey.INTEGRATION_MESOS_JDK_URL) && !Configuration
         .get(PropertyKey.INTEGRATION_MESOS_JDK_URL).equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
   }
 
   private static boolean installAlluxioFromUrl() {
-    return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
+    return Configuration.isSet(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
         && !Configuration.get(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
             .equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
   }

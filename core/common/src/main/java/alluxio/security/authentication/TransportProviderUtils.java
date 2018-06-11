@@ -52,7 +52,7 @@ public final class TransportProviderUtils {
 
     // Determine the impersonation user
     String impersonationUser = null;
-    if (Configuration.containsKey(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)) {
+    if (Configuration.isSet(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)) {
       impersonationUser = Configuration.get(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME);
       if (Constants.IMPERSONATION_HDFS_USER.equals(impersonationUser)) {
         // Impersonate as the hdfs client user

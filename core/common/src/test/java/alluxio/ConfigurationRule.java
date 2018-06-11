@@ -46,7 +46,7 @@ public final class ConfigurationRule extends AbstractResourceRule {
     for (Map.Entry<PropertyKey, String> entry : mKeyValuePairs.entrySet()) {
       PropertyKey key = entry.getKey();
       String value = entry.getValue();
-      if (Configuration.containsKey(key)) {
+      if (Configuration.isSet(key)) {
         mStashedProperties.put(key, Configuration.get(key));
       } else {
         mStashedProperties.put(key, null);

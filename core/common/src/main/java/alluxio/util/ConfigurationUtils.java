@@ -118,8 +118,8 @@ public final class ConfigurationUtils {
    */
   public static boolean masterHostConfigured() {
     boolean usingZk = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
-        && Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS);
-    return Configuration.containsKey(PropertyKey.MASTER_HOSTNAME) || usingZk;
+        && Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
+    return Configuration.isSet(PropertyKey.MASTER_HOSTNAME) || usingZk;
   }
 
   /**
@@ -136,7 +136,7 @@ public final class ConfigurationUtils {
         .map(key -> new ConfigProperty()
             .setName(key.getName())
             .setSource(Configuration.getSource(key).toString()).setValue(
-                Configuration.containsKey(key) ? Configuration.get(key, useRawDisplayValue) : null))
+                Configuration.isSet(key) ? Configuration.get(key, useRawDisplayValue) : null))
         .collect(toList());
   }
 

@@ -48,7 +48,7 @@ public interface AlluxioConfiguration {
    * @return the value
    */
   default String getOrDefault(PropertyKey key, String defaultValue) {
-    return containsKey(key) ? get(key) : defaultValue;
+    return isSet(key) ? get(key) : defaultValue;
   }
 
   /**
@@ -59,16 +59,16 @@ public interface AlluxioConfiguration {
    */
   default String getOrDefault(PropertyKey key, String defaultValue,
       ConfigurationValueOptions options) {
-    return containsKey(key) ? get(key, options) : defaultValue;
+    return isSet(key) ? get(key, options) : defaultValue;
   }
 
   /**
-   * Checks if the configuration contains value for the given key.
+   * Checks if the configuration contains a value for the given key.
    *
    * @param key the key to check
    * @return true if there is value for the key, false otherwise
    */
-  boolean containsKey(PropertyKey key);
+  boolean isSet(PropertyKey key);
 
   /**
    * @return the keys configured by the configuration
@@ -192,6 +192,21 @@ public interface AlluxioConfiguration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   void merge(Map<?, ?> properties, Source source);
+
+  /**
+   * @return a map from all configuration property names to their values; values may potentially be
+   *         null
+   */
+  default Map<String, String> toMap() {
+    return toMap(ConfigurationValueOptions.defaults());
+  }
+
+  /**
+   * @param opts options for formatting the configuration values
+   * @return a map from all configuration property names to their values; values may potentially be
+   *         null
+   */
+  Map<String, String> toMap(ConfigurationValueOptions opts);
 
   /**
    * Validates the configuration.

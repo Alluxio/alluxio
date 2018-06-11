@@ -249,7 +249,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected void startMasters(boolean isLeader) {
     try {
       if (isLeader) {
-        if (Configuration.containsKey(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
+        if (Configuration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
           AlluxioURI backup =
               new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP));
           if (mJournalSystem.isEmpty()) {

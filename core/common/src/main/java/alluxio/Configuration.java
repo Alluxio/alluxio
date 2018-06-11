@@ -19,7 +19,6 @@ import alluxio.util.ConfigurationUtils;
 import com.google.common.base.Preconditions;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -170,13 +169,25 @@ public final class Configuration {
   }
 
   /**
-   * Checks if the configuration contains value for the given key.
+   * Checks if the configuration contains a value for the given key.
+   *
+   * @param key the key to check
+   * @return true if there is value for the key, false otherwise
+   * @deprecated due to misleading method name, use {{@link #isSet(PropertyKey)}} instead
+   */
+  @Deprecated
+  public static boolean containsKey(PropertyKey key) {
+    return isSet(key);
+  }
+
+  /**
+   * Checks if the configuration contains a value for the given key.
    *
    * @param key the key to check
    * @return true if there is value for the key, false otherwise
    */
-  public static boolean containsKey(PropertyKey key) {
-    return CONF.containsKey(key);
+  public static boolean isSet(PropertyKey key) {
+    return CONF.isSet(key);
   }
 
   /**
@@ -321,20 +332,11 @@ public final class Configuration {
   }
 
   /**
-   * Validates the configuration.
-   *
-   * @throws IllegalStateException if invalid configuration is encountered
-   */
-  public static void validate() {
-    CONF.validate();
-  }
-
-  /**
    * @return a map from all configuration property names to their values; values may potentially be
    *         null
    */
   public static Map<String, String> toMap() {
-    return toMap(ConfigurationValueOptions.defaults());
+    return CONF.toMap();
   }
 
   /**
@@ -343,10 +345,16 @@ public final class Configuration {
    *         null
    */
   public static Map<String, String> toMap(ConfigurationValueOptions opts) {
-    Map<String, String> map = new HashMap<>();
-    // Cannot use Collectors.toMap because we support null keys.
-    CONF.keySet().forEach(key -> map.put(key.getName(), CONF.getOrDefault(key, null, opts)));
-    return map;
+    return CONF.toMap(opts);
+  }
+
+  /**
+   * Validates the configuration.
+   *
+   * @throws IllegalStateException if invalid configuration is encountered
+   */
+  public static void validate() {
+    CONF.validate();
   }
 
   /**

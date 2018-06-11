@@ -74,7 +74,7 @@ public final class PlainSaslTransportProvider implements TransportProvider {
     String impersonationUser = TransportProviderUtils.getImpersonationUser(subject);
 
     if (impersonationUser != null && Configuration
-        .containsKey(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)
+        .isSet(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)
         && Constants.IMPERSONATION_HDFS_USER
         .equals(Configuration.get(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME))) {
       // If impersonation is configured to use the HDFS user, the connection user should

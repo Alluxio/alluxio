@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -104,7 +105,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public boolean containsKey(PropertyKey key) {
+  public boolean isSet(PropertyKey key) {
     return mProperties.hasValueSet(key);
   }
 
@@ -256,6 +257,14 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
+  public Map<String, String> toMap(ConfigurationValueOptions opts) {
+    Map<String, String> map = new HashMap<>();
+    // Cannot use Collectors.toMap because we support null keys.
+    keySet().forEach(key -> map.put(key.getName(), getOrDefault(key, null, opts)));
+    return map;
+  }
+
+  @Override
   public void validate() {
     for (PropertyKey key : keySet()) {
       Preconditions.checkState(
@@ -360,7 +369,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @throws IllegalStateException if invalid user file buffer size configuration is encountered
    */
   private void checkUserFileBufferBytes() {
-    if (!containsKey(PropertyKey.USER_FILE_BUFFER_BYTES)) { // load from hadoop conf
+    if (!isSet(PropertyKey.USER_FILE_BUFFER_BYTES)) { // load from hadoop conf
       return;
     }
     long usrFileBufferBytes = getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
@@ -376,7 +385,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    */
   private void checkZkConfiguration() {
     Preconditions.checkState(
-        containsKey(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
+        isSet(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
         PreconditionMessage.INCONSISTENT_ZK_CONFIGURATION.toString(),
         PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED);
   }
