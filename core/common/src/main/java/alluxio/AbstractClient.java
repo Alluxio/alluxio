@@ -42,7 +42,6 @@ import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.function.Supplier;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 
@@ -280,15 +279,6 @@ public abstract class AbstractClient implements Client {
      * @throws TException when any exception defined in thrift happens
      */
     V call() throws TException;
-
-    /**
-     * @return the name of the rpc which may be used for display, null if this rpc should not be
-     * displayed in user facing text such as logging or metrics
-     */
-    @Nullable
-    default String getName() {
-      return null;
-    }
   }
 
   /**
@@ -302,46 +292,61 @@ public abstract class AbstractClient implements Client {
    * @return the return value of the RPC call
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws AlluxioStatusException {
+    return retryRPCInternal(rpc, () -> null);
+  }
+
+  /**
+   * Tries to execute an RPC defined as a {@link RpcCallable}. Metrics will be recorded based on
+   * the provided rpc name.
+   *
+   * If a {@link UnavailableException} occurs, a reconnection will be tried through
+   * {@link #connect()} and the action will be re-executed.
+   *
+   * @param rpc the RPC call to be executed
+   * @param rpcName the human readable name of the RPC call
+   * @param <V> type of return value of the RPC call
+   * @return the return value of the RPC call
+   */
+  protected synchronized <V> V retryRPC(RpcCallable<V> rpc, String rpcName)
+      throws AlluxioStatusException {
+    try (Timer.Context ctx = MetricsSystem.clientTimer(getQualifiedMetricName(rpcName)).time()) {
+      return retryRPCInternal(rpc, () -> {
+        MetricsSystem.clientCounter(getQualifiedRetryMetricName(rpcName)).inc();
+        return null;
+      });
+    } catch (Exception e) {
+      MetricsSystem.clientCounter(getQualifiedFailureMetricName(rpcName)).inc();
+      throw e;
+    }
+  }
+
+  private synchronized <V> V retryRPCInternal(RpcCallable<V> rpc, Supplier<Void> onRetry)
+      throws AlluxioStatusException {
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
     Exception ex = null;
-    Timer.Context metricContext = null;
-    if (rpc.getName() != null) {
-      metricContext = MetricsSystem.clientTimer(getQualifiedMetricName(rpc.getName())).time();
-    }
-    try {
-      while (retryPolicy.attempt()) {
-        if (mClosed) {
-          throw new FailedPreconditionException("Client is closed");
-        }
-        connect();
-        try {
-          return rpc.call();
-        } catch (AlluxioTException e) {
-          AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
-          if (se.getStatus() == Status.UNAVAILABLE) {
-            ex = se;
-          } else {
-            throw se;
-          }
-        } catch (TException e) {
-          ex = e;
-        }
-        LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
-        if (rpc.getName() != null) {
-          MetricsSystem.clientCounter(getQualifiedRetryMetricName(rpc.getName())).inc();
-        }
-        disconnect();
+    while (retryPolicy.attempt()) {
+      if (mClosed) {
+        throw new FailedPreconditionException("Client is closed");
       }
-    } finally {
-      if (metricContext != null) {
-        metricContext.close();
+      connect();
+      try {
+        return rpc.call();
+      } catch (AlluxioTException e) {
+        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
+        if (se.getStatus() == Status.UNAVAILABLE) {
+          ex = se;
+        } else {
+          throw se;
+        }
+      } catch (TException e) {
+        ex = e;
       }
-    }
-    if (rpc.getName() != null) {
-      MetricsSystem.clientCounter(getQualifiedFailureMetricName(rpc.getName())).inc();
+      LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
+      onRetry.get();
+      disconnect();
     }
     throw new UnavailableException("Failed after " + retryPolicy.getAttemptCount()
-            + " attempts: " + ex.toString(), ex);
+        + " attempts: " + ex.toString(), ex);
   }
 
   // TODO(calvin): General tag logic should be in getMetricName
