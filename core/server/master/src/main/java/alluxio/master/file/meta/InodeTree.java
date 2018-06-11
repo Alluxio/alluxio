@@ -828,7 +828,7 @@ public class InodeTree implements JournalEntryIterable {
       LockedInodePath lockedDescendantPath;
       try {
         lockedDescendantPath =
-            inodePath.createTempPathForExistingChild(child, inodePath.mLockMode);
+            inodePath.createTempPathForExistingChild(child, inodePath.getLockMode());
         inodePathList.add(lockedDescendantPath);
       } catch (InvalidPathException | FileDoesNotExistException e) {
         // Inode is no longer a child, continue.
