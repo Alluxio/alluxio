@@ -22,6 +22,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -228,7 +229,11 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public T removeAcl(List<AclEntry> entries) throws IOException {
     for (AclEntry entry : entries) {
-      mAcl.removeEntry(entry);
+      if (entry.isDefault()){
+        getDefaultACL().removeEntry(entry);
+      } else {
+        mAcl.removeEntry(entry);
+      }
     }
     return getThis();
   }
@@ -369,6 +374,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     return getThis();
   }
 
+  public abstract AccessControlList getDefaultACL() throws UnsupportedOperationException;
   /**
    * Sets ACL entries into the internal ACL.
    * The entries will overwrite any existing correspondent entries in the internal ACL.
@@ -378,7 +384,12 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public T setAcl(List<AclEntry> entries) {
     for (AclEntry entry : entries) {
-      mAcl.setEntry(entry);
+      if (entry.isDefault()) {
+        AccessControlList defaultAcl = getDefaultACL();
+        defaultAcl.setEntry(entry);
+      } else {
+        mAcl.setEntry(entry);
+      }
     }
     return getThis();
   }

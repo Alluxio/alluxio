@@ -1136,6 +1136,23 @@ public final class FileSystemMasterTest {
   }
 
   @Test
+  public void setDefaultAcl() throws Exception {
+    SetAclOptions options = SetAclOptions.defaults();
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    Set<String> entries = Sets.newHashSet(
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
+    assertEquals(0, entries.size());
+
+    Set<String> newEntries = Sets.newHashSet("default:user::rwx", "default:group::rwx", "default:other::rwx");
+    mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+
+    entries = Sets.newHashSet(
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
+    assertEquals(0, entries.size());
+  }
+
+  @Test
   public void setAcl() throws Exception {
     SetAclOptions options = SetAclOptions.defaults();
     createFileWithSingleBlock(NESTED_FILE_URI);

@@ -45,10 +45,11 @@ public final class AclEntry {
    */
   private AclActions mActions;
 
-  private AclEntry(AclEntryType type, String subject, AclActions actions) {
+  private AclEntry(AclEntryType type, String subject, AclActions actions, boolean isDefault) {
     mType = type;
     mSubject = subject;
     mActions = actions;
+    mDefaultEntry = isDefault;
   }
 
   /**
@@ -114,6 +115,9 @@ public final class AclEntry {
    */
   public String toCliString() {
     StringBuilder sb = new StringBuilder();
+    if (mDefaultEntry) {
+      sb.append("default:");
+    }
     sb.append(mType.toCliString());
     sb.append(":");
     if (mType == AclEntryType.NAMED_USER || mType == AclEntryType.NAMED_GROUP) {
@@ -126,7 +130,16 @@ public final class AclEntry {
   }
 
   public static String addDefault(String stringEntry) {
-    return "default:" + stringEntry;
+    if (stringEntry == null) {
+      throw new IllegalArgumentException("Input acl string is null");
+    }
+    List<String> components = Arrays.stream(stringEntry.split(":")).map(String::trim).collect(
+        Collectors.toList());
+    if (components != null && components.size() >0 && components.get(0).equals("default")) {
+      return stringEntry;
+    } else {
+      return "default:" + stringEntry;
+    }
   }
 
   /**
@@ -137,6 +150,8 @@ public final class AclEntry {
    * Named Group: group:[group name]:[rwx]
    * Mask: mask::[rwx]
    * Other: other::[rwx]
+   * all the above entries, but with default:added to the beginning of the entry
+   * default:user::[rwx]
    *
    * [rwx]: all combinations are possible ('---' to 'rwx')
    *
@@ -156,8 +171,11 @@ public final class AclEntry {
     AclEntry.Builder builder = new AclEntry.Builder();
 
     int startingIndex = 0;
-    if (components.size() == 4) {
+    if (components.get(0).equals("default")) {
       startingIndex = 1;
+      builder.setDefaultEntry(true);
+    } else {
+      builder.setDefaultEntry(false);
     }
     String type = components.get(startingIndex + 0);
     String subject = components.get(startingIndex + 1);
@@ -213,7 +231,9 @@ public final class AclEntry {
    * Named User: user:USER_NAME[:]
    * Named Group: group:GROUP_NAME[:]
    * Mask: mask[:][:]
-   *
+   * Default versions of Named User: default:user:USER_NAME[:]
+   * Default versions of Named Group: default:group:GROUP_NAME[:]
+   * Default version of the mask: default: mask[:][:]
    * @param stringEntry the CLI string representation, without permissions
    * @return the {@link AclEntry} instance created from the CLI string representation
    */
@@ -223,20 +243,36 @@ public final class AclEntry {
     }
     List<String> components = Arrays.stream(stringEntry.split(":")).map(String::trim).collect(
         Collectors.toList());
-    if (components.size() < 1 || components.size() > 3) {
+    if (components.size() < 1 || components.size() > 4) {
       throw new IllegalArgumentException("Unexpected acl components: " + stringEntry);
     }
 
     AclEntry.Builder builder = new AclEntry.Builder();
-    String type = components.get(0);
-    String subject = "";
-    if (components.size() >= 2) {
-      subject = components.get(1);
+    String type, subject, actions;
+    if (components.get(0).equals("default")) {
+      type = components.get(1);
+      subject = "";
+      if (components.size() >= 3) {
+        subject = components.get(2);
+      }
+      actions = "";
+      if (components.size() >= 4) {
+        actions = components.get(3);
+      }
+      builder.setDefaultEntry(true);
+    } else {
+      type = components.get(0);
+      subject = "";
+      if (components.size() >= 2) {
+        subject = components.get(1);
+      }
+      actions = "";
+      if (components.size() >= 3) {
+        actions = components.get(2);
+      }
+      builder.setDefaultEntry(false);
     }
-    String actions = "";
-    if (components.size() >= 3) {
-      actions = components.get(2);
-    }
+
     if (!actions.isEmpty()) {
       throw new IllegalArgumentException("ACL permissions cannot be specified: " + stringEntry);
     }
@@ -288,6 +324,7 @@ public final class AclEntry {
     AclEntry.Builder builder = new AclEntry.Builder();
     builder.setType(AclEntryType.fromProto(pEntry.getType()));
     builder.setSubject(pEntry.getSubject());
+    builder.setDefaultEntry(pEntry.getDefaultEntry());
 
     for (File.AclAction pAction : pEntry.getActionsList()) {
       builder.addAction(AclAction.fromProtoBuf(pAction));
@@ -302,7 +339,7 @@ public final class AclEntry {
     File.AclEntry.Builder builder = File.AclEntry.newBuilder();
     builder.setType(mType.toProto());
     builder.setSubject(mSubject);
-
+    builder.setDefaultEntry(mDefaultEntry);
     for (AclAction action : mActions.getActions()) {
       builder.addActions(action.toProtoBuf());
     }
@@ -317,11 +354,13 @@ public final class AclEntry {
     AclEntry.Builder builder = new AclEntry.Builder();
     builder.setType(AclEntryType.fromThrift(tEntry.getType()));
     builder.setSubject(tEntry.getSubject());
+    builder.setDefaultEntry(tEntry.isDefaultEntry());
     if (tEntry.isSetActions()) {
       for (TAclAction tAction : tEntry.getActions()) {
         builder.addAction(AclAction.fromThrift(tAction));
       }
     }
+
     return builder.build();
   }
 
@@ -332,6 +371,7 @@ public final class AclEntry {
     TAclEntry tAclEntry = new TAclEntry();
     tAclEntry.setType(mType.toThrift());
     tAclEntry.setSubject(mSubject);
+    tAclEntry.setDefaultEntry(mDefaultEntry);
     for (AclAction action : mActions.getActions()) {
       tAclEntry.addToActions(action.toThrift());
     }
@@ -345,6 +385,7 @@ public final class AclEntry {
     private AclEntryType mType;
     private String mSubject;
     private AclActions mActions;
+    private boolean mDefaultEntry;
 
     /**
      * Creates a new builder where type is null, subject is an empty string, and no action is
@@ -405,6 +446,15 @@ public final class AclEntry {
     }
 
     /**
+     * Set this AclEntry to be for default ACL
+     * @param
+     */
+    public Builder setDefaultEntry(boolean isDefault) {
+      mDefaultEntry = isDefault;
+      return this;
+    }
+
+    /**
      * @return a new {@link AclEntry}
      * @throws IllegalStateException if type if null, or if type is either NAMED_USER or NAMED_GROUP
      *    while subject is empty
@@ -418,7 +468,7 @@ public final class AclEntry {
       if (subjectRequired && mSubject.isEmpty()) {
         throw new IllegalStateException("Subject for type " + mType + " cannot be empty");
       }
-      return new AclEntry(mType, mSubject, mActions);
+      return new AclEntry(mType, mSubject, mActions, mDefaultEntry);
     }
   }
 }

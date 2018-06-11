@@ -3142,36 +3142,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       List<AclEntry> entries, long opTimeMs, SetAclOptions options)
       throws IOException, FileDoesNotExistException {
     Inode<?> targetInode = inodePath.getInode();
-    if (options.getDefault() && targetInode.isFile()) {
-      throw new UnsupportedOperationException("Cannot set default ACL on a file");
-    }
-
-    boolean opOnDefault = options.getDefault();
 
     // TODO(gpang): handle recursive
     // TODO(gpang): apply to UFS
-    if (opOnDefault) {
-      InodeDirectory targetInodeDir = (InodeDirectory) targetInode;
-      switch (action) {
-        case REPLACE:
-          // fully replace the acl for the path
-          targetInodeDir.replaceDefaultAcl(entries);
-          break;
-        case MODIFY:
-          targetInodeDir.setDefaultAcl(entries);
-          break;
-        case REMOVE:
-          targetInodeDir.removeDefaultAcl(entries);
-          break;
-        case REMOVE_ALL:
-          targetInodeDir.removeExtendedAcl();
-          break;
-        case REMOVE_DEFAULT:
-          // TODO(gpang): implement default acl
-          break;
-        default:
-      }
-    }
     switch (action) {
       case REPLACE:
         // fully replace the acl for the path
@@ -3187,7 +3160,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         targetInode.removeExtendedAcl();
         break;
       case REMOVE_DEFAULT:
-        // TODO(gpang): implement default acl
+        targetInode.getDefaultACL().clearEntries();
         break;
       default:
     }

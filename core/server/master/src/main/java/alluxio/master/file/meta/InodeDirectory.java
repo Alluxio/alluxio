@@ -237,6 +237,11 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     return getThis();
   }
 
+  @Override
+  public AccessControlList getDefaultACL() {
+    return mDefaultAcl;
+  }
+
   /**
    * Sets ACL entries into the internal ACL.
    * The entries will overwrite any existing correspondent entries in the internal ACL.

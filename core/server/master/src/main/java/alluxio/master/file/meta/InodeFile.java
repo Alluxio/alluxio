@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.naming.OperationNotSupportedException;
 
 /**
  * Alluxio file system's file representation in the file system master. The inode must be locked
@@ -102,6 +103,12 @@ public final class InodeFile extends Inode<InodeFile> {
     mCompleted = false;
     mCacheable = false;
   }
+
+  @Override
+  public AccessControlList getDefaultACL() throws UnsupportedOperationException{
+    throw new UnsupportedOperationException("File does not have default ACL");
+  }
+
 
   /**
    * @return a duplication of all the block ids of the file
