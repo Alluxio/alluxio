@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -163,8 +164,12 @@ public final class MountTable implements JournalEntryIterable {
       for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
         String mountedAlluxioPath = entry.getKey();
         AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
+        MountOptions mos = entry.getValue().getOptions();
+        String mk = mos.getProperties().get(PropertyKey.Name.OSS_ACCESS_KEY);   //qiniu
+        String nk = options.getProperties().get(PropertyKey.Name.OSS_ACCESS_KEY);
+        boolean ak_exist = (mk != null) && (nk != null) && (mk.equals(nk));
         if (!mountedAlluxioPath.equals(ROOT)
-            && PathUtils.hasPrefix(alluxioPath, mountedAlluxioPath)) {
+            && PathUtils.hasPrefix(alluxioPath, mountedAlluxioPath) && ak_exist) {
           throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(
               mountedAlluxioPath, alluxioPath));
         }
@@ -173,11 +178,11 @@ public final class MountTable implements JournalEntryIterable {
             .equals(mountedUfsUri.getAuthority()))) {
           String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
           String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
-          if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
+          if (PathUtils.hasPrefix(ufsPath, mountedUfsPath) && ak_exist) {
             throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
                 .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
           }
-          if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
+          if (PathUtils.hasPrefix(mountedUfsPath, ufsPath) && ak_exist) {
             throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
                 .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
           }
