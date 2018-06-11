@@ -81,7 +81,7 @@ public final class ThriftUtils {
     // will close this socket before resetting its state during stepdown.
     return new SocketTrackingTServerSocket(
         (new TServerSocket.ServerSocketTransportArgs()).bindAddr(address)
-            .clientTimeout(SOCKET_TIMEOUT_MS));
+            .clientTimeout(SERVER_SOCKET_TIMEOUT_MS));
   }
 
   /**
