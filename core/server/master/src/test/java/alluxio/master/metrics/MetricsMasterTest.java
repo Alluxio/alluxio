@@ -71,10 +71,10 @@ public class MetricsMasterTest {
 
   @Test
   public void testAggregator() {
-    mMetricsMaster
-        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER, "metricA"));
-    mMetricsMaster
-        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER, "metricB"));
+    mMetricsMaster.addSingleValueAggregator(
+        new SumInstancesAggregator("metricA", MetricsSystem.InstanceType.WORKER, "metricA"));
+    mMetricsMaster.addSingleValueAggregator(
+        new SumInstancesAggregator("metricB", MetricsSystem.InstanceType.WORKER, "metricB"));
     List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metricA", 10),
         Metric.from("worker.192_1_1_1.metricB", 20));
     mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
@@ -106,10 +106,10 @@ public class MetricsMasterTest {
 
   @Test
   public void testClientHeartbeat() {
-    mMetricsMaster
-        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT, "metric1"));
-    mMetricsMaster
-        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT, "metric2"));
+    mMetricsMaster.addSingleValueAggregator(
+        new SumInstancesAggregator("metric1", MetricsSystem.InstanceType.CLIENT, "metric1"));
+    mMetricsMaster.addSingleValueAggregator(
+        new SumInstancesAggregator("metric2", MetricsSystem.InstanceType.CLIENT, "metric2"));
     List<Metric> metrics1 = Lists.newArrayList(Metric.from("client.192_1_1_1:A.metric1", 10),
         Metric.from("client.192_1_1_1:A.metric2", 20));
     mMetricsMaster.clientHeartbeat("A", "192.1.1.1", metrics1);

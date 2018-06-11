@@ -11,7 +11,9 @@
 
 package alluxio.worker.netty;
 
+import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
@@ -173,15 +175,15 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource();
       context.setUfsResource(ufsResource);
       UnderFileSystem ufs = ufsResource.get();
-      CreateOptions createOptions =
-          CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
-              .setGroup(createUfsFileOptions.getGroup())
-              .setMode(new Mode((short) createUfsFileOptions.getMode()));
+      CreateOptions createOptions = CreateOptions.defaults()
+          .setOwner(createUfsFileOptions.getOwner()).setGroup(createUfsFileOptions.getGroup())
+          .setMode(new Mode((short) createUfsFileOptions.getMode()));
       context.setOutputStream(ufs.create(request.getUfsPath(), createOptions));
       context.setCreateOptions(createOptions);
       String ufsString = MetricsSystem.escape(ufsClient.getUfsMountPointUri());
-      String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsString);
-      Counter counter = MetricsSystem.workerCounter(metricName);
+      String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_READ_UFS,
+          WorkerMetrics.TAG_UFS, ufsString);
+      Counter counter = MetricsSystem.workerCounter(counterName);
       context.setCounter(counter);
     }
   }

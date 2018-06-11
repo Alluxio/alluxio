@@ -21,6 +21,7 @@ import alluxio.metrics.MetricsAggregator;
 import alluxio.metrics.MetricsFilter;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiValueMetricsAggregator;
+import alluxio.metrics.SingleValueAggregator;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
@@ -79,7 +80,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   }
 
   @VisibleForTesting
-  protected void addAggregator(MetricsAggregator aggregator) {
+  protected void addSingleValueAggregator(SingleValueAggregator aggregator) {
     mMetricsAggregatorRegistry.put(aggregator.getName(), aggregator);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClusterMetricName(aggregator.getName()),
         new Gauge<Object>() {
@@ -120,24 +121,28 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
 
   private void registerAggregators() {
     // worker metrics
-    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
-        WorkerMetrics.BYTES_READ_ALLUXIO));
-    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
-        WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT));
-    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
-        WorkerMetrics.BYTES_READ_UFS_ALL));
-    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
-        WorkerMetrics.BYTES_READ_UFS_THROUGHPUT));
+    addSingleValueAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_ALLUXIO,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_ALLUXIO));
+    addSingleValueAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT));
+    addSingleValueAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_UFS_ALL,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS));
+    addSingleValueAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS_THROUGHPUT));
+    addSingleValueAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_UFS_ALL,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS));
 
     // client metrics
-    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT,
-        ClientMetrics.BYTES_READ_LOCAL));
-    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT,
-        ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT));
+    addSingleValueAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL,
+        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL));
+    addSingleValueAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT,
+        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT));
 
     // multi-value aggregators
     addMultiValueAggregator(new SingleTagValueAggregator(MetricsSystem.InstanceType.WORKER,
         WorkerMetrics.BYTES_READ_UFS, WorkerMetrics.TAG_UFS));
+    addMultiValueAggregator(new SingleTagValueAggregator(MetricsSystem.InstanceType.WORKER,
+        WorkerMetrics.BYTES_WRITTEN_UFS, WorkerMetrics.TAG_UFS));
   }
 
   @Override
