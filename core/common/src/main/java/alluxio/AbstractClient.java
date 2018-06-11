@@ -17,14 +17,19 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.LoginUser;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.util.SecurityUtils;
 
+import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
@@ -287,6 +292,36 @@ public abstract class AbstractClient implements Client {
    * @return the return value of the RPC call
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws AlluxioStatusException {
+    return retryRPCInternal(rpc, () -> null);
+  }
+
+  /**
+   * Tries to execute an RPC defined as a {@link RpcCallable}. Metrics will be recorded based on
+   * the provided rpc name.
+   *
+   * If a {@link UnavailableException} occurs, a reconnection will be tried through
+   * {@link #connect()} and the action will be re-executed.
+   *
+   * @param rpc the RPC call to be executed
+   * @param rpcName the human readable name of the RPC call
+   * @param <V> type of return value of the RPC call
+   * @return the return value of the RPC call
+   */
+  protected synchronized <V> V retryRPC(RpcCallable<V> rpc, String rpcName)
+      throws AlluxioStatusException {
+    try (Timer.Context ctx = MetricsSystem.clientTimer(getQualifiedMetricName(rpcName)).time()) {
+      return retryRPCInternal(rpc, () -> {
+        MetricsSystem.clientCounter(getQualifiedRetryMetricName(rpcName)).inc();
+        return null;
+      });
+    } catch (Exception e) {
+      MetricsSystem.clientCounter(getQualifiedFailureMetricName(rpcName)).inc();
+      throw e;
+    }
+  }
+
+  private synchronized <V> V retryRPCInternal(RpcCallable<V> rpc, Supplier<Void> onRetry)
+      throws AlluxioStatusException {
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
     Exception ex = null;
     while (retryPolicy.attempt()) {
@@ -307,9 +342,33 @@ public abstract class AbstractClient implements Client {
         ex = e;
       }
       LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
+      onRetry.get();
       disconnect();
     }
     throw new UnavailableException("Failed after " + retryPolicy.getAttemptCount()
-            + " attempts: " + ex.toString(), ex);
+        + " attempts: " + ex.toString(), ex);
+  }
+
+  // TODO(calvin): General tag logic should be in getMetricName
+  private String getQualifiedMetricName(String metricName) {
+    try {
+      if (SecurityUtils.isAuthenticationEnabled() && LoginUser.get() != null) {
+        return Metric.getMetricNameWithTags(metricName, "User", LoginUser.get().getName());
+      } else {
+        return metricName;
+      }
+    } catch (IOException e) {
+      return metricName;
+    }
+  }
+
+  // TODO(calvin): This should not be in this class
+  private String getQualifiedRetryMetricName(String metricName) {
+    return getQualifiedMetricName(metricName + "Retries");
+  }
+
+  // TODO(calvin): This should not be in this class
+  private String getQualifiedFailureMetricName(String metricName) {
+    return getQualifiedMetricName(metricName + "Failures");
   }
 }
