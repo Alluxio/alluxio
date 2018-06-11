@@ -2411,7 +2411,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .setDescription("The custom id to use for labeling this client's info, such as metrics. "
               + "If unset, a random long will be used. This value is displayed in the client logs "
-              + "on initialization.")
+              + "on initialization. Note that using the same app id will cause client info to be "
+              + "aggregated, so different applications must set their own ids or leave this value "
+              + "unset to use a randomly generated id.")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
