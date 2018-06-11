@@ -37,25 +37,25 @@ Usage: alluxio fsadmin [generic options]
 ## 示例用例
 
 ### backup(备份)
-+
-+“备份”命令创建ALUXIO元数据的备份
-+
-+备份到默认备份文件夹（由ALUXIO.Master .backup.Directory）配置
-+```
-+$ ./bin/alluxio fsadmin backup
-+Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
-+```
-+备份到下存储中的特定目录。
-+```
-+$ ./bin/alluxio fsadmin backup /alluxio/special_backups
-+Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
-+```
-+备份到主主机的本地文件系统的特定目录。
-+```
-+$ ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
-+Successfully backed up journal to file:///opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
-+```
-+
+
+“备份”命令创建ALUXIO元数据的备份
+
+备份到默认备份文件夹（由ALUXIO.Master .backup.Directory）配置
+```
+$ ./bin/alluxio fsadmin backup
+Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
+```
+备份到下存储中的特定目录。
+```
+$ ./bin/alluxio fsadmin backup /alluxio/special_backups
+Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
+```
+备份到主主机的本地文件系统的特定目录。
+```
+$ ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
+Successfully backed up journal to file:///opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
+```
+
 ### report
 
 `report`命令提供了Alluxio运行中的集群信息。
