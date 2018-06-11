@@ -236,8 +236,8 @@ public abstract class LockedInodePath implements Closeable {
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public synchronized LockedInodePath createTempPathForExistingChild(Inode<?> child,
-                                                                     InodeTree.LockMode lockMode)
+  public synchronized LockedInodePath createTempPathForExistingChild(
+      Inode<?> child, InodeTree.LockMode lockMode)
       throws InvalidPathException, FileDoesNotExistException {
     InodeLockList lockList = new CompositeInodeLockList(mLockList);
     LockedInodePath lockedDescendantPath;
