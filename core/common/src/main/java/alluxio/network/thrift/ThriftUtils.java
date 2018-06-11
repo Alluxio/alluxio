@@ -79,7 +79,9 @@ public final class ThriftUtils {
     // The socket tracking socket will close all client sockets when the server socket is closed.
     // This is necessary so that clients don't receive spurious errors during failover. The master
     // will close this socket before resetting its state during stepdown.
-    return new SocketTrackingTServerSocket(address, SERVER_SOCKET_TIMEOUT_MS);
+    return new SocketTrackingTServerSocket(
+        (new TServerSocket.ServerSocketTransportArgs()).bindAddr(address)
+            .clientTimeout(SERVER_SOCKET_TIMEOUT_MS));
   }
 
   /**
