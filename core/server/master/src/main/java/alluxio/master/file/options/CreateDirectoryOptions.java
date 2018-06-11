@@ -14,6 +14,7 @@ package alluxio.master.file.options;
 import alluxio.Constants;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.underfs.UfsStatus;
 import alluxio.util.SecurityUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.TtlAction;
@@ -30,6 +31,7 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
   private boolean mAllowExists;
   private long mTtl;
   private TtlAction mTtlAction;
+  private UfsStatus mUfsStatus;
   /**
    * @return the default {@link CreateDirectoryOptions}
    */
@@ -73,6 +75,7 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mMode.applyDirectoryUMask();
+    mUfsStatus = null;
   }
 
   /**
@@ -96,6 +99,13 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
    */
   public TtlAction getTtlAction() {
     return mTtlAction;
+  }
+
+  /**
+   * @return the {@link UfsStatus}
+   */
+  public UfsStatus getUfsStatus() {
+    return mUfsStatus;
   }
 
   /**
@@ -127,6 +137,15 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     return getThis();
   }
 
+  /**
+   * @param ufsStatus the {@link UfsStatus}; It sets the optional ufsStatus as an optimization
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setUfsStatus(UfsStatus ufsStatus) {
+    mUfsStatus = ufsStatus;
+    return getThis();
+  }
+
   @Override
   protected CreateDirectoryOptions getThis() {
     return this;
@@ -145,18 +164,20 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     }
     CreateDirectoryOptions that = (CreateDirectoryOptions) o;
     return Objects.equal(mAllowExists, that.mAllowExists) && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlAction, that.mTtlAction);
+        && Objects.equal(mTtlAction, that.mTtlAction) && Objects.equal(mUfsStatus, that.mUfsStatus);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mAllowExists, mTtl, mTtlAction);
+    return super.hashCode() + Objects.hashCode(mAllowExists, mTtl, mTtlAction, mUfsStatus);
   }
 
   @Override
   public String toString() {
     return toStringHelper()
         .add("allowExists", mAllowExists).add("ttl", mTtl)
-        .add("ttlAction", mTtlAction).toString();
+        .add("ttlAction", mTtlAction)
+        .add("ufsStatus", mUfsStatus)
+        .toString();
   }
 }

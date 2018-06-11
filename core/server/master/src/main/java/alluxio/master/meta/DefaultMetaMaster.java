@@ -224,8 +224,8 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           (int) Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)));
     } else {
       // Standby master should setup MetaMasterSync to communicate with the leader master
-      MetaMasterMasterClient metaMasterClient =
-          new MetaMasterMasterClient(MasterClientConfig.defaults());
+      RetryHandlingMetaMasterMasterClient metaMasterClient =
+          new RetryHandlingMetaMasterMasterClient(MasterClientConfig.defaults());
       getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
           new MetaMasterSync(mMasterAddress, metaMasterClient),
           (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL)));
