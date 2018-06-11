@@ -2410,6 +2410,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     List<LockedInodePath> descendants = mInodeTree.lockDescendants(inodePath,
         InodeTree.LockMode.WRITE).getInodePathList();
     Closer closer = Closer.create();
+    // Using a closer here because we add the inodePath to the descendants list which does not
+    // need to be closed
     try {
       for (LockedInodePath descedant : descendants) {
         closer.register(descedant);
