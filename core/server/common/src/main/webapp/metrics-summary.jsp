@@ -18,7 +18,7 @@
     <div class="accordion-group">
       <div class="accordion-heading">
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
-          <h4>Total Read Size</h4>
+          <h4>Total IO Size</h4>
         </a>
       </div>
       <div id="data4" class="accordion-body collapse in">
@@ -34,7 +34,11 @@
 			  <tr>
                 <th>Under Filesystem Read</th>
                 <th><%= request.getAttribute("totalBytesReadUfs") %></th>
-              </tr>              
+              </tr>
+			  <tr>
+                <th>Under Filesystem Write</th>
+                <th><%= request.getAttribute("totalBytesWrittenUfs") %></th>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -47,7 +51,7 @@
     <div class="accordion-group">
       <div class="accordion-heading">
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
-          <h4>Total Read Throughput (Last Minute)</h4>
+          <h4>Total IO Throughput (Last Minute)</h4>
         </a>
       </div>
       <div id="data4" class="accordion-body collapse in">
@@ -63,7 +67,11 @@
 			  <tr>
                 <th>Under Filesystem Read</th>
                 <th><%= request.getAttribute("totalBytesReadUfsThroughput") %></th>
-              </tr>              
+              </tr>
+			  <tr>
+                <th>Under Filesystem Write</th>
+                <th><%= request.getAttribute("totalBytesWrittenUfsThroughput") %></th>
+              </tr>
             </tbody>
           </table>
         </div>

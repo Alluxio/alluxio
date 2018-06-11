@@ -147,10 +147,14 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     Long bytesReadUfs = (Long) mr.getGauges()
         .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL))
         .getValue();
+    Long bytesWrittenUfs = (Long) mr.getGauges()
+        .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL))
+        .getValue();
 
     request.setAttribute("totalBytesReadLocal", FormatUtils.getSizeFromBytes(bytesReadLocal));
     request.setAttribute("totalBytesReadRemote", FormatUtils.getSizeFromBytes(bytesReadRemote));
     request.setAttribute("totalBytesReadUfs", FormatUtils.getSizeFromBytes(bytesReadUfs));
+    request.setAttribute("totalBytesWrittenUfs", FormatUtils.getSizeFromBytes(bytesWrittenUfs));
 
     Long bytesReadLocalThroughput = (Long) mr.getGauges()
         .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT))
@@ -161,12 +165,17 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     Long bytesReadUfsThroughput = (Long) mr.getGauges()
         .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT))
         .getValue();
+    Long bytesWrittenUfsThroughput = (Long) mr.getGauges()
+        .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT))
+        .getValue();
     request.setAttribute("totalBytesReadLocalThroughput",
         FormatUtils.getSizeFromBytes(bytesReadLocalThroughput));
     request.setAttribute("totalBytesReadRemoteThroughput",
         FormatUtils.getSizeFromBytes(bytesReadRemoteThroughput));
     request.setAttribute("totalBytesReadUfsThroughput",
         FormatUtils.getSizeFromBytes(bytesReadUfsThroughput));
+    request.setAttribute("totalBytesWrittenUfsThroughput",
+        FormatUtils.getSizeFromBytes(bytesWrittenUfsThroughput));
 
     long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs;
     double cacheHitLocalPercentage =

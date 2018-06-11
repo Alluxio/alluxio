@@ -181,10 +181,13 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       context.setOutputStream(ufs.create(request.getUfsPath(), createOptions));
       context.setCreateOptions(createOptions);
       String ufsString = MetricsSystem.escape(ufsClient.getUfsMountPointUri());
-      String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_READ_UFS,
+      String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS,
           WorkerMetrics.TAG_UFS, ufsString);
       Counter counter = MetricsSystem.workerCounter(counterName);
       context.setCounter(counter);
+      String meterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT,
+          WorkerMetrics.TAG_UFS, ufsString);
+      context.setMeter(MetricsSystem.workerMeter(meterName));
     }
   }
 }

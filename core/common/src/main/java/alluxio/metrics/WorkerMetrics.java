@@ -29,6 +29,7 @@ public final class WorkerMetrics {
   public static final String BYTES_READ_UFS_THROUGHPUT = "BytesReadUfsThroughput";
   public static final String BYTES_WRITTEN_UFS = "BytesWrittenUfs";
   public static final String BYTES_WRITTEN_UFS_ALL = "BytesWrittenUfsAll";
+  public static final String BYTES_WRITTEN_UFS_THROUGHPUT = "BytesReadUfsThroughput";
 
   // Tags
   public static final String TAG_UFS = "UFS";

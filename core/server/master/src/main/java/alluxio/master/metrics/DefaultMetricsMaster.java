@@ -131,6 +131,8 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
         MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS_THROUGHPUT));
     addSingleValueAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_UFS_ALL,
         MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS));
+    addSingleValueAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT));
 
     // client metrics
     addSingleValueAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL,
