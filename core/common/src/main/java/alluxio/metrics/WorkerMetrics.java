@@ -17,13 +17,15 @@ package alluxio.metrics;
 public final class WorkerMetrics {
 
   /**
-   * Total number of bytes read from Alluxio storage through this worker. This does not include UFS
-   * reads.
+   * Total number of bytes read/written from Alluxio storage through this worker. This does not
+   * include UFS reads.
    */
   public static final String BYTES_READ_ALLUXIO = "BytesReadAlluxio";
   public static final String BYTES_READ_ALLUXIO_THROUGHPUT = "BytesReadAlluxioThroughput";
+  public static final String BYTES_WRITTEN_ALLUXIO = "BytesWrittenAlluxio";
+  public static final String BYTES_WRITTEN_ALLUXIO_THROUGHPUT = "BytesWrittenAlluxioThroughput";
 
-  /** Total number of bytes read/write from UFS through this worker. */
+  /** Total number of bytes read/written from UFS through this worker. */
   public static final String BYTES_READ_UFS = "BytesReadUfs";
   public static final String BYTES_READ_UFS_ALL = "BytesReadUfsAll";
   public static final String BYTES_READ_UFS_THROUGHPUT = "BytesReadUfsThroughput";

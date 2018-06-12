@@ -36,6 +36,8 @@
                 <th><%= request.getAttribute("totalBytesReadUfs") %></th>
               </tr>
 			  <tr>
+                <th>Alluxio Write</th>
+                <th><%= request.getAttribute("totalBytesWrittenAlluxio") %></th>
                 <th>Under Filesystem Write</th>
                 <th><%= request.getAttribute("totalBytesWrittenUfs") %></th>
               </tr>
@@ -69,6 +71,8 @@
                 <th><%= request.getAttribute("totalBytesReadUfsThroughput") %></th>
               </tr>
 			  <tr>
+				<th>Alluxio Write</th>
+                <th><%= request.getAttribute("totalBytesWrittenAlluxioThroughput") %></th>			  
                 <th>Under Filesystem Write</th>
                 <th><%= request.getAttribute("totalBytesWrittenUfsThroughput") %></th>
               </tr>
