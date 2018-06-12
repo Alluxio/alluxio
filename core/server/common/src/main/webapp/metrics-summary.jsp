@@ -70,8 +70,8 @@
                 <th>Under Filesystem Read</th>
                 <th><%= request.getAttribute("totalBytesReadUfsThroughput") %></th>
               </tr>
-			  <tr>
-              <th>Alluxio Write</th>
+              <tr>
+                <th>Alluxio Write</th>
                 <th><%= request.getAttribute("totalBytesWrittenAlluxioThroughput") %></th>			  
                 <th>Under Filesystem Write</th>
                 <th><%= request.getAttribute("totalBytesWrittenUfsThroughput") %></th>
