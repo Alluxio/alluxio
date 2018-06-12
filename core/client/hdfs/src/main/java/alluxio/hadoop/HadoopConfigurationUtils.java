@@ -16,11 +16,9 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.conf.Source;
 
-import org.apache.hadoop.io.DefaultStringifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
@@ -34,25 +32,6 @@ public final class HadoopConfigurationUtils {
   private static final Logger LOG = LoggerFactory.getLogger(HadoopConfigurationUtils.class);
 
   private HadoopConfigurationUtils() {} // Prevent instantiation.
-
-  /**
-   * Stores the Alluxio {@link Configuration} to the target
-   * Hadoop {@link org.apache.hadoop.conf.Configuration} object.
-   *
-   * @param target the {@link org.apache.hadoop.conf.Configuration} target
-   */
-  public static void storeToHadoopConfiguration(org.apache.hadoop.conf.Configuration target) {
-  // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
-    target.set("io.serializations", "org.apache.hadoop.io.serializer.JavaSerialization,"
-        + "org.apache.hadoop.io.serializer.WritableSerialization");
-    Map<String, String> confProperties = Configuration.toMap();
-    try {
-      DefaultStringifier.store(target, confProperties, PropertyKey.SITE_CONF_DIR.toString());
-    } catch (IOException ex) {
-      LOG.error("Unable to store Alluxio configuration in Hadoop configuration", ex);
-      throw new RuntimeException(ex);
-    }
-  }
 
   /**
    * Merges Hadoop {@link org.apache.hadoop.conf.Configuration} into the Alluxio configuration.

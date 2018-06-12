@@ -14,6 +14,7 @@ package alluxio.mesos;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.conf.Source.Type;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 
@@ -169,8 +170,7 @@ public class AlluxioScheduler implements Scheduler {
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
                                     .setName("ALLUXIO_MESOS_SITE_PROPERTIES_CONTENT")
-                                    // TODO(andrew): set the site properties here
-                                    .setValue("")
+                                    .setValue(createAlluxioSiteProperties())
                                     .build())
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
@@ -215,8 +215,7 @@ public class AlluxioScheduler implements Scheduler {
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
                                     .setName("ALLUXIO_MESOS_SITE_PROPERTIES_CONTENT")
-                                    // TODO(andrew): set the site properties here
-                                    .setValue("")
+                                    .setValue(createAlluxioSiteProperties())
                                     .build())
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
@@ -259,6 +258,17 @@ public class AlluxioScheduler implements Scheduler {
       Protos.Filters filters = Protos.Filters.newBuilder().setRefuseSeconds(1).build();
       driver.acceptOffers(offerIds, operations, filters);
     }
+  }
+
+  private String createAlluxioSiteProperties() {
+    StringBuilder siteProperties = new StringBuilder();
+    for (PropertyKey key : Configuration.keySet()) {
+      if (Configuration.isSet(key)
+          && Configuration.getSource(key).getType() != Type.DEFAULT) {
+        siteProperties.append(String.format("%s=%s%n", key.getName(), Configuration.get(key)));
+      }
+    }
+    return siteProperties.toString();
   }
 
   private static String createStartAlluxioCommand(String command) {
@@ -409,12 +419,12 @@ public class AlluxioScheduler implements Scheduler {
   }
 
   private static boolean installJavaFromUrl() {
-    return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_JDK_URL) && !Configuration
+    return Configuration.isSet(PropertyKey.INTEGRATION_MESOS_JDK_URL) && !Configuration
         .get(PropertyKey.INTEGRATION_MESOS_JDK_URL).equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
   }
 
   private static boolean installAlluxioFromUrl() {
-    return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
+    return Configuration.isSet(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
         && !Configuration.get(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
             .equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
   }

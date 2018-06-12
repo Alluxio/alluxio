@@ -11,9 +11,9 @@
 
 package alluxio.master.meta;
 
-import alluxio.Configuration;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.MetaCommand;
+import alluxio.util.ConfigurationUtils;
 import alluxio.wire.Address;
 import alluxio.wire.Scope;
 
@@ -112,7 +112,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
    */
   private void setIdAndRegister() throws IOException {
     mMasterId.set(mMasterClient.getId(mMasterAddress));
-    mMasterClient.register(mMasterId.get(), Configuration.getConfiguration(Scope.MASTER));
+    mMasterClient.register(mMasterId.get(), ConfigurationUtils.getConfiguration(Scope.MASTER));
   }
 
   @Override

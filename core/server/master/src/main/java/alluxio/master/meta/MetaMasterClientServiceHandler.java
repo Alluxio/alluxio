@@ -131,7 +131,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
                 .stream().map(Address::toThrift).collect(Collectors.toList()));
             break;
           case ZOOKEEPER_ADDRESSES:
-            if (Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
+            if (Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
               info.setZookeeperAddresses(Arrays
                   .asList(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
             }

@@ -73,6 +73,20 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void containsKey() {
+    assertFalse(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
+    Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, "address");
+    assertTrue(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
+  }
+
+  @Test
+  public void isSet() {
+    assertFalse(Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS));
+    Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, "address");
+    assertTrue(Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS));
+  }
+
+  @Test
   public void getInt() {
     Configuration.set(PropertyKey.WEB_THREADS, "1");
     assertEquals(1, Configuration.getInt(PropertyKey.WEB_THREADS));
@@ -533,11 +547,11 @@ public class ConfigurationTest {
 
   @Test
   public void unset() {
-    assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertFalse(Configuration.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "test");
-    assertTrue(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertTrue(Configuration.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
     Configuration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
-    assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertFalse(Configuration.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
   }
 
   @Test
@@ -731,7 +745,8 @@ public class ConfigurationTest {
     String testValue = String.format("${%s}.test", "alluxio.extensions.dir");
     Configuration.set(testKey, testValue);
 
-    Map<String, String> rawMap = Configuration.toRawMap();
+    Map<String, String> rawMap =
+        Configuration.toMap(ConfigurationValueOptions.defaults().useRawValue(true));
 
     // Test if the value of the created nested property remains raw
     assertEquals(testValue, rawMap.get(testKey.toString()));
