@@ -15,8 +15,6 @@ import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.Scope;
 
 import com.google.common.base.Preconditions;
 
@@ -24,6 +22,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -150,13 +149,52 @@ public final class Configuration {
   }
 
   /**
-   * Checks if the configuration contains value for the given key.
+   * @param key the key to get the value for
+   * @param defaultValue the value to return if no value is set for the specified key
+   * @return the value
+   */
+  public static String getOrDefault(PropertyKey key, String defaultValue) {
+    return CONF.getOrDefault(key, defaultValue);
+  }
+
+  /**
+   * @param key the key to get the value for
+   * @param defaultValue the value to return if no value is set for the specified key
+   * @param options options for getting configuration value
+   * @return the value
+   */
+  public static String getOrDefault(PropertyKey key, String defaultValue,
+      ConfigurationValueOptions options) {
+    return CONF.getOrDefault(key, defaultValue, options);
+  }
+
+  /**
+   * Checks if the configuration contains a value for the given key.
+   *
+   * @param key the key to check
+   * @return true if there is value for the key, false otherwise
+   * @deprecated due to misleading method name, use {{@link #isSet(PropertyKey)}} instead
+   */
+  @Deprecated
+  public static boolean containsKey(PropertyKey key) {
+    return isSet(key);
+  }
+
+  /**
+   * Checks if the configuration contains a value for the given key.
    *
    * @param key the key to check
    * @return true if there is value for the key, false otherwise
    */
-  public static boolean containsKey(PropertyKey key) {
-    return CONF.containsKey(key);
+  public static boolean isSet(PropertyKey key) {
+    return CONF.isSet(key);
+  }
+
+  /**
+   * @return the keys configured by the configuration
+   */
+  public static Set<PropertyKey> keySet() {
+    return CONF.keySet();
   }
 
   /**
@@ -286,36 +324,28 @@ public final class Configuration {
   }
 
   /**
-   * @param options option for getting configuration values
-   * @return a view of the properties represented by this configuration,
-   *         including all default properties
+   * @param key the property key
+   * @return the source for the given key
    */
-  public static Map<String, String> toMap(ConfigurationValueOptions options) {
-    return CONF.toMap(options);
+  public static Source getSource(PropertyKey key) {
+    return CONF.getSource(key);
   }
 
   /**
-   * @return a view of the resolved properties represented by this configuration,
-   *         including all default properties
+   * @return a map from all configuration property names to their values; values may potentially be
+   *         null
    */
   public static Map<String, String> toMap() {
     return CONF.toMap();
   }
 
   /**
-   * @return a map of the raw properties represented by this configuration,
-   *         including all default properties
+   * @param opts options for formatting the configuration values
+   * @return a map from all configuration property names to their values; values may potentially be
+   *         null
    */
-  public static Map<String, String> toRawMap() {
-    return CONF.toRawMap();
-  }
-
-  /**
-   * @param key the property key
-   * @return the source for the given key
-   */
-  public static Source getSource(PropertyKey key) {
-    return CONF.getSource(key);
+  public static Map<String, String> toMap(ConfigurationValueOptions opts) {
+    return CONF.toMap(opts);
   }
 
   /**
@@ -325,16 +355,6 @@ public final class Configuration {
    */
   public static void validate() {
     CONF.validate();
-  }
-
-  /**
-   * Gets the raw (no alias lookup) display configuration of a given scope.
-   *
-   * @param scope the property key scope
-   * @return a list of raw configurations inside the property scope
-   */
-  public static List<ConfigProperty> getConfiguration(Scope scope) {
-    return CONF.getConfiguration(scope);
   }
 
   /**

@@ -25,9 +25,11 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map.Entry;
-import java.util.TreeMap;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Utility for printing Alluxio configuration.
@@ -138,14 +140,14 @@ public final class GetConf {
     StringBuilder output = new StringBuilder();
     switch (args.length) {
       case 0:
-        TreeMap<String, String> keyValueSet = new TreeMap<>(Configuration.toMap(
-            ConfigurationValueOptions.defaults().useDisplayValue(true)));
-        for (Entry<String, String> entry : keyValueSet.entrySet()) {
-          String key = entry.getKey();
-          String value = ConfigurationUtils.valueAsString(entry.getValue());
-          output.append(String.format("%s=%s", key, value));
+        List<PropertyKey> keys = new ArrayList<>(Configuration.keySet());
+        Collections.sort(keys, Comparator.comparing(PropertyKey::getName));
+        for (PropertyKey key : keys) {
+          String value = ConfigurationUtils.valueAsString(Configuration.getOrDefault(key, null,
+              ConfigurationValueOptions.defaults().useDisplayValue(true)));
+          output.append(String.format("%s=%s", key.getName(), value));
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
-            Source source = Configuration.getSource(PropertyKey.fromString(key));
+            Source source = Configuration.getSource(key);
             output.append(String.format(" (%s)", source));
           }
           output.append("\n");
@@ -158,7 +160,7 @@ public final class GetConf {
           return 1;
         }
         PropertyKey key = PropertyKey.fromString(args[0]);
-        if (!Configuration.containsKey(key)) {
+        if (!Configuration.isSet(key)) {
           System.out.println("");
         } else {
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {

@@ -12,15 +12,12 @@
 package alluxio.conf;
 
 import alluxio.AlluxioConfiguration;
-import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.FormatUtils;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.Scope;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -31,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -109,8 +105,13 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public boolean containsKey(PropertyKey key) {
+  public boolean isSet(PropertyKey key) {
     return mProperties.hasValueSet(key);
+  }
+
+  @Override
+  public Set<PropertyKey> keySet() {
+    return mProperties.keySet();
   }
 
   @Override
@@ -246,43 +247,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public Map<String, String> toMap(ConfigurationValueOptions options) {
-    Map<String, String> map = new HashMap<>();
-    mProperties.forEach((key, value) ->
-        map.put(key.getName(), containsKey(key) ? get(key, options) : null));
-    return map;
-  }
-
-  @Override
-  public Map<String, String> toMap() {
-    return toMap(ConfigurationValueOptions.defaults());
-  }
-
-  @Override
-  public Map<String, String> toRawMap() {
-    return toMap(ConfigurationValueOptions.defaults().useRawValue(true));
-  }
-
-  @Override
   public Source getSource(PropertyKey key) {
     return mProperties.getSource(key);
-  }
-
-  @Override
-  public List<ConfigProperty> getConfiguration(Scope scope) {
-    List<ConfigProperty> list = new ArrayList<>();
-    for (Map.Entry<String, String> entry : toMap(ConfigurationValueOptions.defaults()
-        .useRawValue(true).useDisplayValue(true)).entrySet()) {
-      PropertyKey key = PropertyKey.fromString(entry.getKey());
-      if (key.getScope().contains(scope)) {
-        ConfigProperty configProperty = new ConfigProperty()
-            .setName(key.getName())
-            .setValue(containsKey(key) ? get(key) : null)
-            .setSource(Configuration.getSource(key).toString());
-        list.add(configProperty);
-      }
-    }
-    return list;
   }
 
   @Override
@@ -291,18 +257,22 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
+  public Map<String, String> toMap(ConfigurationValueOptions opts) {
+    Map<String, String> map = new HashMap<>();
+    // Cannot use Collectors.toMap because we support null keys.
+    keySet().forEach(key -> map.put(key.getName(), getOrDefault(key, null, opts)));
+    return map;
+  }
+
+  @Override
   public void validate() {
-    for (Map.Entry<String, String> entry : toMap().entrySet()) {
-      String propertyName = entry.getKey();
-      Preconditions.checkState(PropertyKey.isValid(propertyName), propertyName);
-      PropertyKey propertyKey = PropertyKey.fromString(propertyName);
+    for (PropertyKey key : keySet()) {
       Preconditions.checkState(
-          getSource(propertyKey).getType() != Source.Type.SITE_PROPERTY
-              || !propertyKey.isIgnoredSiteProperty(),
+          getSource(key).getType() != Source.Type.SITE_PROPERTY || !key.isIgnoredSiteProperty(),
           "%s is not accepted in alluxio-site.properties, "
               + "and must be specified as a JVM property. "
-              + "If no JVM property is present, Alluxio will use default value '%s'.", propertyName,
-          propertyKey.getDefaultValue());
+              + "If no JVM property is present, Alluxio will use default value '%s'.",
+          key.getName(), key.getDefaultValue());
     }
     checkTimeouts();
     checkWorkerPorts();
@@ -399,7 +369,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @throws IllegalStateException if invalid user file buffer size configuration is encountered
    */
   private void checkUserFileBufferBytes() {
-    if (!containsKey(PropertyKey.USER_FILE_BUFFER_BYTES)) { // load from hadoop conf
+    if (!isSet(PropertyKey.USER_FILE_BUFFER_BYTES)) { // load from hadoop conf
       return;
     }
     long usrFileBufferBytes = getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
@@ -415,7 +385,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    */
   private void checkZkConfiguration() {
     Preconditions.checkState(
-        containsKey(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
+        isSet(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
         PreconditionMessage.INCONSISTENT_ZK_CONFIGURATION.toString(),
         PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED);
   }

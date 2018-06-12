@@ -120,15 +120,15 @@ public final class NettyDataServer implements DataServer {
     // alluxio.worker.network.netty.backlog=50
     // alluxio.worker.network.netty.buffer.send=64KB
     // alluxio.worker.network.netty.buffer.receive=64KB
-    if (Configuration.containsKey(PropertyKey.WORKER_NETWORK_NETTY_BACKLOG)) {
+    if (Configuration.isSet(PropertyKey.WORKER_NETWORK_NETTY_BACKLOG)) {
       boot.option(ChannelOption.SO_BACKLOG,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BACKLOG));
     }
-    if (Configuration.containsKey(PropertyKey.WORKER_NETWORK_NETTY_BUFFER_SEND)) {
+    if (Configuration.isSet(PropertyKey.WORKER_NETWORK_NETTY_BUFFER_SEND)) {
       boot.option(ChannelOption.SO_SNDBUF,
           (int) Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_BUFFER_SEND));
     }
-    if (Configuration.containsKey(PropertyKey.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)) {
+    if (Configuration.isSet(PropertyKey.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)) {
       boot.option(ChannelOption.SO_RCVBUF,
           (int) Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_BUFFER_RECEIVE));
     }
