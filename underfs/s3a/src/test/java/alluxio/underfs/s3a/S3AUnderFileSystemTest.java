@@ -135,7 +135,7 @@ public class S3AUnderFileSystemTest {
 
   @Test
   public void createCredentialsFromDefault() throws Exception {
-    // Create empty map to unset AWS properties if present
+    // Unset AWS properties if present
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.S3A_ACCESS_KEY, null);
     conf.put(PropertyKey.S3A_SECRET_KEY, null);
