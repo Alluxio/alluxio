@@ -31,7 +31,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.validation.groups.Default;
 
 /**
  * Alluxio file system's directory representation in the file system master. The inode must be

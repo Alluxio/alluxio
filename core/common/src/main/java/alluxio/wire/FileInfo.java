@@ -585,8 +585,9 @@ public final class FileInfo implements Serializable {
             : Constants.INVALID_UFS_FINGERPRINT)
         .setAclEntries(info.isSetAcl()
             ? (AccessControlList.fromThrift(info.getAcl())).toStringEntries() : new ArrayList<>())
-        .setDefaultAclEntries(info.isSetDefaultAcl() ?
-            (AccessControlList.fromThrift(info.getDefaultAcl())).toStringEntries() : new ArrayList<>());
+        .setDefaultAclEntries(info.isSetDefaultAcl()
+            ? (AccessControlList.fromThrift(info.getDefaultAcl())).toStringEntries()
+            : new ArrayList<>());
   }
 
   @Override

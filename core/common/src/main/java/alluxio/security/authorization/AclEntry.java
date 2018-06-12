@@ -30,8 +30,8 @@ public final class AclEntry {
    */
   private AclEntryType mType;
 
-  private static String DEFAULT_KEYWORD = "default";
-  private static String DEFAULT_PREFIX = DEFAULT_KEYWORD + ":";
+  private static final String DEFAULT_KEYWORD = "default";
+  private static final String DEFAULT_PREFIX = DEFAULT_KEYWORD + ":";
 
   /**
    * Whether this entry applies to default ACL or not.

@@ -395,7 +395,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param acl set the default ACL associated with this inode
    * @throws UnsupportedOperationException if the inode is a file
    */
-  public abstract void setDefaultACL(DefaultAccessControlList acl) throws UnsupportedOperationException;
+  public abstract void setDefaultACL(DefaultAccessControlList acl)
+      throws UnsupportedOperationException;
 
   /**
    * Sets ACL entries into the internal ACL.
