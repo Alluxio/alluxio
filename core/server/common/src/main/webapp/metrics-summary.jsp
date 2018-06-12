@@ -31,11 +31,11 @@
                 <th>From Remote Instances</th>
                 <th><%= request.getAttribute("totalBytesReadRemote") %></th>
               </tr>
-			  <tr>
+              <tr>
                 <th>Under Filesystem Read</th>
                 <th><%= request.getAttribute("totalBytesReadUfs") %></th>
               </tr>
-			  <tr>
+              <tr>
                 <th>Alluxio Write</th>
                 <th><%= request.getAttribute("totalBytesWrittenAlluxio") %></th>
                 <th>Under Filesystem Write</th>
@@ -71,7 +71,7 @@
                 <th><%= request.getAttribute("totalBytesReadUfsThroughput") %></th>
               </tr>
 			  <tr>
-				<th>Alluxio Write</th>
+              <th>Alluxio Write</th>
                 <th><%= request.getAttribute("totalBytesWrittenAlluxioThroughput") %></th>			  
                 <th>Under Filesystem Write</th>
                 <th><%= request.getAttribute("totalBytesWrittenUfsThroughput") %></th>
