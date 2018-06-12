@@ -23,7 +23,6 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -230,7 +229,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public T removeAcl(List<AclEntry> entries) throws IOException {
     for (AclEntry entry : entries) {
-      if (entry.isDefault()){
+      if (entry.isDefault()) {
         AccessControlList defaultAcl = getDefaultACL();
         if (defaultAcl != null) {
           defaultAcl.removeEntry(entry);
@@ -386,7 +385,18 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     return getThis();
   }
 
+  /**
+   *
+   * @return the default ACL associated with this inode
+   * @throws UnsupportedOperationException if the inode is a file
+   */
   public abstract AccessControlList getDefaultACL() throws UnsupportedOperationException;
+
+  /**
+   *
+   * @param acl set the default ACL associated with this inode
+   * @throws UnsupportedOperationException if the inode is a file
+   */
   public abstract void setDefaultACL(AccessControlList acl) throws UnsupportedOperationException;
 
   /**

@@ -79,14 +79,6 @@ public class AccessControlList {
     clearEntries();
   }
 
-  public void initDefaultACL(AccessControlList acl) {
-    mOwningUser = acl.mOwningUser;
-    mOwningGroup = acl.mOwningGroup;
-    mUserActions.put(OWNING_USER_KEY, new AclActions(acl.mUserActions.get(OWNING_USER_KEY)));
-    mGroupActions.put(OWNING_GROUP_KEY, new AclActions(acl.mGroupActions.get(OWNING_GROUP_KEY)));
-    mOtherActions = new AclActions(acl.mOtherActions);
-  }
-
   /**
    * Clears out all entries (does not modify the owner name and owning group).
    */

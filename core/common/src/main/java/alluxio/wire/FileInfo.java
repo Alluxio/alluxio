@@ -264,7 +264,6 @@ public final class FileInfo implements Serializable {
     return mDefaultAclEntries;
   }
 
-
   /**
    * @param fileId the file id to use
    * @return the file information
@@ -536,7 +535,8 @@ public final class FileInfo implements Serializable {
     }
 
     AccessControlList tAcl = AccessControlList.fromStringEntries(mOwner, mGroup, mAclEntries);
-    AccessControlList defaultAcl = AccessControlList.fromStringEntries(mOwner, mGroup, mDefaultAclEntries);
+    AccessControlList defaultAcl = AccessControlList.fromStringEntries(mOwner,
+        mGroup, mDefaultAclEntries);
 
     alluxio.thrift.FileInfo info =
         new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,

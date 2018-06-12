@@ -31,7 +31,7 @@ public final class AclEntry {
   private AclEntryType mType;
 
   /**
-   * Whether this entry applies to default ACL or not
+   * Whether this entry applies to default ACL or not.
    */
   private boolean mDefaultEntry;
 
@@ -80,6 +80,10 @@ public final class AclEntry {
     return mDefaultEntry;
   }
 
+  /**
+   * Sets the entry to be default.
+   * @param defaultEntry indicating default or not
+   */
   public void setDefault(boolean defaultEntry) {
     mDefaultEntry = defaultEntry;
   }
@@ -133,13 +137,18 @@ public final class AclEntry {
     return sb.toString();
   }
 
+  /**
+   * Convert a normal ACL to a string representing a default ACL.
+   * @param stringEntry normal ACL, if it is already default ACL, then return the default ACL
+   * @return a default ACL
+   */
   public static String addDefault(String stringEntry) {
     if (stringEntry == null) {
       throw new IllegalArgumentException("Input acl string is null");
     }
     List<String> components = Arrays.stream(stringEntry.split(":")).map(String::trim).collect(
         Collectors.toList());
-    if (components != null && components.size() >0 && components.get(0).equals("default")) {
+    if (components != null && components.size() > 0 && components.get(0).equals("default")) {
       return stringEntry;
     } else {
       return "default:" + stringEntry;
@@ -168,7 +177,8 @@ public final class AclEntry {
     }
     List<String> components = Arrays.stream(stringEntry.split(":")).map(String::trim).collect(
         Collectors.toList());
-    if (!(components.size() == 3 || (components.size() == 4 && components.get(0).equals("default")))) {
+    if (!(components.size() == 3 || (components.size() == 4
+        && components.get(0).equals("default")))) {
       throw new IllegalArgumentException("Unexpected acl components: " + stringEntry);
     }
 
@@ -252,7 +262,9 @@ public final class AclEntry {
     }
 
     AclEntry.Builder builder = new AclEntry.Builder();
-    String type, subject, actions;
+    String type;
+    String subject;
+    String actions;
     if (components.get(0).equals("default")) {
       type = components.get(1);
       subject = "";
@@ -450,8 +462,9 @@ public final class AclEntry {
     }
 
     /**
-     * Set this AclEntry to be for default ACL
-     * @param
+     * Set this AclEntry to be for default ACL.
+     * @param isDefault whether this entry is default
+     * @return the builder
      */
     public Builder setDefaultEntry(boolean isDefault) {
       mDefaultEntry = isDefault;

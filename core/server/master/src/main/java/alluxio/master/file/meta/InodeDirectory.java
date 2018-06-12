@@ -21,14 +21,11 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
-import alluxio.security.authorization.AclEntry;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
 
-import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -240,9 +237,10 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   @Nullable
   @Override
   public AccessControlList getDefaultACL() {
-     return mDefaultAcl;
+    return mDefaultAcl;
   }
 
+  @Override
   public void setDefaultACL(AccessControlList acl) {
     mDefaultAcl = acl;
   }
@@ -277,8 +275,9 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setMountPoint(isMountPoint());
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
     ret.setAclEntries(mAcl.toStringEntries());
-    if (mDefaultAcl != null)
+    if (mDefaultAcl != null) {
       ret.setDefaultAclEntries(mDefaultAcl.toStringEntries());
+    }
     return ret;
   }
 

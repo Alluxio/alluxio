@@ -1,12 +1,29 @@
-package alluxio.security.authorization;
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
 
+package alluxio.security.authorization;
 
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Default Access control list for a directory.
+ */
 public class DefaultAccessControlList extends AccessControlList {
   private AccessControlList mAccessAcl;
 
+  /**
+   * Constructor to build a default ACL based on an access ACL.
+   * @param acl the access acl
+   */
   public  DefaultAccessControlList(AccessControlList acl) {
     super();
     mAccessAcl = acl;
@@ -17,12 +34,14 @@ public class DefaultAccessControlList extends AccessControlList {
     mOtherActions = new AclActions(acl.mOtherActions);
   }
 
-  public void fillDefault() {
+  private void fillDefault() {
     if (mUserActions.get(OWNING_USER_KEY) == null) {
-      mUserActions.put(OWNING_USER_KEY, new AclActions(mAccessAcl.mUserActions.get(OWNING_USER_KEY)));
+      mUserActions.put(OWNING_USER_KEY,
+          new AclActions(mAccessAcl.mUserActions.get(OWNING_USER_KEY)));
     }
     if (mGroupActions.get(OWNING_GROUP_KEY) == null) {
-      mGroupActions.put(OWNING_GROUP_KEY, new AclActions(mAccessAcl.mGroupActions.get(OWNING_GROUP_KEY)));
+      mGroupActions.put(OWNING_GROUP_KEY,
+          new AclActions(mAccessAcl.mGroupActions.get(OWNING_GROUP_KEY)));
     }
     if (mOtherActions == null) {
       mOtherActions = new AclActions(mAccessAcl.mOtherActions);
@@ -34,6 +53,7 @@ public class DefaultAccessControlList extends AccessControlList {
    *
    * @param entry the entry to be removed
    */
+  @Override
   public void removeEntry(AclEntry entry) throws IOException {
     switch (entry.getType()) {
       case NAMED_USER:
@@ -68,6 +88,13 @@ public class DefaultAccessControlList extends AccessControlList {
     }
   }
 
+  /**
+   * Returns a list of {@link AclEntry} which represent this ACL instance. The mask will only be
+   * included if extended ACL entries exist.
+   *
+   * @return an immutable list of ACL entries
+   */
+  @Override
   public List<AclEntry> getEntries() {
     List<AclEntry> aclEntryList = super.getEntries();
     for (AclEntry entry : aclEntryList) {
@@ -75,5 +102,4 @@ public class DefaultAccessControlList extends AccessControlList {
     }
     return aclEntryList;
   }
-
 }

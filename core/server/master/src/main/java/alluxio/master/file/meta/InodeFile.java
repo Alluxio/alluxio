@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.naming.OperationNotSupportedException;
 
 /**
  * Alluxio file system's file representation in the file system master. The inode must be locked

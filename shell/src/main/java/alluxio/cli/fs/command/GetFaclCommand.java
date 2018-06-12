@@ -21,6 +21,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -50,6 +51,12 @@ public final class GetFaclCommand extends AbstractFileSystemCommand {
     System.out.println("# group: " + status.getGroup());
     for (String entry : status.getAclEntries()) {
       System.out.println(entry);
+    }
+    List<String> defaultAclEntries = status.getDefaultAclEntries();
+    if (defaultAclEntries != null) {
+      for (String entry: defaultAclEntries) {
+        System.out.println(entry);
+      }
     }
   }
 

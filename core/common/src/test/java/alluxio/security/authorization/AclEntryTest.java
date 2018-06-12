@@ -77,8 +77,8 @@ public class AclEntryTest {
     checkCliString("default:user:a:rwx");
     checkCliString("default:group::r--");
     checkCliString("default:group:b:-w-");
-    checkCliString( "default:mask::--x");
-    checkCliString( "default:other::---");
+    checkCliString("default:mask::--x");
+    checkCliString("default:other::---");
   }
 
   @Test
