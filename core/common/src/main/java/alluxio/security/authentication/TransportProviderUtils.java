@@ -16,6 +16,9 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.User;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -27,6 +30,7 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class TransportProviderUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(TransportProviderUtils.class);
 
   /**
    * @param subject the subject to use (can be null)
@@ -40,6 +44,7 @@ public final class TransportProviderUtils {
     if (subject != null) {
       // The HDFS client uses the subject to pass in the user
       Set<User> user = subject.getPrincipals(User.class);
+      LOG.debug("Impersonation: subject: {}", subject);
       if (user != null && !user.isEmpty()) {
         hdfsUser = user.iterator().next().getName();
       }
@@ -47,7 +52,7 @@ public final class TransportProviderUtils {
 
     // Determine the impersonation user
     String impersonationUser = null;
-    if (Configuration.containsKey(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)) {
+    if (Configuration.isSet(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)) {
       impersonationUser = Configuration.get(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME);
       if (Constants.IMPERSONATION_HDFS_USER.equals(impersonationUser)) {
         // Impersonate as the hdfs client user
@@ -57,6 +62,7 @@ public final class TransportProviderUtils {
         impersonationUser = null;
       }
     }
+    LOG.debug("Impersonation: hdfsUser: {} impersonationUser: {}", hdfsUser, impersonationUser);
     return impersonationUser;
   }
 

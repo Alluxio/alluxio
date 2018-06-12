@@ -14,12 +14,8 @@ package alluxio.master.metrics;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.clock.ManualClock;
-import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
-import alluxio.master.SafeModeManager;
-import alluxio.master.TestSafeModeManager;
-import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.MasterTestUtils;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
@@ -42,21 +38,17 @@ import java.util.concurrent.Executors;
 public class MetricsMasterTest {
   private DefaultMetricsMaster mMetricsMaster;
   private MasterRegistry mRegistry;
-  private SafeModeManager mSafeModeManager;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
 
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new TestSafeModeManager();
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestMetricsMaster-%d", true));
-    JournalSystem journalSystem = new NoopJournalSystem();
-    mMetricsMaster =
-        new DefaultMetricsMaster(new MasterContext(journalSystem, mSafeModeManager),
-            mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mMetricsMaster = new DefaultMetricsMaster(MasterTestUtils.testMasterContext(), mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mRegistry.start(true);
   }

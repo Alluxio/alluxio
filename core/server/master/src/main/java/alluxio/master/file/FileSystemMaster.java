@@ -331,7 +331,7 @@ public interface FileSystemMaster extends Master {
   // into RuntimeException on the client.
   void free(AlluxioURI path, FreeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      UnexpectedAlluxioException, UnavailableException;
+      UnexpectedAlluxioException, IOException;
 
   /**
    * Gets the path of a file with the given id.
@@ -446,7 +446,7 @@ public interface FileSystemMaster extends Master {
   // TODO(binfan): Add permission checking for internal APIs
   void resetFile(long fileId)
       throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException, UnavailableException;
+      AccessControlException, IOException;
 
   /**
    * Sets the file attribute.

@@ -89,7 +89,7 @@ public final class FileSystemContext implements Closeable {
   private MetricsMasterClient mMetricsMasterClient;
   private ClientMasterSync mClientMasterSync;
 
-  private final long mId;
+  private final String mAppId;
 
   // The netty data server channel pools.
   private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
@@ -165,11 +165,11 @@ public final class FileSystemContext implements Closeable {
     mParentSubject = subject;
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
-    mId = IdUtils.createFileSystemContextId();
-    LOG.info("Created filesystem context with id {}."
-        + " This ID will be used for identifying the information "
-        + "aggregated by the master, such as metrics",
-        mId);
+    mAppId = Configuration.containsKey(PropertyKey.USER_APP_ID)
+        ? Configuration.get(PropertyKey.USER_APP_ID) : IdUtils.createFileSystemContextId();
+    LOG.info("Created filesystem context with id {}. This ID will be used for identifying info "
+        + "from the client, such as metrics. It can be set manually through the {} property",
+        mAppId, PropertyKey.Name.USER_APP_ID);
     mClosed = new AtomicBoolean(false);
   }
 
@@ -246,8 +246,8 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return the unique id of the context
    */
-  public long getId() {
-    return mId;
+  public String getId() {
+    return mAppId;
   }
 
   /**
@@ -263,6 +263,13 @@ public final class FileSystemContext implements Closeable {
    */
   public synchronized InetSocketAddress getMasterAddress() throws UnavailableException {
     return mMasterInquireClient.getPrimaryRpcAddress();
+  }
+
+  /**
+   * @return the master inquire client
+   */
+  public synchronized MasterInquireClient getMasterInquireClient() {
+    return mMasterInquireClient;
   }
 
   /**

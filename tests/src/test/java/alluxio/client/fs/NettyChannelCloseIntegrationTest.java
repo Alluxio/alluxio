@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.client.file.FileSystemContext;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -22,7 +23,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-public final class NettyChannelCloseIntegrationTest {
+public final class NettyChannelCloseIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder().build();

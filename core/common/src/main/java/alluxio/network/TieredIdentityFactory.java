@@ -85,7 +85,7 @@ public final class TieredIdentityFactory {
         value = scriptTier.getValue();
       }
       // Explicit configuration overrides script output.
-      if (Configuration.containsKey(Template.LOCALITY_TIER.format(tierName))) {
+      if (Configuration.isSet(Template.LOCALITY_TIER.format(tierName))) {
         value = Configuration.get(Template.LOCALITY_TIER.format(tierName));
       }
       tiers.add(new LocalityTier(tierName, value));

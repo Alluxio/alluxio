@@ -50,7 +50,7 @@ public final class UnderFileSystemConfiguration {
    */
   public boolean containsKey(PropertyKey key) {
     return (mUfsConf != null && mUfsConf.containsKey(key.toString()))
-        || Configuration.containsKey(key);
+        || Configuration.isSet(key);
   }
 
   /**
@@ -65,7 +65,7 @@ public final class UnderFileSystemConfiguration {
     if (mUfsConf != null && mUfsConf.containsKey(key.toString())) {
       return mUfsConf.get(key.toString());
     }
-    if (Configuration.containsKey(key)) {
+    if (Configuration.isSet(key)) {
       return Configuration.get(key);
     }
     throw new RuntimeException("key " + key + " not found");

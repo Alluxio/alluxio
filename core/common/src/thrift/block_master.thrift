@@ -155,7 +155,10 @@ struct GetWorkerIdTResponse {
   1: i64 workerId
 }
 
-struct RegisterWorkerTOptions {}
+struct RegisterWorkerTOptions {
+  1: optional list<common.ConfigProperty> configList
+}
+
 struct RegisterWorkerTResponse {}
 
 /**

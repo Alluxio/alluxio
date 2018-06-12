@@ -37,8 +37,8 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
+import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
-import alluxio.master.TestSafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.PersistenceState;
@@ -57,7 +57,6 @@ import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -66,6 +65,7 @@ import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.thrift.UfsInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -136,6 +136,8 @@ public final class FileSystemMasterTest {
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
   private SafeModeManager mSafeModeManager;
+  private long mStartTimeMs;
+  private int mPort;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
   private long mWorkerId1;
@@ -1920,7 +1922,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#workerHeartbeat(long, List)} method.
+   * Tests the {@link FileSystemMaster#workerHeartbeat} method.
    */
   @Test
   public void workerHeartbeat() throws Exception {
@@ -2110,21 +2112,19 @@ public final class FileSystemMasterTest {
 
   private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new TestSafeModeManager();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
+    MasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem);
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
-    mBlockMaster =
-        new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
-    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster,
-        new MasterContext(mJournalSystem, mSafeModeManager),
+    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();
-    mJournalSystem.setMode(Mode.PRIMARY);
+    mJournalSystem.gainPrimacy();
     mRegistry.start(true);
 
     // set up workers
@@ -2133,13 +2133,13 @@ public final class FileSystemMasterTest {
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>());
+        new HashMap<String, List<Long>>(), new RegisterWorkerTOptions());
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>());
+        new HashMap<String, List<Long>>(), new RegisterWorkerTOptions());
   }
 
   private void stopServices() throws Exception {

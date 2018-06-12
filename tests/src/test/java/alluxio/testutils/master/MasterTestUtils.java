@@ -11,9 +11,13 @@
 
 package alluxio.testutils.master;
 
+import static org.mockito.Mockito.mock;
+
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.master.BackupManager;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.TestSafeModeManager;
@@ -22,7 +26,6 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.file.StartupConsistencyCheck.Status;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.util.CommonUtils;
@@ -64,12 +67,18 @@ public class MasterTestUtils {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
     SafeModeManager safeModeManager = new TestSafeModeManager();
+    long startTimeMs = System.currentTimeMillis();
+    int port = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
-    new MetricsMasterFactory().create(registry, journalSystem, safeModeManager);
-    new BlockMasterFactory().create(registry, journalSystem, safeModeManager);
-    new FileSystemMasterFactory().create(registry, journalSystem, safeModeManager);
+    MasterContext masterContext = new MasterContext(journalSystem, safeModeManager,
+        mock(BackupManager.class), startTimeMs, port);
+    new MetricsMasterFactory().create(registry, masterContext);
+    new BlockMasterFactory().create(registry, masterContext);
+    new FileSystemMasterFactory().create(registry, masterContext);
     journalSystem.start();
-    journalSystem.setMode(isLeader ? Mode.PRIMARY : Mode.SECONDARY);
+    if (isLeader) {
+      journalSystem.gainPrimacy();
+    }
     registry.start(isLeader);
     return registry;
   }

@@ -42,9 +42,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -71,18 +73,13 @@ public interface FileSystem {
 
     public static FileSystem get(FileSystemContext context) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
-        // Store properties in tree map to keep output ordered
-        Map<String, String> keyValueSet = new TreeMap<>(Configuration.toMap());
-        for (Map.Entry<String, String> entry : keyValueSet.entrySet()) {
-          String key = entry.getKey();
-          String value = entry.getValue();
-          Source source = Configuration.getSource(PropertyKey.fromString(key));
-          if (source == Source.SITE_PROPERTY) {
-            LOG.debug("{}={} ({}: {})",
-                key, value, source.name(), Configuration.getSitePropertiesFile());
-          } else {
-            LOG.debug("{}={} ({})", key, value, source.name());
-          }
+        // Sort properties by name to keep output ordered.
+        List<PropertyKey> keys = new ArrayList<>(Configuration.keySet());
+        Collections.sort(keys, Comparator.comparing(PropertyKey::getName));
+        for (PropertyKey key : keys) {
+          String value = Configuration.getOrDefault(key, null);
+          Source source = Configuration.getSource(key);
+          LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
       if (Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED)) {

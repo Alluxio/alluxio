@@ -450,6 +450,13 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
   }
 
+  /**
+   * @return the next sequence number to write
+   */
+  public synchronized long getNextSequenceNumber() {
+    return mNextSequenceNumber;
+  }
+
   @VisibleForTesting
   synchronized JournalOutputStream getJournalOutputStream() {
     return mJournalOutputStream;

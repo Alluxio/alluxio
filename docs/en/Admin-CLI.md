@@ -37,6 +37,26 @@ UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
 
 ## Example Use Cases
 
+### backup
+
+The `backup` command creates a backup of Alluxio metadata.
+
+Back up to the default backup folder (configured by `alluxio.master.backup.directory`)
+```
+$ ./bin/alluxio fsadmin backup
+Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
+```
+Back up to a specific directory in the under storage.
+```
+$ ./bin/alluxio fsadmin backup /alluxio/special_backups
+Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
+```
+Back up to a specific directory on the primary master's local filesystem.
+```
+$ ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
+Successfully backed up journal to file:///opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
+```
+
 ### report
 
 The `report` command provides Alluxio running cluster information. 
