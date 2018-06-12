@@ -332,6 +332,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
           int idx = path.lastIndexOf("/@");
           if (idx >= 0) {
               path = path.substring(0, idx);
+              if (path.equals("")) path = "/";
               turi = MetaCache.getURI(path);
               if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
           } else {
@@ -588,6 +589,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
           if (idx >= 0) {
               String dbg_txt = path.substring(idx).replace("/@", "");
               path = path.substring(0, idx);
+              if (path.equals("")) path = "/";
               if (dbg_txt.equals("f")) {
                 options.setLoadMetadataType(LoadMetadataType.Always);
               } else {
