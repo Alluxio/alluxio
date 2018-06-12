@@ -2458,6 +2458,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_APP_ID =
+      new Builder(Name.USER_APP_ID)
+          .setScope(Scope.CLIENT)
+          .setDescription("The custom id to use for labeling this client's info, such as metrics. "
+              + "If unset, a random long will be used. This value is displayed in the client logs "
+              + "on initialization. Note that using the same app id will cause client info to be "
+              + "aggregated, so different applications must set their own ids or leave this value "
+              + "unset to use a randomly generated id.")
+          .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
           .setDescription("Type of netty channels.")
@@ -3401,6 +3410,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.metrics.collection.enabled";
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
         "alluxio.user.metrics.heartbeat.interval";
+    public static final String USER_APP_ID = "alluxio.user.app.id";
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
     public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
         "alluxio.user.network.netty.timeout";
