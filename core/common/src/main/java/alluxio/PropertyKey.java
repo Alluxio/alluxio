@@ -1175,20 +1175,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.MASTER)
       .build();
-  /**
-   * @deprecated since version 1.4 and will be removed in version 2.0.
-   */
-  @Deprecated
-  public static final PropertyKey MASTER_RETRY =
-      new Builder(Name.MASTER_RETRY)
-          .setDefaultValue(String.format("${%s}", Name.USER_RPC_RETRY_MAX_NUM_RETRY))
-          .setDescription(String.format(
-              "The number of retries that the client connects to master. (NOTE: "
-                  + "this property is deprecated, use `%s` instead).",
-              Name.USER_RPC_RETRY_MAX_NUM_RETRY))
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_RPC_PORT =
       new Builder(Name.MASTER_RPC_PORT)
           .setDefaultValue(19998)
@@ -2571,12 +2557,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "an exponential backoff. This property determines the maximum duration to retry for"
               + " before giving up.")
           .build();
+  /**
+   * @deprecated since version 1.8 and will be removed in version 2.0.
+   */
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       new Builder(Name.USER_RPC_RETRY_MAX_NUM_RETRY)
+          .setAlias(new String[]{Name.MASTER_RETRY})
           .setDefaultValue(100)
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum number of "
-              + "retries.")
+              + "retries. This property has been deprecated and please use time based retry with"
+              + Name.USER_RPC_RETRY_MAX_DURATION)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
