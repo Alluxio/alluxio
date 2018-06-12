@@ -36,6 +36,7 @@ import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.Mode;
+import alluxio.security.group.GroupMappingService;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
@@ -44,19 +45,26 @@ import alluxio.util.io.FileUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -77,6 +85,10 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   private static final String NEW_FILE = "/file_new";
   private static final String NEW_NESTED_FILE = "/a/b/file_new";
 
+  private static final HashMap<String, String> GROUPS = new HashMap<>();
+  private static final String DIFFERENT_USER = "different_user";
+  private static final String DIFFERENT_GROUP = "different_group";
+
   private FileSystem mFileSystem;
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 
@@ -85,7 +97,9 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+              CustomGroupMapping.class.getName()).build();
 
   @After
   public void after() throws Exception {
@@ -99,6 +113,11 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     new File(ufsPath(EXISTING_DIR)).mkdirs();
     writeUfsFile(ufsPath(EXISTING_FILE), 1);
+  }
+
+  @BeforeClass
+  public static void beforeClass() {
+    GROUPS.put(DIFFERENT_USER, DIFFERENT_GROUP);
   }
 
   @Test
@@ -612,6 +631,71 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA))));
   }
 
+  @Test
+  public void inheritParentPermissions() throws Exception {
+    new File(ufsPath("/dir1")).mkdirs();
+    new File(ufsPath("/dir1/dir2")).mkdirs();
+    String file = "/dir1/dir2/file";
+    writeUfsFile(ufsPath(file), 1);
+
+    GetStatusOptions options =
+        GetStatusOptions.defaults().setCommonOptions(new CommonOptions(SYNC_ALWAYS));
+    options.getCommonOptions().setInheritParentPermissions(false);
+
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(file)), options);
+
+    // The alluxio permissions
+    String owner = status.getOwner();
+    String group = status.getGroup();
+    short mode = (short) status.getMode();
+
+    // The ufs permissions
+    PosixFileAttributes attrs = java.nio.file.Files
+        .getFileAttributeView(new File(ufsPath(file)).toPath(), PosixFileAttributeView.class)
+        .readAttributes();
+
+    // Alluxio and UFS permissions will match
+    Assert.assertEquals(attrs.owner().getName(), owner);
+    Assert.assertEquals(attrs.group().getName(), group);
+    Assert.assertEquals(PosixFilePermissions.toString(attrs.permissions()),
+        new Mode(mode).toString());
+
+    // Delete only from Alluxio
+    mFileSystem.delete(new AlluxioURI(alluxioPath("/dir1")),
+        DeleteOptions.defaults().setAlluxioOnly(true).setRecursive(true));
+
+    // Create the first directory as MUST_CACHE, so
+    mFileSystem.createDirectory(new AlluxioURI(alluxioPath("/dir1")),
+        CreateDirectoryOptions.defaults().setWriteType(WriteType.MUST_CACHE));
+
+    // change the owner, group, and mode of the root
+    Mode newMode = new Mode(mode);
+    newMode.fromShort((short) 777);
+    if (newMode.toShort() == mode) {
+      newMode.fromShort((short) 755);
+    }
+
+    mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
+        SetAttributeOptions.defaults().setOwner(DIFFERENT_USER).setGroup(DIFFERENT_GROUP)
+            .setMode(newMode));
+
+    options.getCommonOptions().setInheritParentPermissions(true);
+    status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(file)), options);
+    Assert.assertEquals(DIFFERENT_USER, status.getOwner());
+    Assert.assertEquals(DIFFERENT_GROUP, status.getGroup());
+    Assert.assertEquals(new Mode(newMode).applyFileUMask().toString(),
+        new Mode((short) status.getMode()).toString());
+
+    options = GetStatusOptions.defaults().setCommonOptions(new CommonOptions(SYNC_NEVER));
+    options.getCommonOptions().setInheritParentPermissions(true);
+    status = mFileSystem.getStatus(new AlluxioURI(alluxioPath("/dir1/dir2")), options);
+    Assert.assertEquals(DIFFERENT_USER, status.getOwner());
+    Assert.assertEquals(DIFFERENT_GROUP, status.getGroup());
+    Assert.assertEquals(newMode.toString(),
+        new Mode((short) status.getMode()).toString());
+
+  }
+
   private String ufsPath(String path) {
     return mLocalUfsPath + path;
   }
@@ -710,6 +794,20 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     ufsFiles.removeAll(alluxioFiles);
     if (!ufsFiles.isEmpty()) {
       Assert.fail("UFS files are missing from Alluxio: " + ufsFiles);
+    }
+  }
+
+  public static class CustomGroupMapping implements GroupMappingService {
+    public CustomGroupMapping() {
+    }
+
+    @Override
+    public List<String> getGroups(String user) throws IOException {
+      if (GROUPS.containsKey(user)) {
+        return Lists.newArrayList(GROUPS.get(user).split(","));
+      }
+      List<String> groups = CommonUtils.getUnixGroups(user);
+      return new ArrayList<>(new LinkedHashSet<>(groups));
     }
   }
 }

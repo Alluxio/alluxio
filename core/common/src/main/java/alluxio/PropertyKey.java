@@ -2283,6 +2283,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "before attempting to delete persisted directories recursively.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_INHERIT_PARENT_PERMISSIONS =
+      new Builder(Name.USER_FILE_INHERIT_PARENT_PERMISSIONS)
+          .setDefaultValue(false).setDescription("If true, new files and directories will inherit "
+              + "the permissions of its parent directory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_THREADS =
       new Builder(Name.USER_FILE_MASTER_CLIENT_THREADS)
           .setDefaultValue(10)
@@ -3377,6 +3384,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.copyfromlocal.write.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
+    public static final String USER_FILE_INHERIT_PARENT_PERMISSIONS =
+        "alluxio.user.file.inherit.parent.permissions";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =
         "alluxio.user.file.master.client.threads";
     public static final String USER_FILE_METADATA_LOAD_TYPE =

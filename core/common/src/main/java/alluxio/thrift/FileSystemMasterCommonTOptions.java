@@ -39,6 +39,7 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("FileSystemMasterCommonTOptions");
 
   private static final org.apache.thrift.protocol.TField SYNC_INTERVAL_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("syncIntervalMs", org.apache.thrift.protocol.TType.I64, (short)1);
+  private static final org.apache.thrift.protocol.TField INHERIT_PARENT_PERMISSIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("inheritParentPermissions", org.apache.thrift.protocol.TType.BOOL, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,10 +48,12 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
   }
 
   private long syncIntervalMs; // optional
+  private boolean inheritParentPermissions; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    SYNC_INTERVAL_MS((short)1, "syncIntervalMs");
+    SYNC_INTERVAL_MS((short)1, "syncIntervalMs"),
+    INHERIT_PARENT_PERMISSIONS((short)2, "inheritParentPermissions");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -67,6 +70,8 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
       switch(fieldId) {
         case 1: // SYNC_INTERVAL_MS
           return SYNC_INTERVAL_MS;
+        case 2: // INHERIT_PARENT_PERMISSIONS
+          return INHERIT_PARENT_PERMISSIONS;
         default:
           return null;
       }
@@ -108,13 +113,16 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
 
   // isset id assignments
   private static final int __SYNCINTERVALMS_ISSET_ID = 0;
+  private static final int __INHERITPARENTPERMISSIONS_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.SYNC_INTERVAL_MS};
+  private static final _Fields optionals[] = {_Fields.SYNC_INTERVAL_MS,_Fields.INHERIT_PARENT_PERMISSIONS};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.SYNC_INTERVAL_MS, new org.apache.thrift.meta_data.FieldMetaData("syncIntervalMs", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.INHERIT_PARENT_PERMISSIONS, new org.apache.thrift.meta_data.FieldMetaData("inheritParentPermissions", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileSystemMasterCommonTOptions.class, metaDataMap);
   }
@@ -128,6 +136,7 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
   public FileSystemMasterCommonTOptions(FileSystemMasterCommonTOptions other) {
     __isset_bitfield = other.__isset_bitfield;
     this.syncIntervalMs = other.syncIntervalMs;
+    this.inheritParentPermissions = other.inheritParentPermissions;
   }
 
   public FileSystemMasterCommonTOptions deepCopy() {
@@ -138,6 +147,8 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
   public void clear() {
     setSyncIntervalMsIsSet(false);
     this.syncIntervalMs = 0;
+    setInheritParentPermissionsIsSet(false);
+    this.inheritParentPermissions = false;
   }
 
   public long getSyncIntervalMs() {
@@ -163,6 +174,29 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SYNCINTERVALMS_ISSET_ID, value);
   }
 
+  public boolean isInheritParentPermissions() {
+    return this.inheritParentPermissions;
+  }
+
+  public FileSystemMasterCommonTOptions setInheritParentPermissions(boolean inheritParentPermissions) {
+    this.inheritParentPermissions = inheritParentPermissions;
+    setInheritParentPermissionsIsSet(true);
+    return this;
+  }
+
+  public void unsetInheritParentPermissions() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __INHERITPARENTPERMISSIONS_ISSET_ID);
+  }
+
+  /** Returns true if field inheritParentPermissions is set (has been assigned a value) and false otherwise */
+  public boolean isSetInheritParentPermissions() {
+    return EncodingUtils.testBit(__isset_bitfield, __INHERITPARENTPERMISSIONS_ISSET_ID);
+  }
+
+  public void setInheritParentPermissionsIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __INHERITPARENTPERMISSIONS_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case SYNC_INTERVAL_MS:
@@ -173,6 +207,14 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
       }
       break;
 
+    case INHERIT_PARENT_PERMISSIONS:
+      if (value == null) {
+        unsetInheritParentPermissions();
+      } else {
+        setInheritParentPermissions((Boolean)value);
+      }
+      break;
+
     }
   }
 
@@ -180,6 +222,9 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     switch (field) {
     case SYNC_INTERVAL_MS:
       return getSyncIntervalMs();
+
+    case INHERIT_PARENT_PERMISSIONS:
+      return isInheritParentPermissions();
 
     }
     throw new IllegalStateException();
@@ -194,6 +239,8 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     switch (field) {
     case SYNC_INTERVAL_MS:
       return isSetSyncIntervalMs();
+    case INHERIT_PARENT_PERMISSIONS:
+      return isSetInheritParentPermissions();
     }
     throw new IllegalStateException();
   }
@@ -220,6 +267,15 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
         return false;
     }
 
+    boolean this_present_inheritParentPermissions = true && this.isSetInheritParentPermissions();
+    boolean that_present_inheritParentPermissions = true && that.isSetInheritParentPermissions();
+    if (this_present_inheritParentPermissions || that_present_inheritParentPermissions) {
+      if (!(this_present_inheritParentPermissions && that_present_inheritParentPermissions))
+        return false;
+      if (this.inheritParentPermissions != that.inheritParentPermissions)
+        return false;
+    }
+
     return true;
   }
 
@@ -231,6 +287,11 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     list.add(present_syncIntervalMs);
     if (present_syncIntervalMs)
       list.add(syncIntervalMs);
+
+    boolean present_inheritParentPermissions = true && (isSetInheritParentPermissions());
+    list.add(present_inheritParentPermissions);
+    if (present_inheritParentPermissions)
+      list.add(inheritParentPermissions);
 
     return list.hashCode();
   }
@@ -249,6 +310,16 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     }
     if (isSetSyncIntervalMs()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.syncIntervalMs, other.syncIntervalMs);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetInheritParentPermissions()).compareTo(other.isSetInheritParentPermissions());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetInheritParentPermissions()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.inheritParentPermissions, other.inheritParentPermissions);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -276,6 +347,12 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     if (isSetSyncIntervalMs()) {
       sb.append("syncIntervalMs:");
       sb.append(this.syncIntervalMs);
+      first = false;
+    }
+    if (isSetInheritParentPermissions()) {
+      if (!first) sb.append(", ");
+      sb.append("inheritParentPermissions:");
+      sb.append(this.inheritParentPermissions);
       first = false;
     }
     sb.append(")");
@@ -331,6 +408,14 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 2: // INHERIT_PARENT_PERMISSIONS
+            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+              struct.inheritParentPermissions = iprot.readBool();
+              struct.setInheritParentPermissionsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -349,6 +434,11 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
       if (struct.isSetSyncIntervalMs()) {
         oprot.writeFieldBegin(SYNC_INTERVAL_MS_FIELD_DESC);
         oprot.writeI64(struct.syncIntervalMs);
+        oprot.writeFieldEnd();
+      }
+      if (struct.isSetInheritParentPermissions()) {
+        oprot.writeFieldBegin(INHERIT_PARENT_PERMISSIONS_FIELD_DESC);
+        oprot.writeBool(struct.inheritParentPermissions);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -372,19 +462,29 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
       if (struct.isSetSyncIntervalMs()) {
         optionals.set(0);
       }
-      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetInheritParentPermissions()) {
+        optionals.set(1);
+      }
+      oprot.writeBitSet(optionals, 2);
       if (struct.isSetSyncIntervalMs()) {
         oprot.writeI64(struct.syncIntervalMs);
+      }
+      if (struct.isSetInheritParentPermissions()) {
+        oprot.writeBool(struct.inheritParentPermissions);
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, FileSystemMasterCommonTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(1);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
         struct.syncIntervalMs = iprot.readI64();
         struct.setSyncIntervalMsIsSet(true);
+      }
+      if (incoming.get(1)) {
+        struct.inheritParentPermissions = iprot.readBool();
+        struct.setInheritParentPermissionsIsSet(true);
       }
     }
   }

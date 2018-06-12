@@ -35,6 +35,7 @@ public abstract class CreatePathOptions<T> {
   // TODO(peis): Rename this to mCreateAncestors.
   protected boolean mRecursive;
   protected boolean mMetadataLoad;
+  protected boolean mInheritParentPermissions;
 
   protected CreatePathOptions() {
     mCommonOptions = CommonOptions.defaults();
@@ -46,6 +47,7 @@ public abstract class CreatePathOptions<T> {
     mPersisted = false;
     mRecursive = false;
     mMetadataLoad = false;
+    mInheritParentPermissions = false;
   }
 
   protected abstract T getThis();
@@ -90,6 +92,13 @@ public abstract class CreatePathOptions<T> {
    */
   public Mode getMode() {
     return mMode;
+  }
+
+  /**
+   * @return true if parent permissions should be inherited
+   */
+  public boolean isInheritParentPermissions() {
+    return mInheritParentPermissions;
   }
 
   /**
@@ -161,6 +170,15 @@ public abstract class CreatePathOptions<T> {
   }
 
   /**
+   * @param inheritParentPermissions the inherit parent permissions flag to use
+   * @return the updated options object
+   */
+  public T setInheritParentPermissions(boolean inheritParentPermissions) {
+    mInheritParentPermissions = inheritParentPermissions;
+    return getThis();
+  }
+
+  /**
    * @param mode the mode to use
    * @return the updated options object
    */
@@ -213,6 +231,7 @@ public abstract class CreatePathOptions<T> {
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode)
+        && Objects.equal(mInheritParentPermissions, that.mInheritParentPermissions)
         && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mMetadataLoad, that.mMetadataLoad)
@@ -223,7 +242,7 @@ public abstract class CreatePathOptions<T> {
   public int hashCode() {
     return Objects
         .hashCode(mMountPoint, mOwner, mGroup, mMode, mPersisted, mRecursive, mMetadataLoad,
-            mOperationTimeMs, mCommonOptions);
+            mOperationTimeMs, mCommonOptions, mInheritParentPermissions);
   }
 
   protected Objects.ToStringHelper toStringHelper() {
@@ -234,6 +253,7 @@ public abstract class CreatePathOptions<T> {
         .add("owner", mOwner)
         .add("group", mGroup)
         .add("mode", mMode)
+        .add("inheritParentPermissions", mInheritParentPermissions)
         .add("persisted", mPersisted)
         .add("recursive", mRecursive)
         .add("metadataLoad", mMetadataLoad);
