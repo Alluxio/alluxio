@@ -70,6 +70,7 @@ public final class Constants {
   // Google Cloud Storage header convention is "gs://".
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
+  public static final String HEADER_COS = "cos://";
 
   public static final int MAX_PORT = 65535;
 
