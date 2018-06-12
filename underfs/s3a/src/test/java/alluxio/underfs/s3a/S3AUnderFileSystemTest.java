@@ -137,8 +137,8 @@ public class S3AUnderFileSystemTest {
   public void createCredentialsFromDefault() throws Exception {
     // Create empty map to unset AWS properties if present
     Map<PropertyKey, String> conf = new HashMap<>();
-    conf.put(PropertyKey.S3A_ACCESS_KEY, "");
-    conf.put(PropertyKey.S3A_SECRET_KEY, "");
+    conf.put(PropertyKey.S3A_ACCESS_KEY, null);
+    conf.put(PropertyKey.S3A_SECRET_KEY, null);
     try (Closeable c = new ConfigurationRule(conf).toResource()) {
       UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults();
       AWSCredentialsProvider credentialsProvider =
