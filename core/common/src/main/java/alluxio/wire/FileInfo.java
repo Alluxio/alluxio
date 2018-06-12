@@ -584,7 +584,9 @@ public final class FileInfo implements Serializable {
         .setUfsFingerprint(info.isSetUfsFingerprint() ? info.getUfsFingerprint()
             : Constants.INVALID_UFS_FINGERPRINT)
         .setAclEntries(info.isSetAcl()
-            ? (AccessControlList.fromThrift(info.getAcl())).toStringEntries() : new ArrayList<>());
+            ? (AccessControlList.fromThrift(info.getAcl())).toStringEntries() : new ArrayList<>())
+        .setDefaultAclEntries(info.isSetDefaultAcl() ?
+            (AccessControlList.fromThrift(info.getDefaultAcl())).toStringEntries() : new ArrayList<>());
   }
 
   @Override
@@ -608,7 +610,8 @@ public final class FileInfo implements Serializable {
         && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
         && mUfsFingerprint.equals(that.mUfsFingerprint)
-        && mAclEntries.equals(that.mAclEntries);
+        && mAclEntries.equals(that.mAclEntries)
+        && mDefaultAclEntries.equals(that.mDefaultAclEntries);
   }
 
   @Override
@@ -617,7 +620,7 @@ public final class FileInfo implements Serializable {
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction, mInAlluxioPercentage,
-        mUfsFingerprint, mAclEntries);
+        mUfsFingerprint, mAclEntries, mDefaultAclEntries);
   }
 
   @Override
@@ -634,6 +637,7 @@ public final class FileInfo implements Serializable {
         .add("mountId", mMountId).add("inAlluxioPercentage", mInAlluxioPercentage)
         .add("ufsFingerprint", mUfsFingerprint)
         .add("aclEntries", mAclEntries)
+        .add("defaultAclEntries", mDefaultAclEntries)
         .toString();
   }
 }

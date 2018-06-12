@@ -40,7 +40,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
 
   private static final org.apache.thrift.protocol.TField COMMON_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("commonOptions", org.apache.thrift.protocol.TType.STRUCT, (short)1);
   private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)2);
-  private static final org.apache.thrift.protocol.TField OPDEFAULT_FIELD_DESC = new org.apache.thrift.protocol.TField("opdefault", org.apache.thrift.protocol.TType.BOOL, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -50,13 +49,11 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
 
   private FileSystemMasterCommonTOptions commonOptions; // optional
   private boolean recursive; // optional
-  private boolean opdefault; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     COMMON_OPTIONS((short)1, "commonOptions"),
-    RECURSIVE((short)2, "recursive"),
-    OPDEFAULT((short)3, "opdefault");
+    RECURSIVE((short)2, "recursive");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -75,8 +72,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
           return COMMON_OPTIONS;
         case 2: // RECURSIVE
           return RECURSIVE;
-        case 3: // OPDEFAULT
-          return OPDEFAULT;
         default:
           return null;
       }
@@ -118,17 +113,14 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
 
   // isset id assignments
   private static final int __RECURSIVE_ISSET_ID = 0;
-  private static final int __OPDEFAULT_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.COMMON_OPTIONS,_Fields.RECURSIVE,_Fields.OPDEFAULT};
+  private static final _Fields optionals[] = {_Fields.COMMON_OPTIONS,_Fields.RECURSIVE};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.COMMON_OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("commonOptions", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemMasterCommonTOptions.class)));
     tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.OPDEFAULT, new org.apache.thrift.meta_data.FieldMetaData("opdefault", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(SetAclTOptions.class, metaDataMap);
@@ -146,7 +138,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
       this.commonOptions = new FileSystemMasterCommonTOptions(other.commonOptions);
     }
     this.recursive = other.recursive;
-    this.opdefault = other.opdefault;
   }
 
   public SetAclTOptions deepCopy() {
@@ -158,8 +149,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
     this.commonOptions = null;
     setRecursiveIsSet(false);
     this.recursive = false;
-    setOpdefaultIsSet(false);
-    this.opdefault = false;
   }
 
   public FileSystemMasterCommonTOptions getCommonOptions() {
@@ -209,29 +198,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RECURSIVE_ISSET_ID, value);
   }
 
-  public boolean isOpdefault() {
-    return this.opdefault;
-  }
-
-  public SetAclTOptions setOpdefault(boolean opdefault) {
-    this.opdefault = opdefault;
-    setOpdefaultIsSet(true);
-    return this;
-  }
-
-  public void unsetOpdefault() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __OPDEFAULT_ISSET_ID);
-  }
-
-  /** Returns true if field opdefault is set (has been assigned a value) and false otherwise */
-  public boolean isSetOpdefault() {
-    return EncodingUtils.testBit(__isset_bitfield, __OPDEFAULT_ISSET_ID);
-  }
-
-  public void setOpdefaultIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __OPDEFAULT_ISSET_ID, value);
-  }
-
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case COMMON_OPTIONS:
@@ -250,14 +216,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
       }
       break;
 
-    case OPDEFAULT:
-      if (value == null) {
-        unsetOpdefault();
-      } else {
-        setOpdefault((Boolean)value);
-      }
-      break;
-
     }
   }
 
@@ -268,9 +226,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
 
     case RECURSIVE:
       return isRecursive();
-
-    case OPDEFAULT:
-      return isOpdefault();
 
     }
     throw new IllegalStateException();
@@ -287,8 +242,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
       return isSetCommonOptions();
     case RECURSIVE:
       return isSetRecursive();
-    case OPDEFAULT:
-      return isSetOpdefault();
     }
     throw new IllegalStateException();
   }
@@ -324,15 +277,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
         return false;
     }
 
-    boolean this_present_opdefault = true && this.isSetOpdefault();
-    boolean that_present_opdefault = true && that.isSetOpdefault();
-    if (this_present_opdefault || that_present_opdefault) {
-      if (!(this_present_opdefault && that_present_opdefault))
-        return false;
-      if (this.opdefault != that.opdefault)
-        return false;
-    }
-
     return true;
   }
 
@@ -349,11 +293,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
     list.add(present_recursive);
     if (present_recursive)
       list.add(recursive);
-
-    boolean present_opdefault = true && (isSetOpdefault());
-    list.add(present_opdefault);
-    if (present_opdefault)
-      list.add(opdefault);
 
     return list.hashCode();
   }
@@ -382,16 +321,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
     }
     if (isSetRecursive()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.recursive, other.recursive);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetOpdefault()).compareTo(other.isSetOpdefault());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetOpdefault()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.opdefault, other.opdefault);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -429,12 +358,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
       if (!first) sb.append(", ");
       sb.append("recursive:");
       sb.append(this.recursive);
-      first = false;
-    }
-    if (isSetOpdefault()) {
-      if (!first) sb.append(", ");
-      sb.append("opdefault:");
-      sb.append(this.opdefault);
       first = false;
     }
     sb.append(")");
@@ -502,14 +425,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // OPDEFAULT
-            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.opdefault = iprot.readBool();
-              struct.setOpdefaultIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -537,11 +452,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
         oprot.writeBool(struct.recursive);
         oprot.writeFieldEnd();
       }
-      if (struct.isSetOpdefault()) {
-        oprot.writeFieldBegin(OPDEFAULT_FIELD_DESC);
-        oprot.writeBool(struct.opdefault);
-        oprot.writeFieldEnd();
-      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -566,25 +476,19 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
       if (struct.isSetRecursive()) {
         optionals.set(1);
       }
-      if (struct.isSetOpdefault()) {
-        optionals.set(2);
-      }
-      oprot.writeBitSet(optionals, 3);
+      oprot.writeBitSet(optionals, 2);
       if (struct.isSetCommonOptions()) {
         struct.commonOptions.write(oprot);
       }
       if (struct.isSetRecursive()) {
         oprot.writeBool(struct.recursive);
       }
-      if (struct.isSetOpdefault()) {
-        oprot.writeBool(struct.opdefault);
-      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, SetAclTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
         struct.commonOptions = new FileSystemMasterCommonTOptions();
         struct.commonOptions.read(iprot);
@@ -593,10 +497,6 @@ public class SetAclTOptions implements org.apache.thrift.TBase<SetAclTOptions, S
       if (incoming.get(1)) {
         struct.recursive = iprot.readBool();
         struct.setRecursiveIsSet(true);
-      }
-      if (incoming.get(2)) {
-        struct.opdefault = iprot.readBool();
-        struct.setOpdefaultIsSet(true);
       }
     }
   }

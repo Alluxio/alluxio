@@ -30,10 +30,13 @@ public final class AclEntry {
    */
   private AclEntryType mType;
 
+  private static String DEFAULT_KEYWORD = "default";
+  private static String DEFAULT_PREFIX = DEFAULT_KEYWORD + ":";
+
   /**
    * Whether this entry applies to default ACL or not.
    */
-  private boolean mDefaultEntry;
+  private boolean mIsDefault;
 
   /**
    * Name of owning user, owning group, named user, named group.
@@ -49,7 +52,7 @@ public final class AclEntry {
     mType = type;
     mSubject = subject;
     mActions = actions;
-    mDefaultEntry = isDefault;
+    mIsDefault = isDefault;
   }
 
   /**
@@ -77,7 +80,7 @@ public final class AclEntry {
    * @return whether the action applies to default ACL
    */
   public boolean isDefault() {
-    return mDefaultEntry;
+    return mIsDefault;
   }
 
   /**
@@ -85,7 +88,7 @@ public final class AclEntry {
    * @param defaultEntry indicating default or not
    */
   public void setDefault(boolean defaultEntry) {
-    mDefaultEntry = defaultEntry;
+    mIsDefault = defaultEntry;
   }
 
   @Override
@@ -100,12 +103,12 @@ public final class AclEntry {
     return Objects.equal(mType, that.mType)
         && Objects.equal(mSubject, that.mSubject)
         && Objects.equal(mActions, that.mActions)
-        && Objects.equal(mDefaultEntry, that.mDefaultEntry);
+        && Objects.equal(mIsDefault, that.mIsDefault);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mType, mSubject, mActions, mDefaultEntry);
+    return Objects.hashCode(mType, mSubject, mActions, mIsDefault);
   }
 
   @Override
@@ -114,7 +117,7 @@ public final class AclEntry {
         .add("type", mType)
         .add("subject", mSubject)
         .add("actions", mActions)
-        .add("defaultEntry", mDefaultEntry)
+        .add("defaultEntry", mIsDefault)
         .toString();
   }
 
@@ -123,8 +126,8 @@ public final class AclEntry {
    */
   public String toCliString() {
     StringBuilder sb = new StringBuilder();
-    if (mDefaultEntry) {
-      sb.append("default:");
+    if (mIsDefault) {
+      sb.append(DEFAULT_PREFIX);
     }
     sb.append(mType.toCliString());
     sb.append(":");
@@ -142,16 +145,16 @@ public final class AclEntry {
    * @param stringEntry normal ACL, if it is already default ACL, then return the default ACL
    * @return a default ACL
    */
-  public static String addDefault(String stringEntry) {
+  public static String toDefault(String stringEntry) {
     if (stringEntry == null) {
       throw new IllegalArgumentException("Input acl string is null");
     }
     List<String> components = Arrays.stream(stringEntry.split(":")).map(String::trim).collect(
         Collectors.toList());
-    if (components != null && components.size() > 0 && components.get(0).equals("default")) {
+    if (components != null && components.size() > 0 && components.get(0).equals(DEFAULT_KEYWORD)) {
       return stringEntry;
     } else {
-      return "default:" + stringEntry;
+      return DEFAULT_PREFIX + stringEntry;
     }
   }
 
@@ -178,14 +181,14 @@ public final class AclEntry {
     List<String> components = Arrays.stream(stringEntry.split(":")).map(String::trim).collect(
         Collectors.toList());
     if (!(components.size() == 3 || (components.size() == 4
-        && components.get(0).equals("default")))) {
+        && components.get(0).equals(DEFAULT_KEYWORD)))) {
       throw new IllegalArgumentException("Unexpected acl components: " + stringEntry);
     }
 
     AclEntry.Builder builder = new AclEntry.Builder();
 
     int startingIndex = 0;
-    if (components.get(0).equals("default")) {
+    if (components.get(0).equals(DEFAULT_KEYWORD)) {
       startingIndex = 1;
       builder.setDefaultEntry(true);
     } else {
@@ -257,7 +260,8 @@ public final class AclEntry {
     }
     List<String> components = Arrays.stream(stringEntry.split(":")).map(String::trim).collect(
         Collectors.toList());
-    if (components.size() < 1 || components.size() > 4) {
+    if (components.size() < 1 || components.size() > 4
+        || (components.size() == 4 && !components.get(0).equals(DEFAULT_KEYWORD))) {
       throw new IllegalArgumentException("Unexpected acl components: " + stringEntry);
     }
 
@@ -265,7 +269,7 @@ public final class AclEntry {
     String type;
     String subject;
     String actions;
-    if (components.get(0).equals("default")) {
+    if (components.get(0).equals(DEFAULT_KEYWORD)) {
       type = components.get(1);
       subject = "";
       if (components.size() >= 3) {
@@ -340,7 +344,7 @@ public final class AclEntry {
     AclEntry.Builder builder = new AclEntry.Builder();
     builder.setType(AclEntryType.fromProto(pEntry.getType()));
     builder.setSubject(pEntry.getSubject());
-    builder.setDefaultEntry(pEntry.getDefaultEntry());
+    builder.setDefaultEntry(pEntry.getIsDefault());
 
     for (File.AclAction pAction : pEntry.getActionsList()) {
       builder.addAction(AclAction.fromProtoBuf(pAction));
@@ -355,7 +359,7 @@ public final class AclEntry {
     File.AclEntry.Builder builder = File.AclEntry.newBuilder();
     builder.setType(mType.toProto());
     builder.setSubject(mSubject);
-    builder.setDefaultEntry(mDefaultEntry);
+    builder.setIsDefault(mIsDefault);
     for (AclAction action : mActions.getActions()) {
       builder.addActions(action.toProtoBuf());
     }
@@ -387,7 +391,7 @@ public final class AclEntry {
     TAclEntry tAclEntry = new TAclEntry();
     tAclEntry.setType(mType.toThrift());
     tAclEntry.setSubject(mSubject);
-    tAclEntry.setDefaultEntry(mDefaultEntry);
+    tAclEntry.setDefaultEntry(mIsDefault);
     for (AclAction action : mActions.getActions()) {
       tAclEntry.addToActions(action.toThrift());
     }

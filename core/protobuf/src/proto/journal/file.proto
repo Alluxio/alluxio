@@ -75,7 +75,7 @@ message AclEntry {
   optional AclEntryType type = 1;
   optional string subject = 2;
   repeated AclAction actions = 3;
-  optional bool defaultEntry = 4;
+  optional bool isDefault = 4;
 }
 
 // AclActions for a String name.

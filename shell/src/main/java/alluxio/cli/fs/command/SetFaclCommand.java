@@ -109,7 +109,7 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
       action = SetAclAction.REPLACE;
       String aclList = cl.getOptionValue(SET_OPTION.getLongOpt());
       if (cl.hasOption(DEFAULT_OPTION.getOpt())) {
-        entries = Arrays.stream(aclList.split(",")).map(AclEntry::addDefault)
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::toDefault)
             .map(AclEntry::fromCliString)
             .collect(Collectors.toList());
       } else {
@@ -122,7 +122,7 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
       action = SetAclAction.MODIFY;
       String aclList = cl.getOptionValue(MODIFY_OPTION.getOpt());
       if (cl.hasOption(DEFAULT_OPTION.getOpt())) {
-        entries = Arrays.stream(aclList.split(",")).map(AclEntry::addDefault)
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::toDefault)
             .map(AclEntry::fromCliString)
             .collect(Collectors.toList());
       } else {
@@ -136,7 +136,7 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
       String aclList = cl.getOptionValue(REMOVE_OPTION.getOpt());
 
       if (cl.hasOption(DEFAULT_OPTION.getOpt())) {
-        entries = Arrays.stream(aclList.split(",")).map(AclEntry::addDefault)
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::toDefault)
             .map(AclEntry::fromCliStringWithoutPermissions)
             .collect(Collectors.toList());
       } else {

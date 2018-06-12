@@ -222,8 +222,8 @@ enum TSetAclAction {
 struct SetAclTOptions {
   1: optional FileSystemMasterCommonTOptions commonOptions
   2: optional bool recursive
-  3: optional bool opdefault
 }
+
 struct SetAclTResponse {}
 
 struct SetAttributeTOptions {

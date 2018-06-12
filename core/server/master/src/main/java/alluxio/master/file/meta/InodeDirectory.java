@@ -21,6 +21,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
@@ -30,6 +31,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.validation.groups.Default;
 
 /**
  * Alluxio file system's directory representation in the file system master. The inode must be
@@ -51,7 +53,11 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
 
   private boolean mDirectChildrenLoaded;
 
-  private AccessControlList mDefaultAcl;
+  /**
+   * A null value in mDefaultAcl is used to indicate no default acl set.
+   * Whenever it is not null, it is guaranteed to have owner, group and other entries.
+   */
+  private DefaultAccessControlList mDefaultAcl;
 
   /**
    * Creates a new instance of {@link InodeDirectory}.
@@ -236,12 +242,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
 
   @Nullable
   @Override
-  public AccessControlList getDefaultACL() {
+  public DefaultAccessControlList getDefaultACL() {
     return mDefaultAcl;
   }
 
   @Override
-  public void setDefaultACL(AccessControlList acl) {
+  public void setDefaultACL(DefaultAccessControlList acl) {
     mDefaultAcl = acl;
   }
 
