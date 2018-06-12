@@ -83,7 +83,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
   public synchronized void heartbeat(final List<Metric> metrics) throws IOException {
     connect();
     try {
-      mClient.metricsHeartbeat(Long.toString(FileSystemContext.get().getId()),
+      mClient.metricsHeartbeat(FileSystemContext.get().getId(),
           NetworkAddressUtils.getClientHostName(), new MetricsHeartbeatTOptions(metrics));
     } catch (AlluxioTException e) {
       throw AlluxioStatusException.fromThrift(e);
