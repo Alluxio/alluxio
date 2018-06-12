@@ -105,10 +105,14 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   @Override
-  public AccessControlList getDefaultACL() throws UnsupportedOperationException{
+  public AccessControlList getDefaultACL() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("File does not have default ACL");
   }
 
+  @Override
+  public void setDefaultACL(AccessControlList acl) throws UnsupportedOperationException {
+    throw new UnsupportedOperationException("File does not have default ACL");
+  }
 
   /**
    * @return a duplication of all the block ids of the file

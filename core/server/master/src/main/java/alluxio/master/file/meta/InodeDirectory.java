@@ -65,7 +65,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     super(id, true);
     mMountPoint = false;
     mDirectChildrenLoaded = false;
-    mDefaultAcl = new AccessControlList();
+    mDefaultAcl = null;
   }
 
   @Override
@@ -237,49 +237,15 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     return getThis();
   }
 
+  @Nullable
   @Override
   public AccessControlList getDefaultACL() {
-    return mDefaultAcl;
+     return mDefaultAcl;
   }
 
-  /**
-   * Sets ACL entries into the internal ACL.
-   * The entries will overwrite any existing correspondent entries in the internal ACL.
-   *
-   * @param entries the ACL entries
-   * @return the updated object
-   */
-  public InodeDirectory setDefaultAcl(List<AclEntry> entries) {
-    for (AclEntry entry : entries) {
-      mDefaultAcl.setEntry(entry);
-    }
-    return getThis();
+  public void setDefaultACL(AccessControlList acl) {
+    mDefaultAcl = acl;
   }
-
-  /**
-   * Removes ACL entries.
-   *
-   * @param entries the ACL entries to remove
-   * @return the updated object
-   */
-  public InodeDirectory removeDefaultAcl(List<AclEntry> entries) throws IOException {
-    for (AclEntry entry : entries) {
-      mDefaultAcl.removeEntry(entry);
-    }
-    return getThis();
-  }
-
-  /**
-   * Replaces all existing ACL entries with a new list of entries.
-   *
-   * @param entries the new list of ACL entries
-   * @return the updated object
-   */
-  public InodeDirectory replaceDefaultAcl(List<AclEntry> entries) {
-    mDefaultAcl.clearEntries();
-    return setDefaultAcl(entries);
-  }
-
 
   /**
    * Generates client file info for a folder.
@@ -311,6 +277,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setMountPoint(isMountPoint());
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
     ret.setAclEntries(mAcl.toStringEntries());
+    if (mDefaultAcl != null)
+      ret.setDefaultAclEntries(mDefaultAcl.toStringEntries());
     return ret;
   }
 

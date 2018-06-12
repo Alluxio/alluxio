@@ -80,6 +80,10 @@ public final class AclEntry {
     return mDefaultEntry;
   }
 
+  public void setDefault(boolean defaultEntry) {
+    mDefaultEntry = defaultEntry;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

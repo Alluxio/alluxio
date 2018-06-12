@@ -48,7 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Also, the access control list contains owning user and owning group of a file or directory.
  */
 @NotThreadSafe
-public final class AccessControlList {
+public class AccessControlList {
   /**
    * Initial capacity for {@link #mUserActions} and {@link #mGroupActions}.
    * Most of the time, only owning user and owning group exists in {@link #mUserActions} and
@@ -58,16 +58,16 @@ public final class AccessControlList {
   /** Initial load factor. */
   private static final int ACTIONS_MAP_INITIAL_LOAD_FACTOR = 1;
   /** Key representing owning user in {@link #mUserActions}. */
-  private static final String OWNING_USER_KEY = "";
+  protected static final String OWNING_USER_KEY = "";
   /** Key representing owning group in {@link #mGroupActions}. */
-  private static final String OWNING_GROUP_KEY = "";
+  protected static final String OWNING_GROUP_KEY = "";
 
-  private String mOwningUser;
-  private String mOwningGroup;
-  private Map<String, AclActions> mUserActions;
-  private Map<String, AclActions> mGroupActions;
-  private AclActions mMaskActions;
-  private AclActions mOtherActions;
+  protected String mOwningUser;
+  protected String mOwningGroup;
+  protected Map<String, AclActions> mUserActions;
+  protected Map<String, AclActions> mGroupActions;
+  protected AclActions mMaskActions;
+  protected AclActions mOtherActions;
 
   /**
    * Creates a new instance where owning user and owning group are initialized to empty strings,
@@ -77,6 +77,14 @@ public final class AccessControlList {
     mOwningUser = "";
     mOwningGroup = "";
     clearEntries();
+  }
+
+  public void initDefaultACL(AccessControlList acl) {
+    mOwningUser = acl.mOwningUser;
+    mOwningGroup = acl.mOwningGroup;
+    mUserActions.put(OWNING_USER_KEY, new AclActions(acl.mUserActions.get(OWNING_USER_KEY)));
+    mGroupActions.put(OWNING_GROUP_KEY, new AclActions(acl.mGroupActions.get(OWNING_GROUP_KEY)));
+    mOtherActions = new AclActions(acl.mOtherActions);
   }
 
   /**

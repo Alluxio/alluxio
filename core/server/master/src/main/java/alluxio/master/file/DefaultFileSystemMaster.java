@@ -3160,7 +3160,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         targetInode.removeExtendedAcl();
         break;
       case REMOVE_DEFAULT:
-        targetInode.getDefaultACL().clearEntries();
+        targetInode.setDefaultACL(null);
         break;
       default:
     }

@@ -1143,13 +1143,23 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
     assertEquals(0, entries.size());
 
-    Set<String> newEntries = Sets.newHashSet("default:user::rwx", "default:group::rwx", "default:other::rwx");
+    // replace
+    Set<String> newEntries = Sets.newHashSet("default:user::rwx", "default:group::rwx", "default:other::r-x");
     mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
 
     entries = Sets.newHashSet(
         mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
-    assertEquals(0, entries.size());
+    assertEquals(newEntries, entries);
+
+    // replace
+    newEntries = Sets.newHashSet("default:user::rw-", "default:group::r--", "default:other::r--");
+    mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+    entries = Sets.newHashSet(
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
+    assertEquals(newEntries, entries);
+
   }
 
   @Test

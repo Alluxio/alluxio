@@ -19,6 +19,7 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -230,7 +231,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   public T removeAcl(List<AclEntry> entries) throws IOException {
     for (AclEntry entry : entries) {
       if (entry.isDefault()){
-        getDefaultACL().removeEntry(entry);
+        AccessControlList defaultAcl = getDefaultACL();
+        if (defaultAcl != null) {
+          defaultAcl.removeEntry(entry);
+        }
       } else {
         mAcl.removeEntry(entry);
       }
@@ -245,7 +249,15 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the updated object
    */
   public T replaceAcl(List<AclEntry> entries) {
-    mAcl.clearEntries();
+    boolean clearACL = false;
+    for (AclEntry entry : entries) {
+      if (!entry.isDefault()) {
+        clearACL = true;
+      }
+    }
+    if (clearACL) {
+      mAcl.clearEntries();
+    }
     return setAcl(entries);
   }
 
@@ -375,6 +387,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   public abstract AccessControlList getDefaultACL() throws UnsupportedOperationException;
+  public abstract void setDefaultACL(AccessControlList acl) throws UnsupportedOperationException;
+
   /**
    * Sets ACL entries into the internal ACL.
    * The entries will overwrite any existing correspondent entries in the internal ACL.
@@ -386,7 +400,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     for (AclEntry entry : entries) {
       if (entry.isDefault()) {
         AccessControlList defaultAcl = getDefaultACL();
-        defaultAcl.setEntry(entry);
+        if (defaultAcl == null) {
+          setDefaultACL(new DefaultAccessControlList(mAcl));
+        }
+        getDefaultACL().setEntry(entry);
       } else {
         mAcl.setEntry(entry);
       }
