@@ -47,6 +47,7 @@ public final class CreateDirectoryOptionsTest {
     assertFalse(options.isRecursive());
     assertEquals(Constants.NO_TTL, options.getTtl());
     assertEquals(TtlAction.DELETE, options.getTtlAction());
+    assertFalse(options.isInheritParentPermissions());
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -66,6 +67,7 @@ public final class CreateDirectoryOptionsTest {
     boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
+    boolean inheritParentPermissions = random.nextBoolean();
 
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults()
         .setAllowExists(allowExists)
@@ -77,7 +79,8 @@ public final class CreateDirectoryOptionsTest {
         .setMode(mode)
         .setRecursive(recursive)
         .setTtl(ttl)
-        .setTtlAction(TtlAction.FREE);
+        .setTtlAction(TtlAction.FREE)
+        .setInheritParentPermissions(inheritParentPermissions);
 
     assertEquals(allowExists, options.isAllowExists());
     assertEquals(mountPoint, options.isMountPoint());
@@ -89,6 +92,7 @@ public final class CreateDirectoryOptionsTest {
     assertEquals(recursive, options.isRecursive());
     assertEquals(ttl, options.getTtl());
     assertEquals(TtlAction.FREE, options.getTtlAction());
+    assertEquals(inheritParentPermissions, options.isInheritParentPermissions());
   }
 
   @Test
