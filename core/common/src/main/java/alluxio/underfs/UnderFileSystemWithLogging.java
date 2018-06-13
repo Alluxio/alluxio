@@ -13,8 +13,10 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.WorkerMetrics;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -591,11 +593,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   private String getQualifiedMetricName(String metricName) {
     try {
       if (SecurityUtils.isAuthenticationEnabled() && AuthenticatedClientUser.get() != null) {
-        return Metric.getMetricNameWithTags(metricName, "User", AuthenticatedClientUser.get()
-            .getName(), "UfsType", mUnderFileSystem.getUnderFSType());
+        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
+            AuthenticatedClientUser.get().getName(), WorkerMetrics.TAG_UFS,
+            mUnderFileSystem.getUnderFSType());
       } else {
-        return
-            Metric.getMetricNameWithTags(metricName, "UfsType", mUnderFileSystem.getUnderFSType());
+        return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
+            mUnderFileSystem.getUnderFSType());
       }
     } catch (IOException e) {
       return metricName;
