@@ -163,9 +163,15 @@ must be set (replace `<USERNAME>` with `alluxio_user`). Both parameters are allo
 ### Client Configuration
 If the master enables impersonation for particular users, the client must also be configured to
 impersonate other users. This is configured with the parameter: `alluxio.security.login.impersonation.username` .
-This informs the Alluxio client to connect as usual, but impersonate as a different user. If the
-Hadoop compatible Alluxio client is used, a special value of `_HDFS_USER_` can be specified to informed
-the Alluxio client to impersonate the same user as the HDFS client.
+This informs the Alluxio client to connect as usual, but impersonate as a different user. The
+parameter can set to the following values:
+
+- empty
+  - Alluxio client impersonation is not used
+- `_NONE_`
+  - Alluxio client impersonation is not used
+- `_HDFS_USER_`
+  - the Alluxio client will impersonate as the same use as the HDFS client (when using the Hadoop compatible client.)
 
 ## Auditing
 Alluxio supports audit logging to allow system administrators to track users' access to file metadata.
