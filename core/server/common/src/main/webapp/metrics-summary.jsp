@@ -117,6 +117,64 @@
     <div class="accordion-group">
       <div class="accordion-heading">
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+          <h4>Mounted Under FileSystem Read </h4>
+        </a>
+      </div>      
+      <div id="data4" class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <table class="table">
+            <tbody>
+              <tr>
+                <th>Under FileSystem</th>
+                <th>Size</th> 
+              </tr>
+              <% for(Map.Entry<String, String> entry: ((Map<String,String>) request.getAttribute("ufsReadSize")).entrySet()) { %>
+                <tr>
+                  <th><%= entry.getKey() %></th>
+                  <th><%= entry.getValue() %></th> 
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row-fluid">
+  <div class="accordion span14" id="accordion4">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+          <h4>Mounted Under FileSystem Write </h4>
+        </a>
+      </div>      
+      <div id="data4" class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <table class="table">
+            <tbody>
+              <tr>
+                <th>Under FileSystem</th>
+                <th>Size</th> 
+              </tr>
+              <% for(Map.Entry<String, String> entry: ((Map<String,String>) request.getAttribute("ufsWriteSize")).entrySet()) { %>
+                <tr>
+                  <th><%= entry.getKey() %></th>
+                  <th><%= entry.getValue() %></th> 
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row-fluid">
+  <div class="accordion span14" id="accordion4">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
           <h4>Logical Operations</h4>
         </a>
       </div>
