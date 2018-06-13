@@ -60,6 +60,10 @@ public final class TransportProviderUtils {
         impersonationUser = hdfsUser;
       } else {
         // do not use impersonation, for any value that is not _HDFS_USER_
+        if (impersonationUser != null && !impersonationUser.isEmpty()
+            && !Constants.IMPERSONATION_NONE.equals(impersonationUser)) {
+          LOG.warn("Impersonation ignored. Invalid configuration: {}", impersonationUser);
+        }
         impersonationUser = null;
       }
       if (impersonationUser != null && impersonationUser.isEmpty()) {
