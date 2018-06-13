@@ -248,7 +248,7 @@ public final class FileUtils {
    * Creates the storage directory path, including any necessary but nonexistent parent directories.
    * If the directory already exists, do nothing.
    *
-   * Also, appropriate directory permissions (777 + StickyBit, namely "drwxrwxrwt") are set.
+   * Also, appropriate directory permissions (w/ StickyBit) are set.
    *
    * @param path storage directory path to create
    * @return true if the directory is created and false if the directory already exists

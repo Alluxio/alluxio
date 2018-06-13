@@ -68,9 +68,8 @@ public final class Format {
     // Therefore, default is 777 but if the user specifies the permissions, respect those instead.
     String permissions = Configuration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
     Set<PosixFilePermission> perms = PosixFilePermissions.fromString(permissions);
-    perms.forEach(System.out::println);
-    LOG.info("Setting permissions: {}", permissions);
     Files.setPosixFilePermissions(path, perms);
+    FileUtils.setLocalDirStickyBit(path.toAbsolutePath().toString());
   }
 
   /**
