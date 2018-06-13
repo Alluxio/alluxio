@@ -13,7 +13,6 @@ package alluxio.security.authorization;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -102,20 +101,23 @@ public class DefaultAccessControlList extends AccessControlList {
     }
   }
 
-
   @Override
   public void setEntry(AclEntry entry) {
     super.setEntry(entry);
     setEmpty(false);
   }
+
   /**
-   * Returns true if the default ACL is empty
+   * Returns true if the default ACL is empty.
    * @return true if empty
    */
   public boolean isEmpty() {
     return mEmpty;
   }
 
+  /**
+   * @param empty set the DefaultAccessControlList to empty or not
+   */
   public void setEmpty(boolean empty) {
     mEmpty = empty;
   }

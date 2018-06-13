@@ -24,7 +24,6 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
@@ -326,7 +325,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
       ret.mAcl = acl;
     }
     if (entry.hasDefaultAcl()) {
-      ret.mDefaultAcl = (DefaultAccessControlList) AccessControlList.fromProtoBuf(entry.getDefaultAcl());
+      ret.mDefaultAcl = (DefaultAccessControlList) AccessControlList
+          .fromProtoBuf(entry.getDefaultAcl());
     } else {
       ret.mDefaultAcl = new DefaultAccessControlList();
     }

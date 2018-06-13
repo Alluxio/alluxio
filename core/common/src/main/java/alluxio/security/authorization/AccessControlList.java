@@ -15,7 +15,6 @@ import alluxio.proto.journal.File;
 import alluxio.thrift.TAcl;
 import alluxio.thrift.TAclEntry;
 
-import com.fasterxml.jackson.databind.ser.std.StdKeySerializers;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
