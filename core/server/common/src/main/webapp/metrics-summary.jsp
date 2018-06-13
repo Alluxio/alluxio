@@ -66,7 +66,7 @@
                 <th>From Remote Instances</th>
                 <th><%= request.getAttribute("totalBytesReadRemoteThroughput") %></th>
               </tr>
-			  <tr>
+              <tr>
                 <th>Under Filesystem Read</th>
                 <th><%= request.getAttribute("totalBytesReadUfsThroughput") %></th>
               </tr>
@@ -101,10 +101,10 @@
                 <th>Alluxio Remote</th>
                 <th><%= request.getAttribute("cacheHitRemote") %></th>
               </tr>
-			  <tr>
+              <tr>
                 <th>Miss</th>
                 <th><%= request.getAttribute("cacheMiss") %></th>
-              </tr>              
+              </tr>
             </tbody>
           </table>
         </div>

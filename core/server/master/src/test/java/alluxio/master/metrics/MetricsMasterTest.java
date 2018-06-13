@@ -63,9 +63,9 @@ public class MetricsMasterTest {
 
   @Test
   public void testAggregator() {
-    mMetricsMaster.addSingleValueAggregator(
+    mMetricsMaster.addAggregator(
         new SumInstancesAggregator("metricA", MetricsSystem.InstanceType.WORKER, "metricA"));
-    mMetricsMaster.addSingleValueAggregator(
+    mMetricsMaster.addAggregator(
         new SumInstancesAggregator("metricB", MetricsSystem.InstanceType.WORKER, "metricB"));
     List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metricA", 10),
         Metric.from("worker.192_1_1_1.metricB", 20));
@@ -84,7 +84,7 @@ public class MetricsMasterTest {
 
   @Test
   public void testMultiValueAggregator() {
-    mMetricsMaster.addMultiValueAggregator(
+    mMetricsMaster.addAggregator(
         new SingleTagValueAggregator(MetricsSystem.InstanceType.WORKER, "metric", "tag"));
     List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metric.tag:v1", 10),
         Metric.from("worker.192_1_1_1.metric.tag:v2", 20));
@@ -98,9 +98,9 @@ public class MetricsMasterTest {
 
   @Test
   public void testClientHeartbeat() {
-    mMetricsMaster.addSingleValueAggregator(
+    mMetricsMaster.addAggregator(
         new SumInstancesAggregator("metric1", MetricsSystem.InstanceType.CLIENT, "metric1"));
-    mMetricsMaster.addSingleValueAggregator(
+    mMetricsMaster.addAggregator(
         new SumInstancesAggregator("metric2", MetricsSystem.InstanceType.CLIENT, "metric2"));
     List<Metric> metrics1 = Lists.newArrayList(Metric.from("client.192_1_1_1:A.metric1", 10),
         Metric.from("client.192_1_1_1:A.metric2", 20));

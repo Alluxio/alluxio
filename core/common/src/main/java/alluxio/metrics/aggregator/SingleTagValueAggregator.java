@@ -19,6 +19,7 @@ import alluxio.metrics.MultiValueMetricsAggregator;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,11 +76,11 @@ public class SingleTagValueAggregator implements MultiValueMetricsAggregator {
     synchronized (this) {
       mAggregates = updated;
     }
-    return mAggregates;
+    return Collections.unmodifiableMap(mAggregates);
   }
 
   @Override
   public long getValue(String name) {
-    return mAggregates.containsKey(name) ? mAggregates.get(name) : 0;
+    return mAggregates.getOrDefault(name, 0L);
   }
 }
