@@ -392,7 +392,7 @@ main() {
     all|worker|workers|local)
       if [[ -z "${MOPT}" ]]; then
         MOPT="NoMount"
-      elif "${MOPT}" == "-f" ]]; then
+      elif [[ "${MOPT}" == "-f" ]]; then
         MOPT="SudoMount"
       else
         shift
