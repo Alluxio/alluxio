@@ -974,7 +974,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                                   List<FileInfo> statusList)
       throws FileDoesNotExistException, UnavailableException, AccessControlException {
     Inode<?> inode = currInodePath.getInode();
-    if (inode.isDirectory()) {
+    if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
         // TODO(david): Return the error message when we do not have permission
         mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, currInodePath);
@@ -986,16 +986,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           throw e;
         }
       }
-      if (descendantType != DescendantType.NONE) {
-        DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
-            ? DescendantType.ALL : DescendantType.NONE;
-        for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-          // TODO(david): Make extending InodePath more efficient
-          try (LockedInodePath childInodePath = mInodeTree.lockFullInodePath(child.getId(),
-              InodeTree.LockMode.READ)) {
-            listStatusInternal(childInodePath, auditContext,
-                nextDescendantType, statusList);
-          }
+      DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
+          ? DescendantType.ALL : DescendantType.NONE;
+      for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
+        // TODO(david): Make extending InodePath more efficient
+        try (LockedInodePath childInodePath = mInodeTree.lockFullInodePath(child.getId(),
+            InodeTree.LockMode.READ)) {
+          listStatusInternal(childInodePath, auditContext,
+              nextDescendantType, statusList);
         }
       }
     }
