@@ -181,7 +181,7 @@ On the other two nodes (naming them Worker1 and Worker2, respectively), run the 
  Alluxio worker:
 
 ```bash
-$ bin/alluxio-start.sh worker
+$ bin/alluxio-start.sh worker SudoMount
 ```
 
 In a few seconds, Alluxio workers will register with the Alluxio master.

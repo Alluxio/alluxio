@@ -123,7 +123,7 @@ $ bin/start-all.sh
 Start Alluxio locally:
 
 ```bash
-$ bin/alluxio-start.sh local
+$ bin/alluxio-start.sh local SudoMount
 ```
 
 You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:
