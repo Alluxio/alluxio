@@ -171,7 +171,7 @@ parameter can set to the following values:
 - `_NONE_`
   - Alluxio client impersonation is not used
 - `_HDFS_USER_`
-  - the Alluxio client will impersonate as the same use as the HDFS client (when using the Hadoop compatible client.)
+  - the Alluxio client will impersonate as the same user as the HDFS client (when using the Hadoop compatible client.)
 
 ## Auditing
 Alluxio supports audit logging to allow system administrators to track users' access to file metadata.
