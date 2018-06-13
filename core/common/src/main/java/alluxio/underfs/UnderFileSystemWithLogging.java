@@ -13,13 +13,18 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.SecurityUtils;
 
+import com.codahale.metrics.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +42,8 @@ import java.util.Map;
  */
 public class UnderFileSystemWithLogging implements UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemWithLogging.class);
+
+  private static final String NAME_SEPARATOR = ":";
 
   private final UnderFileSystem mUnderFileSystem;
 
@@ -563,11 +570,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    */
   private <T> T call(UfsCallable<T> callable) throws IOException {
     LOG.debug("Enter: {}", callable);
-    try {
+    String methodName = callable.toString().split(NAME_SEPARATOR)[0];
+    try (Timer.Context ctx = MetricsSystem.workerTimer(getQualifiedMetricName(methodName)).time()) {
       T ret = callable.call();
       LOG.debug("Exit (OK): {}", callable);
       return ret;
     } catch (IOException e) {
+      MetricsSystem.workerCounter(getQualifiedFailureMetricName(methodName)).inc();
       LOG.debug("Exit (Error): {}, Error={}", callable, e.getMessage());
       throw e;
     }
@@ -576,5 +585,25 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   @Override
   public boolean isSeekable() {
     return mUnderFileSystem.isSeekable();
+  }
+
+  // TODO(calvin): General tag logic should be in getMetricName
+  private String getQualifiedMetricName(String metricName) {
+    try {
+      if (SecurityUtils.isAuthenticationEnabled() && AuthenticatedClientUser.get() != null) {
+        return Metric.getMetricNameWithTags(metricName, "User", AuthenticatedClientUser.get()
+            .getName(), "UfsType", mUnderFileSystem.getUnderFSType());
+      } else {
+        return
+            Metric.getMetricNameWithTags(metricName, "UfsType", mUnderFileSystem.getUnderFSType());
+      }
+    } catch (IOException e) {
+      return metricName;
+    }
+  }
+
+  // TODO(calvin): This should not be in this class
+  private String getQualifiedFailureMetricName(String metricName) {
+    return getQualifiedMetricName(metricName + "Failures");
   }
 }
