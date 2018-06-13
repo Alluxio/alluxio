@@ -12,6 +12,8 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.exception.InvalidPathException;
 
 import org.slf4j.Logger;
@@ -262,7 +264,8 @@ public final class FileUtils {
       throw new IOException("Failed to create folder " + path, e);
     }
     String absolutePath = storagePath.toAbsolutePath().toString();
-    changeLocalFileToFullPermission(absolutePath);
+    String perms = Configuration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
+    changeLocalFilePermission(absolutePath, perms);
     setLocalDirStickyBit(absolutePath);
     return true;
   }
