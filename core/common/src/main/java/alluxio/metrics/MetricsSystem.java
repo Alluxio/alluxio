@@ -19,6 +19,7 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.JvmAttributeGaugeSet;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
@@ -96,6 +97,7 @@ public final class MetricsSystem {
 
   static {
     METRIC_REGISTRY = new MetricRegistry();
+    METRIC_REGISTRY.registerAll(new JvmAttributeGaugeSet());
     METRIC_REGISTRY.registerAll(new GarbageCollectorMetricSet());
     METRIC_REGISTRY.registerAll(new MemoryUsageGaugeSet());
   }
