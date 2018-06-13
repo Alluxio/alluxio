@@ -17,6 +17,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
+import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.thrift.ThriftUtils;
@@ -353,7 +354,8 @@ public abstract class AbstractClient implements Client {
   private String getQualifiedMetricName(String metricName) {
     try {
       if (SecurityUtils.isAuthenticationEnabled() && LoginUser.get() != null) {
-        return Metric.getMetricNameWithTags(metricName, "User", LoginUser.get().getName());
+        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER, LoginUser.get()
+            .getName());
       } else {
         return metricName;
       }
