@@ -2566,7 +2566,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(100)
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum number of "
-              + "retries. This property has been deprecated and please use time based retry with"
+              + "retries. This property has been deprecated by time-based retry using: "
               + Name.USER_RPC_RETRY_MAX_DURATION)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)

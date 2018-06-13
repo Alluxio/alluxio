@@ -271,13 +271,11 @@ function main {
   "fs")
     CLASS="alluxio.cli.fs.FileSystemShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.user.rpc.retry.max.duration=5s"
     runJavaClass "$@"
   ;;
   "fsadmin")
     CLASS="alluxio.cli.fsadmin.FileSystemAdminShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.user.rpc.retry.max.duration=5s"
     runJavaClass "$@"
   ;;
   "getConf")
