@@ -20,7 +20,10 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsAggregator;
 import alluxio.metrics.MetricsFilter;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiValueMetricsAggregator;
+import alluxio.metrics.SingleValueAggregator;
 import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.thrift.MetricsMasterClientService;
@@ -35,9 +38,11 @@ import java.io.IOException;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -45,6 +50,8 @@ import java.util.Set;
  */
 public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaster {
   private final Map<String, MetricsAggregator> mMetricsAggregatorRegistry = new HashMap<>();
+  private final Set<MultiValueMetricsAggregator> mMultiValueMetricsAggregatorRegistry =
+      new HashSet<>();
   private final MetricsStore mMetricsStore;
 
   /**
@@ -73,7 +80,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   }
 
   @VisibleForTesting
-  protected void addAggregator(MetricsAggregator aggregator) {
+  protected void addAggregator(SingleValueAggregator aggregator) {
     mMetricsAggregatorRegistry.put(aggregator.getName(), aggregator);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClusterMetricName(aggregator.getName()),
         new Gauge<Object>() {
@@ -89,22 +96,60 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
         });
   }
 
+  @VisibleForTesting
+  protected void addAggregator(MultiValueMetricsAggregator aggregator) {
+    mMultiValueMetricsAggregatorRegistry.add(aggregator);
+  }
+
+  private void updateMultiValueMetrics() {
+    for (MultiValueMetricsAggregator aggregator : mMultiValueMetricsAggregatorRegistry) {
+      Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
+      for (MetricsFilter filter : aggregator.getFilters()) {
+        metrics.put(filter, mMetricsStore.getMetricsByInstanceTypeAndName(filter.getInstanceType(),
+            filter.getName()));
+      }
+      for (Entry<String, Long> entry : aggregator.updateValues(metrics).entrySet()) {
+        MetricsSystem.registerGaugeIfAbsent(entry.getKey(), new Gauge<Object>() {
+          @Override
+          public Object getValue() {
+            return aggregator.getValue(entry.getKey());
+          }
+        });
+      }
+    }
+  }
+
   private void registerAggregators() {
     // worker metrics
-    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
-        WorkerMetrics.BYTES_READ_ALLUXIO));
-    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
-        WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT));
-    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
-        WorkerMetrics.BYTES_READ_UFS));
-    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
-        WorkerMetrics.BYTES_READ_UFS_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_ALLUXIO,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_ALLUXIO));
+    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_UFS_ALL,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS));
+    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS_THROUGHPUT));
+
+    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_ALLUXIO,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_ALLUXIO));
+    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_UFS_ALL,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS));
+    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT));
 
     // client metrics
-    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT,
-        ClientMetrics.BYTES_READ_LOCAL));
-    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT,
-        ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL,
+        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL));
+    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT,
+        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT));
+
+    // multi-value aggregators
+    addAggregator(new SingleTagValueAggregator(MetricsSystem.InstanceType.WORKER,
+        WorkerMetrics.BYTES_READ_UFS, WorkerMetrics.TAG_UFS));
+    addAggregator(new SingleTagValueAggregator(MetricsSystem.InstanceType.WORKER,
+        WorkerMetrics.BYTES_WRITTEN_UFS, WorkerMetrics.TAG_UFS));
   }
 
   @Override
@@ -143,6 +188,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   @Override
   public void clientHeartbeat(String clientId, String hostname, List<Metric> metrics) {
     mMetricsStore.putClientMetrics(hostname, clientId, metrics);
+    updateMultiValueMetrics();
   }
 
   @Override
@@ -153,5 +199,6 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   @Override
   public void workerHeartbeat(String hostname, List<Metric> metrics) {
     mMetricsStore.putWorkerMetrics(hostname, metrics);
+    updateMultiValueMetrics();
   }
 }
