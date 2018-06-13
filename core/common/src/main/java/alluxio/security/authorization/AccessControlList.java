@@ -15,6 +15,7 @@ import alluxio.proto.journal.File;
 import alluxio.thrift.TAcl;
 import alluxio.thrift.TAclEntry;
 
+import com.fasterxml.jackson.databind.ser.std.StdKeySerializers;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -54,9 +55,9 @@ public class AccessControlList {
    * Most of the time, only owning user and owning group exists in {@link #mUserActions} and
    * {@link #mGroupActions}.
    */
-  private static final int ACTIONS_MAP_INITIAL_CAPACITY = 1;
+  protected static final int ACTIONS_MAP_INITIAL_CAPACITY = 1;
   /** Initial load factor. */
-  private static final int ACTIONS_MAP_INITIAL_LOAD_FACTOR = 1;
+  protected static final int ACTIONS_MAP_INITIAL_LOAD_FACTOR = 1;
   /** Key representing owning user in {@link #mUserActions}. */
   protected static final String OWNING_USER_KEY = "";
   /** Key representing owning group in {@link #mGroupActions}. */
@@ -425,9 +426,18 @@ public class AccessControlList {
    * @return {@link AccessControlList}
    */
   public static AccessControlList fromProtoBuf(File.AccessControlList acl) {
-    AccessControlList ret = new AccessControlList();
+    AccessControlList ret;
+    if (acl.hasIsDefault() && acl.getIsDefault()) {
+      ret = new DefaultAccessControlList();
+    } else {
+      ret = new AccessControlList();
+    }
     ret.setOwningUser(acl.getOwningUser());
     ret.setOwningGroup(acl.getOwningGroup());
+
+    if (acl.getIsEmpty()) {
+      return ret;
+    }
 
     for (File.NamedAclActions namedActions : acl.getUserActionsList()) {
       String name = namedActions.getName();
@@ -494,6 +504,15 @@ public class AccessControlList {
           .build();
       builder.addGroupActions(namedActions);
     }
+    if (acl instanceof DefaultAccessControlList) {
+      DefaultAccessControlList defaultAcl = (DefaultAccessControlList) acl;
+      builder.setIsDefault(true);
+      builder.setIsEmpty(defaultAcl.isEmpty());
+    } else {
+      builder.setIsDefault(false);
+      // non default acl is always not empty
+      builder.setIsEmpty(false);
+    }
     return builder.build();
   }
 
@@ -502,15 +521,29 @@ public class AccessControlList {
    * @return the {@link AccessControlList} instance created from the thrift representation
    */
   public static AccessControlList fromThrift(TAcl tAcl) {
-    AccessControlList acl = new AccessControlList();
-    acl.setOwningUser(tAcl.getOwner());
-    acl.setOwningGroup(tAcl.getOwningGroup());
+    AccessControlList acl;
 
     if (tAcl.isSetEntries()) {
+      if (tAcl.getEntries().size() > 0) {
+        TAclEntry tEntry = tAcl.getEntries().get(0);
+        if (tEntry.isDefaultEntry()) {
+          acl = new DefaultAccessControlList();
+        } else {
+          acl = new AccessControlList();
+        }
+      } else {
+        acl = new DefaultAccessControlList();
+      }
       for (TAclEntry tEntry : tAcl.getEntries()) {
         acl.setEntry(AclEntry.fromThrift(tEntry));
       }
+    } else {
+      acl = new DefaultAccessControlList();
     }
+
+    acl.setOwningUser(tAcl.getOwner());
+    acl.setOwningGroup(tAcl.getOwningGroup());
+
     return acl;
   }
 
@@ -528,6 +561,8 @@ public class AccessControlList {
   }
 
   /**
+   * Converts a list of string entries into an AccessControlList or a DefaultAccessControlList.
+   * It assumes the stringEntries contain all default entries or normal entries.
    *
    * @param owner the owner
    * @param owningGroup the owning group
@@ -536,12 +571,24 @@ public class AccessControlList {
    */
   public static AccessControlList fromStringEntries(String owner, String owningGroup,
       List<String> stringEntries) {
-    AccessControlList acl = new AccessControlList();
+    AccessControlList acl;
+    if (stringEntries.size() > 0) {
+      AclEntry aclEntry = AclEntry.fromCliString(stringEntries.get(0));
+      if (aclEntry.isDefault()) {
+        acl = new DefaultAccessControlList();
+      } else {
+        acl = new AccessControlList();
+      }
+    } else {
+      // when the stringEntries size is 0, it can only be a DefaultAccessControlList
+      acl = new DefaultAccessControlList();
+    }
     acl.setOwningUser(owner);
     acl.setOwningGroup(owningGroup);
 
     for (String stringEntry : stringEntries) {
-      acl.setEntry(AclEntry.fromCliString(stringEntry));
+      AclEntry aclEntry = AclEntry.fromCliString(stringEntry);
+      acl.setEntry(aclEntry);
     }
     return acl;
   }

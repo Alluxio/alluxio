@@ -6883,12 +6883,30 @@ public final class File {
      * <code>optional .alluxio.proto.journal.AclActions otherActions = 6;</code>
      */
     alluxio.proto.journal.File.AclActionsOrBuilder getOtherActionsOrBuilder();
+
+    /**
+     * <code>optional bool isDefault = 7;</code>
+     */
+    boolean hasIsDefault();
+    /**
+     * <code>optional bool isDefault = 7;</code>
+     */
+    boolean getIsDefault();
+
+    /**
+     * <code>optional bool isEmpty = 8;</code>
+     */
+    boolean hasIsEmpty();
+    /**
+     * <code>optional bool isEmpty = 8;</code>
+     */
+    boolean getIsEmpty();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.AccessControlList}
    *
    * <pre>
-   * next available id: 7
+   * next available id: 9
    * </pre>
    */
   public static final class AccessControlList extends
@@ -6992,6 +7010,16 @@ public final class File {
                 otherActions_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00000008;
+              break;
+            }
+            case 56: {
+              bitField0_ |= 0x00000010;
+              isDefault_ = input.readBool();
+              break;
+            }
+            case 64: {
+              bitField0_ |= 0x00000020;
+              isEmpty_ = input.readBool();
               break;
             }
           }
@@ -7236,6 +7264,36 @@ public final class File {
       return otherActions_;
     }
 
+    public static final int ISDEFAULT_FIELD_NUMBER = 7;
+    private boolean isDefault_;
+    /**
+     * <code>optional bool isDefault = 7;</code>
+     */
+    public boolean hasIsDefault() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bool isDefault = 7;</code>
+     */
+    public boolean getIsDefault() {
+      return isDefault_;
+    }
+
+    public static final int ISEMPTY_FIELD_NUMBER = 8;
+    private boolean isEmpty_;
+    /**
+     * <code>optional bool isEmpty = 8;</code>
+     */
+    public boolean hasIsEmpty() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional bool isEmpty = 8;</code>
+     */
+    public boolean getIsEmpty() {
+      return isEmpty_;
+    }
+
     private void initFields() {
       owningUser_ = "";
       owningGroup_ = "";
@@ -7243,6 +7301,8 @@ public final class File {
       groupActions_ = java.util.Collections.emptyList();
       maskActions_ = alluxio.proto.journal.File.AclActions.getDefaultInstance();
       otherActions_ = alluxio.proto.journal.File.AclActions.getDefaultInstance();
+      isDefault_ = false;
+      isEmpty_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -7274,6 +7334,12 @@ public final class File {
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeMessage(6, otherActions_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBool(7, isDefault_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        output.writeBool(8, isEmpty_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -7307,6 +7373,14 @@ public final class File {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, otherActions_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(7, isDefault_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(8, isEmpty_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -7390,7 +7464,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.AccessControlList}
      *
      * <pre>
-     * next available id: 7
+     * next available id: 9
      * </pre>
      */
     public static final class Builder extends
@@ -7461,6 +7535,10 @@ public final class File {
           otherActionsBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000020);
+        isDefault_ = false;
+        bitField0_ = (bitField0_ & ~0x00000040);
+        isEmpty_ = false;
+        bitField0_ = (bitField0_ & ~0x00000080);
         return this;
       }
 
@@ -7531,6 +7609,14 @@ public final class File {
         } else {
           result.otherActions_ = otherActionsBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.isDefault_ = isDefault_;
+        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+          to_bitField0_ |= 0x00000020;
+        }
+        result.isEmpty_ = isEmpty_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -7614,6 +7700,12 @@ public final class File {
         }
         if (other.hasOtherActions()) {
           mergeOtherActions(other.getOtherActions());
+        }
+        if (other.hasIsDefault()) {
+          setIsDefault(other.getIsDefault());
+        }
+        if (other.hasIsEmpty()) {
+          setIsEmpty(other.getIsEmpty());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -8506,6 +8598,70 @@ public final class File {
         return otherActionsBuilder_;
       }
 
+      private boolean isDefault_ ;
+      /**
+       * <code>optional bool isDefault = 7;</code>
+       */
+      public boolean hasIsDefault() {
+        return ((bitField0_ & 0x00000040) == 0x00000040);
+      }
+      /**
+       * <code>optional bool isDefault = 7;</code>
+       */
+      public boolean getIsDefault() {
+        return isDefault_;
+      }
+      /**
+       * <code>optional bool isDefault = 7;</code>
+       */
+      public Builder setIsDefault(boolean value) {
+        bitField0_ |= 0x00000040;
+        isDefault_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool isDefault = 7;</code>
+       */
+      public Builder clearIsDefault() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        isDefault_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean isEmpty_ ;
+      /**
+       * <code>optional bool isEmpty = 8;</code>
+       */
+      public boolean hasIsEmpty() {
+        return ((bitField0_ & 0x00000080) == 0x00000080);
+      }
+      /**
+       * <code>optional bool isEmpty = 8;</code>
+       */
+      public boolean getIsEmpty() {
+        return isEmpty_;
+      }
+      /**
+       * <code>optional bool isEmpty = 8;</code>
+       */
+      public Builder setIsEmpty(boolean value) {
+        bitField0_ |= 0x00000080;
+        isEmpty_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool isEmpty = 8;</code>
+       */
+      public Builder clearIsEmpty() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        isEmpty_ = false;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.AccessControlList)
     }
 
@@ -8679,12 +8835,25 @@ public final class File {
      * <code>optional .alluxio.proto.journal.AccessControlList acl = 15;</code>
      */
     alluxio.proto.journal.File.AccessControlListOrBuilder getAclOrBuilder();
+
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+     */
+    boolean hasDefaultAcl();
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+     */
+    alluxio.proto.journal.File.AccessControlList getDefaultAcl();
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+     */
+    alluxio.proto.journal.File.AccessControlListOrBuilder getDefaultAclOrBuilder();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
    *
    * <pre>
-   * next available id: 16
+   * next available id: 17
    * </pre>
    */
   public static final class InodeDirectoryEntry extends
@@ -8827,6 +8996,19 @@ public final class File {
                 acl_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00004000;
+              break;
+            }
+            case 130: {
+              alluxio.proto.journal.File.AccessControlList.Builder subBuilder = null;
+              if (((bitField0_ & 0x00008000) == 0x00008000)) {
+                subBuilder = defaultAcl_.toBuilder();
+              }
+              defaultAcl_ = input.readMessage(alluxio.proto.journal.File.AccessControlList.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(defaultAcl_);
+                defaultAcl_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00008000;
               break;
             }
           }
@@ -9208,6 +9390,27 @@ public final class File {
       return acl_;
     }
 
+    public static final int DEFAULTACL_FIELD_NUMBER = 16;
+    private alluxio.proto.journal.File.AccessControlList defaultAcl_;
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+     */
+    public boolean hasDefaultAcl() {
+      return ((bitField0_ & 0x00008000) == 0x00008000);
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+     */
+    public alluxio.proto.journal.File.AccessControlList getDefaultAcl() {
+      return defaultAcl_;
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+     */
+    public alluxio.proto.journal.File.AccessControlListOrBuilder getDefaultAclOrBuilder() {
+      return defaultAcl_;
+    }
+
     private void initFields() {
       id_ = 0L;
       parentId_ = 0L;
@@ -9224,6 +9427,7 @@ public final class File {
       ttl_ = 0L;
       ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
       acl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
+      defaultAcl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -9282,6 +9486,9 @@ public final class File {
       }
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         output.writeMessage(15, acl_);
+      }
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+        output.writeMessage(16, defaultAcl_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -9351,6 +9558,10 @@ public final class File {
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(15, acl_);
+      }
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(16, defaultAcl_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -9434,7 +9645,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
      *
      * <pre>
-     * next available id: 16
+     * next available id: 17
      * </pre>
      */
     public static final class Builder extends
@@ -9466,6 +9677,7 @@ public final class File {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
           getAclFieldBuilder();
+          getDefaultAclFieldBuilder();
         }
       }
       private static Builder create() {
@@ -9508,6 +9720,12 @@ public final class File {
           aclBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00004000);
+        if (defaultAclBuilder_ == null) {
+          defaultAcl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
+        } else {
+          defaultAclBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00008000);
         return this;
       }
 
@@ -9600,6 +9818,14 @@ public final class File {
         } else {
           result.acl_ = aclBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00008000) == 0x00008000)) {
+          to_bitField0_ |= 0x00008000;
+        }
+        if (defaultAclBuilder_ == null) {
+          result.defaultAcl_ = defaultAcl_;
+        } else {
+          result.defaultAcl_ = defaultAclBuilder_.build();
+        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -9668,6 +9894,9 @@ public final class File {
         }
         if (other.hasAcl()) {
           mergeAcl(other.getAcl());
+        }
+        if (other.hasDefaultAcl()) {
+          mergeDefaultAcl(other.getDefaultAcl());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -10437,6 +10666,122 @@ public final class File {
           acl_ = null;
         }
         return aclBuilder_;
+      }
+
+      private alluxio.proto.journal.File.AccessControlList defaultAcl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.AccessControlList, alluxio.proto.journal.File.AccessControlList.Builder, alluxio.proto.journal.File.AccessControlListOrBuilder> defaultAclBuilder_;
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+       */
+      public boolean hasDefaultAcl() {
+        return ((bitField0_ & 0x00008000) == 0x00008000);
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+       */
+      public alluxio.proto.journal.File.AccessControlList getDefaultAcl() {
+        if (defaultAclBuilder_ == null) {
+          return defaultAcl_;
+        } else {
+          return defaultAclBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+       */
+      public Builder setDefaultAcl(alluxio.proto.journal.File.AccessControlList value) {
+        if (defaultAclBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          defaultAcl_ = value;
+          onChanged();
+        } else {
+          defaultAclBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00008000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+       */
+      public Builder setDefaultAcl(
+          alluxio.proto.journal.File.AccessControlList.Builder builderForValue) {
+        if (defaultAclBuilder_ == null) {
+          defaultAcl_ = builderForValue.build();
+          onChanged();
+        } else {
+          defaultAclBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00008000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+       */
+      public Builder mergeDefaultAcl(alluxio.proto.journal.File.AccessControlList value) {
+        if (defaultAclBuilder_ == null) {
+          if (((bitField0_ & 0x00008000) == 0x00008000) &&
+              defaultAcl_ != alluxio.proto.journal.File.AccessControlList.getDefaultInstance()) {
+            defaultAcl_ =
+              alluxio.proto.journal.File.AccessControlList.newBuilder(defaultAcl_).mergeFrom(value).buildPartial();
+          } else {
+            defaultAcl_ = value;
+          }
+          onChanged();
+        } else {
+          defaultAclBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00008000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+       */
+      public Builder clearDefaultAcl() {
+        if (defaultAclBuilder_ == null) {
+          defaultAcl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
+          onChanged();
+        } else {
+          defaultAclBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00008000);
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+       */
+      public alluxio.proto.journal.File.AccessControlList.Builder getDefaultAclBuilder() {
+        bitField0_ |= 0x00008000;
+        onChanged();
+        return getDefaultAclFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+       */
+      public alluxio.proto.journal.File.AccessControlListOrBuilder getDefaultAclOrBuilder() {
+        if (defaultAclBuilder_ != null) {
+          return defaultAclBuilder_.getMessageOrBuilder();
+        } else {
+          return defaultAcl_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 16;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.AccessControlList, alluxio.proto.journal.File.AccessControlList.Builder, alluxio.proto.journal.File.AccessControlListOrBuilder> 
+          getDefaultAclFieldBuilder() {
+        if (defaultAclBuilder_ == null) {
+          defaultAclBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              alluxio.proto.journal.File.AccessControlList, alluxio.proto.journal.File.AccessControlList.Builder, alluxio.proto.journal.File.AccessControlListOrBuilder>(
+                  getDefaultAcl(),
+                  getParentForChildren(),
+                  isClean());
+          defaultAcl_ = null;
+        }
+        return defaultAclBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.InodeDirectoryEntry)
@@ -19217,7 +19562,7 @@ public final class File {
       " \003(\0162 .alluxio.proto.journal.AclAction\022\021" +
       "\n\tisDefault\030\004 \001(\010\"S\n\017NamedAclActions\022\014\n\004",
       "name\030\001 \001(\t\0222\n\007actions\030\002 \001(\0132!.alluxio.pr" +
-      "oto.journal.AclActions\"\250\002\n\021AccessControl" +
+      "oto.journal.AclActions\"\314\002\n\021AccessControl" +
       "List\022\022\n\nowningUser\030\001 \001(\t\022\023\n\013owningGroup\030" +
       "\002 \001(\t\022;\n\013userActions\030\003 \003(\0132&.alluxio.pro" +
       "to.journal.NamedAclActions\022<\n\014groupActio" +
@@ -19225,61 +19570,63 @@ public final class File {
       "lActions\0226\n\013maskActions\030\005 \001(\0132!.alluxio." +
       "proto.journal.AclActions\0227\n\014otherActions" +
       "\030\006 \001(\0132!.alluxio.proto.journal.AclAction" +
-      "s\"\215\003\n\023InodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n",
-      "\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persis" +
-      "tence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020cre" +
-      "ation_time_ms\030\006 \001(\003\022!\n\031last_modification" +
-      "_time_ms\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t" +
-      " \001(\t\022\014\n\004mode\030\n \001(\005\022\023\n\013mount_point\030\013 \001(\010\022" +
-      "\036\n\026direct_children_loaded\030\014 \001(\010\022\013\n\003ttl\030\r" +
-      " \001(\003\022<\n\tttlAction\030\016 \001(\0162!.alluxio.proto." +
-      "journal.PTtlAction:\006DELETE\0225\n\003acl\030\017 \001(\0132" +
-      "(.alluxio.proto.journal.AccessControlLis" +
-      "t\"O\n\036InodeDirectoryIdGeneratorEntry\022\024\n\014c",
-      "ontainer_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001" +
-      "(\003\"\314\003\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tpar" +
+      "s\022\021\n\tisDefault\030\007 \001(\010\022\017\n\007isEmpty\030\010 \001(\010\"\313\003",
+      "\n\023InodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tpar" +
       "ent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistenc" +
       "e_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creatio" +
       "n_time_ms\030\006 \001(\003\022!\n\031last_modification_tim" +
-      "e_ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006" +
-      "length\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcache" +
-      "able\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022" +
-      "\r\n\005owner\030\016 \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 " +
-      "\001(\005\022<\n\tttlAction\030\021 \001(\0162!.alluxio.proto.j",
-      "ournal.PTtlAction:\006DELETE\022\027\n\017ufs_fingerp" +
-      "rint\030\022 \001(\t\0225\n\003acl\030\023 \001(\0132(.alluxio.proto." +
-      "journal.AccessControlList\"O\n\036InodeLastMo" +
-      "dificationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_" +
-      "modification_time_ms\030\002 \001(\003\"#\n\025PersistDir" +
-      "ectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEn" +
-      "try\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_ti" +
-      "me_ms\030\003 \001(\003\"\212\001\n\025ReinitializeFileEntry\022\014\n" +
-      "\004path\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n" +
-      "\003ttl\030\003 \001(\003\022<\n\tttlAction\030\004 \001(\0162!.alluxio.",
-      "proto.journal.PTtlAction:\006DELETE\"?\n\013Rena" +
-      "meEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n" +
-      "\nop_time_ms\030\003 \001(\003\"\247\001\n\013SetAclEntry\022\n\n\002id\030" +
-      "\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\0223\n\006action\030\003 \001(" +
-      "\0162#.alluxio.proto.journal.SetAclAction\0220" +
-      "\n\007entries\030\004 \003(\0132\037.alluxio.proto.journal." +
-      "AclEntry\022\021\n\trecursive\030\005 \001(\010\"\354\001\n\021SetAttri" +
-      "buteEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(" +
-      "\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersis" +
-      "ted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022",
-      "\022\n\npermission\030\010 \001(\005\022<\n\tttlAction\030\t \001(\0162!" +
-      ".alluxio.proto.journal.PTtlAction:\006DELET" +
-      "E\022\027\n\017ufs_fingerprint\030\n \001(\t\"b\n\022UpdateUfsM" +
-      "odeEntry\022\017\n\007ufsPath\030\001 \001(\t\022;\n\007ufsMode\030\002 \001" +
-      "(\0162\036.alluxio.proto.journal.UfsMode:\nREAD" +
-      "_WRITE*-\n\tAclAction\022\010\n\004READ\020\000\022\t\n\005WRITE\020\001" +
-      "\022\013\n\007EXECUTE\020\002*a\n\014AclEntryType\022\t\n\005OWNER\020\000" +
-      "\022\016\n\nNAMED_USER\020\001\022\020\n\014OWNING_GROUP\020\002\022\017\n\013NA" +
-      "MED_GROUP\020\003\022\010\n\004MASK\020\004\022\t\n\005OTHER\020\005*\"\n\nPTtl" +
-      "Action\022\n\n\006DELETE\020\000\022\010\n\004FREE\020\001*W\n\014SetAclAc",
-      "tion\022\013\n\007REPLACE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020" +
-      "\002\022\016\n\nREMOVE_ALL\020\003\022\022\n\016REMOVE_DEFAULT\020\004*7\n" +
-      "\007UfsMode\022\r\n\tNO_ACCESS\020\000\022\r\n\tREAD_ONLY\020\001\022\016" +
-      "\n\nREAD_WRITE\020\002"
+      "e_ms\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t \001(\t" +
+      "\022\014\n\004mode\030\n \001(\005\022\023\n\013mount_point\030\013 \001(\010\022\036\n\026d" +
+      "irect_children_loaded\030\014 \001(\010\022\013\n\003ttl\030\r \001(\003" +
+      "\022<\n\tttlAction\030\016 \001(\0162!.alluxio.proto.jour" +
+      "nal.PTtlAction:\006DELETE\0225\n\003acl\030\017 \001(\0132(.al" +
+      "luxio.proto.journal.AccessControlList\022<\n",
+      "\ndefaultAcl\030\020 \001(\0132(.alluxio.proto.journa" +
+      "l.AccessControlList\"O\n\036InodeDirectoryIdG" +
+      "eneratorEntry\022\024\n\014container_id\030\001 \001(\003\022\027\n\017s" +
+      "equence_number\030\002 \001(\003\"\314\003\n\016InodeFileEntry\022" +
+      "\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003" +
+      " \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006pinne" +
+      "d\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031las" +
+      "t_modification_time_ms\030\007 \001(\003\022\030\n\020block_si" +
+      "ze_bytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tcomple" +
+      "ted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006blocks\030\014",
+      " \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005owner\030\016 \001(\t\022\r\n\005grou" +
+      "p\030\017 \001(\t\022\014\n\004mode\030\020 \001(\005\022<\n\tttlAction\030\021 \001(\016" +
+      "2!.alluxio.proto.journal.PTtlAction:\006DEL" +
+      "ETE\022\027\n\017ufs_fingerprint\030\022 \001(\t\0225\n\003acl\030\023 \001(" +
+      "\0132(.alluxio.proto.journal.AccessControlL" +
+      "ist\"O\n\036InodeLastModificationTimeEntry\022\n\n" +
+      "\002id\030\001 \001(\003\022!\n\031last_modification_time_ms\030\002" +
+      " \001(\003\"#\n\025PersistDirectoryEntry\022\n\n\002id\030\001 \001(" +
+      "\003\"B\n\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006len" +
+      "gth\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"\212\001\n\025Reinit",
+      "ializeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_s" +
+      "ize_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\022<\n\tttlActio" +
+      "n\030\004 \001(\0162!.alluxio.proto.journal.PTtlActi" +
+      "on:\006DELETE\"?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n" +
+      "\010dst_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"\247\001\n\013" +
+      "SetAclEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 " +
+      "\001(\003\0223\n\006action\030\003 \001(\0162#.alluxio.proto.jour" +
+      "nal.SetAclAction\0220\n\007entries\030\004 \003(\0132\037.allu" +
+      "xio.proto.journal.AclEntry\022\021\n\trecursive\030" +
+      "\005 \001(\010\"\354\001\n\021SetAttributeEntry\022\n\n\002id\030\001 \001(\003\022",
+      "\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003t" +
+      "tl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005owner\030\006 \001" +
+      "(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermission\030\010 \001(\005\022<\n" +
+      "\tttlAction\030\t \001(\0162!.alluxio.proto.journal" +
+      ".PTtlAction:\006DELETE\022\027\n\017ufs_fingerprint\030\n" +
+      " \001(\t\"b\n\022UpdateUfsModeEntry\022\017\n\007ufsPath\030\001 " +
+      "\001(\t\022;\n\007ufsMode\030\002 \001(\0162\036.alluxio.proto.jou" +
+      "rnal.UfsMode:\nREAD_WRITE*-\n\tAclAction\022\010\n" +
+      "\004READ\020\000\022\t\n\005WRITE\020\001\022\013\n\007EXECUTE\020\002*a\n\014AclEn" +
+      "tryType\022\t\n\005OWNER\020\000\022\016\n\nNAMED_USER\020\001\022\020\n\014OW",
+      "NING_GROUP\020\002\022\017\n\013NAMED_GROUP\020\003\022\010\n\004MASK\020\004\022" +
+      "\t\n\005OTHER\020\005*\"\n\nPTtlAction\022\n\n\006DELETE\020\000\022\010\n\004" +
+      "FREE\020\001*W\n\014SetAclAction\022\013\n\007REPLACE\020\000\022\n\n\006M" +
+      "ODIFY\020\001\022\n\n\006REMOVE\020\002\022\016\n\nREMOVE_ALL\020\003\022\022\n\016R" +
+      "EMOVE_DEFAULT\020\004*7\n\007UfsMode\022\r\n\tNO_ACCESS\020" +
+      "\000\022\r\n\tREAD_ONLY\020\001\022\016\n\nREAD_WRITE\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -19352,13 +19699,13 @@ public final class File {
     internal_static_alluxio_proto_journal_AccessControlList_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AccessControlList_descriptor,
-        new java.lang.String[] { "OwningUser", "OwningGroup", "UserActions", "GroupActions", "MaskActions", "OtherActions", });
+        new java.lang.String[] { "OwningUser", "OwningGroup", "UserActions", "GroupActions", "MaskActions", "OtherActions", "IsDefault", "IsEmpty", });
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor =
       getDescriptor().getMessageTypes().get(10);
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "MountPoint", "DirectChildrenLoaded", "Ttl", "TtlAction", "Acl", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "MountPoint", "DirectChildrenLoaded", "Ttl", "TtlAction", "Acl", "DefaultAcl", });
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor =
       getDescriptor().getMessageTypes().get(11);
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new

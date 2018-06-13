@@ -107,6 +107,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -3160,7 +3161,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         targetInode.removeExtendedAcl();
         break;
       case REMOVE_DEFAULT:
-        targetInode.setDefaultACL(null);
+        targetInode.setDefaultACL(new DefaultAccessControlList());
         break;
       default:
     }

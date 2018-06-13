@@ -16,6 +16,7 @@ import static alluxio.util.StreamUtils.map;
 import alluxio.Constants;
 import alluxio.security.authorization.AccessControlList;
 
+import alluxio.security.authorization.DefaultAccessControlList;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -535,7 +536,8 @@ public final class FileInfo implements Serializable {
     }
 
     AccessControlList tAcl = AccessControlList.fromStringEntries(mOwner, mGroup, mAclEntries);
-    AccessControlList defaultAcl = AccessControlList.fromStringEntries(mOwner,
+    AccessControlList defaultAcl;
+    defaultAcl = AccessControlList.fromStringEntries(mOwner,
         mGroup, mDefaultAclEntries);
 
     alluxio.thrift.FileInfo info =

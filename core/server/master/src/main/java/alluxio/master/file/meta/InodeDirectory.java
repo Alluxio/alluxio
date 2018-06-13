@@ -24,8 +24,10 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -67,7 +69,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     super(id, true);
     mMountPoint = false;
     mDirectChildrenLoaded = false;
-    mDefaultAcl = null;
+    mDefaultAcl = new DefaultAccessControlList();
   }
 
   @Override
@@ -280,8 +282,10 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setMountPoint(isMountPoint());
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
     ret.setAclEntries(mAcl.toStringEntries());
-    if (mDefaultAcl != null) {
+    if (!mDefaultAcl.isEmpty()) {
       ret.setDefaultAclEntries(mDefaultAcl.toStringEntries());
+    } else {
+      ret.setDefaultAclEntries(new ArrayList<>());
     }
     return ret;
   }
@@ -320,6 +324,11 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
       short mode = entry.hasMode() ? (short) entry.getMode() : Constants.DEFAULT_FILE_SYSTEM_MODE;
       acl.setMode(mode);
       ret.mAcl = acl;
+    }
+    if (entry.hasDefaultAcl()) {
+      ret.mDefaultAcl = (DefaultAccessControlList) AccessControlList.fromProtoBuf(entry.getDefaultAcl());
+    } else {
+      ret.mDefaultAcl = new DefaultAccessControlList();
     }
     return ret;
   }
@@ -362,6 +371,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
         .setAcl(AccessControlList.toProtoBuf(mAcl))
+        .setDefaultAcl(AccessControlList.toProtoBuf(mDefaultAcl))
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }

@@ -12,6 +12,8 @@
 package alluxio.security.authorization;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -19,6 +21,13 @@ import java.util.List;
  */
 public class DefaultAccessControlList extends AccessControlList {
   private AccessControlList mAccessAcl;
+  private boolean mEmpty;
+  /**
+   * Constructor to build a default ACL that is empty.
+   */
+  public DefaultAccessControlList() {
+    mEmpty = true;
+  }
 
   /**
    * Constructor to build a default ACL based on an access ACL.
@@ -26,6 +35,7 @@ public class DefaultAccessControlList extends AccessControlList {
    */
   public  DefaultAccessControlList(AccessControlList acl) {
     super();
+    mEmpty = false;
     mAccessAcl = acl;
     mOwningUser = acl.mOwningUser;
     mOwningGroup = acl.mOwningGroup;
@@ -35,6 +45,10 @@ public class DefaultAccessControlList extends AccessControlList {
   }
 
   private void fillDefault() {
+    if (mAccessAcl == null) {
+      return;
+    }
+    setEmpty(false);
     if (mUserActions.get(OWNING_USER_KEY) == null) {
       mUserActions.put(OWNING_USER_KEY,
           new AclActions(mAccessAcl.mUserActions.get(OWNING_USER_KEY)));
@@ -88,6 +102,24 @@ public class DefaultAccessControlList extends AccessControlList {
     }
   }
 
+
+  @Override
+  public void setEntry(AclEntry entry) {
+    super.setEntry(entry);
+    setEmpty(false);
+  }
+  /**
+   * Returns true if the default ACL is empty
+   * @return true if empty
+   */
+  public boolean isEmpty() {
+    return mEmpty;
+  }
+
+  public void setEmpty(boolean empty) {
+    mEmpty = empty;
+  }
+
   /**
    * Returns a list of {@link AclEntry} which represent this ACL instance. The mask will only be
    * included if extended ACL entries exist.
@@ -96,7 +128,11 @@ public class DefaultAccessControlList extends AccessControlList {
    */
   @Override
   public List<AclEntry> getEntries() {
+    if (isEmpty()) {
+      return new ArrayList<>();
+    }
     List<AclEntry> aclEntryList = super.getEntries();
+
     for (AclEntry entry : aclEntryList) {
       entry.setDefault(true);
     }

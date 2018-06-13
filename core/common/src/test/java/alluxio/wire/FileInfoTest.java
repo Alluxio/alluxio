@@ -12,11 +12,13 @@
 package alluxio.wire;
 
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
+import sun.jvm.hotspot.debugger.cdbg.AccessControl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,7 +135,9 @@ public class FileInfoTest {
     result.setMountId(mountId);
     result.setUfsPath(ufsPath);
     result.setInAlluxioPercentage(inAlluxioPercentage);
-    result.setAclEntries(new AccessControlList().toStringEntries());
+    AccessControlList acl = new AccessControlList();
+    result.setAclEntries(acl.toStringEntries());
+    result.setDefaultAclEntries(new DefaultAccessControlList().toStringEntries());
     return result;
   }
 }
