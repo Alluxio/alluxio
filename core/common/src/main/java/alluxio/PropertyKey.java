@@ -2791,9 +2791,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.SECURITY_LOGIN_IMPERSONATION_USERNAME).setDescription(String.format(
           "When %s is set to SIMPLE or CUSTOM, user application uses this property to indicate "
               + "the IMPERSONATED user requesting Alluxio service. If it is not set explicitly, "
-              + "impersonation will not be used. A special value of '%s' can be specified to "
-              + "impersonate the hadoop client user.",
-          SECURITY_AUTHENTICATION_TYPE, Constants.IMPERSONATION_HDFS_USER))
+              + "or set to %s, impersonation will not be used. A special value of '%s' can be "
+              + "specified to impersonate the hadoop client user.", SECURITY_AUTHENTICATION_TYPE,
+          Constants.IMPERSONATION_NONE, Constants.IMPERSONATION_HDFS_USER))
           .setDefaultValue(Constants.IMPERSONATION_HDFS_USER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
