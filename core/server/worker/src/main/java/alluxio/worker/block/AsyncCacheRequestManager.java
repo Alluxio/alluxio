@@ -218,16 +218,15 @@ public class AsyncCacheRequestManager {
   }
 
   // Metrics
-  private static final Counter ASYNC_CACHE_REQUESTS =
-      MetricsSystem.workerCounter("AsyncCacheRequests");
+  private static final Counter ASYNC_CACHE_REQUESTS = MetricsSystem.counter("AsyncCacheRequests");
   private static final Counter ASYNC_CACHE_DUPLICATE_REQUESTS =
-      MetricsSystem.workerCounter("AsyncCacheDuplicateRequests");
+      MetricsSystem.counter("AsyncCacheDuplicateRequests");
   private static final Counter ASYNC_CACHE_FAILED_BLOCKS =
-      MetricsSystem.workerCounter("AsyncCacheFailedBlocks");
+      MetricsSystem.counter("AsyncCacheFailedBlocks");
   private static final Counter ASYNC_CACHE_REMOTE_BLOCKS =
-      MetricsSystem.workerCounter("AsyncCacheRemoteBlocks");
+      MetricsSystem.counter("AsyncCacheRemoteBlocks");
   private static final Counter ASYNC_CACHE_SUCCEEDED_BLOCKS =
-      MetricsSystem.workerCounter("AsyncCacheSucceededBlocks");
+      MetricsSystem.counter("AsyncCacheSucceededBlocks");
   private static final Counter ASYNC_CACHE_UFS_BLOCKS =
-      MetricsSystem.workerCounter("AsyncCacheUfsBlocks");
+      MetricsSystem.counter("AsyncCacheUfsBlocks");
 }

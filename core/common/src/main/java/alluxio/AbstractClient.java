@@ -310,13 +310,13 @@ public abstract class AbstractClient implements Client {
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc, String rpcName)
       throws AlluxioStatusException {
-    try (Timer.Context ctx = MetricsSystem.clientTimer(getQualifiedMetricName(rpcName)).time()) {
+    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(rpcName)).time()) {
       return retryRPCInternal(rpc, () -> {
-        MetricsSystem.clientCounter(getQualifiedRetryMetricName(rpcName)).inc();
+        MetricsSystem.counter(getQualifiedRetryMetricName(rpcName)).inc();
         return null;
       });
     } catch (Exception e) {
-      MetricsSystem.clientCounter(getQualifiedFailureMetricName(rpcName)).inc();
+      MetricsSystem.counter(getQualifiedFailureMetricName(rpcName)).inc();
       throw e;
     }
   }
