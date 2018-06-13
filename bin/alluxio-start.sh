@@ -41,7 +41,7 @@ MOPT (Mount Option) is one of:
   NoMount  \tDo not mount the configured RamFS.
            \tNotice: to avoid sudo requirement but using tmpFS in Linux,
              set ALLUXIO_RAM_FOLDER=/dev/shm on each worker and use NoMount.
-  SudoMount is assumed if MOPT is not specified.
+  NoMount is assumed if MOPT is not specified.
 
 -f         format Journal, UnderFS Data and Workers Folder on master.
 -h         display this help.
@@ -390,7 +390,9 @@ main() {
   # Set MOPT.
   case "${ACTION}" in
     all|worker|workers|local)
-      if [[ -z "${MOPT}" || "${MOPT}" == "-f" ]]; then
+      if [[ -z "${MOPT}" ]]; then
+        MOPT="NoMount"
+      elif [[ "${MOPT}" == "-f" ]]; then
         MOPT="SudoMount"
       else
         shift
