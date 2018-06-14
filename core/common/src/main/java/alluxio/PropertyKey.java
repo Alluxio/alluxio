@@ -2555,11 +2555,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("2min")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum duration to retry for"
-              + " before giving up.")
+              + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
           .build();
   /**
    * @deprecated since version 1.8 and will be removed in version 2.0.
    */
+  @Deprecated
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       new Builder(Name.USER_RPC_RETRY_MAX_NUM_RETRY)
           .setAlias(new String[]{Name.MASTER_RETRY})
