@@ -11,8 +11,11 @@
 
 package alluxio.security.authorization;
 
+import alluxio.collections.Pair;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -45,6 +48,37 @@ public class DefaultAccessControlList extends AccessControlList {
     mUserActions.put(OWNING_USER_KEY, new AclActions(acl.mUserActions.get(OWNING_USER_KEY)));
     mGroupActions.put(OWNING_GROUP_KEY, new AclActions(acl.mGroupActions.get(OWNING_GROUP_KEY)));
     mOtherActions = new AclActions(acl.mOtherActions);
+  }
+
+  /**
+   * create a child file 's accessACL based on the default ACL.
+   * @return child file's access ACL
+   */
+  public AccessControlList generateChildFileACL() {
+    AccessControlList acl = new AccessControlList();
+    acl.mOwningUser = mOwningUser;
+    acl.mOwningGroup = mOwningGroup;
+    acl.mUserActions = new HashMap<>(mUserActions);
+    acl.mGroupActions = new HashMap<>(mGroupActions);
+    acl.mOtherActions = new AclActions(mOtherActions);
+    acl.mMaskActions = new AclActions(mMaskActions);
+    return acl;
+  }
+
+  /**
+   * Creates a child directory's access ACL and default ACL based on the default ACL.
+   * @return child directory's access ACL and default ACL
+   */
+  public Pair<AccessControlList, DefaultAccessControlList> generateChildDirACL() {
+    AccessControlList acl = generateChildFileACL();
+    DefaultAccessControlList dAcl = new DefaultAccessControlList(acl);
+    dAcl.mOwningUser = mOwningUser;
+    dAcl.mOwningGroup = mOwningGroup;
+    dAcl.mUserActions = new HashMap<>(mUserActions);
+    dAcl.mGroupActions = new HashMap<>(mGroupActions);
+    dAcl.mOtherActions = new AclActions(mOtherActions);
+    dAcl.mMaskActions = new AclActions(mMaskActions);
+    return new Pair<>(acl, dAcl);
   }
 
   private void fillDefault() {

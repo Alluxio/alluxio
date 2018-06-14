@@ -419,6 +419,16 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
+   * Sets the internal ACL to a specified ACL.
+   * @param acl the specified ACL
+   * @return the updated object
+   */
+  public T setInternalAcl(AccessControlList acl) {
+    mAcl = acl;
+    return getThis();
+  }
+
+  /**
    * @param ufsFingerprint the ufs fingerprint to use
    * @return the updated object
    */
