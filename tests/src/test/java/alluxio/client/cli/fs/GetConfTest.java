@@ -26,7 +26,6 @@ import java.io.ByteArrayOutputStream;
 /**
  * Tests for {@link GetConf}.
  */
-// TODO(binfan): create a SystemOutRule for unit test
 public final class GetConfTest {
   private ByteArrayOutputStream mOutputStream = new ByteArrayOutputStream();
 
