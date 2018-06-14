@@ -51,11 +51,11 @@ public final class PlainSaslTransportProvider implements TransportProvider {
   @Override
   public TTransport getClientTransport(InetSocketAddress serverAddress)
       throws UnauthenticatedException {
-    return getClientTransport(null, ThriftUtils.createThriftSocket(serverAddress));
+    return getClientTransport(null, serverAddress);
   }
 
   @Override
-  public TTransport getClientTransport(Subject subject, TTransport baseTransport)
+  public TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
       throws UnauthenticatedException {
     String username = null;
     String password = "noPassword";
@@ -83,7 +83,7 @@ public final class PlainSaslTransportProvider implements TransportProvider {
       // not enabling impersonation for the client.
       username = LoginUser.get().getName();
     }
-    return getClientTransport(username, password, impersonationUser, baseTransport);
+    return getClientTransport(username, password, impersonationUser, serverAddress);
   }
 
   // TODO(binfan): make this private and use whitebox to access this method in test
@@ -93,11 +93,12 @@ public final class PlainSaslTransportProvider implements TransportProvider {
    * @param username User Name of PlainClient
    * @param password Password of PlainClient
    * @param impersonationUser impersonation user (not used if null)
-   * @param baseTransport base transport
+   * @param serverAddress address of the server
    * @return Wrapped transport with PLAIN mechanism
    */
   public TTransport getClientTransport(String username, String password, String impersonationUser,
-      TTransport baseTransport) throws UnauthenticatedException {
+      InetSocketAddress serverAddress) throws UnauthenticatedException {
+    TTransport baseTransport = ThriftUtils.createThriftSocket(serverAddress);
     try {
       return new TSaslClientTransport(PlainSaslServerProvider.MECHANISM, impersonationUser, null,
           null, new HashMap<String, String>(),
