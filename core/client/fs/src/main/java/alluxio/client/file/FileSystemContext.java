@@ -429,7 +429,9 @@ public final class FileSystemContext implements Closeable {
     @Override
     public void run() {
       try {
-        mClientMasterSync.heartbeat();
+        if (mClientMasterSync != null) {
+          mClientMasterSync.heartbeat();
+        }
       } catch (InterruptedException e) {
         LOG.error("Failed to heartbeat to the metrics master before exit");
       }
