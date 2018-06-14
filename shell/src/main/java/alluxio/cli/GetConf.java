@@ -41,30 +41,29 @@ import java.util.Map;
  */
 public final class GetConf {
   private static final String USAGE =
-      "USAGE: GetConf [--unit <arg>] [--source] [--cluster] [key]\n\n"
+      "USAGE: GetConf [--unit <arg>] [--source] [--master] [key]\n\n"
       + "GetConf prints the configured value for the given key. If the key is invalid, the "
       + "exit code will be nonzero. If the key is valid but isn't set, an empty string is printed. "
-      + "If no key is specified, all configuration is printed. If \"--unit\" option is specified, "
-      + "values of data size configuration will be converted to a quantity in the given unit."
-      + "E.g., with \"--unit KB\", a configuration value of \"4096\" will return 4, "
-      + "and with \"--unit S\", a configuration value of \"5000\" will return 5. "
-      + "Possible unit options include B, KB, MB, GB, TP, PB, MS, S, M, H, D. "
-      + "if \"--source\" option is specified, the source of configuration value will be printed.";
+      + "If no key is specified, all configuration is printed.";
 
-  private static final String CLUSTER_OPTION_NAME = "cluster";
+  private static final String MASTER_OPTION_NAME = "master";
   private static final String SOURCE_OPTION_NAME = "source";
   private static final String UNIT_OPTION_NAME = "unit";
-  private static final Option CLUSTER_OPTION =
-      Option.builder().required(false).longOpt(CLUSTER_OPTION_NAME).hasArg(false)
-          .desc("the cluster-default configuration property.").build();
+  private static final Option MASTER_OPTION =
+      Option.builder().required(false).longOpt(MASTER_OPTION_NAME).hasArg(false)
+          .desc("the configuration properties used by the master.").build();
   private static final Option SOURCE_OPTION =
       Option.builder().required(false).longOpt(SOURCE_OPTION_NAME).hasArg(false)
-          .desc("source of the configuration property.").build();
+          .desc("source of the configuration property will be printed.").build();
   private static final Option UNIT_OPTION =
       Option.builder().required(false).longOpt(UNIT_OPTION_NAME).hasArg(true)
-          .desc("unit of the value to return.").build();
+          .desc("unit of the value to return. Values of configuration will be converted "
+              + "to a quantity in the given unit. E.g., with \"--unit KB\", a configuration value "
+              + "of \"4096B\" will return 4, and with \"--unit S\", a configuration value of "
+              + "\"5000ms\" will return 5. Possible unit options include B, KB, MB, GB, TP, PB, "
+              + "MS, S, M, H, D. \"").build();
   private static final Options OPTIONS =
-      new Options().addOption(SOURCE_OPTION).addOption(UNIT_OPTION).addOption(CLUSTER_OPTION);
+      new Options().addOption(SOURCE_OPTION).addOption(UNIT_OPTION).addOption(MASTER_OPTION);
 
   private enum ByteUnit {
     B(1L),
@@ -149,13 +148,13 @@ public final class GetConf {
     args = cmd.getArgs();
 
     Map<String, ConfigProperty> confMap = new HashMap<>();
-    if (cmd.hasOption(CLUSTER_OPTION_NAME)) {
+    if (cmd.hasOption(MASTER_OPTION_NAME)) {
       // load cluster-wide configuration
       try (RetryHandlingMetaMasterClient client =
           new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
         client.getConfiguration().forEach(prop -> confMap.put(prop.getName(), prop));
       } catch (IOException e) {
-        System.out.println("Unable to get cluster-default configuration: " + e.getMessage());
+        System.out.println("Unable to get master-side configuration: " + e.getMessage());
         return -1;
       }
     } else {
@@ -192,9 +191,9 @@ public final class GetConf {
           printHelp(String.format("%s is not a valid configuration key", args[0]));
           return 1;
         }
-        ConfigProperty property = confMap.get(args[0]);
+        ConfigProperty property = confMap.get(key);
         if (property == null) {
-          printHelp(String.format("%s is not found", args[0]));
+          printHelp(String.format("%s is not found", key));
           return 1;
         }
 

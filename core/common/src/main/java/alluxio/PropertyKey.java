@@ -3815,7 +3815,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     String name = key.getName();
     String[] aliases = key.getAliases();
     if (DEFAULT_KEYS_MAP.containsKey(name)) {
-      return false;
+      if (DEFAULT_KEYS_MAP.get(name).isBuiltIn() || !key.isBuiltIn()) {
+        return false;
+      }
     }
     DEFAULT_KEYS_MAP.put(name, key);
     if (aliases != null) {

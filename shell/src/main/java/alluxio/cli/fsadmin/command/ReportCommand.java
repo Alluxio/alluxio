@@ -221,7 +221,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         + "summary information will be printed out.\n"
         + "[category] can be one of the following:\n"
         + "    capacity         worker capacity information\n"
-        + "    configuration    runtime configuration\n"
         + "    metrics          metrics information\n"
         + "    summary          cluster summary\n"
         + "    ufs              under filesystem information\n";

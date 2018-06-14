@@ -854,4 +854,17 @@ public class ConfigurationTest {
         ConfigurationValueOptions.defaults().useDisplayValue(true));
     assertEquals(displayValue1, displayValue2);
   }
+
+  @Test
+  public void extensionProperty() {
+    // simulate the case a ext key is picked by site property
+    String fakeKeyName = "fake.extension.key";
+    Configuration.merge(ImmutableMap.of(fakeKeyName, "value"), Source.siteProperty("a"));
+    assertFalse(PropertyKey.fromString(fakeKeyName).isBuiltIn());
+    // simulate the case the key is built inside the extension
+    PropertyKey fakeExtensionKey = new PropertyKey.Builder(fakeKeyName).build();
+    String value = Configuration.get(fakeExtensionKey);
+    assertEquals("value", value);
+    assertTrue(PropertyKey.fromString(fakeKeyName).isBuiltIn());
+  }
 }
