@@ -20,6 +20,7 @@ import alluxio.metrics.MetricsSystem.InstanceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -141,7 +142,20 @@ public class MetricsStore {
    */
   public synchronized Set<Metric> getMetricsByInstanceTypeAndName(
       MetricsSystem.InstanceType instanceType, String name) {
+    if (instanceType == InstanceType.MASTER) {
+      return getMasterMetrics(name);
+    }
     return getMetricsByInstanceType(instanceType).getByField(NAME_INDEX, name);
+  }
+
+  private Set<Metric> getMasterMetrics(String name) {
+    Set<Metric> metrics=new HashSet<>();
+    for(Metric metric: MetricsSystem.allMasterMetrics()) {
+      if(metric.getName().equals(name)) {
+        metrics.add(metric);
+      }
+    }
+    return metrics;
   }
 
   /**

@@ -85,7 +85,7 @@ public class MetricsMasterTest {
   @Test
   public void testMultiValueAggregator() {
     mMetricsMaster.addAggregator(
-        new SingleTagValueAggregator(MetricsSystem.InstanceType.WORKER, "metric", "tag"));
+        new SingleTagValueAggregator("metric", MetricsSystem.InstanceType.WORKER, "metric", "tag"));
     List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metric.tag:v1", 10),
         Metric.from("worker.192_1_1_1.metric.tag:v2", 20));
     mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);

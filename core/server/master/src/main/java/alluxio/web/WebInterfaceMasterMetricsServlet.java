@@ -232,5 +232,26 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
           FormatUtils.getSizeFromBytes((long) metric.getValue()));
     }
     request.setAttribute("ufsWriteSize", ufsWriteSizeMap);
+
+    // per UFS ops
+    Map<String, Map<String, Long>> ufsOpsMap = new TreeMap<>();
+    Map<String, Gauge> t= mr.getGauges(new MetricFilter() {
+      @Override
+      public boolean matches(String name, Metric metric) {
+        return name.contains(WorkerMetrics.UFS_OP_PREFIX);
+      }
+      });
+    for (Map.Entry<String, Gauge> entry : t.entrySet()) {
+      alluxio.metrics.Metric metric =
+          alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+      if (!metric.getTags().containsKey(WorkerMetrics.TAG_UFS)) {
+        continue;
+      }
+      String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
+      Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
+      perUfsMap.put(metric.getName(), (long) metric.getValue());
+      ufsOpsMap.put(ufs, perUfsMap);
+    }
+    request.setAttribute("ufsOps", ufsOpsMap);
   }
 }

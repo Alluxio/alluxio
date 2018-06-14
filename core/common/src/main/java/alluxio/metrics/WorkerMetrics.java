@@ -15,6 +15,31 @@ package alluxio.metrics;
  * Metrics of an Alluxio worker.
  */
 public final class WorkerMetrics {
+  public enum UfsOps {
+    Close,
+    ConnectFromMaster,
+    ConnectFromWorker,
+    Create,
+    DeleteDirectory,
+    DeleteFile,
+    Exists,
+    GetBlockSizeByte,
+    GetDirectoryStatus,
+    GetFileLocations,
+    GetFileStatus,
+    GetFingerprint,
+    GetSpace,
+    GetStatus,
+    IsDirectory,
+    IsFile,
+    ListStatus,
+    Mkdirs,
+    Open,
+    RenameDirectory,
+    RenameFile,
+    SetOwner,
+    SetMode;
+  }
 
   /**
    * Total number of bytes read/written from Alluxio storage through this worker. This does not
@@ -32,6 +57,8 @@ public final class WorkerMetrics {
   public static final String BYTES_WRITTEN_UFS = "BytesWrittenPerUfs";
   public static final String BYTES_WRITTEN_UFS_ALL = "BytesWrittenUfsAll";
   public static final String BYTES_WRITTEN_UFS_THROUGHPUT = "BytesReadUfsThroughput";
+
+  public static final String UFS_OP_PREFIX = "UfsOp";
 
   // Tags
   public static final String TAG_UFS = "UFS";
