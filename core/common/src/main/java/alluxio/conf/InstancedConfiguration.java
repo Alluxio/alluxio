@@ -106,7 +106,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public boolean isSet(PropertyKey key) {
-    return mProperties.hasValueSet(key);
+    return mProperties.isSet(key);
   }
 
   @Override
