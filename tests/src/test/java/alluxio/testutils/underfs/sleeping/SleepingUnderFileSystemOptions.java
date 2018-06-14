@@ -202,7 +202,7 @@ public class SleepingUnderFileSystemOptions {
    * @return the updated object
    */
   public SleepingUnderFileSystemOptions setGetDirectoryStatusMs(long getDirectoryStatusMs) {
-    mGetFileStatusMs = getDirectoryStatusMs;
+    mGetDirectoryStatusMs = getDirectoryStatusMs;
     return this;
   }
 

@@ -110,7 +110,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
     MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
   }
 
@@ -196,7 +196,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   public void getMetrics() {
     final int FILES_PINNED_TEST_VALUE = 100;
     String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
     Gauge<Integer> filesPinnedGauge = new Gauge<Integer>() {
       @Override
       public Integer getValue() {

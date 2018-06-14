@@ -154,7 +154,7 @@ public class AlluxioProperties {
    * @param key the key to check
    * @return true if there is value for the key, false otherwise
    */
-  public boolean hasValueSet(PropertyKey key) {
+  public boolean isSet(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
       return mUserProps.get(key).isPresent();
     }
