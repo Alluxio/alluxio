@@ -19,6 +19,10 @@ import java.util.List;
  * Default Access control list for a directory.
  */
 public class DefaultAccessControlList extends AccessControlList {
+  /**
+   * a reference to the access ACL associated with the same inode so that we can fill the default
+   * value for OWNING_USER, OWNING_GROUP and OTHER.
+   */
   private AccessControlList mAccessAcl;
   private boolean mEmpty;
   /**
@@ -70,19 +74,9 @@ public class DefaultAccessControlList extends AccessControlList {
   public void removeEntry(AclEntry entry) throws IOException {
     switch (entry.getType()) {
       case NAMED_USER:
-        mUserActions.remove(entry.getSubject());
-        return;
       case NAMED_GROUP:
-        mGroupActions.remove(entry.getSubject());
-        return;
       case MASK:
-        if (hasExtended()) {
-          // cannot remove the mask if it is extended.
-          throw new IOException(
-              "Deleting the mask for extended ACLs is not allowed. entry: " + entry);
-        } else {
-          mMaskActions = new AclActions();
-        }
+        super.removeEntry(entry);
         return;
       case OWNING_USER:
         mUserActions.remove(entry.getSubject());

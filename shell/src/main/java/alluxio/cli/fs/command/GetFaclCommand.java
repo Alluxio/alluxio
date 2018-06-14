@@ -53,10 +53,8 @@ public final class GetFaclCommand extends AbstractFileSystemCommand {
       System.out.println(entry);
     }
     List<String> defaultAclEntries = status.getDefaultAclEntries();
-    if (defaultAclEntries != null) {
-      for (String entry: defaultAclEntries) {
-        System.out.println(entry);
-      }
+    for (String entry: defaultAclEntries) {
+      System.out.println(entry);
     }
   }
 

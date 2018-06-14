@@ -25,13 +25,14 @@ import java.util.stream.Collectors;
  * An entry in {@link AccessControlList}.
  */
 public final class AclEntry {
+
+  private static final String DEFAULT_KEYWORD = "default";
+  private static final String DEFAULT_PREFIX = DEFAULT_KEYWORD + ":";
+
   /**
    * Type of this entry.
    */
   private AclEntryType mType;
-
-  private static final String DEFAULT_KEYWORD = "default";
-  private static final String DEFAULT_PREFIX = DEFAULT_KEYWORD + ":";
 
   /**
    * Whether this entry applies to default ACL or not.
@@ -117,7 +118,7 @@ public final class AclEntry {
         .add("type", mType)
         .add("subject", mSubject)
         .add("actions", mActions)
-        .add("defaultEntry", mIsDefault)
+        .add("isDefault", mIsDefault)
         .toString();
   }
 
@@ -190,9 +191,9 @@ public final class AclEntry {
     int startingIndex = 0;
     if (components.get(0).equals(DEFAULT_KEYWORD)) {
       startingIndex = 1;
-      builder.setDefaultEntry(true);
+      builder.setIsDefault(true);
     } else {
-      builder.setDefaultEntry(false);
+      builder.setIsDefault(false);
     }
     String type = components.get(startingIndex + 0);
     String subject = components.get(startingIndex + 1);
@@ -267,30 +268,26 @@ public final class AclEntry {
 
     AclEntry.Builder builder = new AclEntry.Builder();
     String type;
-    String subject;
-    String actions;
+    String subject = "";
+    String actions = "";
     if (components.get(0).equals(DEFAULT_KEYWORD)) {
       type = components.get(1);
-      subject = "";
       if (components.size() >= 3) {
         subject = components.get(2);
       }
-      actions = "";
       if (components.size() >= 4) {
         actions = components.get(3);
       }
-      builder.setDefaultEntry(true);
+      builder.setIsDefault(true);
     } else {
       type = components.get(0);
-      subject = "";
       if (components.size() >= 2) {
         subject = components.get(1);
       }
-      actions = "";
       if (components.size() >= 3) {
         actions = components.get(2);
       }
-      builder.setDefaultEntry(false);
+      builder.setIsDefault(false);
     }
 
     if (!actions.isEmpty()) {
@@ -344,7 +341,7 @@ public final class AclEntry {
     AclEntry.Builder builder = new AclEntry.Builder();
     builder.setType(AclEntryType.fromProto(pEntry.getType()));
     builder.setSubject(pEntry.getSubject());
-    builder.setDefaultEntry(pEntry.getIsDefault());
+    builder.setIsDefault(pEntry.getIsDefault());
 
     for (File.AclAction pAction : pEntry.getActionsList()) {
       builder.addAction(AclAction.fromProtoBuf(pAction));
@@ -374,7 +371,7 @@ public final class AclEntry {
     AclEntry.Builder builder = new AclEntry.Builder();
     builder.setType(AclEntryType.fromThrift(tEntry.getType()));
     builder.setSubject(tEntry.getSubject());
-    builder.setDefaultEntry(tEntry.isDefaultEntry());
+    builder.setIsDefault(tEntry.isDefaultEntry());
     if (tEntry.isSetActions()) {
       for (TAclAction tAction : tEntry.getActions()) {
         builder.addAction(AclAction.fromThrift(tAction));
@@ -405,7 +402,7 @@ public final class AclEntry {
     private AclEntryType mType;
     private String mSubject;
     private AclActions mActions;
-    private boolean mDefaultEntry;
+    private boolean mIsDefault;
 
     /**
      * Creates a new builder where type is null, subject is an empty string, and no action is
@@ -470,8 +467,8 @@ public final class AclEntry {
      * @param isDefault whether this entry is default
      * @return the builder
      */
-    public Builder setDefaultEntry(boolean isDefault) {
-      mDefaultEntry = isDefault;
+    public Builder setIsDefault(boolean isDefault) {
+      mIsDefault = isDefault;
       return this;
     }
 
@@ -489,7 +486,7 @@ public final class AclEntry {
       if (subjectRequired && mSubject.isEmpty()) {
         throw new IllegalStateException("Subject for type " + mType + " cannot be empty");
       }
-      return new AclEntry(mType, mSubject, mActions, mDefaultEntry);
+      return new AclEntry(mType, mSubject, mActions, mIsDefault);
     }
   }
 }
