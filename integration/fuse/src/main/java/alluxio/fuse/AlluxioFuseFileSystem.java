@@ -15,7 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.CheckConsistencyOptions;
+import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
@@ -564,6 +567,25 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
+   * Repair the inconsistent path by delete it in alluxio only, and refresh master metadata
+   */
+  private void doRefresh(String path, AlluxioURI uri) throws IOException {
+      MetaCache.invalidate(path);
+      MetaCache.invalidatePrefix(path);
+      CheckConsistencyOptions options = CheckConsistencyOptions.defaults();
+      List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(uri, options);
+      DeleteOptions delopt = DeleteOptions.defaults().setAlluxioOnly(true);
+      for (AlluxioURI u : inconsistentUris) {
+        try {
+            LOG.info("==== delete {} in alluxio only", u.getPath());
+            mFileSystem.delete(u, delopt);
+        } catch (Exception e) {
+            LOG.error("==== error during rm {} ", u.getPath());
+        }
+      }
+  }
+
+  /**
    * Reads the contents of a directory.
    *
    * @param path The FS path of the directory
@@ -590,12 +612,13 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
               String dbg_txt = path.substring(idx).replace("/@", "");
               path = path.substring(0, idx);
               if (path.equals("")) path = "/";
+              turi = MetaCache.getURI(path);
               if (dbg_txt.equals("f")) {
+                doRefresh(path, turi);
                 options.setLoadMetadataType(LoadMetadataType.Always);
               } else {
                 MetaCache.debug_meta_cache(dbg_txt);
               }
-              turi = MetaCache.getURI(path);
               if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
           } else {
               throw e;
@@ -740,7 +763,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     //final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     final AlluxioURI uri = MetaCache.getURI(path);
     MetaCache.invalidate(path);
-    LOG.warn("========== truncate {} ", path);
+    LOG.info("========== truncate {} size {}", path, size);
     try {
       if (!mFileSystem.exists(uri)) {
         LOG.error("File {} does not exist", uri);
@@ -753,6 +776,11 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
               LOG.warn("=== exception during unlink {} in trunk {}", path, e.getMessage());
           }
           return create(path, 0, null);
+      } else {
+          // some file with hole will cause fuse subsystem to call truncate() or ftruncate() with 
+          // available content length. For now, we just keep the maximum available content.
+          // The full solution will be to send a thrift RPC to master to update the status.length
+          return 0;
       }
     } catch (IOException e) {
       LOG.error("IOException encountered at path {}", path, e);
@@ -764,8 +792,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       LOG.error("Unexpected exception at path {}", path, e);
       return -ErrorCodes.EFAULT();
     }
-    LOG.error("File {} exists and cannot be overwritten. Please delete the file first", uri);
-    return -ErrorCodes.EEXIST();
+    //LOG.error("File {} exists and cannot be overwritten. Please delete the file first", uri);
+    //return -ErrorCodes.EEXIST();
   }
 
   /**
