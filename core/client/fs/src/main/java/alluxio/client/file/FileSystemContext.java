@@ -444,7 +444,7 @@ public final class FileSystemContext implements Closeable {
   @ThreadSafe
   private static final class Metrics {
     private static void initializeGauges() {
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClientMetricName("NettyConnectionsOpen"),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName("NettyConnectionsOpen"),
           new Gauge<Long>() {
             @Override
             public Long getValue() {

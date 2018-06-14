@@ -14,6 +14,7 @@ package alluxio.client.rest;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
@@ -63,7 +64,8 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getMetrics() throws Exception {
-    Assert.assertEquals(Long.valueOf(0), getInfo().getMetrics().get("master.CompleteFileOps"));
+    Assert.assertEquals(Long.valueOf(0),
+        getInfo().getMetrics().get(MetricsSystem.getMetricName("CompleteFileOps")));
   }
 
   @Test
