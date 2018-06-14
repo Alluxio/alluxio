@@ -231,9 +231,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     for (AclEntry entry : entries) {
       if (entry.isDefault()) {
         AccessControlList defaultAcl = getDefaultACL();
-        if (defaultAcl != null) {
-          defaultAcl.removeEntry(entry);
-        }
+        defaultAcl.removeEntry(entry);
       } else {
         mAcl.removeEntry(entry);
       }
@@ -250,6 +248,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   public T replaceAcl(List<AclEntry> entries) {
     boolean clearACL = false;
     for (AclEntry entry : entries) {
+      /**
+       * if we are only setting default ACLs, we do not need to clear access ACL entries
+       * observed same behavior on linux
+       */
       if (!entry.isDefault()) {
         clearACL = true;
       }
@@ -409,9 +411,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     for (AclEntry entry : entries) {
       if (entry.isDefault()) {
         AccessControlList defaultAcl = getDefaultACL();
-        if (defaultAcl == null) {
-          setDefaultACL(new DefaultAccessControlList(mAcl));
-        }
+        setDefaultACL(new DefaultAccessControlList(mAcl));
         getDefaultACL().setEntry(entry);
       } else {
         mAcl.setEntry(entry);

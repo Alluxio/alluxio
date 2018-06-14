@@ -41,7 +41,7 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
   private static final org.apache.thrift.protocol.TField TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("type", org.apache.thrift.protocol.TType.I32, (short)1);
   private static final org.apache.thrift.protocol.TField SUBJECT_FIELD_DESC = new org.apache.thrift.protocol.TField("subject", org.apache.thrift.protocol.TType.STRING, (short)2);
   private static final org.apache.thrift.protocol.TField ACTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("actions", org.apache.thrift.protocol.TType.LIST, (short)3);
-  private static final org.apache.thrift.protocol.TField DEFAULT_ENTRY_FIELD_DESC = new org.apache.thrift.protocol.TField("defaultEntry", org.apache.thrift.protocol.TType.BOOL, (short)4);
+  private static final org.apache.thrift.protocol.TField IS_DEFAULT_FIELD_DESC = new org.apache.thrift.protocol.TField("isDefault", org.apache.thrift.protocol.TType.BOOL, (short)4);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -52,7 +52,7 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
   private TAclEntryType type; // optional
   private String subject; // optional
   private List<TAclAction> actions; // optional
-  private boolean defaultEntry; // optional
+  private boolean isDefault; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -63,7 +63,7 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
     TYPE((short)1, "type"),
     SUBJECT((short)2, "subject"),
     ACTIONS((short)3, "actions"),
-    DEFAULT_ENTRY((short)4, "defaultEntry");
+    IS_DEFAULT((short)4, "isDefault");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -84,8 +84,8 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
           return SUBJECT;
         case 3: // ACTIONS
           return ACTIONS;
-        case 4: // DEFAULT_ENTRY
-          return DEFAULT_ENTRY;
+        case 4: // IS_DEFAULT
+          return IS_DEFAULT;
         default:
           return null;
       }
@@ -126,9 +126,9 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
   }
 
   // isset id assignments
-  private static final int __DEFAULTENTRY_ISSET_ID = 0;
+  private static final int __ISDEFAULT_ISSET_ID = 0;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.TYPE,_Fields.SUBJECT,_Fields.ACTIONS,_Fields.DEFAULT_ENTRY};
+  private static final _Fields optionals[] = {_Fields.TYPE,_Fields.SUBJECT,_Fields.ACTIONS,_Fields.IS_DEFAULT};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -139,7 +139,7 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
     tmpMap.put(_Fields.ACTIONS, new org.apache.thrift.meta_data.FieldMetaData("actions", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, TAclAction.class))));
-    tmpMap.put(_Fields.DEFAULT_ENTRY, new org.apache.thrift.meta_data.FieldMetaData("defaultEntry", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.IS_DEFAULT, new org.apache.thrift.meta_data.FieldMetaData("isDefault", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(TAclEntry.class, metaDataMap);
@@ -166,7 +166,7 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
       }
       this.actions = __this__actions;
     }
-    this.defaultEntry = other.defaultEntry;
+    this.isDefault = other.isDefault;
   }
 
   public TAclEntry deepCopy() {
@@ -178,8 +178,8 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
     this.type = null;
     this.subject = null;
     this.actions = null;
-    setDefaultEntryIsSet(false);
-    this.defaultEntry = false;
+    setIsDefaultIsSet(false);
+    this.isDefault = false;
   }
 
   /**
@@ -277,27 +277,27 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
     }
   }
 
-  public boolean isDefaultEntry() {
-    return this.defaultEntry;
+  public boolean isIsDefault() {
+    return this.isDefault;
   }
 
-  public TAclEntry setDefaultEntry(boolean defaultEntry) {
-    this.defaultEntry = defaultEntry;
-    setDefaultEntryIsSet(true);
+  public TAclEntry setIsDefault(boolean isDefault) {
+    this.isDefault = isDefault;
+    setIsDefaultIsSet(true);
     return this;
   }
 
-  public void unsetDefaultEntry() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __DEFAULTENTRY_ISSET_ID);
+  public void unsetIsDefault() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ISDEFAULT_ISSET_ID);
   }
 
-  /** Returns true if field defaultEntry is set (has been assigned a value) and false otherwise */
-  public boolean isSetDefaultEntry() {
-    return EncodingUtils.testBit(__isset_bitfield, __DEFAULTENTRY_ISSET_ID);
+  /** Returns true if field isDefault is set (has been assigned a value) and false otherwise */
+  public boolean isSetIsDefault() {
+    return EncodingUtils.testBit(__isset_bitfield, __ISDEFAULT_ISSET_ID);
   }
 
-  public void setDefaultEntryIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __DEFAULTENTRY_ISSET_ID, value);
+  public void setIsDefaultIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISDEFAULT_ISSET_ID, value);
   }
 
   public void setFieldValue(_Fields field, Object value) {
@@ -326,11 +326,11 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
       }
       break;
 
-    case DEFAULT_ENTRY:
+    case IS_DEFAULT:
       if (value == null) {
-        unsetDefaultEntry();
+        unsetIsDefault();
       } else {
-        setDefaultEntry((Boolean)value);
+        setIsDefault((Boolean)value);
       }
       break;
 
@@ -348,8 +348,8 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
     case ACTIONS:
       return getActions();
 
-    case DEFAULT_ENTRY:
-      return isDefaultEntry();
+    case IS_DEFAULT:
+      return isIsDefault();
 
     }
     throw new IllegalStateException();
@@ -368,8 +368,8 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
       return isSetSubject();
     case ACTIONS:
       return isSetActions();
-    case DEFAULT_ENTRY:
-      return isSetDefaultEntry();
+    case IS_DEFAULT:
+      return isSetIsDefault();
     }
     throw new IllegalStateException();
   }
@@ -414,12 +414,12 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
         return false;
     }
 
-    boolean this_present_defaultEntry = true && this.isSetDefaultEntry();
-    boolean that_present_defaultEntry = true && that.isSetDefaultEntry();
-    if (this_present_defaultEntry || that_present_defaultEntry) {
-      if (!(this_present_defaultEntry && that_present_defaultEntry))
+    boolean this_present_isDefault = true && this.isSetIsDefault();
+    boolean that_present_isDefault = true && that.isSetIsDefault();
+    if (this_present_isDefault || that_present_isDefault) {
+      if (!(this_present_isDefault && that_present_isDefault))
         return false;
-      if (this.defaultEntry != that.defaultEntry)
+      if (this.isDefault != that.isDefault)
         return false;
     }
 
@@ -445,10 +445,10 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
     if (present_actions)
       list.add(actions);
 
-    boolean present_defaultEntry = true && (isSetDefaultEntry());
-    list.add(present_defaultEntry);
-    if (present_defaultEntry)
-      list.add(defaultEntry);
+    boolean present_isDefault = true && (isSetIsDefault());
+    list.add(present_isDefault);
+    if (present_isDefault)
+      list.add(isDefault);
 
     return list.hashCode();
   }
@@ -491,12 +491,12 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetDefaultEntry()).compareTo(other.isSetDefaultEntry());
+    lastComparison = Boolean.valueOf(isSetIsDefault()).compareTo(other.isSetIsDefault());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetDefaultEntry()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.defaultEntry, other.defaultEntry);
+    if (isSetIsDefault()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isDefault, other.isDefault);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -550,10 +550,10 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
       }
       first = false;
     }
-    if (isSetDefaultEntry()) {
+    if (isSetIsDefault()) {
       if (!first) sb.append(", ");
-      sb.append("defaultEntry:");
-      sb.append(this.defaultEntry);
+      sb.append("isDefault:");
+      sb.append(this.isDefault);
       first = false;
     }
     sb.append(")");
@@ -635,10 +635,10 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // DEFAULT_ENTRY
+          case 4: // IS_DEFAULT
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.defaultEntry = iprot.readBool();
-              struct.setDefaultEntryIsSet(true);
+              struct.isDefault = iprot.readBool();
+              struct.setIsDefaultIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -686,9 +686,9 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
           oprot.writeFieldEnd();
         }
       }
-      if (struct.isSetDefaultEntry()) {
-        oprot.writeFieldBegin(DEFAULT_ENTRY_FIELD_DESC);
-        oprot.writeBool(struct.defaultEntry);
+      if (struct.isSetIsDefault()) {
+        oprot.writeFieldBegin(IS_DEFAULT_FIELD_DESC);
+        oprot.writeBool(struct.isDefault);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -718,7 +718,7 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
       if (struct.isSetActions()) {
         optionals.set(2);
       }
-      if (struct.isSetDefaultEntry()) {
+      if (struct.isSetIsDefault()) {
         optionals.set(3);
       }
       oprot.writeBitSet(optionals, 4);
@@ -737,8 +737,8 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
           }
         }
       }
-      if (struct.isSetDefaultEntry()) {
-        oprot.writeBool(struct.defaultEntry);
+      if (struct.isSetIsDefault()) {
+        oprot.writeBool(struct.isDefault);
       }
     }
 
@@ -768,8 +768,8 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
         struct.setActionsIsSet(true);
       }
       if (incoming.get(3)) {
-        struct.defaultEntry = iprot.readBool();
-        struct.setDefaultEntryIsSet(true);
+        struct.isDefault = iprot.readBool();
+        struct.setIsDefaultIsSet(true);
       }
     }
   }

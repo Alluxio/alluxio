@@ -26,7 +26,7 @@ import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -54,8 +54,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   private boolean mDirectChildrenLoaded;
 
   /**
-   * A null value in mDefaultAcl is used to indicate no default acl set.
-   * Whenever it is not null, it is guaranteed to have owner, group and other entries.
+   * Empty property is used to indicate whether the defaultACL is empty or not.
+   * When it is not empty, it has at least entries for OWNING_USER, OWNING_GROUP and OTHER.
    */
   private DefaultAccessControlList mDefaultAcl;
 
@@ -240,7 +240,6 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     return getThis();
   }
 
-  @Nullable
   @Override
   public DefaultAccessControlList getDefaultACL() {
     return mDefaultAcl;
@@ -250,7 +249,6 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   public void setDefaultACL(DefaultAccessControlList acl) {
     mDefaultAcl = acl;
   }
-
   /**
    * Generates client file info for a folder.
    *
@@ -284,7 +282,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     if (!mDefaultAcl.isEmpty()) {
       ret.setDefaultAclEntries(mDefaultAcl.toStringEntries());
     } else {
-      ret.setDefaultAclEntries(new ArrayList<>());
+      ret.setDefaultAclEntries(Collections.emptyList());
     }
     return ret;
   }

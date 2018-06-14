@@ -36,7 +36,7 @@ public class DefaultAccessControlList extends AccessControlList {
    * Constructor to build a default ACL based on an access ACL.
    * @param acl the access acl
    */
-  public  DefaultAccessControlList(AccessControlList acl) {
+  public DefaultAccessControlList(AccessControlList acl) {
     super();
     mEmpty = false;
     mAccessAcl = acl;

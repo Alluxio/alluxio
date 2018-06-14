@@ -115,7 +115,7 @@ struct TAclEntry {
   1: optional TAclEntryType type
   2: optional string subject
   3: optional list<TAclAction> actions
-  4: optional bool defaultEntry;
+  4: optional bool isDefault;
 }
 
 struct TAcl {

@@ -525,7 +525,7 @@ public class AccessControlList {
     if (tAcl.isSetEntries()) {
       if (tAcl.getEntries().size() > 0) {
         TAclEntry tEntry = tAcl.getEntries().get(0);
-        if (tEntry.isDefaultEntry()) {
+        if (tEntry.isIsDefault()) {
           acl = new DefaultAccessControlList();
         } else {
           acl = new AccessControlList();

@@ -371,7 +371,7 @@ public final class AclEntry {
     AclEntry.Builder builder = new AclEntry.Builder();
     builder.setType(AclEntryType.fromThrift(tEntry.getType()));
     builder.setSubject(tEntry.getSubject());
-    builder.setIsDefault(tEntry.isDefaultEntry());
+    builder.setIsDefault(tEntry.isIsDefault());
     if (tEntry.isSetActions()) {
       for (TAclAction tAction : tEntry.getActions()) {
         builder.addAction(AclAction.fromThrift(tAction));
@@ -388,7 +388,7 @@ public final class AclEntry {
     TAclEntry tAclEntry = new TAclEntry();
     tAclEntry.setType(mType.toThrift());
     tAclEntry.setSubject(mSubject);
-    tAclEntry.setDefaultEntry(mIsDefault);
+    tAclEntry.setIsDefault(mIsDefault);
     for (AclAction action : mActions.getActions()) {
       tAclEntry.addToActions(action.toThrift());
     }
