@@ -21,10 +21,12 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,6 +54,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   private boolean mDirectChildrenLoaded;
 
   /**
+   * Empty property is used to indicate whether the defaultACL is empty or not.
+   * When it is not empty, it has at least entries for OWNING_USER, OWNING_GROUP and OTHER.
+   */
+  private DefaultAccessControlList mDefaultAcl;
+
+  /**
    * Creates a new instance of {@link InodeDirectory}.
    *
    * @param id the id to use
@@ -60,6 +68,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     super(id, true);
     mMountPoint = false;
     mDirectChildrenLoaded = false;
+    mDefaultAcl = new DefaultAccessControlList();
   }
 
   @Override
@@ -231,6 +240,15 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     return getThis();
   }
 
+  @Override
+  public DefaultAccessControlList getDefaultACL() {
+    return mDefaultAcl;
+  }
+
+  @Override
+  public void setDefaultACL(DefaultAccessControlList acl) {
+    mDefaultAcl = acl;
+  }
   /**
    * Generates client file info for a folder.
    *
@@ -261,6 +279,11 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setMountPoint(isMountPoint());
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
     ret.setAclEntries(mAcl.toStringEntries());
+    if (!mDefaultAcl.isEmpty()) {
+      ret.setDefaultAclEntries(mDefaultAcl.toStringEntries());
+    } else {
+      ret.setDefaultAclEntries(Collections.emptyList());
+    }
     return ret;
   }
 
@@ -298,6 +321,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
       short mode = entry.hasMode() ? (short) entry.getMode() : Constants.DEFAULT_FILE_SYSTEM_MODE;
       acl.setMode(mode);
       ret.mAcl = acl;
+    }
+    if (entry.hasDefaultAcl()) {
+      ret.mDefaultAcl = (DefaultAccessControlList) AccessControlList
+          .fromProtoBuf(entry.getDefaultAcl());
+    } else {
+      ret.mDefaultAcl = new DefaultAccessControlList();
     }
     return ret;
   }
@@ -340,6 +369,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
         .setAcl(AccessControlList.toProtoBuf(mAcl))
+        .setDefaultAcl(AccessControlList.toProtoBuf(mDefaultAcl))
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }

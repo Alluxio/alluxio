@@ -66,6 +66,11 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
       .hasArg(false)
       .desc("Removes all of the ACL entries, except for the base entries.")
       .build();
+  private static final Option DEFAULT_OPTION = Option.builder("d")
+      .required(false)
+      .hasArg(false)
+      .desc("Operations apply to the default ACL")
+      .build();
   // TODO(gpang): support remove defaults
 
   /**
@@ -83,7 +88,7 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION).addOption(SET_OPTION).addOption(MODIFY_OPTION)
-        .addOption(REMOVE_OPTION).addOption(REMOVE_ALL_OPTION);
+        .addOption(REMOVE_OPTION).addOption(REMOVE_ALL_OPTION).addOption(DEFAULT_OPTION);
   }
 
   @Override
@@ -103,22 +108,41 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
       specifiedActions.add(SET_OPTION.getLongOpt());
       action = SetAclAction.REPLACE;
       String aclList = cl.getOptionValue(SET_OPTION.getLongOpt());
-      entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
-          .collect(Collectors.toList());
+      if (cl.hasOption(DEFAULT_OPTION.getOpt())) {
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::toDefault)
+            .map(AclEntry::fromCliString)
+            .collect(Collectors.toList());
+      } else {
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
+            .collect(Collectors.toList());
+      }
     }
     if (cl.hasOption(MODIFY_OPTION.getOpt())) {
       specifiedActions.add(MODIFY_OPTION.getOpt());
       action = SetAclAction.MODIFY;
       String aclList = cl.getOptionValue(MODIFY_OPTION.getOpt());
-      entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
-          .collect(Collectors.toList());
+      if (cl.hasOption(DEFAULT_OPTION.getOpt())) {
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::toDefault)
+            .map(AclEntry::fromCliString)
+            .collect(Collectors.toList());
+      } else {
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliString)
+            .collect(Collectors.toList());
+      }
     }
     if (cl.hasOption(REMOVE_OPTION.getOpt())) {
       specifiedActions.add(REMOVE_OPTION.getOpt());
       action = SetAclAction.REMOVE;
       String aclList = cl.getOptionValue(REMOVE_OPTION.getOpt());
-      entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliStringWithoutPermissions)
-          .collect(Collectors.toList());
+
+      if (cl.hasOption(DEFAULT_OPTION.getOpt())) {
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::toDefault)
+            .map(AclEntry::fromCliStringWithoutPermissions)
+            .collect(Collectors.toList());
+      } else {
+        entries = Arrays.stream(aclList.split(",")).map(AclEntry::fromCliStringWithoutPermissions)
+            .collect(Collectors.toList());
+      }
     }
     if (cl.hasOption(REMOVE_ALL_OPTION.getOpt())) {
       specifiedActions.add(REMOVE_ALL_OPTION.getOpt());
@@ -146,7 +170,7 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "setfacl [-R] [--set | -m | -x <acl_entries> <path>] | [-b | -k <path>]";
+    return "setfacl [-d] [-R] [--set | -m | -x <acl_entries> <path>] | [-b | -k <path>]";
   }
 
   @Override

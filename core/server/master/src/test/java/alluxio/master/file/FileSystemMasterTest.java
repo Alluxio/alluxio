@@ -1136,6 +1136,97 @@ public final class FileSystemMasterTest {
   }
 
   @Test
+  public void setDefaultAcl() throws Exception {
+    SetAclOptions options = SetAclOptions.defaults();
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    Set<String> entries = Sets.newHashSet(
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
+    assertEquals(0, entries.size());
+
+    // replace
+    Set<String> newEntries = Sets.newHashSet("default:user::rwx",
+        "default:group::rwx", "default:other::r-x");
+    mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+
+    entries = Sets.newHashSet(
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
+    assertEquals(newEntries, entries);
+
+    // replace
+    newEntries = Sets.newHashSet("default:user::rw-", "default:group::r--", "default:other::r--");
+    mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+    entries = Sets.newHashSet(
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
+    assertEquals(newEntries, entries);
+
+    // modify existing
+    newEntries = Sets.newHashSet("default:user::rwx", "default:group::rw-", "default:other::r-x");
+    mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.MODIFY,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+
+    entries = Sets.newHashSet(
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
+    assertEquals(newEntries, entries);
+
+    // modify add
+    Set<String> oldEntries = new HashSet<>(entries);
+    newEntries = Sets.newHashSet("default:user:usera:---", "default:group:groupa:--x");
+    mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.MODIFY,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+
+    entries = Sets.newHashSet(
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
+    assertTrue(entries.containsAll(oldEntries));
+    assertTrue(entries.containsAll(newEntries));
+
+    // modify existing and add
+    newEntries = Sets.newHashSet("default:user:usera:---", "default:group:groupa:--x",
+        "default:other::r-x");
+    mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.MODIFY,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+
+    entries = Sets.newHashSet(
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
+    assertTrue(entries.containsAll(newEntries));
+
+    // remove default
+    mFileSystemMaster
+        .setAcl(NESTED_URI, SetAclAction.REMOVE_DEFAULT, Collections.emptyList(), options);
+
+    entries = Sets.newHashSet(
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
+    assertEquals(0, entries.size());
+
+    // remove
+    newEntries =
+        Sets.newHashSet("default:user:usera:---", "default:user:userb:rwx",
+            "default:group:groupa:--x", "default:group:groupb:-wx");
+    mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.MODIFY,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+    oldEntries = new HashSet<>(entries);
+
+    entries = Sets.newHashSet(
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
+    assertTrue(entries.containsAll(oldEntries));
+
+    Set<String> deleteEntries = Sets.newHashSet("default:user:userb:rwx",
+        "default:group:groupa:--x");
+    mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REMOVE,
+        deleteEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+
+    entries = Sets.newHashSet(
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getDefaultAclEntries());
+    Set<String> remainingEntries = new HashSet<>(newEntries);
+    assertTrue(remainingEntries.removeAll(deleteEntries));
+    assertTrue(entries.containsAll(remainingEntries));
+
+    final Set<String> finalEntries = entries;
+    assertTrue(deleteEntries.stream().noneMatch(finalEntries::contains));
+  }
+
+  @Test
   public void setAcl() throws Exception {
     SetAclOptions options = SetAclOptions.defaults();
     createFileWithSingleBlock(NESTED_FILE_URI);

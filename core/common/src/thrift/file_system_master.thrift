@@ -115,6 +115,7 @@ struct TAclEntry {
   1: optional TAclEntryType type
   2: optional string subject
   3: optional list<TAclAction> actions
+  4: optional bool isDefault;
 }
 
 struct TAcl {
@@ -162,6 +163,7 @@ struct FileInfo {
   26: i32 inAlluxioPercentage
   27: string ufsFingerprint
   28: TAcl acl
+  29: TAcl defaultAcl
 }
 
 struct MountTOptions {
@@ -221,6 +223,7 @@ struct SetAclTOptions {
   1: optional FileSystemMasterCommonTOptions commonOptions
   2: optional bool recursive
 }
+
 struct SetAclTResponse {}
 
 struct SetAttributeTOptions {

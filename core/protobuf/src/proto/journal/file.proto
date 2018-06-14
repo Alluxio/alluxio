@@ -70,11 +70,12 @@ message AclActions {
   repeated AclAction actions = 1;
 }
 
-// next available id: 4
+// next available id: 5
 message AclEntry {
   optional AclEntryType type = 1;
   optional string subject = 2;
   repeated AclAction actions = 3;
+  optional bool isDefault = 4;
 }
 
 // AclActions for a String name.
@@ -84,7 +85,7 @@ message NamedAclActions {
   optional AclActions actions = 2;
 }
 
-// next available id: 7
+// next available id: 9
 message AccessControlList {
   optional string owningUser = 1;
   optional string owningGroup = 2;
@@ -92,9 +93,11 @@ message AccessControlList {
   repeated NamedAclActions groupActions = 4;
   optional AclActions maskActions = 5;
   optional AclActions otherActions = 6;
+  optional bool isDefault = 7;
+  optional bool isEmpty = 8;
 }
 
-// next available id: 16
+// next available id: 17
 message InodeDirectoryEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -111,6 +114,7 @@ message InodeDirectoryEntry {
   optional int64 ttl = 13;
   optional PTtlAction ttlAction = 14 [default = DELETE];
   optional AccessControlList acl = 15;
+  optional AccessControlList defaultAcl = 16;
 }
 
 // next available id: 3

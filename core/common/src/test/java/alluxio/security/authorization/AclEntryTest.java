@@ -72,6 +72,16 @@ public class AclEntryTest {
   }
 
   @Test
+  public void cliStringDefault() {
+    checkCliString("default:user::rwx");
+    checkCliString("default:user:a:rwx");
+    checkCliString("default:group::r--");
+    checkCliString("default:group:b:-w-");
+    checkCliString("default:mask::--x");
+    checkCliString("default:other::---");
+  }
+
+  @Test
   public void cliStringInvalid() {
     checkCliStringInvalid(null);
     checkCliStringInvalid("");

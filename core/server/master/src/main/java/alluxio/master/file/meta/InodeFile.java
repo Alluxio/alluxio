@@ -21,6 +21,7 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
@@ -101,6 +102,16 @@ public final class InodeFile extends Inode<InodeFile> {
     mLength = 0;
     mCompleted = false;
     mCacheable = false;
+  }
+
+  @Override
+  public DefaultAccessControlList getDefaultACL() throws UnsupportedOperationException {
+    throw new UnsupportedOperationException("getDefaultACL: File does not have default ACL");
+  }
+
+  @Override
+  public void setDefaultACL(DefaultAccessControlList acl) throws UnsupportedOperationException {
+    throw new UnsupportedOperationException("setDefaultACL: File does not have default ACL");
   }
 
   /**

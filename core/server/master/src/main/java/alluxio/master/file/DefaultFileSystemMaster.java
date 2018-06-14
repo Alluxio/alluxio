@@ -107,6 +107,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -3083,6 +3084,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private void setAclAndJournal(RpcContext rpcContext, SetAclAction action,
       LockedInodePath inodePath, List<AclEntry> entries, SetAclOptions options)
       throws IOException, FileDoesNotExistException {
+
     long opTimeMs = System.currentTimeMillis();
     // Check inputs for setAcl
     switch (action) {
@@ -3141,6 +3143,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       List<AclEntry> entries, long opTimeMs, SetAclOptions options)
       throws IOException, FileDoesNotExistException {
     Inode<?> targetInode = inodePath.getInode();
+
     // TODO(gpang): handle recursive
     // TODO(gpang): apply to UFS
     switch (action) {
@@ -3158,7 +3161,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         targetInode.removeExtendedAcl();
         break;
       case REMOVE_DEFAULT:
-        // TODO(gpang): implement default acl
+        targetInode.setDefaultACL(new DefaultAccessControlList());
         break;
       default:
     }
