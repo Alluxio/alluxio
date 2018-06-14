@@ -410,8 +410,6 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   public T setAcl(List<AclEntry> entries) {
     for (AclEntry entry : entries) {
       if (entry.isDefault()) {
-        AccessControlList defaultAcl = getDefaultACL();
-        setDefaultACL(new DefaultAccessControlList(mAcl));
         getDefaultACL().setEntry(entry);
       } else {
         mAcl.setEntry(entry);
