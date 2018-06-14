@@ -11,8 +11,6 @@
 
 package alluxio.exception.status;
 
-import alluxio.proto.status.Status.PStatus;
-
 /**
  * A class representing gRPC status codes. The definitions are from
  * https://github.com/grpc/grpc-go/blob/v1.2.0/codes/codes.go.
@@ -133,98 +131,4 @@ public enum Status {
 
   // DataLoss indicates unrecoverable data loss or corruption.
   DATA_LOSS;
-
-  /**
-   * Converts an internal exception status to a protocol buffer type status.
-   *
-   * @param status the status to convert
-   * @return the protocol buffer type status
-   */
-  public static PStatus toProto(Status status) {
-    switch (status) {
-      case ABORTED:
-        return PStatus.ABORTED;
-      case ALREADY_EXISTS:
-        return PStatus.ALREADY_EXISTS;
-      case CANCELED:
-        return PStatus.CANCELED;
-      case DATA_LOSS:
-        return PStatus.DATA_LOSS;
-      case DEADLINE_EXCEEDED:
-        return PStatus.DEADLINE_EXCEEDED;
-      case FAILED_PRECONDITION:
-        return PStatus.FAILED_PRECONDITION;
-      case INTERNAL:
-        return PStatus.INTERNAL;
-      case INVALID_ARGUMENT:
-        return PStatus.INVALID_ARGUMENT;
-      case NOT_FOUND:
-        return PStatus.NOT_FOUND;
-      case OK:
-        return PStatus.OK;
-      case OUT_OF_RANGE:
-        return PStatus.OUT_OF_RANGE;
-      case PERMISSION_DENIED:
-        return PStatus.PERMISSION_DENIED;
-      case RESOURCE_EXHAUSTED:
-        return PStatus.RESOURCE_EXHAUSTED;
-      case UNAUTHENTICATED:
-        return PStatus.UNAUTHENTICATED;
-      case UNAVAILABLE:
-        return PStatus.UNAVAILABLE;
-      case UNIMPLEMENTED:
-        return PStatus.UNIMPLEMENTED;
-      case UNKNOWN:
-        return PStatus.UNKNOWN;
-      default:
-        return PStatus.UNKNOWN;
-    }
-  }
-
-  /**
-   * Creates a {@link Status} from a protocol buffer type status.
-   *
-   * @param status the protocol buffer type status
-   * @return the corresponding {@link Status}
-   */
-  public static Status fromProto(PStatus status) {
-    switch (status) {
-      case ABORTED:
-        return Status.ABORTED;
-      case ALREADY_EXISTS:
-        return Status.ALREADY_EXISTS;
-      case CANCELED:
-        return Status.CANCELED;
-      case DATA_LOSS:
-        return Status.DATA_LOSS;
-      case DEADLINE_EXCEEDED:
-        return Status.DEADLINE_EXCEEDED;
-      case FAILED_PRECONDITION:
-        return Status.FAILED_PRECONDITION;
-      case INTERNAL:
-        return Status.INTERNAL;
-      case INVALID_ARGUMENT:
-        return Status.INVALID_ARGUMENT;
-      case NOT_FOUND:
-        return Status.NOT_FOUND;
-      case OK:
-        return Status.OK;
-      case OUT_OF_RANGE:
-        return Status.OUT_OF_RANGE;
-      case PERMISSION_DENIED:
-        return Status.PERMISSION_DENIED;
-      case RESOURCE_EXHAUSTED:
-        return Status.RESOURCE_EXHAUSTED;
-      case UNAUTHENTICATED:
-        return Status.UNAUTHENTICATED;
-      case UNAVAILABLE:
-        return Status.UNAVAILABLE;
-      case UNIMPLEMENTED:
-        return Status.UNIMPLEMENTED;
-      case UNKNOWN:
-        return Status.UNKNOWN;
-      default:
-        return Status.UNKNOWN;
-    }
-  }
 }
