@@ -577,7 +577,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       DeleteOptions delopt = DeleteOptions.defaults().setAlluxioOnly(true);
       for (AlluxioURI u : inconsistentUris) {
         try {
-            LOG.info("==== delete {} in alluxio only", u.getPath());
+            LOG.debug("==== delete {} in alluxio only", u.getPath());
             mFileSystem.delete(u, delopt);
         } catch (Exception e) {
             LOG.error("==== error during rm {} ", u.getPath());
@@ -763,7 +763,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     //final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     final AlluxioURI uri = MetaCache.getURI(path);
     MetaCache.invalidate(path);
-    LOG.info("========== truncate {} size {}", path, size);
+    LOG.debug("========== truncate {} size {}", path, size);
     try {
       if (!mFileSystem.exists(uri)) {
         LOG.error("File {} does not exist", uri);
