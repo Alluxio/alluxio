@@ -15,6 +15,7 @@ import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -25,6 +26,7 @@ import java.util.List;
  */
 public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
+  @Ignore("ALLUXIO-3226")
   public void metrics() {
     int ret = mFsAdminShell.run("report", "metrics");
     Assert.assertEquals(0, ret);
