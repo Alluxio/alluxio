@@ -209,7 +209,7 @@ public abstract class AbstractClient implements Client {
         // We didn't use RetryHandlingMetaMasterClient because it inherits AbstractClient.
         MetaMasterClientService.Client client = new MetaMasterClientService.Client(protocol);
         // The credential configuration properties use displayValue
-        clusterConfig = client.getConfiguration(new GetConfigurationTOptions())
+        clusterConfig = client.getConfiguration(new GetConfigurationTOptions().setRawValue(true))
             .getConfigList()
             .stream()
             .map(ConfigProperty::fromThrift)

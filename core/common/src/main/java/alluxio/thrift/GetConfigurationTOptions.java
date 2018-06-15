@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConfigurationTOptions, GetConfigurationTOptions._Fields>, java.io.Serializable, Cloneable, Comparable<GetConfigurationTOptions> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("GetConfigurationTOptions");
 
+  private static final org.apache.thrift.protocol.TField RAW_VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("rawValue", org.apache.thrift.protocol.TType.BOOL, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -45,10 +46,11 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
     schemes.put(TupleScheme.class, new GetConfigurationTOptionsTupleSchemeFactory());
   }
 
+  private boolean rawValue; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+    RAW_VALUE((short)1, "rawValue");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -63,6 +65,8 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
+        case 1: // RAW_VALUE
+          return RAW_VALUE;
         default:
           return null;
       }
@@ -101,9 +105,15 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
       return _fieldName;
     }
   }
+
+  // isset id assignments
+  private static final int __RAWVALUE_ISSET_ID = 0;
+  private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.RAW_VALUE, new org.apache.thrift.meta_data.FieldMetaData("rawValue", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(GetConfigurationTOptions.class, metaDataMap);
   }
@@ -111,10 +121,20 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
   public GetConfigurationTOptions() {
   }
 
+  public GetConfigurationTOptions(
+    boolean rawValue)
+  {
+    this();
+    this.rawValue = rawValue;
+    setRawValueIsSet(true);
+  }
+
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public GetConfigurationTOptions(GetConfigurationTOptions other) {
+    __isset_bitfield = other.__isset_bitfield;
+    this.rawValue = other.rawValue;
   }
 
   public GetConfigurationTOptions deepCopy() {
@@ -123,15 +143,51 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
 
   @Override
   public void clear() {
+    setRawValueIsSet(false);
+    this.rawValue = false;
+  }
+
+  public boolean isRawValue() {
+    return this.rawValue;
+  }
+
+  public GetConfigurationTOptions setRawValue(boolean rawValue) {
+    this.rawValue = rawValue;
+    setRawValueIsSet(true);
+    return this;
+  }
+
+  public void unsetRawValue() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RAWVALUE_ISSET_ID);
+  }
+
+  /** Returns true if field rawValue is set (has been assigned a value) and false otherwise */
+  public boolean isSetRawValue() {
+    return EncodingUtils.testBit(__isset_bitfield, __RAWVALUE_ISSET_ID);
+  }
+
+  public void setRawValueIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RAWVALUE_ISSET_ID, value);
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
+    case RAW_VALUE:
+      if (value == null) {
+        unsetRawValue();
+      } else {
+        setRawValue((Boolean)value);
+      }
+      break;
+
     }
   }
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
+    case RAW_VALUE:
+      return isRawValue();
+
     }
     throw new IllegalStateException();
   }
@@ -143,6 +199,8 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
     }
 
     switch (field) {
+    case RAW_VALUE:
+      return isSetRawValue();
     }
     throw new IllegalStateException();
   }
@@ -160,12 +218,26 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
     if (that == null)
       return false;
 
+    boolean this_present_rawValue = true;
+    boolean that_present_rawValue = true;
+    if (this_present_rawValue || that_present_rawValue) {
+      if (!(this_present_rawValue && that_present_rawValue))
+        return false;
+      if (this.rawValue != that.rawValue)
+        return false;
+    }
+
     return true;
   }
 
   @Override
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
+
+    boolean present_rawValue = true;
+    list.add(present_rawValue);
+    if (present_rawValue)
+      list.add(rawValue);
 
     return list.hashCode();
   }
@@ -178,6 +250,16 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
 
     int lastComparison = 0;
 
+    lastComparison = Boolean.valueOf(isSetRawValue()).compareTo(other.isSetRawValue());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetRawValue()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.rawValue, other.rawValue);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -198,6 +280,9 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
     StringBuilder sb = new StringBuilder("GetConfigurationTOptions(");
     boolean first = true;
 
+    sb.append("rawValue:");
+    sb.append(this.rawValue);
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -217,6 +302,8 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
 
   private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
     try {
+      // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+      __isset_bitfield = 0;
       read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
     } catch (org.apache.thrift.TException te) {
       throw new java.io.IOException(te);
@@ -241,6 +328,14 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
           break;
         }
         switch (schemeField.id) {
+          case 1: // RAW_VALUE
+            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+              struct.rawValue = iprot.readBool();
+              struct.setRawValueIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -256,6 +351,9 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      oprot.writeFieldBegin(RAW_VALUE_FIELD_DESC);
+      oprot.writeBool(struct.rawValue);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -273,11 +371,24 @@ public class GetConfigurationTOptions implements org.apache.thrift.TBase<GetConf
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, GetConfigurationTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
+      BitSet optionals = new BitSet();
+      if (struct.isSetRawValue()) {
+        optionals.set(0);
+      }
+      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetRawValue()) {
+        oprot.writeBool(struct.rawValue);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, GetConfigurationTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
+      BitSet incoming = iprot.readBitSet(1);
+      if (incoming.get(0)) {
+        struct.rawValue = iprot.readBool();
+        struct.setRawValueIsSet(true);
+      }
     }
   }
 
