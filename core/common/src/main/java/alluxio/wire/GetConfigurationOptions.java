@@ -16,16 +16,23 @@ import alluxio.thrift.GetConfigurationTOptions;
 import com.google.common.base.Objects;
 
 /**
- * Options for backing up the Alluxio master.
+ * Options for getConfiguration operations from the Alluxio meta master.
  */
 public class GetConfigurationOptions {
   private boolean mRawValue;
 
   /**
-   * @param rawValue whether to use the raw value
+   * @return the default {@link GetConfigurationOptions}
    */
-  public GetConfigurationOptions(boolean rawValue) {
-    mRawValue = rawValue;
+  public static GetConfigurationOptions defaults() {
+    return new GetConfigurationOptions();
+  }
+
+  /**
+   * Constructs an instance.
+   */
+  private GetConfigurationOptions() {
+    mRawValue = true;
   }
 
   /**
@@ -33,7 +40,7 @@ public class GetConfigurationOptions {
    * @return wire type options corresponding to the thrift options
    */
   public static GetConfigurationOptions fromThrift(GetConfigurationTOptions tOpts) {
-    return new GetConfigurationOptions(tOpts.isRawValue());
+    return new GetConfigurationOptions().setRawValue(tOpts.isRawValue());
   }
 
   /**
@@ -44,7 +51,16 @@ public class GetConfigurationOptions {
   }
 
   /**
-   * @return whether to write to the local filesystem instead of the root UFS
+   * @param rawValue whether to use raw value
+   * @return the updated option instance
+   */
+  public GetConfigurationOptions setRawValue(boolean rawValue) {
+    mRawValue = rawValue;
+    return this;
+  }
+
+  /**
+   * @return whether to use raw value
    */
   public boolean isRawValue() {
     return mRawValue;
@@ -55,7 +71,7 @@ public class GetConfigurationOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof CommonOptions)) {
+    if (!(o instanceof GetConfigurationOptions)) {
       return false;
     }
     GetConfigurationOptions that = (GetConfigurationOptions) o;

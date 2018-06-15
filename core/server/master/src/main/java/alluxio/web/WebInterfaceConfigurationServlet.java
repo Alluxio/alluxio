@@ -75,7 +75,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
     Set<String> alluxioConfExcludes = Sets.newHashSet(
         PropertyKey.MASTER_WHITELIST.toString());
     for (ConfigProperty configProperty :
-        mMetaMaster.getConfiguration(new GetConfigurationOptions(true))) {
+        mMetaMaster.getConfiguration(GetConfigurationOptions.defaults().setRawValue(true))) {
       String confName = configProperty.getName();
       if (!alluxioConfExcludes.contains(confName)) {
         rtn.add(new ImmutableTriple<>(confName,
