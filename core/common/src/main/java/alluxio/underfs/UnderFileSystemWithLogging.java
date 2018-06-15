@@ -27,6 +27,7 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,15 +49,19 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   private static final String NAME_SEPARATOR = ":";
 
   private final UnderFileSystem mUnderFileSystem;
+  private final String mPath;
 
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
    * {@link UnderFileSystem} implementation.
    *
+   * @param path the UFS path
    * @param ufs the implementation which will handle all the calls
    */
   // TODO(adit): Remove this method. ALLUXIO-2643.
-  UnderFileSystemWithLogging(UnderFileSystem ufs) {
+  UnderFileSystemWithLogging(String path, UnderFileSystem ufs) {
+    Preconditions.checkNotNull(path, "path");
+    mPath = path;
     mUnderFileSystem = ufs;
   }
 
@@ -595,9 +600,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       if (SecurityUtils.isAuthenticationEnabled() && AuthenticatedClientUser.get() != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
             AuthenticatedClientUser.get().getName(), WorkerMetrics.TAG_UFS,
+            MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
             mUnderFileSystem.getUnderFSType());
       } else {
         return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
+            MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
             mUnderFileSystem.getUnderFSType());
       }
     } catch (IOException e) {

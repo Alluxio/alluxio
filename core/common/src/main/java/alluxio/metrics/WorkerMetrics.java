@@ -19,29 +19,45 @@ public final class WorkerMetrics {
    * The list of under filesystem operations.
    */
   public enum UfsOps {
-    Close,
-    ConnectFromMaster,
-    ConnectFromWorker,
-    Create,
-    DeleteDirectory,
-    DeleteFile,
-    Exists,
-    GetBlockSizeByte,
-    GetDirectoryStatus,
-    GetFileLocations,
-    GetFileStatus,
-    GetFingerprint,
-    GetSpace,
-    GetStatus,
-    IsDirectory,
-    IsFile,
-    ListStatus,
-    Mkdirs,
-    Open,
-    RenameDirectory,
-    RenameFile,
-    SetOwner,
-    SetMode;
+    CLOSE("Close"),
+    CONNECT_FROM_MASTER("ConnectFromMaster"),
+    CONNECT_FROM_WORKER("ConnectFromWorker"),
+    CREATE("Create"),
+    DELETE_DIRECTORY("DeleteDirectory"),
+    DELETE_FILE("DeleteFile"),
+    EXISTS("Exists"),
+    GET_BLOCK_SIZE_BYTE("GetBlockSizeByte"),
+    GET_DIRECTORY_STATUS_("GetDirectoryStatus"),
+    GET_FILE_LOCATIONS("GetFileLocations"),
+    GET_FILE_STATUS("GetFileStatus"),
+    GET_FINGERPRINT("GetFingerprint"),
+    GET_SPACE("GetSpace"),
+    GET_STATUS("GetStatus"),
+    IS_DIRECTORY("IsDirectory"),
+    IS_FILE("IsFile"),
+    LIST_STATUS("ListStatus"),
+    MKDIRS("Mkdirs"),
+    OPEN("Open"),
+    RENAME_DIRECTORY("RenameDirectory"),
+    RENAME_FILE("RenameFile"),
+    SET_OWNER("SetOwner"),
+    SET_MODE("SetMode");
+
+    private String mValue;
+
+    /**
+     * Creates the UFS operation type.
+     *
+     * @param value value of the operation
+     */
+    UfsOps(String value) {
+      mValue = value;
+    }
+
+    @Override
+    public String toString() {
+      return mValue;
+    }
   }
 
   /**
@@ -65,6 +81,7 @@ public final class WorkerMetrics {
 
   // Tags
   public static final String TAG_UFS = "UFS";
+  public static final String TAG_UFS_TYPE = "UFS_TYPE";
 
   private WorkerMetrics() {} // prevent instantiation
 }

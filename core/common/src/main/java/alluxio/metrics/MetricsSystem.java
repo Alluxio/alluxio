@@ -55,17 +55,26 @@ public final class MetricsSystem {
    * An enum of supported instance type.
    */
   public enum InstanceType {
-    MASTER,
-    WORKER,
-    CLUSTER,
-    CLIENT,
-    PROXY;
+    MASTER("Master"),
+    WORKER("Worker"),
+    CLUSTER("Cluster"),
+    CLIENT("Client"),
+    PROXY("Proxy");
+
+    private String mValue;
 
     /**
-     * @return the lower case of the string value
+     * Creates the instance type with value.
+     *
+     * @param value value of the instance type
      */
-    public String getString() {
-      return this.toString().toLowerCase();
+    InstanceType(String value) {
+      mValue = value;
+    }
+
+    @Override
+    public String toString() {
+      return mValue;
     }
 
     /**
@@ -257,8 +266,8 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    return Joiner.on(".").join(instance.getString(),
-        NetworkAddressUtils.getLocalHostName().replace('.', '_'), name);
+    return Joiner.on(".").join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'),
+        name);
   }
 
   /**
@@ -376,7 +385,7 @@ public final class MetricsSystem {
   private static List<Metric> allMetrics(MetricsSystem.InstanceType instanceType) {
     List<Metric> metrics = new ArrayList<>();
     for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
-      if (entry.getKey().startsWith(instanceType.getString())) {
+      if (entry.getKey().startsWith(instanceType.toString())) {
         Object value = entry.getValue().getValue();
         if (!(value instanceof Number)) {
           LOG.warn(
