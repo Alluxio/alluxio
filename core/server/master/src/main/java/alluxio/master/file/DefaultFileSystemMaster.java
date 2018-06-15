@@ -3158,9 +3158,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } else {
         try {
           ufs.setAcl(ufsUri, inode.getACL());
+          // TODO(david): set ufs's default ACL as well.
         } catch (IOException e) {
           throw new AccessControlException("Could not setAcl for UFS file" + ufsUri + ".");
         }
+        // TODO(david): revert the acl and default acl to the initial state if writing to ufs failed.
       }
     }
   }
