@@ -17,19 +17,24 @@ import alluxio.cli.fs.command.LsCommand;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+import alluxio.wire.SetAclAction;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Tests for ls command.
@@ -42,20 +47,26 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   private String getLsResultStr(AlluxioURI uri, int size, String testUser, String testGroup)
       throws IOException, AlluxioException {
     URIStatus status = mFileSystem.getStatus(uri);
+    // detect the extended acls
+    AccessControlList acl = AccessControlList
+        .fromStringEntries(status.getOwner(), status.getGroup(), status.getAclEntries());
+    boolean hasExtended = acl.hasExtended() || !status.getDefaultAclEntries().isEmpty();
+
     return getLsResultStr(uri.getPath(), status.getLastModificationTimeMs(), size,
-        STATE_FILE_IN_ALLUXIO, testUser, testGroup, status.getMode(), status.isFolder(),
-        PersistenceState.NOT_PERSISTED.name());
+        STATE_FILE_IN_ALLUXIO, testUser, testGroup, status.getMode(), hasExtended,
+        status.isFolder(), PersistenceState.NOT_PERSISTED.name());
   }
 
   // Helper function to format ls result.
   private String getLsResultStr(String path, long createTime, int size, String inAlluxioState,
-      String testUser, String testGroup, int permission, boolean isDir,
+      String testUser, String testGroup, int permission, boolean hasExtended, boolean isDir,
       String persistenceState)
       throws IOException, AlluxioException {
     return String
-        .format(LsCommand.LS_FORMAT, FormatUtils.formatMode((short) permission, isDir),
+        .format(LsCommand.LS_FORMAT, FormatUtils.formatMode((short) permission, isDir, hasExtended),
             testUser, testGroup, String.valueOf(size), persistenceState,
-            CommonUtils.convertMsToDate(createTime), inAlluxioState, path);
+            CommonUtils.convertMsToDate(createTime),
+            isDir ? LsCommand.IN_ALLUXIO_STATE_DIR : inAlluxioState, path);
   }
 
   // Helper function to format ls result without acl enabled.
@@ -223,13 +234,13 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     String expected = "";
     expected +=
         getLsResultStr("/testRoot/testDir", files[1].getLastModificationTimeMs(), 1,
-            LsCommand.IN_ALLUXIO_STATE_DIR, testUser, testUser, files[1].getMode(),
+            LsCommand.IN_ALLUXIO_STATE_DIR, testUser, testUser, files[1].getMode(), false,
             files[1].isFolder(), files[1].getPersistenceState());
     expected += getLsResultStr("/testRoot/testFileA", files[0].getLastModificationTimeMs(), 10,
-        STATE_FILE_IN_ALLUXIO, testUser, testUser, files[0].getMode(),
+        STATE_FILE_IN_ALLUXIO, testUser, testUser, files[0].getMode(), false,
         files[0].isFolder(), files[0].getPersistenceState());
     expected += getLsResultStr("/testRoot/testFileC", files[3].getLastModificationTimeMs(), 30,
-        STATE_FILE_NOT_IN_ALLUXIO, testUser, testUser, files[3].getMode(),
+        STATE_FILE_NOT_IN_ALLUXIO, testUser, testUser, files[3].getMode(), false,
         files[3].isFolder(), files[3].getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -343,16 +354,16 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     expected += "WARNING: lsr is deprecated. Please use ls -R instead.\n";
     expected +=
         getLsResultStr("/testRoot/testDir", files[1].getLastModificationTimeMs(), 1,
-            LsCommand.IN_ALLUXIO_STATE_DIR, testUser, testUser, files[1].getMode(),
+            LsCommand.IN_ALLUXIO_STATE_DIR, testUser, testUser, files[1].getMode(), false,
             files[1].isFolder(), files[1].getPersistenceState());
     expected += getLsResultStr("/testRoot/testDir/testFileB", files[2].getLastModificationTimeMs(),
-        20, STATE_FILE_IN_ALLUXIO, testUser, testUser, files[2].getMode(), files[2].isFolder(),
-        files[2].getPersistenceState());
+        20, STATE_FILE_IN_ALLUXIO, testUser, testUser, files[2].getMode(), false,
+        files[2].isFolder(), files[2].getPersistenceState());
     expected += getLsResultStr("/testRoot/testFileA", files[0].getLastModificationTimeMs(), 10,
-        STATE_FILE_IN_ALLUXIO, testUser, testUser, files[0].getMode(),
+        STATE_FILE_IN_ALLUXIO, testUser, testUser, files[0].getMode(), false,
         files[0].isFolder(), files[1].getPersistenceState());
     expected += getLsResultStr("/testRoot/testFileC", files[3].getLastModificationTimeMs(), 30,
-        STATE_FILE_NOT_IN_ALLUXIO, testUser, testUser, files[3].getMode(),
+        STATE_FILE_NOT_IN_ALLUXIO, testUser, testUser, files[3].getMode(), false,
         files[3].isFolder(), files[3].getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -504,4 +515,54 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
         50, STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
+          "alluxio.security.group.provider.IdentityUserGroupsMapping",
+          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_extended"})
+  public void lsWithExtendedAcl() throws IOException, AlluxioException {
+    String testUser = "test_user_extended";
+    int size = 50;
+    int indexOfExtended = 10; // index 10 of a line will be a '+'
+    clearAndLogin(testUser);
+
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, "/testRoot/testFile", WriteType.MUST_CACHE, size, size);
+
+    mFsShell.run("ls", "--sort", "path", "/testRoot");
+
+    String line = "";
+    String expected = "";
+    line = getLsResultStr(new AlluxioURI("/testRoot/testDir"), 1, testUser, testUser);
+    Assert.assertTrue(line.substring(0, 11).indexOf("+") != indexOfExtended);
+    expected += line;
+    line = getLsResultStr(new AlluxioURI("/testRoot/testFile"), size, testUser, testUser);
+    Assert.assertTrue(line.substring(0, 11).indexOf("+") != indexOfExtended);
+    expected += line;
+
+    Assert.assertEquals(expected, mOutput.toString());
+
+    mFileSystem.setAcl(new AlluxioURI("/testRoot/testDir"), SetAclAction.MODIFY,
+        Arrays.asList(AclEntry.fromCliString("default:user:nameduser:rwx")),
+        SetAclOptions.defaults());
+    mFileSystem.setAcl(new AlluxioURI("/testRoot/testFile"), SetAclAction.MODIFY,
+        Arrays.asList(AclEntry.fromCliString("user:nameduser:rwx")), SetAclOptions.defaults());
+
+    mFsShell.run("ls", "--sort", "path", "/testRoot");
+
+    line = getLsResultStr(new AlluxioURI("/testRoot/testDir"), 1, testUser, testUser);
+    Assert.assertTrue(line.substring(0, 11).indexOf("+") == indexOfExtended);
+    expected += line;
+    line = getLsResultStr(new AlluxioURI("/testRoot/testFile"), size, testUser, testUser);
+    Assert.assertTrue(line.substring(0, 11).indexOf("+") == indexOfExtended);
+    expected += line;
+
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
 }
