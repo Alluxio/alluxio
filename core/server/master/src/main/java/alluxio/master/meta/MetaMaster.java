@@ -45,6 +45,7 @@ public interface MetaMaster extends Master {
   ConfigCheckReport getConfigCheckReport();
 
   /**
+   * @param options method options
    * @return configuration information list
    */
   List<ConfigProperty> getConfiguration(GetConfigurationOptions options);
