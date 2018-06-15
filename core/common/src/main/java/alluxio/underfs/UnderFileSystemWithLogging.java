@@ -602,14 +602,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
             AuthenticatedClientUser.get().getName(), WorkerMetrics.TAG_UFS,
             MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
             mUnderFileSystem.getUnderFSType());
-      } else {
-        return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
-            MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
-            mUnderFileSystem.getUnderFSType());
       }
     } catch (IOException e) {
-      return metricName;
+      // fall through
     }
+    return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
+        MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
+        mUnderFileSystem.getUnderFSType());
   }
 
   // TODO(calvin): This should not be in this class

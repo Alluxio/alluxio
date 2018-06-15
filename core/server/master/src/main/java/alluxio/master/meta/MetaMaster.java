@@ -20,6 +20,7 @@ import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.GetConfigurationOptions;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -44,9 +45,10 @@ public interface MetaMaster extends Master {
   ConfigCheckReport getConfigCheckReport();
 
   /**
+   * @param options method options
    * @return configuration information list
    */
-  List<ConfigProperty> getConfiguration();
+  List<ConfigProperty> getConfiguration(GetConfigurationOptions options);
 
   /**
    * @return the addresses of live masters

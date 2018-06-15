@@ -53,6 +53,7 @@ import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.GetConfigurationOptions;
 import alluxio.wire.Scope;
 
 import com.google.common.collect.ImmutableSet;
@@ -294,14 +295,14 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public List<ConfigProperty> getConfiguration() {
+  public List<ConfigProperty> getConfiguration(GetConfigurationOptions options) {
     List<ConfigProperty> configInfoList = new ArrayList<>();
-    String alluxioConfPrefix = "alluxio";
     for (PropertyKey key : Configuration.keySet()) {
-      if (key.getName().startsWith(alluxioConfPrefix)) {
+      if (key.isBuiltIn()) {
         String source = Configuration.getSource(key).toString();
         String value = Configuration.getOrDefault(key, null,
-            ConfigurationValueOptions.defaults().useDisplayValue(true));
+            ConfigurationValueOptions.defaults().useDisplayValue(true)
+                .useRawValue(options.isRawValue()));
         configInfoList
             .add(new ConfigProperty().setName(key.getName()).setValue(value).setSource(source));
       }
@@ -444,19 +445,20 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   /**
-   * Periodic log config check report.
+   * Periodically log the config check report.
    */
   private final class LogConfigReportHeartbeatExecutor implements HeartbeatExecutor {
-
-    /**
-     * Constructs a new {@link LogConfigReportHeartbeatExecutor}.
-     */
-    public LogConfigReportHeartbeatExecutor() {
-    }
+    private volatile boolean mFirst = true;
 
     @Override
     public void heartbeat() {
-      mConfigChecker.logConfigReport();
+      // Skip the first heartbeat since it happens before servers have time to register their
+      // configurations.
+      if (mFirst) {
+        mFirst = false;
+      } else {
+        mConfigChecker.logConfigReport();
+      }
     }
 
     @Override

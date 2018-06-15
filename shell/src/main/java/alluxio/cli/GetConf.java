@@ -14,9 +14,13 @@ package alluxio.cli;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
-import alluxio.conf.Source;
+import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.master.MasterClientConfig;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
+import alluxio.wire.ConfigProperty;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -25,36 +29,43 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Utility for printing Alluxio configuration.
  */
 public final class GetConf {
-  private static final String USAGE = "USAGE: GetConf [--unit <arg>] [--source] [KEY]\n\n"
+  private static final String USAGE =
+      "USAGE: GetConf [--unit <arg>] [--source] [--master] [key]\n\n"
       + "GetConf prints the configured value for the given key. If the key is invalid, the "
       + "exit code will be nonzero. If the key is valid but isn't set, an empty string is printed. "
-      + "If no key is specified, all configuration is printed. If \"--unit\" option is specified, "
-      + "values of data size configuration will be converted to a quantity in the given unit."
-      + "E.g., with \"--unit KB\", a configuration value of \"4096\" will return 4, "
-      + "and with \"--unit S\", a configuration value of \"5000\" will return 5. "
-      + "Possible unit options include B, KB, MB, GB, TP, PB, MS, S, M, H, D. "
-      + "if \"--source\" option is specified, the source of configuration value will be printed.";
+      + "If no key is specified, all configuration is printed.";
 
+  private static final String MASTER_OPTION_NAME = "master";
   private static final String SOURCE_OPTION_NAME = "source";
   private static final String UNIT_OPTION_NAME = "unit";
+  private static final Option MASTER_OPTION =
+      Option.builder().required(false).longOpt(MASTER_OPTION_NAME).hasArg(false)
+          .desc("the configuration properties used by the master.").build();
   private static final Option SOURCE_OPTION =
       Option.builder().required(false).longOpt(SOURCE_OPTION_NAME).hasArg(false)
-          .desc("source of the configuration property.").build();
+          .desc("source of the configuration property will be printed.").build();
   private static final Option UNIT_OPTION =
       Option.builder().required(false).longOpt(UNIT_OPTION_NAME).hasArg(true)
-          .desc("unit of the value to return.").build();
+          .desc("unit of the value to return. Values of configuration will be converted "
+              + "to a quantity in the given unit. E.g., with \"--unit KB\", a configuration value "
+              + "of \"4096B\" will return 4, and with \"--unit S\", a configuration value of "
+              + "\"5000ms\" will return 5. Possible unit options include B, KB, MB, GB, TP, PB, "
+              + "MS, S, M, H, D. \"").build();
   private static final Options OPTIONS =
-      new Options().addOption(SOURCE_OPTION).addOption(UNIT_OPTION);
+      new Options().addOption(SOURCE_OPTION).addOption(UNIT_OPTION).addOption(MASTER_OPTION);
 
   private enum ByteUnit {
     B(1L),
@@ -127,9 +138,22 @@ public final class GetConf {
    * @return 0 on success, 1 on failures
    */
   public static int getConf(String... args) {
+    return getConfImpl(
+        () -> new RetryHandlingMetaMasterClient(MasterClientConfig.defaults()), args);
+  }
+
+  /**
+   * Implements get configuration.
+   *
+   * @param clientSupplier a functor to return a client of meta master
+   * @param args list of arguments
+   * @return 0 on success, 1 on failures
+   */
+  @VisibleForTesting
+  public static int getConfImpl(
+      Supplier<RetryHandlingMetaMasterClient> clientSupplier, String... args) {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
-
     try {
       cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
     } catch (ParseException e) {
@@ -137,42 +161,69 @@ public final class GetConf {
       return 1;
     }
     args = cmd.getArgs();
+
+    Map<String, ConfigProperty> confMap = new HashMap<>();
+    if (cmd.hasOption(MASTER_OPTION_NAME)) {
+      // load cluster-wide configuration
+      try (RetryHandlingMetaMasterClient client = clientSupplier.get()) {
+        client.getConfiguration().forEach(prop -> confMap.put(prop.getName(), prop));
+      } catch (IOException e) {
+        System.out.println("Unable to get master-side configuration: " + e.getMessage());
+        return -1;
+      }
+    } else {
+      // load local configuration
+      for (PropertyKey key : Configuration.keySet()) {
+        if (key.isBuiltIn()) {
+          confMap.put(key.getName(), new ConfigProperty()
+              .setName(key.getName())
+              .setValue(Configuration.getOrDefault(key, null,
+                  ConfigurationValueOptions.defaults().useDisplayValue(true)))
+              .setSource(Configuration.getSource(key).toString()));
+        }
+      }
+    }
+
     StringBuilder output = new StringBuilder();
     switch (args.length) {
       case 0:
-        List<PropertyKey> keys = new ArrayList<>(Configuration.keySet());
-        Collections.sort(keys, Comparator.comparing(PropertyKey::getName));
-        for (PropertyKey key : keys) {
-          String value = ConfigurationUtils.valueAsString(Configuration.getOrDefault(key, null,
-              ConfigurationValueOptions.defaults().useDisplayValue(true)));
-          output.append(String.format("%s=%s", key.getName(), value));
+        List<ConfigProperty> properties = new ArrayList<>(confMap.values());
+        properties.sort(Comparator.comparing(ConfigProperty::getName));
+        for (ConfigProperty property : properties) {
+          String value = ConfigurationUtils.valueAsString(property.getValue());
+          output.append(String.format("%s=%s", property.getName(), value));
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
-            Source source = Configuration.getSource(key);
-            output.append(String.format(" (%s)", source));
+            output.append(String.format(" (%s)", property.getSource()));
           }
           output.append("\n");
         }
         System.out.print(output.toString());
         break;
       case 1:
-        if (!PropertyKey.isValid(args[0])) {
-          printHelp(String.format("%s is not a valid configuration key", args[0]));
+        String key = args[0];
+        if (!PropertyKey.isValid(key)) {
+          printHelp(String.format("%s is not a valid configuration key", key));
           return 1;
         }
-        PropertyKey key = PropertyKey.fromString(args[0]);
-        if (!Configuration.isSet(key)) {
+        ConfigProperty property = confMap.get(key);
+        if (property == null) {
+          printHelp(String.format("%s is not found", key));
+          return 1;
+        }
+
+        if (property.getValue() == null) {
+          // value not set
           System.out.println("");
         } else {
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
-            Source source = Configuration.getSource(key);
-            System.out.println(source);
-          } else if (cmd.hasOption(UNIT_OPTION_NAME)
-              && key.getDisplayType() != PropertyKey.DisplayType.CREDENTIALS) {
+            System.out.println(property.getSource());
+          } else if (cmd.hasOption(UNIT_OPTION_NAME)) {
             String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
             try {
               ByteUnit byteUnit;
               byteUnit = ByteUnit.valueOf(arg);
-              System.out.println(Configuration.getBytes(key) / byteUnit.getValue());
+              System.out.println(
+                  FormatUtils.parseSpaceSize(property.getValue()) / byteUnit.getValue());
               break;
             } catch (Exception e) {
               // try next unit parse
@@ -180,7 +231,8 @@ public final class GetConf {
             try {
               TimeUnit timeUnit;
               timeUnit = TimeUnit.valueOf(arg);
-              System.out.println(Configuration.getMs(key) / timeUnit.getValue());
+              System.out.println(
+                  FormatUtils.parseTimeSize(property.getValue()) / timeUnit.getValue());
               break;
             } catch (IllegalArgumentException ex) {
               // try next unit parse
@@ -188,8 +240,7 @@ public final class GetConf {
             printHelp(String.format("%s is not a valid unit", arg));
             return 1;
           } else {
-            System.out.println(Configuration.get(key,
-                ConfigurationValueOptions.defaults().useDisplayValue(true)));
+            System.out.println(property.getValue());
           }
         }
         break;
