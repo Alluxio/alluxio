@@ -51,6 +51,11 @@ public final class RpcUtils {
   /**
    * Calls the given {@link RpcCallable} and handles any exceptions thrown.
    *
+   * The logAnyFailure parameter indicates whether or not AlluxioExceptions are expected results
+   * (for example it would be false for the exists() call). In this case, we do not log the failure
+   * or increment failure metrics. When a RuntimeException is thrown, we always treat it as a
+   * failure and log an error and increment metrics.
+   *
    * @param logger the logger to use for this call
    * @param callable the callable to call
    * @param logAnyFailure whether to log or increment metrics whenever the RPC fails
@@ -98,6 +103,11 @@ public final class RpcUtils {
 
   /**
    * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown.
+   *
+   * The logAnyFailure parameter indicates whether or not AlluxioExceptions and IOExceptions are
+   * expected results (for example it would be false for the exists() call). In this case, we do not
+   * log the failure or increment failure metrics. When a RuntimeException is thrown, we always
+   * treat it as a failure and log an error and increment metrics.
    *
    * @param logger the logger to use for this call
    * @param callable the callable to call
