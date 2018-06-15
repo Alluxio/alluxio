@@ -3143,7 +3143,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws InvalidPathException, AccessControlException {
     Inode<?> inode = inodePath.getInodeOrNull();
     // Only continue for persisted files
-    // TODO(david): journal replay shouldn't need to write to ufs either
     if (!inode.isPersisted()) {
       return;
     }
@@ -3162,7 +3161,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         } catch (IOException e) {
           throw new AccessControlException("Could not setAcl for UFS file" + ufsUri + ".");
         }
-        // TODO(david): revert the acl and default acl to the initial state if writing to ufs failed.
+
       }
     }
   }
@@ -3193,6 +3192,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         break;
       default:
     }
+    try {
+      setUfsAcl(rpcContext, inodePath);
+    } catch (InvalidPathException | AccessControlException e) {
+      LOG.warn("Setting ufs ACL failed for path: {}", inodePath.getUri(), e);
+      // TODO(david): revert the acl and default acl to the initial state if writing to ufs failed.
+    }
+
     targetInode.setLastModificationTimeMs(opTimeMs);
   }
 
