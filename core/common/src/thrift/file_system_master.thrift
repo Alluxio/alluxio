@@ -5,6 +5,7 @@ include "exception.thrift"
 
 struct FileSystemMasterCommonTOptions {
   1: optional i64 syncIntervalMs
+  2: optional bool inheritParentPermissions
 }
 
 struct CheckConsistencyTOptions {

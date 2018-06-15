@@ -47,6 +47,7 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
     Assert.assertFalse(options.isCacheable());
+    Assert.assertFalse(options.isInheritParentPermissions());
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -66,6 +67,7 @@ public class CreateFileOptionsTest {
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
     boolean cacheable = random.nextBoolean();
+    boolean inheritParentPermissions = random.nextBoolean();
 
     CreateFileOptions options = CreateFileOptions.defaults()
         .setBlockSizeBytes(blockSize)
@@ -78,7 +80,8 @@ public class CreateFileOptionsTest {
         .setRecursive(recursive)
         .setTtl(ttl)
         .setTtlAction(TtlAction.FREE)
-        .setCacheable(cacheable);
+        .setCacheable(cacheable)
+        .setInheritParentPermissions(inheritParentPermissions);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(mountPoint, options.isMountPoint());
@@ -91,6 +94,7 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
     Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(cacheable, options.isCacheable());
+    Assert.assertEquals(inheritParentPermissions, options.isInheritParentPermissions());
   }
 
   @Test

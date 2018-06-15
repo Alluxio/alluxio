@@ -31,6 +31,7 @@ public final class CommonOptions implements Serializable {
   private static final long serialVersionUID = -1491370184123698287L;
 
   private long mSyncIntervalMs;
+  private boolean mInheritParentPermissions;
 
   /**
    * @return the default {@link CommonOptions}
@@ -41,6 +42,8 @@ public final class CommonOptions implements Serializable {
 
   protected CommonOptions() {
     mSyncIntervalMs = Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+    mInheritParentPermissions =
+        Configuration.getBoolean(PropertyKey.USER_FILE_INHERIT_PARENT_PERMISSIONS);
   }
 
   /**
@@ -54,6 +57,9 @@ public final class CommonOptions implements Serializable {
       if (options.isSetSyncIntervalMs()) {
         mSyncIntervalMs = options.getSyncIntervalMs();
       }
+      if (options.isSetInheritParentPermissions()) {
+        mInheritParentPermissions = options.isInheritParentPermissions();
+      }
     }
   }
 
@@ -66,6 +72,7 @@ public final class CommonOptions implements Serializable {
     this();
     if (options != null) {
       mSyncIntervalMs = options.mSyncIntervalMs;
+      mInheritParentPermissions = options.mInheritParentPermissions;
     }
   }
 
@@ -74,6 +81,22 @@ public final class CommonOptions implements Serializable {
    */
   public long getSyncIntervalMs() {
     return mSyncIntervalMs;
+  }
+
+  /**
+   * @return true if parent permissions should be inherited for created paths
+   */
+  public boolean isInheritParentPermissions() {
+    return mInheritParentPermissions;
+  }
+
+  /**
+   * @param inheritParentPermissions true if parent permissions should be inherited
+   * @return the updated options object
+   */
+  public CommonOptions setInheritParentPermissions(boolean inheritParentPermissions) {
+    mInheritParentPermissions = inheritParentPermissions;
+    return this;
   }
 
   /**
@@ -94,18 +117,20 @@ public final class CommonOptions implements Serializable {
       return false;
     }
     CommonOptions that = (CommonOptions) o;
-    return Objects.equal(mSyncIntervalMs, that.mSyncIntervalMs);
+    return Objects.equal(mSyncIntervalMs, that.mSyncIntervalMs)
+        && Objects.equal(mInheritParentPermissions, that.mInheritParentPermissions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mSyncIntervalMs);
+    return Objects.hashCode(mSyncIntervalMs, mInheritParentPermissions);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
         .add("syncIntervalMs", mSyncIntervalMs)
+        .add("inheritParentPermissions", mInheritParentPermissions)
         .toString();
   }
 
@@ -115,6 +140,7 @@ public final class CommonOptions implements Serializable {
   public FileSystemMasterCommonTOptions toThrift() {
     FileSystemMasterCommonTOptions options = new FileSystemMasterCommonTOptions();
     options.setSyncIntervalMs(mSyncIntervalMs);
+    options.setInheritParentPermissions(mInheritParentPermissions);
     return options;
   }
 }

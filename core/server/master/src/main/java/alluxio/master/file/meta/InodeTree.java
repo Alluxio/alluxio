@@ -551,7 +551,8 @@ public class InodeTree implements JournalEntryIterable {
       // Synchronously persist directories. These inodes are already READ locked.
       for (Inode inode : traversalResult.getNonPersisted()) {
         // This cast is safe because we've already verified that the file inode doesn't exist.
-        syncPersistDirectory(rpcContext, (InodeDirectory) inode);
+        syncPersistDirectory(rpcContext, (InodeDirectory) inode,
+            !options.isInheritParentPermissions());
       }
     }
     if ((pathIndex < (pathComponents.length - 1) || currentInodeDirectory.getChild(name) == null)
@@ -582,6 +583,15 @@ public class InodeTree implements JournalEntryIterable {
         .setGroup(options.getGroup());
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir = null;
+
+      if (options.isInheritParentPermissions()) {
+        // inherit the parent directory permissions
+        missingDirOptions.setOwner(currentInodeDirectory.getOwner())
+            .setGroup(currentInodeDirectory.getGroup())
+            .setMode(new Mode(currentInodeDirectory.getMode()));
+        // TODO(gpang): this should copy over parent acls and default acls
+      }
+
       while (dir == null) {
         dir = InodeDirectory.create(
             mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
@@ -607,7 +617,7 @@ public class InodeTree implements JournalEntryIterable {
             dir.setPinned(currentInodeDirectory.isPinned());
             if (options.isPersisted()) {
               // Do not journal the persist entry, since a creation entry will be journaled instead.
-              syncPersistDirectory(RpcContext.NOOP, dir);
+              syncPersistDirectory(RpcContext.NOOP, dir, !options.isInheritParentPermissions());
             }
           } catch (Exception e) {
             // Failed to persist the directory, so remove it from the parent.
@@ -657,7 +667,7 @@ public class InodeTree implements JournalEntryIterable {
             .isPersisted() && options.isPersisted()) {
           // The final path component already exists and is not persisted, so it should be added
           // to the non-persisted Inodes of traversalResult.
-          syncPersistDirectory(rpcContext, (InodeDirectory) lastInode);
+          syncPersistDirectory(rpcContext, (InodeDirectory) lastInode, true);
 
         } else if (!lastInode.isDirectory() || !(options instanceof CreateDirectoryOptions
             && ((CreateDirectoryOptions) options).isAllowExists())) {
@@ -670,6 +680,13 @@ public class InodeTree implements JournalEntryIterable {
         // create the new inode, with a write lock
         if (options instanceof CreateDirectoryOptions) {
           CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
+          if (options.isInheritParentPermissions()) {
+            // inherit the parent directory permissions
+            directoryOptions.setOwner(currentInodeDirectory.getOwner())
+                .setGroup(currentInodeDirectory.getGroup())
+                .setMode(new Mode(currentInodeDirectory.getMode()));
+            // TODO(gpang): this should copy over parent acls and default acls
+          }
           lastInode = InodeDirectory.create(
               mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
               currentInodeDirectory.getId(), name, directoryOptions);
@@ -680,10 +697,18 @@ public class InodeTree implements JournalEntryIterable {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
             // TODO(david): remove this call to syncPersistDirectory to improve performance
             // of recursive ls.
-            syncPersistDirectory(RpcContext.NOOP, (InodeDirectory) lastInode);
+            syncPersistDirectory(RpcContext.NOOP, (InodeDirectory) lastInode,
+                !options.isInheritParentPermissions());
           }
         } else if (options instanceof CreateFileOptions) {
           CreateFileOptions fileOptions = (CreateFileOptions) options;
+          if (options.isInheritParentPermissions()) {
+            // inherit the parent directory permissions
+            fileOptions.setOwner(currentInodeDirectory.getOwner())
+                .setGroup(currentInodeDirectory.getGroup())
+                .setMode(new Mode(currentInodeDirectory.getMode()).applyFileUMask());
+            // TODO(gpang): this should copy over parent acls and default acls
+          }
           lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
               currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
           // Lock the created inode before subsequent operations, and add it to the lock group.
@@ -1051,10 +1076,12 @@ public class InodeTree implements JournalEntryIterable {
    *
    * @param rpcContext the rpc context
    * @param dir the {@link InodeDirectory} to persist
+   * @param allowPermissionUpdate if true, may update the inode with ufs permissions
    * @throws InvalidPathException if the path for the inode is invalid
    * @throws FileDoesNotExistException if the path for the inode is invalid
    */
-  public void syncPersistDirectory(RpcContext rpcContext, InodeDirectory dir)
+  public void syncPersistDirectory(RpcContext rpcContext, InodeDirectory dir,
+      boolean allowPermissionUpdate)
       throws IOException, InvalidPathException, FileDoesNotExistException {
     RetryPolicy retry =
         new ExponentialBackoffRetry(PERSIST_WAIT_BASE_SLEEP_MS, PERSIST_WAIT_MAX_SLEEP_MS,
@@ -1088,9 +1115,11 @@ public class InodeTree implements JournalEntryIterable {
                 throw new InvalidPathException(String.format(
                     "Error persisting directory. A file exists at the UFS location %s.", ufsUri));
               }
-              dir.setOwner(status.getOwner())
-                  .setGroup(status.getGroup())
-                  .setMode(status.getMode());
+              if (allowPermissionUpdate) {
+                dir.setOwner(status.getOwner())
+                    .setGroup(status.getGroup())
+                    .setMode(status.getMode());
+              }
               Long lastModificationTime = status.getLastModifiedTime();
               if (lastModificationTime != null) {
                 dir.setLastModificationTimeMs(status.getLastModifiedTime(), true);
