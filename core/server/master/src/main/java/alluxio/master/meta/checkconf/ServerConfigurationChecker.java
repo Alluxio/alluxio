@@ -36,7 +36,7 @@ public class ServerConfigurationChecker {
   private static final Logger LOG = LoggerFactory.getLogger(ServerConfigurationChecker.class);
   private static final int LOG_CONF_SIZE = 5;
   private static final String CONSISTENT_CONFIGURATION_INFO
-      = "All server-side configuration is consistent.";
+      = "All server-side configurations are consistent.";
   private static final String INCONSISTENT_CONFIGURATION_INFO
       = "Inconsistent configuration detected. "
       + "Only a limited set of inconsistent configuration will be shown here. "
@@ -109,7 +109,7 @@ public class ServerConfigurationChecker {
    * @return the configuration checker report
    */
   public synchronized ConfigCheckReport getConfigCheckReport() {
-    if (mConfigDirty == true) {
+    if (mConfigDirty) {
       mConfigDirty = false;
       regenerateReport();
     }

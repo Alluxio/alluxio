@@ -449,7 +449,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
    * Periodically log the config check report.
    */
   private final class LogConfigReportHeartbeatExecutor implements HeartbeatExecutor {
-    private boolean mFirst = true;
+    private volatile boolean mFirst = true;
 
     @Override
     public void heartbeat() {
