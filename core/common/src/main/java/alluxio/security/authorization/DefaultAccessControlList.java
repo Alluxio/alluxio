@@ -185,12 +185,13 @@ public class DefaultAccessControlList extends AccessControlList {
         && mUserActions.equals(that.mUserActions)
         && mGroupActions.equals(that.mGroupActions)
         && mMaskActions.equals(that.mMaskActions)
-        && mOtherActions.equals(that.mOtherActions);
+        && mOtherActions.equals(that.mOtherActions)
+        && mEmpty == (that.mEmpty);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mOwningUser, mOwningGroup, mUserActions, mGroupActions, mMaskActions,
-        mOtherActions);
+        mOtherActions, mEmpty);
   }
 }
