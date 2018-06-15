@@ -246,7 +246,8 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
       }
       String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
       Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
-      perUfsMap.put(metric.getName(), (long) metric.getValue());
+      perUfsMap.put(metric.getName().replaceFirst(WorkerMetrics.UFS_OP_PREFIX, ""),
+          (long) metric.getValue());
       ufsOpsMap.put(ufs, perUfsMap);
     }
     request.setAttribute("ufsOps", ufsOpsMap);
