@@ -153,7 +153,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
     for (WorkerMetrics.UfsOps ufsOp : WorkerMetrics.UfsOps.values()) {
       addAggregator(new SingleTagValueAggregator(WorkerMetrics.UFS_OP_PREFIX + ufsOp,
           MetricsSystem.InstanceType.MASTER, ufsOp.toString(),
-          WorkerMetrics.BYTES_WRITTEN_ALLUXIO));
+          WorkerMetrics.TAG_UFS));
     }
   }
 

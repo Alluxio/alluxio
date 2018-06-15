@@ -41,12 +41,13 @@ public class SingleTagValueAggregator implements MultiValueMetricsAggregator {
   /**
    * Constructs a new instance of {@link SingleTagValueAggregator}.
    *
+   * @param aggregationName the aggregated metric name
    * @param instanceType instance type
    * @param metricName metric name
    * @param tagName tag name
    */
-  public SingleTagValueAggregator(String aggregationName, MetricsSystem.InstanceType instanceType, String metricName,
-      String tagName) {
+  public SingleTagValueAggregator(String aggregationName, MetricsSystem.InstanceType instanceType,
+      String metricName, String tagName) {
     Preconditions.checkNotNull(aggregationName, "aggregationName");
     Preconditions.checkNotNull(instanceType, "instance type");
     Preconditions.checkNotNull(metricName, "metricName");
@@ -71,7 +72,7 @@ public class SingleTagValueAggregator implements MultiValueMetricsAggregator {
       Map<String, String> tags = metric.getTags();
       if (tags.containsKey(mTagName)) {
         String ufsName = MetricsSystem.getClusterMetricName(
-            mAggregationName + "." + mTagName + Metric.TAG_SEPARATOR + tags.get(mTagName));
+            Metric.getMetricNameWithTags(mAggregationName, mTagName, tags.get(mTagName)));
         long value = updated.getOrDefault(ufsName, 0L);
         updated.put(ufsName, (long) (value + metric.getValue()));
       }

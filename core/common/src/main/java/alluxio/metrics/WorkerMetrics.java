@@ -15,6 +15,9 @@ package alluxio.metrics;
  * Metrics of an Alluxio worker.
  */
 public final class WorkerMetrics {
+  /**
+   * The list of under filesystem operations.
+   */
   public enum UfsOps {
     Close,
     ConnectFromMaster,

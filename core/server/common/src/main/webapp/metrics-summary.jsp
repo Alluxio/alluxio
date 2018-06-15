@@ -299,15 +299,11 @@
         <div id="data4" class="accordion-body collapse in">
           <div class="accordion-inner">
             <table class="table">
-              <tbody>
-                <tr>
-                  <th>Under FileSystem </th>
-                  <th>Size</th> 
-                </tr>
+              <tbody>                
                 <% for(Map.Entry<String, Long> inner_entry: entry.getValue().entrySet()) { %>
                   <tr>
-                    <th><%= entry.getKey() %></th>
-                    <th><%= entry.getValue() %></th> 
+                    <th><%= inner_entry.getKey() %></th>
+                    <th><%= inner_entry.getValue() %></th> 
                   </tr>
                 <% } %>
               </tbody>

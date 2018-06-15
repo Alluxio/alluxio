@@ -149,9 +149,9 @@ public class MetricsStore {
   }
 
   private Set<Metric> getMasterMetrics(String name) {
-    Set<Metric> metrics=new HashSet<>();
-    for(Metric metric: MetricsSystem.allMasterMetrics()) {
-      if(metric.getName().equals(name)) {
+    Set<Metric> metrics = new HashSet<>();
+    for (Metric metric : MetricsSystem.allMasterMetrics()) {
+      if (metric.getName().equals(name)) {
         metrics.add(metric);
       }
     }
