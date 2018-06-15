@@ -81,7 +81,9 @@ public final class AlluxioSecondaryMaster implements Process {
   }
 
   @Override
-  public void waitForReady() {}
+  public boolean waitForReady(int timeoutMs) {
+    return true;
+  }
 
   @Override
   public String toString() {

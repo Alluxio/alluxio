@@ -124,7 +124,7 @@ public abstract class AbstractLocalAlluxioCluster {
     mProxyThread = new Thread(runProxy);
     mProxyThread.setName("ProxyThread-" + System.identityHashCode(mProxyThread));
     mProxyThread.start();
-    mProxyProcess.waitForReady();
+    TestUtils.waitForReady(mProxyProcess);
   }
 
   /**
@@ -159,7 +159,7 @@ public abstract class AbstractLocalAlluxioCluster {
     }
 
     for (WorkerProcess worker : mWorkers) {
-      worker.waitForReady();
+      TestUtils.waitForReady(worker);
     }
   }
 
