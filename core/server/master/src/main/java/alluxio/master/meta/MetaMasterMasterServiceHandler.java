@@ -53,7 +53,7 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
 
   @Override
   public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
-    return new GetServiceVersionTResponse(Constants.META_MASTER_CLIENT_SERVICE_VERSION);
+    return new GetServiceVersionTResponse(Constants.META_MASTER_MASTER_SERVICE_VERSION);
   }
 
   @Override
