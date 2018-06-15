@@ -178,6 +178,6 @@ public class AlluxioLogServerProcess implements Process {
       public Boolean apply(Void input) {
         return mStopped == false;
       }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
+    }, WaitForOptions.defaults().setTimeoutMs(120000));
   }
 }

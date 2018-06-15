@@ -221,7 +221,7 @@ public class AlluxioMasterProcess implements MasterProcess {
         return mThriftServer != null && mThriftServer.isServing() && mWebServer != null
             && mWebServer.getServer().isRunning();
       }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
+    }, WaitForOptions.defaults().setTimeoutMs(120000));
   }
 
   @Override
