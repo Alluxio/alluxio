@@ -110,6 +110,9 @@ public class ServerConfigurationChecker {
    */
   public synchronized ConfigCheckReport getConfigCheckReport() {
     if (mConfigDirty) {
+      // Reset mConfigDirty *before* calling regenerateReport so that if the configuration changes
+      // during report regeneration, the change will be reflected in the next call to
+      // getConfigCheckReport.
       mConfigDirty = false;
       regenerateReport();
     }
