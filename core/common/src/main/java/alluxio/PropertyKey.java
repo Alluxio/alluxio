@@ -105,6 +105,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private String mDescription;
     private String mName;
     private boolean mIgnoredSiteProperty;
+    private boolean mIsBuiltIn = true;
     private boolean mIsHidden;
     private ConsistencyCheckLevel mConsistencyCheckLevel = ConsistencyCheckLevel.IGNORE;
     private Scope mScope = Scope.ALL;
@@ -181,6 +182,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
+     * @param isBuiltIn whether to the property is a built-in Alluxio property
+     * @return the updated builder instance
+     */
+    public Builder setIsBuiltIn(boolean isBuiltIn) {
+      mIsBuiltIn = isBuiltIn;
+      return this;
+    }
+
+    /**
      * @param isHidden whether to hide the property when generating property documentation
      * @return the updated builder instance
      */
@@ -252,7 +262,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       }
 
       PropertyKey key = new PropertyKey(mName, mDescription, defaultSupplier, mAlias,
-          mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType);
+          mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType,
+          mIsBuiltIn);
       return key;
     }
 
@@ -366,18 +377,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
-          .setDefaultValue(
+          .setDefaultSupplier(
+              () -> String.format("${%s}/,%s/.alluxio/,/etc/alluxio/",
+                  Name.CONF_DIR, System.getProperty("user.home")),
               String.format("${%s}/,${user.home}/.alluxio/,/etc/alluxio/", Name.CONF_DIR))
           .setDescription(
               String.format("Comma-separated search path for %s.", Constants.SITE_PROPERTIES))
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .build();
-  public static final PropertyKey USER_HOME =
-      new Builder(Name.USER_HOME)
-          .setIsHidden(true)
-          .setDescription("The user.home system property")
-          .setDefaultValue("boop")
           .build();
   public static final PropertyKey TEST_MODE =
       new Builder(Name.TEST_MODE)
@@ -1181,20 +1188,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.MASTER)
       .build();
-  /**
-   * @deprecated since version 1.4 and will be removed in version 2.0.
-   */
-  @Deprecated
-  public static final PropertyKey MASTER_RETRY =
-      new Builder(Name.MASTER_RETRY)
-          .setDefaultValue(String.format("${%s}", Name.USER_RPC_RETRY_MAX_NUM_RETRY))
-          .setDescription(String.format(
-              "The number of retries that the client connects to master. (NOTE: "
-                  + "this property is deprecated, use `%s` instead).",
-              Name.USER_RPC_RETRY_MAX_NUM_RETRY))
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_RPC_PORT =
       new Builder(Name.MASTER_RPC_PORT)
           .setDefaultValue(19998)
@@ -1441,6 +1434,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("/alluxioworker/")
           .setDescription("A relative path within each storage directory used as the data "
               + "folder for Alluxio worker to put data for tiered store.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_DATA_FOLDER_PERMISSIONS =
+      new Builder(Name.WORKER_DATA_FOLDER_PERMISSIONS)
+          .setDefaultValue("rwxrwxrwx")
+          .setDescription("The permission set for the worker data folder. If short circuit is used "
+              + "this folder should be accessible by all users (rwxrwxrwx).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2598,14 +2599,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("2min")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum duration to retry for"
-              + " before giving up.")
+              + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
           .build();
+  /**
+   * @deprecated since version 1.8 and will be removed in version 2.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       new Builder(Name.USER_RPC_RETRY_MAX_NUM_RETRY)
+          .setAlias(new String[]{Name.MASTER_RETRY})
           .setDefaultValue(100)
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum number of "
-              + "retries.")
+              + "retries. This property has been deprecated by time-based retry using: "
+              + Name.USER_RPC_RETRY_MAX_DURATION)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3041,7 +3048,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.thrift.frame.size.bytes.max";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
-    public static final String USER_HOME = "user.home";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
     public static final String VERSION = "alluxio.version";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
@@ -3251,6 +3257,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_BLOCK_THREADS_MIN = "alluxio.worker.block.threads.min";
     public static final String WORKER_DATA_BIND_HOST = "alluxio.worker.data.bind.host";
     public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";
+    public static final String WORKER_DATA_FOLDER_PERMISSIONS =
+        "alluxio.worker.data.folder.permissions";
     public static final String WORKER_DATA_HOSTNAME = "alluxio.worker.data.hostname";
     public static final String WORKER_DATA_PORT = "alluxio.worker.data.port";
     public static final String WORKER_DATA_SERVER_CLASS = "alluxio.worker.data.server.class";
@@ -3775,6 +3783,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** Whether to ignore as a site property. */
   private final boolean mIgnoredSiteProperty;
 
+  /** Whether the property is an Alluxio built-in property. */
+  private final boolean mIsBuiltIn;
+
   /** Whether to hide in document. */
   private final boolean mIsHidden;
 
@@ -3794,12 +3805,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param aliases alias of this property key
    * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property in
    *        site properties file
+   * @param isHidden whether to hide in document
    * @param consistencyCheckLevel the consistency check level to apply to this property
    * @param scope the scope this property applies to
+   * @param displayType how the property value should be displayed
+   * @param isBuiltIn whether this is an Alluxio built-in property
    */
   private PropertyKey(String name, String description, DefaultSupplier defaultSupplier,
       String[] aliases, boolean ignoredSiteProperty, boolean isHidden,
-      ConsistencyCheckLevel consistencyCheckLevel, Scope scope, DisplayType displayType) {
+      ConsistencyCheckLevel consistencyCheckLevel, Scope scope, DisplayType displayType,
+      boolean isBuiltIn) {
     mName = Preconditions.checkNotNull(name, "name");
     // TODO(binfan): null check after we add description for each property key
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
@@ -3810,6 +3825,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     mConsistencyCheckLevel = consistencyCheckLevel;
     mScope = scope;
     mDisplayType = displayType;
+    mIsBuiltIn = isBuiltIn;
   }
 
   /**
@@ -3817,7 +3833,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   private PropertyKey(String name) {
     this(name, null, new DefaultSupplier(() -> null, "null"), null, false, false,
-        ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT);
+        ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT, true);
   }
 
   /**
@@ -3831,7 +3847,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     String name = key.getName();
     String[] aliases = key.getAliases();
     if (DEFAULT_KEYS_MAP.containsKey(name)) {
-      return false;
+      if (DEFAULT_KEYS_MAP.get(name).isBuiltIn() || !key.isBuiltIn()) {
+        return false;
+      }
     }
     DEFAULT_KEYS_MAP.put(name, key);
     if (aliases != null) {
@@ -3938,6 +3956,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public boolean isIgnoredSiteProperty() {
     return mIgnoredSiteProperty;
+  }
+
+  /**
+   * @return true if this property is built-in
+   */
+  public boolean isBuiltIn() {
+    return mIsBuiltIn;
   }
 
   /**

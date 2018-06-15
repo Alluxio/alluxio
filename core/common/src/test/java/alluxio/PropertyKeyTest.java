@@ -261,4 +261,9 @@ public final class PropertyKeyTest {
 
     assertEquals("alluxio.locality.custom", Template.LOCALITY_TIER.format("custom").toString());
   }
+
+  @Test
+  public void isBuiltIn() {
+    assertTrue(mTestProperty.isBuiltIn());
+  }
 }
