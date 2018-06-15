@@ -1430,6 +1430,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_DATA_FOLDER_PERMISSIONS =
+      new Builder(Name.WORKER_DATA_FOLDER_PERMISSIONS)
+          .setDefaultValue("rwxrwxrwx")
+          .setDescription("The permission set for the worker data folder. If short circuit is used "
+              + "this folder should be accessible by all users (rwxrwxrwx).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_DATA_HOSTNAME =
       new Builder(Name.WORKER_DATA_HOSTNAME)
           .setDescription("The hostname of Alluxio worker data service.")
@@ -3243,6 +3251,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_BLOCK_THREADS_MIN = "alluxio.worker.block.threads.min";
     public static final String WORKER_DATA_BIND_HOST = "alluxio.worker.data.bind.host";
     public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";
+    public static final String WORKER_DATA_FOLDER_PERMISSIONS =
+        "alluxio.worker.data.folder.permissions";
     public static final String WORKER_DATA_HOSTNAME = "alluxio.worker.data.hostname";
     public static final String WORKER_DATA_PORT = "alluxio.worker.data.port";
     public static final String WORKER_DATA_SERVER_CLASS = "alluxio.worker.data.server.class";
