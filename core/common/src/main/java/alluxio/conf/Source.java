@@ -17,6 +17,7 @@ package alluxio.conf;
 public class Source implements Comparable<Source> {
   public static final Source UNKNOWN = new Source(Type.UNKNOWN);
   public static final Source DEFAULT = new Source(Type.DEFAULT);
+  public static final Source CLUSTER_DEFAULT = new Source(Type.CLUSTER_DEFAULT);
   public static final Source SYSTEM_PROPERTY = new Source(Type.SYSTEM_PROPERTY);
   public static final Source RUNTIME = new Source(Type.RUNTIME);
 
@@ -32,6 +33,10 @@ public class Source implements Comparable<Source> {
      * The default property value from <code>PropertyKey</code> on compile time.
      */
     DEFAULT,
+    /**
+     * The default property value as loaded from the masters of the cluster.
+     */
+    CLUSTER_DEFAULT,
     /**
      * The property value is specified in site properties file (alluxio-site.properties).
      */

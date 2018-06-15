@@ -264,7 +264,9 @@ public final class NettyPacketWriter implements PacketWriter {
                 mChannel.close();
               }
             });
-            throw new UnavailableException(mPacketWriteException);
+            throw new UnavailableException(
+                "Failed to write data packet due to " + mPacketWriteException.getMessage(),
+                mPacketWriteException);
           }
           if (!mDoneOrFailed.await(CLOSE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             closeFuture = mChannel.eventLoop().submit(new Runnable() {

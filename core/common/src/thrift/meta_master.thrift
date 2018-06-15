@@ -3,7 +3,9 @@ namespace java alluxio.thrift
 include "common.thrift"
 include "exception.thrift"
 
-struct GetConfigurationTOptions{}
+struct GetConfigurationTOptions{
+  1: bool rawValue
+}
 struct GetConfigurationTResponse{
   1: list<common.ConfigProperty> configList
 }

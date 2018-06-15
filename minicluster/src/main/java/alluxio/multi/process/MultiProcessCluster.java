@@ -33,6 +33,7 @@ import alluxio.master.ZkMasterInquireClient;
 import alluxio.network.PortUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.MasterInfo;
 import alluxio.zookeeper.RestartableTestingServer;
@@ -169,8 +170,9 @@ public final class MultiProcessCluster implements TestRule {
       }
       mProperties.put(entry.getKey(), entry.getValue());
     }
-
-    new File(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
+    mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+        PathUtils.concatPath(mWorkDir, "underFSStorage"));
+    new File(mProperties.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
     formatJournal();
     writeConf();
 

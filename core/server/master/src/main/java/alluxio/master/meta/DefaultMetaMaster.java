@@ -53,6 +53,7 @@ import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.GetConfigurationOptions;
 import alluxio.wire.Scope;
 
 import com.google.common.collect.ImmutableSet;
@@ -294,13 +295,14 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public List<ConfigProperty> getConfiguration() {
+  public List<ConfigProperty> getConfiguration(GetConfigurationOptions options) {
     List<ConfigProperty> configInfoList = new ArrayList<>();
     for (PropertyKey key : Configuration.keySet()) {
       if (key.isBuiltIn()) {
         String source = Configuration.getSource(key).toString();
         String value = Configuration.getOrDefault(key, null,
-            ConfigurationValueOptions.defaults().useDisplayValue(true));
+            ConfigurationValueOptions.defaults().useDisplayValue(true)
+                .useRawValue(options.isRawValue()));
         configInfoList
             .add(new ConfigProperty().setName(key.getName()).setValue(value).setSource(source));
       }

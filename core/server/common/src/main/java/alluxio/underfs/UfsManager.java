@@ -41,7 +41,7 @@ public interface UfsManager extends Closeable {
     public UfsClient(Supplier<UnderFileSystem> ufsSupplier, AlluxioURI ufsMountPointUri) {
       mUfsSupplier = Preconditions.checkNotNull(ufsSupplier, "ufsSupplier is null");
       mUfsMountPointUri = Preconditions.checkNotNull(ufsMountPointUri, "ufsMountPointUri is null");
-      mCounter = MetricsSystem.workerCounter(
+      mCounter = MetricsSystem.counter(
           String.format("UfsSessionCount-Ufs:%s", MetricsSystem.escape(mUfsMountPointUri)));
     }
 
