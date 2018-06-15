@@ -13,6 +13,8 @@ package alluxio.security.authorization;
 
 import alluxio.collections.Pair;
 
+import com.google.common.base.Objects;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -167,5 +169,28 @@ public class DefaultAccessControlList extends AccessControlList {
       entry.setDefault(true);
     }
     return aclEntryList;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof DefaultAccessControlList)) {
+      return false;
+    }
+    DefaultAccessControlList that = (DefaultAccessControlList) o;
+    return mOwningUser.equals(that.mOwningUser)
+        && mOwningGroup.equals(that.mOwningGroup)
+        && mUserActions.equals(that.mUserActions)
+        && mGroupActions.equals(that.mGroupActions)
+        && mMaskActions.equals(that.mMaskActions)
+        && mOtherActions.equals(that.mOtherActions);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mOwningUser, mOwningGroup, mUserActions, mGroupActions, mMaskActions,
+        mOtherActions);
   }
 }
