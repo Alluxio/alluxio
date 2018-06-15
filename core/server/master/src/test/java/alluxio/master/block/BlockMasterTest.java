@@ -23,6 +23,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
+import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
 import alluxio.master.TestSafeModeManager;
 import alluxio.master.journal.JournalSystem;
@@ -103,14 +104,13 @@ public class BlockMasterTest {
     mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
-    mMetricsMaster = new MetricsMasterFactory()
-        .create(mRegistry, journalSystem, mSafeModeManager, mStartTimeMs, mPort);
+    MasterContext masterContext = MasterTestUtils.testMasterContext();
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster = new DefaultBlockMaster(mMetricsMaster,
-        new MasterContext(journalSystem, mSafeModeManager, mStartTimeMs, mPort),
-        mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mBlockMaster = new DefaultBlockMaster(mMetricsMaster, masterContext, mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
   }

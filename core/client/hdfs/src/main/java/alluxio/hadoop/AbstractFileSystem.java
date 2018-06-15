@@ -14,6 +14,7 @@ package alluxio.hadoop;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import alluxio.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
@@ -29,12 +30,14 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.lineage.LineageContext;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.master.MasterInquireClient;
+import alluxio.master.MasterInquireClient.ConnectDetails;
+import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileBlockInfo;
@@ -495,7 +498,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
     // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
     // We assume here that all clients use the same configuration.
-    HadoopConfigurationUtils.mergeHadoopConfiguration(conf);
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, Configuration.global());
     Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
     // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
     // configuration property, so the user doesn't need to specify the authority.
@@ -532,21 +535,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private boolean connectDetailsMatch(URI uri, org.apache.hadoop.conf.Configuration conf) {
     // Create the master inquire client that we would have after merging the hadoop conf into
     // Alluxio Configuration.
-    MasterInquireClient.Factory.Config inquireClientConf =
-        MasterInquireClient.Factory.Config.defaults();
-    inquireClientConf.setZookeeperEnabled(conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(),
-        inquireClientConf.isZookeeperEnabled()));
-    inquireClientConf.setZookeeperAddress(
-        conf.get(PropertyKey.ZOOKEEPER_ADDRESS.getName(), inquireClientConf.getZookeeperAddress()));
-    inquireClientConf.setElectionPath(conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(),
-        inquireClientConf.getElectionPath()));
-    inquireClientConf.setLeaderPath(
-        conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(), inquireClientConf.getLeaderPath()));
-    inquireClientConf.setConnectHost(mUri.getHost());
-    inquireClientConf.setConnectPort(mUri.getPort());
-    MasterInquireClient configClient = MasterInquireClient.Factory.create(inquireClientConf);
-    MasterInquireClient contextClient = FileSystemContext.get().getMasterInquireClient();
-    return configClient.equals(contextClient);
+    AlluxioConfiguration alluxioConf = new InstancedConfiguration(Configuration.global());
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioConf);
+    ConnectDetails newDetails = Factory.getConnectDetails(alluxioConf);
+
+    return newDetails.equals(FileSystemContext.get().getMasterInquireClient().getConnectDetails());
   }
 
   /**

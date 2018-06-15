@@ -33,6 +33,7 @@ import alluxio.master.ZkMasterInquireClient;
 import alluxio.network.PortUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.MasterInfo;
 import alluxio.zookeeper.RestartableTestingServer;
@@ -55,14 +56,13 @@ import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -92,11 +92,12 @@ public final class MultiProcessCluster implements TestRule {
   private final int mNumMasters;
   private final int mNumWorkers;
   private final String mClusterName;
-  private final DeployMode mDeployMode;
   /** Closer for closing all resources that must be closed when the cluster is destroyed. */
   private final Closer mCloser;
   private final List<Master> mMasters;
   private final List<Worker> mWorkers;
+
+  private DeployMode mDeployMode;
 
   /** Base directory for storing configuration and logs. */
   private File mWorkDir;
@@ -160,12 +161,18 @@ public final class MultiProcessCluster implements TestRule {
     for (Entry<PropertyKey, String> entry : ConfigurationTestUtils.testConfigurationDefaults(
         NetworkAddressUtils.getLocalHostName(), mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
-      if (!mProperties.containsKey(entry.getKey())) {
-        mProperties.put(entry.getKey(), entry.getValue());
+      if (mProperties.containsKey(entry.getKey())) {
+        continue;
       }
+      // Keep the default RPC timeout.
+      if (entry.getKey().equals(PropertyKey.USER_RPC_RETRY_MAX_DURATION)) {
+        continue;
+      }
+      mProperties.put(entry.getKey(), entry.getValue());
     }
-
-    new File(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
+    mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+        PathUtils.concatPath(mWorkDir, "underFSStorage"));
+    new File(mProperties.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
     formatJournal();
     writeConf();
 
@@ -229,28 +236,21 @@ public final class MultiProcessCluster implements TestRule {
    * reached the number of nodes in this cluster and gets meta master client.
    *
    * @param timeoutMs maximum amount of time to wait, in milliseconds
-   * @return  the meta master client
    */
-  public synchronized MetaMasterClient waitForAllNodesRegistered(int timeoutMs) {
-    final MetaMasterClient metaMasterClient = getMetaMasterClient();
-    CommonUtils.waitFor("all nodes registered", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        try {
-          MasterInfo masterInfo = metaMasterClient.getMasterInfo(new HashSet<>(Arrays
-              .asList(MasterInfo.MasterInfoField.MASTER_ADDRESSES,
-                  MasterInfo.MasterInfoField.WORKER_ADDRESSES)));
-          int liveNodeNum = masterInfo.getMasterAddresses().size()
-              + masterInfo.getWorkerAddresses().size();
-          return liveNodeNum == (mNumMasters + mNumWorkers);
-        } catch (UnavailableException e) {
-          return false;
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
+  public synchronized void waitForAllNodesRegistered(int timeoutMs) {
+    MetaMasterClient metaMasterClient = getMetaMasterClient();
+    CommonUtils.waitFor("all nodes registered", x -> {
+      try {
+        MasterInfo masterInfo = metaMasterClient.getMasterInfo(null);
+        int liveNodeNum = masterInfo.getMasterAddresses().size()
+            + masterInfo.getWorkerAddresses().size();
+        return liveNodeNum == (mNumMasters + mNumWorkers);
+      } catch (UnavailableException e) {
+        return false;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-    return metaMasterClient;
   }
 
   /**
@@ -325,6 +325,13 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
+   * Starts all masters.
+   */
+  public synchronized void startMasters() {
+    mMasters.forEach(master -> master.start());
+  }
+
+  /**
    * Starts the specified master.
    *
    * @param i the index of the master to start
@@ -347,10 +354,37 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
+   * Stops all masters.
+   */
+  public synchronized void stopMasters() {
+    mMasters.forEach(master -> master.close());
+  }
+
+  /**
    * @param i the index of the master to stop
    */
   public synchronized void stopMaster(int i) throws IOException {
     mMasters.get(i).close();
+  }
+
+  /**
+   * Updates master configuration for all masters. This will take effect on a master the next time
+   * the master is started.
+   *
+   * @param key the key to update
+   * @param value the value to set, or null to unset the key
+   */
+  public synchronized void updateMasterConf(PropertyKey key, @Nullable String value) {
+    mMasters.forEach(master -> master.updateConf(key, value));
+  }
+
+  /**
+   * Updates the cluster's deploy mode.
+   *
+   * @param mode the mode to set
+   */
+  public synchronized void updateDeployMode(DeployMode mode) {
+    mDeployMode = mode;
   }
 
   /**
@@ -440,14 +474,22 @@ public final class MultiProcessCluster implements TestRule {
     return worker;
   }
 
-  private void formatJournal() throws Exception {
+  /**
+   * Formats the cluster journal.
+   */
+  public synchronized void formatJournal() throws IOException {
     try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER,
         mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER)).toResource()) {
       Format.format(Format.Mode.MASTER);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
-  private MasterInquireClient getMasterInquireClient() {
+  /**
+   * @return a client for determining the serving master
+   */
+  public synchronized MasterInquireClient getMasterInquireClient() {
     switch (mDeployMode) {
       case NON_HA:
         Preconditions.checkState(mMasters.size() == 1,

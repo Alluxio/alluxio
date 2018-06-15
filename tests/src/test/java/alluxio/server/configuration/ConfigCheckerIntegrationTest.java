@@ -11,24 +11,31 @@
 
 package alluxio.server.configuration;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.MetaMasterClient;
 import alluxio.multi.process.MultiProcessCluster;
+import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigCheckReport.ConfigStatus;
-import alluxio.wire.MasterInfo;
+import alluxio.wire.InconsistentProperty;
+import alluxio.wire.Scope;
 
+import com.google.common.collect.ImmutableMap;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
+import org.junit.After;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -39,72 +46,54 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
   private static final int TEST_NUM_MASTERS = 2;
   private static final int TEST_NUM_WORKERS = 2;
 
+  public MultiProcessCluster mCluster;
+
+  @After
+  public void after() throws Exception {
+    mCluster.destroy();
+  }
+
   @Test
-  public void MultiMasters() throws Exception {
+  public void multiMasters() throws Exception {
     PropertyKey key = PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS;
     Map<Integer, Map<PropertyKey, String>> masterProperties
         = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, key);
-    MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
+    mCluster = MultiProcessCluster.newBuilder()
         .setClusterName("ConfigCheckerMultiMastersTest")
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(0)
         .setDeployMode(MultiProcessCluster.DeployMode.ZOOKEEPER_HA)
         .setMasterProperties(masterProperties)
         .build();
-    try {
-      cluster.start();
-      MetaMasterClient client = cluster
-          .waitForAllNodesRegistered(WAIT_TIMEOUT_MS);
-      Assert.assertEquals(TEST_NUM_MASTERS, client.getMasterInfo(
-          new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.MASTER_ADDRESSES)))
-          .getMasterAddresses().size());
-
-      ConfigCheckReport report = client.getConfigReport();
-      Assert.assertEquals(ConfigStatus.WARN, report.getConfigStatus());
-      Assert.assertThat(report.getConfigWarns().toString(),
-          CoreMatchers.containsString(key.getName()));
-      cluster.notifySuccess();
-    } finally {
-      cluster.destroy();
-    }
+    mCluster.start();
+    ConfigCheckReport report = getReport();
+    assertEquals(ConfigStatus.WARN, report.getConfigStatus());
+    assertThat(report.getConfigWarns().toString(),
+        CoreMatchers.containsString(key.getName()));
+    mCluster.notifySuccess();
   }
 
   @Test
-  public void MultiWorkers() throws Exception {
+  public void multiWorkers() throws Exception {
     PropertyKey key = PropertyKey.WORKER_FREE_SPACE_TIMEOUT;
     Map<Integer, Map<PropertyKey, String>> workerProperties
         = generatePropertyWithDifferentValues(TEST_NUM_WORKERS, key);
-    MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
+    mCluster = MultiProcessCluster.newBuilder()
         .setClusterName("ConfigCheckerMultiWorkersTest")
         .setNumMasters(1)
         .setNumWorkers(TEST_NUM_WORKERS)
         .setWorkerProperties(workerProperties)
         .build();
 
-    try {
-      cluster.start();
-      MetaMasterClient client = cluster
-          .waitForAllNodesRegistered(WAIT_TIMEOUT_MS);
-
-      Assert.assertEquals(1, client.getMasterInfo(
-          new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.MASTER_ADDRESSES)))
-          .getMasterAddresses().size());
-      Assert.assertEquals(TEST_NUM_WORKERS, client.getMasterInfo(
-          new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.WORKER_ADDRESSES)))
-          .getWorkerAddresses().size());
-
-      ConfigCheckReport report = client.getConfigReport();
-      Assert.assertEquals(ConfigStatus.WARN, report.getConfigStatus());
-      Assert.assertThat(report.getConfigWarns().toString(),
-          CoreMatchers.containsString(key.getName()));
-      cluster.notifySuccess();
-    } finally {
-      cluster.destroy();
-    }
+    mCluster.start();
+    ConfigCheckReport report = getReport();
+    assertEquals(ConfigStatus.WARN, report.getConfigStatus());
+    assertThat(report.getConfigWarns().toString(), CoreMatchers.containsString(key.getName()));
+    mCluster.notifySuccess();
   }
 
   @Test
-  public void MultiNodes() throws Exception {
+  public void multiNodes() throws Exception {
     PropertyKey key = PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS;
     // Prepare properties
     Map<Integer, Map<PropertyKey, String>> properties = generatePropertyWithDifferentValues(
@@ -116,7 +105,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .filter(entry -> (entry.getKey() >= TEST_NUM_MASTERS))
         .collect(Collectors.toMap(entry -> entry.getKey() - TEST_NUM_MASTERS, Map.Entry::getValue));
 
-    MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
+    mCluster = MultiProcessCluster.newBuilder()
         .setClusterName("ConfigCheckerMultiNodesTest")
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(TEST_NUM_WORKERS)
@@ -125,25 +114,41 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setWorkerProperties(workerProperties)
         .build();
 
-    try {
-      cluster.start();
-      MetaMasterClient client = cluster.waitForAllNodesRegistered(WAIT_TIMEOUT_MS);
+    mCluster.start();
+    ConfigCheckReport report = getReport();
+    assertEquals(ConfigStatus.FAILED, report.getConfigStatus());
+    assertThat(report.getConfigErrors().toString(), CoreMatchers.containsString(key.getName()));
+    mCluster.notifySuccess();
+  }
 
-      Assert.assertEquals(TEST_NUM_MASTERS, client.getMasterInfo(
-          new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.MASTER_ADDRESSES)))
-          .getMasterAddresses().size());
-      Assert.assertEquals(TEST_NUM_WORKERS, client.getMasterInfo(
-          new HashSet<>(Arrays.asList(MasterInfo.MasterInfoField.WORKER_ADDRESSES)))
-          .getWorkerAddresses().size());
+  @Test
+  public void unsetVsSet() throws Exception {
+    Map<Integer, Map<PropertyKey, String>> masterProperties = ImmutableMap.of(
+        1, ImmutableMap.of(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION, "option"));
 
-      ConfigCheckReport report = client.getConfigReport();
-      Assert.assertEquals(ConfigStatus.FAILED, report.getConfigStatus());
-      Assert.assertThat(report.getConfigErrors().toString(),
-          CoreMatchers.containsString(key.getName()));
-      cluster.notifySuccess();
-    } finally {
-      cluster.destroy();
-    }
+    mCluster = MultiProcessCluster.newBuilder()
+        .setClusterName("ConfigCheckerUnsetVsSet")
+        .setNumMasters(2)
+        .setNumWorkers(0)
+        .setDeployMode(DeployMode.ZOOKEEPER_HA)
+        .setMasterProperties(masterProperties)
+        .build();
+    mCluster.start();
+    ConfigCheckReport report = getReport();
+    Map<Scope, List<InconsistentProperty>> errors = report.getConfigErrors();
+    assertTrue(errors.containsKey(Scope.MASTER));
+    assertEquals(1, errors.get(Scope.MASTER).size());
+    InconsistentProperty property = errors.get(Scope.MASTER).get(0);
+    assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION.getName(), property.getName());
+    assertTrue(property.getValues().containsKey(Optional.of("option")));
+    assertTrue(property.getValues().containsKey(Optional.empty()));
+    mCluster.notifySuccess();
+  }
+
+  private ConfigCheckReport getReport() throws Exception {
+    mCluster.waitForAllNodesRegistered(WAIT_TIMEOUT_MS);
+    MetaMasterClient client = mCluster.getMetaMasterClient();
+    return client.getConfigReport();
   }
 
   /**

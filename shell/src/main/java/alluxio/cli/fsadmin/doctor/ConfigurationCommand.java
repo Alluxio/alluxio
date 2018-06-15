@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Prints server-side configuration errors and warnings.
@@ -80,7 +81,7 @@ public class ConfigurationCommand {
     for (List<InconsistentProperty> list : inconsistentProperties.values()) {
       for (InconsistentProperty prop : list) {
         mPrintStream.println("key: " + prop.getName());
-        for (Map.Entry<String, List<String>> entry : prop.getValues().entrySet()) {
+        for (Map.Entry<Optional<String>, List<String>> entry : prop.getValues().entrySet()) {
           mPrintStream.println("    value: " + String.format("%s (%s)", entry.getKey(),
               String.join(", ", entry.getValue())));
         }

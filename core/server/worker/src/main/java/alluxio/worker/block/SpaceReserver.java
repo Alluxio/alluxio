@@ -70,7 +70,7 @@ public class SpaceReserver implements HeartbeatExecutor {
       long reservedSpace;
       PropertyKey tierReservedSpaceProp =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(ordinal);
-      if (Configuration.containsKey(tierReservedSpaceProp)) {
+      if (Configuration.isSet(tierReservedSpaceProp)) {
         LOG.warn("The property reserved.ratio is deprecated, use high/low watermark instead.");
         reservedSpace = (long) (tierCapacity * Configuration.getDouble(tierReservedSpaceProp));
       } else {

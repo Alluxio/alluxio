@@ -11,7 +11,9 @@
 
 package alluxio.master.meta;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Server;
@@ -31,17 +33,27 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.LockResource;
 import alluxio.thrift.MetaCommand;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.thrift.MetaMasterMasterService;
 import alluxio.thrift.RegisterMasterTOptions;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.Address;
+import alluxio.wire.BackupOptions;
+import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.GetConfigurationOptions;
 import alluxio.wire.Scope;
 
 import com.google.common.collect.ImmutableSet;
@@ -51,8 +63,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -196,7 +212,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     if (isPrimary) {
       // Add the configuration of the current leader master
       mMasterConfigStore.registerNewConf(mMasterAddress,
-          Configuration.getConfiguration(Scope.MASTER));
+          ConfigurationUtils.getConfiguration(Scope.MASTER));
 
       // The service that detects lost standby master nodes
       getExecutorService().submit(new HeartbeatThread(
@@ -209,8 +225,8 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           (int) Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)));
     } else {
       // Standby master should setup MetaMasterSync to communicate with the leader master
-      MetaMasterMasterClient metaMasterClient =
-          new MetaMasterMasterClient(MasterClientConfig.defaults());
+      RetryHandlingMetaMasterMasterClient metaMasterClient =
+          new RetryHandlingMetaMasterMasterClient(MasterClientConfig.defaults());
       getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
           new MetaMasterSync(mMasterAddress, metaMasterClient),
           (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL)));
@@ -220,21 +236,76 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
+  public BackupResponse backup(BackupOptions options) throws IOException {
+    String dir = options.getTargetDirectory();
+    if (dir == null) {
+      dir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
+    }
+    UnderFileSystem ufs;
+    if (options.isLocalFileSystem()) {
+      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
+      LOG.info("Backing up to local filesystem in directory {}", dir);
+    } else {
+      ufs = UnderFileSystem.Factory.createForRoot();
+      LOG.info("Backing up to root UFS in directory {}", dir);
+    }
+    if (!ufs.isDirectory(dir)) {
+      if (!ufs.mkdirs(dir, MkdirsOptions.defaults().setCreateParent(true))) {
+        throw new IOException(String.format("Failed to create directory %s", dir));
+      }
+    }
+    String backupFilePath;
+    try (LockResource lr = new LockResource(mPauseStateLock)) {
+      Instant now = Instant.now();
+      String backupFileName = String.format("alluxio-backup-%s-%s.gz",
+          DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
+          now.toEpochMilli());
+      backupFilePath = PathUtils.concatPath(dir, backupFileName);
+      OutputStream ufsStream = ufs.create(backupFilePath);
+      try {
+        mBackupManager.backup(ufsStream);
+      } catch (Throwable t) {
+        try {
+          ufsStream.close();
+        } catch (Throwable t2) {
+          LOG.error("Failed to close backup stream to {}", backupFilePath, t2);
+          t.addSuppressed(t2);
+        }
+        try {
+          ufs.deleteFile(backupFilePath);
+        } catch (Throwable t2) {
+          LOG.error("Failed to clean up partially-written backup at {}", backupFilePath, t2);
+          t.addSuppressed(t2);
+        }
+        throw t;
+      }
+    }
+    String rootUfs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    if (options.isLocalFileSystem()) {
+      rootUfs = "file:///";
+    }
+    AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
+    return new BackupResponse(backupUri,
+        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
+  }
+
+  @Override
   public ConfigCheckReport getConfigCheckReport() {
     return mConfigChecker.getConfigCheckReport();
   }
 
   @Override
-  public List<ConfigProperty> getConfiguration() {
+  public List<ConfigProperty> getConfiguration(GetConfigurationOptions options) {
     List<ConfigProperty> configInfoList = new ArrayList<>();
     String alluxioConfPrefix = "alluxio";
-    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      String key = entry.getKey();
-      if (key.startsWith(alluxioConfPrefix)) {
-        PropertyKey propertyKey = PropertyKey.fromString(key);
-        String source = Configuration.getFormattedSource(propertyKey);
-        configInfoList.add(new ConfigProperty()
-            .setName(key).setValue(entry.getValue()).setSource(source));
+    for (PropertyKey key : Configuration.keySet()) {
+      if (key.getName().startsWith(alluxioConfPrefix)) {
+        String source = Configuration.getSource(key).toString();
+        String value = Configuration.getOrDefault(key, null,
+            ConfigurationValueOptions.defaults().useDisplayValue(true)
+                .useRawValue(options.isRawValue()));
+        configInfoList
+            .add(new ConfigProperty().setName(key.getName()).setValue(value).setSource(source));
       }
     }
     return configInfoList;

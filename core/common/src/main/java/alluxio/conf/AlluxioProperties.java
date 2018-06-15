@@ -65,6 +65,14 @@ public class AlluxioProperties {
   public AlluxioProperties() {}
 
   /**
+   * @param alluxioProperties properties to copy
+   */
+  public AlluxioProperties(AlluxioProperties alluxioProperties) {
+    mUserProps.putAll(alluxioProperties.mUserProps);
+    mSources.putAll(alluxioProperties.mSources);
+  }
+
+  /**
    * @param key the key to query
    * @return the value, or null if the key has no value set
    */
@@ -146,7 +154,7 @@ public class AlluxioProperties {
    * @param key the key to check
    * @return true if there is value for the key, false otherwise
    */
-  public boolean hasValueSet(PropertyKey key) {
+  public boolean isSet(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
       return mUserProps.get(key).isPresent();
     }

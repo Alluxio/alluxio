@@ -15,6 +15,7 @@ import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -25,6 +26,7 @@ import java.util.List;
  */
 public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
+  @Ignore("ALLUXIO-3226")
   public void metrics() {
     int ret = mFsAdminShell.run("report", "metrics");
     Assert.assertEquals(0, ret);
@@ -68,6 +70,12 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
         "    UnmountOps                                   0",
         "",
         "Other metrics information: ",
+        "    AsyncCacheDuplicateRequests  (0)",
+        "    AsyncCacheFailedBlocks  (0)",
+        "    AsyncCacheRemoteBlocks  (0)",
+        "    AsyncCacheRequests  (0)",
+        "    AsyncCacheSucceededBlocks  (0)",
+        "    AsyncCacheUfsBlocks  (0)",
         "    BlocksAccessed  (0)");
     List<String> testOutput = Arrays.asList(output.split("\n")).subList(0, expectedOutput.size());
     Assert.assertThat(testOutput,

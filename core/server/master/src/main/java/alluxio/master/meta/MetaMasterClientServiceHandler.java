@@ -18,6 +18,8 @@ import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.BackupTOptions;
+import alluxio.thrift.BackupTResponse;
 import alluxio.thrift.GetConfigReportTOptions;
 import alluxio.thrift.GetConfigReportTResponse;
 import alluxio.thrift.GetConfigurationTOptions;
@@ -32,6 +34,8 @@ import alluxio.thrift.MasterInfo;
 import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.Address;
+import alluxio.wire.BackupOptions;
+import alluxio.wire.GetConfigurationOptions;
 import alluxio.wire.MetricValue;
 
 import com.codahale.metrics.Counter;
@@ -67,6 +71,13 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   }
 
   @Override
+  public BackupTResponse backup(BackupTOptions options) throws AlluxioTException {
+    return RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<BackupTResponse>) () -> mMetaMaster
+            .backup(BackupOptions.fromThrift(options)).toThrift());
+  }
+
+  @Override
   public GetConfigReportTResponse getConfigReport(final GetConfigReportTOptions options)
       throws TException {
     return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigReportTResponse>) ()
@@ -77,7 +88,8 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options)
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigurationTResponse>) ()
-        -> (new GetConfigurationTResponse(mMetaMaster.getConfiguration()
+        -> (new GetConfigurationTResponse(
+            mMetaMaster.getConfiguration(GetConfigurationOptions.fromThrift(options))
         .stream()
         .map(configProperty -> (configProperty.toThrift()))
         .collect(Collectors.toList()))));
@@ -121,7 +133,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
                 .stream().map(Address::toThrift).collect(Collectors.toList()));
             break;
           case ZOOKEEPER_ADDRESSES:
-            if (Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
+            if (Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
               info.setZookeeperAddresses(Arrays
                   .asList(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
             }

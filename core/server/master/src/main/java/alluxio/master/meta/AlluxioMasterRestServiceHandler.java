@@ -13,6 +13,7 @@ package alluxio.master.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.RestUtils;
@@ -415,11 +416,8 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    if (raw) {
-      return new TreeMap<>(Configuration.toRawMap());
-    } else {
-      return new TreeMap<>(Configuration.toMap());
-    }
+    return new TreeMap<>(Configuration
+        .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 
   private Map<String, Long> getMetricsInternal() {
@@ -431,7 +429,7 @@ public final class AlluxioMasterRestServiceHandler {
     // free/used
     // spaces, those statistics can be gotten via other REST apis.
     String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
     @SuppressWarnings("unchecked") Gauge<Integer> filesPinned =
         (Gauge<Integer>) MetricsSystem.METRIC_REGISTRY.getGauges().get(filesPinnedProperty);
 
