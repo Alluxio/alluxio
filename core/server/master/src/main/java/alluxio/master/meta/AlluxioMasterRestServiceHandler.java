@@ -429,7 +429,7 @@ public final class AlluxioMasterRestServiceHandler {
     // free/used
     // spaces, those statistics can be gotten via other REST apis.
     String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
     @SuppressWarnings("unchecked") Gauge<Integer> filesPinned =
         (Gauge<Integer>) MetricsSystem.METRIC_REGISTRY.getGauges().get(filesPinnedProperty);
 

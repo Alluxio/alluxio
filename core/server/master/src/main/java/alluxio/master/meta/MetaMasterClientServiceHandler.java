@@ -35,6 +35,7 @@ import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.Address;
 import alluxio.wire.BackupOptions;
+import alluxio.wire.GetConfigurationOptions;
 import alluxio.wire.MetricValue;
 
 import com.codahale.metrics.Counter;
@@ -87,7 +88,8 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options)
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigurationTResponse>) ()
-        -> (new GetConfigurationTResponse(mMetaMaster.getConfiguration()
+        -> (new GetConfigurationTResponse(
+            mMetaMaster.getConfiguration(GetConfigurationOptions.fromThrift(options))
         .stream()
         .map(configProperty -> (configProperty.toThrift()))
         .collect(Collectors.toList()))));
