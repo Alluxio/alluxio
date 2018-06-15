@@ -36,7 +36,7 @@ public class ServerConfigurationChecker {
   private static final Logger LOG = LoggerFactory.getLogger(ServerConfigurationChecker.class);
   private static final int LOG_CONF_SIZE = 5;
   private static final String CONSISTENT_CONFIGURATION_INFO
-      = "All server-side configuration are consistent.";
+      = "All server-side configurations are consistent.";
   private static final String INCONSISTENT_CONFIGURATION_INFO
       = "Inconsistent configuration detected. "
       + "Only a limited set of inconsistent configuration will be shown here. "
@@ -48,6 +48,8 @@ public class ServerConfigurationChecker {
   private final ServerConfigurationStore mWorkerStore;
   /** Contain the checker results. */
   private ConfigCheckReport mConfigCheckReport;
+  /** Whether the configuration has been changed since the last time the report was generated. */
+  private volatile boolean mConfigDirty = true;
 
   /**
    * Constructs a new {@link ServerConfigurationChecker}.
@@ -60,8 +62,8 @@ public class ServerConfigurationChecker {
     mMasterStore = masterStore;
     mWorkerStore = workerStore;
     mConfigCheckReport = new ConfigCheckReport();
-    mMasterStore.registerChangeListener(this::regenerateReport);
-    mWorkerStore.registerChangeListener(this::regenerateReport);
+    mMasterStore.registerChangeListener(() -> mConfigDirty = true);
+    mWorkerStore.registerChangeListener(() -> mConfigDirty = true);
   }
 
   /**
@@ -107,6 +109,13 @@ public class ServerConfigurationChecker {
    * @return the configuration checker report
    */
   public synchronized ConfigCheckReport getConfigCheckReport() {
+    if (mConfigDirty) {
+      // Reset mConfigDirty *before* calling regenerateReport so that if the configuration changes
+      // during report regeneration, the change will be reflected in the next call to
+      // getConfigCheckReport.
+      mConfigDirty = false;
+      regenerateReport();
+    }
     return mConfigCheckReport;
   }
 
