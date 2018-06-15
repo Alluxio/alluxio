@@ -292,7 +292,7 @@ public final class CommonUtils {
         return;
       }
       if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
-        throw new RuntimeException("Timed out waiting for " + description);
+        throw new RuntimeException("Timed out waiting for " + description + " options: " + options);
       }
       CommonUtils.sleepMs(interval);
     }
@@ -315,7 +315,7 @@ public final class CommonUtils {
     int timeout = options.getTimeoutMs();
     while ((t = operation.apply(null)) == null) {
       if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
-        throw new RuntimeException("Timed out waiting for " + description);
+        throw new RuntimeException("Timed out waiting for " + description + " options: " + options);
       }
       CommonUtils.sleepMs(interval);
     }

@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.Configuration;
+import alluxio.ProcessUtils;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
@@ -20,8 +21,13 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.Command;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.wire.ConfigProperty;
+import alluxio.wire.Scope;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
@@ -113,9 +119,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
+    List<ConfigProperty> configList = ConfigurationUtils.getConfiguration(Scope.WORKER);
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
+        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList(), configList);
   }
 
   /**
@@ -129,10 +136,13 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
+    List<alluxio.thrift.Metric> metrics = new ArrayList<>();
+    for (Metric metric : MetricsSystem.allWorkerMetrics()) {
+      metrics.add(metric.toThrift());
+    }
     try {
-      cmdFromMaster = mMasterClient
-          .heartbeat(mWorkerId.get(), storeMeta.getUsedBytesOnTiers(),
-              blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
+      cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getUsedBytesOnTiers(),
+          blockReport.getRemovedBlocks(), blockReport.getAddedBlocks(), metrics);
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException | ConnectionFailedException e) {
@@ -149,9 +159,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
           if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
             throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
           }
-          LOG.error("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
           // TODO(andrew): Propagate the exception to the main thread and exit there.
-          System.exit(-1);
+          ProcessUtils.fatalError(LOG, "Master heartbeat timeout exceeded: %d",
+              mHeartbeatTimeoutMs);
         }
       }
     }

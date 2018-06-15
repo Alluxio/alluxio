@@ -21,6 +21,18 @@ struct BlockLocation {
   3: string tierAlias
 }
 
+/**
+ * Information about metrics.
+ */
+struct Metric {
+  1: string instance
+  2: string hostname
+  3: string instanceId
+  4: string name
+  5: double value
+  6: map<string,string> tags
+}
+
 enum CommandType {
   Unknown = 0,
   Nothing = 1,
@@ -28,6 +40,12 @@ enum CommandType {
   Free = 3,     // Ask the worker to free files.
   Delete = 4,   // Ask the worker to delete files.
   Persist = 5,  // Ask the worker to persist a file for lineage
+}
+
+struct ConfigProperty {
+  1: string name
+  2: string source
+  3: string value
 }
 
 enum TTtlAction {
@@ -47,6 +65,14 @@ struct LocalityTier {
 
 struct TieredIdentity {
   1: list<LocalityTier> tiers
+}
+
+/**
+ * Address information about masters.
+ */
+struct MasterNetAddress {
+  1: string host
+  2: i32 rpcPort
 }
 
 /**

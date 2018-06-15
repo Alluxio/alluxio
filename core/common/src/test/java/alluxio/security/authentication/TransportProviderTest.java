@@ -46,6 +46,7 @@ public final class TransportProviderTest {
 
   private TThreadPoolServer mServer;
   private InetSocketAddress mServerAddress;
+  private TTransport mBaseTransport;
   private TServerSocket mServerTSocket;
   private TransportProvider mTransportProvider;
 
@@ -65,6 +66,7 @@ public final class TransportProviderTest {
     mServerTSocket = new TServerSocket(new InetSocketAddress(localhost, 0));
     int port = ThriftUtils.getThriftPort(mServerTSocket);
     mServerAddress = new InetSocketAddress(localhost, port);
+    mBaseTransport = ThriftUtils.createThriftSocket(mServerAddress);
   }
 
   @After
@@ -127,7 +129,7 @@ public final class TransportProviderTest {
     mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport(null, "whatever", null, mServerAddress);
+        .getClientTransport(null, "whatever", null, mBaseTransport);
   }
 
   /**
@@ -142,7 +144,7 @@ public final class TransportProviderTest {
     mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport("anyone", null, null, mServerAddress);
+        .getClientTransport("anyone", null, null, mBaseTransport);
   }
 
   /**
@@ -161,7 +163,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
         + " identity provided");
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport("", "whatever", null, mServerAddress);
+        .getClientTransport("", "whatever", null, mBaseTransport);
     try {
       client.open();
     } finally {
@@ -187,7 +189,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage(
         "Peer indicated failure: Plain authentication failed: No password " + "provided");
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport("anyone", "", null, mServerAddress);
+        .getClientTransport("anyone", "", null, mBaseTransport);
     try {
       client.open();
     } finally {
@@ -213,7 +215,7 @@ public final class TransportProviderTest {
     // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME,
-            ExactlyMatchAuthenticationProvider.PASSWORD, null, mServerAddress);
+            ExactlyMatchAuthenticationProvider.PASSWORD, null, mBaseTransport);
     client.open();
     assertTrue(client.isOpen());
 
@@ -239,7 +241,7 @@ public final class TransportProviderTest {
     // User with wrong password can not pass auth, and throw exception.
     TTransport wrongClient = ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "wrong-password", null,
-            mServerAddress);
+            mBaseTransport);
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage(
         "Peer indicated failure: Plain authentication failed: " + "User authentication fails");
@@ -263,7 +265,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport(null, ExactlyMatchAuthenticationProvider.PASSWORD, null,
-            mServerAddress);
+            mBaseTransport);
   }
 
   /**
@@ -279,7 +281,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, null, null,
-            mServerAddress);
+            mBaseTransport);
   }
 
   /**
@@ -300,7 +302,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
         + " identity provided");
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport("", ExactlyMatchAuthenticationProvider.PASSWORD, null, mServerAddress);
+        .getClientTransport("", ExactlyMatchAuthenticationProvider.PASSWORD, null, mBaseTransport);
     try {
       client.open();
     } finally {
@@ -326,7 +328,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage(
         "Peer indicated failure: Plain authentication failed: No password provided");
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "", null, mServerAddress);
+        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "", null, mBaseTransport);
     try {
       client.open();
     } finally {

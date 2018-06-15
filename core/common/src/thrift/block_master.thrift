@@ -140,7 +140,9 @@ service BlockMasterClientService extends common.AlluxioService {
   ) throws (1: exception.AlluxioTException e)
 }
 
-struct BlockHeartbeatTOptions {}
+struct BlockHeartbeatTOptions {
+  1: list<common.Metric> metrics
+}
 struct BlockHeartbeatTResponse {
   1: common.Command command
 }
@@ -153,7 +155,10 @@ struct GetWorkerIdTResponse {
   1: i64 workerId
 }
 
-struct RegisterWorkerTOptions {}
+struct RegisterWorkerTOptions {
+  1: optional list<common.ConfigProperty> configList
+}
+
 struct RegisterWorkerTResponse {}
 
 /**

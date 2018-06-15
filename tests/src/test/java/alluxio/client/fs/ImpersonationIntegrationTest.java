@@ -72,7 +72,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
               CustomGroupMapping.class.getName()).build();
 
   @After
-  public void after() {
+  public void after() throws Exception {
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -82,6 +82,9 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     // that starts the master process
     FileSystem.Factory.get().setAttribute(new AlluxioURI("/"),
         SetAttributeOptions.defaults().setMode(new Mode((short) 0777)));
+    // Enable client impersonation by default
+    Configuration
+        .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_HDFS_USER);
   }
 
   @BeforeClass
@@ -92,16 +95,10 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "*"})
-  public void impersonationUsed() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
-    checkCreateFile(null, IMPERSONATION_USER);
-  }
-
-  @Test
-  @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "*"})
   public void impersonationNotUsed() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, "");
-    FileSystemContext context = FileSystemContext.create(null);
+    Configuration
+        .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_NONE);
+    FileSystemContext context = FileSystemContext.create(createHdfsSubject());
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
     fs.createFile(new AlluxioURI("/impersonation-test")).close();
     List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));
@@ -112,46 +109,30 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "*"})
-  public void impersonationUsedHdfsUser() throws Exception {
+  public void impersonationArbitraryUserDisallowed() throws Exception {
+    String arbitraryUser = "arbitrary_user";
     Configuration
-        .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_HDFS_USER);
+        .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, arbitraryUser);
+    FileSystemContext context = FileSystemContext.create(createHdfsSubject());
+    FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
+    fs.createFile(new AlluxioURI("/impersonation-test")).close();
+    List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));
+    Assert.assertEquals(1, listing.size());
+    URIStatus status = listing.get(0);
+    Assert.assertNotEquals(arbitraryUser, status.getOwner());
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "*"})
+  public void impersonationUsedHdfsUser() throws Exception {
     // test using the hdfs subject
     checkCreateFile(createHdfsSubject(), HDFS_USER);
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {IMPERSONATION_GROUPS_CONFIG, IMPERSONATION_GROUP1})
-  public void impersonationGroupAllowed() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
-    checkCreateFile(null, IMPERSONATION_USER);
-  }
-
-  @Test
-  @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG,
-      HDFS_GROUP1 + "," + HDFS_GROUP2 + "," + IMPERSONATION_GROUP2})
-  public void impersonationGroupsAllowed() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
-    checkCreateFile(null, IMPERSONATION_USER);
-  }
-
-  @Test
-  @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "wrong_group"})
-  public void impersonationGroupDenied() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
+  public void impersonationHdfsDisabled() throws Exception {
     try {
-      checkCreateFile(null, IMPERSONATION_USER);
-      Assert.fail("Connection succeeded, but impersonation should be denied.");
-    } catch (IOException e) {
-      // expected
-    }
-  }
-
-  @Test
-  public void impersonationDenied() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
-    try {
-      checkCreateFile(null, IMPERSONATION_USER);
+      checkCreateFile(createHdfsSubject(), HDFS_USER);
       Assert.fail("Connection succeeded, but impersonation should be denied.");
     } catch (IOException e) {
       // expected
@@ -160,26 +141,23 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {IMPERSONATION_USERS_CONFIG, IMPERSONATION_USER})
-  public void impersonationUserAllowed() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
-    checkCreateFile(null, IMPERSONATION_USER);
+      confParams = {IMPERSONATION_USERS_CONFIG, HDFS_USER})
+  public void impersonationHdfsUserAllowed() throws Exception {
+    checkCreateFile(createHdfsSubject(), HDFS_USER);
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_USERS_CONFIG,
-      "wrong_user1,wrong_user2," + IMPERSONATION_USER})
-  public void impersonationUsersAllowed() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
-    checkCreateFile(null, IMPERSONATION_USER);
+      "wrong_user1,wrong_user2," + HDFS_USER})
+  public void impersonationHdfsUsersAllowed() throws Exception {
+    checkCreateFile(createHdfsSubject(), HDFS_USER);
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_USERS_CONFIG, "wrong_user"})
-  public void impersonationUserDenied() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
+  public void impersonationHdfsUserDenied() throws Exception {
     try {
-      checkCreateFile(null, IMPERSONATION_USER);
+      checkCreateFile(createHdfsSubject(), HDFS_USER);
       Assert.fail("Connection succeeded, but impersonation should be denied.");
     } catch (IOException e) {
       // expected
@@ -189,31 +167,28 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {
-          IMPERSONATION_USERS_CONFIG, IMPERSONATION_USER,
-          IMPERSONATION_GROUPS_CONFIG, IMPERSONATION_GROUP1})
+          IMPERSONATION_USERS_CONFIG, HDFS_USER,
+          IMPERSONATION_GROUPS_CONFIG, HDFS_GROUP1})
   public void impersonationUsersAllowedGroupsAllowed() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
-    checkCreateFile(null, IMPERSONATION_USER);
+    checkCreateFile(createHdfsSubject(), HDFS_USER);
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {
           IMPERSONATION_USERS_CONFIG, "wrong_user",
-          IMPERSONATION_GROUPS_CONFIG, IMPERSONATION_GROUP1})
+          IMPERSONATION_GROUPS_CONFIG, HDFS_GROUP1})
   public void impersonationUsersDeniedGroupsAllowed() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
-    checkCreateFile(null, IMPERSONATION_USER);
+    checkCreateFile(createHdfsSubject(), HDFS_USER);
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {
-          IMPERSONATION_USERS_CONFIG, IMPERSONATION_USER,
+          IMPERSONATION_USERS_CONFIG, HDFS_USER,
           IMPERSONATION_GROUPS_CONFIG, "wrong_group"})
   public void impersonationUsersAllowedGroupsDenied() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
-    checkCreateFile(null, IMPERSONATION_USER);
+    checkCreateFile(createHdfsSubject(), HDFS_USER);
   }
 
   @Test
@@ -222,9 +197,8 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
           IMPERSONATION_USERS_CONFIG, "wrong_user",
           IMPERSONATION_GROUPS_CONFIG, "wrong_group"})
   public void impersonationUsersDeniedGroupsDenied() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, IMPERSONATION_USER);
     try {
-      checkCreateFile(null, IMPERSONATION_USER);
+      checkCreateFile(createHdfsSubject(), HDFS_USER);
       Assert.fail("Connection succeeded, but impersonation should be denied.");
     } catch (IOException e) {
       // expected
@@ -235,8 +209,6 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(
       confParams = {IMPERSONATION_GROUPS_CONFIG, HDFS_GROUP2})
   public void impersonationHdfsGroupAllowed() throws Exception {
-    Configuration
-        .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_HDFS_USER);
     checkCreateFile(createHdfsSubject(), HDFS_USER);
   }
 
@@ -244,16 +216,12 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG,
       IMPERSONATION_GROUP1 + "," + IMPERSONATION_GROUP2 + "," + HDFS_GROUP1})
   public void impersonationHdfsGroupsAllowed() throws Exception {
-    Configuration
-        .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_HDFS_USER);
     checkCreateFile(createHdfsSubject(), HDFS_USER);
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "wrong_group"})
   public void impersonationHdfsGroupDenied() throws Exception {
-    Configuration
-        .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_HDFS_USER);
     try {
       checkCreateFile(createHdfsSubject(), HDFS_USER);
       Assert.fail("Connection succeeded, but impersonation should be denied.");

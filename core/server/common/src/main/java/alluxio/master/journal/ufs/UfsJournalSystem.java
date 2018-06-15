@@ -62,7 +62,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  protected void gainPrimacy() {
+  public void gainPrimacy() {
     try {
       for (UfsJournal journal : mJournals.values()) {
         journal.gainPrimacy();
@@ -73,7 +73,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  protected void losePrimacy() {
+  public void losePrimacy() {
     try {
       for (UfsJournal journal : mJournals.values()) {
         journal.losePrimacy();
@@ -120,6 +120,16 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   public boolean isFormatted() throws IOException {
     for (UfsJournal journal : mJournals.values()) {
       if (!journal.isFormatted()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  public synchronized boolean isEmpty() {
+    for (UfsJournal journal : mJournals.values()) {
+      if (journal.getNextSequenceNumberToWrite() > 0) {
         return false;
       }
     }

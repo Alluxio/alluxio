@@ -11,12 +11,12 @@
 
 package alluxio.master.lineage;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
@@ -26,14 +26,13 @@ import alluxio.exception.LineageDoesNotExistException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.job.JobConf;
-import alluxio.master.DefaultSafeModeManager;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
-import alluxio.master.SafeModeManager;
+import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -64,7 +63,8 @@ public final class LineageMasterTest {
   private FileSystemMaster mFileSystemMaster;
   private Job mJob;
   private MasterRegistry mRegistry;
-  private SafeModeManager mSafeModeManager;
+
+  private MetricsMaster mMetricsMaster;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -76,14 +76,13 @@ public final class LineageMasterTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    JournalSystem journalSystem = new NoopJournalSystem();
+    MasterContext masterContext = MasterTestUtils.testMasterContext();
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
+    mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mFileSystemMaster = mock(FileSystemMaster.class);
-    mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
-    mSafeModeManager = new DefaultSafeModeManager();
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
-    mLineageMaster = new DefaultLineageMaster(mFileSystemMaster,
-        new MasterContext(journalSystem, mSafeModeManager),
+    mLineageMaster = new DefaultLineageMaster(mFileSystemMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(LineageMaster.class, mLineageMaster);
     mJob = new CommandLineJob("test", new JobConf("output"));

@@ -12,8 +12,8 @@
 package alluxio.server.ft;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
@@ -33,11 +33,13 @@ import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.master.block.BlockMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.thrift.CommandType;
+import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Function;
+import jersey.repackaged.com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
@@ -275,22 +277,22 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       long workerId1a =
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster1.workerRegister(workerId1a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP);
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
 
       // Register worker 2
       long workerId2a =
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
       blockMaster1.workerRegister(workerId2a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP);
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
 
       assertEquals(2, blockMaster1.getWorkerCount());
       // Worker heartbeats should return "Nothing"
       assertEquals(CommandType.Nothing, blockMaster1
           .workerHeartbeat(workerId1a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
-              Collections.EMPTY_MAP).getCommandType());
+              Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
       assertEquals(CommandType.Nothing, blockMaster1
           .workerHeartbeat(workerId2a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
-              Collections.EMPTY_MAP).getCommandType());
+              Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
 
       assertTrue(cluster.stopLeader());
       cluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
@@ -302,24 +304,24 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       // Worker 2 tries to heartbeat (with original id), and should get "Register" in response.
       assertEquals(CommandType.Register, blockMaster2
           .workerHeartbeat(workerId2a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
-              Collections.EMPTY_MAP).getCommandType());
+              Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
 
       // Worker 2 re-registers (and gets a new worker id)
       long workerId2b =
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
       blockMaster2.workerRegister(workerId2b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP);
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
 
       // Worker 1 tries to heartbeat (with original id), and should get "Register" in response.
       assertEquals(CommandType.Register, blockMaster2
           .workerHeartbeat(workerId1a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
-              Collections.EMPTY_MAP).getCommandType());
+              Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
 
       // Worker 1 re-registers (and gets a new worker id)
       long workerId1b =
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster2.workerRegister(workerId1b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP);
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
 
     } finally {
       cluster.stop();

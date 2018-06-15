@@ -87,7 +87,7 @@ $  export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 当你运行Hadoop集群(或单机运行)时，你可以在Alluxio项目目录运行以下命令：
 
 ```bash
-$ checker/bin/alluxio-checker.sh mapreduce 
+$ integration/checker/bin/alluxio-checker.sh mapreduce 
 ```
 
 你可以使用`-h`来显示关于这个命令的有用信息。这条命令将报告潜在的问题，可能会阻碍你在Alluxio上运行MapReduce。

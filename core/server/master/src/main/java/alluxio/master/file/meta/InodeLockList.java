@@ -13,6 +13,8 @@ package alluxio.master.file.meta;
 
 import alluxio.exception.InvalidPathException;
 
+import com.google.common.collect.Lists;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,11 +24,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * Manages the locks for a list of {@link Inode}.
  */
 @ThreadSafe
-public final class InodeLockList implements AutoCloseable {
-  private final List<Inode<?>> mInodes;
-  private final List<InodeTree.LockMode> mLockModes;
+public class InodeLockList implements AutoCloseable {
+  protected List<Inode<?>> mInodes;
+  protected List<InodeTree.LockMode> mLockModes;
 
-  InodeLockList() {
+  /**
+   * Creates a new instance of {@link InodeLockList}.
+   */
+  public InodeLockList() {
     mInodes = new ArrayList<>();
     mLockModes = new ArrayList<>();
   }
@@ -161,10 +166,19 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
-   * @return the list of inodes locked in this lock list, in order of when the inodes were locked
+   * @return a copy of the the list of inodes locked in this lock list, in order of when
+   * the inodes were locked
    */
+  // TODO(david): change this API to not return a copy
   public synchronized List<Inode<?>> getInodes() {
-    return mInodes;
+    return Lists.newArrayList(mInodes);
+  }
+
+  /**
+   * @return true if the locklist is empty
+   */
+  public synchronized boolean isEmpty() {
+    return mInodes.isEmpty();
   }
 
   @Override

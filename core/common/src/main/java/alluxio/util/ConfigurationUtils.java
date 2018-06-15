@@ -11,9 +11,14 @@
 
 package alluxio.util;
 
+import static java.util.stream.Collectors.toList;
+
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.ConfigProperty;
+import alluxio.wire.Scope;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
 import javax.annotation.Nullable;
@@ -112,7 +118,33 @@ public final class ConfigurationUtils {
    */
   public static boolean masterHostConfigured() {
     boolean usingZk = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
-        && Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS);
-    return Configuration.containsKey(PropertyKey.MASTER_HOSTNAME) || usingZk;
+        && Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
+    return Configuration.isSet(PropertyKey.MASTER_HOSTNAME) || usingZk;
+  }
+
+  /**
+   * Gets all global configuration properties filtered by the specified scope.
+   *
+   * @param scope the scope to filter by
+   * @return the properties
+   */
+  public static List<ConfigProperty> getConfiguration(Scope scope) {
+    ConfigurationValueOptions useRawDisplayValue =
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true);
+    return Configuration.keySet().stream()
+        .filter(key -> key.getScope().contains(scope))
+        .map(key -> new ConfigProperty()
+            .setName(key.getName())
+            .setSource(Configuration.getSource(key).toString()).setValue(
+                Configuration.isSet(key) ? Configuration.get(key, useRawDisplayValue) : null))
+        .collect(toList());
+  }
+
+  /**
+   * @param value the value or null (value is not set)
+   * @return the value or "(no value set)" when the value is not set
+   */
+  public static String valueAsString(String value) {
+    return value == null ? "(no value set)" : value;
   }
 }

@@ -135,10 +135,16 @@ public class S3AUnderFileSystemTest {
 
   @Test
   public void createCredentialsFromDefault() throws Exception {
-    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults();
-    AWSCredentialsProvider credentialsProvider =
-        S3AUnderFileSystem.createAwsCredentialsProvider(ufsConf);
-    Assert.assertTrue(credentialsProvider instanceof DefaultAWSCredentialsProviderChain);
+    // Unset AWS properties if present
+    Map<PropertyKey, String> conf = new HashMap<>();
+    conf.put(PropertyKey.S3A_ACCESS_KEY, null);
+    conf.put(PropertyKey.S3A_SECRET_KEY, null);
+    try (Closeable c = new ConfigurationRule(conf).toResource()) {
+      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults();
+      AWSCredentialsProvider credentialsProvider =
+          S3AUnderFileSystem.createAwsCredentialsProvider(ufsConf);
+      Assert.assertTrue(credentialsProvider instanceof DefaultAWSCredentialsProviderChain);
+    }
   }
 
   @Test

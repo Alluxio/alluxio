@@ -12,7 +12,10 @@
 package alluxio.cli;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -22,9 +25,11 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map.Entry;
-import java.util.TreeMap;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Utility for printing Alluxio configuration.
@@ -135,19 +140,15 @@ public final class GetConf {
     StringBuilder output = new StringBuilder();
     switch (args.length) {
       case 0:
-        TreeMap<String, String> keyValueSet = new TreeMap<>(Configuration.toMap());
-        for (Entry<String, String> entry : keyValueSet.entrySet()) {
-          String key = entry.getKey();
-          String value = entry.getValue();
-          output.append(String.format("%s=%s", key, value));
+        List<PropertyKey> keys = new ArrayList<>(Configuration.keySet());
+        Collections.sort(keys, Comparator.comparing(PropertyKey::getName));
+        for (PropertyKey key : keys) {
+          String value = ConfigurationUtils.valueAsString(Configuration.getOrDefault(key, null,
+              ConfigurationValueOptions.defaults().useDisplayValue(true)));
+          output.append(String.format("%s=%s", key.getName(), value));
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
-            Configuration.Source source = Configuration.getSource(PropertyKey.fromString(key));
-            if (source == Configuration.Source.SITE_PROPERTY) {
-              output.append(String.format(" (%s: %s)", source.name(),
-                  Configuration.getSitePropertiesFile()));
-            } else {
-              output.append(String.format(" (%s)", source.name()));
-            }
+            Source source = Configuration.getSource(key);
+            output.append(String.format(" (%s)", source));
           }
           output.append("\n");
         }
@@ -159,18 +160,14 @@ public final class GetConf {
           return 1;
         }
         PropertyKey key = PropertyKey.fromString(args[0]);
-        if (!Configuration.containsKey(key)) {
+        if (!Configuration.isSet(key)) {
           System.out.println("");
         } else {
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
-            Configuration.Source source = Configuration.getSource(key);
-            if (source == Configuration.Source.SITE_PROPERTY) {
-              System.out.println(String.format("%s: %s", source.name(),
-                  Configuration.getSitePropertiesFile()));
-            } else {
-              System.out.println(String.format("%s", source.name()));
-            }
-          } else if (cmd.hasOption(UNIT_OPTION_NAME)) {
+            Source source = Configuration.getSource(key);
+            System.out.println(source);
+          } else if (cmd.hasOption(UNIT_OPTION_NAME)
+              && key.getDisplayType() != PropertyKey.DisplayType.CREDENTIALS) {
             String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
             try {
               ByteUnit byteUnit;
@@ -191,7 +188,8 @@ public final class GetConf {
             printHelp(String.format("%s is not a valid unit", arg));
             return 1;
           } else {
-            System.out.println(Configuration.get(key));
+            System.out.println(Configuration.get(key,
+                ConfigurationValueOptions.defaults().useDisplayValue(true)));
           }
         }
         break;

@@ -13,15 +13,16 @@ package alluxio.hadoop;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
@@ -33,6 +34,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterInquireClient;
+import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
@@ -41,6 +44,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
@@ -51,6 +55,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -92,6 +97,7 @@ public class AbstractFileSystemTest {
   private FileSystemContext mMockFileSystemContext;
   private FileSystemContext mMockFileSystemContextCustomized;
   private FileSystemMasterClient mMockFileSystemMasterClient;
+  private MasterInquireClient mMockMasterInquireClient;
 
   @Rule
   public ExpectedException mExpectedException = ExpectedException.none();
@@ -134,6 +140,25 @@ public class AbstractFileSystemTest {
       final org.apache.hadoop.fs.FileSystem fs =
           org.apache.hadoop.fs.FileSystem.get(uri, getConf());
       assertTrue(fs instanceof FaultTolerantFileSystem);
+    }
+  }
+
+  @Test
+  public void useSameContextWithZookeeper() throws Exception {
+    URI uri = URI.create(Constants.HEADER + "dummyHost:-1/");
+    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
+        PropertyKey.ZOOKEEPER_ENABLED, "true",
+        PropertyKey.ZOOKEEPER_ADDRESS, "zkAddress")).toResource()) {
+      Configuration conf = getConf();
+      conf.set("fs.alluxio.impl.disable.cache", "true");
+      org.apache.hadoop.fs.FileSystem fs1 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+      verify(mMockFileSystemContext, times(1)).reset();
+      // The filesystem context should return a master inquire client based on the latest config
+      when(mMockFileSystemContext.getMasterInquireClient())
+          .thenReturn(MasterInquireClient.Factory.create());
+      // The first initialize should reset the context, but later initializes should not.
+      org.apache.hadoop.fs.FileSystem.get(uri, conf);
+      verify(mMockFileSystemContext, times(1)).reset();
     }
   }
 
@@ -507,15 +532,20 @@ public class AbstractFileSystemTest {
   private void mockFileSystemContextAndMasterClient() throws Exception {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     mMockFileSystemContextCustomized = PowerMockito.mock(FileSystemContext.class);
+    mMockMasterInquireClient = Mockito.mock(MasterInquireClient.class);
+    when(mMockMasterInquireClient.getConnectDetails()).thenReturn(
+        new SingleMasterConnectDetails(new InetSocketAddress("defaultHost", 1)));
     PowerMockito.mockStatic(FileSystemContext.class);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mMockFileSystemContext);
+    Whitebox.setInternalState(FileSystemContext.class, "sInstance", mMockFileSystemContext);
     PowerMockito.when(FileSystemContext.create(any(Subject.class)))
         .thenReturn(mMockFileSystemContextCustomized);
+    PowerMockito.when(FileSystemContext.get()).thenReturn(mMockFileSystemContext);
     mMockFileSystemMasterClient = mock(FileSystemMasterClient.class);
     when(mMockFileSystemContext.acquireMasterClient())
         .thenReturn(mMockFileSystemMasterClient);
     when(mMockFileSystemContextCustomized.acquireMasterClient())
         .thenReturn(mMockFileSystemMasterClient);
+    when(mMockFileSystemContext.getMasterInquireClient()).thenReturn(mMockMasterInquireClient);
     doNothing().when(mMockFileSystemMasterClient).connect();
     when(mMockFileSystemContext.getMasterAddress())
         .thenReturn(new InetSocketAddress("defaultHost", 1));

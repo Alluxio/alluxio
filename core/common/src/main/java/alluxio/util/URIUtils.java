@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+import alluxio.AlluxioURI;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
@@ -128,5 +129,15 @@ public final class URIUtils {
       throw new RuntimeException(e);
     }
     return queryMap;
+  }
+
+  /**
+   * @param uri a uri to check
+   * @return whether the uri represents a local filesystem UFS path
+   */
+  public static boolean isLocalFilesystem(String uri) {
+    return uri.startsWith(AlluxioURI.SEPARATOR)
+        || uri.startsWith("file://")
+        || AlluxioURI.hasWindowsDrive(uri, false);
   }
 }

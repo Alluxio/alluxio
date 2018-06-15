@@ -166,7 +166,6 @@
 
   <modules>
     <module>assembly</module>
-    <module>checker</module>
     <module>core</module>
     <module>examples</module>
     <module>integration</module>
@@ -359,6 +358,11 @@
         <groupId>net.java.dev.jets3t</groupId>
         <artifactId>jets3t</artifactId>
         <version>0.8.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>1.16.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -1345,6 +1349,37 @@
             </plugin>
           </plugins>
         </pluginManagement>
+      </build>
+    </profile>
+    <profile>
+      <id>generateDocs</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>exec-maven-plugin</artifactId>
+            <groupId>org.codehaus.mojo</groupId>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>Generate documentation</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>jekyll</executable>
+                  <arguments>
+                    <argument>build</argument>
+                    <argument>--source</argument>
+                    <argument>docs</argument>
+                    <argument>--destination</argument>
+                    <argument>docs/_site</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
       </build>
     </profile>
   </profiles>

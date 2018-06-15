@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.client.file.FileSystemContext;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -22,7 +23,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-public final class NettyChannelCloseIntegrationTest {
+public final class NettyChannelCloseIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
@@ -37,26 +38,26 @@ public final class NettyChannelCloseIntegrationTest {
   @Test
   public void closeAsync() throws Exception {
     for (int i = 0; i < 1000; i++) {
-      Channel channel = FileSystemContext.INSTANCE.acquireNettyChannel(mWorkerNetAddress);
+      Channel channel = FileSystemContext.get().acquireNettyChannel(mWorkerNetAddress);
       Assert.assertTrue(channel.isOpen());
       // Note: If you replace closeChannel with channel.close(), this test fails with high
       // probability.
       CommonUtils.closeChannel(channel);
       Assert.assertTrue(!channel.isOpen());
-      FileSystemContext.INSTANCE.releaseNettyChannel(mWorkerNetAddress, channel);
+      FileSystemContext.get().releaseNettyChannel(mWorkerNetAddress, channel);
     }
   }
 
   @Test
   public void closeSync() throws Exception {
     for (int i = 0; i < 1000; i++) {
-      Channel channel = FileSystemContext.INSTANCE.acquireNettyChannel(mWorkerNetAddress);
+      Channel channel = FileSystemContext.get().acquireNettyChannel(mWorkerNetAddress);
       Assert.assertTrue(channel.isOpen());
       // Note: If you replace closeChannel with channel.close(), this test fails with high
       // probability.
       CommonUtils.closeChannelSync(channel);
       Assert.assertTrue(!channel.isOpen());
-      FileSystemContext.INSTANCE.releaseNettyChannel(mWorkerNetAddress, channel);
+      FileSystemContext.get().releaseNettyChannel(mWorkerNetAddress, channel);
     }
   }
 }

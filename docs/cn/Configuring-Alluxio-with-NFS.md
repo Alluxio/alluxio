@@ -34,18 +34,27 @@ alluxio.underfs.address=/mnt/nfs
 
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
-{% include Configuring-Alluxio-with-NFS/start-alluxio.md %}
+```bash
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
+```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，你可以运行一个简单的示例程序：
 
-{% include Configuring-Alluxio-with-NFS/runTests.md %}
+```bash
+$ ./bin/alluxio runTests
+```
 
 运行成功后，访问你的NFS volume，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像下面这样：
 
-{% include Configuring-Alluxio-with-NFS/nfs-file.md %}
+```
+/mnt/nfs/default_tests_files/Basic_CACHE_THROUGH
+```
 
 运行以下命令停止Alluxio：
 
-{% include Configuring-Alluxio-with-NFS/stop-alluxio.md %}
+```bash
+$ ./bin/alluxio-stop.sh local
+```

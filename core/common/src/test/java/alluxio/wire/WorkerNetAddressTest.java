@@ -33,7 +33,7 @@ public class WorkerNetAddressTest {
   @Test
   public void thrift() {
     WorkerNetAddress workerNetAddress = createRandom();
-    WorkerNetAddress other = ThriftUtils.fromThrift(ThriftUtils.toThrift(workerNetAddress));
+    WorkerNetAddress other = WorkerNetAddress.fromThrift(workerNetAddress.toThrift());
     checkEquality(workerNetAddress, other);
   }
 

@@ -15,14 +15,22 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
+import alluxio.client.metrics.ClientMasterSync;
+import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyChannelPool;
 import alluxio.network.netty.NettyClient;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.IdUtils;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.ThreadUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -40,6 +48,8 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -61,7 +71,7 @@ import javax.security.auth.Subject;
 public final class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
-  public static final FileSystemContext INSTANCE = create();
+  private static FileSystemContext sInstance;
 
   static {
     MetricsSystem.startSinks();
@@ -74,6 +84,12 @@ public final class FileSystemContext implements Closeable {
 
   // Closed flag for debugging information.
   private final AtomicBoolean mClosed;
+
+  private ExecutorService mExecutorService;
+  private MetricsMasterClient mMetricsMasterClient;
+  private ClientMasterSync mClientMasterSync;
+
+  private final String mAppId;
 
   // The netty data server channel pools.
   private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
@@ -99,9 +115,23 @@ public final class FileSystemContext implements Closeable {
   private final Subject mParentSubject;
 
   /**
+   * @return the instance of file system context
+   */
+  public static FileSystemContext get() {
+    if (sInstance == null) {
+      synchronized (FileSystemContext.class) {
+        if (sInstance == null) {
+          sInstance = create();
+        }
+      }
+    }
+    return sInstance;
+  }
+
+  /**
    * @return the context
    */
-  public static FileSystemContext create() {
+  private static FileSystemContext create() {
     return create(null);
   }
 
@@ -133,6 +163,13 @@ public final class FileSystemContext implements Closeable {
    */
   private FileSystemContext(Subject subject) {
     mParentSubject = subject;
+    mExecutorService = Executors.newFixedThreadPool(1,
+        ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
+    mAppId = Configuration.containsKey(PropertyKey.USER_APP_ID)
+        ? Configuration.get(PropertyKey.USER_APP_ID) : IdUtils.createFileSystemContextId();
+    LOG.info("Created filesystem context with id {}. This ID will be used for identifying info "
+        + "from the client, such as metrics. It can be set manually through the {} property",
+        mAppId, PropertyKey.Name.USER_APP_ID);
     mClosed = new AtomicBoolean(false);
   }
 
@@ -147,6 +184,22 @@ public final class FileSystemContext implements Closeable {
         new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
     mClosed.set(false);
+
+    // Only send metrics if enabled and the port is set (can be zero when tests are setting up).
+    if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)
+        && Configuration.getInt(PropertyKey.MASTER_RPC_PORT) != 0) {
+      // setup metrics master client sync
+      mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults()
+          .withSubject(mParentSubject).withMasterInquireClient(mMasterInquireClient));
+      mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, this);
+      mExecutorService = Executors.newFixedThreadPool(1,
+          ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
+      mExecutorService
+          .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
+              (int) Configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
+      // register the shutdown hook
+      Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
+    }
   }
 
   /**
@@ -169,6 +222,12 @@ public final class FileSystemContext implements Closeable {
     mNettyChannelPools.clear();
 
     synchronized (this) {
+      if (mMetricsMasterClient != null) {
+        ThreadUtils.shutdownAndAwaitTermination(mExecutorService);
+        mMetricsMasterClient.close();
+        mMetricsMasterClient = null;
+        mClientMasterSync = null;
+      }
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
       mClosed.set(true);
@@ -185,6 +244,13 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
+   * @return the unique id of the context
+   */
+  public String getId() {
+    return mAppId;
+  }
+
+  /**
    * @return the parent subject
    */
   public Subject getParentSubject() {
@@ -197,6 +263,13 @@ public final class FileSystemContext implements Closeable {
    */
   public synchronized InetSocketAddress getMasterAddress() throws UnavailableException {
     return mMasterInquireClient.getPrimaryRpcAddress();
+  }
+
+  /**
+   * @return the master inquire client
+   */
+  public synchronized MasterInquireClient getMasterInquireClient() {
+    return mMasterInquireClient;
   }
 
   /**
@@ -350,17 +423,33 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
+   * Class that heartbeats to the metrics master before exit.
+   */
+  private final class MetricsMasterSyncShutDownHook extends Thread {
+    @Override
+    public void run() {
+      try {
+        if (mClientMasterSync != null) {
+          mClientMasterSync.heartbeat();
+        }
+      } catch (InterruptedException e) {
+        LOG.error("Failed to heartbeat to the metrics master before exit");
+      }
+    }
+  }
+
+  /**
    * Class that contains metrics about FileSystemContext.
    */
   @ThreadSafe
   private static final class Metrics {
     private static void initializeGauges() {
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClientMetricName("NettyConnectionsOpen"),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName("NettyConnectionsOpen"),
           new Gauge<Long>() {
             @Override
             public Long getValue() {
               long ret = 0;
-              for (NettyChannelPool pool : INSTANCE.mNettyChannelPools.values()) {
+              for (NettyChannelPool pool : get().mNettyChannelPools.values()) {
                 ret += pool.size();
               }
               return ret;

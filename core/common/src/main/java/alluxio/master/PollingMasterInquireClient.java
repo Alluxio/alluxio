@@ -11,11 +11,13 @@
 
 package alluxio.master;
 
+import static java.util.stream.Collectors.joining;
+
 import alluxio.Constants;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.retry.RetryPolicy;
 import alluxio.network.thrift.ThriftUtils;
+import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 
 import org.apache.thrift.protocol.TProtocol;
@@ -26,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -38,7 +41,7 @@ import javax.annotation.Nullable;
 public class PollingMasterInquireClient implements MasterInquireClient {
   private static final Logger LOG = LoggerFactory.getLogger(PollingMasterInquireClient.class);
 
-  private final List<InetSocketAddress> mMasterAddresses;
+  private final MultiMasterConnectDetails mConnectDetails;
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
   /**
@@ -47,7 +50,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       Supplier<RetryPolicy> retryPolicySupplier) {
-    mMasterAddresses = masterAddresses;
+    mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
     mRetryPolicySupplier = retryPolicySupplier;
   }
 
@@ -62,13 +65,13 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     }
     throw new UnavailableException(String.format(
         "Failed to determine primary master rpc address after polling each of %s %d times",
-        mMasterAddresses, retry.getAttemptCount()));
+        mConnectDetails.getAddresses(), retry.getAttemptCount()));
   }
 
   @Nullable
   private InetSocketAddress getAddress() {
     // Iterate over the masters and try to connect to each of their RPC ports.
-    for (InetSocketAddress address : mMasterAddresses) {
+    for (InetSocketAddress address : mConnectDetails.getAddresses()) {
       try {
         LOG.debug("Checking whether {} is listening for RPCs", address);
         pingMetaService(address);
@@ -88,13 +91,62 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       throws UnauthenticatedException, TTransportException {
     TTransport transport = TransportProvider.Factory.create().getClientTransport(address);
     TProtocol protocol =
-        ThriftUtils.createThriftProtocol(transport, Constants.META_MASTER_SERVICE_NAME);
+        ThriftUtils.createThriftProtocol(transport, Constants.META_MASTER_CLIENT_SERVICE_NAME);
     protocol.getTransport().open();
     protocol.getTransport().close();
   }
 
   @Override
   public List<InetSocketAddress> getMasterRpcAddresses() {
-    return mMasterAddresses;
+    return mConnectDetails.getAddresses();
+  }
+
+  @Override
+  public ConnectDetails getConnectDetails() {
+    return mConnectDetails;
+  }
+
+  /**
+   * Details used to connect to the leader Alluxio master when there are multiple potential leaders.
+   */
+  public static class MultiMasterConnectDetails implements ConnectDetails {
+    private final List<InetSocketAddress> mAddresses;
+
+    /**
+     * @param addresses a list of addresses
+     */
+    public MultiMasterConnectDetails(List<InetSocketAddress> addresses) {
+      mAddresses = addresses;
+    }
+
+    /**
+     * @return the addresses
+     */
+    public List<InetSocketAddress> getAddresses() {
+      return mAddresses;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof MultiMasterConnectDetails)) {
+        return false;
+      }
+      MultiMasterConnectDetails that = (MultiMasterConnectDetails) o;
+      return mAddresses.equals(that.mAddresses);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(mAddresses);
+    }
+
+    @Override
+    public String toString() {
+      return mAddresses.stream().map(addr -> addr.getHostString() + ":" + addr.getPort())
+          .collect(joining(","));
+    }
   }
 }
