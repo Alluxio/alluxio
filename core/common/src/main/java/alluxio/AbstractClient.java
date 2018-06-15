@@ -251,11 +251,9 @@ public abstract class AbstractClient implements Client {
   private void doConnect() throws IOException, TTransportException {
     LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
         RuntimeConstants.VERSION, getServiceName(), mAddress);
-    // The plain socket transport
-    TSocket socket = ThriftUtils.createThriftSocket(mAddress);
     // The wrapper transport
     TTransport clientTransport =
-        mTransportProvider.getClientTransport(mParentSubject, socket);
+        mTransportProvider.getClientTransport(mParentSubject, mAddress);
     mProtocol = ThriftUtils.createThriftProtocol(clientTransport, getServiceName());
     mProtocol.getTransport().open();
     LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
