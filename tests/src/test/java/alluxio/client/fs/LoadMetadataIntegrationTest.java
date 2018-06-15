@@ -219,7 +219,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
-                                             * Checks the get status call with the specified parameters and expectations.
+   * Checks the get status call with the specified parameters and expectations.
    *
    * @param path the path to get the status for
    * @param options the options for the get status call
