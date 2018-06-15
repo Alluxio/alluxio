@@ -455,7 +455,9 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     public void heartbeat() {
       // Skip the first heartbeat since it happens before servers have time to register their
       // configurations.
-      if (!mFirst) {
+      if (mFirst) {
+        mFirst = false;
+      } else {
         mConfigChecker.logConfigReport();
       }
     }
