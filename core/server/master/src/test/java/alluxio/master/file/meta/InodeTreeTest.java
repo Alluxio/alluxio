@@ -75,7 +75,8 @@ public final class InodeTreeTest {
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
-  private static final AlluxioURI NESTED_MULTIDIR_FILE_URI = new AlluxioURI("/nested/test/dira/dirb/file");
+  private static final AlluxioURI NESTED_MULTIDIR_FILE_URI
+      = new AlluxioURI("/nested/test/dira/dirb/file");
   public static final String TEST_OWNER = "user1";
   public static final String TEST_GROUP = "group1";
   public static final Mode TEST_DIR_MODE = new Mode((short) 0755);
