@@ -58,7 +58,13 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
       propertyNames.addAll(props.stringPropertyNames());
     }
     for (String propertyName : propertyNames) {
-      PropertyKey propertyKey = PropertyKey.fromString(propertyName);
+      PropertyKey propertyKey = null;
+      try {
+        propertyKey = PropertyKey.fromString(propertyName);
+      } catch (IllegalArgumentException e) {
+        // ignore non-Alluxio properties
+        continue;
+      }
       PropertyKey.ConsistencyCheckLevel level = propertyKey.getConsistencyLevel();
       if (level == PropertyKey.ConsistencyCheckLevel.IGNORE) {
         continue;
