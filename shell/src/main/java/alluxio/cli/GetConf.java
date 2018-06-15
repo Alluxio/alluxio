@@ -29,7 +29,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,12 +38,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import javax.annotation.Nullable;
-
 /**
  * Utility for printing Alluxio configuration.
  */
-public final class GetConf implements Closeable {
+public final class GetConf {
   private static final String USAGE =
       "USAGE: GetConf [--unit <arg>] [--source] [--master] [key]\n\n"
       + "GetConf prints the configured value for the given key. If the key is invalid, the "
@@ -154,7 +151,7 @@ public final class GetConf implements Closeable {
    */
   @VisibleForTesting
   public static int getConfImpl(
-      @Nullable Supplier<RetryHandlingMetaMasterClient> clientSupplier, String... args) {
+      Supplier<RetryHandlingMetaMasterClient> clientSupplier, String... args) {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
     try {
@@ -262,4 +259,6 @@ public final class GetConf implements Closeable {
   public static void main(String[] args) {
     System.exit(getConf(args));
   }
+
+  private GetConf() {} // this class is not intended for instantiation
 }
