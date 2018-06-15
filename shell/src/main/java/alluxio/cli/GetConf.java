@@ -145,6 +145,13 @@ public final class GetConf implements Closeable {
         () -> new RetryHandlingMetaMasterClient(MasterClientConfig.defaults()), args);
   }
 
+  /**
+   * Implements get configuration.
+   *
+   * @param clientSupplier a functor to return a client of meta master
+   * @param args list of arguments
+   * @return 0 on success, 1 on failures
+   */
   @VisibleForTesting
   public static int getConfImpl(
       @Nullable Supplier<RetryHandlingMetaMasterClient> clientSupplier, String... args) {
