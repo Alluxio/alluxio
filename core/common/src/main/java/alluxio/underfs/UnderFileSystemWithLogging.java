@@ -596,13 +596,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
             AuthenticatedClientUser.get().getName(), WorkerMetrics.TAG_UFS,
             mUnderFileSystem.getUnderFSType());
-      } else {
-        return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
-            mUnderFileSystem.getUnderFSType());
       }
     } catch (IOException e) {
-      return metricName;
+      // fall through
     }
+    return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
+        mUnderFileSystem.getUnderFSType());
   }
 
   // TODO(calvin): This should not be in this class
