@@ -84,6 +84,11 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public void setAcl(String path, AccessControlList acl) throws IOException {
+    throw new UnsupportedOperationException("setting ACL not supported");
+  }
+
+  @Override
   public String getFingerprint(String path) {
     try {
       UfsStatus status = getStatus(path);

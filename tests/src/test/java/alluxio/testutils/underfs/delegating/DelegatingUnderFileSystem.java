@@ -215,6 +215,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public void setAcl(String path, AccessControlList acl) throws IOException {
+    mUfs.setAcl(path, acl);
+  }
+
+  @Override
   public void setOwner(String path, String owner, String group) throws IOException {
     mUfs.setOwner(path, owner, group);
   }

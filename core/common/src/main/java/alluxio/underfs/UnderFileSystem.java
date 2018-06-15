@@ -512,6 +512,15 @@ public interface UnderFileSystem extends Closeable {
   AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath);
 
   /**
+   * Sets the access control list of a file or directory in under file system.
+   *
+   * @param path the path to the file or directory
+   * @param acl the access control list
+   * @throws IOException if ACL can not be set successfully
+   */
+  void setAcl(String path, AccessControlList acl) throws IOException;
+
+  /**
    * Changes posix file mode.
    *
    * @param path the path of the file

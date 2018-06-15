@@ -510,6 +510,22 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public void setAcl(String path, AccessControlList acl) throws IOException {
+    call(new UfsCallable<Void>() {
+      @Override
+      public Void call() throws IOException {
+        mUnderFileSystem.setAcl(path, acl);
+        return null;
+      }
+
+      @Override
+      public String toString() {
+        return String.format("SetAcl: path=%s, ACL=%s", path, acl);
+      }
+    });
+  }
+
+  @Override
   public void setOwner(final String path, final String owner, final String group)
       throws IOException {
     call(new UfsCallable<Void>() {

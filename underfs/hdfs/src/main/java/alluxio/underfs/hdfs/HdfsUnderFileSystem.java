@@ -249,6 +249,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public void setAcl(String path, AccessControlList acl) throws IOException {
+    mHdfsAclProvider.setAcl(getFs(), path, acl);
+  }
+
+  @Override
   public long getBlockSizeByte(String path) throws IOException {
     Path tPath = new Path(path);
     FileSystem hdfs = getFs();

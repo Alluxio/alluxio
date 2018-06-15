@@ -3139,6 +3139,32 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
+  private void setUfsAcl(RpcContext rpcContext, LockedInodePath inodePath)
+      throws InvalidPathException, AccessControlException {
+    Inode<?> inode = inodePath.getInodeOrNull();
+    // Only continue for persisted files
+    // TODO(david): journal replay shouldn't need to write to ufs either
+    if (!inode.isPersisted()) {
+      return;
+    }
+    checkUfsMode(inodePath.getUri(), OperationType.WRITE);
+    MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+    String ufsUri = resolution.getUri().toString();
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      if (ufs.isObjectStorage()) {
+        LOG.warn("SetACL is not supported to object storage UFS via Alluxio. "
+            + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
+      } else {
+        try {
+          ufs.setAcl(ufsUri, inode.getACL());
+        } catch (IOException e) {
+          throw new AccessControlException("Could not setAcl for UFS file" + ufsUri + ".");
+        }
+      }
+    }
+  }
+
   private void setAclInternal(RpcContext rpcContext, SetAclAction action, LockedInodePath inodePath,
       List<AclEntry> entries, long opTimeMs, SetAclOptions options)
       throws IOException, FileDoesNotExistException {
