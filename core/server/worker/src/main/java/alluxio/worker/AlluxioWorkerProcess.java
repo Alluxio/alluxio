@@ -378,7 +378,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         return mThriftServer.isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
             && mWebServer.getServer().isRunning();
       }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
+    }, WaitForOptions.defaults().setTimeoutMs(120000));
   }
 
   @Override
