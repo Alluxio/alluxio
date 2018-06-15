@@ -20,6 +20,7 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.ConfigProperty;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -28,6 +29,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,11 +37,14 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
+
+import javax.annotation.Nullable;
 
 /**
  * Utility for printing Alluxio configuration.
  */
-public final class GetConf {
+public final class GetConf implements Closeable {
   private static final String USAGE =
       "USAGE: GetConf [--unit <arg>] [--source] [--master] [key]\n\n"
       + "GetConf prints the configured value for the given key. If the key is invalid, the "
@@ -136,9 +141,15 @@ public final class GetConf {
    * @return 0 on success, 1 on failures
    */
   public static int getConf(String... args) {
+    return getConfImpl(
+        () -> new RetryHandlingMetaMasterClient(MasterClientConfig.defaults()), args);
+  }
+
+  @VisibleForTesting
+  public static int getConfImpl(
+      @Nullable Supplier<RetryHandlingMetaMasterClient> clientSupplier, String... args) {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
-
     try {
       cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
     } catch (ParseException e) {
@@ -150,8 +161,7 @@ public final class GetConf {
     Map<String, ConfigProperty> confMap = new HashMap<>();
     if (cmd.hasOption(MASTER_OPTION_NAME)) {
       // load cluster-wide configuration
-      try (RetryHandlingMetaMasterClient client =
-          new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
+      try (RetryHandlingMetaMasterClient client = clientSupplier.get()) {
         client.getConfiguration().forEach(prop -> confMap.put(prop.getName(), prop));
       } catch (IOException e) {
         System.out.println("Unable to get master-side configuration: " + e.getMessage());
@@ -188,7 +198,7 @@ public final class GetConf {
       case 1:
         String key = args[0];
         if (!PropertyKey.isValid(key)) {
-          printHelp(String.format("%s is not a valid configuration key", args[0]));
+          printHelp(String.format("%s is not a valid configuration key", key));
           return 1;
         }
         ConfigProperty property = confMap.get(key);
@@ -245,6 +255,4 @@ public final class GetConf {
   public static void main(String[] args) {
     System.exit(getConf(args));
   }
-
-  private GetConf() {} // this class is not intended for instantiation
 }

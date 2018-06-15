@@ -857,14 +857,13 @@ public class ConfigurationTest {
 
   @Test
   public void extensionProperty() {
-    // simulate the case a ext key is picked by site property
+    // simulate the case a ext key is picked by site property, unrecognized
     String fakeKeyName = "fake.extension.key";
-    Configuration.merge(ImmutableMap.of(fakeKeyName, "value"), Source.siteProperty("a"));
+    Configuration.merge(ImmutableMap.of(fakeKeyName, "value"), Source.siteProperty("ignored"));
     assertFalse(PropertyKey.fromString(fakeKeyName).isBuiltIn());
-    // simulate the case the key is built inside the extension
+    // simulate the case the same key is built again inside the extension
     PropertyKey fakeExtensionKey = new PropertyKey.Builder(fakeKeyName).build();
-    String value = Configuration.get(fakeExtensionKey);
-    assertEquals("value", value);
+    assertEquals("value", Configuration.get(fakeExtensionKey));
     assertTrue(PropertyKey.fromString(fakeKeyName).isBuiltIn());
   }
 }
