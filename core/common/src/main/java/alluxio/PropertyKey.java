@@ -105,6 +105,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private String mDescription;
     private String mName;
     private boolean mIgnoredSiteProperty;
+    private boolean mIsBuiltIn = true;
     private boolean mIsHidden;
     private ConsistencyCheckLevel mConsistencyCheckLevel = ConsistencyCheckLevel.IGNORE;
     private Scope mScope = Scope.ALL;
@@ -181,6 +182,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
+     * @param isBuiltIn whether to the property is a built-in Alluxio property
+     * @return the updated builder instance
+     */
+    public Builder setIsBuiltIn(boolean isBuiltIn) {
+      mIsBuiltIn = isBuiltIn;
+      return this;
+    }
+
+    /**
      * @param isHidden whether to hide the property when generating property documentation
      * @return the updated builder instance
      */
@@ -252,7 +262,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       }
 
       PropertyKey key = new PropertyKey(mName, mDescription, defaultSupplier, mAlias,
-          mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType);
+          mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType,
+          mIsBuiltIn);
       return key;
     }
 
@@ -366,18 +377,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
-          .setDefaultValue(
+          .setDefaultSupplier(
+              () -> String.format("${%s}/,%s/.alluxio/,/etc/alluxio/",
+                  Name.CONF_DIR, System.getProperty("user.home")),
               String.format("${%s}/,${user.home}/.alluxio/,/etc/alluxio/", Name.CONF_DIR))
           .setDescription(
               String.format("Comma-separated search path for %s.", Constants.SITE_PROPERTIES))
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .build();
-  public static final PropertyKey USER_HOME =
-      new Builder(Name.USER_HOME)
-          .setIsHidden(true)
-          .setDescription("The user.home system property")
-          .setDefaultValue("boop")
           .build();
   public static final PropertyKey TEST_MODE =
       new Builder(Name.TEST_MODE)
@@ -3041,7 +3048,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.thrift.frame.size.bytes.max";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
-    public static final String USER_HOME = "user.home";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
     public static final String VERSION = "alluxio.version";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
@@ -3777,6 +3783,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** Whether to ignore as a site property. */
   private final boolean mIgnoredSiteProperty;
 
+  /** Whether the property is an Alluxio built-in property. */
+  private final boolean mIsBuiltIn;
+
   /** Whether to hide in document. */
   private final boolean mIsHidden;
 
@@ -3796,12 +3805,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param aliases alias of this property key
    * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property in
    *        site properties file
+   * @param isHidden whether to hide in document
    * @param consistencyCheckLevel the consistency check level to apply to this property
    * @param scope the scope this property applies to
+   * @param displayType how the property value should be displayed
+   * @param isBuiltIn whether this is an Alluxio built-in property
    */
   private PropertyKey(String name, String description, DefaultSupplier defaultSupplier,
       String[] aliases, boolean ignoredSiteProperty, boolean isHidden,
-      ConsistencyCheckLevel consistencyCheckLevel, Scope scope, DisplayType displayType) {
+      ConsistencyCheckLevel consistencyCheckLevel, Scope scope, DisplayType displayType,
+      boolean isBuiltIn) {
     mName = Preconditions.checkNotNull(name, "name");
     // TODO(binfan): null check after we add description for each property key
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
@@ -3812,6 +3825,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     mConsistencyCheckLevel = consistencyCheckLevel;
     mScope = scope;
     mDisplayType = displayType;
+    mIsBuiltIn = isBuiltIn;
   }
 
   /**
@@ -3819,7 +3833,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   private PropertyKey(String name) {
     this(name, null, new DefaultSupplier(() -> null, "null"), null, false, false,
-        ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT);
+        ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT, true);
   }
 
   /**
@@ -3833,7 +3847,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     String name = key.getName();
     String[] aliases = key.getAliases();
     if (DEFAULT_KEYS_MAP.containsKey(name)) {
-      return false;
+      if (DEFAULT_KEYS_MAP.get(name).isBuiltIn() || !key.isBuiltIn()) {
+        return false;
+      }
     }
     DEFAULT_KEYS_MAP.put(name, key);
     if (aliases != null) {
@@ -3940,6 +3956,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public boolean isIgnoredSiteProperty() {
     return mIgnoredSiteProperty;
+  }
+
+  /**
+   * @return true if this property is built-in
+   */
+  public boolean isBuiltIn() {
+    return mIsBuiltIn;
   }
 
   /**

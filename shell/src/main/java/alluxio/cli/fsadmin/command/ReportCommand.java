@@ -13,7 +13,6 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
-import alluxio.cli.fsadmin.report.ConfigurationCommand;
 import alluxio.cli.fsadmin.report.MetricsCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.cli.fsadmin.report.UfsCommand;
@@ -75,7 +74,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
 
   enum Command {
     CAPACITY, // Report worker capacity information
-    CONFIGURATION, // Report runtime configuration
     METRICS, // Report metrics information
     SUMMARY, // Report cluster summary
     UFS // Report under filesystem information
@@ -111,9 +109,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
       switch (args[0]) {
         case "capacity":
           command = Command.CAPACITY;
-          break;
-        case "configuration":
-          command = Command.CONFIGURATION;
           break;
         case "metrics":
           command = Command.METRICS;
@@ -168,11 +163,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         CapacityCommand capacityCommand = new CapacityCommand(
             mBlockClient, mPrintStream);
         capacityCommand.run(cl);
-        break;
-      case CONFIGURATION:
-        ConfigurationCommand configurationCommand = new ConfigurationCommand(
-            mMetaClient, mPrintStream);
-        configurationCommand.run();
         break;
       case METRICS:
         MetricsCommand metricsCommand = new MetricsCommand(
@@ -231,7 +221,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         + "summary information will be printed out.\n"
         + "[category] can be one of the following:\n"
         + "    capacity         worker capacity information\n"
-        + "    configuration    runtime configuration\n"
         + "    metrics          metrics information\n"
         + "    summary          cluster summary\n"
         + "    ufs              under filesystem information\n";
