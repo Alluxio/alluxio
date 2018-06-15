@@ -160,7 +160,8 @@ class ShortCircuitBlockReadHandler extends ChannelInboundHandlerAdapter {
 
           @Override
           public String toString() {
-            return String.format("Session %d: open block: %s", mSessionId, request.toString());
+            return String.format("OpenBlock: Session=%d, Request:=%s", mSessionId, request
+                .toString());
           }
         });
       }
@@ -202,7 +203,8 @@ class ShortCircuitBlockReadHandler extends ChannelInboundHandlerAdapter {
 
           @Override
           public String toString() {
-            return String.format("Session %d: close block: %s", mSessionId, request.toString());
+            return String.format("CloseBlock: Session=%d, Request:=%s", mSessionId,
+                request.toString());
           }
         });
       }
