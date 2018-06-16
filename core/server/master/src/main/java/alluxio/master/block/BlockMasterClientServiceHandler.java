@@ -16,8 +16,6 @@ import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterInfo;
@@ -75,54 +73,30 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
   @Override
   public GetCapacityBytesTResponse getCapacityBytes(GetCapacityBytesTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<GetCapacityBytesTResponse>() {
-      @Override
-      public GetCapacityBytesTResponse call() throws AlluxioException {
-        return new GetCapacityBytesTResponse(mBlockMaster.getCapacityBytes());
-      }
-
-      @Override
-      public String toString() {
-        return String.format("getCapacityBytes: options=%s", options);
-      }
-    });
+    return RpcUtils.call(LOG, (RpcCallable<GetCapacityBytesTResponse>) () ->
+        new GetCapacityBytesTResponse(mBlockMaster.getCapacityBytes()),
+        "GetCapacityBytes", "GetCapacityBytes: options=%s", options);
   }
 
   @Override
   public GetUsedBytesTResponse getUsedBytes(GetUsedBytesTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<GetUsedBytesTResponse>() {
-      @Override
-      public GetUsedBytesTResponse call() throws AlluxioException {
-        return new GetUsedBytesTResponse(mBlockMaster.getUsedBytes());
-      }
-
-      @Override
-      public String toString() {
-        return String.format("getUsedBytes: options=%s", options);
-      }
-    });
+    return RpcUtils.call(LOG, (RpcCallable<GetUsedBytesTResponse>) () -> new GetUsedBytesTResponse(
+        mBlockMaster.getUsedBytes()), "GetUsedBytes", "GetUsedBytes: options=%s", options);
   }
 
   @Override
   public GetBlockInfoTResponse getBlockInfo(final long blockId, GetBlockInfoTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetBlockInfoTResponse>() {
-      @Override
-      public GetBlockInfoTResponse call() throws AlluxioException, AlluxioStatusException {
-        return new GetBlockInfoTResponse(mBlockMaster.getBlockInfo(blockId).toThrift());
-      }
-
-      @Override
-      public String toString() {
-        return String.format("getBlockInfo: blockId=%s, options=%s", blockId, options);
-      }
-    });
+    return RpcUtils.call(LOG,
+        (RpcCallableThrowsIOException<GetBlockInfoTResponse>) () -> new GetBlockInfoTResponse(
+            mBlockMaster.getBlockInfo(blockId).toThrift()), "GetBlockInfo",
+        "GetBlockInfo: blockId=%s, options=%s", blockId, options);
   }
 
   @Override
   public GetBlockMasterInfoTResponse getBlockMasterInfo(final GetBlockMasterInfoTOptions options)
       throws TException {
-    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetBlockMasterInfoTResponse>) () -> {
+    return RpcUtils.call((RpcUtils.RpcCallable<GetBlockMasterInfoTResponse>) () -> {
       BlockMasterInfo info = new alluxio.thrift.BlockMasterInfo();
       for (BlockMasterInfoField field : options.getFilter() != null ? options.getFilter()
           : Arrays.asList(BlockMasterInfoField.values())) {
@@ -159,7 +133,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
   @Override
   public GetWorkerInfoListTResponse getWorkerInfoList(GetWorkerInfoListTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetWorkerInfoListTResponse>) () -> {
+    return RpcUtils.call((RpcCallableThrowsIOException<GetWorkerInfoListTResponse>) () -> {
       List<WorkerInfo> workerInfos = new ArrayList<>();
       for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
         workerInfos.add(workerInfo.toThrift());
@@ -169,24 +143,15 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
   }
 
   @Override
-  public GetWorkerInfoListTResponse getWorkerReport(
-      GetWorkerReportTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetWorkerInfoListTResponse>() {
-      @Override
-      public GetWorkerInfoListTResponse call()
-          throws AlluxioException, AlluxioStatusException {
-        List<WorkerInfo> workerInfos = new ArrayList<>();
-        for (alluxio.wire.WorkerInfo workerInfo :
-            mBlockMaster.getWorkerReport(new GetWorkerReportOptions(options))) {
-          workerInfos.add(workerInfo.toThrift());
-        }
-        return new GetWorkerInfoListTResponse(workerInfos);
+  public GetWorkerInfoListTResponse getWorkerReport(GetWorkerReportTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetWorkerInfoListTResponse>) () -> {
+      List<WorkerInfo> workerInfos = new ArrayList<>();
+      for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster
+          .getWorkerReport(new GetWorkerReportOptions(options))) {
+        workerInfos.add(workerInfo.toThrift());
       }
-
-      @Override
-      public String toString() {
-        return String.format("getWorkerReport: options=%s", options);
-      }
-    });
+      return new GetWorkerInfoListTResponse(workerInfos);
+    }, "GetWorkerReport", "GetWorkerReport: options=%s", options);
   }
 }
