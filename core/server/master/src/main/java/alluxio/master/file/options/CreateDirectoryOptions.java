@@ -122,16 +122,18 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
       return false;
     }
     CreateDirectoryOptions that = (CreateDirectoryOptions) o;
-    return Objects.equal(mAllowExists, that.mAllowExists);
+    return Objects.equal(mAllowExists, that.mAllowExists)
+        && Objects.equal(mUfsStatus, that.mUfsStatus);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mAllowExists);
+    return super.hashCode() + Objects.hashCode(mAllowExists, mUfsStatus);
   }
 
   @Override
   public String toString() {
-    return toStringHelper().add("allowExists", mAllowExists).toString();
+    return toStringHelper().add("allowExists", mAllowExists)
+        .add("ufsStatus", mUfsStatus).toString();
   }
 }
