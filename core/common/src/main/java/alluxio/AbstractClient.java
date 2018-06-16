@@ -34,6 +34,7 @@ import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.SecurityUtils;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.Scope;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
@@ -228,6 +229,10 @@ public abstract class AbstractClient implements Client {
         // TODO(binfan): support propagating unsetting properties from master
         if (PropertyKey.isValid(name) && property.getValue() != null) {
           PropertyKey key = PropertyKey.fromString(name);
+          if (!key.getScope().contains(Scope.CLIENT)) {
+            // Only propagate client properties.
+            continue;
+          }
           String value = property.getValue();
           clusterProps.put(key, value);
           LOG.debug("Loading cluster default: {} ({}) -> {}", key, key.getScope(), value);
