@@ -31,6 +31,7 @@ import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 import alluxio.wire.LoadMetadataType;
 
+import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Assert;
@@ -320,8 +321,10 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
           .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.GET_FILE_INFO,
               paths, limitMs);
     }
+
     if (!errors.isEmpty()) {
-      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0)
+          + "\n" + Throwables.getStackTraceAsString(errors.get(0)));
     }
 
     ListStatusOptions listOptions = ListStatusOptions.defaults().setLoadMetadataType(

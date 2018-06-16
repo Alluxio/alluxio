@@ -139,7 +139,7 @@ Now, we can start Alluxio! By default, Alluxio is configured to start a master a
 localhost. We can start Alluxio on localhost with the following command:
 
 ```bash
-$ ./bin/alluxio-start.sh local
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 Congratulations! Alluxio is now up and running! You can visit

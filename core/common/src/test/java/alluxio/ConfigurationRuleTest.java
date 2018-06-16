@@ -43,9 +43,9 @@ public final class ConfigurationRuleTest {
         assertEquals("testValue", Configuration.get(PropertyKey.SECURITY_LOGIN_USERNAME));
       }
     };
-    assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertFalse(Configuration.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
     new ConfigurationRule(ImmutableMap.of(PropertyKey.SECURITY_LOGIN_USERNAME, "testValue"))
         .apply(statement, null).evaluate();
-    assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertFalse(Configuration.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
   }
 }

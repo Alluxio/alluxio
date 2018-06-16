@@ -14,14 +14,11 @@ package alluxio.master.metrics;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.clock.ManualClock;
-import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
-import alluxio.master.SafeModeManager;
-import alluxio.master.TestSafeModeManager;
-import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.MasterTestUtils;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -41,21 +38,17 @@ import java.util.concurrent.Executors;
 public class MetricsMasterTest {
   private DefaultMetricsMaster mMetricsMaster;
   private MasterRegistry mRegistry;
-  private SafeModeManager mSafeModeManager;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
 
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new TestSafeModeManager();
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestMetricsMaster-%d", true));
-    JournalSystem journalSystem = new NoopJournalSystem();
-    mMetricsMaster =
-        new DefaultMetricsMaster(new MasterContext(journalSystem, mSafeModeManager),
-            mClock, ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mMetricsMaster = new DefaultMetricsMaster(MasterTestUtils.testMasterContext(), mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mRegistry.start(true);
   }
@@ -70,10 +63,10 @@ public class MetricsMasterTest {
 
   @Test
   public void testAggregator() {
-    mMetricsMaster
-        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER, "metricA"));
-    mMetricsMaster
-        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER, "metricB"));
+    mMetricsMaster.addAggregator(
+        new SumInstancesAggregator("metricA", MetricsSystem.InstanceType.WORKER, "metricA"));
+    mMetricsMaster.addAggregator(
+        new SumInstancesAggregator("metricB", MetricsSystem.InstanceType.WORKER, "metricB"));
     List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metricA", 10),
         Metric.from("worker.192_1_1_1.metricB", 20));
     mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
@@ -90,11 +83,25 @@ public class MetricsMasterTest {
   }
 
   @Test
+  public void testMultiValueAggregator() {
+    mMetricsMaster.addAggregator(
+        new SingleTagValueAggregator(MetricsSystem.InstanceType.WORKER, "metric", "tag"));
+    List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metric.tag:v1", 10),
+        Metric.from("worker.192_1_1_1.metric.tag:v2", 20));
+    mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
+    List<Metric> metrics2 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metric.tag:v1", 1),
+        Metric.from("worker.192_1_1_2.metric.tag:v2", 2));
+    mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
+    assertEquals(11L, getGauge("metric.v1"));
+    assertEquals(22L, getGauge("metric.v2"));
+  }
+
+  @Test
   public void testClientHeartbeat() {
-    mMetricsMaster
-        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT, "metric1"));
-    mMetricsMaster
-        .addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.CLIENT, "metric2"));
+    mMetricsMaster.addAggregator(
+        new SumInstancesAggregator("metric1", MetricsSystem.InstanceType.CLIENT, "metric1"));
+    mMetricsMaster.addAggregator(
+        new SumInstancesAggregator("metric2", MetricsSystem.InstanceType.CLIENT, "metric2"));
     List<Metric> metrics1 = Lists.newArrayList(Metric.from("client.192_1_1_1:A.metric1", 10),
         Metric.from("client.192_1_1_1:A.metric2", 20));
     mMetricsMaster.clientHeartbeat("A", "192.1.1.1", metrics1);

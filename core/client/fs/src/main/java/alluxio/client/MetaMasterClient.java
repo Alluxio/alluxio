@@ -12,6 +12,8 @@
 package alluxio.client;
 
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.wire.BackupResponse;
+import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
@@ -23,10 +25,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 /**
  * Interface for a meta master client.
  */
 public interface MetaMasterClient extends Closeable {
+  /**
+   * Writes a backup of the journal to the specified directory. The backup is written to the
+   * directory with a file name containing the date when the file was written.
+   *
+   * @param dir the directory in the UFS to write to, or null to use the default alluxio backup
+   *        directory
+   * @param localFileSystem whether to write to the master's local filesystem instead of the UFS
+   * @return the server response
+   */
+  BackupResponse backup(@Nullable String dir, boolean localFileSystem) throws IOException;
+
+  /**
+   * Gets the server-side configuration check report.
+   *
+   * @return configuration check report
+   */
+  ConfigCheckReport getConfigReport() throws IOException;
+
   /**
    * Gets the runtime configuration information.
    *

@@ -20,8 +20,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.PathUtils;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Assume;

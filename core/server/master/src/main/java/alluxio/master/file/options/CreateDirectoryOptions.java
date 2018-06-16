@@ -13,6 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.underfs.UfsStatus;
 import alluxio.util.SecurityUtils;
 import alluxio.wire.CommonOptions;
 
@@ -26,6 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOptions> {
   private boolean mAllowExists;
+  private UfsStatus mUfsStatus;
 
   /**
    * @return the default {@link CreateDirectoryOptions}
@@ -66,6 +68,7 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     super();
     mAllowExists = false;
     mMode.applyDirectoryUMask();
+    mUfsStatus = null;
   }
 
   /**
@@ -77,6 +80,13 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
   }
 
   /**
+   * @return the {@link UfsStatus}
+   */
+  public UfsStatus getUfsStatus() {
+    return mUfsStatus;
+  }
+
+  /**
    * @param allowExists the allowExists flag value to use; it specifies whether an exception
    *        should be thrown if the object being made already exists.
    * @return the updated options object
@@ -84,6 +94,15 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
   public CreateDirectoryOptions setAllowExists(boolean allowExists) {
     mAllowExists = allowExists;
     return this;
+  }
+
+  /**
+   * @param ufsStatus the {@link UfsStatus}; It sets the optional ufsStatus as an optimization
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setUfsStatus(UfsStatus ufsStatus) {
+    mUfsStatus = ufsStatus;
+    return getThis();
   }
 
   @Override

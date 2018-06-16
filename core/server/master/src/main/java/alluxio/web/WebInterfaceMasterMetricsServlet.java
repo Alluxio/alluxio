@@ -76,10 +76,10 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
 
     Long masterCapacityTotal = (Long) mr.getGauges()
-        .get(MetricsSystem.getMasterMetricName(DefaultBlockMaster.Metrics.CAPACITY_TOTAL))
+        .get(MetricsSystem.getMetricName(DefaultBlockMaster.Metrics.CAPACITY_TOTAL))
         .getValue();
     Long masterCapacityUsed = (Long) mr.getGauges()
-        .get(MetricsSystem.getMasterMetricName(DefaultBlockMaster.Metrics.CAPACITY_USED))
+        .get(MetricsSystem.getMetricName(DefaultBlockMaster.Metrics.CAPACITY_USED))
         .getValue();
 
     int masterCapacityUsedPercentage =
@@ -88,10 +88,10 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("masterCapacityFreePercentage", 100 - masterCapacityUsedPercentage);
 
     Long masterUnderfsCapacityTotal = (Long) mr.getGauges()
-        .get(MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.UFS_CAPACITY_TOTAL))
+        .get(MetricsSystem.getMetricName(DefaultFileSystemMaster.Metrics.UFS_CAPACITY_TOTAL))
         .getValue();
     Long masterUnderfsCapacityUsed = (Long) mr.getGauges()
-        .get(MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.UFS_CAPACITY_USED))
+        .get(MetricsSystem.getMetricName(DefaultFileSystemMaster.Metrics.UFS_CAPACITY_USED))
         .getValue();
 
     int masterUnderfsCapacityUsedPercentage = (masterUnderfsCapacityTotal > 0)
@@ -123,7 +123,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
       operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
     }
     String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
     operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
         mr.getGauges().get(filesPinnedProperty));
 
@@ -145,12 +145,19 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
         .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO))
         .getValue();
     Long bytesReadUfs = (Long) mr.getGauges()
-        .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS))
+        .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL))
         .getValue();
-
     request.setAttribute("totalBytesReadLocal", FormatUtils.getSizeFromBytes(bytesReadLocal));
     request.setAttribute("totalBytesReadRemote", FormatUtils.getSizeFromBytes(bytesReadRemote));
     request.setAttribute("totalBytesReadUfs", FormatUtils.getSizeFromBytes(bytesReadUfs));
+
+    Long bytesWrittenAlluxio = (Long) mr.getGauges()
+        .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO)).getValue();
+    Long bytesWrittenUfs = (Long) mr.getGauges()
+        .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL)).getValue();
+    request.setAttribute("totalBytesWrittenAlluxio",
+        FormatUtils.getSizeFromBytes(bytesWrittenAlluxio));
+    request.setAttribute("totalBytesWrittenUfs", FormatUtils.getSizeFromBytes(bytesWrittenUfs));
 
     Long bytesReadLocalThroughput = (Long) mr.getGauges()
         .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT))
@@ -167,6 +174,17 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
         FormatUtils.getSizeFromBytes(bytesReadRemoteThroughput));
     request.setAttribute("totalBytesReadUfsThroughput",
         FormatUtils.getSizeFromBytes(bytesReadUfsThroughput));
+
+    Long bytesWrittenAlluxioThroughput = (Long) mr.getGauges()
+        .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT))
+        .getValue();
+    Long bytesWrittenUfsThroughput = (Long) mr.getGauges()
+        .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT))
+        .getValue();
+    request.setAttribute("totalBytesWrittenAlluxioThroughput",
+        FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput));
+    request.setAttribute("totalBytesWrittenUfsThroughput",
+        FormatUtils.getSizeFromBytes(bytesWrittenUfsThroughput));
 
     long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs;
     double cacheHitLocalPercentage =

@@ -93,9 +93,9 @@ public final class IdUtils {
   }
 
   /**
-   * @return a positive random long
+   * @return app suffixed by a positive random long
    */
-  public static long createFileSystemContextId() {
-    return Math.abs(sRandom.nextLong());
+  public static String createFileSystemContextId() {
+    return "app-" + Math.abs(sRandom.nextLong());
   }
 }

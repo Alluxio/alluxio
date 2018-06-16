@@ -61,17 +61,17 @@ public class AlluxioFramework {
     Protos.FrameworkInfo.Builder frameworkInfo = Protos.FrameworkInfo.newBuilder()
         .setName("alluxio").setCheckpoint(true);
 
-    if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_ROLE)) {
+    if (Configuration.isSet(PropertyKey.INTEGRATION_MESOS_ROLE)) {
       frameworkInfo.setRole(Configuration.get(PropertyKey.INTEGRATION_MESOS_ROLE));
     }
-    if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_USER)) {
+    if (Configuration.isSet(PropertyKey.INTEGRATION_MESOS_USER)) {
       frameworkInfo.setUser(Configuration.get(PropertyKey.INTEGRATION_MESOS_USER));
     } else {
       // Setting the user to an empty string will prompt Mesos to set it to the current user.
       frameworkInfo.setUser("");
     }
 
-    if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)) {
+    if (Configuration.isSet(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)) {
       frameworkInfo.setPrincipal(Configuration.get(PropertyKey.INTEGRATION_MESOS_PRINCIPAL));
     }
 
@@ -104,8 +104,8 @@ public class AlluxioFramework {
   }
 
   private static Protos.Credential createCredential() {
-    if (!(Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)
-        && Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_SECRET))) {
+    if (!(Configuration.isSet(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)
+        && Configuration.isSet(PropertyKey.INTEGRATION_MESOS_SECRET))) {
       return null;
     }
 

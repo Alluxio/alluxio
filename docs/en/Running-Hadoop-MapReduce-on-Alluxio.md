@@ -97,17 +97,17 @@ when the jar is already on every node, then the `-libjars` command line option i
 
 ## Check MapReduce with Alluxio integration (Supports Hadoop 2.X)
 
-Before running MapReduce on Alluxio, you might want to make sure that your configuration has been 
-setup correctly for integrating with Alluxio. The MapReduce integration checker can help you achieve this. 
+Before running MapReduce on Alluxio, you might want to make sure that your configuration has been
+setup correctly for integrating with Alluxio. The MapReduce integration checker can help you achieve this.
 
 When you have a running Hadoop cluster (or standalone), you can run the following command in the Alluxio project directory:
 
 ```bash
-$ checker/bin/alluxio-checker.sh mapreduce 
+$ integration/checker/bin/alluxio-checker.sh mapreduce
 ```
 
 You can use `-h` to display helpful information about the command.
-This command will report potential problems that might prevent you from running MapReduce on Alluxio. 
+This command will report potential problems that might prevent you from running MapReduce on Alluxio.
 
 ## Running Hadoop wordcount with Alluxio Locally
 
@@ -123,7 +123,7 @@ $ bin/start-all.sh
 Start Alluxio locally:
 
 ```bash
-$ bin/alluxio-start.sh local
+$ bin/alluxio-start.sh local SudoMount
 ```
 
 You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:

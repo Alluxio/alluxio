@@ -89,7 +89,7 @@ public final class FileSystemContext implements Closeable {
   private MetricsMasterClient mMetricsMasterClient;
   private ClientMasterSync mClientMasterSync;
 
-  private final long mId;
+  private final String mAppId;
 
   // The netty data server channel pools.
   private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
@@ -165,11 +165,11 @@ public final class FileSystemContext implements Closeable {
     mParentSubject = subject;
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
-    mId = IdUtils.createFileSystemContextId();
-    LOG.info("Created filesystem context with id {}."
-        + " This ID will be used for identifying the information "
-        + "aggregated by the master, such as metrics",
-        mId);
+    mAppId = Configuration.containsKey(PropertyKey.USER_APP_ID)
+        ? Configuration.get(PropertyKey.USER_APP_ID) : IdUtils.createFileSystemContextId();
+    LOG.info("Created filesystem context with id {}. This ID will be used for identifying info "
+        + "from the client, such as metrics. It can be set manually through the {} property",
+        mAppId, PropertyKey.Name.USER_APP_ID);
     mClosed = new AtomicBoolean(false);
   }
 
@@ -185,7 +185,9 @@ public final class FileSystemContext implements Closeable {
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
     mClosed.set(false);
 
-    if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
+    // Only send metrics if enabled and the port is set (can be zero when tests are setting up).
+    if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)
+        && Configuration.getInt(PropertyKey.MASTER_RPC_PORT) != 0) {
       // setup metrics master client sync
       mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults()
           .withSubject(mParentSubject).withMasterInquireClient(mMasterInquireClient));
@@ -220,7 +222,7 @@ public final class FileSystemContext implements Closeable {
     mNettyChannelPools.clear();
 
     synchronized (this) {
-      if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
+      if (mMetricsMasterClient != null) {
         ThreadUtils.shutdownAndAwaitTermination(mExecutorService);
         mMetricsMasterClient.close();
         mMetricsMasterClient = null;
@@ -244,8 +246,8 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return the unique id of the context
    */
-  public long getId() {
-    return mId;
+  public String getId() {
+    return mAppId;
   }
 
   /**
@@ -261,6 +263,13 @@ public final class FileSystemContext implements Closeable {
    */
   public synchronized InetSocketAddress getMasterAddress() throws UnavailableException {
     return mMasterInquireClient.getPrimaryRpcAddress();
+  }
+
+  /**
+   * @return the master inquire client
+   */
+  public synchronized MasterInquireClient getMasterInquireClient() {
+    return mMasterInquireClient;
   }
 
   /**
@@ -420,7 +429,9 @@ public final class FileSystemContext implements Closeable {
     @Override
     public void run() {
       try {
-        mClientMasterSync.heartbeat();
+        if (mClientMasterSync != null) {
+          mClientMasterSync.heartbeat();
+        }
       } catch (InterruptedException e) {
         LOG.error("Failed to heartbeat to the metrics master before exit");
       }
@@ -433,7 +444,7 @@ public final class FileSystemContext implements Closeable {
   @ThreadSafe
   private static final class Metrics {
     private static void initializeGauges() {
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClientMetricName("NettyConnectionsOpen"),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName("NettyConnectionsOpen"),
           new Gauge<Long>() {
             @Override
             public Long getValue() {

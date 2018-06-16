@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.base.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +116,7 @@ public class AlluxioLogServerProcess implements Process {
               }
             });
       } catch (RejectedExecutionException e) {
-        // Alluxio log clients (master, secondary master, proxy and workers establish
+        // Alluxio log clients (master, secondary master, proxy and workers) establish
         // long-living connections with the log server. Therefore, if the log server cannot
         // find a thread to service a log client, it is very likely due to low number of
         // worker threads. If retry fails, then it makes sense just to let system throw
@@ -172,12 +171,8 @@ public class AlluxioLogServerProcess implements Process {
   }
 
   @Override
-  public void waitForReady() {
-    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return mStopped == false;
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
+  public boolean waitForReady(int timeoutMs) {
+    return CommonUtils.waitFor(this + " to start", input -> mStopped == false,
+        WaitForOptions.defaults().setTimeoutMs(timeoutMs).setThrowOnTimeout(false));
   }
 }

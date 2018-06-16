@@ -22,9 +22,6 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * Tests for report command.
  */
@@ -33,45 +30,18 @@ public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest
   public void masterNotRunning() throws Exception {
     mLocalAlluxioCluster.stopMasters();
     mFsAdminShell.run("report");
-    String expected = "The Alluxio leader master is not currently serving requests.\n"
-        + "Please check your Alluxio master status\n";
-    Assert.assertEquals(expected, mErrOutput.toString());
+    String expected = "The Alluxio leader master is not currently serving requests.";
+    Assert.assertThat(mErrOutput.toString(), CoreMatchers.containsString(expected));
   }
 
   @Test
   public void reportCategoryInvalid() {
     mFsAdminShell.run("report", "invalidCategory");
-    ReportCommand reportCommand = new ReportCommand();
     String expected = String.format("%s%n%s%n%s%n",
-        reportCommand.getUsage(),
-        reportCommand.getDescription(),
+        ReportCommand.usage(),
+        ReportCommand.description(),
         "report category is invalid.");
     Assert.assertEquals(expected, mOutput.toString());
-  }
-
-  @Test
-  public void reportConfiguration() {
-    int ret = mFsAdminShell.run("report", "configuration");
-    Assert.assertEquals(0, ret);
-    String output = mOutput.toString();
-    Assert.assertThat(output,
-        CoreMatchers.containsString("Alluxio configuration information:"));
-
-    // Output should not contain raw values with ${VALUE} format
-    String regexString = "(\\$\\{([^{}]*)\\})";
-    Pattern confRegex = Pattern.compile(regexString);
-    Matcher matcher = confRegex.matcher(output);
-    Assert.assertFalse(matcher.find());
-
-    // Output should contain all kinds of properties.
-    Assert.assertTrue(output.contains("alluxio.debug"));
-    Assert.assertTrue(output.contains("alluxio.fuse.fs.name"));
-    Assert.assertTrue(output.contains("alluxio.logserver.logs.dir"));
-    Assert.assertTrue(output.contains("alluxio.master.journal.folder"));
-    Assert.assertTrue(output.contains("alluxio.proxy.web.port"));
-    Assert.assertTrue(output.contains("alluxio.security.authentication.type"));
-    Assert.assertTrue(output.contains("alluxio.user.block.master.client.threads"));
-    Assert.assertTrue(output.contains("alluxio.worker.bind.host"));
   }
 
   @Test

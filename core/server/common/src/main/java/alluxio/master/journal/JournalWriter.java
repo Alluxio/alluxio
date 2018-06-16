@@ -14,12 +14,13 @@ package alluxio.master.journal;
 import alluxio.exception.JournalClosedException;
 import alluxio.proto.journal.Journal.JournalEntry;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
  * Interface for a class that can write and flush journal entries.
  */
-public interface JournalWriter {
+public interface JournalWriter extends Closeable {
   /**
    * Writes an entry. {@link #flush} should be called afterwards if we want to make sure the entry
    * is persisted.
