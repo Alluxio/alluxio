@@ -61,44 +61,44 @@ public final class FileInfo implements Serializable {
    * Creates a new instance of {@link FileInfo}.
    */
   public FileInfo() {}
-
-  /**
-   * Creates a new instance of {@link FileInfo} from proto representation.
-   *
-   * @param fileInfo the thrift representation of a file information
-   */
-  protected FileInfo(alluxio.grpc.FileInfo fileInfo) {
-    mFileId = fileInfo.getFileId();
-    mName = fileInfo.getName();
-    mPath = fileInfo.getPath();
-    mUfsPath = fileInfo.getUfsPath();
-    mLength = fileInfo.getLength();
-    mBlockSizeBytes = fileInfo.getBlockSizeBytes();
-    mCreationTimeMs = fileInfo.getCreationTimeMs();
-    mCompleted = fileInfo.getCompleted();
-    mFolder = fileInfo.getFolder();
-    mPinned = fileInfo.getPinned();
-    mCacheable = fileInfo.getCacheable();
-    mPersisted = fileInfo.getPersisted();
-    mBlockIds = new ArrayList<>(fileInfo.getBlockIdsList());
-    mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
-    mTtl = fileInfo.getTtl();
-    mTtlAction = ProtoUtils.fromProto(fileInfo.getTtlAction());
-    mOwner = fileInfo.getOwner();
-    mGroup = fileInfo.getGroup();
-    mMode = fileInfo.getMode();
-    mPersistenceState = fileInfo.getPersistenceState();
-    mMountPoint = fileInfo.getMountPoint();
-    mFileBlockInfos = new ArrayList<>();
-      for (alluxio.grpc.FileBlockInfo fileBlockInfo : fileInfo.getFileBlockInfosList()) {
-        mFileBlockInfos.add(new FileBlockInfo(fileBlockInfo));
-      }
-    mMountId = fileInfo.getMountId();
-    mInAlluxioPercentage = fileInfo.getInAlluxioPercentage();
-    if (fileInfo.hasUfsFingerprint()) {
-      mUfsFingerprint = fileInfo.getUfsFingerprint();
-    }
-  }
+//
+//  /**
+//   * Creates a new instance of {@link FileInfo} from proto representation.
+//   *
+//   * @param fileInfo the thrift representation of a file information
+//   */
+//  protected FileInfo(alluxio.grpc.FileInfo fileInfo) {
+//    mFileId = fileInfo.getFileId();
+//    mName = fileInfo.getName();
+//    mPath = fileInfo.getPath();
+//    mUfsPath = fileInfo.getUfsPath();
+//    mLength = fileInfo.getLength();
+//    mBlockSizeBytes = fileInfo.getBlockSizeBytes();
+//    mCreationTimeMs = fileInfo.getCreationTimeMs();
+//    mCompleted = fileInfo.getCompleted();
+//    mFolder = fileInfo.getFolder();
+//    mPinned = fileInfo.getPinned();
+//    mCacheable = fileInfo.getCacheable();
+//    mPersisted = fileInfo.getPersisted();
+//    mBlockIds = new ArrayList<>(fileInfo.getBlockIdsList());
+//    mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
+//    mTtl = fileInfo.getTtl();
+//    mTtlAction = ProtoUtils.fromProto(fileInfo.getTtlAction());
+//    mOwner = fileInfo.getOwner();
+//    mGroup = fileInfo.getGroup();
+//    mMode = fileInfo.getMode();
+//    mPersistenceState = fileInfo.getPersistenceState();
+//    mMountPoint = fileInfo.getMountPoint();
+//    mFileBlockInfos = new ArrayList<>();
+//      for (alluxio.grpc.FileBlockInfo fileBlockInfo : fileInfo.getFileBlockInfosList()) {
+//        mFileBlockInfos.add(new FileBlockInfo(fileBlockInfo));
+//      }
+//    mMountId = fileInfo.getMountId();
+//    mInAlluxioPercentage = fileInfo.getInAlluxioPercentage();
+//    if (fileInfo.hasUfsFingerprint()) {
+//      mUfsFingerprint = fileInfo.getUfsFingerprint();
+//    }
+//  }
 
   /**
    * @return the file id
@@ -523,44 +523,44 @@ public final class FileInfo implements Serializable {
     return this;
   }
 
-  /**
-   * @return proto representation of the file information
-   */
-  protected alluxio.grpc.FileInfo toProto() {
-    List<alluxio.grpc.FileBlockInfo> fileBlockInfos = new ArrayList<>();
-    for (FileBlockInfo fileBlockInfo : mFileBlockInfos) {
-      fileBlockInfos.add(fileBlockInfo.toProto());
-    }
-    alluxio.grpc.FileInfo info =
-        alluxio.grpc.FileInfo.newBuilder()
-            .setFileId(mFileId)
-            .setName(mName)
-            .setPath(mPath)
-            .setUfsPath(mUfsPath)
-            .setLength(mLength)
-            .setBlockSizeBytes(mBlockSizeBytes)
-            .setCreationTimeMs(mCreationTimeMs)
-            .setCompleted(mCompleted)
-            .setFolder(mFolder)
-            .setPinned(mPinned)
-            .setCacheable(mCacheable)
-            .setPersisted(mPersisted)
-            .addAllBlockIds(mBlockIds)
-            .setLastModificationTimeMs(mLastModificationTimeMs)
-            .setTtl(mTtl)
-            .setOwner(mOwner)
-            .setGroup(mGroup)
-            .setMode(mMode)
-            .setPersistenceState(mPersistenceState)
-            .setMountPoint(mMountPoint)
-            .addAllFileBlockInfos(fileBlockInfos)
-            .setTtlAction(ProtoUtils.toProto(mTtlAction))
-            .setMountId(mMountId)
-            .setInAlluxioPercentage(mInAlluxioPercentage)
-            .setUfsFingerprint(mUfsFingerprint)
-            .build();
-    return info;
-  }
+//  /**
+//   * @return proto representation of the file information
+//   */
+//  protected alluxio.grpc.FileInfo toProto() {
+//    List<alluxio.grpc.FileBlockInfo> fileBlockInfos = new ArrayList<>();
+//    for (FileBlockInfo fileBlockInfo : mFileBlockInfos) {
+//      fileBlockInfos.add(fileBlockInfo.toProto());
+//    }
+//    alluxio.grpc.FileInfo info =
+//        alluxio.grpc.FileInfo.newBuilder()
+//            .setFileId(mFileId)
+//            .setName(mName)
+//            .setPath(mPath)
+//            .setUfsPath(mUfsPath)
+//            .setLength(mLength)
+//            .setBlockSizeBytes(mBlockSizeBytes)
+//            .setCreationTimeMs(mCreationTimeMs)
+//            .setCompleted(mCompleted)
+//            .setFolder(mFolder)
+//            .setPinned(mPinned)
+//            .setCacheable(mCacheable)
+//            .setPersisted(mPersisted)
+//            .addAllBlockIds(mBlockIds)
+//            .setLastModificationTimeMs(mLastModificationTimeMs)
+//            .setTtl(mTtl)
+//            .setOwner(mOwner)
+//            .setGroup(mGroup)
+//            .setMode(mMode)
+//            .setPersistenceState(mPersistenceState)
+//            .setMountPoint(mMountPoint)
+//            .addAllFileBlockInfos(fileBlockInfos)
+//            .setTtlAction(ProtoUtils.toProto(mTtlAction))
+//            .setMountId(mMountId)
+//            .setInAlluxioPercentage(mInAlluxioPercentage)
+//            .setUfsFingerprint(mUfsFingerprint)
+//            .build();
+//    return info;
+//  }
 
   @Override
   public boolean equals(Object o) {

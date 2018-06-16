@@ -60,28 +60,28 @@ public final class TieredIdentity implements Serializable {
   public LocalityTier getTier(int i) {
     return mTiers.get(i);
   }
-
-  /**
-   * @param tieredIdentity a Thrift tiered identity
-   * @return the corresponding wire type tiered identity
-   */
-  @Nullable
-  public static TieredIdentity fromProto(alluxio.grpc.TieredIdentity tieredIdentity) {
-    if (tieredIdentity == null) {
-      return null;
-    }
-    return new TieredIdentity(tieredIdentity.getTiersList().stream().map(LocalityTier::fromProto)
-        .collect(Collectors.toList()));
-  }
-
-  /**
-   * @return a Thrift representation
-   */
-  public alluxio.grpc.TieredIdentity toProto() {
-    return alluxio.grpc.TieredIdentity.newBuilder()
-        .addAllTiers(mTiers.stream().map(LocalityTier::toProto).collect(Collectors.toList()))
-        .build();
-  }
+//
+//  /**
+//   * @param tieredIdentity a Thrift tiered identity
+//   * @return the corresponding wire type tiered identity
+//   */
+//  @Nullable
+//  public static TieredIdentity fromProto(alluxio.grpc.TieredIdentity tieredIdentity) {
+//    if (tieredIdentity == null) {
+//      return null;
+//    }
+//    return new TieredIdentity(tieredIdentity.getTiersList().stream().map(LocalityTier::fromProto)
+//        .collect(Collectors.toList()));
+//  }
+//
+//  /**
+//   * @return a Thrift representation
+//   */
+//  public alluxio.grpc.TieredIdentity toProto() {
+//    return alluxio.grpc.TieredIdentity.newBuilder()
+//        .addAllTiers(mTiers.stream().map(LocalityTier::toProto).collect(Collectors.toList()))
+//        .build();
+//  }
 
   /**
    * @param other a tiered identity to compare to
@@ -152,20 +152,20 @@ public final class TieredIdentity implements Serializable {
       return mValue;
     }
 
-    /**
-     * @return a Proto representation
-     */
-    public alluxio.grpc.LocalityTier toProto() {
-      return alluxio.grpc.LocalityTier.newBuilder().setTierName(mTierName).setValue(mValue).build();
-    }
-
-    /**
-     * @param localityTier a Thrift locality tier
-     * @return the corresponding wire type locality tier
-     */
-    public static LocalityTier fromProto(alluxio.grpc.LocalityTier localityTier) {
-      return new LocalityTier(localityTier.getTierName(), localityTier.getValue());
-    }
+//    /**
+//     * @return a Proto representation
+//     */
+//    public alluxio.grpc.LocalityTier toProto() {
+//      return alluxio.grpc.LocalityTier.newBuilder().setTierName(mTierName).setValue(mValue).build();
+//    }
+//
+//    /**
+//     * @param localityTier a Thrift locality tier
+//     * @return the corresponding wire type locality tier
+//     */
+//    public static LocalityTier fromProto(alluxio.grpc.LocalityTier localityTier) {
+//      return new LocalityTier(localityTier.getTierName(), localityTier.getValue());
+//    }
 
     @Override
     public boolean equals(Object o) {

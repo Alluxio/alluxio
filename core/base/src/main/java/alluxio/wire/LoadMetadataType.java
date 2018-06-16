@@ -65,11 +65,11 @@ public enum LoadMetadataType {
   @Nullable
   public static LoadMetadataType fromProto(LoadMetadataPType loadMetadataTType) {
     switch (loadMetadataTType) {
-      case NEVER:
+      case LoadMetadataPType.NEVER:
         return Never;
-      case ONCE:
+      case LoadMetadataPType.ONCE:
         return Once;
-      case ALWAYS:
+      case LoadMetadataPType.ALWAYS:
         return Always;
       default:
         return null;

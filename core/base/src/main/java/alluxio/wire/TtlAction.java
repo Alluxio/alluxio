@@ -44,9 +44,9 @@ public enum TtlAction {
       return TtlAction.DELETE;
     }
     switch (tTtlAction) {
-      case DELETE:
+      case TtlAction.DELETE:
         return TtlAction.DELETE;
-      case FREE:
+      case TtlAction.FREE:
         return TtlAction.FREE;
       default:
         throw new IllegalStateException("Unrecognized thrift ttl action: " + tTtlAction);
