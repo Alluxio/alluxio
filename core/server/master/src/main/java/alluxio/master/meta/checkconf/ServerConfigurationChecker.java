@@ -114,7 +114,10 @@ public class ServerConfigurationChecker {
       // during report regeneration, the change will be reflected in the next call to
       // getConfigCheckReport.
       mConfigDirty = false;
+      LOG.debug("Regenerating config check report");
       regenerateReport();
+    } else {
+      LOG.debug("Skipping regenerating config check report");
     }
     return mConfigCheckReport;
   }
