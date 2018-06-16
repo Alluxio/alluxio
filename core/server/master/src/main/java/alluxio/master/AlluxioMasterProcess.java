@@ -33,7 +33,6 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.thrift.TMultiplexedProcessor;
@@ -214,14 +213,11 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public void waitForReady() {
-    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return mThriftServer != null && mThriftServer.isServing() && mWebServer != null
-            && mWebServer.getServer().isRunning();
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
+  public boolean waitForReady(int timeoutMs) {
+    return CommonUtils.waitFor(this + " to start",
+        input -> mThriftServer != null && mThriftServer.isServing() && mWebServer != null
+            && mWebServer.getServer().isRunning(),
+        WaitForOptions.defaults().setTimeoutMs(timeoutMs).setThrowOnTimeout(false));
   }
 
   @Override

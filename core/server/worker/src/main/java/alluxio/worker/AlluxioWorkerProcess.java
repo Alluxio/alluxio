@@ -371,14 +371,14 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   }
 
   @Override
-  public void waitForReady() {
-    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
+  public boolean waitForReady(int timeoutMs) {
+    return CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         return mThriftServer.isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
             && mWebServer.getServer().isRunning();
       }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
+    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs).setThrowOnTimeout(false));
   }
 
   @Override
