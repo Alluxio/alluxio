@@ -253,14 +253,8 @@ public class CapacityCommand {
    * @return the info format for printing long/short work info
    */
   private String getInfoFormat(List<WorkerInfo> workerInfoList, boolean isShort) {
-    // order by worker name length desc
-    Collections.sort(workerInfoList, new Comparator<WorkerInfo>(){
-      @Override
-      public int compare(WorkerInfo worker1, WorkerInfo worker2) {
-        return len(worker2) - len(worker1);
-      }
-    });
-    int maxWokerNameLength = len(workerInfoList.get(0));
+    int maxWokerNameLength = workerInfoList.stream().map(w -> w.getAddress().getHost().length())
+        .max(Comparator.comparing(Integer::intValue)).get();
     int firstIndent = 16;
     if (firstIndent <= maxWokerNameLength) {
       // extend first indent according to the longest worker name
@@ -270,15 +264,6 @@ public class CapacityCommand {
       return "%-" + firstIndent + "s %-16s %-13s %s";
     }
     return "%-" + firstIndent + "s %-16s %-13s %-16s %s";
-  }
-
-  /**
-   * Gets the length of worker name.
-   * @param worker
-   * @return the length of the input worker name
-   */
-  private int len(WorkerInfo worker) {
-    return worker.getAddress().getHost().length();
   }
 
   /**
