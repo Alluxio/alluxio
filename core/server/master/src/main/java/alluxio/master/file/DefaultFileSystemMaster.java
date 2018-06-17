@@ -3116,7 +3116,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         break;
       default:
     }
-    setAclInternal(rpcContext, action, inodePath, entries, opTimeMs, options);
+    setAclInternal(rpcContext, action, inodePath, entries, false, opTimeMs, options);
     File.SetAclEntry setAcl = File.SetAclEntry.newBuilder()
         .setId(inodePath.getInode().getId())
         .setOpTimeMs(opTimeMs)
@@ -3135,17 +3135,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
       setAclInternal(RpcContext.NOOP, SetAclAction.fromProto(entry.getAction()), inodePath,
           entry.getEntriesList().stream().map(AclEntry::fromProto).collect(Collectors.toList()),
-          entry.getOpTimeMs(), options);
+          true, entry.getOpTimeMs(), options);
     }
   }
 
   private void setUfsAcl(RpcContext rpcContext, LockedInodePath inodePath)
       throws InvalidPathException, AccessControlException {
     Inode<?> inode = inodePath.getInodeOrNull();
-    // Only continue for persisted files
-    if (!inode.isPersisted()) {
-      return;
-    }
+
     checkUfsMode(inodePath.getUri(), OperationType.WRITE);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
     String ufsUri = resolution.getUri().toString();
@@ -3157,6 +3154,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } else {
         try {
           ufs.setAcl(ufsUri, inode.getACL());
+          if (inode.isDirectory()) {
+            InodeDirectory inodeDirectory = (InodeDirectory)inode;
+            ufs.setAcl(ufsUri, inodeDirectory.getDefaultACL());
+          }
           // TODO(david): set ufs's default ACL as well.
         } catch (IOException e) {
           throw new AccessControlException("Could not setAcl for UFS file" + ufsUri + ".");
@@ -3167,7 +3168,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   private void setAclInternal(RpcContext rpcContext, SetAclAction action, LockedInodePath inodePath,
-      List<AclEntry> entries, long opTimeMs, SetAclOptions options)
+      List<AclEntry> entries, boolean replay, long opTimeMs, SetAclOptions options)
       throws IOException, FileDoesNotExistException {
     Inode<?> targetInode = inodePath.getInode();
 
@@ -3193,7 +3194,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       default:
     }
     try {
-      setUfsAcl(rpcContext, inodePath);
+      if (!replay && targetInode.isPersisted()) {
+        setUfsAcl(rpcContext, inodePath);
+      }
     } catch (InvalidPathException | AccessControlException e) {
       LOG.warn("Setting ufs ACL failed for path: {}", inodePath.getUri(), e);
       // TODO(david): revert the acl and default acl to the initial state if writing to ufs failed.
