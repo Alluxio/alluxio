@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
+    <version>1.8.0-RC1</version>
   </parent>
   <artifactId>alluxio-core-protobuf</artifactId>
   <packaging>jar</packaging>
