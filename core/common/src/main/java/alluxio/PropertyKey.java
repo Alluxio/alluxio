@@ -23,6 +23,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
+import com.sun.management.UnixOperatingSystemMXBean;
 
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
@@ -1337,7 +1338,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MAX =
       new Builder(Name.MASTER_WORKER_THREADS_MAX)
-          .setDefaultValue(2048)
+          .setDefaultSupplier(() -> {
+            try {
+              java.lang.management.OperatingSystemMXBean os =
+                  ManagementFactory.getOperatingSystemMXBean();
+              if (os instanceof UnixOperatingSystemMXBean) {
+                return Math.min(32768, Math.max(2048,
+                    ((UnixOperatingSystemMXBean) os).getMaxFileDescriptorCount() / 3));
+              }
+            } catch (Exception e) {
+              // Set lower limit
+            }
+            return 2048;
+          }, "A third of the max file descriptors limit, if b/w 2048 and 32768")
           .setDescription("The maximum number of incoming RPC requests to master that can be "
               + "handled. This value is used to configure maximum number of threads in Thrift "
               + "thread pool with master.")
