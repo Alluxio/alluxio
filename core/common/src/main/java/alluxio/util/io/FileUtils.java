@@ -12,6 +12,8 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.exception.InvalidPathException;
 
 import org.slf4j.Logger;
@@ -246,7 +248,7 @@ public final class FileUtils {
    * Creates the storage directory path, including any necessary but nonexistent parent directories.
    * If the directory already exists, do nothing.
    *
-   * Also, appropriate directory permissions (777 + StickyBit, namely "drwxrwxrwt") are set.
+   * Also, appropriate directory permissions (w/ StickyBit) are set.
    *
    * @param path storage directory path to create
    * @return true if the directory is created and false if the directory already exists
@@ -262,7 +264,8 @@ public final class FileUtils {
       throw new IOException("Failed to create folder " + path, e);
     }
     String absolutePath = storagePath.toAbsolutePath().toString();
-    changeLocalFileToFullPermission(absolutePath);
+    String perms = Configuration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
+    changeLocalFilePermission(absolutePath, perms);
     setLocalDirStickyBit(absolutePath);
     return true;
   }

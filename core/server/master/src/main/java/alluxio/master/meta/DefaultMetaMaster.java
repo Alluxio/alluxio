@@ -297,9 +297,8 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   @Override
   public List<ConfigProperty> getConfiguration(GetConfigurationOptions options) {
     List<ConfigProperty> configInfoList = new ArrayList<>();
-    String alluxioConfPrefix = "alluxio";
     for (PropertyKey key : Configuration.keySet()) {
-      if (key.getName().startsWith(alluxioConfPrefix)) {
+      if (key.isBuiltIn()) {
         String source = Configuration.getSource(key).toString();
         String value = Configuration.getOrDefault(key, null,
             ConfigurationValueOptions.defaults().useDisplayValue(true)
@@ -446,19 +445,20 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   /**
-   * Periodic log config check report.
+   * Periodically log the config check report.
    */
   private final class LogConfigReportHeartbeatExecutor implements HeartbeatExecutor {
-
-    /**
-     * Constructs a new {@link LogConfigReportHeartbeatExecutor}.
-     */
-    public LogConfigReportHeartbeatExecutor() {
-    }
+    private volatile boolean mFirst = true;
 
     @Override
     public void heartbeat() {
-      mConfigChecker.logConfigReport();
+      // Skip the first heartbeat since it happens before servers have time to register their
+      // configurations.
+      if (mFirst) {
+        mFirst = false;
+      } else {
+        mConfigChecker.logConfigReport();
+      }
     }
 
     @Override

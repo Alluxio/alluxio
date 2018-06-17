@@ -259,9 +259,11 @@ public final class CommonUtils {
    *
    * @param description a description of what causes condition to evaluate to true
    * @param condition the condition to wait on
+   * @return whether the condition returned true; returns false e.g. if the thread was interrupted
+   *         or hit the timeout with options.isThrowOnTimeout() = false
    */
-  public static void waitFor(String description, Supplier<Boolean> condition) {
-    waitFor(description, input -> condition.get(), WaitForOptions.defaults());
+  public static boolean waitFor(String description, Supplier<Boolean> condition) {
+    return waitFor(description, input -> condition.get(), WaitForOptions.defaults());
   }
 
   /**
@@ -269,9 +271,11 @@ public final class CommonUtils {
    *
    * @param description a description of what causes condition to evaluate to true
    * @param condition the condition to wait on
+   * @return whether the condition returned true; returns false e.g. if the thread was interrupted
+   *         or hit the timeout with options.isThrowOnTimeout() = false
    */
-  public static void waitFor(String description, Function<Void, Boolean> condition) {
-    waitFor(description, condition, WaitForOptions.defaults());
+  public static boolean waitFor(String description, Function<Void, Boolean> condition) {
+    return waitFor(description, condition, WaitForOptions.defaults());
   }
 
   /**
@@ -280,8 +284,10 @@ public final class CommonUtils {
    * @param description a description of what causes condition to evaluate to true
    * @param condition the condition to wait on
    * @param options the options to use
+   * @return whether the condition returned true; returns false e.g. if the thread was interrupted
+   *         or hit the timeout with options.isThrowOnTimeout() = false
    */
-  public static void waitFor(String description, Function<Void, Boolean> condition,
+  public static boolean waitFor(String description, Function<Void, Boolean> condition,
       WaitForOptions options) {
     long start = System.currentTimeMillis();
     int interval = options.getInterval();
@@ -289,13 +295,19 @@ public final class CommonUtils {
     while (!condition.apply(null)) {
       if (Thread.interrupted()) {
         Thread.currentThread().interrupt();
-        return;
+        return false;
       }
       if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
-        throw new RuntimeException("Timed out waiting for " + description + " options: " + options);
+        if (options.isThrowOnTimeout()) {
+          throw new RuntimeException(
+              "Timed out waiting for " + description + " options: " + options);
+        } else {
+          return false;
+        }
       }
       CommonUtils.sleepMs(interval);
     }
+    return true;
   }
 
   /**
