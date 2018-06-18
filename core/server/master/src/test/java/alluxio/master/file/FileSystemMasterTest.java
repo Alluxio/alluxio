@@ -2198,6 +2198,14 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Tests ufs load with ACL.
+   */
+  @Test
+  public void loadMetadataWithACL() throws Exception {
+    FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
+  }
+
+  /**
    * Tests load root metadata. It should not fail.
    */
   @Test
