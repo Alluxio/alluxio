@@ -12,7 +12,6 @@
 package alluxio.wire;
 
 import alluxio.annotation.PublicApi;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
 
 import com.google.common.base.Objects;
 
@@ -41,19 +40,19 @@ public final class CommonOptions implements Serializable {
 //    mSyncIntervalMs = Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
   }
 
-  /**
-   * Creates a new instance of {@link CommonOptions} from {@link FileSystemMasterCommonPOptions}.
-   *
-   * @param options Thrift options
-   */
-  public CommonOptions(FileSystemMasterCommonPOptions options) {
-    this();
-    if (options != null) {
-      if (options.hasSyncIntervalMs()) {
-        mSyncIntervalMs = options.getSyncIntervalMs();
-      }
-    }
-  }
+//  /**
+//   * Creates a new instance of {@link CommonOptions} from {@link FileSystemMasterCommonPOptions}.
+//   *
+//   * @param options Thrift options
+//   */
+//  public CommonOptions(FileSystemMasterCommonPOptions options) {
+//    this();
+//    if (options != null) {
+//      if (options.hasSyncIntervalMs()) {
+//        mSyncIntervalMs = options.getSyncIntervalMs();
+//      }
+//    }
+//  }
 
   /**
    * Copies from {@link CommonOptions}.
@@ -107,12 +106,12 @@ public final class CommonOptions implements Serializable {
         .toString();
   }
 
-  /**
-   * @return proto representation of common options
-   */
-  public FileSystemMasterCommonPOptions toProto() {
-    return  FileSystemMasterCommonPOptions.newBuilder()
-        .setSyncIntervalMs(mSyncIntervalMs)
-        .build();
-  }
+//  /**
+//   * @return proto representation of common options
+//   */
+//  public FileSystemMasterCommonPOptions toProto() {
+//    return  FileSystemMasterCommonPOptions.newBuilder()
+//        .setSyncIntervalMs(mSyncIntervalMs)
+//        .build();
+//  }
 }

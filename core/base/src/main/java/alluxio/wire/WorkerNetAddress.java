@@ -43,25 +43,25 @@ public final class WorkerNetAddress implements Serializable {
    */
   public WorkerNetAddress() {}
 
-  /**
-   * Creates a new instance of {@link WorkerNetAddress} from thrift representation.
-   *
-   * @param workerNetAddress the thrift net address
-   */
-  protected WorkerNetAddress(alluxio.grpc.WorkerNetAddress workerNetAddress) {
-    mHost = workerNetAddress.getHost();
-    mRpcPort = workerNetAddress.getRpcPort();
-    mDataPort = workerNetAddress.getDataPort();
-    mWebPort = workerNetAddress.getWebPort();
-    mDomainSocketPath = workerNetAddress.getDomainSocketPath();
-    mTieredIdentity = TieredIdentity.fromProto(workerNetAddress.getTieredIdentity());
-    if (mTieredIdentity == null) {
-      // This means the worker is pre-1.7.0. We handle this in post-1.7.0 clients by filling out
-      // the tiered identity using the hostname field.
-      mTieredIdentity =
-          new TieredIdentity(Arrays.asList(new LocalityTier(Constants.LOCALITY_NODE, mHost)));
-    }
-  }
+//  /**
+//   * Creates a new instance of {@link WorkerNetAddress} from thrift representation.
+//   *
+//   * @param workerNetAddress the thrift net address
+//   */
+//  protected WorkerNetAddress(alluxio.grpc.WorkerNetAddress workerNetAddress) {
+//    mHost = workerNetAddress.getHost();
+//    mRpcPort = workerNetAddress.getRpcPort();
+//    mDataPort = workerNetAddress.getDataPort();
+//    mWebPort = workerNetAddress.getWebPort();
+//    mDomainSocketPath = workerNetAddress.getDomainSocketPath();
+//    mTieredIdentity = TieredIdentity.fromProto(workerNetAddress.getTieredIdentity());
+//    if (mTieredIdentity == null) {
+//      // This means the worker is pre-1.7.0. We handle this in post-1.7.0 clients by filling out
+//      // the tiered identity using the hostname field.
+//      mTieredIdentity =
+//          new TieredIdentity(Arrays.asList(new LocalityTier(Constants.LOCALITY_NODE, mHost)));
+//    }
+//  }
 
   /**
    * @return the host of the worker
@@ -163,19 +163,6 @@ public final class WorkerNetAddress implements Serializable {
     return this;
   }
 
-  /**
-   * @return a net address of thrift construct
-   */
-  protected alluxio.grpc.WorkerNetAddress toProto() {
-    alluxio.grpc.WorkerNetAddress.Builder address = alluxio.grpc.WorkerNetAddress.newBuilder()
-        .setHost(mHost).setRpcPort(mRpcPort).setDataPort(mDataPort).setWebPort(mWebPort)
-        .setDomainSocketPath(mDomainSocketPath);
-    if (mTieredIdentity != null) {
-      address.setTieredIdentity(mTieredIdentity.toProto());
-    }
-    return address.build();
-  }
-  
   @Override
   public boolean equals(Object o) {
     if (this == o) {

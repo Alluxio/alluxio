@@ -73,15 +73,6 @@ public final class TieredIdentity implements Serializable {
 //    return new TieredIdentity(tieredIdentity.getTiersList().stream().map(LocalityTier::fromProto)
 //        .collect(Collectors.toList()));
 //  }
-//
-//  /**
-//   * @return a Thrift representation
-//   */
-//  public alluxio.grpc.TieredIdentity toProto() {
-//    return alluxio.grpc.TieredIdentity.newBuilder()
-//        .addAllTiers(mTiers.stream().map(LocalityTier::toProto).collect(Collectors.toList()))
-//        .build();
-//  }
 
   /**
    * @param other a tiered identity to compare to
@@ -152,13 +143,6 @@ public final class TieredIdentity implements Serializable {
       return mValue;
     }
 
-//    /**
-//     * @return a Proto representation
-//     */
-//    public alluxio.grpc.LocalityTier toProto() {
-//      return alluxio.grpc.LocalityTier.newBuilder().setTierName(mTierName).setValue(mValue).build();
-//    }
-//
 //    /**
 //     * @param localityTier a Thrift locality tier
 //     * @return the corresponding wire type locality tier

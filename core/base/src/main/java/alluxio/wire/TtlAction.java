@@ -33,43 +33,4 @@ public enum TtlAction {
    */
   FREE;
 
-  /**
-   * Converts thrift type to wire type.
-   *
-   * @param tTtlAction {@link TTtlAction}
-   * @return {@link TtlAction} equivalent
-   */
-  public static TtlAction fromProto(alluxio.grpc.TtlAction tTtlAction) {
-    if (tTtlAction == null) {
-      return TtlAction.DELETE;
-    }
-    switch (tTtlAction) {
-      case TtlAction.DELETE:
-        return TtlAction.DELETE;
-      case TtlAction.FREE:
-        return TtlAction.FREE;
-      default:
-        throw new IllegalStateException("Unrecognized thrift ttl action: " + tTtlAction);
-    }
-  }
-
-  /**
-   * Converts wire type to thrift type.
-   *
-   * @param ttlAction {@link TtlAction}
-   * @return {@link TTtlAction} equivalent
-   */
-  public static alluxio.grpc.TtlAction toProto(TtlAction ttlAction) {
-    if (ttlAction == null) {
-      return alluxio.grpc.TtlAction.DELETE;
-    }
-    switch (ttlAction) {
-      case DELETE:
-        return alluxio.grpc.TtlAction.DELETE;
-      case FREE:
-        return alluxio.grpc.TtlAction.FREE;
-      default:
-        throw new IllegalStateException("Unrecognized ttl action: " + ttlAction);
-    }
-  }
 }

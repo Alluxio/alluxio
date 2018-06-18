@@ -108,24 +108,6 @@ public final class FileBlockInfo implements Serializable {
     return this;
   }
 
-//  /**
-//   * @return proto representation of the file block information
-//   */
-//  protected alluxio.grpc.FileBlockInfo toProto() {
-//    List<alluxio.grpc.WorkerNetAddress> ufsLocations = new ArrayList<>();
-//    for (String ufsLocation : mUfsLocations) {
-//      HostAndPort address = HostAndPort.fromString(ufsLocation);
-//      ufsLocations.add(alluxio.grpc.WorkerNetAddress.newBuilder().setHost(address.getHostText())
-//          .setDataPort(address.getPortOrDefault(-1)).build());
-//    }
-//    return alluxio.grpc.FileBlockInfo.newBuilder()
-//        .setBlockInfo(mBlockInfo.toProto())
-//        .setOffset(mOffset)
-//        .addAllUfsLocations(ufsLocations)
-//        .addAllUfsStringLocations(mUfsLocations)
-//        .build();
-//  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {

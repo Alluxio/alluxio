@@ -15,6 +15,7 @@ import com.google.common.net.HostAndPort;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -65,6 +66,7 @@ public final class ProtoUtils {
 //    if (filePInfo.hasUfsFingerprint()) {
 //      mUfsFingerprint = filePInfo.getUfsFingerprint();
 //    }
+    return fileInfo;
   }
 
   /**
@@ -74,7 +76,17 @@ public final class ProtoUtils {
    * @return {@link TtlAction} equivalent
    */
   public static TtlAction fromProto(alluxio.grpc.TtlAction tTtlAction) {
-    return TtlAction.fromProto(tTtlAction);
+    if (tTtlAction == null) {
+      return TtlAction.DELETE;
+    }
+    switch (tTtlAction) {
+      case DELETE:
+        return TtlAction.DELETE;
+      case FREE:
+        return TtlAction.FREE;
+      default:
+        throw new IllegalStateException("Unrecognized thrift ttl action: " + tTtlAction);
+    }
   }
 
   /**
@@ -88,8 +100,7 @@ public final class ProtoUtils {
     for (FileBlockInfo fileBlockInfo : fileInfo.getFileBlockInfos()) {
       fileBlockInfos.add(toProto(fileBlockInfo));
     }
-    return
-        alluxio.grpc.FileInfo.newBuilder()
+    return alluxio.grpc.FileInfo.newBuilder()
             .setFileId(fileInfo.getFileId())
             .setName(fileInfo.getName())
             .setPath(fileInfo.getPath())
@@ -126,7 +137,17 @@ public final class ProtoUtils {
    * @return {@link TTtlAction} equivalent
    */
   public static alluxio.grpc.TtlAction toProto(TtlAction ttlAction) {
-    return TtlAction.toProto(ttlAction);
+    if (ttlAction == null) {
+      return alluxio.grpc.TtlAction.DELETE;
+    }
+    switch (ttlAction) {
+      case DELETE:
+        return alluxio.grpc.TtlAction.DELETE;
+      case FREE:
+        return alluxio.grpc.TtlAction.FREE;
+      default:
+        throw new IllegalStateException("Unrecognized ttl action: " + ttlAction);
+    }
   }
 
   /**
@@ -148,6 +169,81 @@ public final class ProtoUtils {
         .addAllUfsLocations(ufsLocations)
         .addAllUfsStringLocations(fileBlockInfo.getUfsLocations())
         .build();
+  }
+
+   /**
+   * Converts wire type to thrift type.
+   *
+   * @param ttlAction {@link TtlAction}
+   * @return {@link TTtlAction} equivalent
+   */
+  public static alluxio.grpc.BlockInfo toProto(BlockInfo blockInfo) {
+      List<alluxio.grpc.BlockLocation> locations = new ArrayList<>();
+    for (BlockLocation location : blockInfo.getLocations()) {
+      locations.add(toProto(location));
+    }
+    return alluxio.grpc.BlockInfo.newBuilder().setBlockId(blockInfo.getBlockId()).setLength(blockInfo.getLength())
+        .addAllLocations(locations).build();
+  }
+
+  /**
+   * Converts wire type to thrift type.
+   *
+   * @param ttlAction {@link TtlAction}
+   * @return {@link TTtlAction} equivalent
+   */
+  public static alluxio.grpc.BlockLocation toProto(BlockLocation blockLocation) {
+    return alluxio.grpc.BlockLocation.newBuilder()
+        .setWorkerId(blockLocation.getWorkerId())
+        .setWorkerAddress(toProto(blockLocation.getWorkerAddress()))
+        .setTierAlias(blockLocation.getTierAlias())
+        .build();
+  }
+  
+  /**
+   * Converts wire type to thrift type.
+   *
+   * @param ttlAction {@link TtlAction}
+   * @return {@link TTtlAction} equivalent
+   */
+  public static alluxio.grpc.WorkerNetAddress toProto(WorkerNetAddress workerNetAddress) {
+    alluxio.grpc.WorkerNetAddress.Builder address =
+        alluxio.grpc.WorkerNetAddress.newBuilder()
+            .setHost(workerNetAddress.getHost())
+            .setRpcPort(workerNetAddress.getRpcPort())
+            .setDataPort(workerNetAddress.getDataPort())
+            .setWebPort(workerNetAddress.getWebPort())
+            .setDomainSocketPath(workerNetAddress.getDomainSocketPath());
+    if (workerNetAddress.getTieredIdentity() != null) {
+      address.setTieredIdentity(toProto(workerNetAddress.getTieredIdentity()));
+    }
+    return address.build();
+  }
+
+  /**
+   * Converts wire type to thrift type.
+   *
+   * @param ttlAction {@link TtlAction}
+   * @return {@link TTtlAction} equivalent
+   */
+  public static alluxio.grpc.TieredIdentity toProto(TieredIdentity tieredIdentity) {
+    return alluxio.grpc.TieredIdentity.newBuilder()
+        .addAllTiers(tieredIdentity.getTiers().stream().map(ProtoUtils::toProto)
+            .collect(Collectors.toList()))
+        .build();
+  }
+
+  /**
+   * Converts wire type to thrift type.
+   *
+   * @param ttlAction {@link TtlAction}
+   * @return {@link TTtlAction} equivalent
+   */
+  public static alluxio.grpc.LocalityTier toProto(TieredIdentity.LocalityTier localityTier) {
+      return alluxio.grpc.LocalityTier.newBuilder()
+          .setTierName(localityTier.getTierName())
+          .setValue(localityTier.getValue())
+          .build();
   }
 }
 

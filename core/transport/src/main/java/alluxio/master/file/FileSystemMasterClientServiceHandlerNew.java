@@ -12,7 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
-import alluxio.RpcUtilsNew;
+import alluxio.util.RpcUtilsNew;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.FileSystemMasterServiceGrpc;
 import alluxio.grpc.GetStatusPOptions;
