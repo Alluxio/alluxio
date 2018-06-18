@@ -14,6 +14,7 @@ package alluxio.client.file.options;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -37,7 +38,7 @@ public final class GetStatusOptions extends alluxio.file.options.GetStatusOption
 
   private GetStatusOptions() {
     super();
-//    mCommonOptions = CommonOptions.defaults();
+    mCommonOptions = CommonOptions.defaults();
     mLoadMetadataType =
         Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class);
   }
