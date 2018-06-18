@@ -11,7 +11,7 @@
 
 package alluxio.wire;
 
-import alluxio.file.FileSystemMasterOptionsService;
+import alluxio.file.FileSystemMasterOptions;
 
 import com.google.common.base.Objects;
 
@@ -35,9 +35,9 @@ public class CommonOptions implements Serializable {
 
   protected CommonOptions() {}
 
-  public CommonOptions(FileSystemMasterOptionsService optionsService) {
+  public CommonOptions(FileSystemMasterOptions masterOptions) {
     this();
-    optionsService.setDefaults(new CommonOptions());
+    masterOptions.setDefaults(new CommonOptions());
   }
 
   /**

@@ -36,7 +36,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.file.FileSystemMasterOptionsService;
+import alluxio.file.FileSystemMasterOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
@@ -183,10 +183,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
-  private static final FileSystemMasterOptionsService OPTIONS_SERVICE = new DefaultFileSystemMasterOptions();
+  private static final FileSystemMasterOptions OPTIONS_SERVICE = new DefaultFileSystemMasterOptions();
 
   @Override
-  public FileSystemMasterOptionsService optionsService() {
+  public FileSystemMasterOptions optionsService() {
     return OPTIONS_SERVICE;
   }
 

@@ -13,14 +13,14 @@ package alluxio.master.file;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.file.FileSystemMasterOptionsService;
+import alluxio.file.FileSystemMasterOptions;
 import alluxio.wire.CommonOptions;
 import alluxio.file.options.GetStatusOptions;
 
 /**
  * The file system class to set default options.
  */
-public final class DefaultFileSystemMasterOptions implements FileSystemMasterOptionsService {
+public final class DefaultFileSystemMasterOptions implements FileSystemMasterOptions {
 
   public void setDefaults(CommonOptions options) {
     if (options != null) {

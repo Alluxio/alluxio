@@ -11,7 +11,7 @@
 
 package alluxio.util.grpc;
 
-import alluxio.file.FileSystemMasterOptionsService;
+import alluxio.file.FileSystemMasterOptions;
 import alluxio.wire.CommonOptions;
 import alluxio.file.options.GetStatusOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -247,11 +247,11 @@ public final class GrpcUtils {
   /**
    * Converts from proto type to options.
    */
-  public static GetStatusOptions fromProto(FileSystemMasterOptionsService service, GetStatusPOptions options) {
-    GetStatusOptions defaults = new GetStatusOptions(service);
+  public static GetStatusOptions fromProto(FileSystemMasterOptions masterOptions, GetStatusPOptions options) {
+    GetStatusOptions defaults = new GetStatusOptions(masterOptions);
     if (options != null) {
       if (options.hasCommonOptions()) {
-        defaults.setCommonOptions(fromProto(service, options.getCommonOptions()));
+        defaults.setCommonOptions(fromProto(masterOptions, options.getCommonOptions()));
       }
       if (options.hasLoadMetadataType()) {
         defaults.setLoadMetadataType(fromProto(options.getLoadMetadataType()));
@@ -273,7 +273,7 @@ public final class GrpcUtils {
   /**
    * Converts from proto type to options.
    */
-  public static CommonOptions fromProto(FileSystemMasterOptionsService service,
+  public static CommonOptions fromProto(FileSystemMasterOptions service,
       FileSystemMasterCommonPOptions options) {
     CommonOptions defaults = new CommonOptions(service);
     if (options != null) {

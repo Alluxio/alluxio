@@ -12,7 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
-import alluxio.file.FileSystemMasterOptionsService;
+import alluxio.file.FileSystemMasterOptions;
 import alluxio.util.RpcUtilsNew;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.FileSystemMasterServiceGrpc;
@@ -37,7 +37,7 @@ public final class FileSystemMasterClientServiceHandlerNew
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandlerNew.class);
   private final FileSystemMasterService mFileSystemMaster;
-  private final FileSystemMasterOptionsService mOptionsService;
+  private final FileSystemMasterOptions mOptionsService;
 
   /**
    * Creates a new instance of {@link FileSystemMasterClientServiceHandlerNew}.

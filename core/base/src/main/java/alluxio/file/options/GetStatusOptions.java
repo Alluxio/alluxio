@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
-import alluxio.file.FileSystemMasterOptionsService;
+import alluxio.file.FileSystemMasterOptions;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
@@ -34,10 +34,10 @@ public class GetStatusOptions {
     mLoadMetadataType = LoadMetadataType.Once;
   }
 
-  public GetStatusOptions(FileSystemMasterOptionsService optionsService) {
+  public GetStatusOptions(FileSystemMasterOptions masterOptions) {
     this();
-    mCommonOptions = new CommonOptions(optionsService);
-    optionsService.setDefaults(this);
+    mCommonOptions = new CommonOptions(masterOptions);
+    masterOptions.setDefaults(this);
   }
 
   /**

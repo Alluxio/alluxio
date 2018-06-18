@@ -17,7 +17,7 @@ import alluxio.wire.CommonOptions;
 /**
  * The interface of file system master service option conversion.
  */
-public interface FileSystemMasterOptionsService {
+public interface FileSystemMasterOptions {
   void setDefaults(CommonOptions options);
 
   void setDefaults(GetStatusOptions options);
