@@ -39,7 +39,7 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
-import alluxio.service.file.options.GetStatusOptions;
+import alluxio.file.options.GetStatusOptions;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.UfsInfo;
 import alluxio.underfs.UnderFileSystem;

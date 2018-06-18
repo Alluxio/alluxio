@@ -14,7 +14,7 @@ package alluxio.client.file.options;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
-import alluxio.service.file.options.GetStatusOptions;
+import alluxio.file.options.GetStatusOptions;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 

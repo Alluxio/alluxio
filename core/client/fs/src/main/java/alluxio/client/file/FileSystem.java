@@ -34,7 +34,7 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.service.file.options.GetStatusOptions;
+import alluxio.file.options.GetStatusOptions;
 import alluxio.wire.MountPointInfo;
 
 import org.slf4j.Logger;

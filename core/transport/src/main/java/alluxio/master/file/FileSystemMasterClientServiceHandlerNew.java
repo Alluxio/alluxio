@@ -12,13 +12,14 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.file.FileSystemMasterOptionsService;
+import alluxio.file.options.GetStatusOptions;
 import alluxio.util.RpcUtilsNew;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.FileSystemMasterServiceGrpc;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPResponse;
-import alluxio.service.file.FileSystemMasterService;
-import alluxio.service.file.options.GetStatusOptions;
+import alluxio.file.FileSystemMasterService;
 import alluxio.util.grpc.GrpcUtils;
 
 import io.grpc.stub.StreamObserver;
@@ -37,6 +38,7 @@ public final class FileSystemMasterClientServiceHandlerNew
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandlerNew.class);
   private final FileSystemMasterService mFileSystemMaster;
+  private final FileSystemMasterOptionsService mOptionsService;
 
   /**
    * Creates a new instance of {@link FileSystemMasterClientServiceHandlerNew}.
@@ -46,6 +48,7 @@ public final class FileSystemMasterClientServiceHandlerNew
   public FileSystemMasterClientServiceHandlerNew(FileSystemMasterService fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
+    mOptionsService = fileSystemMaster.optionsService();
   }
 
   @Override
@@ -56,9 +59,9 @@ public final class FileSystemMasterClientServiceHandlerNew
    RpcUtilsNew.call(LOG, new RpcUtilsNew.RpcCallableThrowsIOException<GetStatusPResponse>() {
       @Override
       public GetStatusPResponse call() throws AlluxioException, IOException {
-        return GetStatusPResponse.newBuilder()
-            .setFileInfo(GrpcUtils.toProto(
-                mFileSystemMaster.getFileInfo(new AlluxioURI(path), new GetStatusOptions(options))))
+        return GetStatusPResponse
+            .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster
+                .getFileInfo(new AlluxioURI(path), GrpcUtils.fromProto(mOptionsService, options))))
             .build();
       }
 

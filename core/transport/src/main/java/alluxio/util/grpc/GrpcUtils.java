@@ -11,10 +11,17 @@
 
 package alluxio.util.grpc;
 
+import alluxio.file.FileSystemMasterOptionsService;
+import alluxio.file.options.CommonOptions;
+import alluxio.file.options.GetStatusOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerNetAddress;
@@ -25,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -78,7 +86,7 @@ public final class GrpcUtils {
   }
 
   /**
-   * Converts thrift type to wire type.
+   * Converts proto type to wire type.
    *
    * @param tTtlAction {@link TTtlAction}
    * @return {@link TtlAction} equivalent
@@ -93,7 +101,7 @@ public final class GrpcUtils {
       case FREE:
         return TtlAction.FREE;
       default:
-        throw new IllegalStateException("Unrecognized thrift ttl action: " + tTtlAction);
+        throw new IllegalStateException("Unrecognized proto ttl action: " + tTtlAction);
     }
   }
 
@@ -139,7 +147,7 @@ public final class GrpcUtils {
   }
 
   /**
-   * Converts wire type to thrift type.
+   * Converts wire type to proto type.
    *
    * @param ttlAction {@link TtlAction}
    * @return {@link TTtlAction} equivalent
@@ -159,10 +167,7 @@ public final class GrpcUtils {
   }
 
   /**
-   * Converts wire type to thrift type.
-   *
-   * @param ttlAction {@link TtlAction}
-   * @return {@link TTtlAction} equivalent
+   * Converts wire type to proto type.
    */
   public static alluxio.grpc.FileBlockInfo toProto(FileBlockInfo fileBlockInfo) {
     List<alluxio.grpc.WorkerNetAddress> ufsLocations = new ArrayList<>();
@@ -180,10 +185,7 @@ public final class GrpcUtils {
   }
 
    /**
-   * Converts wire type to thrift type.
-   *
-   * @param ttlAction {@link TtlAction}
-   * @return {@link TTtlAction} equivalent
+   * Converts wire type to proto type.
    */
   public static alluxio.grpc.BlockInfo toProto(BlockInfo blockInfo) {
       List<alluxio.grpc.BlockLocation> locations = new ArrayList<>();
@@ -195,10 +197,7 @@ public final class GrpcUtils {
   }
 
   /**
-   * Converts wire type to thrift type.
-   *
-   * @param ttlAction {@link TtlAction}
-   * @return {@link TTtlAction} equivalent
+   * Converts wire type to proto type.
    */
   public static alluxio.grpc.BlockLocation toProto(BlockLocation blockLocation) {
     return alluxio.grpc.BlockLocation.newBuilder()
@@ -209,10 +208,7 @@ public final class GrpcUtils {
   }
   
   /**
-   * Converts wire type to thrift type.
-   *
-   * @param ttlAction {@link TtlAction}
-   * @return {@link TTtlAction} equivalent
+   * Converts wire type to proto type.
    */
   public static alluxio.grpc.WorkerNetAddress toProto(WorkerNetAddress workerNetAddress) {
     alluxio.grpc.WorkerNetAddress.Builder address =
@@ -229,10 +225,7 @@ public final class GrpcUtils {
   }
 
   /**
-   * Converts wire type to thrift type.
-   *
-   * @param ttlAction {@link TtlAction}
-   * @return {@link TTtlAction} equivalent
+   * Converts wire type to proto type.
    */
   public static alluxio.grpc.TieredIdentity toProto(TieredIdentity tieredIdentity) {
     return alluxio.grpc.TieredIdentity.newBuilder()
@@ -242,10 +235,7 @@ public final class GrpcUtils {
   }
 
   /**
-   * Converts wire type to thrift type.
-   *
-   * @param ttlAction {@link TtlAction}
-   * @return {@link TTtlAction} equivalent
+   * Converts wire type to proto type.
    */
   public static alluxio.grpc.LocalityTier toProto(TieredIdentity.LocalityTier localityTier) {
       return alluxio.grpc.LocalityTier.newBuilder()
@@ -253,5 +243,85 @@ public final class GrpcUtils {
           .setValue(localityTier.getValue())
           .build();
   }
+
+  /**
+   * Converts from proto type to options.
+   */
+  public static GetStatusOptions fromProto(FileSystemMasterOptionsService service, GetStatusPOptions options) {
+    GetStatusOptions defaults = new GetStatusOptions(service);
+    if (options != null) {
+      if (options.hasCommonOptions()) {
+        defaults.setCommonOptions(fromProto(service, options.getCommonOptions()));
+      }
+      if (options.hasLoadMetadataType()) {
+        defaults.setLoadMetadataType(fromProto(options.getLoadMetadataType()));
+      }
+    }
+    return defaults;
+  }
+
+  /**
+   * Converts options to proto type.
+   */
+  public static GetStatusPOptions toProto(GetStatusOptions options) {
+    return GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(toProto(options.getLoadMetadataType()))
+        .setCommonOptions(toProto(options.getCommonOptions()))
+        .build();
+  }
+
+  /**
+   * Converts from proto type to options.
+   */
+  public static CommonOptions fromProto(FileSystemMasterOptionsService service,
+      FileSystemMasterCommonPOptions options) {
+    CommonOptions defaults = new CommonOptions(service);
+    if (options != null) {
+      if (options.hasSyncIntervalMs()) {
+        defaults.setSyncIntervalMs(options.getSyncIntervalMs());
+      }
+    }
+    return defaults;
+  }
+
+  /**
+   * Converts options to proto type.
+   */
+  public static FileSystemMasterCommonPOptions toProto(CommonOptions options) {
+    return FileSystemMasterCommonPOptions.newBuilder()
+        .setSyncIntervalMs(options.getSyncIntervalMs())
+        .build();
+  }
+
+  /**
+   * Converts from proto type to options.
+   *
+   * @param loadMetadataTType the proto representation of loadMetadataType
+   * @return the {@link LoadMetadataType}
+   */
+  @Nullable
+  public static LoadMetadataType fromProto(LoadMetadataPType loadMetadataPType) {
+    switch (loadMetadataPType) {
+      case NEVER:
+        return LoadMetadataType.Never;
+      case ONCE:
+        return LoadMetadataType.Once;
+      case ALWAYS:
+        return LoadMetadataType.Always;
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Converts options to proto type.
+   *
+   * @param loadMetadataType the {@link LoadMetadataType}
+   * @return the proto representation of this enum
+   */
+  public static LoadMetadataPType toProto(LoadMetadataType loadMetadataType) {
+    return LoadMetadataPType.forNumber(loadMetadataType.getValue());
+  }
+
 }
 

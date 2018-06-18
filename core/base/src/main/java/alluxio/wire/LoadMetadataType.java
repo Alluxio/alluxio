@@ -48,29 +48,4 @@ public enum LoadMetadataType {
     return mValue;
   }
 
-//  /**
-//   * @param loadMetadataType the {@link LoadMetadataType}
-//   * @return the proto representation of this enum
-//   */
-//  public static LoadMetadataPType toProto(LoadMetadataType loadMetadataType) {
-//    return LoadMetadataPType.forNumber(loadMetadataType.getValue());
-//  }
-//
-//  /**
-//   * @param loadMetadataTType the proto representation of loadMetadataType
-//   * @return the {@link LoadMetadataType}
-//   */
-//  @Nullable
-//  public static LoadMetadataType fromProto(LoadMetadataPType loadMetadataTType) {
-//    switch (loadMetadataTType) {
-//      case LoadMetadataPType.NEVER:
-//        return Never;
-//      case LoadMetadataPType.ONCE:
-//        return Once;
-//      case LoadMetadataPType.ALWAYS:
-//        return Always;
-//      default:
-//        return null;
-//    }
-//  }
 }

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.service.file.options;
+package alluxio.file.options;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -17,48 +17,27 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
-import alluxio.annotation.PublicApi;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.FileSystemMasterOptionsService;
 import alluxio.wire.LoadMetadataType;
 
 /**
  * Method options for getting the status of a path.
  */
-@PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
 public class GetStatusOptions {
   protected CommonOptions mCommonOptions;
   protected LoadMetadataType mLoadMetadataType;
 
-  /**
-   * @return the default {@link GetStatusOptions}
-   */
-  public static GetStatusOptions defaults() {
-    return new GetStatusOptions();
-  }
-
   protected GetStatusOptions() {
-    mCommonOptions = CommonOptions.defaults();
     mLoadMetadataType = LoadMetadataType.Once;
   }
 
-  /**
-   * Create an instance of {@link GetStatusOptions} from a {@link GetStatusPOptions}.
-   *
-   * @param options the thrift representation of getFileInfo options
-   */
-  public GetStatusOptions(GetStatusPOptions options) {
+  public GetStatusOptions(FileSystemMasterOptionsService optionsService) {
     this();
-    if (options != null) {
-      if (options.hasCommonOptions()) {
-        mCommonOptions = new CommonOptions(options.getCommonOptions());
-      }
-      if (options.hasLoadMetadataType()) {
-        mLoadMetadataType = LoadMetadataType.fromProto(options.getLoadMetadataType());
-      }
-    }
+
+    mCommonOptions = new CommonOptions(optionsService);
+    optionsService.setDefaults(this);
   }
 
   /**
@@ -117,15 +96,5 @@ public class GetStatusOptions {
         .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
-  }
-
-  /**
-   * @return thrift representation of the options
-   */
-  public GetStatusPOptions toProto() {
-    return GetStatusPOptions.newBuilder()
-        .setLoadMetadataType(LoadMetadataType.toProto(mLoadMetadataType))
-        .setCommonOptions(mCommonOptions.toProto())
-        .build();
   }
 }

@@ -29,7 +29,7 @@ import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.master.MasterClientConfig;
-import alluxio.service.file.options.GetStatusOptions;
+import alluxio.file.options.GetStatusOptions;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.GetMountTableTResponse;

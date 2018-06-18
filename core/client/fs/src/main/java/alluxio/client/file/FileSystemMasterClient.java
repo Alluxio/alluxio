@@ -29,7 +29,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.master.MasterClientConfig;
-import alluxio.service.file.options.GetStatusOptions;
+import alluxio.file.options.GetStatusOptions;
 import alluxio.wire.MountPointInfo;
 
 import java.util.List;

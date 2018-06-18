@@ -39,7 +39,7 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.service.file.options.GetStatusOptions;
+import alluxio.file.options.GetStatusOptions;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;

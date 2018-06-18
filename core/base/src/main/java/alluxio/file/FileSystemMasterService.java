@@ -9,14 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.service.file;
+package alluxio.file;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.service.file.options.GetStatusOptions;
+import alluxio.file.options.GetStatusOptions;
 import alluxio.wire.FileInfo;
 
 import java.io.IOException;
@@ -25,7 +25,10 @@ import java.io.IOException;
  * The interface of file system master service.
  */
 public interface FileSystemMasterService {
-    /**
+  // Server side defaults
+  FileSystemMasterOptionsService optionsService();
+
+  /**
    * Returns the {@link FileInfo} for a given path.
    * <p>
    * This operation requires users to have READ permission on the path.
