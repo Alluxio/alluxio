@@ -825,7 +825,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (!inodePath.fullPathExists()) {
         checkLoadMetadataOptions(options.getLoadMetadataType(), inodePath.getUri());
         loadMetadataIfNotExistAndJournal(rpcContext, inodePath,
-            LoadMetadataOptions.defaults().setCreateAncestors(true));
+            LoadMetadataOptions.defaults().setCreateAncestors(true)
+                .setTtl(options.getCommonOptions().getTtl())
+                .setTtlAction(options.getCommonOptions().getTtlAction()));
         ensureFullPathAndUpdateCache(inodePath);
       }
       FileInfo fileInfo = getFileInfoInternal(inodePath);
@@ -913,7 +915,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // load metadata for 1 level of descendants, or all descendants if recursive
       LoadMetadataOptions loadMetadataOptions =
           LoadMetadataOptions.defaults().setCreateAncestors(true)
-              .setLoadDescendantType(loadDescendantType);
+              .setLoadDescendantType(loadDescendantType)
+              .setTtl(listStatusOptions.getCommonOptions().getTtl())
+              .setTtlAction(listStatusOptions.getCommonOptions().getTtlAction());
       Inode<?> inode;
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
@@ -2691,7 +2695,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // Metadata loaded from UFS has no TTL set.
     CreateFileOptions createFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
-            .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
+            .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true)
+            .setTtl(options.getTtl()).setTtlAction(options.getTtlAction());
     String ufsOwner = ufsStatus.getOwner();
     String ufsGroup = ufsStatus.getGroup();
     short ufsMode = ufsStatus.getMode();
@@ -2742,7 +2747,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
-
   private void loadDirectoryMetadataAndJournal(RpcContext rpcContext, LockedInodePath inodePath,
       LoadMetadataOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
@@ -2753,7 +2757,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     CreateDirectoryOptions createDirectoryOptions = CreateDirectoryOptions.defaults()
         .setMountPoint(mMountTable.isMountPoint(inodePath.getUri())).setPersisted(true)
-        .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true);
+        .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true)
+        .setTtl(options.getTtl()).setTtlAction(options.getTtlAction());
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
     UfsStatus ufsStatus = options.getUfsStatus();
     if (ufsStatus == null) {
