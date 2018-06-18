@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.CompleteFileTOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -50,7 +50,7 @@ public final class CompleteFileOptions {
   }
 
   private CompleteFileOptions() {
-    mCommonOptions = CommonOptions.defaults();
+//    mCommonOptions = CommonOptions.defaults();
     mUfsLength = 0;
     mOperationTimeMs = System.currentTimeMillis();
   }

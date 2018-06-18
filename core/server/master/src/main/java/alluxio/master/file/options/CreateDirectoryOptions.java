@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.util.SecurityUtils;
-import alluxio.wire.CommonOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 

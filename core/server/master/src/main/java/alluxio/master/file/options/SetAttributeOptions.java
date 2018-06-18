@@ -13,7 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.Constants;
 import alluxio.thrift.SetAttributeTOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
@@ -70,7 +70,7 @@ public final class SetAttributeOptions {
 
   private SetAttributeOptions() {
     super();
-    mCommonOptions = CommonOptions.defaults();
+//    mCommonOptions = CommonOptions.defaults();
     mPinned = null;
     mTtl = null;
     mTtlAction = TtlAction.DELETE;

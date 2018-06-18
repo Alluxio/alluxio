@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.RenameTOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -35,7 +35,7 @@ public final class RenameOptions {
 
   private RenameOptions() {
     super();
-    mCommonOptions = CommonOptions.defaults();
+//    mCommonOptions = CommonOptions.defaults();
     mOperationTimeMs = System.currentTimeMillis();
   }
 

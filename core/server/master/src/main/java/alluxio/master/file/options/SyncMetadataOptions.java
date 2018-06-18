@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.SyncMetadataTOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -60,7 +60,7 @@ public final class SyncMetadataOptions {
 
   private SyncMetadataOptions() {
     super();
-    mCommonOptions = CommonOptions.defaults();
+//    mCommonOptions = CommonOptions.defaults();
   }
 
   /**

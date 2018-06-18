@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.FreeTOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -36,7 +36,7 @@ public final class FreeOptions {
 
   private FreeOptions() {
     super();
-    mCommonOptions = CommonOptions.defaults();
+//    mCommonOptions = CommonOptions.defaults();
     mForced = false;
     mRecursive = false;
   }

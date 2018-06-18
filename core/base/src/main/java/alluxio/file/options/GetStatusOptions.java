@@ -35,7 +35,6 @@ public class GetStatusOptions {
 
   public GetStatusOptions(FileSystemMasterOptionsService optionsService) {
     this();
-
     mCommonOptions = new CommonOptions(optionsService);
     optionsService.setDefaults(this);
   }

@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.DeleteTOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -52,7 +52,7 @@ public final class DeleteOptions {
 
   private DeleteOptions() {
     super();
-    mCommonOptions = CommonOptions.defaults();
+//    mCommonOptions = CommonOptions.defaults();
     mRecursive = false;
     mAlluxioOnly = false;
     mUnchecked = false;

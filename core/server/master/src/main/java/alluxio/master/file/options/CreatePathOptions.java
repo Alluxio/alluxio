@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.security.authorization.Mode;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -37,7 +37,7 @@ public abstract class CreatePathOptions<T> {
   protected boolean mMetadataLoad;
 
   protected CreatePathOptions() {
-    mCommonOptions = CommonOptions.defaults();
+//    mCommonOptions = CommonOptions.defaults();
     mMountPoint = false;
     mOperationTimeMs = System.currentTimeMillis();
     mOwner = "";

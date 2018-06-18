@@ -13,7 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.proto.journal.File;
 import alluxio.thrift.MountTOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -42,7 +42,7 @@ public final class MountOptions {
 
   private MountOptions() {
     super();
-    mCommonOptions = CommonOptions.defaults();
+//    mCommonOptions = CommonOptions.defaults();
     mReadOnly = false;
     mProperties = new HashMap<>();
     mShared = false;

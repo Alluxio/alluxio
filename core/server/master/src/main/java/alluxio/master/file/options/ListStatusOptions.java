@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.ListStatusTOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Objects;
@@ -36,7 +36,7 @@ public final class ListStatusOptions {
 
   private ListStatusOptions() {
     super();
-    mCommonOptions = CommonOptions.defaults();
+//    mCommonOptions = CommonOptions.defaults();
     mLoadMetadataType = LoadMetadataType.Once;
   }
 

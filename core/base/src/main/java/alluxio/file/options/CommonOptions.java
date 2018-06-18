@@ -32,7 +32,6 @@ public final class CommonOptions implements Serializable {
 
   public CommonOptions(FileSystemMasterOptionsService optionsService) {
     this();
-
     optionsService.setDefaults(new CommonOptions());
   }
 

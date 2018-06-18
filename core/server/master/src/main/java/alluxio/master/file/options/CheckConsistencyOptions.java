@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.CheckConsistencyTOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -33,7 +33,7 @@ public final class CheckConsistencyOptions {
   }
 
   private CheckConsistencyOptions() {
-    mCommonOptions = CommonOptions.defaults();
+//    mCommonOptions = CommonOptions.defaults();
   }
 
   /**

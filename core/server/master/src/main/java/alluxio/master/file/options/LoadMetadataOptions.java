@@ -13,7 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.underfs.UfsStatus;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -39,7 +39,7 @@ public final class LoadMetadataOptions {
 
   private LoadMetadataOptions() {
     super();
-    mCommonOptions = CommonOptions.defaults();
+//    mCommonOptions = CommonOptions.defaults();
     mCreateAncestors = false;
     mUfsStatus = null;
     mLoadDescendantType = DescendantType.NONE;

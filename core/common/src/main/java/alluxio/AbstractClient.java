@@ -29,7 +29,6 @@ import alluxio.util.grpc.GrpcChannel;
 import alluxio.util.grpc.GrpcChannelBuilder;
 
 import com.google.common.base.Preconditions;
-import io.grpc.internal.DnsNameResolverProvider;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
