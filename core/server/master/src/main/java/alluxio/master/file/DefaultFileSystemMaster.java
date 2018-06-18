@@ -146,6 +146,7 @@ import com.google.common.io.Closer;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TProcessor;
+import org.omg.CORBA.DynAnyPackage.Invalid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -994,10 +995,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           ? DescendantType.ALL : DescendantType.NONE;
       for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
         // TODO(david): Make extending InodePath more efficient
-        try (LockedInodePath childInodePath = mInodeTree.lockFullInodePath(child.getId(),
-            InodeTree.LockMode.READ)) {
+        try (LockedInodePath childInodePath = mInodeTree.lockDescendantPath(currInodePath,
+            InodeTree.LockMode.READ, currInodePath.getUri().join(child.getName())))  {
           listStatusInternal(childInodePath, auditContext,
               nextDescendantType, statusList);
+        } catch (InvalidPathException e) {
+          LOG.warn("ListStatus encountered an invalid path {}", child.getName(), e);
         }
       }
     }
