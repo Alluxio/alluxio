@@ -19,7 +19,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.service.file.FileSystemMasterService;
 import alluxio.service.file.options.GetStatusOptions;
-import alluxio.wire.ProtoUtils;
+import alluxio.util.grpc.GrpcUtils;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -57,7 +57,7 @@ public final class FileSystemMasterClientServiceHandlerNew
       @Override
       public GetStatusPResponse call() throws AlluxioException, IOException {
         return GetStatusPResponse.newBuilder()
-            .setFileInfo(ProtoUtils.toProto(
+            .setFileInfo(GrpcUtils.toProto(
                 mFileSystemMaster.getFileInfo(new AlluxioURI(path), new GetStatusOptions(options))))
             .build();
       }

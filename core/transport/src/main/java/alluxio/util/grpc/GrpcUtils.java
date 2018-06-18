@@ -9,7 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.wire;
+package alluxio.util.grpc;
+
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
+import alluxio.wire.TieredIdentity;
+import alluxio.wire.TtlAction;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.net.HostAndPort;
 
@@ -23,9 +31,9 @@ import javax.annotation.concurrent.ThreadSafe;
  * Utility methods for conversion between wire types and grpc types.
  */
 @ThreadSafe
-public final class ProtoUtils {
+public final class GrpcUtils {
 
-  private ProtoUtils() {} // prevent instantiation
+  private GrpcUtils() {} // prevent instantiation
 
   /**
    * Converts a proto type to a wire type.
@@ -51,7 +59,7 @@ public final class ProtoUtils {
 //    mBlockIds = new ArrayList<>(filePInfo.getBlockIdsList());
 //    mLastModificationTimeMs = filePInfo.getLastModificationTimeMs();
 //    mTtl = filePInfo.getTtl();
-//    mTtlAction = ProtoUtils.fromProto(filePInfo.getTtlAction());
+//    mTtlAction = GrpcUtils.fromProto(filePInfo.getTtlAction());
 //    mOwner = filePInfo.getOwner();
 //    mGroup = filePInfo.getGroup();
 //    mMode = filePInfo.getMode();
@@ -123,7 +131,7 @@ public final class ProtoUtils {
 //            .setPersistenceState(mPersistenceState)
 //            .setMountPoint(mMountPoint)
 //            .addAllFileBlockInfos(fileBlockInfos)
-//            .setTtlAction(ProtoUtils.toProto(mTtlAction))
+//            .setTtlAction(GrpcUtils.toProto(mTtlAction))
 //            .setMountId(mMountId)
 //            .setInAlluxioPercentage(mInAlluxioPercentage)
 //            .setUfsFingerprint(mUfsFingerprint)
@@ -228,7 +236,7 @@ public final class ProtoUtils {
    */
   public static alluxio.grpc.TieredIdentity toProto(TieredIdentity tieredIdentity) {
     return alluxio.grpc.TieredIdentity.newBuilder()
-        .addAllTiers(tieredIdentity.getTiers().stream().map(ProtoUtils::toProto)
+        .addAllTiers(tieredIdentity.getTiers().stream().map(GrpcUtils::toProto)
             .collect(Collectors.toList()))
         .build();
   }
