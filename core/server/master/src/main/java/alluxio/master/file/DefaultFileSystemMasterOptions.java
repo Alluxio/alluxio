@@ -14,7 +14,7 @@ package alluxio.master.file;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.file.FileSystemMasterOptionsService;
-import alluxio.file.options.CommonOptions;
+import alluxio.wire.CommonOptions;
 import alluxio.file.options.GetStatusOptions;
 
 /**

@@ -13,7 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.Constants;
 import alluxio.thrift.SetAttributeTOptions;
-import alluxio.file.options.CommonOptions;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 

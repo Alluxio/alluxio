@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.file.options;
+package alluxio.wire;
 
 import alluxio.file.FileSystemMasterOptionsService;
 
@@ -23,10 +23,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Common method options.
  */
 @NotThreadSafe
-public final class CommonOptions implements Serializable {
+public class CommonOptions implements Serializable {
   private static final long serialVersionUID = -1491370184123698287L;
 
   private long mSyncIntervalMs;
+
+  public static CommonOptions defaults() {
+    // TODO(adit):
+    return new CommonOptions();
+  }
 
   protected CommonOptions() {}
 

@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.SyncMetadataTOptions;
-import alluxio.file.options.CommonOptions;
+import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
 

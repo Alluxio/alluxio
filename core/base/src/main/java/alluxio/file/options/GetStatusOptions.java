@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
 import alluxio.file.FileSystemMasterOptionsService;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
 /**
@@ -57,18 +58,18 @@ public class GetStatusOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public GetStatusOptions setCommonOptions(CommonOptions options) {
+  public <T extends GetStatusOptions> T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param loadMetadataType the loadMetataType
    * @return the updated options
    */
-  public GetStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
+  public <T extends GetStatusOptions> T setLoadMetadataType(LoadMetadataType loadMetadataType) {
     mLoadMetadataType = loadMetadataType;
-    return this;
+    return (T) this;
   }
 
   @Override

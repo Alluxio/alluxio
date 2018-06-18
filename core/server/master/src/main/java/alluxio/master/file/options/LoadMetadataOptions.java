@@ -13,7 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.underfs.UfsStatus;
-import alluxio.file.options.CommonOptions;
+import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
 

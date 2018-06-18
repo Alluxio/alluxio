@@ -20,6 +20,7 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
+import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
@@ -29,7 +30,6 @@ import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.master.MasterClientConfig;
-import alluxio.file.options.GetStatusOptions;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.GetMountTableTResponse;
@@ -37,6 +37,7 @@ import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.UnmountTOptions;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -89,7 +90,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     // TODO(adit): remove me
     mBlockingStub.getStatus(GetStatusPRequest.newBuilder()
         .setPath("/")
-        .setOptions(GetStatusOptions.defaults().toProto())
+        .setOptions(GrpcUtils.toProto(GetStatusOptions.defaults()))
         .build());
   }
 

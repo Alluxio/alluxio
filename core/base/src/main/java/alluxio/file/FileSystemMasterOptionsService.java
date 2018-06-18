@@ -12,7 +12,7 @@
 package alluxio.file;
 
 import alluxio.file.options.GetStatusOptions;
-import alluxio.file.options.CommonOptions;
+import alluxio.wire.CommonOptions;
 
 /**
  * The interface of file system master service option conversion.
