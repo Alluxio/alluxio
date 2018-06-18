@@ -13,9 +13,8 @@ package alluxio.wire;
 
 import alluxio.annotation.PublicApi;
 
-// TODO(adit): do we need jackson annotations?
-//import com.fasterxml.jackson.annotation.JsonCreator;
-//import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -40,9 +39,8 @@ public final class TieredIdentity implements Serializable {
   /**
    * @param tiers the tiers of the tier identity
    */
-  //@JsonCreator
-  //public TieredIdentity(@JsonProperty("tiers") List<LocalityTier> tiers) {
-  public TieredIdentity(List<LocalityTier> tiers) {
+  @JsonCreator
+  public TieredIdentity(@JsonProperty("tiers") List<LocalityTier> tiers) {
     mTiers = ImmutableList.copyOf(Preconditions.checkNotNull(tiers, "tiers"));
   }
 
@@ -60,7 +58,7 @@ public final class TieredIdentity implements Serializable {
   public LocalityTier getTier(int i) {
     return mTiers.get(i);
   }
-//
+
 //  /**
 //   * @param tieredIdentity a Thrift tiered identity
 //   * @return the corresponding wire type tiered identity
@@ -120,10 +118,9 @@ public final class TieredIdentity implements Serializable {
      * @param tierName the name of the tier
      * @param value the value of the tier
      */
-    //@JsonCreator
-    //public LocalityTier(@JsonProperty("tierName") String tierName,
-    //    @JsonProperty("value") @Nullable String value) {
-    public LocalityTier(String tierName, @Nullable String value) {
+    @JsonCreator
+    public LocalityTier(@JsonProperty("tierName") String tierName,
+        @JsonProperty("value") @Nullable String value) {
       mTierName = Preconditions.checkNotNull(tierName, "tierName");
       mValue = value;
     }
