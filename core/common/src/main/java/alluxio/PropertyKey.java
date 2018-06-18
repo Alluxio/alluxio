@@ -2487,7 +2487,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_METRICS_COLLECTION_ENABLED =
       new Builder(Name.USER_METRICS_COLLECTION_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Enable collecting the client-side metrics and hearbeat them to master")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
