@@ -97,8 +97,6 @@ public final class CreateDirectoryOptionsTest {
     assertEquals(allowExists, thriftOptions.isAllowExists());
     assertEquals(recursive, thriftOptions.isRecursive());
     assertEquals(writeType.isThrough(), thriftOptions.isPersisted());
-    assertEquals(ttl, thriftOptions.getTtl());
-    assertEquals(alluxio.thrift.TTtlAction.Free, thriftOptions.getTtlAction());
     assertEquals(mode.toShort(), thriftOptions.getMode());
   }
 
