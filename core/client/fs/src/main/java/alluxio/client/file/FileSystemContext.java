@@ -152,7 +152,8 @@ public final class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient) {
     FileSystemContext context = new FileSystemContext(subject);
-    context.init(masterInquireClient);
+    context.init(masterInquireClient,
+        Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED));
     return context;
   }
 
@@ -177,8 +178,10 @@ public final class FileSystemContext implements Closeable {
    * Initializes the context. Only called in the factory methods and reset.
    *
    * @param masterInquireClient the client to use for determining the master
+   * @param enableUserMetricsCollection if enables the user metrics collection
    */
-  private synchronized void init(MasterInquireClient masterInquireClient) {
+  private synchronized void init(MasterInquireClient masterInquireClient,
+      boolean enableUserMetricsCollection) {
     mMasterInquireClient = masterInquireClient;
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
@@ -186,8 +189,7 @@ public final class FileSystemContext implements Closeable {
     mClosed.set(false);
 
     // Only send metrics if enabled and the port is set (can be zero when tests are setting up).
-    if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)
-        && Configuration.getInt(PropertyKey.MASTER_RPC_PORT) != 0) {
+    if (enableUserMetricsCollection && Configuration.getInt(PropertyKey.MASTER_RPC_PORT) != 0) {
       // setup metrics master client sync
       mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults()
           .withSubject(mParentSubject).withMasterInquireClient(mMasterInquireClient));
@@ -235,12 +237,15 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Resets the context. It is only used in {@link alluxio.hadoop.AbstractFileSystem} and
-   * tests to reset the default file system context.
+   * Resets the context. It is only used in {@link alluxio.hadoop.AbstractFileSystem} and tests to
+   * reset the default file system context.
+   *
+   * @param enableUserMetricsCollection if enables the user metrics collection
+   *
    */
-  public synchronized void reset() throws IOException {
+  public synchronized void reset(boolean enableUserMetricsCollection) throws IOException {
     close();
-    init(MasterInquireClient.Factory.create());
+    init(MasterInquireClient.Factory.create(), enableUserMetricsCollection);
   }
 
   /**

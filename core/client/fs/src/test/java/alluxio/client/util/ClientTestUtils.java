@@ -45,7 +45,7 @@ public final class ClientTestUtils {
   }
 
   private static void resetContexts() throws IOException {
-    FileSystemContext.get().reset();
+    FileSystemContext.get().reset(false);
     LineageContext.INSTANCE.reset();
   }
 }

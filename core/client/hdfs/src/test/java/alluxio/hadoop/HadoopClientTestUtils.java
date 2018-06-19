@@ -33,7 +33,7 @@ public final class HadoopClientTestUtils {
    */
   public static void resetClient() {
     try {
-      FileSystemContext.get().reset();
+      FileSystemContext.get().reset(false);
       LineageContext.INSTANCE.reset();
       Whitebox.setInternalState(AbstractFileSystem.class, "sInitialized", false);
     } catch (Exception e) {
