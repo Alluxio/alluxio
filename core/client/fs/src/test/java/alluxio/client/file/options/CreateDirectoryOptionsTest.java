@@ -40,7 +40,7 @@ public final class CreateDirectoryOptionsTest {
     assertFalse(options.isAllowExists());
     assertFalse(options.isRecursive());
     assertEquals(Constants.NO_TTL, options.getTtl());
-    assertEquals(TtlAction.DELETE, options.getTtlAction());
+    assertEquals(TtlAction.FREE, options.getTtlAction());
     assertEquals(mDefaultWriteType, options.getWriteType());
     assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
   }

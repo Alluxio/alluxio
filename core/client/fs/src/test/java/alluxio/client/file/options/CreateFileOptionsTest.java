@@ -45,7 +45,7 @@ public final class CreateFileOptionsTest {
     Assert.assertTrue(options.isRecursive());
     Assert.assertEquals(mDefaultBlockSizeBytes, options.getBlockSizeBytes());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
-    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
+    Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
     Assert.assertEquals(mDefaultWriteTier, options.getWriteTier());
     Assert.assertEquals(mDefaultWriteType, options.getWriteType());
     Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());

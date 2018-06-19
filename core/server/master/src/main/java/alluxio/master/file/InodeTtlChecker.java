@@ -84,7 +84,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 }
                 // Reset state
                 inode.setTtl(Constants.NO_TTL);
-                inode.setTtlAction(TtlAction.DELETE);
+                inode.setTtlAction(TtlAction.FREE);
                 mTtlBuckets.remove(inode);
                 break;
               case DELETE:// Default if not set is DELETE

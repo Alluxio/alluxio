@@ -57,7 +57,7 @@ public final class OutStreamOptions {
   private OutStreamOptions() {
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
-    mTtlAction = TtlAction.DELETE;
+    mTtlAction = TtlAction.FREE;
 
     mLocationPolicy =
         CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(

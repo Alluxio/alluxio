@@ -42,7 +42,7 @@ public final class SetAttributeOptionsTest {
     assertNull(options.getPersisted());
     assertNull(options.getPinned());
     assertNull(options.getTtl());
-    assertEquals(TtlAction.DELETE, options.getTtlAction());
+    assertEquals(TtlAction.FREE, options.getTtlAction());
     assertNull(options.getOwner());
     assertNull(options.getGroup());
     assertNull(options.getMode());

@@ -42,7 +42,7 @@ public enum TtlAction {
    */
   public static TtlAction fromThrift(TTtlAction tTtlAction) {
     if (tTtlAction == null) {
-      return TtlAction.DELETE;
+      return TtlAction.FREE;
     }
     switch (tTtlAction) {
       case Delete:
