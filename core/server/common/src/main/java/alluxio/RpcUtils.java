@@ -117,12 +117,18 @@ public final class RpcUtils {
   public static <T> T call(Logger logger, RpcCallable<T> callable, String methodName,
       boolean failureOk, String description, Object... args) throws AlluxioTException {
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
-      logger.debug("Enter: {}", String.format(description, (Object[]) args));
-      T ret = callable.call();
-      logger.debug("Exit (OK): {}", String.format(description, (Object[]) args));
-      return ret;
+      if (logger.isDebugEnabled()) { // avoid string format for better performance if debug is off
+        logger.debug("Enter: {}", String.format(description, (Object[]) args));
+        T ret = callable.call();
+        logger.debug("Exit (OK): {}", String.format(description, (Object[]) args));
+        return ret;
+      } else {
+        return callable.call();
+      }
     } catch (AlluxioException e) {
-      logger.debug("Exit (Error): {}", String.format(description, (Object[]) args), e);
+      if (logger.isDebugEnabled()) { // avoid string format for better performance if debug is off
+        logger.debug("Exit (Error): {}", String.format(description, (Object[]) args), e);
+      }
       if (!failureOk) {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
@@ -212,12 +218,18 @@ public final class RpcUtils {
       String methodName, boolean failureOk, String description, Object... args)
       throws AlluxioTException {
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
-      logger.debug("Enter: {}", String.format(description, (Object[]) args));
-      T ret = callable.call();
-      logger.debug("Exit (OK): {}", String.format(description, (Object[]) args));
-      return ret;
+      if (logger.isDebugEnabled()) { // avoid string format for better performance if debug is off
+        logger.debug("Enter: {}", String.format(description, (Object[]) args));
+        T ret = callable.call();
+        logger.debug("Exit (OK): {}", String.format(description, (Object[]) args));
+        return ret;
+      } else {
+        return callable.call();
+      }
     } catch (AlluxioException e) {
-      logger.debug("Exit (Error): {}", String.format(description, (Object[]) args), e);
+      if (logger.isDebugEnabled()) { // avoid string format for better performance if debug is off
+        logger.debug("Exit (Error): {}", String.format(description, (Object[]) args), e);
+      }
       if (!failureOk) {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
@@ -226,7 +238,9 @@ public final class RpcUtils {
       }
       throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (IOException e) {
-      logger.debug("Exit (Error): {}", String.format(description, (Object[]) args), e);
+      if (logger.isDebugEnabled()) { // avoid string format for better performance if debug is off
+        logger.debug("Exit (Error): {}", String.format(description, (Object[]) args), e);
+      }
       if (!failureOk) {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
@@ -275,14 +289,17 @@ public final class RpcUtils {
    */
   public static <T> T nettyRPCAndLog(Logger logger, NettyRpcCallable<T> callable,
       String methodName, String description, Object... args) {
-    logger.debug("Enter: {}", String.format(description, (Object[]) args));
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
-      T result = callable.call();
-      logger.debug("Exit (OK): {}", String.format(description, (Object[]) args));
-      return result;
+      if (logger.isDebugEnabled()) { // avoid string format for better performance if debug is off
+        logger.debug("Enter: {}", String.format(description, (Object[]) args));
+        T result = callable.call();
+        logger.debug("Exit (OK): {}", String.format(description, (Object[]) args));
+        return result;
+      } else {
+        return callable.call();
+      }
     } catch (Exception e) {
-      logger.debug("Exit (Error): {}, Error={}", String.format(description, (Object[]) args),
-          e.getMessage());
+      logger.warn("Exit (Error): {}, Error={}", String.format(description, (Object[]) args), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       callable.exceptionCaught(e);
     }

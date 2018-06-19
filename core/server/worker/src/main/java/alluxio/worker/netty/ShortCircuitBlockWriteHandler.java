@@ -141,7 +141,7 @@ class ShortCircuitBlockWriteHandler extends ChannelInboundHandlerAdapter {
             ctx.writeAndFlush(
                 RPCProtoMessage.createResponse(AlluxioStatusException.fromThrowable(throwable)));
           }
-        }, methodName, "%s: Session=%d, Request=%s", methodName, mSessionId, request.toString()));
+        }, methodName, "%s: Session=%d, Request=%s", methodName, mSessionId, request));
   }
 
   /**
@@ -173,6 +173,6 @@ class ShortCircuitBlockWriteHandler extends ChannelInboundHandlerAdapter {
                 RPCProtoMessage.createResponse(AlluxioStatusException.fromThrowable(throwable)));
             mSessionId = INVALID_SESSION_ID;
           }
-        }, methodName, "%s: Session=%d, Request=%s", methodName, mSessionId, request.toString()));
+        }, methodName, "%s: Session=%d, Request=%s", methodName, mSessionId, request));
   }
 }
