@@ -18,6 +18,7 @@
 .settings/
 /client/
 /conf/alluxio-env.sh
+/conf/log4j.properties
 /conf/metrics.properties
 /conf/alluxio-env.sh.bootstrap.bk
 /data/
