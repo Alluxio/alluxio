@@ -138,8 +138,6 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
       AuthenticatedClientUser.set(LoginUser.get().getName());
     }
-    // browse-body.jsp is used by many web pages and we only want to disable the browse page
-    request.setAttribute("isBrowsePage", true);
     request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
     request.setAttribute("showPermissions",
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
@@ -231,8 +229,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       UIFileInfo toAdd = new UIFileInfo(fileInfo);
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
-          FileBlockInfo blockInfo = fileSystemMaster
-              .getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
+          FileBlockInfo blockInfo =
+              fileSystemMaster.getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
           List<String> locations = new ArrayList<>();
           // add the in-Alluxio block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {

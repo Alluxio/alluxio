@@ -12,6 +12,8 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -66,6 +68,9 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      return;
+    }
     if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
       AuthenticatedClientUser.set(LoginUser.get().getName());
     }

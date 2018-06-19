@@ -49,7 +49,7 @@
 <div class="container-fluid">
   <jsp:include page="/header" />
 
-  <% if (request.getAttribute("isBrowsePage") == null || (boolean) request.getAttribute("fileInfoEnabled")) { %>
+  <% if ((boolean) request.getAttribute("fileInfoEnabled")) { %>
     <div class="container-fluid">
       <div class="row-fluid">
         <div class="span12 well">
