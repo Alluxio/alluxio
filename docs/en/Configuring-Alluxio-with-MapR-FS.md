@@ -63,12 +63,6 @@ read how to [configure Alluxio](Configuration-Settings.html). For Alluxio proces
 can be set in the property file `alluxio-site.properties`. For more information, please read about
 [configuration of Alluxio with property files](Configuration-Settings.html#property-files).
 
-This parameter should also be set any client that accesses Alluxio. This means the parameter should
-be set for any application (MapReduce, Spark, Flink, etc.) that accesses Alluxio. This can typically
-be done by adding `-Dalluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///` to the command. For more
-information, please read about [configurating applications for Alluxio](Configuration-Settings.html
-#application-settings).
-
 ## Configuring Alluxio to use MapR-FS as Under File System
 
 There are various ways to configure Alluxio to use MapR-FS as the Under File System. If you want to
