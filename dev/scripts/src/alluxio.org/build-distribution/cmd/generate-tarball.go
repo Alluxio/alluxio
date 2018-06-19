@@ -244,6 +244,7 @@ func generateTarball(hadoopDistribution string) error {
 
 	tarball := strings.Replace(targetFlag, versionMarker, version, 1)
 	dstDir := strings.TrimSuffix(filepath.Base(tarball), ".tar.gz")
+	dstDir = strings.TrimSuffix(dstDir, "-bin")
 	dstPath := filepath.Join(cwd, dstDir)
 	run(fmt.Sprintf("removing any existing %v", dstPath), "rm", "-rf", dstPath)
 	fmt.Printf("Creating %s:\n", tarball)
