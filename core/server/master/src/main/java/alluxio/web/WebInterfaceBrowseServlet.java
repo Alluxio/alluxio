@@ -135,158 +135,160 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
       AuthenticatedClientUser.set(LoginUser.get().getName());
     }
-    request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
-    request.setAttribute("showPermissions",
-        Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
+    if (Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
+      request.setAttribute("showPermissions",
+          Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
-    request.setAttribute("masterNodeAddress", mMasterProcess.getRpcAddress().toString());
-    request.setAttribute("invalidPathError", "");
-    List<FileInfo> filesInfo;
-    String requestPath = request.getParameter("path");
-    if (requestPath == null || requestPath.isEmpty()) {
-      requestPath = AlluxioURI.SEPARATOR;
-    }
-    AlluxioURI currentPath = new AlluxioURI(requestPath);
-    request.setAttribute("currentPath", currentPath.toString());
-    request.setAttribute("viewingOffset", 0);
-    FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
-
-    try {
-      long fileId = fileSystemMaster.getFileId(currentPath);
-      FileInfo fileInfo = fileSystemMaster.getFileInfo(fileId);
-      UIFileInfo currentFileInfo = new UIFileInfo(fileInfo);
-      if (currentFileInfo.getAbsolutePath() == null) {
-        throw new FileDoesNotExistException(currentPath.toString());
+      request.setAttribute("masterNodeAddress", mMasterProcess.getRpcAddress().toString());
+      request.setAttribute("invalidPathError", "");
+      List<FileInfo> filesInfo;
+      String requestPath = request.getParameter("path");
+      if (requestPath == null || requestPath.isEmpty()) {
+        requestPath = AlluxioURI.SEPARATOR;
       }
-      request.setAttribute("currentDirectory", currentFileInfo);
-      request.setAttribute("blockSizeBytes", currentFileInfo.getBlockSizeBytes());
-      if (!currentFileInfo.getIsDirectory()) {
-        String offsetParam = request.getParameter("offset");
-        long relativeOffset = 0;
-        long offset;
-        try {
-          if (offsetParam != null) {
-            relativeOffset = Long.parseLong(offsetParam);
-          }
-        } catch (NumberFormatException e) {
-          relativeOffset = 0;
-        }
-        String endParam = request.getParameter("end");
-        // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
-        // relative to the end of the file.
-        if (endParam == null) {
-          offset = relativeOffset;
-        } else {
-          offset = fileInfo.getLength() - relativeOffset;
-        }
-        if (offset < 0) {
-          offset = 0;
-        } else if (offset > fileInfo.getLength()) {
-          offset = fileInfo.getLength();
-        }
-        try {
-          displayFile(new AlluxioURI(currentFileInfo.getAbsolutePath()), request, offset);
-        } catch (AlluxioException e) {
-          throw new IOException(e);
-        }
-        request.setAttribute("viewingOffset", offset);
-        getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
-        return;
-      }
-      setPathDirectories(currentPath, request);
-      filesInfo = fileSystemMaster.listStatus(currentPath,
-          ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
-    } catch (FileDoesNotExistException e) {
-      request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getMessage());
-      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-      return;
-    } catch (InvalidPathException e) {
-      request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getLocalizedMessage());
-      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-      return;
-    } catch (UnavailableException e) {
-      request.setAttribute("invalidPathError",
-          "The service is temporarily unavailable. " + e.getMessage());
-      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-      return;
-    } catch (IOException e) {
-      request.setAttribute("invalidPathError",
-          "Error: File " + currentPath + " is not available " + e.getMessage());
-      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-      return;
-    } catch (AccessControlException e) {
-      request.setAttribute("invalidPathError",
-          "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
-      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-      return;
-    }
+      AlluxioURI currentPath = new AlluxioURI(requestPath);
+      request.setAttribute("currentPath", currentPath.toString());
+      request.setAttribute("viewingOffset", 0);
+      FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
-    List<UIFileInfo> fileInfos = new ArrayList<>(filesInfo.size());
-    for (FileInfo fileInfo : filesInfo) {
-      UIFileInfo toAdd = new UIFileInfo(fileInfo);
       try {
-        if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
-          FileBlockInfo blockInfo =
-              fileSystemMaster.getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
-          List<String> locations = new ArrayList<>();
-          // add the in-Alluxio block locations
-          for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
-            WorkerNetAddress address = location.getWorkerAddress();
-            locations.add(address.getHost() + ":" + address.getDataPort());
-          }
-          // add underFS locations
-          locations.addAll(blockInfo.getUfsLocations());
-          toAdd.setFileLocations(locations);
+        long fileId = fileSystemMaster.getFileId(currentPath);
+        FileInfo fileInfo = fileSystemMaster.getFileInfo(fileId);
+        UIFileInfo currentFileInfo = new UIFileInfo(fileInfo);
+        if (currentFileInfo.getAbsolutePath() == null) {
+          throw new FileDoesNotExistException(currentPath.toString());
         }
+        request.setAttribute("currentDirectory", currentFileInfo);
+        request.setAttribute("blockSizeBytes", currentFileInfo.getBlockSizeBytes());
+        if (!currentFileInfo.getIsDirectory()) {
+          String offsetParam = request.getParameter("offset");
+          long relativeOffset = 0;
+          long offset;
+          try {
+            if (offsetParam != null) {
+              relativeOffset = Long.parseLong(offsetParam);
+            }
+          } catch (NumberFormatException e) {
+            relativeOffset = 0;
+          }
+          String endParam = request.getParameter("end");
+          // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
+          // relative to the end of the file.
+          if (endParam == null) {
+            offset = relativeOffset;
+          } else {
+            offset = fileInfo.getLength() - relativeOffset;
+          }
+          if (offset < 0) {
+            offset = 0;
+          } else if (offset > fileInfo.getLength()) {
+            offset = fileInfo.getLength();
+          }
+          try {
+            displayFile(new AlluxioURI(currentFileInfo.getAbsolutePath()), request, offset);
+          } catch (AlluxioException e) {
+            throw new IOException(e);
+          }
+          request.setAttribute("viewingOffset", offset);
+          getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
+          return;
+        }
+        setPathDirectories(currentPath, request);
+        filesInfo = fileSystemMaster.listStatus(currentPath,
+            ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
       } catch (FileDoesNotExistException e) {
-        request.setAttribute("FileDoesNotExistException",
-            "Error: non-existing file " + e.getMessage());
+        request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
         return;
       } catch (InvalidPathException e) {
-        request.setAttribute("InvalidPathException",
-            "Error: invalid path " + e.getMessage());
+        request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getLocalizedMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        return;
+      } catch (UnavailableException e) {
+        request.setAttribute("invalidPathError",
+            "The service is temporarily unavailable. " + e.getMessage());
+        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        return;
+      } catch (IOException e) {
+        request.setAttribute("invalidPathError",
+            "Error: File " + currentPath + " is not available " + e.getMessage());
+        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        return;
       } catch (AccessControlException e) {
-        request.setAttribute("AccessControlException",
+        request.setAttribute("invalidPathError",
             "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
         return;
       }
-      fileInfos.add(toAdd);
+
+      List<UIFileInfo> fileInfos = new ArrayList<>(filesInfo.size());
+      for (FileInfo fileInfo : filesInfo) {
+        UIFileInfo toAdd = new UIFileInfo(fileInfo);
+        try {
+          if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
+            FileBlockInfo blockInfo = fileSystemMaster
+                .getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
+            List<String> locations = new ArrayList<>();
+            // add the in-Alluxio block locations
+            for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
+              WorkerNetAddress address = location.getWorkerAddress();
+              locations.add(address.getHost() + ":" + address.getDataPort());
+            }
+            // add underFS locations
+            locations.addAll(blockInfo.getUfsLocations());
+            toAdd.setFileLocations(locations);
+          }
+        } catch (FileDoesNotExistException e) {
+          request.setAttribute("FileDoesNotExistException",
+              "Error: non-existing file " + e.getMessage());
+          getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+          return;
+        } catch (InvalidPathException e) {
+          request.setAttribute("InvalidPathException",
+              "Error: invalid path " + e.getMessage());
+          getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        } catch (AccessControlException e) {
+          request.setAttribute("AccessControlException",
+              "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
+          getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+          return;
+        }
+        fileInfos.add(toAdd);
+      }
+      Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
+
+      request.setAttribute("nTotalFile", fileInfos.size());
+
+      // URL can not determine offset and limit, let javascript in jsp determine and redirect
+      if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
+        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        return;
+      }
+
+      try {
+        int offset = Integer.parseInt(request.getParameter("offset"));
+        int limit = Integer.parseInt(request.getParameter("limit"));
+        List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
+        request.setAttribute("fileInfos", sub);
+      } catch (NumberFormatException e) {
+        request.setAttribute("fatalError",
+            "Error: offset or limit parse error, " + e.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        return;
+      } catch (IndexOutOfBoundsException e) {
+        request.setAttribute("fatalError",
+            "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        return;
+      } catch (IllegalArgumentException e) {
+        request.setAttribute("fatalError", e.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        return;
+      }
+
+      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
     }
-    Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
-
-    request.setAttribute("nTotalFile", fileInfos.size());
-
-    // URL can not determine offset and limit, let javascript in jsp determine and redirect
-    if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
-      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-      return;
-    }
-
-    try {
-      int offset = Integer.parseInt(request.getParameter("offset"));
-      int limit = Integer.parseInt(request.getParameter("limit"));
-      List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
-      request.setAttribute("fileInfos", sub);
-    } catch (NumberFormatException e) {
-      request.setAttribute("fatalError",
-          "Error: offset or limit parse error, " + e.getLocalizedMessage());
-      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-      return;
-    } catch (IndexOutOfBoundsException e) {
-      request.setAttribute("fatalError",
-          "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
-      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-      return;
-    } catch (IllegalArgumentException e) {
-      request.setAttribute("fatalError", e.getLocalizedMessage());
-      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-      return;
-    }
-
-    getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
   }
 
   /**

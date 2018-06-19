@@ -66,66 +66,68 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
     if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
       AuthenticatedClientUser.set(LoginUser.get().getName());
     }
-    request.setAttribute("masterNodeAddress", mMasterProcess.getRpcAddress().toString());
-    request.setAttribute("fatalError", "");
-    request.setAttribute("showPermissions",
-        Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
+    if (Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      request.setAttribute("masterNodeAddress", mMasterProcess.getRpcAddress().toString());
+      request.setAttribute("fatalError", "");
+      request.setAttribute("showPermissions",
+          Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
-    FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
+      FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
-    List<AlluxioURI> inAlluxioFiles = fileSystemMaster.getInAlluxioFiles();
-    Collections.sort(inAlluxioFiles);
+      List<AlluxioURI> inAlluxioFiles = fileSystemMaster.getInAlluxioFiles();
+      Collections.sort(inAlluxioFiles);
 
-    List<UIFileInfo> fileInfos = new ArrayList<>(inAlluxioFiles.size());
-    for (AlluxioURI file : inAlluxioFiles) {
-      try {
-        long fileId = fileSystemMaster.getFileId(file);
-        FileInfo fileInfo = fileSystemMaster.getFileInfo(fileId);
-        if (fileInfo != null && fileInfo.getInAlluxioPercentage() == 100) {
-          fileInfos.add(new UIFileInfo(fileInfo));
+      List<UIFileInfo> fileInfos = new ArrayList<>(inAlluxioFiles.size());
+      for (AlluxioURI file : inAlluxioFiles) {
+        try {
+          long fileId = fileSystemMaster.getFileId(file);
+          FileInfo fileInfo = fileSystemMaster.getFileInfo(fileId);
+          if (fileInfo != null && fileInfo.getInAlluxioPercentage() == 100) {
+            fileInfos.add(new UIFileInfo(fileInfo));
+          }
+        } catch (FileDoesNotExistException e) {
+          request.setAttribute("fatalError",
+              "Error: File does not exist " + e.getLocalizedMessage());
+          getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+          return;
+        } catch (AccessControlException e) {
+          request.setAttribute("permissionError",
+              "Error: File " + file + " cannot be accessed " + e.getMessage());
+          getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+          return;
         }
-      } catch (FileDoesNotExistException e) {
-        request.setAttribute("fatalError",
-            "Error: File does not exist " + e.getLocalizedMessage());
-        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
-        return;
-      } catch (AccessControlException e) {
-        request.setAttribute("permissionError",
-            "Error: File " + file + " cannot be accessed " + e.getMessage());
+      }
+      request.setAttribute("inAlluxioFileNum", fileInfos.size());
+
+      // URL is "./memory", can not determine offset and limit, let javascript in jsp determine
+      // and redirect to "./memory?offset=xxx&limit=xxx"
+      if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
         getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
         return;
       }
-    }
-    request.setAttribute("inAlluxioFileNum", fileInfos.size());
 
-    // URL is "./memory", can not determine offset and limit, let javascript in jsp determine
-    // and redirect to "./memory?offset=xxx&limit=xxx"
-    if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
-      getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
-      return;
-    }
+      try {
+        int offset = Integer.parseInt(request.getParameter("offset"));
+        int limit = Integer.parseInt(request.getParameter("limit"));
+        List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
+        request.setAttribute("fileInfos", sub);
+      } catch (NumberFormatException e) {
+        request.setAttribute("fatalError",
+            "Error: offset or limit parse error, " + e.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        return;
+      } catch (IndexOutOfBoundsException e) {
+        request.setAttribute("fatalError",
+            "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        return;
+      } catch (IllegalArgumentException e) {
+        request.setAttribute("fatalError", e.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        return;
+      }
 
-    try {
-      int offset = Integer.parseInt(request.getParameter("offset"));
-      int limit = Integer.parseInt(request.getParameter("limit"));
-      List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
-      request.setAttribute("fileInfos", sub);
-    } catch (NumberFormatException e) {
-      request.setAttribute("fatalError",
-          "Error: offset or limit parse error, " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
-      return;
-    } catch (IndexOutOfBoundsException e) {
-      request.setAttribute("fatalError",
-          "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
-      getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
-      return;
-    } catch (IllegalArgumentException e) {
-      request.setAttribute("fatalError", e.getLocalizedMessage());
-      getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
-      return;
     }
-
-    getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
   }
 }

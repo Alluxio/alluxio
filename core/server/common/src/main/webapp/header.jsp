@@ -22,11 +22,13 @@
       <ul class="nav nav-pills">
         <li id="home-li"><a href="./home">Overview</a></li>
         <% if (request.getAttribute("useWorkerHeader") == null) { %>
-          <li id="browse-li"><a href="./browse?path=/">Browse</a></li>
+          <% if ((boolean) request.getAttribute("fileInfoEnabled")) { %>
+            <li id="browse-li"><a href="./browse?path=/">Browse</a></li>
+            <li id="memory-li"><a href="./memory">In-Alluxio Data</a></li>
+          <% } %>
           <li id="configuration-li"><a href="./configuration">Configuration</a></li>
           <li id="workers-li"><a href="./workers">Workers</a></li>
-          <li id="memory-li"><a href="./memory">In-Alluxio Data</a></li>
-        <% } else {%>
+        <% } else if ((boolean) request.getAttribute("fileInfoEnabled")) { %>
           <li id="blockInfo-li"><a href="./blockInfo">BlockInfo</a></li>
         <% } %>
         <li id="browseLogs-li"><a href="./browseLogs">Logs</a></li>
