@@ -102,6 +102,10 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 	if includeYarnIntegration(hadoopVersion) {
 		args = append(args, "-Pyarn")
 	}
+	if hadoopVersion.major == 1 {
+		// checker requires hadoop 2+ to compile.
+		args = append(args, "-Dchecker.hadoop.version=2.2.0")
+	}
 	return args
 }
 
