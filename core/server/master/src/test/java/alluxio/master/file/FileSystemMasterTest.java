@@ -2203,6 +2203,25 @@ public final class FileSystemMasterTest {
   @Test
   public void loadMetadataWithACL() throws Exception {
     FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
+    AlluxioURI uri = new AlluxioURI("alluxio:/a");
+    mFileSystemMaster.loadMetadata(uri,
+        LoadMetadataOptions.defaults().setCreateAncestors(true));
+    List<AclEntry> aclEntryList = new ArrayList<>();
+    aclEntryList.add(AclEntry.fromCliString("default:user::r-x"));
+    mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, aclEntryList, SetAclOptions.defaults());
+
+    FileInfo infoparent = mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
+    System.out.println(infoparent.getAclEntries());
+    System.out.println(infoparent.getDefaultAclEntries());
+
+    FileUtils.createFile(Paths.get(mUnderFS).resolve("a/b/file1").toString());
+    uri = new AlluxioURI("alluxio:/a/b/file1");
+    mFileSystemMaster.loadMetadata(uri,
+        LoadMetadataOptions.defaults().setCreateAncestors(true));
+    FileInfo info = mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
+    System.out.println(info.getAclEntries());
+    Assert.assertTrue(info.getAclEntries().contains("user::r-x"));
+
   }
 
   /**
