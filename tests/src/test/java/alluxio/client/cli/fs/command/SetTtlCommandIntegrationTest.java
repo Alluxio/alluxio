@@ -59,7 +59,7 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
         mFsShell.run("setTtl", "-action", "delete", filePath, String.valueOf(ttl)));
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(ttl, status.getTtl());
-    Assert.assertEquals(TtlAction.FREE, status.getTtlAction());
+    Assert.assertEquals(TtlAction.DELETE, status.getTtlAction());
   }
 
   @Test

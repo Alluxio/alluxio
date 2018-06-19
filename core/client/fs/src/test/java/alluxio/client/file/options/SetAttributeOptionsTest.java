@@ -107,7 +107,7 @@ public final class SetAttributeOptionsTest {
     assertTrue(thriftOptions.isSetPinned());
     assertEquals(pinned, thriftOptions.isPinned());
     assertTrue(thriftOptions.isSetTtl());
-    assertEquals(alluxio.thrift.TTtlAction.Delete, thriftOptions.getTtlAction());
+    assertEquals(alluxio.thrift.TTtlAction.Free, thriftOptions.getTtlAction());
     assertEquals(ttl, thriftOptions.getTtl());
   }
 

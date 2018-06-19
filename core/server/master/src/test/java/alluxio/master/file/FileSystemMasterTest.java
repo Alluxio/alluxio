@@ -1192,7 +1192,8 @@ public final class FileSystemMasterTest {
   @Test
   public void ttlDirectoryDeleteReplay() throws Exception {
     CreateDirectoryOptions directoryOptions =
-        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
+        CreateDirectoryOptions.defaults().setRecursive(true)
+            .setTtl(0).setTtlAction(TtlAction.DELETE);
     long dirId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryOptions);
 
     // Simulate restart.
