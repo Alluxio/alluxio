@@ -136,6 +136,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       AuthenticatedClientUser.set(LoginUser.get().getName());
     }
     if (Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      // browse-body.jsp is used by many web pages and we only want to disable the browse page
+      request.setAttribute("isBrowsePage", true);
       request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
       request.setAttribute("showPermissions",
           Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
