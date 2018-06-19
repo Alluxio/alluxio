@@ -275,10 +275,14 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
     int uniquePaths = useSinglePath ? 1 : numThreads;
 
+    if (writeType != WriteType.CACHE_THROUGH) {
+      // all 3 components must be synced to UFS.
+      limitMs = 3 * SLEEP_MS * 4;
+    }
+
     if (listParentDir) {
       // Loading direct children needs to load each child, so reduce the branching factor.
       uniquePaths = 10;
-//      limitMs = (2 + uniquePaths) * SLEEP_MS * 2;
       limitMs = 2 * SLEEP_MS * 4 + uniquePaths * SLEEP_MS * 3;
     }
 
