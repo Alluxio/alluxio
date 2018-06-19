@@ -47,7 +47,7 @@ public final class FileSystemMasterClientServiceHandlerNew
   public FileSystemMasterClientServiceHandlerNew(FileSystemMasterService fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
-    mOptionsService = fileSystemMaster.optionsService();
+    mOptionsService = fileSystemMaster.getMasterOptions();
   }
 
   @Override

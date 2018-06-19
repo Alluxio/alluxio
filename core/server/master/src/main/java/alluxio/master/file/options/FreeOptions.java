@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.FreeTOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 
 import com.google.common.base.Objects;
 

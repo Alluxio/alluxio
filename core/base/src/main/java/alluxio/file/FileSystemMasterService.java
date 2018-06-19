@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 public interface FileSystemMasterService {
   // Server side defaults
-  FileSystemMasterOptions optionsService();
+  FileSystemMasterOptions getMasterOptions();
 
   /**
    * Returns the {@link FileInfo} for a given path.

@@ -12,13 +12,13 @@
 package alluxio.file;
 
 import alluxio.file.options.GetStatusOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 
 /**
- * The interface of file system master service option conversion.
+ * The interface for file system master default options.
  */
 public interface FileSystemMasterOptions {
-  void setDefaults(CommonOptions options);
+  CommonOptions getCommonOptions();
 
-  void setDefaults(GetStatusOptions options);
+  GetStatusOptions getGetStatusOptions();
 }

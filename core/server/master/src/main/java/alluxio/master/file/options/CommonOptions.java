@@ -9,24 +9,23 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file;
+package alluxio.master.file.options;
 
-import alluxio.file.FileSystemMasterOptions;
-import alluxio.master.file.options.CommonOptions;
-import alluxio.master.file.options.GetStatusOptions;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The file system class to set default options.
+ * Common options.
  */
-public final class DefaultFileSystemMasterOptions implements FileSystemMasterOptions {
-
-  @Override
-  public CommonOptions getCommonOptions() {
-    return CommonOptions.defaults();
+@NotThreadSafe
+public final class CommonOptions extends alluxio.file.options.CommonOptions {
+  /**
+   * @return the default {@link CommonOptions}
+   */
+  public static CommonOptions defaults() {
+    return new CommonOptions();
   }
 
-  @Override
-  public GetStatusOptions getGetStatusOptions() {
-    return GetStatusOptions.defaults();
+  private CommonOptions() {
+    super();
   }
 }

@@ -63,7 +63,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TtlAction;

@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.security.authorization.Mode;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 
 import com.google.common.base.Objects;
 

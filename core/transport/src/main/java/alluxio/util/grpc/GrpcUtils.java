@@ -12,7 +12,7 @@
 package alluxio.util.grpc;
 
 import alluxio.file.FileSystemMasterOptions;
-import alluxio.wire.CommonOptions;
+import alluxio.file.options.CommonOptions;
 import alluxio.file.options.GetStatusOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
@@ -247,17 +247,17 @@ public final class GrpcUtils {
   /**
    * Converts from proto type to options.
    */
-  public static GetStatusOptions fromProto(FileSystemMasterOptions masterOptions, GetStatusPOptions options) {
-    GetStatusOptions defaults = new GetStatusOptions(masterOptions);
-    if (options != null) {
-      if (options.hasCommonOptions()) {
-        defaults.setCommonOptions(fromProto(masterOptions, options.getCommonOptions()));
+  public static GetStatusOptions fromProto(FileSystemMasterOptions masterOptions, GetStatusPOptions pOptions) {
+    GetStatusOptions options = masterOptions.getGetStatusOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
       }
-      if (options.hasLoadMetadataType()) {
-        defaults.setLoadMetadataType(fromProto(options.getLoadMetadataType()));
+      if (pOptions.hasLoadMetadataType()) {
+        options.setLoadMetadataType(fromProto(pOptions.getLoadMetadataType()));
       }
     }
-    return defaults;
+    return options;
   }
 
   /**
@@ -273,15 +273,15 @@ public final class GrpcUtils {
   /**
    * Converts from proto type to options.
    */
-  public static CommonOptions fromProto(FileSystemMasterOptions service,
-      FileSystemMasterCommonPOptions options) {
-    CommonOptions defaults = new CommonOptions(service);
-    if (options != null) {
-      if (options.hasSyncIntervalMs()) {
-        defaults.setSyncIntervalMs(options.getSyncIntervalMs());
+  public static CommonOptions fromProto(FileSystemMasterOptions masterOptions,
+      FileSystemMasterCommonPOptions pOptions) {
+    CommonOptions options = masterOptions.getCommonOptions();
+    if (pOptions != null) {
+      if (pOptions.hasSyncIntervalMs()) {
+        options.setSyncIntervalMs(pOptions.getSyncIntervalMs());
       }
     }
-    return defaults;
+    return options;
   }
 
   /**

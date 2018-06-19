@@ -9,9 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.wire;
-
-import alluxio.file.FileSystemMasterOptions;
+package alluxio.file.options;
 
 import com.google.common.base.Objects;
 
@@ -28,17 +26,7 @@ public class CommonOptions implements Serializable {
 
   private long mSyncIntervalMs;
 
-  public static CommonOptions defaults() {
-    // TODO(adit):
-    return new CommonOptions();
-  }
-
   protected CommonOptions() {}
-
-  public CommonOptions(FileSystemMasterOptions masterOptions) {
-    this();
-    masterOptions.setDefaults(new CommonOptions());
-  }
 
   /**
    * Copies from {@link CommonOptions}.
