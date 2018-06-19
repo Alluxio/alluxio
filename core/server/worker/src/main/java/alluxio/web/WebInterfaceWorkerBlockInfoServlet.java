@@ -74,96 +74,94 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
-      request.setAttribute("fatalError", "");
-      String filePath = request.getParameter("path");
-      if (!(filePath == null || filePath.isEmpty())) {
-        // Display file block info
-        try {
-          UIFileInfo uiFileInfo = getUiFileInfo(new AlluxioURI(filePath));
-          List<ImmutablePair<String, List<UIFileBlockInfo>>> fileBlocksOnTier = new ArrayList<>();
-          for (Entry<String, List<UIFileBlockInfo>> e : uiFileInfo.getBlocksOnTier().entrySet()) {
-            fileBlocksOnTier.add(
-                new ImmutablePair<>(e.getKey(), e.getValue()));
-          }
-          request.setAttribute("fileBlocksOnTier", fileBlocksOnTier);
-          request.setAttribute("blockSizeBytes", uiFileInfo.getBlockSizeBytes());
-          request.setAttribute("path", filePath);
-          getServletContext().getRequestDispatcher("/worker/viewFileBlocks.jsp").forward(request,
-              response);
-          return;
-        } catch (FileDoesNotExistException e) {
-          request.setAttribute("fatalError", "Error: Invalid Path " + e.getMessage());
-          getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
-              response);
-          return;
-        } catch (IOException e) {
-          request.setAttribute("invalidPathError",
-              "Error: File " + filePath + " is not available " + e.getMessage());
-          getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
-              response);
-          return;
-        } catch (BlockDoesNotExistException e) {
-          request.setAttribute("fatalError", "Error: block not found. " + e.getMessage());
-          getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
-              response);
-          return;
-        } catch (AlluxioException e) {
-          request.setAttribute("fatalError", "Error: alluxio exception. " + e.getMessage());
-          getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
-              response);
-          return;
-        }
-      }
-
-      List<Long> fileIds = getSortedFileIds();
-      request.setAttribute("nTotalFile", fileIds.size());
-
-      request.setAttribute("orderedTierAliases",
-          new WorkerStorageTierAssoc().getOrderedStorageAliases());
-
-      // URL can not determine offset and limit, let javascript in jsp determine and redirect
-      if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
-        getServletContext()
-            .getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
-        return;
-      }
-
-      try {
-        int offset = Integer.parseInt(request.getParameter("offset"));
-        int limit = Integer.parseInt(request.getParameter("limit"));
-        List<Long> subFileIds = fileIds.subList(offset, offset + limit);
-        List<UIFileInfo> uiFileInfos = new ArrayList<>(subFileIds.size());
-        for (long fileId : subFileIds) {
-          try {
-            uiFileInfos.add(getUiFileInfo(fileId));
-          } catch (Exception e) {
-            // The file might have been deleted, log a warning and ignore this file.
-            LOG.warn("Unable to get file info for fileId {}. {}", fileId, e.getMessage());
-          }
-        }
-        request.setAttribute("fileInfos", uiFileInfos);
-      } catch (NumberFormatException e) {
-        request.setAttribute("fatalError",
-            "Error: offset or limit parse error, " + e.getLocalizedMessage());
-        getServletContext()
-            .getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
-        return;
-      } catch (IndexOutOfBoundsException e) {
-        request.setAttribute("fatalError",
-            "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
-        getServletContext()
-            .getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
-        return;
-      } catch (Exception e) {
-        request.setAttribute("fatalError", e.getLocalizedMessage());
-        getServletContext()
-            .getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
-        return;
-      }
-
-      getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
+    if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      return;
     }
+    request.setAttribute("fatalError", "");
+    String filePath = request.getParameter("path");
+    if (!(filePath == null || filePath.isEmpty())) {
+      // Display file block info
+      try {
+        UIFileInfo uiFileInfo = getUiFileInfo(new AlluxioURI(filePath));
+        List<ImmutablePair<String, List<UIFileBlockInfo>>> fileBlocksOnTier = new ArrayList<>();
+        for (Entry<String, List<UIFileBlockInfo>> e : uiFileInfo.getBlocksOnTier().entrySet()) {
+          fileBlocksOnTier.add(
+              new ImmutablePair<>(e.getKey(), e.getValue()));
+        }
+        request.setAttribute("fileBlocksOnTier", fileBlocksOnTier);
+        request.setAttribute("blockSizeBytes", uiFileInfo.getBlockSizeBytes());
+        request.setAttribute("path", filePath);
+        getServletContext().getRequestDispatcher("/worker/viewFileBlocks.jsp").forward(request,
+            response);
+        return;
+      } catch (FileDoesNotExistException e) {
+        request.setAttribute("fatalError", "Error: Invalid Path " + e.getMessage());
+        getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
+            response);
+        return;
+      } catch (IOException e) {
+        request.setAttribute("invalidPathError",
+            "Error: File " + filePath + " is not available " + e.getMessage());
+        getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
+            response);
+        return;
+      } catch (BlockDoesNotExistException e) {
+        request.setAttribute("fatalError", "Error: block not found. " + e.getMessage());
+        getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
+            response);
+        return;
+      } catch (AlluxioException e) {
+        request.setAttribute("fatalError", "Error: alluxio exception. " + e.getMessage());
+        getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
+            response);
+        return;
+      }
+    }
+
+    List<Long> fileIds = getSortedFileIds();
+    request.setAttribute("nTotalFile", fileIds.size());
+
+    request.setAttribute("orderedTierAliases",
+        new WorkerStorageTierAssoc().getOrderedStorageAliases());
+
+    // URL can not determine offset and limit, let javascript in jsp determine and redirect
+    if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
+      getServletContext()
+          .getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
+      return;
+    }
+
+    try {
+      int offset = Integer.parseInt(request.getParameter("offset"));
+      int limit = Integer.parseInt(request.getParameter("limit"));
+      List<Long> subFileIds = fileIds.subList(offset, offset + limit);
+      List<UIFileInfo> uiFileInfos = new ArrayList<>(subFileIds.size());
+      for (long fileId : subFileIds) {
+        try {
+          uiFileInfos.add(getUiFileInfo(fileId));
+        } catch (Exception e) {
+          // The file might have been deleted, log a warning and ignore this file.
+          LOG.warn("Unable to get file info for fileId {}. {}", fileId, e.getMessage());
+        }
+      }
+      request.setAttribute("fileInfos", uiFileInfos);
+    } catch (NumberFormatException e) {
+      request.setAttribute("fatalError",
+          "Error: offset or limit parse error, " + e.getLocalizedMessage());
+      getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
+      return;
+    } catch (IndexOutOfBoundsException e) {
+      request.setAttribute("fatalError",
+          "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
+      getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
+      return;
+    } catch (Exception e) {
+      request.setAttribute("fatalError", e.getLocalizedMessage());
+      getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
+      return;
+    }
+
+    getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
   }
 
   /***
