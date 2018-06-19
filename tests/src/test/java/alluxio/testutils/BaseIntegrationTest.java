@@ -18,6 +18,7 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.PatternLayout;
+import org.junit.AssumptionViolatedException;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestWatcher;
@@ -67,6 +68,11 @@ public abstract class BaseIntegrationTest {
         } catch (Throwable t) {
           LOG.error("Failed to delete success log file {}", mLogPath);
         }
+      }
+
+      @Override
+      protected void skipped(AssumptionViolatedException e, Description description) {
+        succeeded(description);
       }
 
       @Override

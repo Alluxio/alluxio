@@ -17,6 +17,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.thrift.GetStatusTOptions;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
+import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -42,7 +43,10 @@ public final class GetStatusOptions {
   }
 
   private GetStatusOptions() {
-    mCommonOptions = CommonOptions.defaults();
+    mCommonOptions = CommonOptions.defaults()
+        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_LOAD_TTL))
+        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_LOAD_TTL_ACTION,
+            TtlAction.class));
     mLoadMetadataType =
         Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class);
   }

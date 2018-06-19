@@ -825,7 +825,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (!inodePath.fullPathExists()) {
         checkLoadMetadataOptions(options.getLoadMetadataType(), inodePath.getUri());
         loadMetadataIfNotExistAndJournal(rpcContext, inodePath,
-            LoadMetadataOptions.defaults().setCreateAncestors(true));
+            LoadMetadataOptions.defaults().setCreateAncestors(true)
+                .setTtl(options.getCommonOptions().getTtl())
+                .setTtlAction(options.getCommonOptions().getTtlAction()));
         ensureFullPathAndUpdateCache(inodePath);
       }
       FileInfo fileInfo = getFileInfoInternal(inodePath);
@@ -913,7 +915,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // load metadata for 1 level of descendants, or all descendants if recursive
       LoadMetadataOptions loadMetadataOptions =
           LoadMetadataOptions.defaults().setCreateAncestors(true)
-              .setLoadDescendantType(loadDescendantType);
+              .setLoadDescendantType(loadDescendantType)
+              .setTtl(listStatusOptions.getCommonOptions().getTtl())
+              .setTtlAction(listStatusOptions.getCommonOptions().getTtlAction());
       Inode<?> inode;
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
@@ -1616,30 +1620,26 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         if (unsafeInodes.contains(delInode.getId())) {
           failureReason = ExceptionMessage.DELETE_FAILED_DIR_NONEMPTY.getMessage();
         } else if (!replayed && delInode.isPersisted()) {
-          try {
-            // If this is a mount point, we have deleted all the children and can unmount it
-            // TODO(calvin): Add tests (ALLUXIO-1831)
-            if (mMountTable.isMountPoint(alluxioUriToDel)) {
-              unmountInternal(alluxioUriToDel);
-            } else {
-              if (!(replayed || deleteOptions.isAlluxioOnly())) {
-                try {
-                  checkUfsMode(alluxioUriToDel, OperationType.WRITE);
-                  // Attempt to delete node if all children were deleted successfully
-                  ufsDeleter.delete(alluxioUriToDel, delInode);
-                } catch (AccessControlException e) {
-                  // In case ufs is not writable, we will still attempt to delete other entries
-                  // if any as they may be from a different mount point
-                  // TODO(adit): reason for failure is swallowed here
-                  LOG.warn(e.getMessage());
-                  failureReason = e.getMessage();
-                } catch (IOException e) {
-                  failureReason = e.getMessage();
-                }
+          // If this is a mount point, we have deleted all the children and can unmount it
+          // TODO(calvin): Add tests (ALLUXIO-1831)
+          if (mMountTable.isMountPoint(alluxioUriToDel)) {
+            unmountInternal(alluxioUriToDel);
+          } else {
+            if (!(replayed || deleteOptions.isAlluxioOnly())) {
+              try {
+                checkUfsMode(alluxioUriToDel, OperationType.WRITE);
+                // Attempt to delete node if all children were deleted successfully
+                ufsDeleter.delete(alluxioUriToDel, delInode);
+              } catch (AccessControlException e) {
+                // In case ufs is not writable, we will still attempt to delete other entries
+                // if any as they may be from a different mount point
+                // TODO(adit): reason for failure is swallowed here
+                LOG.warn(e.getMessage());
+                failureReason = e.getMessage();
+              } catch (IOException e) {
+                failureReason = e.getMessage();
               }
             }
-          } catch (InvalidPathException e) {
-            LOG.warn("Failed to delete path from UFS: {}", e.getMessage());
           }
         }
         if (failureReason == null) {
@@ -2691,7 +2691,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // Metadata loaded from UFS has no TTL set.
     CreateFileOptions createFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
-            .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
+            .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true)
+            .setTtl(options.getTtl()).setTtlAction(options.getTtlAction());
     String ufsOwner = ufsStatus.getOwner();
     String ufsGroup = ufsStatus.getGroup();
     short ufsMode = ufsStatus.getMode();
@@ -2742,7 +2743,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
-
   private void loadDirectoryMetadataAndJournal(RpcContext rpcContext, LockedInodePath inodePath,
       LoadMetadataOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
@@ -2753,7 +2753,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     CreateDirectoryOptions createDirectoryOptions = CreateDirectoryOptions.defaults()
         .setMountPoint(mMountTable.isMountPoint(inodePath.getUri())).setPersisted(true)
-        .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true);
+        .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true)
+        .setTtl(options.getTtl()).setTtlAction(options.getTtlAction());
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
     UfsStatus ufsStatus = options.getUfsStatus();
     if (ufsStatus == null) {

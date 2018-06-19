@@ -12,15 +12,16 @@
 package alluxio.master;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.PropertyKey;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.interfaces.Scoped;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -118,7 +119,10 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       }
     }, "MasterServingThread");
     mServingThread.start();
-    waitForReady();
+    if (!waitForReady(10 * Constants.MINUTE_MS)) {
+      ThreadUtils.logAllThreads();
+      throw new RuntimeException("Alluxio master failed to come up");
+    }
     LOG.info("Primary started");
     return true;
   }
@@ -156,12 +160,8 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   }
 
   @Override
-  public void waitForReady() {
-    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return (mServingThread == null || isServing());
-      }
-    });
+  public boolean waitForReady(int timeoutMs) {
+    return CommonUtils.waitFor(this + " to start", input -> (mServingThread == null || isServing()),
+        WaitForOptions.defaults().setTimeoutMs(timeoutMs).setThrowOnTimeout(false));
   }
 }
