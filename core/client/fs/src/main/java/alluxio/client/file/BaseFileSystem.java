@@ -244,7 +244,7 @@ public class BaseFileSystem implements FileSystem {
         MetaCache.invalidate(path.getPath()); // qiniu
     } else {
         URIStatus s = MetaCache.getStatus(path.getPath());
-        if (s != null && !MetaCache.shouldUpdateStatus(s)) return s;
+        if (s != null) return s;
     }
 
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();

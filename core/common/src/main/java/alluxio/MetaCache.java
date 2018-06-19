@@ -68,7 +68,7 @@ public class MetaCache {
           System.out.println("Alluxio attr cache size:" + fcache.size());
       } else if (p.startsWith("ac")) {
           p = p.substring(2);
-          System.out.println("Attr cache for " + p + ":" + MetaCache.getStatus(p));
+          System.out.println("Attr cache for " + p + ":" + MetaCache.getStatus(MetaCache.resolve(p)));
       } else if (p.startsWith("b0")) {
           MetaCache.set_block_cache(0);
           System.out.println("Alluxio block cache disabled.");
@@ -160,32 +160,37 @@ public class MetaCache {
       }
   }
 
+  public static String resolve(String path) {
+      if (alluxioRootPath == null) return path;
+      if (path.indexOf(alluxioRootPath.toString()) == 0) return path;
+      Path tpath = alluxioRootPath.resolve(path.substring(1));
+      return tpath.toString();
+  }
+
   public static URIStatus getStatus(String path) {
+      path = resolve(path);
       MetaCacheData c = fcache.getIfPresent(path);
       return (c != null) ? c.getStatus() : null;
   }
 
-  public static boolean shouldUpdateStatus(URIStatus s) {
-      if (s.isFolder() || s.getBlockSizeBytes() == 0) return false;
-      if (s.getLength() == 0) return true;
-      if (s.getInAlluxioPercentage() == 100) return false;
-      return true;
-  }
-
   public static void setStatus(String path, URIStatus s) {
-      if (!attr_cache_enabled) return;
+      if (!attr_cache_enabled || s.isFolder() || s.getBlockSizeBytes() == 0
+              || s.getLength() == 0 || s.getInAlluxioPercentage() != 100) return;
 
+      path = resolve(path);
       MetaCacheData c = fcache.getUnchecked(path);
       if (c != null) c.setStatus(s);
   }
 
   public static AlluxioURI getURI(String path) {
+      path = resolve(path);
       MetaCacheData c = fcache.getUnchecked(path); //confirm to original code logic
       return (c != null) ? c.getURI() : null;
   }
 
   public static void invalidate(String path) {
       //also invalidate block belonging to the file
+      path = resolve(path);
       MetaCacheData data = fcache.getIfPresent(path);
       if (data != null) {
           URIStatus stat = data.getStatus();
@@ -199,6 +204,7 @@ public class MetaCache {
   }
 
   public static void invalidatePrefix(String prefix) {
+      prefix = resolve(prefix);
       Set<String> keys = fcache.asMap().keySet();
       for (String k: keys) {
           if (k.startsWith(prefix)) invalidate(k);
@@ -234,12 +240,14 @@ public class MetaCache {
       private AlluxioURI uri;
 
       public MetaCacheData(String path) {
+          /*
           if (alluxioRootPath != null) {
               Path tpath = alluxioRootPath.resolve(path.substring(1));
               this.uri = new AlluxioURI(tpath.toString());
           } else {
               this.uri = new AlluxioURI(path);
-          }
+          }*/
+          this.uri = new AlluxioURI(path);
           this.uriStatus = null;
       }
 
