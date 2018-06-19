@@ -106,7 +106,7 @@ check_mount_mode() {
       fi
       is_ram_folder_mounted "${tier_path}"
       if [[ $? -ne 0 ]]; then
-        echo "ERROR: Ramdisk" ${tier_path} "is not mounted with mount option NoMount. Use alluxio-mount.sh to mount ramdisk." >&2
+        echo "ERROR: Ramdisk ${tier_path} is not mounted with mount option NoMount. Use alluxio-mount.sh to mount ramdisk." >&2
         echo -e "${USAGE}" >&2
         exit 1
       fi
