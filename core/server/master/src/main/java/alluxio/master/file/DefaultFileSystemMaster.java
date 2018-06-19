@@ -999,7 +999,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           listStatusInternal(childInodePath, auditContext,
               nextDescendantType, statusList);
         } catch (InvalidPathException e) {
-          LOG.warn("ListStatus encountered an invalid path {}", child.getName(), e);
+          LOG.warn("ListStatus encountered an invalid path {}",
+              currInodePath.getUri().join(child.getName()), e);
         }
       }
     }
