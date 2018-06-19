@@ -28,6 +28,8 @@ import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Source;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
@@ -95,7 +97,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
     ConfigurationTestUtils.resetConfiguration();
-    FileSystemContext.get().reset(false);
+    Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+    FileSystemContext.get().reset(Configuration.global());
   }
 
   @Test

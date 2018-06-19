@@ -152,15 +152,13 @@ public class AbstractFileSystemTest {
       Configuration conf = getConf();
       conf.set("fs.alluxio.impl.disable.cache", "true");
       org.apache.hadoop.fs.FileSystem fs1 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-      verify(mMockFileSystemContext, times(1))
-          .reset(alluxio.Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED));
+      verify(mMockFileSystemContext, times(1)).reset(alluxio.Configuration.global());
       // The filesystem context should return a master inquire client based on the latest config
       when(mMockFileSystemContext.getMasterInquireClient())
           .thenReturn(MasterInquireClient.Factory.create());
       // The first initialize should reset the context, but later initializes should not.
       org.apache.hadoop.fs.FileSystem.get(uri, conf);
-      verify(mMockFileSystemContext, times(1))
-          .reset(alluxio.Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED));
+      verify(mMockFileSystemContext, times(1)).reset(alluxio.Configuration.global());
     }
   }
 
@@ -224,8 +222,7 @@ public class AbstractFileSystemTest {
     org.apache.hadoop.fs.FileSystem fileSystem =
         org.apache.hadoop.fs.FileSystem.get(uri, getConf());
 
-    verify(mMockFileSystemContext)
-        .reset(alluxio.Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED));
+    verify(mMockFileSystemContext).reset(alluxio.Configuration.global());
   }
 
   /**

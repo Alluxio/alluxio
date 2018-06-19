@@ -17,6 +17,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -152,8 +153,7 @@ public final class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient) {
     FileSystemContext context = new FileSystemContext(subject);
-    context.init(masterInquireClient,
-        Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED));
+    context.init(masterInquireClient, Configuration.global());
     return context;
   }
 
@@ -178,10 +178,10 @@ public final class FileSystemContext implements Closeable {
    * Initializes the context. Only called in the factory methods and reset.
    *
    * @param masterInquireClient the client to use for determining the master
-   * @param enableUserMetricsCollection if enables the user metrics collection
+   * @param configuration the instance configuration
    */
   private synchronized void init(MasterInquireClient masterInquireClient,
-      boolean enableUserMetricsCollection) {
+      InstancedConfiguration configuration) {
     mMasterInquireClient = masterInquireClient;
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
@@ -189,7 +189,8 @@ public final class FileSystemContext implements Closeable {
     mClosed.set(false);
 
     // Only send metrics if enabled and the port is set (can be zero when tests are setting up).
-    if (enableUserMetricsCollection && Configuration.getInt(PropertyKey.MASTER_RPC_PORT) != 0) {
+    if (configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)
+        && Configuration.getInt(PropertyKey.MASTER_RPC_PORT) != 0) {
       // setup metrics master client sync
       mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults()
           .withSubject(mParentSubject).withMasterInquireClient(mMasterInquireClient));
@@ -240,12 +241,12 @@ public final class FileSystemContext implements Closeable {
    * Resets the context. It is only used in {@link alluxio.hadoop.AbstractFileSystem} and tests to
    * reset the default file system context.
    *
-   * @param enableUserMetricsCollection if enables the user metrics collection
+   * @param configuration the instance configuration
    *
    */
-  public synchronized void reset(boolean enableUserMetricsCollection) throws IOException {
+  public synchronized void reset(InstancedConfiguration configuration) throws IOException {
     close();
-    init(MasterInquireClient.Factory.create(), enableUserMetricsCollection);
+    init(MasterInquireClient.Factory.create(), configuration);
   }
 
   /**
