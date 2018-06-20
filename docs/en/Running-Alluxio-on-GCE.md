@@ -117,7 +117,7 @@ After the command `./create <number of machines> google` succeeds, you will see 
 below shown at the end of the shell output:
 
 ```bash
->>> AlluxioMaster public IP is xxx, visit xxxx:19999 for Alluxio web UI
+>>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI
 >>> visit default port of the web UI of what you deployed
 ```
 
