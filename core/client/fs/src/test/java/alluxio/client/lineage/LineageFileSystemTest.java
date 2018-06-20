@@ -94,7 +94,7 @@ public final class LineageFileSystemTest {
   public void getDummyOutStream() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
     when(
-        mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0, TtlAction.DELETE))
+        mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0, TtlAction.FREE))
         .thenReturn(-1L);
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE)
         .setTtl(0);
@@ -111,7 +111,7 @@ public final class LineageFileSystemTest {
   public void getNonLineageStream() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
     when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0,
-            TtlAction.DELETE))
+            TtlAction.FREE))
         .thenThrow(new NotFoundException("lineage does not exist"));
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE)
         .setTtl(0);

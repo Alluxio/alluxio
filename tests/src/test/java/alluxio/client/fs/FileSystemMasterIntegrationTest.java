@@ -682,7 +682,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public void ttlExpiredCreateFile() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
-    CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
+    CreateFileOptions options = CreateFileOptions.defaults()
+        .setTtl(ttl).setTtlAction(TtlAction.DELETE);
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
