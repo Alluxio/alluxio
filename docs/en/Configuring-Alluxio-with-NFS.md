@@ -38,12 +38,11 @@ alluxio.underfs.address=/mnt/nfs
 
 ## Running Alluxio with NFS
 
-After everything is configured, you can start up Alluxio locally to see that everything works.
+Simply run the following command to start Alluxio filesystem.
 
 {% include Configuring-Alluxio-with-NFS/start-alluxio.md %}
 
-This should start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
+To verify that Alluxio is running, you can visit http://localhost:19999, or see the log in the logs folder.
 
 Next, you can run a simple example program:
 
@@ -54,6 +53,6 @@ by Alluxio exist. For this test, you should see files named like:
 
 {% include Configuring-Alluxio-with-NFS/nfs-file.md %}
 
-To stop Alluxio, you can run:
+You can stop Alluxio any time by running:
 
 {% include Configuring-Alluxio-with-NFS/stop-alluxio.md %}
