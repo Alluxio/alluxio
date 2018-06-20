@@ -117,7 +117,7 @@ public final class FileSystemMasterClientServiceHandler implements
         uris.add(uri.getPath());
       }
       return new CheckConsistencyTResponse(uris);
-    }, "CheckConsistency", "CheckConsistency: path=%s, options=%s", path, options);
+    }, "CheckConsistency", "path=%s, options=%s", path, options);
   }
 
   @Override
@@ -126,7 +126,7 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<CompleteFileTResponse>) () -> {
       mFileSystemMaster.completeFile(new AlluxioURI(path), new CompleteFileOptions(options));
       return new CompleteFileTResponse();
-    }, "CompleteFile", "CompleteFile: path=%s, options=%s", path, options);
+    }, "CompleteFile", "path=%s, options=%s", path, options);
   }
 
   @Override
@@ -135,7 +135,7 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<CreateDirectoryTResponse>) () -> {
       mFileSystemMaster.createDirectory(new AlluxioURI(path), new CreateDirectoryOptions(options));
       return new CreateDirectoryTResponse();
-    }, "CreateDirectory", "CreateDirectory: path=%s, options=%s", path, options);
+    }, "CreateDirectory", "path=%s, options=%s", path, options);
   }
 
   @Override
@@ -144,7 +144,7 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<CreateFileTResponse>) () -> {
       mFileSystemMaster.createFile(new AlluxioURI(path), new CreateFileOptions(options));
       return new CreateFileTResponse();
-    }, "CreateFile", "CreateFile: path=%s, options=%s", path, options);
+    }, "CreateFile", "path=%s, options=%s", path, options);
   }
 
   @Override
@@ -161,7 +161,7 @@ public final class FileSystemMasterClientServiceHandler implements
         mFileSystemMaster.free(new AlluxioURI(path), new FreeOptions(options));
       }
       return new FreeTResponse();
-    }, "Free", "Free: path=%s, recursive=%s, options=%s", path, recursive, options);
+    }, "Free", "path=%s, recursive=%s, options=%s", path, recursive, options);
   }
 
   @Override
@@ -170,7 +170,7 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG,
         (RpcCallable<GetNewBlockIdForFileTResponse>) () -> new GetNewBlockIdForFileTResponse(
             mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path))), "GetNewBlockIdForFile",
-        "GetNewBlockIdForFile: path=%s, options=%s", path, options);
+        "path=%s, options=%s", path, options);
   }
 
   @Override
@@ -181,7 +181,7 @@ public final class FileSystemMasterClientServiceHandler implements
             mFileSystemMaster.getFileInfo(new AlluxioURI(path), new GetStatusOptions(options))
                 .toThrift()),
         // getStatus is often used to check file existence, so we avoid logging all of its failures
-        "GetStatus", true, "GetStatus: path=%s, options=%s", path, options);
+        "GetStatus", true, "path=%s, options=%s", path, options);
   }
 
   @Override
@@ -194,7 +194,7 @@ public final class FileSystemMasterClientServiceHandler implements
         result.add(fileInfo.toThrift());
       }
       return new ListStatusTResponse(result);
-    }, "ListStatus", "ListStatus: path=%s, options=%s", path, options);
+    }, "ListStatus", "path=%s, options=%s", path, options);
   }
 
   /**
@@ -211,7 +211,7 @@ public final class FileSystemMasterClientServiceHandler implements
         (RpcCallableThrowsIOException<LoadMetadataTResponse>) () -> new LoadMetadataTResponse(
             mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath), LoadMetadataOptions
                 .defaults().setCreateAncestors(true).setLoadDescendantType(DescendantType.ONE))),
-        "LoadMetadata", "LoadMetadata: alluxioPath=%s, recursive=%s, options=%s", alluxioPath,
+        "LoadMetadata", "alluxioPath=%s, recursive=%s, options=%s", alluxioPath,
         recursive, options);
   }
 
@@ -222,7 +222,7 @@ public final class FileSystemMasterClientServiceHandler implements
       mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
           new MountOptions(options));
       return new MountTResponse();
-    }, "Mount", "Mount: alluxioPath=%s, ufsPath=%s, options=%s", alluxioPath, ufsPath, options);
+    }, "Mount", "alluxioPath=%s, ufsPath=%s, options=%s", alluxioPath, ufsPath, options);
   }
 
   @Override
@@ -236,7 +236,7 @@ public final class FileSystemMasterClientServiceHandler implements
         mountTableThrift.put(entry.getKey(), mountPointThrift);
       }
       return new GetMountTableTResponse(mountTableThrift);
-    }, "GetMountTable", "GetMountTable");
+    }, "GetMountTable", "");
   }
 
   @Override
@@ -253,7 +253,7 @@ public final class FileSystemMasterClientServiceHandler implements
         mFileSystemMaster.delete(new AlluxioURI(path), new DeleteOptions(options));
       }
       return new DeleteTResponse();
-    }, "Remove", "Remove: path=%s, recursive=%s, options=%s", path, recursive, options);
+    }, "Remove", "path=%s, recursive=%s, options=%s", path, recursive, options);
   }
 
   @Override
@@ -263,7 +263,7 @@ public final class FileSystemMasterClientServiceHandler implements
       mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), new RenameOptions(
           options));
       return new RenameTResponse();
-    }, "Rename", "Rename: srcPath=%s, dstPath=%s, options=%s", srcPath, dstPath, options);
+    }, "Rename", "srcPath=%s, dstPath=%s, options=%s", srcPath, dstPath, options);
   }
 
   @Override
@@ -273,7 +273,7 @@ public final class FileSystemMasterClientServiceHandler implements
         (RpcCallableThrowsIOException<ScheduleAsyncPersistenceTResponse>) () -> {
           mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
           return new ScheduleAsyncPersistenceTResponse();
-        }, "ScheduleAsyncPersist", "ScheduleAsyncPersist: path=%s, options=%s", path, options);
+        }, "ScheduleAsyncPersist", "path=%s, options=%s", path, options);
   }
 
   @Override
@@ -282,7 +282,7 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<SetAttributeTResponse>) () -> {
       mFileSystemMaster.setAttribute(new AlluxioURI(path), new SetAttributeOptions(options));
       return new SetAttributeTResponse();
-    }, "SetAttribute", "SetAttribute: path=%s, options=%s", path, options);
+    }, "SetAttribute", "path=%s, options=%s", path, options);
   }
 
   @Override
@@ -291,7 +291,7 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<UnmountTResponse>) () -> {
       mFileSystemMaster.unmount(new AlluxioURI(alluxioPath));
       return new UnmountTResponse();
-    }, "Unmount", "Unmount: alluxioPath=%s, options=%s", alluxioPath, options);
+    }, "Unmount", "alluxioPath=%s, options=%s", alluxioPath, options);
   }
 
   @Override
@@ -312,6 +312,6 @@ public final class FileSystemMasterClientServiceHandler implements
       }
       mFileSystemMaster.updateUfsMode(new AlluxioURI(ufsPath), ufsMode);
       return new UpdateUfsModeTResponse();
-    }, "UpdateUfsMode", "UpdateUfsMode: ufsPath=%s, options=%s", ufsPath, options);
+    }, "UpdateUfsMode", "ufsPath=%s, options=%s", ufsPath, options);
   }
 }

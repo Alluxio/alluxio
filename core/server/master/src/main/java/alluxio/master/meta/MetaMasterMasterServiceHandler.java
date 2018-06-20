@@ -61,7 +61,7 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
       GetMasterIdTOptions options) throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallable<GetMasterIdTResponse>) () -> new GetMasterIdTResponse(
         mMetaMaster.getMasterId(Address.fromThrift(address))), "GetMasterId",
-        "GetMasterId: address=%s, options=%s", address, options);
+        "address=%s, options=%s", address, options);
   }
 
   @Override
@@ -71,7 +71,7 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
         LOG,
         (RpcCallable<MasterHeartbeatTResponse>) () -> new MasterHeartbeatTResponse(mMetaMaster
             .masterHeartbeat(masterId)), "MasterHeartbeat",
-        "MasterHeartbeat: masterId=%s, options=%s", masterId, options);
+        "masterId=%s, options=%s", masterId, options);
   }
 
   @Override
@@ -80,6 +80,6 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<RegisterMasterTResponse>) () -> {
       mMetaMaster.masterRegister(masterId, options);
       return new RegisterMasterTResponse();
-    }, "RegisterMaster", "RegisterMaster: masterId=%s, options=%s", masterId, options);
+    }, "RegisterMaster", "masterId=%s, options=%s", masterId, options);
   }
 }

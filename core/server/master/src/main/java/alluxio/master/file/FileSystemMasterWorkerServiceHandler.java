@@ -70,7 +70,7 @@ public final class FileSystemMasterWorkerServiceHandler
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<FileSystemHeartbeatTResponse>) () ->
         new FileSystemHeartbeatTResponse(mFileSystemMaster.workerHeartbeat(workerId, persistedFiles,
             new WorkerHeartbeatOptions(options))),
-        "FileSystemHeartbeat", "FileSystemHeartbeat: workerId=%s, persistedFiles=%s, options=%s",
+        "FileSystemHeartbeat", "workerId=%s, persistedFiles=%s, options=%s",
         workerId, persistedFiles, options);
   }
 
@@ -79,7 +79,7 @@ public final class FileSystemMasterWorkerServiceHandler
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetFileInfoTResponse>) () ->
         new GetFileInfoTResponse(mFileSystemMaster.getFileInfo(fileId).toThrift()),
-        "GetFileInfo", "GetFileInfo: fileId=%s, options=%s", fileId, options);
+        "GetFileInfo", "fileId=%s, options=%s", fileId, options);
   }
 
   @Override
@@ -87,7 +87,7 @@ public final class FileSystemMasterWorkerServiceHandler
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallable<GetPinnedFileIdsTResponse>) () ->
         new GetPinnedFileIdsTResponse(mFileSystemMaster.getPinIdList()),
-        "GetPinnedFileIds", "GetPinnedFileIds: options=%s", options);
+        "GetPinnedFileIds", "options=%s", options);
   }
 
   @Override
@@ -95,6 +95,6 @@ public final class FileSystemMasterWorkerServiceHandler
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallable<GetUfsInfoTResponse>) () ->
         new GetUfsInfoTResponse(mFileSystemMaster.getUfsInfo(mountId)),
-        "GetUfsInfo", "GetUfsInfo: mountId=%s, options=%s", mountId, options);
+        "GetUfsInfo", "mountId=%s, options=%s", mountId, options);
   }
 }

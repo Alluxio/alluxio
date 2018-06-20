@@ -81,9 +81,8 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
           return new BlockHeartbeatTResponse(mBlockMaster.workerHeartbeat(workerId,
               usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers, metrics));
         }, "BlockHeartbeat",
-        "BlockHeartbeat: workerId=%s, usedBytesOnTiers=%s, removedBlockIds=%s, "
-            + "addedBlocksOnTiers=%s, options=%s", workerId, usedBytesOnTiers, removedBlockIds,
-        addedBlocksOnTiers, options);
+        "workerId=%s, usedBytesOnTiers=%s, removedBlockIds=%s, addedBlocksOnTiers=%s, options=%s",
+        workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers, options);
   }
 
   @Override
@@ -93,8 +92,8 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<CommitBlockTResponse>) () -> {
       mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
       return new CommitBlockTResponse();
-    }, "CommitBlock", "CommitBlock: workerId=%s, usedBytesOnTiers=%s, tierAlias=%s, blockId=%s, "
-        + "length=%s, options=%s", workerId, usedBytesOnTier, tierAlias, blockId, length, options);
+    }, "CommitBlock", "workerId=%s, usedBytesOnTiers=%s, tierAlias=%s, blockId=%s, length=%s, "
+        + "options=%s", workerId, usedBytesOnTier, tierAlias, blockId, length, options);
   }
 
   @Override
@@ -102,7 +101,7 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
       GetWorkerIdTOptions options) throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallable<GetWorkerIdTResponse>) () -> new GetWorkerIdTResponse(
         mBlockMaster.getWorkerId(fromThrift(workerNetAddress))), "GetWorkerId",
-        "GetWorkerId: workerNetAddress=%s, options=%s", workerNetAddress, options);
+        "workerNetAddress=%s, options=%s", workerNetAddress, options);
   }
 
   @Override
@@ -114,7 +113,7 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
       mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
           currentBlocksOnTiers, options);
       return new RegisterWorkerTResponse();
-    }, "RegisterWorker", "RegisterWorker: workerId=%s, storageTiers=%s, totalBytesOnTiers=%s, "
+    }, "RegisterWorker", "workerId=%s, storageTiers=%s, totalBytesOnTiers=%s, "
         + "usedBytesOnTiers=%s, currentBlocksOnTiers=%s, options=%s", workerId, storageTiers,
         totalBytesOnTiers, usedBytesOnTiers, currentBlocksOnTiers, options);
   }

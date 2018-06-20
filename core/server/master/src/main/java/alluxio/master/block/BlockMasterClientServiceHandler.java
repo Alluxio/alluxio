@@ -75,13 +75,13 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallable<GetCapacityBytesTResponse>) () ->
         new GetCapacityBytesTResponse(mBlockMaster.getCapacityBytes()),
-        "GetCapacityBytes", "GetCapacityBytes: options=%s", options);
+        "GetCapacityBytes", "options=%s", options);
   }
 
   @Override
   public GetUsedBytesTResponse getUsedBytes(GetUsedBytesTOptions options) throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallable<GetUsedBytesTResponse>) () -> new GetUsedBytesTResponse(
-        mBlockMaster.getUsedBytes()), "GetUsedBytes", "GetUsedBytes: options=%s", options);
+        mBlockMaster.getUsedBytes()), "GetUsedBytes", "options=%s", options);
   }
 
   @Override
@@ -90,7 +90,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
     return RpcUtils.call(LOG,
         (RpcCallableThrowsIOException<GetBlockInfoTResponse>) () -> new GetBlockInfoTResponse(
             mBlockMaster.getBlockInfo(blockId).toThrift()), "GetBlockInfo",
-        "GetBlockInfo: blockId=%s, options=%s", blockId, options);
+        "blockId=%s, options=%s", blockId, options);
   }
 
   @Override
@@ -152,6 +152,6 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
         workerInfos.add(workerInfo.toThrift());
       }
       return new GetWorkerInfoListTResponse(workerInfos);
-    }, "GetWorkerReport", "GetWorkerReport: options=%s", options);
+    }, "GetWorkerReport", "options=%s", options);
   }
 }
