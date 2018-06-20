@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 /**
@@ -41,8 +42,6 @@ import java.util.stream.Collectors;
  */
 public class CapacityCommand {
   private static final int INDENT_SIZE = 4;
-  private static final String LONG_INFO_FORMAT = "%-16s %-16s %-13s %-16s %s";
-  private static final String SHORT_INFO_FORMAT = "%-16s %-16s %-13s %s";
 
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
@@ -194,7 +193,8 @@ public class CapacityCommand {
     }
     Set<String> tiers = mCapacityTierInfoMap.keySet();
     String tiersInfo = String.format(Strings.repeat("%-14s", tiers.size()), tiers.toArray());
-    print(String.format("%n" + LONG_INFO_FORMAT,
+    String longInfoFormat = getInfoFormat(workerInfoList, false);
+    print(String.format("%n" + longInfoFormat,
         "Worker Name", "Last Heartbeat", "Storage", "Total", tiersInfo));
 
     for (WorkerInfo info : workerInfoList) {
@@ -212,9 +212,9 @@ public class CapacityCommand {
       String capacityTierInfo = getWorkerFormattedTierValues(mCapacityTierInfoMap, workerName);
       String usedTierInfo = getWorkerFormattedTierValues(mUsedTierInfoMap, workerName);
 
-      print(String.format(LONG_INFO_FORMAT, workerName, info.getLastContactSec(), "capacity",
+      print(String.format(longInfoFormat, workerName, info.getLastContactSec(), "capacity",
           FormatUtils.getSizeFromBytes(capacityBytes), capacityTierInfo));
-      print(String.format(LONG_INFO_FORMAT, "", "", "used",
+      print(String.format(longInfoFormat, "", "", "used",
           FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo, usedTierInfo));
     }
   }
@@ -226,7 +226,8 @@ public class CapacityCommand {
    */
   private void printShortWorkerInfo(List<WorkerInfo> workerInfoList) {
     String tier = mCapacityTierInfoMap.firstKey();
-    print(String.format("%n" + SHORT_INFO_FORMAT,
+    String shortInfoFormat = getInfoFormat(workerInfoList, true);
+    print(String.format("%n" + shortInfoFormat,
         "Worker Name", "Last Heartbeat", "Storage", tier));
 
     for (WorkerInfo info : workerInfoList) {
@@ -238,11 +239,31 @@ public class CapacityCommand {
         int usedPercentage = (int) (100L * usedBytes / capacityBytes);
         usedPercentageInfo = String.format(" (%s%%)", usedPercentage);
       }
-      print(String.format(SHORT_INFO_FORMAT, info.getAddress().getHost(),
+      print(String.format(shortInfoFormat, info.getAddress().getHost(),
           info.getLastContactSec(), "capacity", FormatUtils.getSizeFromBytes(capacityBytes)));
-      print(String.format(SHORT_INFO_FORMAT, "", "", "used",
+      print(String.format(shortInfoFormat, "", "", "used",
           FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo));
     }
+  }
+
+  /**
+   * Gets the info format according to the longest worker name.
+   * @param workerInfoList the worker info list to get info from
+   * @param isShort whether exists only one tier
+   * @return the info format for printing long/short worker info
+   */
+  private String getInfoFormat(List<WorkerInfo> workerInfoList, boolean isShort) {
+    int maxWorkerNameLength = workerInfoList.stream().map(w -> w.getAddress().getHost().length())
+        .max(Comparator.comparing(Integer::intValue)).get();
+    int firstIndent = 16;
+    if (firstIndent <= maxWorkerNameLength) {
+      // extend first indent according to the longest worker name by default 5
+      firstIndent = maxWorkerNameLength + 5;
+    }
+    if (isShort) {
+      return "%-" + firstIndent + "s %-16s %-13s %s";
+    }
+    return "%-" + firstIndent + "s %-16s %-13s %-16s %s";
   }
 
   /**
