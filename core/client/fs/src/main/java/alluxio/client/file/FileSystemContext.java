@@ -188,9 +188,7 @@ public final class FileSystemContext implements Closeable {
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
     mClosed.set(false);
 
-    // Only send metrics if enabled and the port is set (can be zero when tests are setting up).
-    if (configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)
-        && Configuration.getInt(PropertyKey.MASTER_RPC_PORT) != 0) {
+    if (configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
       mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults()
           .withSubject(mParentSubject).withMasterInquireClient(mMasterInquireClient));
@@ -199,7 +197,7 @@ public final class FileSystemContext implements Closeable {
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
       mExecutorService
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
-              (int) Configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
+              (int) configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
       // register the shutdown hook
       Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
     }

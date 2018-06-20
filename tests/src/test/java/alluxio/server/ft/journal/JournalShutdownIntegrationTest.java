@@ -28,8 +28,6 @@ import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.Source;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
