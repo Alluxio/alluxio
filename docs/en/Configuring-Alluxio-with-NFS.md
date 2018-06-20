@@ -42,7 +42,8 @@ Simply run the following command to start Alluxio filesystem.
 
 {% include Configuring-Alluxio-with-NFS/start-alluxio.md %}
 
-To verify that Alluxio is running, you can visit http://localhost:19999, or see the log in the logs folder.
+To verify that Alluxio is running, you can visit
+**[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder.
 
 Next, you can run a simple example program:
 
