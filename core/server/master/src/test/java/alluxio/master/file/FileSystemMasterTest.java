@@ -1387,13 +1387,13 @@ public final class FileSystemMasterTest {
   @Test
   public void setSmallerTtlForDirectoryWithTtl() throws Exception {
     CreateDirectoryOptions createDirectoryOptions =
-        CreateDirectoryOptions.defaults().setRecursive(true)
-            .setTtl(Constants.HOUR_MS).setTtlAction(TtlAction.DELETE);
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(Constants.HOUR_MS);
     mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     assertTrue(
         mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getName() != null);
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(0));
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults()
+        .setTtl(0).setTtlAction(TtlAction.DELETE));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
