@@ -77,20 +77,22 @@ $ sudo service docker restart
 ### Run the Alluxio master
 
 ```bash
+$ # This gets the public ip of the current EC2 instance
+$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 $ docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
+             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio master
 ```
 Details:
+- `-e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP}`: Tell the master what address to use.
 - `-v $PWD/underStorage:/underStorage`: Share the underStorage folder with the Docker container.
 - `-e ALLUXIO_UNDERFS_ADDRESS=/underStorage`: Tell the worker to use /underStorage as the under file storage.
 
 ### Run the Alluxio worker
 
 ```bash
-$ # This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 $ # Launch an Alluxio worker container and save the container ID for later
 $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
              -v /mnt/ramdisk:/opt/ramdisk \
@@ -223,7 +225,7 @@ To use FUSE, you need to build a docker image with FUSE enabled:
 docker build -f Dockerfile.fuse -t alluxio-fuse .
 ```
 
-There are a couple extra arguments required to run the docker image with FUSE support, 
+There are a couple extra arguments required to run the docker image with FUSE support,
 for example:
 
 ```bash
@@ -234,7 +236,7 @@ Note: running FUSE in docker requires adding [SYS_ADMIN capability](http://man7.
  to the container. This removes isolation of the container and should be used with caution.
 
 Importantly, in order for the application to access data from Alluxio storage mounted with FUSE, it must run in the same
- container as Alluxio. You can easily extend the docker image to include applications to run on top of Alluxio. For example, 
+ container as Alluxio. You can easily extend the docker image to include applications to run on top of Alluxio. For example,
  to run TensorFlow with Alluxio inside a docker container, just edit Dockerfile.fuse and replace
 
 ```bash
