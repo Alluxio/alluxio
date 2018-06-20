@@ -46,8 +46,8 @@ import (
 	"strings"
 	"time"
 
-	alluxio "github.com/alluxio/alluxio-go"
-	"github.com/alluxio/alluxio-go/option"
+	alluxio "github.com/Alluxio/alluxio-go"
+	"github.com/Alluxio/alluxio-go/option"
 )
 
 func write(fs *alluxio.Client, path, s string) error {
