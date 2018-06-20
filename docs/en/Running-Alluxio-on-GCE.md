@@ -19,7 +19,7 @@ Alluxio. The scripts let you create, configure, and destroy clusters.
 
 Download [Vagrant](https://www.vagrantup.com/downloads.html)
 
-Install Google Vagrant plugin:
+Install the Google Vagrant plugin:
 
 ```bash
 $ vagrant plugin install vagrant-google
@@ -28,7 +28,7 @@ $ vagrant box add google https://github.com/mitchellh/vagrant-google/raw/master/
 
 **Install Alluxio**
 
-[Download Alluxio](https://alluxio.org/download) to your local machine, and unzip it:
+[Clone the Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine.
 
 **Install python library dependencies**
 
@@ -49,9 +49,13 @@ $ sudo pip install -r pip-req.txt
 
 ## Launch a Cluster
 
-To run an Alluxio cluster on GCE, you need a [Google Cloud](https://cloud.google.com) billing account, project, service account and JSON keys for the service account.
+To run an Alluxio cluster on GCE, you need a [Google Cloud](https://cloud.google.com) billing
+account, project, service account and JSON keys for the service account.
 
-If you are new to Google Cloud, create a billing account and project at the [free trial signup page](https://console.cloud.google.com/billing/freetrial). Also, If you are not familiar with Google Compute Engine, you may want to review the [documentation](https://cloud.google.com/compute/docs) first.
+If you are new to Google Cloud, create a billing account and project at the
+[free trial signup page](https://console.cloud.google.com/billing/freetrial). Also, If you are not
+familiar with Google Compute Engine, you may want to review the
+[documentation](https://cloud.google.com/compute/docs) first.
 
 Next, you will need your JSON keys for your GCE project. Go to the
 [Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) section of the
@@ -73,13 +77,14 @@ $ gcloud init
 $ gcloud compute config-ssh
 ```
 
-Copy `deploy/vagrant/conf/gce.yml.template` to `deploy/vagrant/conf/gce.yml` by:
+Create the Vagrant GCE config file by copying the provided template:
 
 ```bash
 $ cp deploy/vagrant/conf/gce.yml.template deploy/vagrant/conf/gce.yml
 ```
 
-In the configuration file `deploy/vagrant/conf/gce.yml`, set the project id, service account, location to JSON key and ssh username you've just created.
+In the configuration file `deploy/vagrant/conf/gce.yml`, set the project id, service account,
+location to JSON key and ssh username you've just created.
 
 For GCE, the default underfs is Google Cloud Storage (GCS). Visit the
 [Storage page](https://console.cloud.google.com/storage/) of the Google Cloud console, create a GCS
@@ -96,26 +101,24 @@ $ export GCS_ACCESS_KEY_ID=<your access key>
 $ export GCS_SECRET_ACCESS_KEY=<your secret access key>
 ```
 
-Now you can launch the Alluxio cluster by running
-the script under `deploy/vagrant`:
+Now you can launch the Alluxio cluster by running the script under `deploy/vagrant`:
 
 ```bash
 $ ./create <number of machines> google
 ```
 
-
-Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
+Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` node runs the Alluxio master.
 
 ## Access the cluster
 
-**Access through Web UI**
+**Access through the Web UI**
 
-After the command `./create <number of machines> google` succeeds, you can see two green lines like
+After the command `./create <number of machines> google` succeeds, you will see two green lines like
 below shown at the end of the shell output:
 
 ```bash
->>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI<<<
->>> visit default port of the web UI of what you deployed <<<
+>>> AlluxioMaster public IP is xxx, visit xxxx:19999 for Alluxio web UI
+>>> visit default port of the web UI of what you deployed
 ```
 
 Default port for Alluxio Web UI is **19999**.
@@ -153,7 +156,7 @@ For example, you can ssh into `AlluxioMaster` with:
 $ vagrant ssh AlluxioMaster
 ```
 
-All software is installed under the root directory, e.g. Alluxio is installed in `/alluxio`.
+Alluxio is installed in `/alluxio`.
 
 On the `AlluxioMaster` node, you can run sample tests on Alluxio to check its health:
 
