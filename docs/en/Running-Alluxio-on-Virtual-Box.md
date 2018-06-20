@@ -26,7 +26,7 @@ Download [Vagrant](https://www.vagrantup.com/downloads.html)
 
 **Install Alluxio**
 
-[Download Alluxio](https://alluxio.org/download) to your local machine, and unzip it:
+[Clone Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine
 
 **Install python library dependencies**
 
