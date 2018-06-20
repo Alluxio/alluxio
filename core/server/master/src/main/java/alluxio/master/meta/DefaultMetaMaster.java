@@ -163,8 +163,9 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     super(masterContext, new SystemClock(), executorServiceFactory);
     mSafeModeManager = masterContext.getSafeModeManager();
     mStartTimeMs = masterContext.getStartTimeMs();
-    mMasterAddress = new Address().setHost(Configuration.get(PropertyKey.MASTER_HOSTNAME))
-        .setRpcPort(masterContext.getPort());
+    mMasterAddress =
+        new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME, "localhost"))
+            .setRpcPort(masterContext.getPort());
     mBlockMaster = blockMaster;
     mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
     mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
@@ -224,14 +225,17 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           new LogConfigReportHeartbeatExecutor(),
           (int) Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)));
     } else {
-      // Standby master should setup MetaMasterSync to communicate with the leader master
-      RetryHandlingMetaMasterMasterClient metaMasterClient =
-          new RetryHandlingMetaMasterMasterClient(MasterClientConfig.defaults());
-      getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
-          new MetaMasterSync(mMasterAddress, metaMasterClient),
-          (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL)));
-      LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
-          mMasterAddress);
+      boolean haEnabled = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
+      if (haEnabled) {
+        // Standby master should setup MetaMasterSync to communicate with the leader master
+        RetryHandlingMetaMasterMasterClient metaMasterClient =
+            new RetryHandlingMetaMasterMasterClient(MasterClientConfig.defaults());
+        getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
+            new MetaMasterSync(mMasterAddress, metaMasterClient),
+            (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL)));
+        LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
+            mMasterAddress);
+      }
     }
   }
 
