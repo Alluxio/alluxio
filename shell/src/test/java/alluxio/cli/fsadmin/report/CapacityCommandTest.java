@@ -11,7 +11,6 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.wire.WorkerInfo;
@@ -115,10 +114,10 @@ public class CapacityCommandTest {
   }
 
   @Test
-  public void longWorknameCapacity() throws IOException {
-    List<WorkerInfo> longWorknameInfoList = prepareLongWorknameInfoList();
+  public void longWorkerNameCapacity() throws IOException {
+    List<WorkerInfo> longWorkerNameInfoList = prepareLongWorkerNameInfoList();
     Mockito.when(mBlockMasterClient.getWorkerReport(Mockito.any()))
-        .thenReturn(longWorknameInfoList);
+        .thenReturn(longWorkerNameInfoList);
 
     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
          PrintStream printStream = new PrintStream(outputStream, true, "utf-8")) {
@@ -244,7 +243,7 @@ public class CapacityCommandTest {
   /**
    * @return long worker name info list to test
    */
-  private List<WorkerInfo> prepareLongWorknameInfoList() {
+  private List<WorkerInfo> prepareLongWorkerNameInfoList() {
     List<WorkerInfo> infoList = new ArrayList<>();
     Map<String, Long> capacityBytesOnTiersOne = new HashMap<>();
     capacityBytesOnTiersOne.put("MEM", 600000000L);

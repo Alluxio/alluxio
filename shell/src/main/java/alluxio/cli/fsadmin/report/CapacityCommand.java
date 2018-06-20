@@ -250,15 +250,15 @@ public class CapacityCommand {
    * Gets the info format according to the longest worker name.
    * @param workerInfoList the worker info list to get info from
    * @param isShort whether exists only one tier
-   * @return the info format for printing long/short work info
+   * @return the info format for printing long/short worker info
    */
   private String getInfoFormat(List<WorkerInfo> workerInfoList, boolean isShort) {
-    int maxWokerNameLength = workerInfoList.stream().map(w -> w.getAddress().getHost().length())
+    int maxWorkerNameLength = workerInfoList.stream().map(w -> w.getAddress().getHost().length())
         .max(Comparator.comparing(Integer::intValue)).get();
     int firstIndent = 16;
-    if (firstIndent <= maxWokerNameLength) {
-      // extend first indent according to the longest worker name
-      firstIndent = Double.valueOf(Math.ceil(maxWokerNameLength * 1.2)).intValue();
+    if (firstIndent <= maxWorkerNameLength) {
+      // extend first indent according to the longest worker name by default 5
+      firstIndent = maxWorkerNameLength + 5;
     }
     if (isShort) {
       return "%-" + firstIndent + "s %-16s %-13s %s";
