@@ -473,8 +473,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     } else if (entry.hasAddMountPoint()) {
       try {
         mountFromEntry(entry.getAddMountPoint());
-      } catch (FileAlreadyExistsException | InvalidPathException e) {
-        throw new RuntimeException(e);
+        // work around journal bad entries(multi-mount and no mount_id)
+      } catch (FileAlreadyExistsException e) {
+        LOG.warn("process journal entry failed, file already exists: {}", e);
+      } catch (InvalidPathException e) {
+        LOG.warn("process journal entry failed, invalid path exception: {}", e);
       }
     } else if (entry.hasDeleteMountPoint()) {
       unmountFromEntry(entry.getDeleteMountPoint());
@@ -2757,6 +2760,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   private void mountFromEntry(AddMountPointEntry entry)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
+    // workaround bad journal entry(not mount_id)
+    if (entry.getMountId() == 0L) {
+      LOG.warn("trying to mount alluxioPath " + entry.getAlluxioPath() +
+        " of ufsPath " + entry.getUfsPath() +
+        " from journal entry, but mount id is 0, it has to be ignore to get rid of fatal error");
+      return;
+    }
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
     AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
     try (LockedInodePath inodePath = mInodeTree
