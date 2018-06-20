@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project>
+
+ <!-- General information -->
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.codehaus.woodstox</groupId>
+  <artifactId>wstx-asl</artifactId>
+  <name>Woodstox</name>
+  <version>3.2.6</version>
+  <description>Woodstox is a high-performance XML processor that implements Stax (JSR-173) API</description>
+
+ <!-- Contact information -->
+
+  <url>http://woodstox.codehaus.org</url>
+  <issueManagement>
+    <url>http://jira.codehaus.org/browse/WSTX</url>
+  </issueManagement>
+
+ <!-- Dependency information -->
+ 
+  <dependencies>
+    <!-- Stax API jar is needed; 1.0.1 preferable over vanilla 1.0, since
+         it contains one critical bug fix to implementation auto-detection
+      -->
+    <dependency>
+      <groupId>stax</groupId>
+      <artifactId>stax-api</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+  </dependencies>
+
+
+  <!-- Licensing (joy!) -->
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Codehaus</name>
+    <url>http://www.codehaus.org/</url>
+  </organization>
+
+</project>

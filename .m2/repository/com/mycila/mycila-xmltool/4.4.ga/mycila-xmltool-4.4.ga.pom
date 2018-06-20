@@ -1,0 +1,75 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.mycila</groupId>
+        <artifactId>mycila-pom</artifactId>
+        <version>3</version>
+        <relativePath>../pom</relativePath>
+    </parent>
+
+    <groupId>com.mycila</groupId>
+    <artifactId>mycila-xmltool</artifactId>
+    <version>4.4.ga</version>
+    <packaging>jar</packaging>
+
+    <name>mycila-xmltool</name>
+    <inceptionYear>2008</inceptionYear>
+    <url>http://mycila.github.io/${mycila.github.name}</url>
+
+    <properties>
+        <jdk.version>1.6</jdk.version>
+        <mycila.github.name>xmltool</mycila.github.name>
+    </properties>
+
+    <scm>
+        <connection>scm:git:https://github.com/mycila/${mycila.github.name}.git</connection>
+        <developerConnection>scm:git:git@github.com:mycila/${mycila.github.name}.git</developerConnection>
+        <url>http://github.com/mycila/${mycila.github.name}</url>
+        <tag>mycila-xmltool-4.4.ga</tag>
+    </scm>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <useDefaultManifestFile>true</useDefaultManifestFile>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+            <version>2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit-dep</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

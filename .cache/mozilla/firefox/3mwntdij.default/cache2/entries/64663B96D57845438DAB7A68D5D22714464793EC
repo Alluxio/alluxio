@@ -1,0 +1,3464 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>师资队伍</title>
+
+<link type="text/css" href="/_css/_system/system.css" rel="stylesheet"/>
+<link type="text/css" href="/_upload/site/1/style/49/49.css" rel="stylesheet"/>
+<link type="text/css" href="/_upload/site/00/42/66/style/118/118.css" rel="stylesheet"/>
+<link type="text/css" href="/_js/_portletPlugs/simpleNews/css/simplenews.css" rel="stylesheet" />
+<link type="text/css" href="/_js/_portletPlugs/sudyNavi/css/sudyNav.css" rel="stylesheet" />
+<link type="text/css" href="/_js/_portletPlugs/datepicker/css/datepicker.css" rel="stylesheet" />
+
+<script language="javascript" src="/_js/jquery.min.js" sudy-wp-context="" sudy-wp-siteId="66"></script>
+<script language="javascript" src="/_js/jquery.sudy.wp.visitcount.js"></script>
+<script type="text/javascript" src="/_js/_portletPlugs/sudyNavi/jquery.sudyNav.js"></script>
+<script type="text/javascript" src="/_js/_portletPlugs/datepicker/js/jquery.datepicker.js"></script>
+<script type="text/javascript" src="/_js/_portletPlugs/datepicker/js/datepicker_lang_HK.js"></script>
+<link rel="stylesheet" href="/_upload/tpl/00/93/147/template147/css/style.css" type="text/css" media="all" />
+</head>
+
+<body>
+<div class="wrapper" id="header">
+  <div class="inner">
+    <div class="head">
+      <div class="head_search" frag="面板12">
+        <div frag="窗口12"><form method="POST" action="/_web/search/doSearch.do?_p=YXM9NjYmdD0xNDcmZD02MjYmcD0xJm09TiY_" target="_blank" onsubmit="if ($('#keyword').val() === '请输入关键字') { $('#keyword').val(''); }" id="1256899184">
+    <div class="wp_search">
+        <table>
+            <tbody><tr>
+                <td height="25px">
+                    <input id="keyword" name="keyword" style="width: 130px;height:28px; border: 0px; background:none;padding: 0px 3px" class="keyword" type="text" value="请输入关键字" onfocus="if (this.value === '请输入关键字') { this.value = ''; }" onblur="if (this.value === '') { this.value = '请输入关键字'; }">
+                </td>
+                <td>
+                    <input name="btnsearch" class="search" type="submit" value="">
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+</form></div>
+      </div>
+      <div class="head_nav">
+        <div class="nav" frag="面板11">
+          <div frag="窗口11"><div id="wp_nav_w11"> 
+
+ 
+<ul class="wp_nav" data-nav-config="{drop_v: 'down', drop_w: 'right', dir: 'y', opacity_main: '-1', opacity_sub: '-1', dWidth: '0'}">
+      
+     <li class="nav-item i1 "> 
+         <a href="/main.htm" title="首     页" target="_self"><span class="item-name">首     页</span></a><i class="mark"></i> 
+          
+     </li> 
+      
+     <li class="nav-item i2 "> 
+         <a href="/1650/list.htm" title="系况简介" target="_self"><span class="item-name">系况简介</span></a><i class="mark"></i> 
+          
+         <ul class="sub-nav"> 
+              
+             <li class="nav-item i2-1 "> 
+                 <a href="/1674/list.htm" title="系况概览" target="_self"><span class="item-name">系况概览</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i2-2 "> 
+                 <a href="/1675/list.htm" title="历史沿革" target="_self"><span class="item-name">历史沿革</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i2-3 "> 
+                 <a href="/1676/list.htm" title="系史纪略" target="_self"><span class="item-name">系史纪略</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i2-4 "> 
+                 <a href="/1677/list.htm" title="历任领导" target="_self"><span class="item-name">历任领导</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i2-5 "> 
+                 <a href="/1678/list.htm" title="机构设置" target="_self"><span class="item-name">机构设置</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+         </ul> 
+          
+     </li> 
+      
+     <li class="nav-item i3 selected"> 
+         <a href="/1651/list.htm" title="师资队伍" target="_self"><span class="item-name">师资队伍</span></a><i class="mark"></i> 
+          
+         <ul class="sub-nav"> 
+              
+             <li class="nav-item i3-1 "> 
+                 <a href="/2639/list.htm" title="教授" target="_self"><span class="item-name">教授</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i3-2 "> 
+                 <a href="/2640/list.htm" title="副教授" target="_self"><span class="item-name">副教授</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i3-3 "> 
+                 <a href="/2641/list.htm" title="讲师" target="_self"><span class="item-name">讲师</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i3-4 "> 
+                 <a href="/2642/list.htm" title="高级工程师" target="_self"><span class="item-name">高级工程师</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i3-5 "> 
+                 <a href="/2643/list.htm" title="专业技术人员" target="_self"><span class="item-name">专业技术人员</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i3-6 "> 
+                 <a href="/2644/list.htm" title="行政管理人员" target="_self"><span class="item-name">行政管理人员</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i3-7 "> 
+                 <a href="/2645/list.htm" title="离退休人员" target="_self"><span class="item-name">离退休人员</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+         </ul> 
+          
+     </li> 
+      
+     <li class="nav-item i4 "> 
+         <a href="/1652/list.htm" title="科研工作" target="_self"><span class="item-name">科研工作</span></a><i class="mark"></i> 
+          
+         <ul class="sub-nav"> 
+              
+             <li class="nav-item i4-1 "> 
+                 <a href="/1684/list.htm" title="研究领域" target="_self"><span class="item-name">研究领域</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i4-2 "> 
+                 <a href="/1685/list.htm" title="研究项目" target="_self"><span class="item-name">研究项目</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i4-3 "> 
+                 <a href="/1686/list.htm" title="科研获奖" target="_self"><span class="item-name">科研获奖</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i4-4 "> 
+                 <a href="/1687/list.htm" title="最新论著" target="_self"><span class="item-name">最新论著</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i4-5 "> 
+                 <a href="/1688/list.htm" title="合作交流" target="_self"><span class="item-name">合作交流</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i4-6 "> 
+                 <a href="https://cs.nju.edu.cn/tdzc/" title="团队征才" target="_self"><span class="item-name">团队征才</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+         </ul> 
+          
+     </li> 
+      
+     <li class="nav-item i5 "> 
+         <a href="/1653/list.htm" title="人才培养" target="_self"><span class="item-name">人才培养</span></a><i class="mark"></i> 
+          
+         <ul class="sub-nav"> 
+              
+             <li class="nav-item i5-1 "> 
+                 <a href="/1689/list.htm" title="本科教学" target="_self"><span class="item-name">本科教学</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i5-2 "> 
+                 <a href="/1690/list.htm" title="研究生教学" target="_self"><span class="item-name">研究生教学</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i5-3 "> 
+                 <a href="/1691/list.htm" title="工程硕士" target="_self"><span class="item-name">工程硕士</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i5-4 "> 
+                 <a href="/1692/list.htm" title="成人教育" target="_self"><span class="item-name">成人教育</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i5-5 "> 
+                 <a href="/1693/list.htm" title="奖学金" target="_self"><span class="item-name">奖学金</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+         </ul> 
+          
+     </li> 
+      
+     <li class="nav-item i6 "> 
+         <a href="/1654/list.htm" title="最新动态" target="_self"><span class="item-name">最新动态</span></a><i class="mark"></i> 
+          
+         <ul class="sub-nav"> 
+              
+             <li class="nav-item i6-1 "> 
+                 <a href="/1660/list.htm" title="新闻动态" target="_self"><span class="item-name">新闻动态</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-2 "> 
+                 <a href="/1702/list.htm" title="系内公告" target="_self"><span class="item-name">系内公告</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-3 "> 
+                 <a href="/1703/list.htm" title="研究生公告栏" target="_self"><span class="item-name">研究生公告栏</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-4 "> 
+                 <a href="/1704/list.htm" title="本科生公告栏" target="_self"><span class="item-name">本科生公告栏</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-5 "> 
+                 <a href="/1705/list.htm" title="获奖公告" target="_self"><span class="item-name">获奖公告</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-6 "> 
+                 <a href="/1706/list.htm" title="会议讲座信息" target="_self"><span class="item-name">会议讲座信息</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-7 "> 
+                 <a href="/1707/list.htm" title="就业信息栏" target="_self"><span class="item-name">就业信息栏</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-8 "> 
+                 <a href="/1708/list.htm" title="招聘信息" target="_self"><span class="item-name">招聘信息</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+         </ul> 
+          
+     </li> 
+      
+     <li class="nav-item i7 "> 
+         <a href="/1655/list.htm" title="党的建设" target="_self"><span class="item-name">党的建设</span></a><i class="mark"></i> 
+          
+         <ul class="sub-nav"> 
+              
+             <li class="nav-item i7-1 "> 
+                 <a href="/1709/list.htm" title="支部建设" target="_self"><span class="item-name">支部建设</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i7-2 "> 
+                 <a href="/1710/list.htm" title="支部活动" target="_self"><span class="item-name">支部活动</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i7-3 "> 
+                 <a href="/1711/list.htm" title="先进事迹" target="_self"><span class="item-name">先进事迹</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i7-4 "> 
+                 <a href="/1712/list.htm" title="党员公告" target="_self"><span class="item-name">党员公告</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i7-5 "> 
+                 <a href="/1713/list.htm" title="科学发展观学习专栏" target="_self"><span class="item-name">科学发展观学习专栏</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+         </ul> 
+          
+     </li> 
+      
+     <li class="nav-item i8 "> 
+         <a href="/1656/list.htm" title="热点链接" target="_self"><span class="item-name">热点链接</span></a><i class="mark"></i> 
+          
+     </li> 
+      
+     <li class="nav-item i9 "> 
+         <a href="/_sitemap?_p=YXM9Mw__&siteId=66" title="站点地图" target="_blank"><span class="item-name">站点地图</span></a><i class="mark"></i> 
+          
+     </li> 
+      
+     <li class="nav-item i10 "> 
+         <a href="https://www.nju.edu.cn/EN/7f/6b/c7136a163691/page.htm" title="English Version" target="_self"><span class="item-name">English Version</span></a><i class="mark"></i> 
+          
+     </li> 
+      
+</ul> 
+ 
+ 
+ </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="wrapper " id="container">
+  <div class="inner listpage-inner">
+  <div class="mod">
+        <div class="col_img" frag="面板31">
+        <div frag="窗口31"></div>
+      </div>
+    <div class="col-menu">
+      <div class="col-menu-head banner-200-blue" frag="面板71">
+        <h3 class="col-name" frag="窗口71" portletmode="simpleColumnAnchor">
+          <span class="col-name-text conl_name_box">
+            <span class='Column_Anchor'>师资队伍</span>
+          </span>
+        </h3>
+      </div>
+        
+      <div class="col-menu-con" frag="面板72">
+        <div class="col-list" frag="窗口72" portletmode="simpleColumnList">
+          <div id="wp_listcolumn_w72"> 
+
+ 
+<ul class="wp_listcolumn"> 
+      
+     <li class="wp_column column-1 "> 
+         <a href="/2639/list.htm" title="教授" class="" target="_self"><span class="column-name">教授</span></a> 
+          
+     </li> 
+      
+     <li class="wp_column column-2 "> 
+         <a href="/2640/list.htm" title="副教授" class="" target="_self"><span class="column-name">副教授</span></a> 
+          
+     </li> 
+      
+     <li class="wp_column column-3 "> 
+         <a href="/2641/list.htm" title="讲师" class="" target="_self"><span class="column-name">讲师</span></a> 
+          
+     </li> 
+      
+     <li class="wp_column column-4 "> 
+         <a href="/2642/list.htm" title="高级工程师" class="" target="_self"><span class="column-name">高级工程师</span></a> 
+          
+     </li> 
+      
+     <li class="wp_column column-5 "> 
+         <a href="/2643/list.htm" title="专业技术人员" class="" target="_self"><span class="column-name">专业技术人员</span></a> 
+          
+     </li> 
+      
+     <li class="wp_column column-6 "> 
+         <a href="/2644/list.htm" title="行政管理人员" class="" target="_self"><span class="column-name">行政管理人员</span></a> 
+          
+     </li> 
+      
+     <li class="wp_column column-7 "> 
+         <a href="/2645/list.htm" title="离退休人员" class="" target="_self"><span class="column-name">离退休人员</span></a> 
+          
+     </li> 
+      
+</ul> 
+ 
+ 
+ </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-news">
+
+      <div class="col-news-head clearfix" frag="面板81">
+        <ul class="col-metas " frag="窗口81" portletmode="simpleColumnAttri">
+          
+            <li class="col-title">
+              <h2>师资队伍</h2></li>
+            <li class="col-path"><span class="path-name">当前位置：</span><a href="/main.htm" target="_self">首页</a><span class='possplit'>&nbsp;&nbsp;</span><a href="/1651/list.htm" target="_self">师资队伍</a></li>
+          
+        </ul>
+      </div>
+      <div class="col-news-con" frag="面板82">
+      	<div class="col-news-list" frag="窗口82" portletmode="simpleList">
+          <div id="wp_news_w82"> 
+ 
+<ul class="wp_subcolumn_list"> 
+     <li class="wp_sublist sublist-1"> 
+         <h3 class="sublist_title"> 
+             <a href="/2639/list.htm" title="教授" childColumnId="2639"><span class="subcolumn-name">教授</span></a> 
+             <a class="morelink" href="/2639/list.htm" target="_blank" title="浏览更多"><span class="moretext"><img src="/_js/_portletPlugs/simpleNews/css/icon_more_3.gif" /></span></a> 
+         </h3> 
+         <table width="100%" border="0" cellspacing="0" cellpadding="0" class="wp_article_list_table"> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i1"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>1</span> 
+             <span class='Article_Title'><a href='/58/2a/c2639a153642/page.htm' target='_blank' title='吕建 (院士、博导)'>吕建 (院士、博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i2"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>2</span> 
+             <span class='Article_Title'><a href='/58/29/c2639a153641/page.htm' target='_blank' title='陈道蓄 (博导)'>陈道蓄 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i3"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>3</span> 
+             <span class='Article_Title'><a href='/58/28/c2639a153640/page.htm' target='_blank' title='李宣东 (博导)'>李宣东 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i4"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>4</span> 
+             <span class='Article_Title'><a href='/58/27/c2639a153639/page.htm' target='_blank' title='周志华 (博导)'>周志华 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i5"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>5</span> 
+             <span class='Article_Title'><a href='/58/26/c2639a153638/page.htm' target='_blank' title='陈贵海 (博导)'>陈贵海 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i6"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>6</span> 
+             <span class='Article_Title'><a href='/58/24/c2639a153636/page.htm' target='_blank' title='宋方敏 (博导)'>宋方敏 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i7"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>7</span> 
+             <span class='Article_Title'><a href='/58/23/c2639a153635/page.htm' target='_blank' title='黄 皓 (博导)'>黄 皓 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i8"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>8</span> 
+             <span class='Article_Title'><a href='/58/22/c2639a153634/page.htm' target='_blank' title='陈家骏 (博导)'>陈家骏 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i9"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>9</span> 
+             <span class='Article_Title'><a href='/58/21/c2639a153633/page.htm' target='_blank' title='谢俊元 (博导)'>谢俊元 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i10"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>10</span> 
+             <span class='Article_Title'><a href='/58/20/c2639a153632/page.htm' target='_blank' title='孙正兴 (博导)'>孙正兴 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i11"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>11</span> 
+             <span class='Article_Title'><a href='/58/1f/c2639a153631/page.htm' target='_blank' title='茅兵 (博导)'>茅兵 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i12"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>12</span> 
+             <span class='Article_Title'><a href='/58/1e/c2639a153630/page.htm' target='_blank' title='陆桑璐 (博导)'>陆桑璐 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i13"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>13</span> 
+             <span class='Article_Title'><a href='/58/1d/c2639a153629/page.htm' target='_blank' title='赵金熙 (博导)'>赵金熙 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i14"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>14</span> 
+             <span class='Article_Title'><a href='/58/1c/c2639a153628/page.htm' target='_blank' title='骆斌 (博导)'>骆斌 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i15"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>15</span> 
+             <span class='Article_Title'><a href='/58/1b/c2639a153627/page.htm' target='_blank' title='武港山 (博导)'>武港山 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i16"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>16</span> 
+             <span class='Article_Title'><a href='/58/1a/c2639a153626/page.htm' target='_blank' title='曾庆凯 (博导)'>曾庆凯 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i17"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>17</span> 
+             <span class='Article_Title'><a href='/58/19/c2639a153625/page.htm' target='_blank' title='窦万春 (博导)'>窦万春 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i18"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>18</span> 
+             <span class='Article_Title'><a href='/c9/3f/c2639a51519/page.htm' target='_blank' title='黄宇 (博导)'>黄宇 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i19"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>19</span> 
+             <span class='Article_Title'><a href='/58/18/c2639a153624/page.htm' target='_blank' title='赵建华 (博导)'>赵建华 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i20"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>20</span> 
+             <span class='Article_Title'><a href='/58/17/c2639a153623/page.htm' target='_blank' title='徐宝文 (博导)'>徐宝文 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i21"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>21</span> 
+             <span class='Article_Title'><a href='/c9/5b/c2639a51547/page.htm' target='_blank' title='戴新宇 (博导)'>戴新宇 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i22"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>22</span> 
+             <span class='Article_Title'><a href='/58/16/c2639a153622/page.htm' target='_blank' title='陈力军 (博导)'>陈力军 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i23"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>23</span> 
+             <span class='Article_Title'><a href='/58/15/c2639a153621/page.htm' target='_blank' title='陶先平 (博导)'>陶先平 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i24"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>24</span> 
+             <span class='Article_Title'><a href='/58/14/c2639a153620/page.htm' target='_blank' title='高 阳 (博导)'>高 阳 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i25"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>25</span> 
+             <span class='Article_Title'><a href='/58/13/c2639a153619/page.htm' target='_blank' title='顾庆 (博导)'>顾庆 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i26"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>26</span> 
+             <span class='Article_Title'><a href='/58/12/c2639a153618/page.htm' target='_blank' title='马晓星 (博导)'>马晓星 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i27"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>27</span> 
+             <span class='Article_Title'><a href='/58/11/c2639a153617/page.htm' target='_blank' title='徐 锋 (博导)'>徐 锋 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i28"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>28</span> 
+             <span class='Article_Title'><a href='/58/10/c2639a153616/page.htm' target='_blank' title='姜 远 (博导)'>姜 远 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i29"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>29</span> 
+             <span class='Article_Title'><a href='/58/0f/c2639a153615/page.htm' target='_blank' title='郭延文 (博导)'>郭延文 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i30"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>30</span> 
+             <span class='Article_Title'><a href='/58/0e/c2639a153614/page.htm' target='_blank' title='叶保留 (博导)'>叶保留 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i31"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>31</span> 
+             <span class='Article_Title'><a href='/58/0d/c2639a153613/page.htm' target='_blank' title='黄宜华 (博导)'>黄宜华 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i32"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>32</span> 
+             <span class='Article_Title'><a href='/58/0c/c2639a153612/page.htm' target='_blank' title='袁春风'>袁春风</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i33"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>33</span> 
+             <span class='Article_Title'><a href='/c9/49/c2639a51529/page.htm' target='_blank' title='朱怀宏'>朱怀宏</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i34"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>34</span> 
+             <span class='Article_Title'><a href='/58/0b/c2639a153611/page.htm' target='_blank' title='周毓明 (博导)'>周毓明 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i35"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>35</span> 
+             <span class='Article_Title'><a href='/58/0a/c2639a153610/page.htm' target='_blank' title='瞿裕忠 (博导)'>瞿裕忠 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i36"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>36</span> 
+             <span class='Article_Title'><a href='/58/09/c2639a153609/page.htm' target='_blank' title='聂长海 (博导)'>聂长海 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i37"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>37</span> 
+             <span class='Article_Title'><a href='/58/08/c2639a153608/page.htm' target='_blank' title='仲盛 (博导)'>仲盛 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i38"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>38</span> 
+             <span class='Article_Title'><a href='/58/07/c2639a153607/page.htm' target='_blank' title='刘向阳 (博导)'>刘向阳 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i39"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>39</span> 
+             <span class='Article_Title'><a href='/58/06/c2639a153606/page.htm' target='_blank' title='王崇骏 (博导)'>王崇骏 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i40"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>40</span> 
+             <span class='Article_Title'><a href='/58/05/c2639a153605/page.htm' target='_blank' title='申富饶 (博导)'>申富饶 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i41"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>41</span> 
+             <span class='Article_Title'><a href='/58/04/c2639a153604/page.htm' target='_blank' title='吴建鑫 (博导)'>吴建鑫 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i42"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>42</span> 
+             <span class='Article_Title'><a href='/58/03/c2639a153603/page.htm' target='_blank' title='王林章 (博导)'>王林章 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i43"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>43</span> 
+             <span class='Article_Title'><a href='/58/02/c2639a153602/page.htm' target='_blank' title='杨育彬 (博导)'>杨育彬 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i44"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>44</span> 
+             <span class='Article_Title'><a href='/58/01/c2639a153601/page.htm' target='_blank' title='路通 (博导)'>路通 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i45"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>45</span> 
+             <span class='Article_Title'><a href='/58/00/c2639a153600/page.htm' target='_blank' title='许畅 (博导)'>许畅 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i46"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>46</span> 
+             <span class='Article_Title'><a href='/57/ff/c2639a153599/page.htm' target='_blank' title='尹一通 (博导)'>尹一通 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i47"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>47</span> 
+             <span class='Article_Title'><a href='/6f/7d/c2639a159613/page.htm' target='_blank' title='许封元（博导）'>许封元（博导）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i48"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>48</span> 
+             <span class='Article_Title'><a href='/a1/ca/c2639a238026/page.htm' target='_blank' title='冯新宇'>冯新宇</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+</table>     </li> 
+</ul> 
+</div> 
+<div id="wp_news_w82"> 
+ 
+<ul class="wp_subcolumn_list"> 
+     <li class="wp_sublist sublist-2"> 
+         <h3 class="sublist_title"> 
+             <a href="/2640/list.htm" title="副教授" childColumnId="2640"><span class="subcolumn-name">副教授</span></a> 
+             <a class="morelink" href="/2640/list.htm" target="_blank" title="浏览更多"><span class="moretext"><img src="/_js/_portletPlugs/simpleNews/css/icon_more_3.gif" /></span></a> 
+         </h3> 
+         <table width="100%" border="0" cellspacing="0" cellpadding="0" class="wp_article_list_table"> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i1"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>1</span> 
+             <span class='Article_Title'><a href='/c9/5f/c2640a51551/page.htm' target='_blank' title='王晓亮 (博士)'>王晓亮 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i2"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>2</span> 
+             <span class='Article_Title'><a href='/c9/35/c2640a51509/page.htm' target='_blank' title='吴 楠 (博士)'>吴 楠 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i3"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>3</span> 
+             <span class='Article_Title'><a href='/c9/43/c2640a51523/page.htm' target='_blank' title='张 天 (博士)'>张 天 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i4"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>4</span> 
+             <span class='Article_Title'><a href='/c9/63/c2640a51555/page.htm' target='_blank' title='陈 林 (博士)'>陈 林 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i5"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>5</span> 
+             <span class='Article_Title'><a href='/c9/52/c2640a51538/page.htm' target='_blank' title='王炜 (博士)'>王炜 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i6"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>6</span> 
+             <span class='Article_Title'><a href='/c9/72/c2640a51570/page.htm' target='_blank' title='詹德川 (博士)'>詹德川 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i7"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>7</span> 
+             <span class='Article_Title'><a href='/c9/57/c2640a51543/page.htm' target='_blank' title='黎铭 (博导)'>黎铭 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i8"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>8</span> 
+             <span class='Article_Title'><a href='/c9/41/c2640a51521/page.htm' target='_blank' title='李文中 (博导)'>李文中 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i9"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>9</span> 
+             <span class='Article_Title'><a href='/c9/3b/c2640a51515/page.htm' target='_blank' title='曹春 (博士)'>曹春 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i10"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>10</span> 
+             <span class='Article_Title'><a href='/c9/6d/c2640a51565/page.htm' target='_blank' title='张 岩 (博士)'>张 岩 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i11"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>11</span> 
+             <span class='Article_Title'><a href='/c9/67/c2640a51559/page.htm' target='_blank' title='许 蕾 (博士)'>许 蕾 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i12"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>12</span> 
+             <span class='Article_Title'><a href='/c9/5d/c2640a51549/page.htm' target='_blank' title='张利军 (博士)'>张利军 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i13"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>13</span> 
+             <span class='Article_Title'><a href='/c9/cf/c2640a51663/page.htm' target='_blank' title='华景煜 (博士)'>华景煜 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i14"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>14</span> 
+             <span class='Article_Title'><a href='/c9/77/c2640a51575/page.htm' target='_blank' title='谢磊 (博士)'>谢磊 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i15"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>15</span> 
+             <span class='Article_Title'><a href='/c9/6f/c2640a51567/page.htm' target='_blank' title='卜磊 (博士)'>卜磊 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i16"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>16</span> 
+             <span class='Article_Title'><a href='/c9/3d/c2640a51517/page.htm' target='_blank' title='俞扬 (博导)'>俞扬 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i17"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>17</span> 
+             <span class='Article_Title'><a href='/c9/37/c2640a51511/page.htm' target='_blank' title='程龚 (博士)'>程龚 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i18"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>18</span> 
+             <span class='Article_Title'><a href='/c9/54/c2640a51540/page.htm' target='_blank' title='李武军 (博导)'>李武军 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i19"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>19</span> 
+             <span class='Article_Title'><a href='/c9/e0/c2640a51680/page.htm' target='_blank' title='史颖欢 (博士)'>史颖欢 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i20"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>20</span> 
+             <span class='Article_Title'><a href='/c9/6b/c2640a51563/page.htm' target='_blank' title='刘奇志 (博士)'>刘奇志 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i21"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>21</span> 
+             <span class='Article_Title'><a href='/c9/4d/c2640a51533/page.htm' target='_blank' title='柏文阳'>柏文阳</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i22"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>22</span> 
+             <span class='Article_Title'><a href='/c9/69/c2640a51561/page.htm' target='_blank' title='李 宁 (博士)'>李 宁 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i23"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>23</span> 
+             <span class='Article_Title'><a href='/c9/65/c2640a51557/page.htm' target='_blank' title='杨若瑜 (博士)'>杨若瑜 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i24"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>24</span> 
+             <span class='Article_Title'><a href='/c9/55/c2640a51541/page.htm' target='_blank' title='苏 丰 (博士)'>苏 丰 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i25"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>25</span> 
+             <span class='Article_Title'><a href='/c9/59/c2640a51545/page.htm' target='_blank' title='唐 杰 (博士)'>唐 杰 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i26"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>26</span> 
+             <span class='Article_Title'><a href='/c9/47/c2640a51527/page.htm' target='_blank' title='商 琳 (博士)'>商 琳 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i27"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>27</span> 
+             <span class='Article_Title'><a href='/c9/61/c2640a51553/page.htm' target='_blank' title='胡 昊 (博士)'>胡 昊 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i28"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>28</span> 
+             <span class='Article_Title'><a href='/c9/d2/c2640a51666/page.htm' target='_blank' title='黄书剑 (博士)'>黄书剑 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i29"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>29</span> 
+             <span class='Article_Title'><a href='/c9/4b/c2640a51531/page.htm' target='_blank' title='钱柱中 (博士)'>钱柱中 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i30"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>30</span> 
+             <span class='Article_Title'><a href='/c9/4f/c2640a51535/page.htm' target='_blank' title='胡伟 (博士)'>胡伟 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i31"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>31</span> 
+             <span class='Article_Title'><a href='/51/c1/c2640a86465/page.htm' target='_blank' title='田臣（博士）'>田臣（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i32"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>32</span> 
+             <span class='Article_Title'><a href='/57/16/c2640a153366/page.htm' target='_blank' title='余萍（博士）'>余萍（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i33"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>33</span> 
+             <span class='Article_Title'><a href='/57/15/c2640a153365/page.htm' target='_blank' title='陈鑫（博士）'>陈鑫（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i34"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>34</span> 
+             <span class='Article_Title'><a href='/57/14/c2640a153364/page.htm' target='_blank' title='王魏（博士）'>王魏（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i35"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>35</span> 
+             <span class='Article_Title'><a href='/7f/97/c2640a229271/page.htm' target='_blank' title='梁红瑾（博士）'>梁红瑾（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td>&nbsp;</td> 
+</tr> 
+</table>     </li> 
+</ul> 
+</div> 
+<div id="wp_news_w82"> 
+ 
+<ul class="wp_subcolumn_list"> 
+     <li class="wp_sublist sublist-3"> 
+         <h3 class="sublist_title"> 
+             <a href="/2641/list.htm" title="讲师" childColumnId="2641"><span class="subcolumn-name">讲师</span></a> 
+             <a class="morelink" href="/2641/list.htm" target="_blank" title="浏览更多"><span class="moretext"><img src="/_js/_portletPlugs/simpleNews/css/icon_more_3.gif" /></span></a> 
+         </h3> 
+         <table width="100%" border="0" cellspacing="0" cellpadding="0" class="wp_article_list_table"> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i1"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>1</span> 
+             <span class='Article_Title'><a href='/58/6a/c2641a153706/page.htm' target='_blank' title='刘佳(博士)'>刘佳(博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i2"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>2</span> 
+             <span class='Article_Title'><a href='/22/9c/c2641a139932/page.htm' target='_blank' title='姚远（博士）'>姚远（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i3"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>3</span> 
+             <span class='Article_Title'><a href='/51/c2/c2641a86466/page.htm' target='_blank' title='过洁（博士）'>过洁（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i4"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>4</span> 
+             <span class='Article_Title'><a href='/c9/d8/c2641a51672/page.htm' target='_blank' title='卢红敏 (博士)'>卢红敏 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i5"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>5</span> 
+             <span class='Article_Title'><a href='/c9/db/c2641a51675/page.htm' target='_blank' title='李言辉 (博士)'>李言辉 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i6"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>6</span> 
+             <span class='Article_Title'><a href='/c9/f6/c2641a51702/page.htm' target='_blank' title='张建兵'>张建兵</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i7"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>7</span> 
+             <span class='Article_Title'><a href='/c9/d1/c2641a51665/page.htm' target='_blank' title='王皓 (博士)'>王皓 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i8"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>8</span> 
+             <span class='Article_Title'><a href='/c9/e1/c2641a51681/page.htm' target='_blank' title='吴骏 (博士)'>吴骏 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i9"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>9</span> 
+             <span class='Article_Title'><a href='/c9/e2/c2641a51682/page.htm' target='_blank' title='李宇峰 (博士)'>李宇峰 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i10"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>10</span> 
+             <span class='Article_Title'><a href='/c9/cd/c2641a51661/page.htm' target='_blank' title='张渊 (博士)'>张渊 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i11"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>11</span> 
+             <span class='Article_Title'><a href='/c9/d0/c2641a51664/page.htm' target='_blank' title='唐斌 (博士)'>唐斌 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i12"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>12</span> 
+             <span class='Article_Title'><a href='/c9/d5/c2641a51669/page.htm' target='_blank' title='汪亮 (博士)'>汪亮 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i13"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>13</span> 
+             <span class='Article_Title'><a href='/c9/d4/c2641a51668/page.htm' target='_blank' title='戴海鹏 (博士)'>戴海鹏 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i14"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>14</span> 
+             <span class='Article_Title'><a href='/c9/e3/c2641a51683/page.htm' target='_blank' title='高尉 (博士)'>高尉 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i15"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>15</span> 
+             <span class='Article_Title'><a href='/c9/e4/c2641a51684/page.htm' target='_blank' title='张胜 (博士)'>张胜 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i16"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>16</span> 
+             <span class='Article_Title'><a href='/c9/d7/c2641a51671/page.htm' target='_blank' title='张雷 (博士)'>张雷 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i17"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>17</span> 
+             <span class='Article_Title'><a href='/c9/dc/c2641a51676/page.htm' target='_blank' title='曹迎春'>曹迎春</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i18"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>18</span> 
+             <span class='Article_Title'><a href='/c9/d6/c2641a51670/page.htm' target='_blank' title='李 俊'>李 俊</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i19"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>19</span> 
+             <span class='Article_Title'><a href='/_redirect?siteId=66&columnId=2641&articleId=51673' target='_blank' title='马骏 (博士)'>马骏 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i20"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>20</span> 
+             <span class='Article_Title'><a href='/c9/df/c2641a51679/page.htm' target='_blank' title='尹存燕 (博士)'>尹存燕 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i21"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>21</span> 
+             <span class='Article_Title'><a href='/c9/dd/c2641a51677/page.htm' target='_blank' title='周 嵩'>周 嵩</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i22"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>22</span> 
+             <span class='Article_Title'><a href='/c9/da/c2641a51674/page.htm' target='_blank' title='夏耐 (博士)'>夏耐 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i23"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>23</span> 
+             <span class='Article_Title'><a href='/6f/93/c2641a159635/page.htm' target='_blank' title='杨已彪（博士）'>杨已彪（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i24"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>24</span> 
+             <span class='Article_Title'><a href='/a8/61/c2641a174177/page.htm' target='_blank' title='顾荣（博士)'>顾荣（博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i25"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>25</span> 
+             <span class='Article_Title'><a href='/ae/7b/c2641a175739/page.htm' target='_blank' title='魏恒峰 (博士)'>魏恒峰 (博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i26"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>26</span> 
+             <span class='Article_Title'><a href='/b1/08/c2641a176392/page.htm' target='_blank' title='郑朝栋（博士）'>郑朝栋（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i27"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>27</span> 
+             <span class='Article_Title'><a href='/38/b2/c2641a211122/page.htm' target='_blank' title='殷亚凤（博士）'>殷亚凤（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i28"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>28</span> 
+             <span class='Article_Title'><a href='/38/b3/c2641a211123/page.htm' target='_blank' title='江东（博士）'>江东（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i29"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>29</span> 
+             <span class='Article_Title'><a href='/7f/96/c2641a229270/page.htm' target='_blank' title='霍静（博士）'>霍静（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i30"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>30</span> 
+             <span class='Article_Title'><a href='/96/41/c2641a235073/page.htm' target='_blank' title='蒋炎岩（博士）'>蒋炎岩（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i31"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>31</span> 
+             <span class='Article_Title'><a href='/96/42/c2641a235074/page.htm' target='_blank' title='左志强（博士）'>左志强（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i32"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>32</span> 
+             <span class='Article_Title'><a href='/96/43/c2641a235075/page.htm' target='_blank' title='徐经纬（博士）'>徐经纬（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i33"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>33</span> 
+             <span class='Article_Title'><a href='/96/44/c2641a235076/page.htm' target='_blank' title='郑嘉琦（博士）'>郑嘉琦（博士）</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td>&nbsp;</td> 
+<td>&nbsp;</td> 
+<td>&nbsp;</td> 
+</tr> 
+</table>     </li> 
+</ul> 
+</div> 
+<div id="wp_news_w82"> 
+ 
+<ul class="wp_subcolumn_list"> 
+     <li class="wp_sublist sublist-4"> 
+         <h3 class="sublist_title"> 
+             <a href="/2642/list.htm" title="高级工程师" childColumnId="2642"><span class="subcolumn-name">高级工程师</span></a> 
+             <a class="morelink" href="/2642/list.htm" target="_blank" title="浏览更多"><span class="moretext"><img src="/_js/_portletPlugs/simpleNews/css/icon_more_3.gif" /></span></a> 
+         </h3> 
+         <table width="100%" border="0" cellspacing="0" cellpadding="0" class="wp_article_list_table"> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i1"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>1</span> 
+             <span class='Article_Title'><a href='/c9/f0/c2642a51696/page.htm' target='_blank' title='杨旭'>杨旭</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i2"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>2</span> 
+             <span class='Article_Title'><a href='/c9/ea/c2642a51690/page.htm' target='_blank' title='陈健'>陈健</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i3"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>3</span> 
+             <span class='Article_Title'><a href='/c9/e6/c2642a51686/page.htm' target='_blank' title='蔡晓燕'>蔡晓燕</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i4"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>4</span> 
+             <span class='Article_Title'><a href='/c9/ee/c2642a51694/page.htm' target='_blank' title='陆庆文'>陆庆文</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i5"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>5</span> 
+             <span class='Article_Title'><a href='/c9/e5/c2642a51685/page.htm' target='_blank' title='吴迎红(博士)'>吴迎红(博士)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i6"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>6</span> 
+             <span class='Article_Title'><a href='/c9/e7/c2642a51687/page.htm' target='_blank' title='沙 英'>沙 英</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i7"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>7</span> 
+             <span class='Article_Title'><a href='/c9/eb/c2642a51691/page.htm' target='_blank' title='张 剡'>张 剡</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i8"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>8</span> 
+             <span class='Article_Title'><a href='/c9/e9/c2642a51689/page.htm' target='_blank' title='张泽生'>张泽生</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i9"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>9</span> 
+             <span class='Article_Title'><a href='/c9/ec/c2642a51692/page.htm' target='_blank' title='吴海军'>吴海军</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i10"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>10</span> 
+             <span class='Article_Title'><a href='/c9/e8/c2642a51688/page.htm' target='_blank' title='张建莹'>张建莹</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td>&nbsp;</td> 
+<td>&nbsp;</td> 
+</tr> 
+</table>     </li> 
+</ul> 
+</div> 
+<div id="wp_news_w82"> 
+ 
+<ul class="wp_subcolumn_list"> 
+     <li class="wp_sublist sublist-5"> 
+         <h3 class="sublist_title"> 
+             <a href="/2643/list.htm" title="专业技术人员" childColumnId="2643"><span class="subcolumn-name">专业技术人员</span></a> 
+             <a class="morelink" href="/2643/list.htm" target="_blank" title="浏览更多"><span class="moretext"><img src="/_js/_portletPlugs/simpleNews/css/icon_more_3.gif" /></span></a> 
+         </h3> 
+         <table width="100%" border="0" cellspacing="0" cellpadding="0" class="wp_article_list_table"> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i1"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>1</span> 
+             <span class='Article_Title'><a href='/c9/f2/c2643a51698/page.htm' target='_blank' title='孙茂宁'>孙茂宁</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i2"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>2</span> 
+             <span class='Article_Title'><a href='/c9/f3/c2643a51699/page.htm' target='_blank' title='徐 煊'>徐 煊</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td>&nbsp;</td> 
+<td>&nbsp;</td> 
+</tr> 
+</table>     </li> 
+</ul> 
+</div> 
+<div id="wp_news_w82"> 
+ 
+<ul class="wp_subcolumn_list"> 
+     <li class="wp_sublist sublist-6"> 
+         <h3 class="sublist_title"> 
+             <a href="/2644/list.htm" title="行政管理人员" childColumnId="2644"><span class="subcolumn-name">行政管理人员</span></a> 
+             <a class="morelink" href="/2644/list.htm" target="_blank" title="浏览更多"><span class="moretext"><img src="/_js/_portletPlugs/simpleNews/css/icon_more_3.gif" /></span></a> 
+         </h3> 
+         <table width="100%" border="0" cellspacing="0" cellpadding="0" class="wp_article_list_table"> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i1"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>1</span> 
+             <span class='Article_Title'><a href='/39/b5/c2644a211381/page.htm' target='_blank' title='宫玲琳'>宫玲琳</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i2"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>2</span> 
+             <span class='Article_Title'><a href='/5d/3b/c2644a89403/page.htm' target='_blank' title='苏贵珍'>苏贵珍</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i3"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>3</span> 
+             <span class='Article_Title'><a href='/5d/3a/c2644a89402/page.htm' target='_blank' title='王可'>王可</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i4"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>4</span> 
+             <span class='Article_Title'><a href='/c9/f5/c2644a51701/page.htm' target='_blank' title='赵华帼'>赵华帼</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i5"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>5</span> 
+             <span class='Article_Title'><a href='/c9/f9/c2644a51705/page.htm' target='_blank' title='周晔'>周晔</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i6"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>6</span> 
+             <span class='Article_Title'><a href='/c9/f8/c2644a51704/page.htm' target='_blank' title='傅忠'>傅忠</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i7"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>7</span> 
+             <span class='Article_Title'><a href='/c9/f7/c2644a51703/page.htm' target='_blank' title='王雪梅'>王雪梅</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i8"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>8</span> 
+             <span class='Article_Title'><a href='/ae/7a/c2644a175738/page.htm' target='_blank' title='乔益华'>乔益华</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i9"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>9</span> 
+             <span class='Article_Title'><a href='/38/b4/c2644a211124/page.htm' target='_blank' title='李其芳'>李其芳</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td>&nbsp;</td> 
+<td>&nbsp;</td> 
+<td>&nbsp;</td> 
+</tr> 
+</table>     </li> 
+</ul> 
+</div> 
+<div id="wp_news_w82"> 
+ 
+<ul class="wp_subcolumn_list"> 
+     <li class="wp_sublist sublist-7"> 
+         <h3 class="sublist_title"> 
+             <a href="/2645/list.htm" title="离退休人员" childColumnId="2645"><span class="subcolumn-name">离退休人员</span></a> 
+             <a class="morelink" href="/2645/list.htm" target="_blank" title="浏览更多"><span class="moretext"><img src="/_js/_portletPlugs/simpleNews/css/icon_more_3.gif" /></span></a> 
+         </h3> 
+         <table width="100%" border="0" cellspacing="0" cellpadding="0" class="wp_article_list_table"> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i1"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>1</span> 
+             <span class='Article_Title'><a href='/ca/33/c2645a51763/page.htm' target='_blank' title='陈兆乾 (博导)'>陈兆乾 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i2"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>2</span> 
+             <span class='Article_Title'><a href='/c9/f1/c2645a51697/page.htm' target='_blank' title='胡又林'>胡又林</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i3"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>3</span> 
+             <span class='Article_Title'><a href='/c9/ed/c2645a51693/page.htm' target='_blank' title='杨献春'>杨献春</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i4"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>4</span> 
+             <span class='Article_Title'><a href='/ca/32/c2645a51762/page.htm' target='_blank' title='陈世福 (博导)'>陈世福 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i5"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>5</span> 
+             <span class='Article_Title'><a href='/ca/08/c2645a51720/page.htm' target='_blank' title='张福炎 (博导)'>张福炎 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i6"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>6</span> 
+             <span class='Article_Title'><a href='/c9/f4/c2645a51700/page.htm' target='_blank' title='尹晓红'>尹晓红</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i7"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>7</span> 
+             <span class='Article_Title'><a href='/ca/09/c2645a51721/page.htm' target='_blank' title='谢立 (博导)'>谢立 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i8"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>8</span> 
+             <span class='Article_Title'><a href='/ca/0a/c2645a51722/page.htm' target='_blank' title='郑国梁 (博导)'>郑国梁 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i9"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>9</span> 
+             <span class='Article_Title'><a href='/ca/11/c2645a51729/page.htm' target='_blank' title='蔡士杰 (博导)'>蔡士杰 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i10"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>10</span> 
+             <span class='Article_Title'><a href='/ca/1e/c2645a51742/page.htm' target='_blank' title='许满武 (博导)'>许满武 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i11"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>11</span> 
+             <span class='Article_Title'><a href='/ca/14/c2645a51732/page.htm' target='_blank' title='费翔林'>费翔林</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i12"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>12</span> 
+             <span class='Article_Title'><a href='/c9/fe/c2645a51710/page.htm' target='_blank' title='马卫宁'>马卫宁</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i13"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>13</span> 
+             <span class='Article_Title'><a href='/c9/fd/c2645a51709/page.htm' target='_blank' title='俞建新'>俞建新</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i14"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>14</span> 
+             <span class='Article_Title'><a href='/ca/20/c2645a51744/page.htm' target='_blank' title='汪靖强'>汪靖强</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i15"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>15</span> 
+             <span class='Article_Title'><a href='/ca/21/c2645a51745/page.htm' target='_blank' title='张万华'>张万华</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i16"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>16</span> 
+             <span class='Article_Title'><a href='/ca/1a/c2645a51738/page.htm' target='_blank' title='谢 琪'>谢 琪</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i17"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>17</span> 
+             <span class='Article_Title'><a href='/ca/15/c2645a51733/page.htm' target='_blank' title='蔡 政'>蔡 政</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i18"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>18</span> 
+             <span class='Article_Title'><a href='/ca/12/c2645a51730/page.htm' target='_blank' title='高海燕'>高海燕</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i19"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>19</span> 
+             <span class='Article_Title'><a href='/ca/13/c2645a51731/page.htm' target='_blank' title='高颖慧'>高颖慧</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i20"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>20</span> 
+             <span class='Article_Title'><a href='/ca/07/c2645a51719/page.htm' target='_blank' title='孙秀花'>孙秀花</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i21"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>21</span> 
+             <span class='Article_Title'><a href='/ca/05/c2645a51717/page.htm' target='_blank' title='王亚平'>王亚平</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i22"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>22</span> 
+             <span class='Article_Title'><a href='/ca/06/c2645a51718/page.htm' target='_blank' title='武林红'>武林红</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i23"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>23</span> 
+             <span class='Article_Title'><a href='/ca/01/c2645a51713/page.htm' target='_blank' title='谢冬生'>谢冬生</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i24"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>24</span> 
+             <span class='Article_Title'><a href='/58/25/c2645a153637/page.htm' target='_blank' title='潘金贵 (博导)'>潘金贵 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i25"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>25</span> 
+             <span class='Article_Title'><a href='/ca/34/c2645a51764/page.htm' target='_blank' title='余梅丽'>余梅丽</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i26"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>26</span> 
+             <span class='Article_Title'><a href='/ca/1f/c2645a51743/page.htm' target='_blank' title='周晓雪'>周晓雪</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i27"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>27</span> 
+             <span class='Article_Title'><a href='/ca/25/c2645a51749/page.htm' target='_blank' title='安凤尊'>安凤尊</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i28"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>28</span> 
+             <span class='Article_Title'><a href='/ca/24/c2645a51748/page.htm' target='_blank' title='陈本林'>陈本林</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i29"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>29</span> 
+             <span class='Article_Title'><a href='/ca/23/c2645a51747/page.htm' target='_blank' title='陈佩佩'>陈佩佩</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i30"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>30</span> 
+             <span class='Article_Title'><a href='/ca/22/c2645a51746/page.htm' target='_blank' title='樊莉萍'>樊莉萍</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i31"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>31</span> 
+             <span class='Article_Title'><a href='/ca/28/c2645a51752/page.htm' target='_blank' title='戈孝珍'>戈孝珍</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i32"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>32</span> 
+             <span class='Article_Title'><a href='/ca/27/c2645a51751/page.htm' target='_blank' title='贺威顺'>贺威顺</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i33"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>33</span> 
+             <span class='Article_Title'><a href='/ca/16/c2645a51734/page.htm' target='_blank' title='黄炳生'>黄炳生</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i34"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>34</span> 
+             <span class='Article_Title'><a href='/ca/18/c2645a51736/page.htm' target='_blank' title='金志权'>金志权</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i35"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>35</span> 
+             <span class='Article_Title'><a href='/ca/03/c2645a51715/page.htm' target='_blank' title='李存珠'>李存珠</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i36"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>36</span> 
+             <span class='Article_Title'><a href='/ca/04/c2645a51716/page.htm' target='_blank' title='李好琚'>李好琚</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i37"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>37</span> 
+             <span class='Article_Title'><a href='/ca/00/c2645a51712/page.htm' target='_blank' title='李胜果'>李胜果</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i38"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>38</span> 
+             <span class='Article_Title'><a href='/ca/02/c2645a51714/page.htm' target='_blank' title='骆光武'>骆光武</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i39"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>39</span> 
+             <span class='Article_Title'><a href='/c9/fc/c2645a51708/page.htm' target='_blank' title='潘树陆'>潘树陆</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i40"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>40</span> 
+             <span class='Article_Title'><a href='/ca/10/c2645a51728/page.htm' target='_blank' title='钱树人'>钱树人</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i41"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>41</span> 
+             <span class='Article_Title'><a href='/ca/0f/c2645a51727/page.htm' target='_blank' title='谭耀铭'>谭耀铭</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i42"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>42</span> 
+             <span class='Article_Title'><a href='/ca/0e/c2645a51726/page.htm' target='_blank' title='唐 棠'>唐 棠</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i43"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>43</span> 
+             <span class='Article_Title'><a href='/ca/0d/c2645a51725/page.htm' target='_blank' title='万纯美'>万纯美</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i44"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>44</span> 
+             <span class='Article_Title'><a href='/ca/0c/c2645a51724/page.htm' target='_blank' title='汪承藻'>汪承藻</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i45"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>45</span> 
+             <span class='Article_Title'><a href='/ca/0b/c2645a51723/page.htm' target='_blank' title='王和珍'>王和珍</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i46"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>46</span> 
+             <span class='Article_Title'><a href='/ca/2e/c2645a51758/page.htm' target='_blank' title='王静英'>王静英</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i47"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>47</span> 
+             <span class='Article_Title'><a href='/ca/2f/c2645a51759/page.htm' target='_blank' title='王启祥'>王启祥</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i48"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>48</span> 
+             <span class='Article_Title'><a href='/ca/30/c2645a51760/page.htm' target='_blank' title='王绪龙'>王绪龙</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i49"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>49</span> 
+             <span class='Article_Title'><a href='/ca/31/c2645a51761/page.htm' target='_blank' title='王银根'>王银根</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i50"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>50</span> 
+             <span class='Article_Title'><a href='/ca/37/c2645a51767/page.htm' target='_blank' title='徐福培'>徐福培</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i51"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>51</span> 
+             <span class='Article_Title'><a href='/c9/51/c2645a51537/page.htm' target='_blank' title='刘玲'>刘玲</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i52"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>52</span> 
+             <span class='Article_Title'><a href='/ca/36/c2645a51766/page.htm' target='_blank' title='徐洁磐'>徐洁磐</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i53"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>53</span> 
+             <span class='Article_Title'><a href='/ca/39/c2645a51769/page.htm' target='_blank' title='徐娟芬'>徐娟芬</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i54"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>54</span> 
+             <span class='Article_Title'><a href='/ca/38/c2645a51768/page.htm' target='_blank' title='徐玲芝'>徐玲芝</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i55"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>55</span> 
+             <span class='Article_Title'><a href='/ca/3a/c2645a51770/page.htm' target='_blank' title='徐永森'>徐永森</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i56"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>56</span> 
+             <span class='Article_Title'><a href='/c9/ef/c2645a51695/page.htm' target='_blank' title='沈 平'>沈 平</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i57"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>57</span> 
+             <span class='Article_Title'><a href='/ca/1c/c2645a51740/page.htm' target='_blank' title='杨培根'>杨培根</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i58"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>58</span> 
+             <span class='Article_Title'><a href='/ca/1d/c2645a51741/page.htm' target='_blank' title='雍殿书'>雍殿书</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i59"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>59</span> 
+             <span class='Article_Title'><a href='/ca/1b/c2645a51739/page.htm' target='_blank' title='尤惟清'>尤惟清</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i60"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>60</span> 
+             <span class='Article_Title'><a href='/ca/2c/c2645a51756/page.htm' target='_blank' title='张春兰'>张春兰</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i61"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>61</span> 
+             <span class='Article_Title'><a href='/ca/2b/c2645a51755/page.htm' target='_blank' title='张德富 (博导)'>张德富 (博导)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i62"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>62</span> 
+             <span class='Article_Title'><a href='/c9/fa/c2645a51706/page.htm' target='_blank' title='冯珍竹'>冯珍竹</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i63"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>63</span> 
+             <span class='Article_Title'><a href='/ca/2a/c2645a51754/page.htm' target='_blank' title='张幸儿'>张幸儿</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i64"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>64</span> 
+             <span class='Article_Title'><a href='/ca/29/c2645a51753/page.htm' target='_blank' title='赵 昕'>赵 昕</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+</tr> 
+<tr> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i65"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>65</span> 
+             <span class='Article_Title'><a href='/c9/fb/c2645a51707/page.htm' target='_blank' title='杨 军'>杨 军</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td> 
+ 
+<ul class="wp_article_list"> 
+     <li class="list_item i66"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>66</span> 
+             <span class='Article_Title'><a href='/ca/2d/c2645a51757/page.htm' target='_blank' title='朱树春'>朱树春</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+</ul> 
+</td> 
+<td>&nbsp;</td> 
+<td>&nbsp;</td> 
+</tr> 
+</table>     </li> 
+</ul> 
+</div> 
+
+        </div><div frag="窗口1"> 
+     <!-- No Data --> 
+</div>
+      </div>
+    </div>
+    <div class="clear"></div>
+    <div class="bot_line"></div>
+  </div>
+  </div>
+</div>
+
+<div class="wrapper" id="footer">
+  <div class="inner foot_inner">
+    <div class="foot clearfix">
+      <div id="copyright"><p>南京大学计算机科学与技术系 版权所有 ◎2007－2015 <br />
+      江苏省南京市栖霞区仙林大道163号 计算机科学技术楼;  邮编：210023 电话/传真：86-025-89683126 </p></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+ <image src="/_visitcount?siteId=66&type=2&columnId=1651" style="display:none" width="0" height="0"></image>�1;�           Z��x>��[       #    :http://cs.nju.edu.cn/1651/list.htm request-method GET response-head HTTP/1.1 200 OK
+Date: Sun, 01 Apr 2018 13:52:34 GMT
+Server: Apache/2.2.22 (Unix) mod_jk/1.2.23
+Accept-Ranges: bytes
+Content-Type: text/html; charset=UTF-8
+ charset UTF-8 uncompressed-len 0 predictor::resource-count 23 predictor::http://cs.nju.edu.cn/_css/_system/system.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/site/1/style/49/49.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/site/00/42/66/style/118/118.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/simpleNews/css/simplenews.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/sudyNavi/css/sudyNav.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/datepicker/css/datepicker.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/jquery.min.js 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/jquery.sudy.wp.visitcount.js 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/sudyNavi/jquery.sudyNav.js 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/datepicker/js/jquery.datepicker.js 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/datepicker/js/datepicker_lang_HK.js 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/css/style.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/simpleNews/css/icon_more_3.gif 1,1,0,0 predictor::http://cs.nju.edu.cn/_visitcount?siteId=66&type=2&columnId=1651 1,0,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/list_left.png 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/title_bg.png 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/arrow.png 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/col_title.gif 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/possplit.png 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/col_right_bottom.gif 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/col_right_bg.gif 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/li.png 1,1,0,0 predictor::http://cs.nju.edu.cn/_css/_system/system_editor.css 1,1,0,0  �U

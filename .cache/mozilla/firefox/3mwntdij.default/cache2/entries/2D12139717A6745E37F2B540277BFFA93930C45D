@@ -1,0 +1,852 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>计算机系主页</title>
+
+<link type="text/css" href="/_css/_system/system.css" rel="stylesheet"/>
+<link type="text/css" href="/_upload/site/1/style/49/49.css" rel="stylesheet"/>
+<link type="text/css" href="/_upload/site/00/42/66/style/118/118.css" rel="stylesheet"/>
+       <LINK href="/_css/tpl2/system.css" type="text/css" rel="stylesheet"> 
+       <LINK href="/_css/tpl2/default/default.css" type="text/css" rel="stylesheet"> 
+<link type="text/css" href="/_js/_portletPlugs/simpleNews/css/simplenews.css" rel="stylesheet" />
+<link type="text/css" href="/_js/_portletPlugs/sudyNavi/css/sudyNav.css" rel="stylesheet" />
+<link type="text/css" href="/_js/_portletPlugs/datepicker/css/datepicker.css" rel="stylesheet" />
+
+<script language="javascript" src="/_js/jquery.min.js" sudy-wp-context="" sudy-wp-siteId="66"></script>
+<script language="javascript" src="/_js/jquery.sudy.wp.visitcount.js"></script>
+<script type="text/javascript" src="/_js/_portletPlugs/sudyNavi/jquery.sudyNav.js"></script>
+<script type="text/javascript" src="/_js/_portletPlugs/datepicker/js/jquery.datepicker.js"></script>
+<script type="text/javascript" src="/_js/_portletPlugs/datepicker/js/datepicker_lang_HK.js"></script>
+<link rel="stylesheet" href="/_upload/tpl/00/93/147/template147/css/style.css" type="text/css" media="all" />
+<link rel="stylesheet" href="/_upload/tpl/00/93/147/template147/extends/extends.css" type="text/css" media="all" />
+<script src="/_upload/tpl/00/93/147/template147/extends/extends.js" type="text/javascript"></script>
+<script type="text/javascript" _ue_org_tagname="script">
+  $(function(){
+    $(".focus").sudyfocus({
+      p:31,
+      zWidth:537,
+      zHeight:360,
+	  isNavHover: true,
+	  pagination: true,
+      title: {active: true, // 是否显示标题
+			isAutoWidth: false, // 标题背景自动宽度
+			href: false // 标题是否加文章链接
+
+},
+      speed:700
+    });
+  });
+</script>
+</head>
+
+<body>
+<div class="wrapper" id="header">
+  <div class="inner">
+    <blockquote>&nbsp;</blockquote>
+    <div class="head">
+      <div class="head_search" frag="面板12">
+        <div frag="窗口12"><form method="POST" action="/_web/search/doSearch.do?_p=YXM9NjYmdD0xNDcmZD02MjYmcD0xJm09TiY_" target="_blank" onsubmit="if ($('#keyword').val() === '请输入关键字') { $('#keyword').val(''); }" id="1256899184">
+    <div class="wp_search">
+        <table>
+            <tbody><tr>
+                <td height="25px">
+                    <input id="keyword" name="keyword" style="width: 130px;height:28px; border: 0px; background:none;padding: 0px 3px" class="keyword" type="text" value="请输入关键字" onfocus="if (this.value === '请输入关键字') { this.value = ''; }" onblur="if (this.value === '') { this.value = '请输入关键字'; }">
+                </td>
+                <td>
+                    <input name="btnsearch" class="search" type="submit" value="">
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+</form></div>
+      </div>
+      <div class="head_nav">
+        <div class="nav" frag="面板11">
+          <div frag="窗口11"><div id="wp_nav_w11"> 
+
+ 
+<ul class="wp_nav" data-nav-config="{drop_v: 'down', drop_w: 'right', dir: 'y', opacity_main: '-1', opacity_sub: '-1', dWidth: '0'}">
+      
+     <li class="nav-item i1 "> 
+         <a href="/main.htm" title="首     页" target="_self"><span class="item-name">首     页</span></a><i class="mark"></i> 
+          
+     </li> 
+      
+     <li class="nav-item i2 "> 
+         <a href="/1650/list.htm" title="系况简介" target="_self"><span class="item-name">系况简介</span></a><i class="mark"></i> 
+          
+         <ul class="sub-nav"> 
+              
+             <li class="nav-item i2-1 "> 
+                 <a href="/1674/list.htm" title="系况概览" target="_self"><span class="item-name">系况概览</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i2-2 "> 
+                 <a href="/1675/list.htm" title="历史沿革" target="_self"><span class="item-name">历史沿革</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i2-3 "> 
+                 <a href="/1676/list.htm" title="系史纪略" target="_self"><span class="item-name">系史纪略</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i2-4 "> 
+                 <a href="/1677/list.htm" title="历任领导" target="_self"><span class="item-name">历任领导</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i2-5 "> 
+                 <a href="/1678/list.htm" title="机构设置" target="_self"><span class="item-name">机构设置</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+         </ul> 
+          
+     </li> 
+      
+     <li class="nav-item i3 "> 
+         <a href="/1651/list.htm" title="师资队伍" target="_self"><span class="item-name">师资队伍</span></a><i class="mark"></i> 
+          
+         <ul class="sub-nav"> 
+              
+             <li class="nav-item i3-1 "> 
+                 <a href="/2639/list.htm" title="教授" target="_self"><span class="item-name">教授</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i3-2 "> 
+                 <a href="/2640/list.htm" title="副教授" target="_self"><span class="item-name">副教授</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i3-3 "> 
+                 <a href="/2641/list.htm" title="讲师" target="_self"><span class="item-name">讲师</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i3-4 "> 
+                 <a href="/2642/list.htm" title="高级工程师" target="_self"><span class="item-name">高级工程师</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i3-5 "> 
+                 <a href="/2643/list.htm" title="专业技术人员" target="_self"><span class="item-name">专业技术人员</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i3-6 "> 
+                 <a href="/2644/list.htm" title="行政管理人员" target="_self"><span class="item-name">行政管理人员</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i3-7 "> 
+                 <a href="/2645/list.htm" title="离退休人员" target="_self"><span class="item-name">离退休人员</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+         </ul> 
+          
+     </li> 
+      
+     <li class="nav-item i4 "> 
+         <a href="/1652/list.htm" title="科研工作" target="_self"><span class="item-name">科研工作</span></a><i class="mark"></i> 
+          
+         <ul class="sub-nav"> 
+              
+             <li class="nav-item i4-1 "> 
+                 <a href="/1684/list.htm" title="研究领域" target="_self"><span class="item-name">研究领域</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i4-2 "> 
+                 <a href="/1685/list.htm" title="研究项目" target="_self"><span class="item-name">研究项目</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i4-3 "> 
+                 <a href="/1686/list.htm" title="科研获奖" target="_self"><span class="item-name">科研获奖</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i4-4 "> 
+                 <a href="/1687/list.htm" title="最新论著" target="_self"><span class="item-name">最新论著</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i4-5 "> 
+                 <a href="/1688/list.htm" title="合作交流" target="_self"><span class="item-name">合作交流</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i4-6 "> 
+                 <a href="https://cs.nju.edu.cn/tdzc/" title="团队征才" target="_self"><span class="item-name">团队征才</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+         </ul> 
+          
+     </li> 
+      
+     <li class="nav-item i5 "> 
+         <a href="/1653/list.htm" title="人才培养" target="_self"><span class="item-name">人才培养</span></a><i class="mark"></i> 
+          
+         <ul class="sub-nav"> 
+              
+             <li class="nav-item i5-1 "> 
+                 <a href="/1689/list.htm" title="本科教学" target="_self"><span class="item-name">本科教学</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i5-2 "> 
+                 <a href="/1690/list.htm" title="研究生教学" target="_self"><span class="item-name">研究生教学</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i5-3 "> 
+                 <a href="/1691/list.htm" title="工程硕士" target="_self"><span class="item-name">工程硕士</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i5-4 "> 
+                 <a href="/1692/list.htm" title="成人教育" target="_self"><span class="item-name">成人教育</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i5-5 "> 
+                 <a href="/1693/list.htm" title="奖学金" target="_self"><span class="item-name">奖学金</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+         </ul> 
+          
+     </li> 
+      
+     <li class="nav-item i6 "> 
+         <a href="/1654/list.htm" title="最新动态" target="_self"><span class="item-name">最新动态</span></a><i class="mark"></i> 
+          
+         <ul class="sub-nav"> 
+              
+             <li class="nav-item i6-1 "> 
+                 <a href="/1660/list.htm" title="新闻动态" target="_self"><span class="item-name">新闻动态</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-2 "> 
+                 <a href="/1702/list.htm" title="系内公告" target="_self"><span class="item-name">系内公告</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-3 "> 
+                 <a href="/1703/list.htm" title="研究生公告栏" target="_self"><span class="item-name">研究生公告栏</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-4 "> 
+                 <a href="/1704/list.htm" title="本科生公告栏" target="_self"><span class="item-name">本科生公告栏</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-5 "> 
+                 <a href="/1705/list.htm" title="获奖公告" target="_self"><span class="item-name">获奖公告</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-6 "> 
+                 <a href="/1706/list.htm" title="会议讲座信息" target="_self"><span class="item-name">会议讲座信息</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-7 "> 
+                 <a href="/1707/list.htm" title="就业信息栏" target="_self"><span class="item-name">就业信息栏</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i6-8 "> 
+                 <a href="/1708/list.htm" title="招聘信息" target="_self"><span class="item-name">招聘信息</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+         </ul> 
+          
+     </li> 
+      
+     <li class="nav-item i7 "> 
+         <a href="/1655/list.htm" title="党的建设" target="_self"><span class="item-name">党的建设</span></a><i class="mark"></i> 
+          
+         <ul class="sub-nav"> 
+              
+             <li class="nav-item i7-1 "> 
+                 <a href="/1709/list.htm" title="支部建设" target="_self"><span class="item-name">支部建设</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i7-2 "> 
+                 <a href="/1710/list.htm" title="支部活动" target="_self"><span class="item-name">支部活动</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i7-3 "> 
+                 <a href="/1711/list.htm" title="先进事迹" target="_self"><span class="item-name">先进事迹</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i7-4 "> 
+                 <a href="/1712/list.htm" title="党员公告" target="_self"><span class="item-name">党员公告</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+             <li class="nav-item i7-5 "> 
+                 <a href="/1713/list.htm" title="科学发展观学习专栏" target="_self"><span class="item-name">科学发展观学习专栏</span></a><i class="mark"></i> 
+                  
+             </li> 
+              
+         </ul> 
+          
+     </li> 
+      
+     <li class="nav-item i8 "> 
+         <a href="/1656/list.htm" title="热点链接" target="_self"><span class="item-name">热点链接</span></a><i class="mark"></i> 
+          
+     </li> 
+      
+     <li class="nav-item i9 "> 
+         <a href="/_sitemap?_p=YXM9Mw__&siteId=66" title="站点地图" target="_blank"><span class="item-name">站点地图</span></a><i class="mark"></i> 
+          
+     </li> 
+      
+     <li class="nav-item i10 "> 
+         <a href="https://www.nju.edu.cn/EN/7f/6b/c7136a163691/page.htm" title="English Version" target="_self"><span class="item-name">English Version</span></a><i class="mark"></i> 
+          
+     </li> 
+      
+</ul> 
+ 
+ 
+ </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="wrapper" id="container">
+  <div class="inner">
+    <div class="mod clearfix">
+      <div class="mod_top">
+        <div class="mod_top_1" frag="面板31">
+          <div frag="窗口31">
+          <!-- JSON列表 -->
+<script language="JavaScript" class="" >
+    var w31imgJsons = [
+    
+        
+            {
+            "src": "/_upload/article/images/ed/fa/033c2ff646d185901d47b99f1582/16b1ccff-b98a-44e9-9538-9d298bb78ed1_s.jpg",
+            "original": "/_upload/article/images/ed/fa/033c2ff646d185901d47b99f1582/16b1ccff-b98a-44e9-9538-9d298bb78ed1.jpg",
+            "title": "我系学生荣获第一届“龙芯杯”全国大学生计算机系统能...",
+            "url": "/53/02/c1654a217858/page.htm"
+            },
+        
+    
+        
+            {
+            "src": "/_upload/article/images/9b/9f/0bb648ef4bbcbb4170d84221423f/19efb30e-4e33-43ba-ac3f-7a40f8ba4ac1_s.jpg",
+            "original": "/_upload/article/images/9b/9f/0bb648ef4bbcbb4170d84221423f/19efb30e-4e33-43ba-ac3f-7a40f8ba4ac1.jpg",
+            "title": "我系团队夺得腾讯社交广告高校算法大赛冠军，赢得30...",
+            "url": "/31/60/c1654a209248/page.htm"
+            },
+        
+    
+        
+            {
+            "src": "/_upload/article/images/5d/cc/753ee28f46b5a5d843cb41094cd4/9d86cea7-49e1-42c4-b32d-6adde7e68de2_s.jpg",
+            "original": "/_upload/article/images/5d/cc/753ee28f46b5a5d843cb41094cd4/9d86cea7-49e1-42c4-b32d-6adde7e68de2.jpg",
+            "title": "我系团队分别荣获&nbsp;2017&nbsp;年第四届全国高校物联网...",
+            "url": "/0a/51/c1654a199249/page.htm"
+            },
+        
+    
+        
+            {
+            "src": "/_upload/article/images/18/18/4fd6933b410e9fb1f07d96c05095/30a27658-7489-4bb3-9ef0-89ab9225491c_s.jpg",
+            "original": "/_upload/article/images/18/18/4fd6933b410e9fb1f07d96c05095/30a27658-7489-4bb3-9ef0-89ab9225491c.jpg",
+            "title": "PASA大数据实验室荣获2017年全国高校计算应用...",
+            "url": "/e8/b4/c1654a190644/page.htm"
+            },
+        
+    
+        
+            {
+            "src": "/_upload/article/images/2c/73/fdbda9f14980b7db14801066b961/f38de453-1942-4441-8d4b-9b551afe4e21_s.jpg",
+            "original": "/_upload/article/images/2c/73/fdbda9f14980b7db14801066b961/f38de453-1942-4441-8d4b-9b551afe4e21.jpg",
+            "title": "南京大学孙钟秀教育基金设立倡议书",
+            "url": "/9b/6e/c1654a170862/page.htm"
+            },
+        
+    
+        
+            {
+            "src": "/_upload/article/images/17/1e/4046887647f6b7c6ecac873949f1/c7ea7db0-5c73-4ef5-aafa-af51c6abe409_s.jpg",
+            "original": "/_upload/article/images/17/1e/4046887647f6b7c6ecac873949f1/c7ea7db0-5c73-4ef5-aafa-af51c6abe409.jpg",
+            "title": "我系PASA大数据实验室团队蝉联“全国高校云计算应...",
+            "url": "/27/a7/c1654a141223/page.htm"
+            }
+        
+    
+    ];
+</script>
+
+          <div class="focus"></div></div>
+        </div>
+        <div class="mod_top_2">
+          <div class="top_3">
+            <div class="cbox" frag="面板32">
+            <div class="post post1" frag="窗口32">
+              <div class="subnav clearfix">
+                <h3 class="title"><span frag="标题">最新动态</span></h3>
+                <div class="con-more">
+                  <div class="more-btn" frag="按钮" type="更多"><a href="/1654/list.htm" class="w32_more"><span class="more-text" frag="按钮内容">更多>></span></a></div>
+                </div>
+              </div>
+              <div class="con">
+                <div id="wp_news_w32"> 
+ 
+<ul class="wp_article_list"> 
+      
+     <li class="list_item i1"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>1</span> 
+             <span class='Article_Title'><a href='/c9/16/c1654a248086/page.htm' target='_blank' title='南京大学计算机科学与技术系 & 人工智能学院'><font style='font-weight:bold;color:#D52BFF;'>南京大学计算机科学与技术系 & 人工智...</font></a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <div class='Article_Content'><a href='/c9/16/c1654a248086/page.htm' target='_blank' title='南京大学计算机科学与技术系 & 人工智能学院'>南京大学是一所历史悠久、声誉卓著的百年名校。2017年，南京大学入选A类世界一流大学建设高校名单，包括计算机科学与技术在内的15个学科入选世界一流学科建设名单。&nbsp;&nbsp;&nbsp;南京大学计算机科学与技术学科是国家一级重点学科，长期发展形成了软件与智能两大优势研究方向。计算机软件新技术国...</a></div> 
+              
+         </div> 
+     </li> 
+      
+</ul> 
+</div> 
+
+              </div>
+            </div>
+          </div>
+          </div>
+          <div class="top_4">
+            <div class="cbox" frag="面板33">
+            <div class="post post1" frag="窗口33">
+              <div class="con">
+                <div id="wp_news_w33"> 
+ 
+<ul class="wp_article_list"> 
+      
+     <li class="list_item i1"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>1</span> 
+             <span class='Article_Title'><a href='/c9/16/c1654a248086/page.htm' target='_blank' title='南京大学计算机科学与技术系 & 人工智能学院'><font style='font-weight:bold;color:#D52BFF;'>南京大学计算机科学与技术系 & 人工智能学院</font></a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2018-03-20</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i2"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>2</span> 
+             <span class='Article_Title'><a href='/a2/6d/c1654a238189/page.htm' target='_blank' title='南京大学成立人工智能学院'><font style='font-weight:bold;color:#FF3908;'>南京大学成立人工智能学院</font></a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2018-03-06</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i3"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>3</span> 
+             <span class='Article_Title'><a href='/97/3c/c1654a235324/page.htm' target='_blank' title='南大计算机软件新技术国家重点实验室获评优秀'><font style='font-weight:bold;color:#FF3912;'>南大计算机软件新技术国家重点实验室获评优秀</font></a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2018-01-15</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i4"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>4</span> 
+             <span class='Article_Title'><a href='/d0/fe/c1654a250110/page.htm' target='_blank' title='2018年计算机系省三好学生推荐结果公示'>2018年计算机系省三好学生推荐结果公示</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2018-03-29</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i5"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>5</span> 
+             <span class='Article_Title'><a href='/cb/14/c1654a248596/page.htm' target='_blank' title='2018年计算机系硕士招生考试拟录取名单公示'><font style='font-weight:bold;color:#AF1FBF;'>2018年计算机系硕士招生考试拟录取名单公示</font></a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2018-03-22</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i6"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>6</span> 
+             <span class='Article_Title'><a href='/89/f3/c1654a231923/page.htm' target='_blank' title='南京大学孙钟秀教育基金奖教金获奖名单公示'>南京大学孙钟秀教育基金奖教金获奖名单公示</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2017-12-14</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i7"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>7</span> 
+             <span class='Article_Title'><a href='/6f/89/c1654a225161/page.htm' target='_blank' title='南京大学计算机科学与技术系博士生招生“申请-考核制”实施办法（2018）'><font style='font-weight:bold;'>南京大学计算机科学与技术系博士生招生“申请-考核制”实施...</font></a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2017-11-02</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i8"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>8</span> 
+             <span class='Article_Title'><a href='/53/02/c1654a217858/page.htm' target='_blank' title='我系学生荣获第一届“龙芯杯”全国大学生计算机系统能力培养大赛 二等奖和三等奖'>我系学生荣获第一届“龙芯杯”全国大学生计算机系统能力培养...</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2017-09-28</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i9"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>9</span> 
+             <span class='Article_Title'><a href='/47/0e/c1654a214798/page.htm' target='_blank' title='我系周志华教授当选欧洲科学院外籍院士'><font style='font-weight:bold;color:#940999;'>我系周志华教授当选欧洲科学院外籍院士</font></a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2017-09-11</span> 
+              
+         </div> 
+     </li> 
+      
+</ul> 
+</div> 
+
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+      <div class="mod_bot">
+        <div class="mod_bot_1">
+          <div class="bot_1">
+            <div class="cbox" frag="面板34">
+            <div class="post post1" frag="窗口34">
+              <div class="subnav clearfix">
+                <h3 class="title"><span frag="标题" title="研究团队">            研究团队</span></h3>
+                <div class="con-more">
+                  <div class="more-btn" frag="按钮" type="更多"><a href="/c7/de/c1656a51166/page.htm" class="w34_more"><span class="more-text" frag="按钮内容">更多>></span></a></div>
+                </div>
+              </div>
+              <div class="con">
+                <div id="wp_news_w34"> 
+ 
+<ul class="wp_article_list"> 
+      
+     <li class="list_item i1"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>1</span> 
+             <span class='Article_Title'><a href='http://moon.nju.edu.cn/' target='_blank' title='计算机软件研究所'>计算机软件研究所</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i2"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>2</span> 
+             <span class='Article_Title'><a href='http://lamda.nju.edu.cn/CH.MainPage.ashx' target='_blank' title='机器学习与数据挖掘研究所'>机器学习与数据挖掘研究所</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i3"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>3</span> 
+             <span class='Article_Title'><a href='http://seg.nju.edu.cn/index.action' target='_blank' title='软件工程组'>软件工程组</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i4"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>4</span> 
+             <span class='Article_Title'><a href='http://mcg.nju.edu.cn/' target='_blank' title='媒体计算研究组'>媒体计算研究组</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i5"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>5</span> 
+             <span class='Article_Title'><a href='http://iip.nju.edu.cn/index.php/%E9%A6%96%E9%A1%B5' target='_blank' title='智能化信息处理研究组'>智能化信息处理研究组</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+      
+</ul> 
+</div> 
+
+              </div>
+            </div><div frag="窗口1"> 
+      
+</div><div frag="窗口2"> 
+      
+</div><div class="post post1" frag="窗口40">
+              <div class="subnav clearfix">
+                <h3 class="title"><span frag="标题" title="团队征才">             团队征才</span></h3>
+                <div class="con-more">
+                  <div class="more-btn" frag="按钮" type="更多"><a href="https://cs.nju.edu.cn/tdzc/" class="w40_more"><span class="more-text" frag="按钮内容">更多>></span></a></div>
+                </div>
+              </div>
+              <div class="con">
+                <!-- No Data -->
+              </div>
+            </div>
+          </div>
+          </div>
+          <div class="bot_2">
+            <div class="cbox" frag="面板35">
+            
+          </div>
+          </div>
+          <div class="bot_3" frag=" 面板39"></div>
+        </div>
+        <div class="mod_bot_2">
+          <div class="cbox" frag="面板36">
+            <div class="post post1" frag="窗口36">
+              <div class="subnav clearfix">
+                <h3 class="title"><span frag="标题" title="最新会议讲座信息">                 最新会议讲座信息</span></h3>
+                <div class="con-more">
+                  <div class="more-btn" frag="按钮" type="更多"><a href="/1706/list.htm" class="w36_more"><span class="more-text" frag="按钮内容">更多>></span></a></div>
+                </div>
+              </div>
+              <div class="con">
+                <div id="wp_news_w36"> 
+ 
+<ul class="wp_article_list"> 
+      
+     <li class="list_item i1"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>1</span> 
+             <span class='Article_Title'><a href='/81/c8/c1706a33224/page.htm' target='_blank' title='【学术报告】Using Computers to Find Out the Truth'>【学术报告】Using Computers to Find Out the Tr...</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2010-05-17</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i2"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>2</span> 
+             <span class='Article_Title'><a href='/81/c7/c1706a33223/page.htm' target='_blank' title='【学术报告】User Experience and Technology Acceptance Issues in Recommender Systems'>【学术报告】User Experience and Technology Acc...</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2010-05-17</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i3"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>3</span> 
+             <span class='Article_Title'><a href='/81/c9/c1706a33225/page.htm' target='_blank' title='【学术报告】Transcriptome analysis for identifying stress-inducible microRNAs'>【学术报告】Transcriptome analysis for identif...</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2010-05-10</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i4"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>4</span> 
+             <span class='Article_Title'><a href='/81/cb/c1706a33227/page.htm' target='_blank' title='【学术报告】Bayesian Ying-Yang System, Best Harmony Learning, and Five Action Circling'>【学术报告】Bayesian Ying-Yang System, Best Ha...</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2010-05-04</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i5"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>5</span> 
+             <span class='Article_Title'><a href='/81/d8/c1706a33240/page.htm' target='_blank' title='【学术报告】Incremental Semi-supervised Classification with Adaptive Metric Learning: Toward Interactive Classification of Multimedia Data'>【学术报告】Incremental Semi-supervised Classi...</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2010-03-11</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i6"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>6</span> 
+             <span class='Article_Title'><a href='/81/d9/c1706a33241/page.htm' target='_blank' title='第八届中国计算机图形学大会(Chinagraph’2010)'>第八届中国计算机图形学大会(Chinagraph’2010)</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2010-03-09</span> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i7"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>7</span> 
+             <span class='Article_Title'><a href='/81/db/c1706a33243/page.htm' target='_blank' title='【学术报告】先进移动计算的趋势与挑战'>【学术报告】先进移动计算的趋势与挑战</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+             <span class='Article_PublishDate'>2010-03-05</span> 
+              
+         </div> 
+     </li> 
+      
+</ul> 
+</div> 
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mod_bot_3">
+          <div class="cbox" frag="面板37">
+            <div class="post post1" frag="窗口37">
+              <div class="subnav clearfix">
+                <h3 class="title"><span frag="标题">常用链接</span></h3>
+                <div class="con-more">
+                  <div class="more-btn" frag="按钮" type="更多"><a href="/c7/de/c1656a51166/page.htm" class="w37_more"><span class="more-text" frag="按钮内容">更多>></span></a></div>
+                </div>
+              </div>
+              <div class="con">
+                <div id="wp_news_w37"> 
+ 
+<ul class="wp_article_list"> 
+      
+     <li class="list_item i1"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>1</span> 
+             <span class='Article_Title'><a href='http://www.nju.edu.cn' target='_blank' title='南京大学'>南京大学</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i2"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>2</span> 
+             <span class='Article_Title'><a href='https://keysoftlab.nju.edu.cn/' target='_blank' title='计算机软件新技术国家重点实验室'>计算机软件新技术国家重点实验室</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i3"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>3</span> 
+             <span class='Article_Title'><a href='http://cslab.nju.edu.cn/' target='_blank' title='计算机科学与技术实验教学中心'>计算机科学与技术实验教学中心</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i4"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>4</span> 
+             <span class='Article_Title'><a href='http://software.nju.edu.cn/' target='_blank' title='南京大学软件学院'>南京大学软件学院</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+      
+     <li class="list_item i5"> 
+         <div class="fields pr_fields"> 
+             <span class='Article_Index'>5</span> 
+             <span class='Article_Title'><a href='http://cc.nju.edu.cn/' target='_blank' title='计算机基础教学部'>计算机基础教学部</a></span> 
+         </div> 
+         <div class="fields ex_fields"> 
+              
+         </div> 
+     </li> 
+      
+</ul> 
+</div> 
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrapper" id="footer">
+  <div class="inner foot_inner">
+    <div class="foot clearfix">
+      <div id="copyright"><p>南京大学计算机科学与技术系 版权所有 ◎2007－2015 <br />
+      江苏省南京市栖霞区仙林大道163号 计算机科学技术楼;  邮编：210023 电话/传真：86-025-89683126</p></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+ <image src="/_visitcount?siteId=66&type=1&columnId=1564" style="display:none" width="0" height="0"></image>�/�{t�           Z��u>��W           :http://cs.nju.edu.cn/ request-method GET response-head HTTP/1.1 200 OK
+Date: Sun, 01 Apr 2018 13:52:29 GMT
+Server: Apache/2.2.22 (Unix) mod_jk/1.2.23
+Accept-Ranges: bytes
+Content-Type: text/html; charset=UTF-8
+ charset UTF-8 uncompressed-len 0 predictor::resource-count 34 predictor::http://cs.nju.edu.cn/_css/_system/system.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/site/1/style/49/49.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/site/00/42/66/style/118/118.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_css/tpl2/system.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_css/tpl2/default/default.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/simpleNews/css/simplenews.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/sudyNavi/css/sudyNav.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/datepicker/css/datepicker.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/jquery.min.js 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/jquery.sudy.wp.visitcount.js 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/sudyNavi/jquery.sudyNav.js 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/datepicker/js/jquery.datepicker.js 1,1,0,0 predictor::http://cs.nju.edu.cn/_js/_portletPlugs/datepicker/js/datepicker_lang_HK.js 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/css/style.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/extends/extends.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/extends/extends.js 1,1,0,0 predictor::http://cs.nju.edu.cn/_visitcount?siteId=66&type=1&columnId=1564 1,0,0,0 predictor::http://cs.nju.edu.cn/_css/_system/system_editor.css 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/extends/libs/jquery.sudy.js 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/body_bg02.gif 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/body_bg.gif 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/head_bg.png 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/btn_b.png 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/btn_search.gif 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/mod_bg.png 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/more_btn.gif 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/foot_bg.png 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/article/images/ed/fa/033c2ff646d185901d47b99f1582/16b1ccff-b98a-44e9-9538-9d298bb78ed1.jpg 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/article/images/9b/9f/0bb648ef4bbcbb4170d84221423f/19efb30e-4e33-43ba-ac3f-7a40f8ba4ac1.jpg 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/article/images/5d/cc/753ee28f46b5a5d843cb41094cd4/9d86cea7-49e1-42c4-b32d-6adde7e68de2.jpg 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/article/images/18/18/4fd6933b410e9fb1f07d96c05095/30a27658-7489-4bb3-9ef0-89ab9225491c.jpg 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/article/images/2c/73/fdbda9f14980b7db14801066b961/f38de453-1942-4441-8d4b-9b551afe4e21.jpg 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/article/images/17/1e/4046887647f6b7c6ecac873949f1/c7ea7db0-5c73-4ef5-aafa-af51c6abe409.jpg 1,1,0,0 predictor::http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/images/nav_li_bg.gif 1,1,0,0   ��

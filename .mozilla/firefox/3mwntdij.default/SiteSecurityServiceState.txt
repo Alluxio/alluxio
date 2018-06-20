@@ -1,0 +1,29 @@
+====
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+====
+
+accounts.firefox.com:HSTS	0	17616	1537625773557,1,1
+self-repair.mozilla.org:HPKP	1	17622	1522677234931,1,0,WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18=r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E=YLh1dUR9y6Kja30RrAn7JKnbQG/uEtLMkBgFF2Fuihg=sRHdihwgkaib1P1gxX8HFszlD+7/gTfNvuAybgLPNis=
+services.addons.mozilla.org:HSTS	1	17622	1554127296799,1,0
+accounts.firefox.com:HPKP	0	17616	1527257773559,1,1,WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18=r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E=
+services.addons.mozilla.org:HPKP	1	17622	1527775296836,1,1,WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18=r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E=
+versioncheck-bg.addons.mozilla.org:HSTS	1	17622	1522591600859,1,0
+hm.baidu.com:HSTS	0	17622	1522763641865,1,0
+self-repair.mozilla.org:HSTS	1	17622	1554126834930,1,1
+shavar.services.mozilla.com:HSTS	1	17622	1554134037229,1,1
+www.mozilla.org:HSTS	0	17616	1553609658091,1,0
+versioncheck-bg.addons.mozilla.org:HPKP	1	17622	1527775300866,1,1,WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18=r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E=
+aus5.mozilla.org:HSTS	1	17622	1554127302789,1,0
+www.google-analytics.com:HSTS	0	17616	1532960109195,1,1
+blocklist.addons.mozilla.org:HSTS	1	17622	1522579281824,1,0
+passport.baidu.com:HSTS	0	17622	1554114296101,1,0
+blog.csdn.net:HSTS	0	17622	1554126841665,1,0
+snippets.cdn.mozilla.net:HSTS	0	17622	1554114265863,1,0
+www.baidu.com:HSTS	1	17622	1522763630884,1,0

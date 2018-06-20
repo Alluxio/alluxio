@@ -1,0 +1,218 @@
+/* 
+    Document   : simplenews
+    Created on : 2013-9-18, 15:30:07
+    Author     : cpzheng
+    Description:
+        Purpose of the stylesheet follows.
+*/
+.possplit{background-image: url(posSplit.gif);background-repeat: no-repeat;background-position: left center;text-indent: 22px;background-position: center;width: 10px;display: inline-block; border: 0px solid red;}
+
+/**更多：more**/
+.more {text-align:right; margin-top:3px;}
+.more a.more-link { color:#525252;}
+.more a.more-link:hover { color:#000;}
+.more-link .moretext { display:inline;}
+.more-link .moretext img { vertical-align:bottom;}
+/**文章列表:Table**/
+.wp_article_list_table .list_item { line-height:23px; color:#454545;}
+.wp_article_list_table .list_item .count {width:20px; overflow:hidden;}
+.wp_article_list_table .list_item .count .item_num {width:15px; height:23px; background:url(wp_article_li_1.png) no-repeat 8px 10px; text-indent:-99em; overflow:hidden;}
+.wp_article_list_table .list_item .field { white-space:nowrap;}
+/**文章列表:UL**/
+.wp_article_list{ display:block; width:100%;}
+.wp_article_list .list_item { width:100%; height:24px; line-height:24px; border-bottom:1px dashed #ccc; vertical-align:top; }
+.wp_article_list .list_item span { display:inline-block; vertical-align:top; float:left; margin-left:5px;}
+.wp_article_list .list_item .pr_fields { display:inline; float:left;}
+.wp_article_list .list_item .Article_Index { display:inline-block; width:10px; height:16px; margin-top:3px; color:#fff; font-size:11px;float:left; margin-right:5px; overflow:hidden; text-indent:-99em; background:url(wp_article_li_1.png) no-repeat 50%;}
+.wp_article_list .list_item .Article_Title { float: left;}
+.wp_article_list .list_item .ex_fields { display:inline; float:right;}
+.wp_article_list .list_item .Article_PublishDate { color:#666;}
+.wp_article_list .list_item .Article_VisitCount { color:#999;}
+/**子栏目文章列表**/
+.wp_subcolumn_list { display:block; width:100%;}
+.wp_subcolumn_list .wp_sublist { margin-bottom:20px;}
+.wp_subcolumn_list .wp_sublist .sublist_title { display:block; height:32px; line-height:32px; border-bottom:2px solid #C00; margin-bottom:10px;}
+.wp_subcolumn_list .wp_sublist .sublist_title a { display:inline-block; color:#393939; font-size:14px; font-weight:bold;}
+.wp_subcolumn_list .wp_sublist .sublist_title a:hover { color:#999;}
+.wp_subcolumn_list .wp_sublist .sublist_title a .subcolumn-name { cursor:pointer;}
+/**子栏目文章列表更多：more**/
+.wp_subcolumn_list .wp_sublist .sublist_title a.morelink { color:#525252;float:right;}
+.wp_subcolumn_list .wp_sublist .sublist_title a.morelink:hover { color:#000;}
+.wp_subcolumn_list .wp_sublist .sublist_title .morelink .moretext { display:inline-block;}
+.wp_subcolumn_list .wp_sublist .sublist_title .morelink .moretext img { vertical-align:bottom;}
+.wp_subcolumn_list .wp_sublist .sublist_title a.morelink { margin-top:11px;}
+
+
+/***文章内容初始样式（包括之后文章页内容）***/
+.wp_entry { width:100%; line-height:1.7em; font-size:13px; color:#333; overflow:hidden;}
+.wp_entry p { text-indent:0em; margin-bottom:5px;}
+.wp_entry a { color:#5A5A5A;}
+.wp_entry a:hover { text-decoration:underline; color:#E10000;}
+.wp_entry img { max-width:640px; _width::expression(this.width>640?"640px":this.width+"px");}
+
+/***文章内容分页***/
+.wp_single .single_paging { text-align:center;}
+.wp_single .single_paging a.paging-nav { display:inline-block; height:20px; line-height:20px; font-weight:bold; padding:0 7px; font-size:13px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:3px; overflow:hidden; vertical-align: bottom; margin:0 2px; text-decoration: none;}
+.wp_single .single_paging a.paging-nav:hover { color:#fff; background:#999; border-color:#666; }
+.wp_single .single_paging a.current { background:#999; border-color:#666; color:#fff;}
+
+/* 列表页－栏目列表 */
+.wp_listcolumn { display:block; width:100%; border-top:1px solid #ddd; border-bottom:1px solid #fff;}
+.wp_listcolumn .wp_column {display:block; width:100%; vertical-align: bottom;}
+.wp_listcolumn .wp_column a { display:block; width:100%; color:#666; font-size:15px; font-weight:bold; word-wrap:break-word; background:#f5f5f5 url(wp_column_menu_li_1.gif) no-repeat 6px 12px; border-bottom:1px solid #ddd; border-top:1px solid #fff; text-align: left;}
+.wp_listcolumn .wp_column a:hover { color:#C00; background-color:#f9f9f9; background-image: url(wp_column_menu_li_2.gif);}
+.wp_listcolumn .wp_column a.selected { color:#000; background-color:#e8e8e8; background-image: url(wp_column_menu_li_2.gif);}
+.wp_listcolumn .wp_column a .column-name { display:inline-block; line-height:22px; padding:5px 10px 5px 20px; cursor:pointer;}
+/**二级栏目**/
+.wp_listcolumn .wp_subcolumn { border-top:1px solid #fff;}
+.wp_listcolumn .wp_subcolumn .wp_column a { color:#555; font-size:14px; border-bottom:1px solid #aaa; border-top:none; background:#f1f1f1 url(wp_column_menu_li_1.gif) no-repeat 16px 10px;}
+.wp_listcolumn .wp_subcolumn .wp_column a:hover { color:#C30; background-color:#f7f7f7; background-image:url(wp_column_menu_li_2.gif);}
+.wp_listcolumn .wp_subcolumn .wp_column a.selected { color:#000; background-color:#e8e8e8; background-image: url(wp_column_menu_li_2.gif);}
+.wp_listcolumn .wp_subcolumn .wp_column a .column-name { line-height:20px; padding-left:30px;}
+/**三级栏目**/
+.wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_column a { color:#444; font-size:13px; background:#e9e9e9 url(wp_column_menu_li_1.gif) no-repeat 26px 9px; font-weight:normal;}
+.wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_column a:hover { color:#C30; background-color:#f4f4f4; background-image:url(wp_column_menu_li_2.gif);}
+.wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_column a.selected { color:#000; background-color:#e8e8e8; background-image: url(wp_column_menu_li_2.gif);}
+.wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_column a .column-name { line-height:18px; padding-left:40px;}
+/**四级栏目**/
+.wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a { color:#333; font-size:12px; background:#d9d9d9 url(wp_column_menu_li_1.gif) no-repeat 36px 9px;}
+.wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a:hover { color:#C30; background-color:#f4f4f4; background-image:url(wp_column_menu_li_2.gif);}
+.wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a.selected { color:#000; background-color:#e8e8e8; background-image: url(wp_column_menu_li_2.gif);}
+.wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a .column-name { line-height:16px; padding-left:50px;}
+/**五级栏目及其子栏目**/
+.wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a { color:#222; font-size:12px; background:#c9c9c9 url(wp_column_menu_li_1.gif) no-repeat 46px 8px;}
+.wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a:hover { color:#C30; background-color:#f1f1f1; background-image:url(wp_column_menu_li_2.gif);}
+.wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a.selected { color:#000; background-color:#e8e8e8; background-image: url(wp_column_menu_li_2.gif);}
+.wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a .column-name { line-height:16px; padding-left:60px;}
+
+/**子栏目列表：横向**/
+.wp_listcolumn_x { display:block; width:100%;}
+.wp_listcolumn_x:after { content:"."; display:block; width:100%; height:0; overflow:hidden;}
+.wp_listcolumn_x .wp_column {display:inline-block; float:left; vertical-align: bottom;}
+.wp_listcolumn_x .wp_column a { display:inline-block; color:#555; font-size:15px; font-weight:bold; background:#ddd;}
+.wp_listcolumn_x .wp_column a:hover { color:#C00; background-color:#e8e8e8;}
+.wp_listcolumn_x .wp_column a.selected { color:#000; background-color:#f8f8f8; }
+.wp_listcolumn_x .wp_column a .column-name { display:inline-block; line-height:30px; padding:0 10px; cursor:pointer;}
+
+/** 分页栏 **/
+.wp_paging { display:block; margin:0; padding:0; list-style:none; font-size:13px;font-family:'Microsoft Yahei', Verdana, Geneva, sans-serif; color:#494949; float:right;}
+.wp_paging input {font-size:12px;*font-size:100%;}
+.wp_paging li { display:inline-block; height:25px; line-height:25px; float:left; margin-top:5px;}
+.wp_paging li span,.wp_paging li a { display:inline-block; float:left; margin-left:10px; }
+.wp_paging li em { font-style:normal;}
+.wp_paging li a { cursor:pointer; color:#666; line-height: 25px; height: 25px;}
+.wp_paging li a:hover { color:#000; }
+.wp_paging li a span{ margin:0;}
+.wp_paging li input { font-size:12px;*font-size:100%; width:24px; height:15px; line-height:15px; border:1px solid #d5d5d5; background:#fff; margin-top:4px; text-align:center;}
+.wp_paging li input:focus{ outline:none;}
+
+/** 栏目图片列表 **/
+.wp_listalbumn { width:100%;}
+.wp_listalbumn .albumn_info { width:100%; height:auto; text-align:center;}
+.wp_listalbumn .albumn_info a { display:inline-block; position:relative; margin:0 auto; color:#333; text-decoration:none; font-size:13px; font-family:'Microsoft YaHei', Tahoma, Geneva, sans-serif;}
+.wp_listalbumn .albumn_info a:hover { color:#C30;}
+.wp_listalbumn .albumn_info .Article_MicroImage { display:block;}
+.wp_listalbumn .albumn_info .Article_Title { display:block; padding:5px 0; margin:0 auto; text-align:center; line-height:1.7em;}
+.wp_listalbumn .albumn_info .albumn_mark { display:block; width:100%; height:0; position:absolute; left:0; bottom:0; filter:alpha(opacity=70); opacity:0.7; background-color:#000000; z-index:0; overflow:hidden;}
+
+/** 内容折叠 **/
+.wp_contentfold { width:100%;}
+.wp_contentfold .title {background-position: 0% 0%; CURSOR: pointer; HEIGHT: 53px; WIDTH: 754px; PADDING-LEFT: 0px; LINE-HEIGHT: 25px; background-image:url('titlegb.jpg'); padding-top:18px; background-repeat:no-repeat}
+.wp_contentfold .title p {line-height: 100%; margin-left: 20px; margin-top: 0; margin-bottom: 0}
+.wp_contentfold .title p font {color: rgb(255, 255, 255);}
+.wp_contentfold .content {HEIGHT: 100%; WIDTH: 749px;}
+.wp_contentfold .content div {padding-bottom: 20px;}
+.wp_contentfold .content div table {background-color: #F7F7F7;}
+
+/** 搜索 **/
+.wp_search{}
+.wp_search .search{ background:url(../images/btn_search.gif); width:58px; height:22px; border:0px; cursor: pointer;}
+.wp_search .search_en{ background:url(../images/btn_search_en.gif); width:72px; height:22px; border:0px; cursor: pointer; }
+.wp_search .advanceSearch{ background:url(../images/btn_advanceSearch.gif); width:80px; height:22px; border:0px; cursor: pointer;}
+.wp_search .advanceSearch_en{ background:url(../images/btn_advanceSearch_en.gif); width:127px; height:22px; border:0px; cursor: pointer; }
+.wp_search .datepicker {cursor: pointer; background:url(../images/cal.gif) no-repeat; width:16px; height:14px; display: inline-block; border:0px; margin-left: 1px;}
+
+/** 统计排行 **/
+.wp_ranking_list{ display:block; width:100%;}
+.wp_ranking_list .list_item { width:100%; height:24px; line-height:24px; border-bottom:1px dashed #ccc; vertical-align:top;}
+.wp_ranking_list .list_item .pr_fields { display:inline; float:left;}
+.wp_ranking_list .list_item .count { display:inline-block; width:16px; height:16px; line-height:16px; text-align:center; margin-top:3px; background:#ddd; border:1px solid #bbb; border-radius:4px; color:#fff; font-size:11px;float:left; margin-right:5px;}
+.wp_ranking_list .i1 .count,.wp_ranking_list .i2 .count,.wp_ranking_list .i3 .count{ background:#9C3; border:1px solid #060;}
+.wp_ranking_list .list_item .title {float:left; }
+.wp_ranking_list .list_item .ex_fields { display:inline; float:right;}
+.wp_ranking_list .list_item .date { color:#666;}
+.wp_ranking_list .list_item .views { color:#999;}
+
+/** before_login: 横向登录前 **/
+.wp_login_x { width:100%;}
+.wp_login_x .login_input { display:inline-block; float:left; margin-right:4px; height:26px; line-height:26px;}
+.wp_login_x .login_input label { float:left; display:inline-block; height:26px; line-height:24px; cursor:pointer;}
+.wp_login_x .login_input .input {float:left; display:block; width:90px; border:1px solid #ccc; background-color:#fff;}
+.wp_login_x .login_code .input { width:54px;}
+.wp_login_x .login_code .verifycodeImg { display:inline-block; width:60px; height:20px; margin-top:3px; margin-left:5px;}
+.wp_login_x .login_input .input input { display:block; width:96%; height:14px; line-height:14px; padding:5px 2%; border:0;}
+.wp_login_x .login_btn .button {display:block; float:left;  width:54px; height:24px; background-color:#eee; border:1px solid #ccc;}
+.wp_login_x .login_btn .button input { display:inline-block; width:54px; height:24px; border:none; background:none; color:#444; text-align:center; cursor:pointer;}
+.wp_login_x .login_btn .button input:hover { background-color:#e8e8e8; border-color:#d5d5d5; color:#333;}
+/** after_login: 横向登录后 **/
+.wp_login_x .login_info { display:inline-block; float:left; line-height:24px; margin-right:4px;}
+.wp_login_x .login_tool a {display:inline-block; padding:0 7px; height:22px; line-height:22px; background-color:#eee; border:1px solid #ccc; text-align:center; margin-left:5px;}
+.wp_login_x .login_tool a:hover {background-color:#e8e8e8; border-color:#d5d5d5; color:#333;}
+
+/** before_login: 纵向登录前 **/
+.wp_login { width:100%;}
+.wp_login .login_input { width:100%; height:26px; line-height:26px; margin-bottom:8px;}
+.wp_login .login_input label { float:left; display:block; width:60px; height:26px; line-height:24px; text-align:right; cursor:pointer;}
+.wp_login .login_input .input { float:left; display:block; width:120px; border:1px solid #ccc; background-color:#fff;}
+.wp_login .login_code .input { width:54px;}
+.wp_login .login_code .verifycodeImg { display:inline-block; width:60px; height:20px; float:left; margin-top:3px; margin-left:5px;}
+.wp_login .login_input .input input { display:block; width:96%; height:14px; line-height:14px; padding:5px 2%; border:0;}
+.wp_login .login_btn { width:auto; padding-left:60px;}
+.wp_login .login_btn .button { display:block; float:left; width:54px; height:24px; background-color:#eee; border:1px solid #ccc;}
+.wp_login .login_btn .button input { display:inline; width:100%; height:24px; border:none; background:none; color:#444; text-align:center; cursor:pointer;}
+.wp_login .login_btn .button input:hover { background-color:#e8e8e8; border-color:#d5d5d5; color:#333;}
+/** after_login: 纵向登录后 **/
+.wp_login .login_info { line-height:24px;}
+.wp_login .login_info .info_item { display:inline-block; width:60px; text-align:right;}
+.wp_login .login_tool a {display:inline-block; padding:0 7px; height:22px; line-height:22px; background-color:#eee; border:1px solid #ccc; text-align:center; margin-left:5px;}
+.wp_login .login_tool a:hover {background-color:#e8e8e8; border-color:#d5d5d5; color:#333;}
+
+/**投票扩展样式**/ 
+/** 图文调查列表 **/
+.wp_listmiltivote { width:100%;text-align:center;padding-top: 5px}
+.wp_listmiltivote .miltivote_info { width:100%; height:auto; text-align:center;}
+.wp_listmiltivote .miltivote_info a { display:inline-block; position:relative; margin:0 auto; color:#333; text-decoration:none; font-size:13px; font-family:'Microsoft YaHei', Tahoma, Geneva, sans-serif;}
+.wp_listmiltivote .miltivote_info a:hover { color:#C30;}
+.wp_listmiltivote .miltivote_info .Article_MicroImage { display:block;}
+.wp_listmiltivote .miltivote_info .Article_Title { display:block; padding:5px 0; margin:0 auto; text-align:center; line-height:1.7em;}
+.wp_listmiltivote .miltivote_info .albumn_mark { display:block; width:100%; height:0; position:absolute; left:0; bottom:0; filter:alpha(opacity=70); opacity:0.7; background-color:#000000; z-index:0; overflow:hidden;}
+.wp_listmiltivote .miltivote_ctl .wp_miltivote { height: auto; _display:inline-block; text-align: left; line-height: 13px; vertical-align: central;}
+.wp_listmiltivote .miltivote_ctl .wp_miltivote span {line-height: 1}
+.wp_listmiltivote .miltivote_ctl .wp_miltivote .vote_button {cursor: pointer;}
+.wp_listmiltivote .miltivote_ctl .wp_miltivote .vote_button_disabled {cursor: auto; color:#ccc;}
+.wp_listmiltivote .miltivote_ctl .wp_miltivote .vote_count { font-size: 12px; color: #999;}
+.wp_listmiltivote .miltivote_ctl .wp_miltivote .vote_rate { font-size: 12px; color: #999;} 
+.wp_miltivote_submit { text-align: center; padding: 5px;}
+.wp_miltivote_submit .vote_submit { cursor: pointer;}
+.wp_miltivote_submit .vote_submit_disabled { cursor: auto; color:#ccc;}
+
+ /**阅读状态**/
+.wp_artReadStatus_unread {display: inline-block;
+    width: 10px;
+    height: 16px;
+    margin-top: 3px;
+    color: #fff;
+    font-size: 11px;
+    float: left;
+    margin-right: 5px;
+    overflow: hidden;
+    text-indent: -99em;
+    background: url(wp_article_li_1.png) no-repeat 50%;}�m��0      Z��}Z��w>�-[uK   E    :http://cs.nju.edu.cn/_js/_portletPlugs/simpleNews/css/simplenews.css necko:classified 1 request-method GET response-head HTTP/1.1 200 OK
+Date: Mon, 26 Mar 2018 14:16:58 GMT
+Server: Apache/2.2.22 (Unix) mod_jk/1.2.23
+Last-Modified: Mon, 09 May 2016 11:28:48 GMT
+Etag: "eb84d8-41ac-532671cb1fc00"
+Accept-Ranges: bytes
+Content-Length: 16812
+Content-Type: text/css
+ uncompressed-len 0   A�

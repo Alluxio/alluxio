@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <artifactId>maven</artifactId>
+    <groupId>org.apache.maven</groupId>
+    <version>2.0.8</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>maven-model</artifactId>
+  <name>Maven Model</name>
+  <description>Maven Model</description>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.modello</groupId>
+        <artifactId>modello-maven-plugin</artifactId>
+        <configuration>
+          <version>4.0.0</version>
+          <model>src/main/mdo/maven.mdo</model>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <profiles>
+    <profile>
+      <id>all-models</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.modello</groupId>
+            <artifactId>modello-maven-plugin</artifactId>
+            <version>1.0-alpha-8</version>
+            <executions>
+              <execution>
+                <id>v3</id>
+                <goals>
+                  <goal>xpp3-writer</goal>
+                  <goal>java</goal>
+                  <goal>xpp3-reader</goal>
+                  <goal>xsd</goal>
+                </goals>
+                <configuration>
+                  <version>3.0.0</version>
+                  <packageWithVersion>true</packageWithVersion>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+                <configuration>
+                  <classifier>all</classifier>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+    </dependency>
+  </dependencies>
+</project>

@@ -1,0 +1,1716 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <!--
+      TIPS:
+
+      - use "mvn versions:display-dependency-updates" to see what dependencies
+        have updates available.
+
+      - use "mvn versions:display-plugin-updates" to see what plugins have
+        updates available.
+  -->
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- Used for making releases. -->
+  <parent>
+    <artifactId>oss-parent</artifactId>
+    <groupId>org.sonatype.oss</groupId>
+    <version>9</version>
+  </parent>
+
+  <groupId>com.puppycrawl.tools</groupId>
+  <artifactId>checkstyle</artifactId>
+  <version>6.11.2</version>
+  <packaging>jar</packaging>
+
+  <name>checkstyle</name>
+  <description>
+    Checkstyle is a development tool to help programmers write Java code that adheres to a coding standard
+  </description>
+  <url>http://checkstyle.sourceforge.net/</url>
+  <inceptionYear>2001</inceptionYear>
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License</name>
+      <url>http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>oburn</id>
+      <name>Oliver Burn</name>
+      <roles>
+        <role>founder (retired)</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>romani</id>
+      <name>Roman Ivanov</name>
+      <roles>
+        <role>lead developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>mkordas</id>
+      <name>Michał Kordas</name>
+      <roles>
+        <role>developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>rdiachenko</id>
+      <name>Ruslan Diachenko</name>
+      <roles>
+        <role>developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>baratali</id>
+      <name>Baratali Izmailov</name>
+      <roles>
+        <role>developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>sabaka</id>
+      <name>Ilja Dubinin</name>
+      <roles>
+        <role>developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>daniilyar</id>
+      <name>Daniil Yaroslavtsev</name>
+      <roles>
+        <role>former developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>moradan</id>
+      <name>Ivan Sopov</name>
+      <roles>
+        <role>former developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>lkuehne</id>
+      <name>Lars Kühne</name>
+      <roles>
+        <role>former developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>rickgiles</id>
+      <name>Rick Giles</name>
+      <roles>
+        <role>former developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>o_sukhodolsky</id>
+      <name>Oleg Sukhodolsky</name>
+      <roles>
+        <role>former developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>mstudman</id>
+      <name>Michael Studman</name>
+      <roles>
+        <role>former developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>tschneeberger</id>
+      <name>Travis Schneeberger</name>
+      <roles>
+        <role>former developer</role>
+      </roles>
+    </developer>
+  </developers>
+  <contributors>
+    <contributor>
+      <url>https://github.com/checkstyle/checkstyle/graphs/contributors</url>
+    </contributor>
+  </contributors>
+
+  <mailingLists>
+    <mailingList>
+      <name>checkstyle-announce</name>
+      <archive>https://groups.google.com/forum/#!forum/checkstyle-announce</archive>
+      <subscribe>mailto:checkstyle-announce%2Bsubscribe@googlegroups.com</subscribe>
+      <unsubscribe>mailto:checkstyle-announce%2Bunsubscribe@googlegroups.com</unsubscribe>
+      <post>privilege of admins</post>
+    </mailingList>
+    <mailingList>
+      <name>checkstyle</name>
+      <archive>https://groups.google.com/forum/#!forum/checkstyle</archive>
+      <subscribe>mailto:checkstyle%2Bsubscribe@googlegroups.com</subscribe>
+      <unsubscribe>mailto:checkstyle%2Bunsubscribe@googlegroups.com</unsubscribe>
+      <post>mailto:checkstyle@googlegroups.com</post>
+    </mailingList>
+    <mailingList>
+      <name>checkstyle-devel</name>
+      <archive>https://groups.google.com/forum/#!forum/checkstyle-devel</archive>
+      <subscribe>mailto:checkstyle-devel%2Bsubscribe@googlegroups.com</subscribe>
+      <unsubscribe>mailto:checkstyle-devel%2Bunsubscribe@googlegroups.com</unsubscribe>
+      <post>mailto:checkstyle-devel@googlegroups.com</post>
+    </mailingList>
+  </mailingLists>
+
+  <prerequisites>
+    <maven>3.0.1</maven>
+  </prerequisites>
+
+  <scm>
+    <connection>scm:git:git@github.com:checkstyle/checkstyle.git</connection>
+    <developerConnection>scm:git:git@github.com:checkstyle/checkstyle.git</developerConnection>
+    <url>https://github.com/checkstyle/checkstyle</url>
+  </scm>
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/checkstyle/checkstyle/issues</url>
+  </issueManagement>
+  <ciManagement>
+    <system>travis</system>
+    <url>https://travis-ci.org/checkstyle/checkstyle</url>
+  </ciManagement>
+  <distributionManagement>
+    <site>
+      <id>sourceforge-new-site</id>
+      <name>New Site</name>
+      <url>scp://shell.sourceforge.net/home/project-web/checkstyle/htdocs/new-site</url>
+    </site>
+  </distributionManagement>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <projectVersion>${project.version}</projectVersion>
+    <antlr4.version>4.5.1-1</antlr4.version>
+    <maven.site.plugin.version>3.4</maven.site.plugin.version>
+    <maven.findbugs.plugin.version>3.0.2</maven.findbugs.plugin.version>
+    <maven.pmd.plugin.version>3.5</maven.pmd.plugin.version>
+    <maven.jacoco.plugin.version>0.7.5.201505241946</maven.jacoco.plugin.version>
+    <tools.jar.version>1.7.0</tools.jar.version>
+    <tools.jar.path>${java.home}/../lib/tools.jar</tools.jar.path>
+    <java.version>1.7</java.version>
+  </properties>
+
+  <!-- that repositories are required for testing plugin's snapshot version -->
+  <pluginRepositories>
+    <pluginRepository>
+      <id>nexus-codehaus-snapshot</id>
+      <name>Codehaus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/codehaus-snapshots/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.4</version>
+    </dependency>
+    <dependency>
+      <groupId>antlr</groupId>
+      <artifactId>antlr</artifactId>
+      <version>2.7.7</version>
+    </dependency>
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4-runtime</artifactId>
+      <version>${antlr4.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>1.9.2</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-cli</groupId>
+      <artifactId>commons-cli</artifactId>
+      <version>1.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>18.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.9.6</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- test scope stuff -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
+      <version>1.12.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>nl.jqno.equalsverifier</groupId>
+      <artifactId>equalsverifier</artifactId>
+      <version>1.7.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <version>1.6.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>1.6.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>4.0.2.201509141540-r</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jacoco</groupId>
+      <artifactId>org.jacoco.agent</artifactId>
+      <version>${maven.jacoco.plugin.version}</version>
+      <scope>test</scope>
+      <classifier>runtime</classifier>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.10.3</version>
+          <configuration>
+            <source>1.7</source>
+            <failOnError>true</failOnError>
+            <linksource>true</linksource>
+            <tags>
+              <tag>
+                <name>noinspection</name>
+                <placement>X</placement>
+              </tag>
+            </tags>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-pmd-plugin</artifactId>
+          <version>${maven.pmd.plugin.version}</version>
+          <configuration>
+            <targetJdk>1.7</targetJdk>
+            <minimumTokens>20</minimumTokens>
+            <skipEmptyReport>false</skipEmptyReport>
+            <failOnViolation>true</failOnViolation>
+            <printFailingErrors>true</printFailingErrors>
+            <!--<includeTests>true</includeTests>-->
+            <rulesets>
+              <ruleset>config/pmd.xml</ruleset>
+            </rulesets>
+            <excludeRoots>
+              <excludeRoot>target/generated-sources/antlr</excludeRoot>
+              <excludeRoot>target/generated-sources/antlr/com/puppycrawl/tools/checkstyle/grammars/javadoc</excludeRoot>
+            </excludeRoots>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>findbugs-maven-plugin</artifactId>
+          <version>${maven.findbugs.plugin.version}</version>
+          <configuration>
+            <effort>Max</effort>
+            <threshold>Low</threshold>
+            <excludeFilterFile>config/findbugs-exclude.xml</excludeFilterFile>
+          </configuration>
+        </plugin>
+
+        <!-- This plugin's configuration is used to store Eclipse
+             m2e settings only. It has no influence on the Maven build itself.
+        -->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <versionRange>[1.0,)</versionRange>
+                    <goals>
+                      <goal>run</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>antlr-maven-plugin</artifactId>
+                    <versionRange>[1.0,)</versionRange>
+                    <goals>
+                      <goal>generate</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.antlr</groupId>
+                    <artifactId>antlr4-maven-plugin</artifactId>
+                    <versionRange>[4.2,)</versionRange>
+                    <goals>
+                      <goal>antlr4</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute>
+                      <runOnIncremental>true</runOnIncremental>
+                    </execute>
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <versionRange>[1.2,)</versionRange>
+                    <goals>
+                      <goal>enforce</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>tidy-maven-plugin</artifactId>
+                    <versionRange>1.0-beta-1</versionRange>
+                    <goals>
+                      <goal>check</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.6.1</version>
+      </plugin>
+
+      <!-- It brakes linkcheck plugin report.
+           It works when linkcheck.forceSite=false, but
+           at this case linkcheck report is full of false-positives
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>tidy-maven-plugin</artifactId>
+        <version>1.0-beta-1</version>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin> -->
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.7</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.3</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+        <executions>
+          <execution>
+            <id>compile-without-error-prone</id>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <configuration>
+              <testIncludes>
+                <testInclude>**/Input*.java</testInclude>
+              </testIncludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>compile-with-error-prone</id>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <configuration>
+              <compilerId>javac-with-errorprone</compilerId>
+              <forceJavacCompilerUse>true</forceJavacCompilerUse>
+              <testExcludes>
+                <testExclude>**/*Input*.java</testExclude>
+              </testExcludes>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-compiler-javac-errorprone</artifactId>
+            <version>2.6</version>
+          </dependency>
+          <dependency>
+            <groupId>com.google.errorprone</groupId>
+            <artifactId>error_prone_core</artifactId>
+            <version>2.0.5</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>2.5.2</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.8.2</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>${maven.site.plugin.version}</version>
+        <configuration>
+          <xdocDirectory>${basedir}/src/xdocs</xdocDirectory>
+          <validate>true</validate>
+        </configuration>
+        <dependencies>
+          <!-- add support for ssh/scp -->
+          <dependency>
+            <groupId>org.apache.maven.wagon</groupId>
+            <artifactId>wagon-ssh</artifactId>
+            <version>2.10</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.4.1</version>
+        <executions>
+          <execution>
+            <id>enforce-versions</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>1.6</version>
+                </requireJavaVersion>
+                <!-- we can not use this as it require
+                compilation on 1.6 only, due to dependency to 'tools'
+                <enforceBytecodeVersion>
+                  <maxJdkVersion>1.6</maxJdkVersion>
+                </enforceBytecodeVersion>
+                -->
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+        <!-- we can not use this as it require
+        compilation on 1.6 only, due to dependency to 'tool'
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>extra-enforcer-rules</artifactId>
+            <version>1.0-beta-2</version>
+            <scope>compile</scope>
+          </dependency>
+        </dependencies>
+        -->
+      </plugin>
+
+      <!-- Generate the ANTLRv2 grammar -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>antlr-maven-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <sourceDirectory>${basedir}/src/main/resources/com/puppycrawl/tools/checkstyle/grammars</sourceDirectory>
+          <grammars>java.g</grammars>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Generate the ANTLRv4 grammar -->
+      <plugin>
+        <groupId>org.antlr</groupId>
+        <artifactId>antlr4-maven-plugin</artifactId>
+        <version>${antlr4.version}</version>
+        <configuration>
+          <visitor>true</visitor>
+          <sourceDirectory>${basedir}/src/main/resources/</sourceDirectory>
+          <outputDirectory>${project.build.directory}/generated-sources/antlr/</outputDirectory>
+          <includes>
+            <include>com/puppycrawl/tools/checkstyle/grammars/javadoc/*.g4</include>
+          </includes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>antlr4</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.9.1</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/antlr/</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-source</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/test/resources</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-it-test-source</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/it/java</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-it-test-resource</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/it/resources</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.18.1</version>
+        <configuration>
+          <includes>
+            <include>com/google/**/*.java</include>
+          </includes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>verify</id>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Used to set custom properties -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.18.1</version>
+        <configuration>
+          <argLine>-Duser.language=en -Duser.country=US -XX:-UseSplitVerifier</argLine>
+          <systemPropertyVariables>
+            <jacoco-agent.destfile>${project.build.directory}/jacoco/jacoco.exec</jacoco-agent.destfile>
+          </systemPropertyVariables>
+          <additionalClasspathElements>
+            <additionalClasspathElement>src/test/resources-noncompilable</additionalClasspathElement>
+          </additionalClasspathElements>
+          <includes>
+            <include>com/puppycrawl/**/*.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+
+      <!-- Generate checkstylecompilation.properties -->
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>ant-phase-compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <property name="mvn.project.build.outputDirectory" value="${project.build.outputDirectory}" />
+                <property name="mvn.project.version" value="${project.version}" />
+                <property name="mvn.compile_classpath" refid="maven.compile.classpath" />
+                <ant antfile="config/ant-phase-compile.xml" />
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>ant-phase-verify</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <property name="mvn.project.build.directory" value="${project.build.directory}" />
+                <property name="mvn.project.version" value="${project.version}" />
+                <property name="mvn.runtime_classpath" refid="maven.runtime.classpath" />
+                <ant antfile="config/ant-phase-verify.xml" />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant-nodeps</artifactId>
+            <version>1.8.1</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+      <!-- Ensure the manifest has all the gory details -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-eclipse-plugin</artifactId>
+        <version>2.10</version>
+        <configuration>
+          <downloadSources>true</downloadSources>
+          <downloadJavadocs>true</downloadJavadocs>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>xml-maven-plugin</artifactId>
+        <version>1.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>validate</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <validationSets>
+            <validationSet>
+              <dir>config</dir>
+              <excludes>
+                <exclude>java.header</exclude>
+                <exclude>java_regexp.header</exclude>
+              </excludes>
+            </validationSet>
+            <validationSet>
+              <dir>src/site/resources/files</dir>
+              <systemId>src/main/resources/com/puppycrawl/tools/checkstyle/suppressions_1_0.dtd</systemId>
+            </validationSet>
+            <validationSet>
+              <dir>src/site</dir>
+              <includes>
+                <include>site.xml</include>
+              </includes>
+              <systemId>http://maven.apache.org/xsd/decoration-1.0.0.xsd</systemId>
+            </validationSet>
+            <validationSet>
+              <dir>src/main/resources</dir>
+              <includes>
+                <include>checkstyle_packages.xml</include>
+              </includes>
+              <systemId>src/main/resources/com/puppycrawl/tools/checkstyle/packages_1_0.dtd</systemId>
+            </validationSet>
+            <validationSet>
+              <dir>src/main/resources</dir>
+              <includes>
+                <include>google_checks.xml</include>
+                <include>sun_checks.xml</include>
+              </includes>
+              <systemId>src/main/resources/com/puppycrawl/tools/checkstyle/configuration_1_3.dtd</systemId>
+            </validationSet>
+          </validationSets>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.8.1</version>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <reportSets>
+          <reportSet>
+            <id>default</id>
+            <reports>
+              <report>javadoc</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+      <plugin>
+        <groupId>com.github.sevntu-checkstyle</groupId>
+        <artifactId>dsm-maven-plugin</artifactId>
+        <version>2.1.3</version>
+        <configuration>
+          <obfuscatePackageNames>true</obfuscatePackageNames>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>2.18.1</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+        <version>2.7</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>cobertura</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+        <configuration>
+          <formats>
+            <format>xml</format>
+            <format>html</format>
+          </formats>
+          <check />
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${maven.jacoco.plugin.version}</version>
+        <configuration>
+          <dataFile>${project.build.directory}/jacoco/jacoco.exec</dataFile>
+          <excludes>
+            <exclude>com/puppycrawl/tools/checkstyle/ant/CheckstyleAntTask*.class</exclude>
+            <exclude>com/puppycrawl/tools/checkstyle/grammars/*.class</exclude>
+            <exclude>com/puppycrawl/tools/checkstyle/grammars/javadoc/*.class</exclude>
+            <exclude>com/puppycrawl/tools/checkstyle/gui/*.class</exclude>
+          </excludes>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>2.5</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jdepend-maven-plugin</artifactId>
+        <version>2.0</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>taglist-maven-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <!-- skip till http://jira.codehaus.org/browse/MTAGLIST-71 -->
+          <skipTestSources>true</skipTestSources>
+          <tagListOptions>
+            <tagClasses>
+              <tagClass>
+                <displayName>Todo Work</displayName>
+                <tags>
+                  <tag>
+                    <matchString>todo</matchString>
+                    <matchType>ignoreCase</matchType>
+                  </tag>
+                  <tag>
+                    <matchString>FIXME</matchString>
+                    <matchType>exact</matchType>
+                  </tag>
+                </tags>
+              </tagClass>
+            </tagClasses>
+          </tagListOptions>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.sonar-plugins</groupId>
+        <artifactId>maven-report</artifactId>
+        <version>0.1</version>
+        <configuration>
+          <sonarHostURL>http://nemo.sonarqube.org</sonarHostURL>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.5</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>pmd</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>${maven.findbugs.plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-linkcheck-plugin</artifactId>
+        <version>1.2</version>
+        <configuration>
+          <httpMethod>GET</httpMethod>
+          <timeout>6000</timeout>
+          <httpFollowRedirect>false</httpFollowRedirect>
+          <forceSite>true</forceSite>
+          <excludedPages>
+            <excludedPage>dependencies.html</excludedPage>
+            <excludedPage>cobertura/**</excludedPage>
+            <excludedPage>dsm/**</excludedPage>
+            <excludedPage>xref/**</excludedPage>
+            <excludedPage>xref-test/**</excludedPage>
+            <excludedPage>pmd.html</excludedPage>
+            <excludedPage>findbugs.html</excludedPage>
+            <excludedPage>surefire-report.html</excludedPage>
+            <!-- Excluded due to checkstyle's issue #549 until http://jira.codehaus.org/browse/MTAGLIST-69 will be fixed -->
+            <excludedPage>taglist.html</excludedPage>
+          </excludedPages>
+          <excludedHttpStatusErrors>
+            <excludedHttpStatusError>401</excludedHttpStatusError>
+          </excludedHttpStatusErrors>
+          <excludedLinks>
+            <excludedLink>reports/google-style/guava</excludedLink>
+            <excludedLink>reports/javadoc/openjdk8</excludedLink>
+            <excludedLink>https://travis-ci.org/</excludedLink>
+            <excludedLink>https://travis-ci.org/checkstyle/checkstyle</excludedLink>
+            <excludedLink>https://coveralls.io/r/checkstyle/checkstyle</excludedLink>
+            <excludedLink>http://search.maven.org/*</excludedLink>
+            <excludedLink>http://junit.org</excludedLink>
+            <excludedLink>http://sonar-plugins.codehaus.org/maven-report</excludedLink>
+            <!-- Excluded due to Checkstyle's issue #549 until https://issues.apache.org/jira/browse/MJAVADOC-428
+            and http://jira.codehaus.org/browse/DOXIA-525 and http://jira.codehaus.org/browse/MLINKCHECK-21 will be fixed -->
+            <excludedLink>**/com/puppycrawl/**</excludedLink>
+            <!-- Excluded due to Checkstyle's issue #549 until https://issues.apache.org/jira/browse/MJAVADOC-428 will be fixed -->
+            <excludedLink>http://docs.oracle.com/javase/7/docs/api/org/xml/sax/helpers.DefaultHandler.html?*</excludedLink>
+            <!-- Excluded due to Maven Enforcer Plugin's issue #234: https://issues.apache.org/jira/browse/MENFORCER-234-->
+            <excludedLink>http://maven.apache.org/enforcer/maven-enforcer-plugin</excludedLink>
+            <!-- Excluded due to Maven Surefire Plugin's issue #1173: https://issues.apache.org/jira/browse/SUREFIRE-1173-->
+            <excludedLink>http://maven.apache.org/surefire/maven-failsafe-plugin</excludedLink>
+            <excludedLink>http://maven.apache.org/surefire/maven-surefire-plugin</excludedLink>
+            <excludedLink>http://maven.apache.org/surefire/maven-surefire-report-plugin</excludedLink>
+            <!-- Excluded due to Maven Codehaus Plugin's issue #4: https://github.com/mojohaus/mojohaus.github.io/issues/4-->
+            <excludedLink>http://mojo.codehaus.org/antlr-maven-plugin</excludedLink>
+            <!-- Excluded due to Maven Build Helper Plugin's issue #3: https://github.com/mojohaus/build-helper-maven-plugin/issues/3-->
+            <excludedLink>http://mojo.codehaus.org/build-helper-maven-plugin</excludedLink>
+            <!-- Excluded due to Maven Cobertura Plugin's issue #5: https://github.com/mojohaus/cobertura-maven-plugin/issues/5-->
+            <excludedLink>http://mojo.codehaus.org/cobertura-maven-plugin/</excludedLink>
+            <!-- Excluded due to Maven JDepend Plugin's issue #2: https://github.com/mojohaus/jdepend-maven-plugin/issues/2-->
+            <excludedLink>http://mojo.codehaus.org/jdepend-maven-plugin</excludedLink>
+            <!-- Excluded due to Maven Taglist Plugin's issue #3: https://github.com/mojohaus/taglist-maven-plugin/issues/3-->
+            <excludedLink>http://mojo.codehaus.org/taglist-maven-plugin</excludedLink>
+            <!-- Excluded due to Maven XML Plugin's issue #1: https://github.com/mojohaus/xml-maven-plugin/issues/1-->
+            <excludedLink>http://mojo.codehaus.org/xml-maven-plugin</excludedLink>
+            <!-- Excluded due to Maven ANTLR4 Plugin's issue #978: https://github.com/antlr/antlr4/issues/978-->
+            <excludedLink>http://www.antlr.org/antlr4-maven-plugin</excludedLink>
+            <!-- Excluded due to Maven Release Plugin's issue #919: https://issues.apache.org/jira/browse/MRELEASE-919-->
+            <excludedLink>http://maven.apache.org/plugins/maven-release-plugin/</excludedLink>
+            <!-- Excluded, because the link is generated by sonar's maven report plugin and we
+            can not correct the link while it will not be changed in effective pom.xml of the plugin
+            by sonar's developers. It is not allowed to open issue against sonar's maven report plugin
+            at sonar's issue tracker: http://jira.codehaus.org/browse/MSONAR
+            Sonar's mailing lists: http://www.mojohaus.org/sonar-maven-plugin/mail-lists.html-->
+            <excludedLink>http://nemo.sonarqube.org/project/index/com.puppycrawl.tools:checkstyle</excludedLink>
+            <!-- skip validating SNAPSHOTs on sourceforge when ${projectVersion} is SNAPSHOT-->
+            <excludedLink>http://iweb.dl.sourceforge.net/project/checkstyle/checkstyle/*-SNAPSHOT/checkstyle-*-SNAPSHOT-all.jar</excludedLink>
+            <!-- skip validating released "-all" jar on sourceforge as it is uploaded after site generation-->
+            <excludedLink>http://iweb.dl.sourceforge.net/project/checkstyle/checkstyle/*/checkstyle-*-all.jar</excludedLink>
+            <!-- Excluded due to linkcheck's issue #22: https://issues.apache.org/jira/browse/MLINKCHECK-22-->
+            <excludedLink>https://twitter.com/checkstyle_java/</excludedLink>
+            <!-- Excluded due to linkcheck's issue #23: https://issues.apache.org/jira/browse/MLINKCHECK-23-->
+            <excludedLink>http://www.kclee.com/clemens/java/javancss</excludedLink>
+          </excludedLinks>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </reporting>
+
+  <profiles>
+
+    <!-- Bring in tools.jar for platforms which provide it
+    that is required for javadoc doclets that are in use -->
+    <profile>
+      <id>default-tools.jar-oracle</id>
+      <activation>
+        <property>
+          <name>java.vendor</name>
+          <value>Oracle Corporation</value>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <version>${tools.jar.version}</version>
+          <scope>system</scope>
+          <systemPath>${tools.jar.path}</systemPath>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <!-- To be used during development. Run the command-->
+      <!-- mvn -Passembly package -->
+      <id>assembly</id>
+      <properties>
+        <skipTests>true</skipTests>
+        <linkcheck.skip>true</linkcheck.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <pmd.skip>true</pmd.skip>
+        <findbugs.skip>true</findbugs.skip>
+        <checkstyle.ant.skip>true</checkstyle.ant.skip>
+        <cobertura.skip>true</cobertura.skip>
+        <maven.site.skip>true</maven.site.skip>
+      </properties>
+
+      <build>
+        <plugins>
+          <!-- Generates the site, which is required for assembly -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-site-plugin</artifactId>
+            <version>${maven.site.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>gen-site</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>site</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Creates the all inclusive uber jar -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>2.4.1</version>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <shadedArtifactAttached>true</shadedArtifactAttached>
+                  <shadedClassifierName>all</shadedClassifierName>
+                  <transformers>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                      <mainClass>com.puppycrawl.tools.checkstyle.Main</mainClass>
+                    </transformer>
+                  </transformers>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Creates the binary and source distributions -->
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>2.5.5</version>
+            <configuration>
+              <descriptors>
+                <descriptor>config/assembly-bin.xml</descriptor>
+                <descriptor>config/assembly-src.xml</descriptor>
+              </descriptors>
+              <tarLongFileMode>gnu</tarLongFileMode>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-bundle</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+
+    </profile>
+
+    <profile>
+      <id>jacoco-check</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${maven.jacoco.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>default-instrument</id>
+                <goals>
+                  <goal>instrument</goal>
+                </goals>
+                <phase>test-compile</phase>
+              </execution>
+              <execution>
+                <id>default-restore-instrumented-classes</id>
+                <goals>
+                  <goal>restore-instrumented-classes</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>default-report</id>
+                <phase>site</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>default-check</id>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+                <configuration>
+                  <dataFile>${project.build.directory}/jacoco/jacoco.exec</dataFile>
+                  <excludes>
+                    <exclude>com/puppycrawl/tools/checkstyle/ant/CheckstyleAntTask*.class</exclude>
+                    <exclude>com/puppycrawl/tools/checkstyle/grammars/*.class</exclude>
+                    <exclude>com/puppycrawl/tools/checkstyle/grammars/javadoc/*.class</exclude>
+                    <exclude>com/puppycrawl/tools/checkstyle/gui/*.class</exclude>
+                  </excludes>
+                  <rules>
+                    <rule>
+                      <element>BUNDLE</element>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.99</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.99</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>PACKAGE</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.99</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.97</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>PACKAGE</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.93</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.93</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.coding.DeclarationOrderCheck</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.93</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.82</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.header.AbstractHeaderCheck</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.90</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.90</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.Main</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.92</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.84</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.PropertyCacheFile</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.97</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>1.00</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.TreeWalker.AstState</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.76</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.DefaultLogger</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.97</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>1.00</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.TranslationCheck</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.82</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.81</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.SuppressWarningsHolder</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.88</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.76</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.AbstractTypeAwareCheck</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.88</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.94</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.NewlineAtEndOfFileCheck</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.74</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.83</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.AbstractTypeAwareCheck.RegularClass</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.62</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.83</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.AbstractTypeAwareCheck.Token</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.62</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.ClassResolver</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.91</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.83</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.AbstractTypeAwareCheck.ClassAlias</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.39</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.UniquePropertiesCheck</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.96</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>1.00</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.AbstractTypeAwareCheck.AbstractClassInfo</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.69</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.50</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.AbstractDeclarationCollector</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>1.00</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.94</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.UniquePropertiesCheck.UniqueProperties</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>1.00</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.75</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocUtils</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.99</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.98</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                    <rule>
+                      <element>CLASS</element>
+                      <includes>
+                        <include>com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocUtils.JavadocTagType</include>
+                      </includes>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>0.81</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                  </rules>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>cobertura-check</id>
+      <activation>
+        <jdk>1.8</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>cobertura-maven-plugin</artifactId>
+            <version>2.7</version>
+            <configuration>
+              <formats>
+                <format>xml</format>
+                <format>html</format>
+              </formats>
+              <check>
+                <haltOnFailure>true</haltOnFailure>
+                <branchRate>100</branchRate>
+                <lineRate>100</lineRate>
+                <totalBranchRate>89</totalBranchRate>
+                <totalLineRate>95</totalLineRate>
+                <regexes>
+                  <regex>
+                    <!-- till https://github.com/checkstyle/checkstyle/issues/2243 -->
+                    <pattern>.*.checks.TranslationCheck</pattern>
+                    <branchRate>97</branchRate>
+                    <lineRate>98</lineRate>
+                  </regex>
+                </regexes>
+              </check>
+              <instrumentation>
+                <excludes>
+                  <exclude>com/puppycrawl/tools/checkstyle/ant/CheckstyleAntTask*.class</exclude>
+                  <exclude>com/puppycrawl/tools/checkstyle/grammars/*.class</exclude>
+                  <exclude>com/puppycrawl/tools/checkstyle/grammars/javadoc/*.class</exclude>
+                  <exclude>com/puppycrawl/tools/checkstyle/gui/*.class</exclude>
+                </excludes>
+              </instrumentation>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+  </profiles>
+</project>

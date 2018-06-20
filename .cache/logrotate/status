@@ -1,0 +1,21 @@
+logrotate state -- version 2
+"/home/renzr123/.cache/upstart/update-notifier-crash-_var_crash__usr_bin_gnome-software.1000.crash.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/ssh-agent.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/upstart-event-bridge.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/at-spi2-registryd.log" 2018-4-6-2:39:2
+"/home/renzr123/.cache/upstart/gpg-agent.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/unity7.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/indicator-sound.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/update-notifier-crash-_var_crash__usr_bin_appstreamcli.0.crash.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/window-stack-bridge.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/bamfdaemon.log" 2018-4-18-8:11:3
+"/home/renzr123/.cache/upstart/dbus.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/indicator-session.log" 2018-4-1-9:57:45
+"/home/renzr123/.cache/upstart/*.log" 2018-4-15-0:0:0
+"/home/renzr123/.cache/upstart/hud.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/gnome-keyring-ssh.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/indicator-datetime.log" 2018-3-30-7:5:44
+"/home/renzr123/.cache/upstart/update-notifier-release.log" 2018-4-20-4:13:24
+"/home/renzr123/.cache/upstart/unity-settings-daemon.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/unity-panel-service.log" 2018-4-21-8:38:16
+"/home/renzr123/.cache/upstart/unity-panel-service-lockscreen.log" 2018-4-20-21:13:25

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.codehaus.plexus</groupId>
+    <artifactId>plexus</artifactId>
+    <version>3.3.1</version>
+  </parent>
+
+  <artifactId>plexus-utils</artifactId>
+  <version>3.0.15</version>
+
+  <name>Plexus Common Utilities</name>
+  <description>A collection of various utility classes to ease working with strings, files, command lines, XML and
+    more.
+  </description>
+  <url>http://plexus.codehaus.org/plexus-utils</url>
+
+  <scm>
+    <connection>scm:git:git@github.com:sonatype/plexus-utils.git</connection>
+    <developerConnection>scm:git:git@github.com:sonatype/plexus-utils.git</developerConnection>
+    <url>http://github.com/sonatype/plexus-utils</url>
+    <tag>plexus-utils-3.0.15</tag>
+  </scm>
+  <issueManagement>
+    <system>JIRA</system>
+    <url>http://jira.codehaus.org/browse/PLXUTILS</url>
+  </issueManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- required to ensure the test classes are used, not surefire's plexus-utils -->
+          <childDelegation>true</childDelegation>
+          <excludes>
+            <exclude>org/codehaus/plexus/util/FileBasedTestCase.java</exclude>
+            <exclude>**/Test*.java</exclude>
+          </excludes>
+          <systemProperties>
+            <property>
+              <name>JAVA_HOME</name>
+              <value>${JAVA_HOME}</value>
+            </property>
+            <property>
+              <name>M2_HOME</name>
+              <value>${M2_HOME}</value>
+            </property>
+          </systemProperties>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.1.1</version>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>1.7.0</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
