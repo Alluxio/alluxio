@@ -1,0 +1,4 @@
+org.apache.hadoop.hdfs.federation.protocol.proto
+org.apache.hadoop.hdfs.protocol.proto
+org.apache.hadoop.hdfs.protocolPB
+org.apache.hadoop.hdfs.tools.federation

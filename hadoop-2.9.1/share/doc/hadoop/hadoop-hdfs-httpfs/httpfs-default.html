@@ -1,0 +1,123 @@
+<html>
+<body>
+<h2>Configuration Properties</h2>
+<table border="1">
+<tr>
+<th>name</th><th>value</th><th>description</th>
+</tr>
+<tr>
+<td><a name="httpfs.buffer.size">httpfs.buffer.size</a></td><td>4096</td><td>
+      The buffer size used by a read/write request when streaming data from/to
+      HDFS.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.services">httpfs.services</a></td><td>
+      org.apache.hadoop.lib.service.instrumentation.InstrumentationService,
+      org.apache.hadoop.lib.service.scheduler.SchedulerService,
+      org.apache.hadoop.lib.service.security.GroupsService,
+      org.apache.hadoop.lib.service.hadoop.FileSystemAccessService
+    </td><td>
+      Services used by the httpfs server.
+    </td>
+</tr>
+<tr>
+<td><a name="kerberos.realm">kerberos.realm</a></td><td>LOCALHOST</td><td>
+      Kerberos realm, used only if Kerberos authentication is used between
+      the clients and httpfs or between HttpFS and HDFS.
+
+      This property is only used to resolve other properties within this
+      configuration file.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.hostname">httpfs.hostname</a></td><td>${httpfs.http.hostname}</td><td>
+      Property used to synthetize the HTTP Kerberos principal used by httpfs.
+
+      This property is only used to resolve other properties within this
+      configuration file.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.authentication.signature.secret.file">httpfs.authentication.signature.secret.file</a></td><td>${httpfs.config.dir}/httpfs-signature.secret</td><td>
+      File containing the secret to sign HttpFS hadoop-auth cookies.
+
+      This file should be readable only by the system user running HttpFS service.
+
+      If multiple HttpFS servers are used in a load-balancer/round-robin fashion,
+      they should share the secret file.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.authentication.type">httpfs.authentication.type</a></td><td>simple</td><td>
+      Defines the authentication mechanism used by httpfs for its HTTP clients.
+
+      Valid values are 'simple' or 'kerberos'.
+
+      If using 'simple' HTTP clients must specify the username with the
+      'user.name' query string parameter.
+
+      If using 'kerberos' HTTP clients must use HTTP SPNEGO or delegation tokens.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.authentication.kerberos.principal">httpfs.authentication.kerberos.principal</a></td><td>HTTP/${httpfs.hostname}@${kerberos.realm}</td><td>
+      The HTTP Kerberos principal used by HttpFS in the HTTP endpoint.
+
+      The HTTP Kerberos principal MUST start with 'HTTP/' per Kerberos
+      HTTP SPNEGO specification.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.authentication.kerberos.keytab">httpfs.authentication.kerberos.keytab</a></td><td>${user.home}/httpfs.keytab</td><td>
+      The Kerberos keytab file with the credentials for the
+      HTTP Kerberos principal used by httpfs in the HTTP endpoint.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.delegation.token.manager.update.interval">httpfs.delegation.token.manager.update.interval</a></td><td>86400</td><td>
+      HttpFS delegation token update interval, default 1 day, in seconds.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.delegation.token.manager.max.lifetime">httpfs.delegation.token.manager.max.lifetime</a></td><td>604800</td><td>
+      HttpFS delegation token maximum lifetime, default 7 days, in seconds
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.delegation.token.manager.renewal.interval">httpfs.delegation.token.manager.renewal.interval</a></td><td>86400</td><td>
+      HttpFS delegation token update interval, default 1 day, in seconds.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.hadoop.authentication.type">httpfs.hadoop.authentication.type</a></td><td>simple</td><td>
+      Defines the authentication mechanism used by httpfs to connect to
+      the HDFS Namenode.
+
+      Valid values are 'simple' and 'kerberos'.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.hadoop.authentication.kerberos.keytab">httpfs.hadoop.authentication.kerberos.keytab</a></td><td>${user.home}/httpfs.keytab</td><td>
+      The Kerberos keytab file with the credentials for the
+      Kerberos principal used by httpfs to connect to the HDFS Namenode.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.hadoop.authentication.kerberos.principal">httpfs.hadoop.authentication.kerberos.principal</a></td><td>${user.name}/${httpfs.hostname}@${kerberos.realm}</td><td>
+      The Kerberos principal used by httpfs to connect to the HDFS Namenode.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.hadoop.filesystem.cache.purge.frequency">httpfs.hadoop.filesystem.cache.purge.frequency</a></td><td>60</td><td>
+      Frequency, in seconds, for the idle filesystem purging daemon runs.
+    </td>
+</tr>
+<tr>
+<td><a name="httpfs.hadoop.filesystem.cache.purge.timeout">httpfs.hadoop.filesystem.cache.purge.timeout</a></td><td>60</td><td>
+      Timeout, in seconds, for an idle filesystem to be purged.
+    </td>
+</tr>
+</table>
+</body>
+</html>

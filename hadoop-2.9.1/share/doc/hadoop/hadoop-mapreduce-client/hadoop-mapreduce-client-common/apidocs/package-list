@@ -1,0 +1,16 @@
+org.apache.hadoop.mapred
+org.apache.hadoop.mapreduce
+org.apache.hadoop.mapreduce.v2.api
+org.apache.hadoop.mapreduce.v2.api.impl.pb.client
+org.apache.hadoop.mapreduce.v2.api.impl.pb.service
+org.apache.hadoop.mapreduce.v2.api.protocolrecords
+org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb
+org.apache.hadoop.mapreduce.v2.api.records
+org.apache.hadoop.mapreduce.v2.api.records.impl.pb
+org.apache.hadoop.mapreduce.v2.hs.proto
+org.apache.hadoop.mapreduce.v2.jobhistory
+org.apache.hadoop.mapreduce.v2.proto
+org.apache.hadoop.mapreduce.v2.security
+org.apache.hadoop.mapreduce.v2.security.client
+org.apache.hadoop.mapreduce.v2.util
+org.apache.hadoop.yarn.proto

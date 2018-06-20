@@ -1,0 +1,11 @@
+org.apache.hadoop.registry.cli
+org.apache.hadoop.registry.client.api
+org.apache.hadoop.registry.client.binding
+org.apache.hadoop.registry.client.exceptions
+org.apache.hadoop.registry.client.impl
+org.apache.hadoop.registry.client.impl.zk
+org.apache.hadoop.registry.client.types
+org.apache.hadoop.registry.client.types.yarn
+org.apache.hadoop.registry.server
+org.apache.hadoop.registry.server.integration
+org.apache.hadoop.registry.server.services

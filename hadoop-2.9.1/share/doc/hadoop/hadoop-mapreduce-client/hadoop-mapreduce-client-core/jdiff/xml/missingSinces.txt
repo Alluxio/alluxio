@@ -1,0 +1,13 @@
+MISSING @SINCE TAG: org.apache.hadoop.mapred.JobStatus Constructor (org.apache.hadoop.mapred.JobID, float, float, float, float, int, org.apache.hadoop.mapred.JobPriority, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.String)
+MISSING @SINCE TAG: org.apache.hadoop.mapred.JobStatus Constructor (org.apache.hadoop.mapred.JobID, float, float, float, float, int, org.apache.hadoop.mapred.JobPriority, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.String)
+MISSING @SINCE TAG: org.apache.hadoop.mapreduce.JobStatus Constructor (org.apache.hadoop.mapreduce.JobID, float, float, float, float, org.apache.hadoop.mapreduce.JobStatus.State, org.apache.hadoop.mapreduce.JobPriority, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.String)
+MISSING @SINCE TAG: org.apache.hadoop.mapreduce.Job Method addArchiveToSharedCache(java.net.URI, org.apache.hadoop.conf.Configuration)
+MISSING @SINCE TAG: org.apache.hadoop.mapreduce.Job Method addFileToSharedCache(java.net.URI, org.apache.hadoop.conf.Configuration)
+MISSING @SINCE TAG: org.apache.hadoop.mapreduce.Job Method addFileToSharedCacheAndClasspath(java.net.URI, org.apache.hadoop.conf.Configuration)
+MISSING @SINCE TAG: org.apache.hadoop.mapreduce.Job Method close()
+MISSING @SINCE TAG: org.apache.hadoop.mapreduce.Job Method getArchiveSharedCacheUploadPolicies(org.apache.hadoop.conf.Configuration)
+MISSING @SINCE TAG: org.apache.hadoop.mapreduce.Job Method getFileSharedCacheUploadPolicies(org.apache.hadoop.conf.Configuration)
+MISSING @SINCE TAG: org.apache.hadoop.mapreduce.Job Method setArchiveSharedCacheUploadPolicies(org.apache.hadoop.conf.Configuration, java.util.Map)
+MISSING @SINCE TAG: org.apache.hadoop.mapreduce.Job Method setFileSharedCacheUploadPolicies(org.apache.hadoop.conf.Configuration, java.util.Map)
+NO DOC BLOCK: org.apache.hadoop.mapreduce.Job Field DEFAULT_USE_WILDCARD_FOR_LIBJARS
+NO DOC BLOCK: org.apache.hadoop.mapreduce.Job Field USE_WILDCARD_FOR_LIBJARS

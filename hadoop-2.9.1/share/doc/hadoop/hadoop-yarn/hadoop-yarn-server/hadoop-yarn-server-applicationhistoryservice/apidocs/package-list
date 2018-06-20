@@ -1,0 +1,11 @@
+org.apache.hadoop.yarn.server.applicationhistoryservice
+org.apache.hadoop.yarn.server.applicationhistoryservice.records
+org.apache.hadoop.yarn.server.applicationhistoryservice.records.impl.pb
+org.apache.hadoop.yarn.server.applicationhistoryservice.webapp
+org.apache.hadoop.yarn.server.timeline
+org.apache.hadoop.yarn.server.timeline.recovery
+org.apache.hadoop.yarn.server.timeline.recovery.records
+org.apache.hadoop.yarn.server.timeline.security
+org.apache.hadoop.yarn.server.timeline.security.authorize
+org.apache.hadoop.yarn.server.timeline.util
+org.apache.hadoop.yarn.server.timeline.webapp

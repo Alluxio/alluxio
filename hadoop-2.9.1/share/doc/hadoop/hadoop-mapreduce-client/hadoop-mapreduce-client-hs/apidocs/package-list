@@ -1,0 +1,6 @@
+org.apache.hadoop.mapreduce.v2.hs
+org.apache.hadoop.mapreduce.v2.hs.client
+org.apache.hadoop.mapreduce.v2.hs.protocolPB
+org.apache.hadoop.mapreduce.v2.hs.server
+org.apache.hadoop.mapreduce.v2.hs.webapp
+org.apache.hadoop.mapreduce.v2.hs.webapp.dao

@@ -1,0 +1,17 @@
+org.apache.hadoop
+org.apache.hadoop.mapred
+org.apache.hadoop.mapreduce.jobhistory
+org.apache.hadoop.mapreduce.v2.app
+org.apache.hadoop.mapreduce.v2.app.client
+org.apache.hadoop.mapreduce.v2.app.commit
+org.apache.hadoop.mapreduce.v2.app.job
+org.apache.hadoop.mapreduce.v2.app.job.event
+org.apache.hadoop.mapreduce.v2.app.job.impl
+org.apache.hadoop.mapreduce.v2.app.launcher
+org.apache.hadoop.mapreduce.v2.app.local
+org.apache.hadoop.mapreduce.v2.app.metrics
+org.apache.hadoop.mapreduce.v2.app.rm
+org.apache.hadoop.mapreduce.v2.app.security.authorize
+org.apache.hadoop.mapreduce.v2.app.speculate
+org.apache.hadoop.mapreduce.v2.app.webapp
+org.apache.hadoop.mapreduce.v2.app.webapp.dao

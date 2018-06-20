@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no"?>
+<comments
+  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+  xsi:noNamespaceSchemaLocation='comments.xsd'
+  name="Apache_Hadoop_YARN_Client_2.8.2_to_Apache_Hadoop_YARN_Client_2.9.1"
+  jdversion="1.0.9">
+
+<!-- This file contains comments for a JDiff report. -->
+<!-- It is used only in generating the report, and does not need to ship with the final report. -->
+
+<!-- The id attribute in an identifier element identifiers the change as noted in the report. -->
+<!-- An id has the form package[.class[.[ctor|method|field].signature]], where [] indicates optional text. -->
+<!-- A comment element can have multiple identifier elements, which will -->
+<!-- will cause the same text to appear at each place in the report, but -->
+<!-- will be converted to separate comments when the comments file is used. -->
+<!-- HTML tags in the text field will appear in the report. -->
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.AMRMClient"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.AMRMClient.getMatchingRequests_added(long)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.AMRMClient.getMatchingRequests_added(org.apache.hadoop.yarn.api.records.Priority, java.lang.String, org.apache.hadoop.yarn.api.records.ExecutionType, org.apache.hadoop.yarn.api.records.Resource)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.AMRMClient.getRegisteredTimelineV2Client_added()"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.AMRMClient.registerTimelineV2Client_added(org.apache.hadoop.yarn.client.api.TimelineV2Client)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.AMRMClient.requestContainerResourceChange_changed(org.apache.hadoop.yarn.api.records.Container, org.apache.hadoop.yarn.api.records.Resource)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.AMRMClient.requestContainerUpdate_added(org.apache.hadoop.yarn.api.records.Container, org.apache.hadoop.yarn.api.records.UpdateContainerRequest)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.NMClient"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.NMClient.commitLastReInitialization_added(org.apache.hadoop.yarn.api.records.ContainerId)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.NMClient.getNodeIdOfStartedContainer_added(org.apache.hadoop.yarn.api.records.ContainerId)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.NMClient.reInitializeContainer_added(org.apache.hadoop.yarn.api.records.ContainerId, org.apache.hadoop.yarn.api.records.ContainerLaunchContext, boolean)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.NMClient.restartContainer_added(org.apache.hadoop.yarn.api.records.ContainerId)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.NMClient.rollbackLastReInitialization_added(org.apache.hadoop.yarn.api.records.ContainerId)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.NMClient.updateContainerResource_added(org.apache.hadoop.yarn.api.records.Container)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.SharedCacheClient"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.SharedCacheClient.use_changed(org.apache.hadoop.yarn.api.records.ApplicationId, java.lang.String)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.YarnClient"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.YarnClient.getApplications_added(java.util.Set, java.util.EnumSet, java.util.Set)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.YarnClient.getApplications_added(org.apache.hadoop.yarn.api.protocolrecords.GetApplicationsRequest)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.YarnClient.updateApplicationTimeouts_added(org.apache.hadoop.yarn.api.protocolrecords.UpdateApplicationTimeoutsRequest)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.AMRMClientAsync"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.AMRMClientAsync.getMatchingRequests_added(long)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.AMRMClientAsync.getMatchingRequests_added(org.apache.hadoop.yarn.api.records.Priority, java.lang.String, org.apache.hadoop.yarn.api.records.ExecutionType, org.apache.hadoop.yarn.api.records.Resource)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.AMRMClientAsync.getRegisteredTimelineV2Client_added()"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.AMRMClientAsync.registerTimelineV2Client_added(org.apache.hadoop.yarn.client.api.TimelineV2Client)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.AMRMClientAsync.requestContainerResourceChange_changed(org.apache.hadoop.yarn.api.records.Container, org.apache.hadoop.yarn.api.records.Resource)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.AMRMClientAsync.requestContainerUpdate_added(org.apache.hadoop.yarn.api.records.Container, org.apache.hadoop.yarn.api.records.UpdateContainerRequest)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.NMClientAsync"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.NMClientAsync.commitLastReInitializationAsync_added(org.apache.hadoop.yarn.api.records.ContainerId)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.NMClientAsync.reInitializeContainerAsync_added(org.apache.hadoop.yarn.api.records.ContainerId, org.apache.hadoop.yarn.api.records.ContainerLaunchContext, boolean)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.NMClientAsync.restartContainerAsync_added(org.apache.hadoop.yarn.api.records.ContainerId)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.NMClientAsync.rollbackLastReInitializationAsync_added(org.apache.hadoop.yarn.api.records.ContainerId)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.api.async.NMClientAsync.updateContainerResourceAsync_added(org.apache.hadoop.yarn.api.records.Container)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.cli"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.cli.LogsCLI"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.cli.LogsCLI.getAMContainerInfoForRMWebService_added(org.apache.hadoop.conf.Configuration, java.lang.String)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.cli.LogsCLI.getMatchedContainerLogFiles_added(org.apache.hadoop.yarn.logaggregation.ContainerLogsRequest, boolean, boolean)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.cli.LogsCLI.getNodeHttpAddressFromRMWebString_added(org.apache.hadoop.yarn.logaggregation.ContainerLogsRequest)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.cli.LogsCLI.getResponeFromNMWebService_added(org.apache.hadoop.conf.Configuration, com.sun.jersey.api.client.Client, org.apache.hadoop.yarn.logaggregation.ContainerLogsRequest, java.lang.String)"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.cli.SchedConfCLI"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+<comment>
+  <identifier id="org.apache.hadoop.yarn.client.util"/>
+  <text>
+    InsertCommentsHere
+  </text>
+</comment>
+
+</comments>
