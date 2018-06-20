@@ -397,7 +397,6 @@ Alluxio can be deployed in many different environments.
 * [Alluxio Standalone on a Cluster](Running-Alluxio-on-a-Cluster.html)
 * [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
 * [Alluxio on Docker](Running-Alluxio-On-Docker.html)
-* [Alluxio Standalone with Fault Tolerance](Running-Alluxio-Fault-Tolerant.html)
 * [Alluxio on EC2](Running-Alluxio-on-EC2.html)
 * [Alluxio on GCE](Running-Alluxio-on-GCE.html)
 * [Alluxio with Mesos on EC2](Running-Alluxio-on-Mesos.html)
