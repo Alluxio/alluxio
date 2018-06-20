@@ -32,7 +32,7 @@ directory `/mnt/nfs`, the following environment variable assignment needs to be 
 `conf/alluxio-site.properties`:
 
 ```
-properties
+alluxio.master.hostname=localhost
 alluxio.underfs.address=/mnt/nfs
 ```
 
