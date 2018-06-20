@@ -154,12 +154,7 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(GET_LINEAGE_INFO_LIST)
   @ReturnType("java.util.List<alluxio.wire.LineageInfo>")
   public Response getLineageInfoList() {
-    return RestUtils.call(new RestUtils.RestCallable<List<LineageInfo>>() {
-      @Override
-      public List<LineageInfo> call() throws Exception {
-        return mLineageMaster.getLineageInfoList();
-      }
-    });
+    return RestUtils.call(() -> mLineageMaster.getLineageInfoList());
   }
 
   /**
