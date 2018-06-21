@@ -45,7 +45,7 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
           .desc("Action to take after TTL expiry. Delete (default) or free the target")
           .build();
 
-  private TtlAction mAction = TtlAction.DELETE;
+  private TtlAction mAction = TtlAction.FREE;
   private long mTtlMs;
 
   /**
