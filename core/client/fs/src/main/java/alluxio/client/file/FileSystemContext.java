@@ -17,6 +17,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -152,7 +153,7 @@ public final class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient) {
     FileSystemContext context = new FileSystemContext(subject);
-    context.init(masterInquireClient);
+    context.init(masterInquireClient, Configuration.global());
     return context;
   }
 
@@ -177,17 +178,17 @@ public final class FileSystemContext implements Closeable {
    * Initializes the context. Only called in the factory methods and reset.
    *
    * @param masterInquireClient the client to use for determining the master
+   * @param configuration the instance configuration
    */
-  private synchronized void init(MasterInquireClient masterInquireClient) {
+  private synchronized void init(MasterInquireClient masterInquireClient,
+      InstancedConfiguration configuration) {
     mMasterInquireClient = masterInquireClient;
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
     mClosed.set(false);
 
-    // Only send metrics if enabled and the port is set (can be zero when tests are setting up).
-    if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)
-        && Configuration.getInt(PropertyKey.MASTER_RPC_PORT) != 0) {
+    if (configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
       mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults()
           .withSubject(mParentSubject).withMasterInquireClient(mMasterInquireClient));
@@ -196,7 +197,7 @@ public final class FileSystemContext implements Closeable {
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
       mExecutorService
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
-              (int) Configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
+              (int) configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
       // register the shutdown hook
       Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
     }
@@ -235,12 +236,15 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Resets the context. It is only used in {@link alluxio.hadoop.AbstractFileSystem} and
-   * tests to reset the default file system context.
+   * Resets the context. It is only used in {@link alluxio.hadoop.AbstractFileSystem} and tests to
+   * reset the default file system context.
+   *
+   * @param configuration the instance configuration
+   *
    */
-  public synchronized void reset() throws IOException {
+  public synchronized void reset(InstancedConfiguration configuration) throws IOException {
     close();
-    init(MasterInquireClient.Factory.create());
+    init(MasterInquireClient.Factory.create(), configuration);
   }
 
   /**
