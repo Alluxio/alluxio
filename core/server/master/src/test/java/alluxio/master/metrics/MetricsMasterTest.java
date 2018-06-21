@@ -85,15 +85,15 @@ public class MetricsMasterTest {
   @Test
   public void testMultiValueAggregator() {
     mMetricsMaster.addAggregator(
-        new SingleTagValueAggregator(MetricsSystem.InstanceType.WORKER, "metric", "tag"));
+        new SingleTagValueAggregator("metric", MetricsSystem.InstanceType.WORKER, "metric", "tag"));
     List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metric.tag:v1", 10),
         Metric.from("worker.192_1_1_1.metric.tag:v2", 20));
     mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
     List<Metric> metrics2 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metric.tag:v1", 1),
         Metric.from("worker.192_1_1_2.metric.tag:v2", 2));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
-    assertEquals(11L, getGauge("metric.v1"));
-    assertEquals(22L, getGauge("metric.v2"));
+    assertEquals(11L, getGauge("metric", "tag", "v1"));
+    assertEquals(22L, getGauge("metric", "tag", "v2"));
   }
 
   @Test
@@ -117,6 +117,13 @@ public class MetricsMasterTest {
 
   private Object getGauge(String name) {
     return MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricsSystem.getClusterMetricName(name))
+        .getValue();
+  }
+
+  private Object getGauge(String metricName, String tagName, String tagValue) {
+    return MetricsSystem.METRIC_REGISTRY.getGauges()
+        .get(MetricsSystem
+            .getClusterMetricName(Metric.getMetricNameWithTags(metricName, tagName, tagValue)))
         .getValue();
   }
 }

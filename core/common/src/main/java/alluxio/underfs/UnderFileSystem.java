@@ -99,7 +99,7 @@ public interface UnderFileSystem extends Closeable {
           // when creation is done.
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(factory.create(path, ufsConf));
+          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf));
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);

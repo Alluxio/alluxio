@@ -146,10 +146,15 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
         MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT));
 
     // multi-value aggregators
-    addAggregator(new SingleTagValueAggregator(MetricsSystem.InstanceType.WORKER,
-        WorkerMetrics.BYTES_READ_UFS, WorkerMetrics.TAG_UFS));
-    addAggregator(new SingleTagValueAggregator(MetricsSystem.InstanceType.WORKER,
-        WorkerMetrics.BYTES_WRITTEN_UFS, WorkerMetrics.TAG_UFS));
+    addAggregator(new SingleTagValueAggregator(WorkerMetrics.BYTES_READ_UFS,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS, WorkerMetrics.TAG_UFS));
+    addAggregator(new SingleTagValueAggregator(WorkerMetrics.BYTES_WRITTEN_UFS,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS, WorkerMetrics.TAG_UFS));
+    for (WorkerMetrics.UfsOps ufsOp : WorkerMetrics.UfsOps.values()) {
+      addAggregator(new SingleTagValueAggregator(WorkerMetrics.UFS_OP_PREFIX + ufsOp,
+          MetricsSystem.InstanceType.MASTER, ufsOp.toString(),
+          WorkerMetrics.TAG_UFS));
+    }
   }
 
   @Override

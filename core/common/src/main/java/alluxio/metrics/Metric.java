@@ -245,8 +245,7 @@ public final class Metric implements Serializable {
     for (int i = tagStartIdx; i < pieces.length; i++) {
       String tagStr = pieces[i];
       if (!tagStr.contains(TAG_SEPARATOR)) {
-        LOG.warn("Unknown tag {}, the tag format should be tagname{}tagvalue", pieces[i],
-            TAG_SEPARATOR);
+        // Unknown tag
         continue;
       }
       int tagSeparatorIdx = tagStr.indexOf(TAG_SEPARATOR);
