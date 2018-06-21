@@ -44,6 +44,7 @@ import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Block.DeleteBlockEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.LockResource;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
@@ -779,7 +780,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       return new Command(CommandType.Register, new ArrayList<Long>());
     }
 
-    synchronized (worker) {
+    try (LockResource r = new LockResource(worker.getHeartbeatLock())) {
       // Technically, 'worker' should be confirmed to still be in the data structure. Lost worker
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
       // will just re-register regardless.
