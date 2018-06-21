@@ -105,7 +105,7 @@ $ bin/start-all.sh
 以本地模式启动Alluxio：
 
 ```bash
-$ bin/alluxio-start.sh local
+$ bin/alluxio-start.sh local SudoMount
 ```
 
 你可以在Alluxio中加入两个简单的文件来运行wordcount。在你的Alluxio目录中运行：

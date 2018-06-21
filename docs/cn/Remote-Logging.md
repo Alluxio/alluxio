@@ -42,7 +42,7 @@ $ ./bin/alluxio-start.sh logserver
 ### 启动Alluxio
 在Alluxio master上, 运行下列命令
 ```bash
-$ ./bin/alluxio-start.sh all
+$ ./bin/alluxio-start.sh all SudoMount
 ```
 
 ## 验证日志服务器已经启动
