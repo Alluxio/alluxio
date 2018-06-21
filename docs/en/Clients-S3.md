@@ -175,7 +175,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 ### Upload part
 
 ```bash
-# curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=2
+# curl -i -X PUT 'http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=2'
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:43:22 GMT
 ETag: "b54357faf0632cce46e942fa68356b38"
@@ -210,7 +210,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 ### Complete a multipart upload
 
 ```bash
-# curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2 -d '
+# curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
 <CompleteMultipartUpload>
   <Part>
     <PartNumber>1</PartNumber>
