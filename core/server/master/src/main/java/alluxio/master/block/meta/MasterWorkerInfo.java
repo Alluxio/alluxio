@@ -390,7 +390,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Gets the heartbeat lock.
+   * @return the heartbeat lock
    */
   public Lock getHeartbeatLock() {
     return mHeartbeatLock;
