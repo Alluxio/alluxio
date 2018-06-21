@@ -188,6 +188,7 @@ public final class MountTable implements JournalEntryIterable {
           }
         }
       }
+      LOG.info("alluxioPath: {}, ufsUri: {}, mountId: {}, options: {}", alluxioPath, ufsUri, mountId, options);
       mMountTable
           .put(alluxioPath, new MountInfo(new AlluxioURI(alluxioPath), ufsUri, mountId, options));
     }
