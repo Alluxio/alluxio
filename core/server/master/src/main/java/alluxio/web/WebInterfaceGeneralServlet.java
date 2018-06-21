@@ -21,7 +21,6 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.meta.MetaMaster;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.ConfigCheckReport;
