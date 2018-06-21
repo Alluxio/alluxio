@@ -779,7 +779,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       return new Command(CommandType.Register, new ArrayList<Long>());
     }
 
-    synchronized (worker.getWorkerAddress()) {
+    worker.acquireHeartbeatLock();
+    try {
       // Technically, 'worker' should be confirmed to still be in the data structure. Lost worker
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
       // will just re-register regardless.
@@ -795,6 +796,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         return new Command(CommandType.Nothing, new ArrayList<Long>());
       }
       return new Command(CommandType.Free, toRemoveBlocks);
+    } finally {
+      worker.releaseHeartbeatLock();
     }
   }
 
