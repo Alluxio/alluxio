@@ -92,7 +92,7 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<CommitBlockTResponse>) () -> {
       mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
       return new CommitBlockTResponse();
-    }, "CommitBlock", "workerId=%s, usedBytesOnTiers=%s, tierAlias=%s, blockId=%s, length=%s, "
+    }, "CommitBlock", "workerId=%s, usedBytesOnTier=%s, tierAlias=%s, blockId=%s, length=%s, "
         + "options=%s", workerId, usedBytesOnTier, tierAlias, blockId, length, options);
   }
 
