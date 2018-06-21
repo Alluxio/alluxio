@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
@@ -41,25 +42,27 @@ public final class ConfigurationUtils {
   private ConfigurationUtils() {} // prevent instantiation
 
   /**
-   * Loads properties from resource. This method will search Classpath for the properties file with
-   * the given resourceName.
+   * Loads properties from a resource.
    *
-   * @param resourceName filename of the properties file
+   * @param resource url of the properties file
    * @return a set of properties on success, or null if failed
    */
-  public static Properties loadPropertiesFromResource(String resourceName) {
-    Properties properties = new Properties();
-
-    InputStream inputStream =
-        Configuration.class.getClassLoader().getResourceAsStream(resourceName);
+  public static Properties loadPropertiesFromResource(URL resource) {
+    InputStream inputStream;
+    try {
+      inputStream = resource.openStream();
+    } catch (IOException e) {
+      return null;
+    }
     if (inputStream == null) {
       return null;
     }
 
+    Properties properties = new Properties();
     try {
       properties.load(inputStream);
     } catch (IOException e) {
-      LOG.warn("Unable to load default Alluxio properties file {} : {}", resourceName,
+      LOG.warn("Unable to load default Alluxio properties file {} : {}", resource,
           e.getMessage());
       return null;
     }
