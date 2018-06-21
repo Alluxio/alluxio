@@ -25,8 +25,8 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
-
 import alluxio.wire.TtlAction;
+
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
