@@ -95,7 +95,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
     ConfigurationTestUtils.resetConfiguration();
-    FileSystemContext.get().reset();
+    Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+    FileSystemContext.get().reset(Configuration.global());
   }
 
   @Test
