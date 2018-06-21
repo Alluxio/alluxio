@@ -66,7 +66,7 @@ public final class MasterWorkerInfo {
   private Map<String, Long> mTotalBytesOnTiers;
   /** Mapping from storage tier alias to used bytes. */
   private Map<String, Long> mUsedBytesOnTiers;
-  /** A heartbeat lock to prevent concurrent access of the same worker info. */
+  /** A heartbeat lock to prevent concurrent heartbeats of the same worker info. */
   private Lock mHeartbeatLock;
 
   /** ids of blocks the worker contains. */
@@ -388,16 +388,9 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Acquires the heartbeat lock.
+   * Gets the heartbeat lock.
    */
-  public void acquireHeartbeatLock() {
-    mHeartbeatLock.lock();
-  }
-
-  /**
-   * Releases the heartbeat lock.
-   */
-  public void releaseHeartbeatLock() {
-    mHeartbeatLock.unlock();
+  public Lock getHeartbeatLock() {
+    return mHeartbeatLock;
   }
 }
