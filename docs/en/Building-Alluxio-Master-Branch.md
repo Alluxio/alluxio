@@ -59,68 +59,71 @@ To have the logs output to STDOUT, append the following to the `mvn` command
 {% include Building-Alluxio-Master-Branch/STDOUT.md %}
 
 ## Compute Framework Support
-To build Alluxio against different compute frameworks, you can run Maven build with different compute profiles. The generated Alluxio client is located at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
-### Hadoop
+Since Alluxio 1.7, the Alluxio client jar built and located at
+`{{site.ALLUXIO_CLIENT_JAR_PATH}}` will work with different compute frameworks
+(e.g., Spark, Flink, Presto and etc). **You do not need run Maven build with different compute
+profiles.**
 
-You can run the following command to compile Alluxio with Hadoop.
+## Hadoop Distribution Support
 
-```bash
-$ mvn install -P<HADOOP_PROFILE> -DskipTests
-```
-
-Available Hadoop profiles include `hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ... `hadoop-2.8` for
-different distributions of Hadoop. You can further set a specific Hadoop release version to
-compile by checking out [this section](#distro-support).
-
-### Spark/Flink/Presto and etc
-
-You can run the following command to compile Alluxio server and client jars that work with
-different compute frameworks.
-
-```bash
-$ mvn install -DskipTests
-```
-
-## Distro Support
-
-To build Alluxio against one of the different distros of hadoop, you only need to change the
-`hadoop.version`. You can run the following command:
+To build Alluxio against one of the different distributions of hadoop, you can run the following
+ command by specifying `<HADOOP_PROFILE>` and the corresponding `hadoop.version`.:
 
 ```bash
 $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 ```
 where `<HADOOP_VERSION>` can be set for different distributions.
+Available Hadoop profiles include `hadoop-1`, `hadoop-2`, `hadoop-3` to cover the major Hadoop 
+versions 1.x, 2.x and 3.x.
 
 ### Apache
 
 All main builds are from Apache so all Apache releases can be used directly
 
-{% include Building-Alluxio-Master-Branch/Apache.md %}
+```properties
+-Phadoop-1 -Dhadoop.version=1.0.4
+-Phadoop-1 -Dhadoop.version=1.2.0
+-Phadoop-2 -Dhadoop.version=2.2.0
+-Phadoop-2 -Dhadoop.version=2.3.0
+-Phadoop-2 -Dhadoop.version=2.4.1
+-Phadoop-2 -Dhadoop.version=2.5.2
+-Phadoop-2 -Dhadoop.version=2.6.5
+-Phadoop-2 -Dhadoop.version=2.7.3
+-Phadoop-2 -Dhadoop.version=2.8.0
+-Phadoop-2 -Dhadoop.version=2.9.0
+-Phadoop-3 -Dhadoop.version=3.0.0
+```
 
 ### Cloudera
 
 To build against Cloudera's releases, just use a version like `$apacheRelease-cdh$cdhRelease`
 
-{% include Building-Alluxio-Master-Branch/Cloudera.md %}
+```properties
+-Phadoop-2 -Dhadoop.version=2.3.0-cdh5.1.0
+-Phadoop-2 -Dhadoop.version=2.0.0-cdh4.7.0
+```
 
 ### MapR
 
 To build against a MapR release
 
-{% include Building-Alluxio-Master-Branch/MapR.md %}
-
-### Pivotal
-
-To build against a Pivotal release, just use a version like `$apacheRelease-gphd-$pivotalRelease`
-
-{% include Building-Alluxio-Master-Branch/Pivotal.md %}
+```properties
+-Phadoop-2 -Dhadoop.version=2.7.0-mapr-1607
+-Phadoop-2 -Dhadoop.version=2.7.0-mapr-1602
+-Phadoop-2 -Dhadoop.version=2.7.0-mapr-1506
+-Phadoop-2 -Dhadoop.version=2.3.0-mapr-4.0.0-FCS
+```
 
 ### Hortonworks
 
 To build against a Hortonworks release, just use a version like `$apacheRelease.$hortonRelease`
 
-{% include Building-Alluxio-Master-Branch/Hortonworks.md %}
+```properties
+-Phadoop-2 -Dhadoop.version=2.1.0.2.0.5.0-67
+-Phadoop-2 -Dhadoop.version=2.2.0.2.1.0.0-92
+-Phadoop-2 -Dhadoop.version=2.4.0.2.1.3.0-563
+```
 
 ## System Settings
 
