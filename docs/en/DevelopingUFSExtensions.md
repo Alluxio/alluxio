@@ -25,7 +25,7 @@ to new under storage systems without requiring a restart. Alluxio servers use Ja
 [ServiceLoader](https://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html) to discover
 implementations of the under storage API. Providers include implementations of the
 `alluxio.underfs.UnderFileSystemFactory` interface. The implementation is advertised by including a
-text file in `META_INF/services` with a single line pointing to the class implementing the said
+text file in `META-INF/services` with a single line pointing to the class implementing the said
 interface.
 
 ## Dependency Management
@@ -98,7 +98,7 @@ public class DummyUnderFileSystemFactory implements UnderFileSystemFactory {
 
 ## Declare the Service
 
-Create a file at `src/main/resources/META_INF/services/alluxio.underfs.UnderFileSystemFactory`
+Create a file at `src/main/resources/META-INF/services/alluxio.underfs.UnderFileSystemFactory`
 advertising the implemented `UnderFileSystemFactory` to the ServiceLoader.
 
 ```
