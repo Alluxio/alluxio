@@ -48,10 +48,10 @@ Alluxio兼容Mesos 0.23.0及之后的版本。
 
 #### Java
 
-默认情况下，Alluxio Mesos框架会下载Java 8 jdk以运行Alluxio，如果你希望使用Mesos executor上已有的Java，设置以下属性：
+默认情况下，可以使用在Mesos executor上可用的任意Java版本。要下载Java8 jdk并且用它来运行Alluxio，设置以下属性：
 
 ```
-alluxio.integration.mesos.jdk.url=LOCAL
+alluxio.integration.mesos.jdk.url=JDK_URL
 ```
 
 #### 配置Alluxio Masters和Workers
