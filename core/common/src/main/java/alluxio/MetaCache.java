@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.URIStatus;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.cache.CacheBuilder;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.nio.file.Path;
 
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,6 +182,12 @@ public class MetaCache {
       path = resolve(path);
       MetaCacheData c = fcache.getUnchecked(path);
       if (c != null) c.setStatus(s);
+      if (s.getLength() > 0) {
+            for (FileBlockInfo f: s.getFileBlockInfos()) {
+              BlockInfo b = f.getBlockInfo();
+              addBlockInfoCache(b.getBlockId(), b);
+          }
+      }
   }
 
   public static AlluxioURI getURI(String path) {

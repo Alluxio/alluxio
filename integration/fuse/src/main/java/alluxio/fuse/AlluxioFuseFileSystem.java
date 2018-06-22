@@ -325,19 +325,14 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("getattr({}) [Alluxio: {}]", path, turi);
 
     try {   //qiniu
-      try {
-          if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
-      } catch (Exception e) {
-          int idx = path.lastIndexOf("/@");
-          if (idx >= 0) {
-              path = path.substring(0, idx);
-              if (path.equals("")) path = "/";
-              turi = MetaCache.getURI(path);
-              if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
-          } else {
-              throw e;
-          }
+      int idx = path.lastIndexOf("/@");
+      if (idx >= 0) {
+          path = path.substring(0, idx);
+          if (path.equals("")) path = "/";
+          turi = MetaCache.getURI(path);
       }
+
+      if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
 
       URIStatus status = mFileSystem.getStatus(turi);
 
@@ -614,26 +609,22 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("readdir({}) [Alluxio: {}]", path, turi);
 
     try {
-      try {
-          if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
-      } catch (Exception e) {
-          int idx = path.lastIndexOf("/@");
-          if (idx >= 0) {
-              String dbg_txt = path.substring(idx).replace("/@", "");
-              path = path.substring(0, idx);
-              if (path.equals("")) path = "/";
-              turi = MetaCache.getURI(path);
-              if (dbg_txt.equals("f")) {
-                doRefresh(path, turi);
-                options.setLoadMetadataType(LoadMetadataType.Always);
-              } else {
-                MetaCache.debug_meta_cache(dbg_txt);
-              }
-              if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
+      int idx = path.lastIndexOf("/@");
+      if (idx >= 0) {
+          String dbg_txt = path.substring(idx).replace("/@", "");
+          path = path.substring(0, idx);
+          if (path.equals("")) path = "/";
+          turi = MetaCache.getURI(path);
+          if (dbg_txt.equals("f")) {
+            doRefresh(path, turi);
+            options.setLoadMetadataType(LoadMetadataType.Always);
           } else {
-              throw e;
+            MetaCache.debug_meta_cache(dbg_txt);
           }
       }
+
+      if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
+
       final URIStatus status = mFileSystem.getStatus(turi);
       if (!status.isFolder()) {
         return -ErrorCodes.ENOTDIR();

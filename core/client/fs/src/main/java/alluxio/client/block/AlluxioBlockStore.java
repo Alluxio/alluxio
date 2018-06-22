@@ -170,6 +170,7 @@ public final class AlluxioBlockStore {
             info = getInfo(blockId);
         } catch (Exception e)  {
             LOG.info("==== fail to get block info for " + blockId);
+            throw e;
         }
     }
     List<BlockLocation> locations = info.getLocations();
