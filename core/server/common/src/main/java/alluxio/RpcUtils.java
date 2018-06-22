@@ -128,7 +128,8 @@ public final class RpcUtils {
       if (!failureOk) {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
-          logger.warn("{}: {}, Error={}", methodName, String.format(description, args), e);
+          logger.warn("Exit (Error): {}: {}, Error={}", methodName,
+              String.format(description, args), e);
         }
       }
       throw AlluxioStatusException.fromAlluxioException(e).toThrift();
@@ -225,7 +226,8 @@ public final class RpcUtils {
       if (!failureOk) {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
-          logger.warn("{}: {}, Error={}", methodName, String.format(description, args), e);
+          logger.warn("Exit (Error): {}: {}, Error={}", methodName,
+              String.format(description, args), e);
         }
       }
       throw AlluxioStatusException.fromAlluxioException(e).toThrift();
@@ -234,7 +236,8 @@ public final class RpcUtils {
       if (!failureOk) {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
-          logger.warn("{}: {}, Error={}", methodName, String.format(description, args), e);
+          logger.warn("Exit (Error): {}: {}, Error={}", methodName,
+              String.format(description, args), e);
         }
       }
       throw AlluxioStatusException.fromIOException(e).toThrift();
@@ -287,7 +290,8 @@ public final class RpcUtils {
       logger.debug("Exit (OK): {}: {}", methodName, debugDesc);
       return result;
     } catch (Exception e) {
-      logger.warn("{}: {}, Error={}", methodName, String.format(description, args), e);
+      logger
+          .warn("Exit (Error): {}: {}, Error={}", methodName, String.format(description, args), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       callable.exceptionCaught(e);
     }
