@@ -133,8 +133,14 @@ Alluxio支持用户模拟，以便用户代表另一个用户访问Alluxio。如
 
 ### Client Configuration
 如果master配置为允许某些用户模拟其他的用户，client端也要进行相应的配置。使用`alluxio.security.login.impersonation.username`进行配置。
-这表示进行连接的Alluxio client保持不变，但是是模拟的一个不同的用户。如果使用的是Hadoop兼容的Alluxio client，
-那就需要设置`_HDFS_USER_`来告知Alluxio client，当它作为HDFS的client时也要模拟同样的用户。
+这表示进行连接的Alluxio client保持不变，但是是模拟的一个不同的用户。参数可以设置为以下值：
+
+empty
+不使用Alluxio client模拟
+`_NONE_`
+不使用Alluxio client模拟
+`_HDFS_USER_`
+Alluxio client会模拟HDFS client的同一用户（当使用Hadoop兼容的client时）
 
 ## 审查
 Alluxio支持审查日志用于系统管理员追踪用户对文件元数据的访问操作。
