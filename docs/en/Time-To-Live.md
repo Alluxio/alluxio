@@ -23,8 +23,8 @@ when Alluxio is serving. Internally, the master runs a background thread which p
 if files have reached their TTL.
 
 Note that the background thread runs on a configurable period, by default 1 hour. This means a TTL
-might not be enforced until the next check interval, ie. short TTL intervals can take up to
-two hours to be enforced. The interval length is set by the `alluxio.master.ttl.checker.interval`
+will not be enforced until the next check interval, and the enforcement of a TTL can be up to 1
+TTL interval late. The interval length is set by the `alluxio.master.ttl.checker.interval`
 property.
 
 For example, to set the interval to 10 minutes, add the following to alluxio-site.properties:
@@ -50,12 +50,12 @@ The TTL API is as follows:
 
 ```
 SetTTL(path, duration, action)
-`path` 			the Alluxio path in the namespace
-`duration` 		the number of milliseconds before the TTL action takes into effect, this overrides
-				any previous value
-`action`		the action to take when duration has elapsed. `FREE` will cause the file to be
-				evicted from Alluxio storage, regardless of the pin status. `DELETE` will cause the
-				file to be deleted from the Alluxio namespace and under store.
+`path`          the path in the Alluxio namespace
+`duration`      the number of milliseconds before the TTL action goes into effect, this overrides
+                any previous value
+`action`        the action to take when duration has elapsed. `FREE` will cause the file to be
+                evicted from Alluxio storage, regardless of the pin status. `DELETE` will cause the
+                file to be deleted from the Alluxio namespace and under store.
 ```
 
 ### Command Line Usage
@@ -71,7 +71,7 @@ FileSystem alluxioFs = FileSystem.Factory.get();
 
 AlluxioURI path = new AlluxioURI("alluxio://hostname:port/file/path");
 long ttlMs = 86400000L; // 1 day
-TtlAction ttlAction = TtlAction.FREE; // Free the file with TTL is hit
+TtlAction ttlAction = TtlAction.FREE; // Free the file when TTL is hit
 
 SetAttributeOptions options = SetAttributeOptions.defaults().setTtl(ttlMs).setTtlAction(ttlAction);
 alluxioFs.setAttribute(path);
@@ -88,12 +88,12 @@ temporarily used. Instead of calling the API many times, it is automatically set
 
 Passive TTL works with the following configuration options:
 
-* `alluxio.user.file.load.ttl` - the default duration to give any file newly loaded into Alluxio from
-an under store. By default this is no ttl.
-* `alluxio.user.file.load.ttl.action` - the default action for any ttl set on a file newly loaded into
-Alluxio from an under store. By default this is `DELETE`.
-* `alluxio.user.file.create.ttl` - the default duration to give any file newly created in Alluxio. By
-default this is no ttl.
+* `alluxio.user.file.load.ttl` - the default duration to give any file newly loaded into Alluxio
+from an under store. By default this is no ttl.
+* `alluxio.user.file.load.ttl.action` - the default action for any ttl set on a file newly loaded
+into Alluxio from an under store. By default this is `DELETE`.
+* `alluxio.user.file.create.ttl` - the default duration to give any file newly created in Alluxio.
+By default this is no ttl.
 * `alluxio.user.file.create.ttl.action` - the default action for any ttl set on a file newly created
 in Alluxio. By default this is `DELETE`.
 
@@ -104,10 +104,10 @@ in Alluxio.
 Both options are disabled by default and should only be enabled by clients which have strict data
 access patterns.
 
-For example, to make the files created by the `runTests` command deleted in 1 minute:
+For example, to delete the files created by the `runTests` after 1 minute:
 
 ```
-bin/alluxio runTests -Dalluxio.user.file.create.ttl=60000 -Dalluxio.user.file.create.ttl.action=DELETE
+bin/alluxio runTests -Dalluxio.user.file.create.ttl=1m -Dalluxio.user.file.create.ttl.action=DELETE
 ```
 
 Note, if you try this example, make sure the `alluxio.master.ttl.checker.interval` is set to a short
