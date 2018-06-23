@@ -229,8 +229,7 @@ public final class TransportProviderTest {
   }
 
   /**
-   * Support custom password When authentication type is set to CUSTOM
-   * @throws Exception
+   * Support custom password when authentication type is set to CUSTOM.
    */
   @Test
   public void customAuthenticationPropertyPassword() throws Exception {
@@ -242,13 +241,15 @@ public final class TransportProviderTest {
     // start server
     startServerThread();
 
-    // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, ExactlyMatchAuthenticationProvider.USERNAME);
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME,
+        ExactlyMatchAuthenticationProvider.USERNAME);
     User user = new User(ExactlyMatchAuthenticationProvider.USERNAME);
     HashSet<Principal> principals = new HashSet<>();
     principals.add(user);
-    Configuration.set(PropertyKey.SECURITY_LOGIN_PASSWORD, ExactlyMatchAuthenticationProvider.PASSWORD);
+    Configuration.set(PropertyKey.SECURITY_LOGIN_PASSWORD,
+        ExactlyMatchAuthenticationProvider.PASSWORD);
     Subject subject = new Subject(false, principals, new HashSet<>(), new HashSet<>());
+    // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport(subject, mServerAddress);
     client.open();
