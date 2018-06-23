@@ -155,6 +155,7 @@ public final class Constants {
   public static final short INVALID_MODE = -1;
   public static final String IMPERSONATION_HDFS_USER = "_HDFS_USER_";
   public static final String IMPERSONATION_NONE = "_NONE_";
+  public static final String NO_PASSWORD = "_NO_PASSWORD_";
 
   // Specific tier write
   public static final int FIRST_TIER = 0;

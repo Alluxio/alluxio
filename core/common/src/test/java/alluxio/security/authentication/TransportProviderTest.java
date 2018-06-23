@@ -18,6 +18,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.network.thrift.ThriftUtils;
+import alluxio.security.User;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -33,7 +34,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.net.InetSocketAddress;
+import java.security.Principal;
+import java.util.HashSet;
 
+import javax.security.auth.Subject;
 import javax.security.sasl.AuthenticationException;
 
 /**
@@ -219,6 +223,36 @@ public final class TransportProviderTest {
     client.open();
     assertTrue(client.isOpen());
 
+    // clean up
+    client.close();
+    mServer.stop();
+  }
+
+  /**
+   *
+   * @throws Exception
+   */
+  @Test
+  public void customAuthenticationPropertyPassword() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+        ExactlyMatchAuthenticationProvider.class.getName());
+    mTransportProvider = TransportProvider.Factory.create();
+
+    // start server
+    startServerThread();
+
+    // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, ExactlyMatchAuthenticationProvider.USERNAME);
+    User user = new User(ExactlyMatchAuthenticationProvider.USERNAME);
+    HashSet<Principal> principals = new HashSet<>();
+    principals.add(user);
+    Configuration.set(PropertyKey.SECURITY_LOGIN_PASSWORD, ExactlyMatchAuthenticationProvider.PASSWORD);
+    Subject subject = new Subject(false, principals, new HashSet<>(), new HashSet<>());
+    TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
+        .getClientTransport(subject, mServerAddress);
+    client.open();
+    assertTrue(client.isOpen());
     // clean up
     client.close();
     mServer.stop();

@@ -2884,6 +2884,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey SECURITY_LOGIN_PASSWORD =
+      new Builder(Name.SECURITY_LOGIN_PASSWORD)
+          .setDescription("When alluxio.security.authentication.type is set to SIMPLE or "
+              + "CUSTOM, user application uses this property to indicate the password requesting "
+              + "Alluxio service.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setDefaultValue(Constants.NO_PASSWORD)
+          .setScope(Scope.CLIENT)
+          .build();
 
   //
   // Mesos and Yarn related properties
@@ -3585,6 +3594,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_IMPERSONATION_USERNAME =
         "alluxio.security.login.impersonation.username";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
+    public static final String SECURITY_LOGIN_PASSWORD = "alluxio.security.login.password";
 
     //
     // JVM Monitor related properties

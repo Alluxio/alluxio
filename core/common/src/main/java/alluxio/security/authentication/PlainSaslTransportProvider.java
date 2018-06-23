@@ -58,7 +58,7 @@ public final class PlainSaslTransportProvider implements TransportProvider {
   public TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
       throws UnauthenticatedException {
     String username = null;
-    String password = "noPassword";
+    String password = Configuration.get(PropertyKey.SECURITY_LOGIN_PASSWORD);
 
     if (subject != null) {
       Set<User> user = subject.getPrincipals(User.class);
