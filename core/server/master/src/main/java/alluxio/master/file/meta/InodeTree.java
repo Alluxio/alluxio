@@ -1083,7 +1083,7 @@ public class InodeTree implements JournalEntryIterable {
               try {
                 status = ufs.getStatus(ufsUri);
               } catch (Exception e) {
-                throw new IOException(String.format("Cannot create or stat UFS directory %s: %s.",
+                throw new IOException(String.format("Cannot create or load UFS directory %s: %s.",
                     ufsUri, e.toString()), e);
               }
               if (status.isFile()) {
