@@ -68,7 +68,9 @@ public final class LoginUser {
    * Clears the login user.
    */
   public static void clear() {
-    if (sLoginUser == null) return;
+    if (sLoginUser == null) {
+      return;
+    }
     synchronized (LoginUser.class) {
       if (sLoginUser != null) {
         sLoginUser = null;
