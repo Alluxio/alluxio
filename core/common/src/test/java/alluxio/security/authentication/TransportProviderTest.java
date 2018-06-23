@@ -229,7 +229,7 @@ public final class TransportProviderTest {
   }
 
   /**
-   *
+   * Support custom password When authentication type is set to CUSTOM
    * @throws Exception
    */
   @Test
