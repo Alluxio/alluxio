@@ -754,10 +754,9 @@ public class ConfigurationTest {
     // Test if the value of the created nested property remains raw
     assertEquals(testValue, rawMap.get(testKey.toString()));
 
-    // Test if some values in raw map is of ${VALUE} format
+    // Test if some value in raw map is of ${VALUE} format
     String regexString = "(\\$\\{([^{}]*)\\})";
     Pattern confRegex = Pattern.compile(regexString);
-    assertTrue(confRegex.matcher(rawMap.get("alluxio.locality.script")).find());
     assertTrue(confRegex.matcher(rawMap.get("alluxio.logs.dir")).find());
   }
 
