@@ -18,6 +18,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.network.thrift.ThriftUtils;
+import alluxio.security.LoginUser;
 import alluxio.security.User;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -76,6 +77,7 @@ public final class TransportProviderTest {
   @After
   public void after() {
     ConfigurationTestUtils.resetConfiguration();
+    LoginUser.clear();
   }
 
   /**
