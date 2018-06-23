@@ -18,6 +18,7 @@ import alluxio.util.ConfigurationUtils;
 
 import com.google.common.base.Preconditions;
 
+import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +85,11 @@ public final class Configuration {
     if (sitePropertyFile != null) {
       siteProps = ConfigurationUtils.loadPropertiesFromFile(sitePropertyFile);
     } else {
-      siteProps = ConfigurationUtils.loadPropertiesFromResource(Constants.SITE_PROPERTIES);
+      URL resource = Configuration.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
+      siteProps = ConfigurationUtils.loadPropertiesFromResource(resource);
+      if (siteProps != null) {
+        sitePropertyFile = resource.getPath();
+      }
     }
     PROPERTIES.merge(siteProps, Source.siteProperty(sitePropertyFile));
     validate();
