@@ -1083,8 +1083,8 @@ public class InodeTree implements JournalEntryIterable {
               try {
                 status = ufs.getStatus(ufsUri);
               } catch (Exception e) {
-                throw new IOException(String.format("Cannot sync UFS directory %s: %s.", ufsUri,
-                    e.toString()), e);
+                throw new IOException(String.format("Cannot create or stat UFS directory %s: %s.",
+                    ufsUri, e.toString()), e);
               }
               if (status.isFile()) {
                 throw new InvalidPathException(String.format(
