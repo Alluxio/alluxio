@@ -49,8 +49,8 @@ public final class ConfigurationUtils {
    */
   @Nullable
   public static Properties loadPropertiesFromResource(URL resource) {
-    try {
-      return loadProperties(resource.openStream());
+    try (InputStream stream = resource.openStream()) {
+      return loadProperties(stream);
     } catch (IOException e) {
       LOG.warn("Failed to read properties from {}: {}", resource, e.toString());
       return null;
