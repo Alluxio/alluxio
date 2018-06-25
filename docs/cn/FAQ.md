@@ -27,7 +27,7 @@ priority: 2
    
 5. Alluxio master节点是否具备容错能力？
 
-   是的。请参考[此页](Running-Alluxio-Fault-Tolerant.html)。
+   是的。请参考[此页](Running-Alluxio-on-a-Cluster.html#running-alluxio-with-high-availability)。
 
 6. 什么是底层存储系统？Alluxio支持多少种底层存储系统？
 
@@ -36,7 +36,7 @@ priority: 2
 
 7. 是否可以支持其他底层存储系统？
 
-   可以，事实上许多Alluxio贡献者正在进行相关工作以支持其他底层存储系统。请参考该[介绍](Integrating-Under-Storage-Systems.html)。
+   可以，事实上许多Alluxio贡献者正在进行相关工作以支持其他底层存储系统。请参考该[文档](DevelopingUFSExtensions.html)。
    
 8. Alluxio使用何种语言进行开发？
    
@@ -79,7 +79,7 @@ priority: 2
 
 17. 如何为Alluxio贡献代码？
 
-    非常感谢您的关注。您可以查看 [Contributing-to-Alluxio](/contribute)，还可以
+    非常感谢您的关注。您可以查看 [our contribute page](/community/contribute)，还可以
     [在此](https://alluxio.atlassian.net/browse/ALLUXIO-2532?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))查看JIRA上的一些问题（标注给新贡献者的）。
 
 18. 在哪里可以报告问题或提出新功能？
