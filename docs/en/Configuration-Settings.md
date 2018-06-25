@@ -81,9 +81,27 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio node (masters
 and workers) before starting the cluster.
 
-> Note that, `${ALLUXIO_HOME}/conf/alluxio-site.properties` are only loaded by Alluxio server
-> processes. Applications interacting with Alluxio service through Alluxio client will not load
-> these site property files, unless `${ALLUXIO_HOME}/conf` is on the application classpath.
+## Use Cluster Default
+
+Since v1.8, each Alluxio client can initialize the configuration with cluster-wise
+configuration values fetched from masters.
+To be specific, when different client applications like Alluxio Shell commands,
+Spark jobs, or MapReduce jobs connect to an Alluxio service,
+they will initialize their own Alluxio configuration properties with the default values
+supplied by the masters based on the `${ALLUXIO_HOME}/conf/alluxio-site.properties` files on
+masters. As a result, if masters put client-side settings (e.g., `alluxio.user.*`) or
+network transport settings (such as `alluxio.security.authentication.type`) in
+`${ALLUXIO_HOME}/conf/alluxio-site.properties`,
+these properties will become cluster-wise default values for new Alluxio clients
+unless these clients overwrite the same properties using the approaches described in
+[Configure Alluxio for Applications](Configuration-Settings.html#configure-applications),
+or specify property `alluxio.user.conf.cluster.default.enabled=false` to
+decline the cluster-wise default values.
+
+> Note that, before v1.8, `${ALLUXIO_HOME}/conf/alluxio-site.properties` file is only loaded by
+Alluxio server
+> processes and will be ignored by applications interacting with Alluxio service through Alluxio
+client.
 
 ## Use Environment variables
 
@@ -179,6 +197,35 @@ earliest in this list:
 server process including master and worker searches `alluxio-site.properties` in a list paths of
 `${HOME}/.alluxio/`, `/etc/alluxio/` and `${ALLUXIO_HOME}/conf` in order, and will skip the
 remaining paths once this `alluxio-site.properties` file is found.
+4. [Cluster default values](#use-cluster-default). An Alluxio client may initialize its
+configuration based on the configuration fetched from the master nodes as the cluster-wise default.
 
 If no above user-specified configuration is found for a property, Alluxio runtime will fallback to
 its [default property value](Configuration-Properties.html).
+
+To check the value of a specific configuration property and the source of its value, user can use
+the following commandline:
+
+```bash
+$ bin/alluxio getConf --source alluxio.worker.port
+DEFAULT
+```
+
+To list all of the configuration properties with sources:
+
+```bash
+$ bin/alluxio getConf --source
+alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
+alluxio.debug=false (DEFAULT)
+...
+```
+
+To list all of the configuration properties by the master with sources (rather than the local
+settings):
+
+```bash
+$ bin/alluxio getConf --master --source
+alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
+alluxio.debug=false (DEFAULT)
+...
+```
