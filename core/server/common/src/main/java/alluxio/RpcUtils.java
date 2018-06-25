@@ -43,8 +43,6 @@ import java.io.IOException;
  * recorded.
  */
 public final class RpcUtils {
-  private static final String METHOD_NAME_SEPARATOR = ":";
-
   /**
    * An interface representing a callable which can only throw Alluxio exceptions.
    *
@@ -299,13 +297,11 @@ public final class RpcUtils {
   }
 
   private static String getQualifiedMetricName(String methodName) {
-    String name = methodName.split(METHOD_NAME_SEPARATOR)[0];
-    return getQualifiedMetricNameInternal(name);
+    return getQualifiedMetricNameInternal(methodName);
   }
 
   private static String getQualifiedFailureMetricName(String methodName) {
-    String name = methodName.split(METHOD_NAME_SEPARATOR)[0];
-    return getQualifiedMetricNameInternal(name + "Failures");
+    return getQualifiedMetricNameInternal(methodName + "Failures");
   }
 
   private static String getQualifiedMetricNameInternal(String name) {
