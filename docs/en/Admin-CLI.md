@@ -97,5 +97,5 @@ write operations on the under storage.
 $ ./bin/alluxio fsadmin ufs --mode readOnly hdfs://ns
 ```
 
-The `fsadmin ufs` subcommand takes a UFS URI as argument. The argument should be a root
+The `fsadmin ufs` subcommand takes a UFS URI as an argument. The argument should be a root
 UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
