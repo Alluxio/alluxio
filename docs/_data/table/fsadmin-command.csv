@@ -1,3 +1,5 @@
 operation,syntax
-report,"report"
+backup,"backup [directory] [--local]"
+doctor,"doctor [category]""
+report,"report [category] [category args]"
 ufs,"ufs --mode <noAccess/readOnly/readWrite> ""ufsPath"""
