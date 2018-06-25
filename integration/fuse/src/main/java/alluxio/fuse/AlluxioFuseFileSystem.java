@@ -15,11 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CheckConsistencyOptions;
-import alluxio.client.file.options.DeleteOptions;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -28,23 +24,19 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
-import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-
 import jnr.ffi.Pointer;
 import jnr.ffi.types.gid_t;
 import jnr.ffi.types.mode_t;
 import jnr.ffi.types.off_t;
 import jnr.ffi.types.size_t;
 import jnr.ffi.types.uid_t;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
@@ -61,6 +53,10 @@ import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import alluxio.client.file.options.CheckConsistencyOptions;
+import alluxio.client.file.options.DeleteOptions;
+import alluxio.client.file.options.ListStatusOptions;
+import alluxio.client.file.FileSystemUtils;
 import alluxio.MetaCache;
 import alluxio.wire.LoadMetadataType;
 
@@ -329,19 +325,14 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("getattr({}) [Alluxio: {}]", path, turi);
 
     try {   //qiniu
-      try {
-          if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
-      } catch (Exception e) {
-          int idx = path.lastIndexOf("/@");
-          if (idx >= 0) {
-              path = path.substring(0, idx);
-              if (path.equals("")) path = "/";
-              turi = MetaCache.getURI(path);
-              if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
-          } else {
-              throw e;
-          }
+      int idx = path.lastIndexOf("/@");
+      if (idx >= 0) {
+          path = path.substring(0, idx);
+          if (path.equals("")) path = "/";
+          turi = MetaCache.getURI(path);
       }
+
+      if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
 
       URIStatus status = mFileSystem.getStatus(turi);
 
@@ -529,6 +520,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     }
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
+      MetaCache.invalidate(path);
       return -ErrorCodes.EBADFD();
     }
 
@@ -566,12 +558,25 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     return nread;
   }
 
+  private void doInvalidate(String path, AlluxioURI uri) {
+      try {
+        final URIStatus status = mFileSystem.getStatus(uri);
+        if (status.isFolder()) {
+            MetaCache.invalidatePrefix(path);
+        } else {
+            MetaCache.invalidate(path);
+        }
+      } catch (Exception e) {
+        LOG.error("==== error doInvalidate getStatus {} ", path);
+      }
+  }
+
   /**
    * Repair the inconsistent path by delete it in alluxio only, and refresh master metadata
    */
   private void doRefresh(String path, AlluxioURI uri) throws IOException {
-      MetaCache.invalidate(path);
-      MetaCache.invalidatePrefix(path);
+      doInvalidate(path, uri);
+
       CheckConsistencyOptions options = CheckConsistencyOptions.defaults();
       List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(uri, options);
       DeleteOptions delopt = DeleteOptions.defaults().setAlluxioOnly(true);
@@ -604,26 +609,22 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("readdir({}) [Alluxio: {}]", path, turi);
 
     try {
-      try {
-          if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
-      } catch (Exception e) {
-          int idx = path.lastIndexOf("/@");
-          if (idx >= 0) {
-              String dbg_txt = path.substring(idx).replace("/@", "");
-              path = path.substring(0, idx);
-              if (path.equals("")) path = "/";
-              turi = MetaCache.getURI(path);
-              if (dbg_txt.equals("f")) {
-                doRefresh(path, turi);
-                options.setLoadMetadataType(LoadMetadataType.Always);
-              } else {
-                MetaCache.debug_meta_cache(dbg_txt);
-              }
-              if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
+      int idx = path.lastIndexOf("/@");
+      if (idx >= 0) {
+          String dbg_txt = path.substring(idx).replace("/@", "");
+          path = path.substring(0, idx);
+          if (path.equals("")) path = "/";
+          turi = MetaCache.getURI(path);
+          if (dbg_txt.equals("f")) {
+            doRefresh(path, turi);
+            options.setLoadMetadataType(LoadMetadataType.Always);
           } else {
-              throw e;
+            MetaCache.debug_meta_cache(dbg_txt);
           }
       }
+
+      if (!mFileSystem.exists(turi)) return -ErrorCodes.ENOENT();
+
       final URIStatus status = mFileSystem.getStatus(turi);
       if (!status.isFolder()) {
         return -ErrorCodes.ENOTDIR();
@@ -701,8 +702,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int rename(String oldPath, String newPath) {
     //final AlluxioURI oldUri = mPathResolverCache.getUnchecked(oldPath);
     //final AlluxioURI newUri = mPathResolverCache.getUnchecked(newPath);
-    MetaCache.invalidate(oldPath);
-    MetaCache.invalidate(newPath);
     final AlluxioURI oldUri = MetaCache.getURI(oldPath);
     final AlluxioURI newUri = MetaCache.getURI(newPath);
     LOG.trace("rename({}, {}) [Alluxio: {}, {}]", oldPath, newPath, oldUri, newUri);
@@ -713,17 +712,11 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.ENOENT();
       }
       if (mFileSystem.exists(newUri)) {
-        /*
-        try {
-            unlink(newPath); 
-        } catch (Exception e) {
-            LOG.warn("=== exception during unlink {} in trunk {}", newPath, e.getMessage());
-        }
-        create(newPath, 0, null);
-        */
         LOG.error("File {} already exists, please delete the destination file first", newPath);
         return -ErrorCodes.EEXIST();
       }
+      doInvalidate(oldPath, oldUri);
+      doInvalidate(newPath, newUri);
       mFileSystem.rename(oldUri, newUri);
     } catch (FileDoesNotExistException e) {
       LOG.debug("File {} does not exist", oldPath);
@@ -851,18 +844,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     }
 
     if (oe.getOut() == null) {
-      /*
-      MetaCache.invalidate(path);
-      try {
-          unlink(path); 
-      } catch (Exception e) {
-          LOG.warn("=== exception during unlink {} in trunk {}", path, e.getMessage());
-      }
-      create(path, 0, null);
-      synchronized (mOpenFiles) {
-        oe = this.get_ofe(path, fd);
-      }
-      */
       LOG.error("{} already exists in Alluxio and cannot be overwritten."
           + " Please delete this file first.", path);
       return -ErrorCodes.EEXIST();
@@ -910,8 +891,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.EISDIR();
       }
 
+      doInvalidate(path, turi);
       mFileSystem.delete(turi);
-      if (status.isFolder()) MetaCache.invalidatePrefix(path);  //qiniu
     } catch (FileDoesNotExistException e) {
       LOG.debug("File does not exist {}", path, e);
       return -ErrorCodes.ENOENT();
@@ -927,8 +908,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     } catch (Throwable e) {
       LOG.error("Unexpected exception on {}", path, e);
       return -ErrorCodes.EFAULT();
-    } finally { //qiniu
-      MetaCache.invalidate(path); // qiniu
     }
 
     return 0;
