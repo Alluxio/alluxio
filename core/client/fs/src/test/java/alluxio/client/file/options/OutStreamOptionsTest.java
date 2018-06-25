@@ -86,7 +86,7 @@ public class OutStreamOptionsTest {
     assertEquals("test_group", options.getGroup());
     assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
     assertEquals(Constants.NO_TTL, options.getTtl());
-    assertEquals(TtlAction.FREE, options.getTtlAction());
+    assertEquals(TtlAction.DELETE, options.getTtlAction());
     assertEquals(ufsType, options.getUnderStorageType());
     assertEquals(WriteType.CACHE_THROUGH, options.getWriteType());
     assertEquals(Constants.LAST_TIER, options.getWriteTier());
