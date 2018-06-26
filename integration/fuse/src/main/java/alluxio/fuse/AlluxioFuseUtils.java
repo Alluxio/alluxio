@@ -11,6 +11,7 @@
 
 package alluxio.fuse;
 
+import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 
 import org.slf4j.Logger;
@@ -56,8 +57,11 @@ public final class AlluxioFuseUtils {
    * @return user name
    */
   public static String getUserName(long uid) throws IOException {
-    // Simply use the 'getent' command to get username from uid and cut the first filed delimited by colon
-    return ShellUtils.execCommand("getent", "passwd", Long.toString(uid)).trim().split(":")[0];
+    if (OSUtils.isLinux()) {
+      // Uniformly use the 'getent' command to get username from uid for linux OS
+      return ShellUtils.execCommand("getent", "passwd", Long.toString(uid)).trim().split(":")[0];
+    }
+    return ShellUtils.execCommand("id", "-nu", Long.toString(uid)).trim();
   }
 
   /**
@@ -67,7 +71,11 @@ public final class AlluxioFuseUtils {
    * @return group name
    */
   public static String getGroupName(long uid) throws IOException {
-    return ShellUtils.execCommand("id", "-ng", getUserName(uid)).trim();
+    if (OSUtils.isLinux()) {
+      // Uniformly accept username for linux OS
+      return ShellUtils.execCommand("id", "-ng", getUserName(uid)).trim();
+    }
+    return ShellUtils.execCommand("id", "-ng", Long.toString(uid)).trim();
   }
 
   /**
