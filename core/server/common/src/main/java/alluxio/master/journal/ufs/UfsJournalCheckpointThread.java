@@ -131,6 +131,7 @@ public final class UfsJournalCheckpointThread extends Thread {
     // Keeps reading journal entries. If none is found, sleep for sometime. Periodically write
     // checkpoints if some conditions are met. When a shutdown signal is received, wait until
     // no new journal entries.
+
     LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
     alluxio.proto.journal.Journal.JournalEntry entry;
     // Set to true if it has waited for a quiet period. Reset if a valid journal entry is read.

@@ -535,6 +535,14 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void shortMasterHeartBeatTimeout() {
+    Configuration.set(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL, "5min");
+    Configuration.set(PropertyKey.MASTER_HEARTBEAT_TIMEOUT, "4min");
+    mThrown.expect(IllegalStateException.class);
+    Configuration.validate();
+  }
+
+  @Test
   public void setUserFileBufferBytesMaxInteger() {
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(Integer.MAX_VALUE) + "B");
     assertEquals(Integer.MAX_VALUE,

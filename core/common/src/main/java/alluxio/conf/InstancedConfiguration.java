@@ -363,8 +363,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     }
     checkHeartbeatTimeout(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL,
         PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
-    checkHeartbeatTimeout(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS,
-        PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+    // Skip checking block worker heartbeat config because the timeout is master-side while the
+    // heartbeat interval is worker-side.
   }
 
   /**
