@@ -376,7 +376,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private void checkHeartbeatTimeout(PropertyKey intervalKey, PropertyKey timeoutKey) {
     long interval = getMs(intervalKey);
     long timeout = getMs(timeoutKey);
-    Preconditions.checkState(interval < timeout, "%s=%s must not be less than %s=%s", intervalKey,
+    Preconditions.checkState(interval < timeout,
+        "heartbeat interval (%s=%s) must be less than heartbeat timeout (%s=%s)", intervalKey,
         interval, timeoutKey, timeout);
   }
 
