@@ -88,15 +88,25 @@ configuration values retrieved from masters.
 To be specific, when different client applications such as Alluxio Shell commands,
 Spark jobs, or MapReduce jobs connect to an Alluxio service,
 they will initialize their own Alluxio configuration properties with the default values
-supplied by the masters based on the master-side `${ALLUXIO_HOME}/conf/alluxio-site.properties` files.
-As a result, cluster admins can put client-side settings (e.g., `alluxio.user.*`) or
+supplied by the masters based on the master-side `${ALLUXIO_HOME}/conf/alluxio-site.properties` files. As a result, cluster admins can put client-side settings (e.g., `alluxio.user.*`) or
 network transport settings (such as `alluxio.security.authentication.type`) in
 `${ALLUXIO_HOME}/conf/alluxio-site.properties` on masters,
 which will be distributed and become cluster-wide default values for new Alluxio clients.
-Clients can overwrite the cluster-wide default values using the approaches described in
-[Configure Alluxio for Applications](Configuration-Settings.html#configure-applications),
-or specify property `alluxio.user.conf.cluster.default.enabled=false` to
-decline the cluster-wide default values.
+
+For example, a common Alluxio property `alluxio.user.file.writetype.default` is default to
+`MUST_CACHE` which only writes to Alluxio space. In an Alluxio cluster
+deployment where data persistency is preferred and all jobs need to write through to both UFS and Alluxio, with Alluxio v1.8 or later the admin can simply add
+`alluxio.user.file.writetype.default=CACHE_THROUGH` to the master-side
+`${ALLUXIO_HOME}/conf/alluxio-site.properties`. After restarting the cluster, all the new jobs will
+automatically set property `alluxio.user.file.writetype.default` to `CACHE_THROUGH` as its default
+value.
+
+Clients can still ignore or overwrite the cluster-wide default values, either
+specifying the property `alluxio.user.conf.cluster.default.enabled=false` to
+decline loading the cluster-wide default values or
+following the approaches described in
+[Configure Alluxio for Applications](Configuration-Settings.html#configure-applications) to
+overwrite the same properties.
 
 > Note that, before v1.8, `${ALLUXIO_HOME}/conf/alluxio-site.properties` file is only loaded by
 Alluxio server
@@ -187,10 +197,10 @@ does not exist yet, you can create one by copying the template:
 $ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```
 
-# Order of Configuration Sources
+# Configuration Sources
 
-If an Alluxio property is configured in multiple sources, its value is determined by the source
-earliest in this list:
+An Alluxio property can be possibly configured in multiple sources. In this case, its final value
+is determined by the source earliest in this list:
 
 1. [JVM system properties (i.e., `-Dproperty=key`)](http://docs.oracle.com/javase/jndi/tutorial/beyond/env/source.html#SYS)
 2. [Environment variables](#use-environment-variables)
@@ -199,7 +209,7 @@ server process including master and worker searches `alluxio-site.properties` in
 `${HOME}/.alluxio/`, `/etc/alluxio/` and `${ALLUXIO_HOME}/conf` in order, and will skip the
 remaining paths once this `alluxio-site.properties` file is found.
 4. [Cluster default values](#use-cluster-default). An Alluxio client may initialize its
-configuration based on the configuration fetched from the master nodes as the cluster-wise default.
+configuration based on the cluster-wide default configuration served by the masters.
 
 If no above user-specified configuration is found for a property, Alluxio runtime will fallback to
 its [default property value](Configuration-Properties.html).
@@ -223,8 +233,9 @@ alluxio.debug=false (DEFAULT)
 ...
 ```
 
-Users can also specify `--master` option to list all of the  master-side configuration properties.
-Note that, with `--master` option `getCOnf` queries the master and thus require the master nodes running; in contrast, without `--master` option it only checks the local configuration.
+Users can also specify `--master` option to list all of the cluster-default configuration properties
+by the masters. Note that, with `--master` option `getConf` will query the master and thus require
+the master nodes running; without `--master` option this command only checks the local configuration.
 
 ```bash
 $ bin/alluxio getConf --master --source
