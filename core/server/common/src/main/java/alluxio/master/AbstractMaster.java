@@ -55,23 +55,8 @@ public abstract class AbstractMaster implements Master {
   /** The clock to use for determining the time. */
   protected final Clock mClock;
 
-  /** The manager for safe mode state. */
-  protected final SafeModeManager mSafeModeManager;
-
-  /** The manager for creating and restoring backups. */
-  protected final BackupManager mBackupManager;
-
-  /**
-   * A lock which must be taken before modifying persistent (journaled) state. This is a counterpart
-   * to {@link #mPauseStateLock}.
-   */
-  protected final Lock mStateChangeLock;
-
-  /**
-   * A lock which prevents any changes to persistent (journaled) state. This is a counterpart to
-   * {@link #mStateChangeLock}.
-   */
-  protected final Lock mPauseStateLock;
+  /** The context of Alluxio masters. **/
+  protected final MasterContext mMasterContext;
 
   /**
    * @param masterContext the context for Alluxio master
@@ -83,10 +68,7 @@ public abstract class AbstractMaster implements Master {
       ExecutorServiceFactory executorServiceFactory) {
     Preconditions.checkNotNull(masterContext, "masterContext");
     mJournal = masterContext.getJournalSystem().createJournal(this);
-    mSafeModeManager = masterContext.getSafeModeManager();
-    mBackupManager = masterContext.getBackupManager();
-    mStateChangeLock = masterContext.stateChangeLock();
-    mPauseStateLock = masterContext.pauseStateLock();
+    mMasterContext = masterContext;
     mClock = clock;
     mExecutorServiceFactory = executorServiceFactory;
   }
@@ -154,7 +136,7 @@ public abstract class AbstractMaster implements Master {
     // All modifications to journaled state must happen inside of a journal context so that we can
     // persist the state change. As a mechanism to allow for state pauses, we acquire the state
     // change lock before entering any code paths that could modify journaled state.
-    try (LockResource l = new LockResource(mStateChangeLock)) {
+    try (LockResource l = new LockResource(mMasterContext.stateChangeLock())) {
       return mJournal.createJournalContext();
     }
   }

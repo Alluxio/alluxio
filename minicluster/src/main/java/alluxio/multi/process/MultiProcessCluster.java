@@ -197,6 +197,18 @@ public final class MultiProcessCluster implements TestRule {
    * @return the ID of the killed master
    */
   public synchronized int waitForAndKillPrimaryMaster(int timeoutMs) {
+    int index = getPrimaryMasterIndex(timeoutMs);
+    mMasters.get(index).close();
+    return index;
+  }
+
+  /**
+   * Gets the index of the primary master.
+   *
+   * @param timeoutMs maximum amount of time to wait, in milliseconds
+   * @return the index of the primary master
+   */
+  public synchronized int getPrimaryMasterIndex(int timeoutMs) {
     final FileSystem fs = getFileSystemClient();
     final MasterInquireClient inquireClient = getMasterInquireClient();
     CommonUtils.waitFor("a primary master to be serving", new Function<Void, Boolean>() {
@@ -219,10 +231,9 @@ public final class MultiProcessCluster implements TestRule {
     } catch (UnavailableException e) {
       throw new RuntimeException(e);
     }
-    // Destroy the master whose RPC port matches the primary RPC port.
+    // Returns the master whose RPC port matches the primary RPC port.
     for (int i = 0; i < mMasterAddresses.size(); i++) {
       if (mMasterAddresses.get(i).getRpcPort() == primaryRpcPort) {
-        mMasters.get(i).close();
         return i;
       }
     }
