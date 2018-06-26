@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -207,6 +208,8 @@ public final class MetricsSystem {
     }
   }
 
+  private static ConcurrentHashMap<String, String> sCachedMetrics = new ConcurrentHashMap<>();
+
   /**
    * Builds metric registry names for master instance. The pattern is instance.metricName.
    *
@@ -214,7 +217,11 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMasterMetricName(String name) {
-    return InstanceType.MASTER + "." + name;
+    String result = sCachedMetrics.get(name);
+    if (result != null) {
+      return result;
+    }
+    return sCachedMetrics.computeIfAbsent(name, n -> InstanceType.MASTER.toString() + "." + name);
   }
 
   /**
@@ -224,7 +231,12 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getWorkerMetricName(String name) {
-    return getMetricNameWithUniqueId(InstanceType.WORKER, name);
+    String result = sCachedMetrics.get(name);
+    if (result != null) {
+      return result;
+    }
+    return sCachedMetrics.computeIfAbsent(name,
+        n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
   }
 
   /**
@@ -234,7 +246,12 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getClientMetricName(String name) {
-    return getMetricNameWithUniqueId(InstanceType.CLIENT, name);
+    String result = sCachedMetrics.get(name);
+    if (result != null) {
+      return result;
+    }
+    return sCachedMetrics.computeIfAbsent(name,
+        n -> getMetricNameWithUniqueId(InstanceType.CLIENT, name));
   }
 
   /**
