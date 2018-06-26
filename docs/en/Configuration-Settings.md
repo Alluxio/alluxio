@@ -83,25 +83,26 @@ and workers) before starting the cluster.
 
 ## Use Cluster Default
 
-Since v1.8, each Alluxio client can initialize the configuration with cluster-wise
-configuration values fetched from masters.
-To be specific, when different client applications like Alluxio Shell commands,
+Since v1.8, each Alluxio client can initialize its configuration with the cluster-wide
+configuration values retrieved from masters.
+To be specific, when different client applications such as Alluxio Shell commands,
 Spark jobs, or MapReduce jobs connect to an Alluxio service,
 they will initialize their own Alluxio configuration properties with the default values
-supplied by the masters based on the `${ALLUXIO_HOME}/conf/alluxio-site.properties` files on
-masters. As a result, if masters put client-side settings (e.g., `alluxio.user.*`) or
+supplied by the masters based on the master-side `${ALLUXIO_HOME}/conf/alluxio-site.properties` files.
+As a result, cluster admins can put client-side settings (e.g., `alluxio.user.*`) or
 network transport settings (such as `alluxio.security.authentication.type`) in
-`${ALLUXIO_HOME}/conf/alluxio-site.properties`,
-these properties will become cluster-wise default values for new Alluxio clients
-unless these clients overwrite the same properties using the approaches described in
+`${ALLUXIO_HOME}/conf/alluxio-site.properties` on masters,
+which will be distributed and become cluster-wide default values for new Alluxio clients.
+Clients can overwrite the cluster-wide default values using the approaches described in
 [Configure Alluxio for Applications](Configuration-Settings.html#configure-applications),
 or specify property `alluxio.user.conf.cluster.default.enabled=false` to
-decline the cluster-wise default values.
+decline the cluster-wide default values.
 
 > Note that, before v1.8, `${ALLUXIO_HOME}/conf/alluxio-site.properties` file is only loaded by
 Alluxio server
 > processes and will be ignored by applications interacting with Alluxio service through Alluxio
-client.
+client,
+> unless `${ALLUXIO_HOME}/conf` is on applications' classpath.
 
 ## Use Environment variables
 
@@ -203,10 +204,12 @@ configuration based on the configuration fetched from the master nodes as the cl
 If no above user-specified configuration is found for a property, Alluxio runtime will fallback to
 its [default property value](Configuration-Properties.html).
 
-To check the value of a specific configuration property and the source of its value, user can use
+To check the value of a specific configuration property and the source of its value, users can use
 the following commandline:
 
 ```bash
+$ bin/alluxio getConf alluxio.worker.port
+29998
 $ bin/alluxio getConf --source alluxio.worker.port
 DEFAULT
 ```
@@ -220,8 +223,8 @@ alluxio.debug=false (DEFAULT)
 ...
 ```
 
-To list all of the configuration properties by the master with sources (rather than the local
-settings):
+Users can also specify `--master` option to list all of the  master-side configuration properties.
+Note that, with `--master` option `getCOnf` queries the master and thus require the master nodes running; in contrast, without `--master` option it only checks the local configuration.
 
 ```bash
 $ bin/alluxio getConf --master --source
