@@ -27,16 +27,19 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.RemoteBlockReader;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.RateLimiter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -45,9 +48,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
+
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
+import alluxio.proto.dataserver.Protocol;
 
 /**
  * Responsible for storing files into under file system.
@@ -166,6 +175,16 @@ public final class FileDataManager {
     return ufs.isFile(dstPath) ? ufs.getFingerprint(dstPath) : null;
   }
 
+  private Map<Long, BlockInfo> getBlocks(long fileId, List<Long> blockIds) throws IOException {
+    //qiniu PMW lock local blocks only
+    Map<Long, BlockInfo> blocks = new HashMap<Long, BlockInfo>();
+    FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
+    for (FileBlockInfo bInfo: fileInfo.getFileBlockInfos()) {
+        blocks.put(bInfo.getBlockInfo().getBlockId(), bInfo.getBlockInfo());
+    }
+    return blocks;
+  }
+
   /**
    * Locks all the blocks of a given file Id.
    *
@@ -180,6 +199,18 @@ public final class FileDataManager {
         throw new IOException("the file " + fileId + " is already being persisted");
       }
     }
+
+    // qiniu PMW - only lock blocks in current worker
+    Map<Long, BlockInfo> blocks = getBlocks(fileId, blockIds);
+    List<Long> ids = new ArrayList<Long>();
+    for (BlockInfo info: blocks.values()) {
+        if (info.getLocations().size() == 0) continue;
+        if (info.getLocations().get(0).getWorkerId() != mBlockWorker.getWorkerId().get()) continue;
+        ids.add(info.getBlockId());
+    }
+    blockIds = ids;
+    if (blockIds.size() == 0) return;
+
     try {
       // lock all the blocks to prevent any eviction
       for (long blockId : blockIds) {
@@ -221,7 +252,7 @@ public final class FileDataManager {
     Map<Long, Long> blockIdToLockId;
     synchronized (mLock) {
       blockIdToLockId = mPersistingInProgressFiles.get(fileId);
-      if (blockIdToLockId == null || !blockIdToLockId.keySet().equals(new HashSet<>(blockIds))) {
+      if (blockIdToLockId == null /*|| !blockIdToLockId.keySet().equals(new HashSet<>(blockIds))*/) { //qiniu PMW
         throw new IOException("Not all the blocks of file " + fileId + " are locked");
       }
     }
@@ -234,25 +265,37 @@ public final class FileDataManager {
         .setMode(new Mode((short) fileInfo.getMode())));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
+    Map<Long, BlockInfo> blocks = getBlocks(fileId, blockIds); // qiniu PMW
     List<Throwable> errors = new ArrayList<>();
     try {
       for (long blockId : blockIds) {
-        long lockId = blockIdToLockId.get(blockId);
+        //long lockId = blockIdToLockId.get(blockId);
+        Long lockId = blockIdToLockId.get(blockId);
 
-        if (Configuration.getBoolean(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
+        if (lockId != null && Configuration.getBoolean(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
           BlockMeta blockMeta =
               mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
           mPersistenceRateLimiter.acquire((int) blockMeta.getBlockSize());
         }
 
         // obtain block reader
-        BlockReader reader =
-            mBlockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
+        BlockInfo bInfo = blocks.get(blockId);
+        BlockReader reader = (lockId ==  null)  // qiniu PMW
+            ? new RemoteBlockReader(blockId, bInfo.getLength(), 
+                    new InetSocketAddress(
+                        bInfo.getLocations().iterator().next().getWorkerAddress().getHost(), 
+                        bInfo.getLocations().iterator().next().getWorkerAddress().getDataPort()),
+                    Protocol.OpenUfsBlockOptions.getDefaultInstance())
+            : mBlockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
 
         // write content out
         ReadableByteChannel inputChannel = reader.getChannel();
         BufferUtils.fastCopy(inputChannel, outputChannel);
         reader.close();
+        LOG.info("=== Persit {}({}):{} get {} reader {}:{}",
+            fileInfo.getPath(), fileId, blockId, (lockId == null) ? "remote" : "local",
+            bInfo.getLocations().size() == 0 ? "" : bInfo.getLocations().iterator().next().getWorkerAddress().getHost(), 
+            bInfo.getLocations().size() == 0 ? 0 : bInfo.getLocations().iterator().next().getWorkerAddress().getDataPort());
       }
     } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
       errors.add(e);

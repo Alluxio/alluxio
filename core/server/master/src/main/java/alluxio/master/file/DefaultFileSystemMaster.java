@@ -3318,6 +3318,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     return new SyncResult(loadMetadata, deletedInode);
   }
 
+  private List<Long> getBlocks4Worker(FileInfo info, long worker) {
+    //qiniu PMW lock local blocks only
+    List<Long> blocks = new ArrayList<Long>();
+    for (FileBlockInfo bInfo: info.getFileBlockInfos()) {
+        for (BlockLocation loc: bInfo.getBlockInfo().getLocations()) {
+            if (loc.getWorkerId() == worker) {
+                blocks.add(bInfo.getBlockInfo().getBlockId());
+                break;
+            }
+        }
+    }
+    return blocks;
+  }
+
   @Override
   public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
       WorkerHeartbeatOptions options)
@@ -3352,14 +3366,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             info = getFileInfo(it.next().getValue().getFileId());  // this may throw exception
             if (info.isPersisted()) {
                 DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
-                        new PersistFile(info.getFileId(), 
-                            new ArrayList<Long>(info.getBlockIds())));
+                        new PersistFile(info.getFileId(), getBlocks4Worker(info, workerId)));
             } else {
                 if (DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_PERSIST, workerId,  // ready for persist 
                             new PersistFile(info.getFileId(), new ArrayList<Long>(info.getBlockIds())))) {
                     filesToPersist.add(new PersistFile(info.getFileId(), info.getBlockIds()));
-                    LOG.debug("===== EVICT[PERSIST] worker:" + workerId + " file:" + info.getFileId()
-                            + " blocks:" + info.getBlockIds());
+                    LOG.debug("===== EVICT[PERSIST] worker:" + workerId + " file:" + info.getPath()
+                            + "(" + info.getFileId() + ")" + " blocks:" + info.getBlockIds());
                 }
             }
         } catch (Exception e) {
@@ -3377,7 +3390,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             info = getFileInfo(it.next().getValue().getFileId());
             if (info.isPersisted()) {
                 DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
-                        new PersistFile(info.getFileId(), info.getBlockIds()));
+                        new PersistFile(info.getFileId(), getBlocks4Worker(info, workerId)));
             }
         } catch (Exception e) {
             LOG.error("==== EVICT[FREE ERROR]:" + e.getMessage());   // complain and ignore the file
