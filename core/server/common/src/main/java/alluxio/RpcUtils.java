@@ -112,6 +112,7 @@ public final class RpcUtils {
    * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an exception
    */
+
   public static <T> T call(Logger logger, RpcCallable<T> callable, String methodName,
       boolean failureOk, String description, Object... args) throws AlluxioTException {
     // avoid string format for better performance if debug is off

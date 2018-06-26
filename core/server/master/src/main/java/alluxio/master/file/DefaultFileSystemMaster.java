@@ -992,20 +992,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
           ? DescendantType.ALL : DescendantType.NONE;
-      /*
+
       String [] parentChildPathComp = null;
       if (!((InodeDirectory) inode).getChildren().isEmpty()) {
         String [] parentPathComp = PathUtils.getPathComponents(currInodePath.getUri().getPath());
         parentChildPathComp = new String[parentPathComp.length + 1];
         System.arraycopy(parentPathComp, 0, parentChildPathComp, 0,  parentPathComp.length);
       }
-      */
+
       for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
         // TODO(david): Make extending InodePath more efficient
-        // parentChildPathComp[parentChildPathComp.length - 1] = child.getName();
+        parentChildPathComp[parentChildPathComp.length - 1] = child.getName();
 
         try (LockedInodePath childInodePath  = mInodeTree.lockChildPath(currInodePath, InodeTree.LockMode.READ,
-              child, null)) {
+              child, parentChildPathComp)) {
           listStatusInternal(childInodePath, auditContext,
               nextDescendantType, statusList);
         }
