@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
 import java.io.Closeable;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A class that manages the UFS used by different services.
@@ -29,7 +30,7 @@ import java.io.Closeable;
 public interface UfsManager extends Closeable {
   /** Container for a UFS and the URI for that UFS. */
   class UfsClient {
-    private UnderFileSystem mUfs;
+    private final AtomicReference<UnderFileSystem> mUfs;
     private final AlluxioURI mUfsMountPointUri;
     private final Supplier<UnderFileSystem> mUfsSupplier;
     private final Counter mCounter;
@@ -43,17 +44,18 @@ public interface UfsManager extends Closeable {
       mUfsMountPointUri = Preconditions.checkNotNull(ufsMountPointUri, "ufsMountPointUri is null");
       mCounter = MetricsSystem.counter(
           String.format("UfsSessionCount-Ufs:%s", MetricsSystem.escape(mUfsMountPointUri)));
+      mUfs = new AtomicReference<>();
     }
 
     /**
      * @return the UFS instance
      */
-    public synchronized CloseableResource<UnderFileSystem> acquireUfsResource() {
-      if (mUfs == null) {
-        mUfs = mUfsSupplier.get();
+    public CloseableResource<UnderFileSystem> acquireUfsResource() {
+      if (mUfs.get() == null) {
+        mUfs.compareAndSet(null, mUfsSupplier.get());
       }
       mCounter.inc();
-      return new CloseableResource<UnderFileSystem>(mUfs) {
+      return new CloseableResource<UnderFileSystem>(mUfs.get()) {
         @Override
         public void close() {
           mCounter.dec();
