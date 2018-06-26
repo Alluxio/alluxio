@@ -11,7 +11,6 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.wire.WorkerInfo;
@@ -114,6 +113,45 @@ public class CapacityCommandTest {
     }
   }
 
+  @Test
+  public void longWorkerNameCapacity() throws IOException {
+    List<WorkerInfo> longWorkerNameInfoList = prepareLongWorkerNameInfoList();
+    Mockito.when(mBlockMasterClient.getWorkerReport(Mockito.any()))
+        .thenReturn(longWorkerNameInfoList);
+
+    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+         PrintStream printStream = new PrintStream(outputStream, true, "utf-8")) {
+      CapacityCommand capacityCommand = new CapacityCommand(mBlockMasterClient,
+          printStream);
+      capacityCommand.generateCapacityReport(GetWorkerReportOptions.defaults());
+      String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+      List<String> testRst = Arrays.asList(output.split("\n"));
+      // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
+      List<String> expectedOutput = Arrays.asList("Capacity information for all workers: ",
+          "    Total Capacity: 3051.76MB",
+          "        Tier: MEM  Size: 1144.41MB",
+          "        Tier: SSD  Size: 572.20MB",
+          "        Tier: HDD  Size: 190.73MB",
+          "    Used Capacity: 1049.04MB",
+          "        Tier: MEM  Size: 305.18MB",
+          "        Tier: SSD  Size: 28.61MB",
+          "        Tier: HDD  Size: 190.73MB",
+          "    Used Percentage: 34%",
+          "    Free Percentage: 66%",
+          "",
+          "Worker Name                 Last Heartbeat   Storage       Total            MEM           SSD           HDD           ",
+          "org.apache.hdp1             681              capacity      1907.35MB        572.20MB      572.20MB      -             ",
+          "                                             used          95.37MB (5%)     19.07MB       28.61MB       -             ",
+          "org.alluxio.long.host1      6211             capacity      1144.41MB        572.20MB      -             190.73MB      ",
+          "                                             used          953.67MB (83%)   286.10MB      -             190.73MB      ");
+      // CHECKSTYLE.ON: LineLengthExceed
+      List<String> testOutput = Arrays.asList(output.split("\n"));
+
+      Assert.assertThat(testOutput,
+          IsIterableContainingInOrder.contains(expectedOutput.toArray()));
+    }
+  }
+
   /**
    * @return long worker info list to test
    */
@@ -195,6 +233,50 @@ public class CapacityCommandTest {
         .setStartTimeMs(112495222L)
         .setState("In Service")
         .setUsedBytes(500000000L)
+        .setUsedBytesOnTiers(usedBytesOnTiersSec);
+
+    infoList.add(firstInfo);
+    infoList.add(secondInfo);
+    return infoList;
+  }
+
+  /**
+   * @return long worker name info list to test
+   */
+  private List<WorkerInfo> prepareLongWorkerNameInfoList() {
+    List<WorkerInfo> infoList = new ArrayList<>();
+    Map<String, Long> capacityBytesOnTiersOne = new HashMap<>();
+    capacityBytesOnTiersOne.put("MEM", 600000000L);
+    capacityBytesOnTiersOne.put("HDD", 200000000L);
+    Map<String, Long> usedBytesOnTiersOne = new HashMap<>();
+    usedBytesOnTiersOne.put("MEM", 300000000L);
+    usedBytesOnTiersOne.put("HDD", 200000000L);
+    WorkerInfo firstInfo = new WorkerInfo()
+        .setAddress(new WorkerNetAddress().setHost("org.alluxio.long.host1"))
+        .setCapacityBytes(1200000000L)
+        .setCapacityBytesOnTiers(capacityBytesOnTiersOne)
+        .setId(1)
+        .setLastContactSec(6211)
+        .setStartTimeMs(1529222699127L)
+        .setState("In Service")
+        .setUsedBytes(1000000000L)
+        .setUsedBytesOnTiers(usedBytesOnTiersOne);
+
+    Map<String, Long> capacityBytesOnTiersSec = new HashMap<>();
+    capacityBytesOnTiersSec.put("MEM", 600000000L);
+    capacityBytesOnTiersSec.put("SSD", 600000000L);
+    Map<String, Long> usedBytesOnTiersSec = new HashMap<>();
+    usedBytesOnTiersSec.put("MEM", 20000000L);
+    usedBytesOnTiersSec.put("SSD", 30000000L);
+    WorkerInfo secondInfo = new WorkerInfo()
+        .setAddress(new WorkerNetAddress().setHost("org.apache.hdp1"))
+        .setCapacityBytes(2000000000L)
+        .setCapacityBytesOnTiers(capacityBytesOnTiersSec)
+        .setId(2)
+        .setLastContactSec(681)
+        .setStartTimeMs(1529222699127L)
+        .setState("In Service")
+        .setUsedBytes(100000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersSec);
 
     infoList.add(firstInfo);

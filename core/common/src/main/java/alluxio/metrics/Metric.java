@@ -169,7 +169,7 @@ public final class Metric implements Serializable {
 
     sb.append(mName);
     for (Entry<String, String> entry : mTags.entrySet()) {
-      sb.append('.' + entry.getKey() + TAG_SEPARATOR + entry.getValue());
+      sb.append('.').append(entry.getKey()).append(TAG_SEPARATOR).append(entry.getValue());
     }
     return sb.toString();
   }
@@ -202,7 +202,7 @@ public final class Metric implements Serializable {
     StringBuilder sb = new StringBuilder();
     sb.append(name);
     for (int i = 0; i < tags.length; i += 2) {
-      sb.append('.' + tags[i] + TAG_SEPARATOR + tags[i + 1]);
+      sb.append('.').append(tags[i]).append(TAG_SEPARATOR).append(tags[i + 1]);
     }
     return sb.toString();
   }
@@ -245,8 +245,7 @@ public final class Metric implements Serializable {
     for (int i = tagStartIdx; i < pieces.length; i++) {
       String tagStr = pieces[i];
       if (!tagStr.contains(TAG_SEPARATOR)) {
-        LOG.warn("Unknown tag {}, the tag format should be tagname{}tagvalue", pieces[i],
-            TAG_SEPARATOR);
+        // Unknown tag
         continue;
       }
       int tagSeparatorIdx = tagStr.indexOf(TAG_SEPARATOR);

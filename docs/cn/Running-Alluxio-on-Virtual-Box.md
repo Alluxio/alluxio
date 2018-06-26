@@ -25,7 +25,7 @@ priority: 2
 
 **安装Alluxio**
 
-下载 [Alluxio](https://alluxio.org/download)到你本地的机器上并解压(unzip)。
+克隆 [Alluxio Repository](https://github.com/Alluxio/alluxio)到你本地的机器上。
 
 **安装python库依赖**
 

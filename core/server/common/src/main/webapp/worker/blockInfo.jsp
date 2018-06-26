@@ -27,46 +27,47 @@
 <div class="container-fluid">
   <jsp:include page="/header" />
 
-  <div class="container-fluid">
-    <div class="row-fluid">
-      <div class="span12 well">
+  <% if ((boolean) request.getAttribute("fileInfoEnabled")) { %>
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span12 well">
           <h1 class="text-error">
             <%= request.getAttribute("fatalError") %>
           </h1>
           <table class="table table-hover">
-          <thead>
-            <th>File Path</th>
-            <% for (String tierAlias : (List<String>) request.getAttribute("orderedTierAliases")) { %>
-            <th>In-<%= tierAlias %></th>
-            <% } %>
-            <th>Size</th>
-            <th>Creation Time</th>
-            <th>Modification Time</th>
-          </thead>
-          <tbody>
-            <% if (request.getAttribute("fileInfos") != null) { %>
-              <% for (UIFileInfo fileInfo : ((List<UIFileInfo>) request.getAttribute("fileInfos"))) { %>
-                <tr>
-                  <th><a href="<%= (request.getAttribute("baseUrl") == null) ? "./blockInfo" :
-                  request.getAttribute("baseUrl").toString() %>?path=<%=encode(fileInfo.getAbsolutePath(), "UTF-8")%>"><%= fileInfo.getAbsolutePath() %></a></th>
-                  <% for (String tierAlias : (List<String>) request.getAttribute("orderedTierAliases")) { %>
-                  <th><%= fileInfo.getOnTierPercentage(tierAlias) %>%</th>
-                  <% } %>
-                  <th><%= fileInfo.getSize() %></th>
-                  <th><%= fileInfo.getCreationTime() %></th>
-                  <th><%= fileInfo.getModificationTime() %></th>
-                </tr>
+            <thead>
+              <th>File Path</th>
+              <% for (String tierAlias : (List<String>) request.getAttribute("orderedTierAliases")) { %>
+                <th>In-<%= tierAlias %></th>
               <% } %>
-            <% } %>
-          </tbody>
-        </table>
+              <th>Size</th>
+              <th>Creation Time</th>
+              <th>Modification Time</th>
+            </thead>
+            <tbody>
+              <% if (request.getAttribute("fileInfos") != null) { %>
+                <% for (UIFileInfo fileInfo : ((List<UIFileInfo>) request.getAttribute("fileInfos"))) { %>
+                  <tr>
+                    <th><a href="<%= (request.getAttribute("baseUrl") == null) ? "./blockInfo" :
+                        request.getAttribute("baseUrl").toString() %>?path=<%=encode(fileInfo.getAbsolutePath(), "UTF-8")%>"><%= fileInfo.getAbsolutePath() %></a></th>
+                    <% for (String tierAlias : (List<String>) request.getAttribute("orderedTierAliases")) { %>
+                      <th><%= fileInfo.getOnTierPercentage(tierAlias) %>%</th>
+                    <% } %>
+                    <th><%= fileInfo.getSize() %></th>
+                    <th><%= fileInfo.getCreationTime() %></th>
+                    <th><%= fileInfo.getModificationTime() %></th>
+                  </tr>
+                <% } %>
+              <% } %>
+            </tbody>
+          </table>
 
-        <%@ include file="../pagination-component.jsp" %>
+          <%@ include file="../pagination-component.jsp" %>
 
+        </div>
       </div>
     </div>
-  </div>
-
+  <% } %>
   <%@ include file="../footer.jsp" %>
 </div>
 

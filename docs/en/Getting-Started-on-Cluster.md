@@ -27,7 +27,7 @@ During this guide, you will:
 **[Required]** In this documentation, we will use AWS S3 as the example Alluxio under file system.
 Please make sure you have an [AWS account with an access key id and secret access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys),
 so you will be able to use S3 in this guide. If you don't have an S3 account, you can also use an existing HDFS cluster as the under
-file system. The [Set up a distributed storage as UFS](#setupufs) section will be slightly different.
+file system. The [Set up a distributed storage as UFS](#set-up-a-distributed-storage-as-ufs) section will be slightly different.
 
 **Note**  This guide is meant for you to quickly start interacting with an Alluxio system in a distributed environment.
 If you are interested in running a larger scale example which highlights the performance benefits of Alluxio,
@@ -50,12 +50,12 @@ Please make sure on all the nodes, ssh is enabled.
 Optionally, setting up password-less ssh
 will make distributed copy and configuration easier. In this doc, we use the example of manual
 downloading and starting Alluxio on multiple nodes, for demo purpose only. The manual process here
-can be much simplified and automated using `CopyDir` or Ansible scripts. Please refer to this [doc](Running-Alluxio-on-a-Cluster.html)
+can be much simplified and automated using `./bin/alluxio copyDirr` or Ansible scripts. Please refer to this [doc](Running-Alluxio-on-a-Cluster.html)
 and [Running-Alluxio-on-EC2](Running-Alluxio-on-EC2.html) for the alternatives.
 
 ## Download Alluxio
 
-First, [download the Alluxio release](http://www.alluxio.org/download) locally. You can
+First, download the Alluxio release locally. You can
 download the latest {{site.ALLUXIO_RELEASED_VERSION}} release pre-built for various versions of
 Hadoop from the [Alluxio download page](http://www.alluxio.org/download).
 
@@ -73,7 +73,7 @@ $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 ```
 
 This will create a directory `alluxio-{{site.ALLUXIO_RELEASED_VERSION}}` with all of the Alluxio
-source files and Java binaries.
+scripts and binaries.
 
 ## Configure Alluxio
 
@@ -131,7 +131,7 @@ Will only run validation tasks that check your system resource limits, on the sp
 
 You can check out [this page](Developer-Tips.html) for detailed usage information regarding this command.
 
-## <a name="setupufs"></a> Set up a distributed storage as UFS
+## Set up a distributed storage as UFS
 
 The [local Getting-Started guide](Getting-Started.html) shows the steps of how to start Alluxio with default local file system.
 In a distributed cluster, Alluxio requires a distributed storage system as under file system.
@@ -185,13 +185,13 @@ $ bin/alluxio-start.sh worker SudoMount
 ```
 
 In a few seconds, Alluxio workers will register with the Alluxio master.
-You can visit http://ALLUXIO_WORKER1_HOSTNAME:30000 to see the status of the Alluxio worker.
+You can visit http://ALLUXIO_WORKER_HOSTNAME:30000 to see the status of an Alluxio worker.
 
 ## Use the Alluxio Shell
 
 Now that Alluxio is running, we can examine the Alluxio file system with the
 [Alluxio shell](Command-Line-Interface.html). The Alluxio shell enables many command-line operations
-to interact with Alluxio. You can ssh to the Alluxio Master node and invoke the Alluxio shell with
+to interact with Alluxio. You can invoke the Alluxio shell from any of the nodes with
 the following command:
 
 ```bash
@@ -295,7 +295,7 @@ in a more scalable and convenient way, by leveraging `alluxio/conf/workers`, `co
 
 Congratulations on completing the quick start guide for Alluxio on a cluster! You have successfully downloaded
 and installed Alluxio on a small Linux cluster, and performed some basic interactions via the Alluxio
-shell. This was a simple example on how to get started with Alluxio cluster.
+shell. This was a simple example on how to get started with an Alluxio cluster.
 
 There are several next steps available. You can learn more about the various features of Alluxio in
 our documentation. You can also deploy Alluxio in your environment, mount your existing
@@ -310,7 +310,6 @@ Alluxio can be deployed in many different environments.
 * [Alluxio Standalone on a Cluster](Running-Alluxio-on-a-Cluster.html)
 * [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
 * [Alluxio on Docker](Running-Alluxio-On-Docker.html)
-* [Alluxio Standalone with Fault Tolerance](Running-Alluxio-Fault-Tolerant.html)
 * [Alluxio on EC2](Running-Alluxio-on-EC2.html)
 * [Alluxio on GCE](Running-Alluxio-on-GCE.html)
 * [Alluxio with Mesos on EC2](Running-Alluxio-on-Mesos.html)

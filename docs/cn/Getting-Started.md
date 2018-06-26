@@ -104,7 +104,7 @@ $ ./bin/alluxio format
 现在，我们启动Alluxio！Alluxio默认配置成在localhost启动master和worker。我们可以用如下命令在localhost启动Alluxio：
 
 ```bash
-$ ./bin/alluxio-start.sh local
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 恭喜！Alluxio已经启动并运行了！你可以访问[http://localhost:19999](http://localhost:19999)查看Alluxio master的运行状态，访问[http://localhost:30000](http://localhost:30000)查看Alluxio worker的运行状态。

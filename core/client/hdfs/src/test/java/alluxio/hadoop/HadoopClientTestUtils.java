@@ -11,7 +11,9 @@
 
 package alluxio.hadoop;
 
+import alluxio.Configuration;
 import alluxio.ProjectConstants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
 
@@ -33,7 +35,8 @@ public final class HadoopClientTestUtils {
    */
   public static void resetClient() {
     try {
-      FileSystemContext.get().reset();
+      Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+      FileSystemContext.get().reset(Configuration.global());
       LineageContext.INSTANCE.reset();
       Whitebox.setInternalState(AbstractFileSystem.class, "sInitialized", false);
     } catch (Exception e) {

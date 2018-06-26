@@ -19,7 +19,7 @@
   </parent>
   <artifactId>alluxio-assembly</artifactId>
   <packaging>pom</packaging>
-  <name>Alluxio Assembly JARs</name>
+  <name>Alluxio Assembly</name>
   <description>Assembly JARs of Alluxio system</description>
 
   <modules>
