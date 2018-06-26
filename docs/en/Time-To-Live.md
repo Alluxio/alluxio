@@ -17,17 +17,17 @@ files.
 
 ## Overview
 
-Alluxio has TTL attributes associated with each inode. These attributes are journaled and persist
-across cluster restarts. The active master node is responsible for holding the metadata in memory
-when Alluxio is serving. Internally, the master runs a background thread which periodically checks
-if files have reached their TTL.
+Alluxio has TTL attributes associated with each file or directory. These attributes are journaled
+and persist across cluster restarts. The active master node is responsible for holding the metadata
+in memory when Alluxio is serving. Internally, the master runs a background thread which
+periodically checks if files have reached their TTL.
 
 Note that the background thread runs on a configurable period, by default 1 hour. This means a TTL
 will not be enforced until the next check interval, and the enforcement of a TTL can be up to 1
 TTL interval late. The interval length is set by the `alluxio.master.ttl.checker.interval`
 property.
 
-For example, to set the interval to 10 minutes, add the following to alluxio-site.properties:
+For example, to set the interval to 10 minutes, add the following to `alluxio-site.properties`:
 
 ```
 alluxio.master.ttl.checker.interval=10m
@@ -56,6 +56,8 @@ SetTTL(path, duration, action)
 `action`        the action to take when duration has elapsed. `FREE` will cause the file to be
                 evicted from Alluxio storage, regardless of the pin status. `DELETE` will cause the
                 file to be deleted from the Alluxio namespace and under store.
+                NOTE: `DELETE` is the default for certain commands and will cause the file to be
+                permanently removed.
 ```
 
 ### Command Line Usage
@@ -85,6 +87,9 @@ more details.
 Whenever a new file is added to the Alluxio namespace, the user has the option of passively adding
 a TTL to that file. This is useful in cases where files accessed by the user are expected to be
 temporarily used. Instead of calling the API many times, it is automatically set on file discovery.
+
+Note: passive TTL is more convenient but also less flexible. The options are client level, so all
+TTL requests from the client will have the same action and duration.
 
 Passive TTL works with the following configuration options:
 
