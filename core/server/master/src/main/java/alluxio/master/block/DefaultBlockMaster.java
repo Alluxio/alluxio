@@ -353,7 +353,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
-    if (mSafeModeManager.isInSafeMode()) {
+    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
@@ -367,7 +367,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException {
-    if (mSafeModeManager.isInSafeMode()) {
+    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mLostWorkers.size());
@@ -383,7 +383,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public List<WorkerInfo> getWorkerReport(GetWorkerReportOptions options)
       throws UnavailableException, InvalidArgumentException {
-    if (mSafeModeManager.isInSafeMode()) {
+    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
 
@@ -890,7 +890,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    */
   @GuardedBy("masterBlockInfo")
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) throws UnavailableException {
-    if (mSafeModeManager.isInSafeMode()) {
+    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     // "Join" to get all the addresses of the workers.
