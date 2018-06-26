@@ -1001,7 +1001,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.MASTER_HEARTBEAT_TIMEOUT_MS)
-          .setDefaultValue("1min")
+          .setDefaultValue("10min")
           .setDescription("Timeout between leader master and standby master"
               + " indicating a lost master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
