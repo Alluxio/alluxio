@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A metric of a given instance. The instance can be master, worker, or client.
@@ -205,6 +206,53 @@ public final class Metric implements Serializable {
       sb.append('.').append(tags[i]).append(TAG_SEPARATOR).append(tags[i + 1]);
     }
     return sb.toString();
+  }
+
+  private static class UserKey {
+    private String mMetric;
+    private String mUser;
+    private UserKey(String metricName, String userName) {
+      mMetric = metricName;
+      mUser = userName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof UserKey)) {
+        return false;
+      }
+      UserKey that = (UserKey) o;
+      return Objects.equal(mMetric, that.mMetric)
+          && Objects.equal(mUser, that.mUser);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mMetric, mUser);
+    }
+  }
+
+  private static final ConcurrentHashMap<UserKey, String> sCachedMetrics =
+      new ConcurrentHashMap<>();
+
+  /**
+   * Gets a metric name with a specific user tag.
+   *
+   * @param metricName the name of the metric
+   * @param userName the user
+   * @return a metric name with the user tagged
+   */
+  public static String getMetricNameWithUserTag(String metricName, String userName) {
+    UserKey k = new UserKey(metricName, userName);
+    String result = sCachedMetrics.get(k);
+    if (result != null) {
+      return result;
+    }
+    return sCachedMetrics.computeIfAbsent(k, key -> metricName + "." + CommonMetrics.TAG_USER
+        + TAG_SEPARATOR + userName);
   }
 
   /**
