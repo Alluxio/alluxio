@@ -972,11 +972,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileDoesNotExistException if the path does not exist
    * @throws UnavailableException if the service is temporarily unavailable
    */
-  private void listStatusInternal(LockedInodePath currInodePath,
-                                  AuditContext auditContext,
-                                  DescendantType descendantType,
-                                  List<FileInfo> statusList)
-      throws FileDoesNotExistException, UnavailableException, AccessControlException, InvalidPathException {
+  private void listStatusInternal(LockedInodePath currInodePath, AuditContext auditContext,
+      DescendantType descendantType, List<FileInfo> statusList)
+      throws FileDoesNotExistException, UnavailableException,
+      AccessControlException, InvalidPathException {
     Inode<?> inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
@@ -1004,8 +1003,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // TODO(david): Make extending InodePath more efficient
         parentChildPathComp[parentChildPathComp.length - 1] = child.getName();
 
-        try (LockedInodePath childInodePath  = mInodeTree.lockChildPath(currInodePath, InodeTree.LockMode.READ,
-              child, parentChildPathComp)) {
+        try (LockedInodePath childInodePath  = mInodeTree.lockChildPath(currInodePath,
+            InodeTree.LockMode.READ, child, parentChildPathComp)) {
           listStatusInternal(childInodePath, auditContext,
               nextDescendantType, statusList);
         }
@@ -3334,7 +3333,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         } else {
           try (LockedInodePath descendantPath =
                    mInodeTree.lockDescendantPath(inodePath, lockingScheme.getMode(),
-                       mountPointUri, null)) {
+                       mountPointUri)) {
             try {
               loadMetadataAndJournal(rpcContext, descendantPath, LoadMetadataOptions.defaults()
                   .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
@@ -3485,7 +3484,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             continue;
           }
           try (LockedInodePath tempInodePath = mInodeTree.lockDescendantPath(inodePath,
-              InodeTree.LockMode.READ, inodePath.getUri().join(inodeEntry.getKey()), null)) {
+              InodeTree.LockMode.READ, inodePath.getUri().join(inodeEntry.getKey()))) {
             // Recursively sync children
             if (syncDescendantType != DescendantType.ALL) {
               syncDescendantType = DescendantType.NONE;

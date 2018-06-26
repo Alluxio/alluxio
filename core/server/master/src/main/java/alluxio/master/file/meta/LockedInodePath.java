@@ -47,7 +47,7 @@ public abstract class LockedInodePath implements Closeable {
 
   LockedInodePath(AlluxioURI uri, InodeLockList lockList, String[] pathComponents,
       InodeTree.LockMode lockMode) {
-    //Preconditions.checkArgument(!lockList.isEmpty());
+    Preconditions.checkArgument(!lockList.isEmpty());
     mUri = uri;
     mPathComponents = pathComponents;
     mLockList = lockList;

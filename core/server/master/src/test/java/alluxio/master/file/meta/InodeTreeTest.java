@@ -702,7 +702,7 @@ public final class InodeTreeTest {
     try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(dirInode.getId(),
          InodeTree.LockMode.READ);
          LockedInodePath path = mTree.lockDescendantPath(lockedDirPath,
-             InodeTree.LockMode.READ, NESTED_FILE_URI, null);
+             InodeTree.LockMode.READ, NESTED_FILE_URI);
         ) {
       assertEquals(4, path.getInodeList().size());
     }
@@ -710,7 +710,7 @@ public final class InodeTreeTest {
     try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(dirInode.getId(),
         InodeTree.LockMode.READ);
          LockedInodePath path = mTree.lockDescendantPath(lockedDirPath,
-             InodeTree.LockMode.READ, lockedDirPath.getUri(), null)
+             InodeTree.LockMode.READ, lockedDirPath.getUri())
     ) {
       Assert.fail();
     } catch (InvalidPathException e) {
@@ -723,7 +723,7 @@ public final class InodeTreeTest {
     try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(subDirInode.getId(),
         InodeTree.LockMode.READ);
          LockedInodePath path = mTree.lockDescendantPath(lockedDirPath,
-             InodeTree.LockMode.READ, new AlluxioURI(""), null);
+             InodeTree.LockMode.READ, new AlluxioURI(""));
     ) {
       Assert.fail();
     } catch (InvalidPathException e) {
