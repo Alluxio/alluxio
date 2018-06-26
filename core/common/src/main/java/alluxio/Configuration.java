@@ -76,7 +76,7 @@ public final class Configuration {
 
     // Step2: Load site specific properties file if not in test mode. Note that we decide whether in
     // test mode by default properties and system properties (via getBoolean).
-    Properties siteProps;
+    Properties siteProps = null;
     // we are not in test mode, load site properties
     String confPaths = Configuration.get(PropertyKey.SITE_CONF_DIR);
     String[] confPathList = confPaths.split(",");
@@ -86,9 +86,11 @@ public final class Configuration {
       siteProps = ConfigurationUtils.loadPropertiesFromFile(sitePropertyFile);
     } else {
       URL resource = Configuration.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
-      siteProps = ConfigurationUtils.loadPropertiesFromResource(resource);
-      if (siteProps != null) {
-        sitePropertyFile = resource.getPath();
+      if (resource != null) {
+        siteProps = ConfigurationUtils.loadPropertiesFromResource(resource);
+        if (siteProps != null) {
+          sitePropertyFile = resource.getPath();
+        }
       }
     }
     PROPERTIES.merge(siteProps, Source.siteProperty(sitePropertyFile));

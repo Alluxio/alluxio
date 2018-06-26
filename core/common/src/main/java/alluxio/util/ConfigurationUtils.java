@@ -92,7 +92,7 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Searches the given properties file from a list of paths as well as the classpath.
+   * Searches the given properties file from a list of paths.
    *
    * @param propertiesFile the file to load properties
    * @param confPathList a list of paths to search the propertiesFile
