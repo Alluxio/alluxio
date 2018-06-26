@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Objects.ToStringHelper;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -167,9 +168,14 @@ public abstract class UfsStatus {
     return this;
   }
 
-  @Override
-  public String toString() {
-    return getName();
+  protected ToStringHelper toStringHelper() {
+    return Objects.toStringHelper(this)
+        .add("isDirectory", mIsDirectory)
+        .add("lastModifiedTimeMs", mLastModifiedTimeMs)
+        .add("name", mName)
+        .add("owner", mOwner)
+        .add("group", mGroup)
+        .add("mode", mMode);
   }
 
   @Override

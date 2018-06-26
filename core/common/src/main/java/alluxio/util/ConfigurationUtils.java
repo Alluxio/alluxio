@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
@@ -41,48 +42,50 @@ public final class ConfigurationUtils {
   private ConfigurationUtils() {} // prevent instantiation
 
   /**
-   * Loads properties from resource. This method will search Classpath for the properties file with
-   * the given resourceName.
+   * Loads properties from a resource.
    *
-   * @param resourceName filename of the properties file
+   * @param resource url of the properties file
    * @return a set of properties on success, or null if failed
    */
-  public static Properties loadPropertiesFromResource(String resourceName) {
-    Properties properties = new Properties();
-
-    InputStream inputStream =
-        Configuration.class.getClassLoader().getResourceAsStream(resourceName);
-    if (inputStream == null) {
-      return null;
-    }
-
-    try {
-      properties.load(inputStream);
+  @Nullable
+  public static Properties loadPropertiesFromResource(URL resource) {
+    try (InputStream stream = resource.openStream()) {
+      return loadProperties(stream);
     } catch (IOException e) {
-      LOG.warn("Unable to load default Alluxio properties file {} : {}", resourceName,
-          e.getMessage());
+      LOG.warn("Failed to read properties from {}: {}", resource, e.toString());
       return null;
     }
-    return properties;
   }
 
   /**
-   * Loads properties from the given file. This method will search Classpath for the properties
-   * file.
+   * Loads properties from the given file.
    *
    * @param filePath the absolute path of the file to load properties
    * @return a set of properties on success, or null if failed
    */
   @Nullable
   public static Properties loadPropertiesFromFile(String filePath) {
-    Properties properties = new Properties();
-
     try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
-      properties.load(fileInputStream);
+      return loadProperties(fileInputStream);
     } catch (FileNotFoundException e) {
       return null;
     } catch (IOException e) {
-      LOG.warn("Unable to load properties file {} : {}", filePath, e.getMessage());
+      LOG.warn("Failed to close property input stream from {}: {}", filePath, e.toString());
+      return null;
+    }
+  }
+
+  /**
+   * @param stream the stream to read properties from
+   * @return a properties object populated from the stream
+   */
+  @Nullable
+  public static Properties loadProperties(InputStream stream) {
+    Properties properties = new Properties();
+    try {
+      properties.load(stream);
+    } catch (IOException e) {
+      LOG.warn("Unable to load properties: {}", e.toString());
       return null;
     }
     return properties;
