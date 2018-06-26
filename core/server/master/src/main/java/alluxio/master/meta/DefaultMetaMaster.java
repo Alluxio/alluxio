@@ -28,7 +28,6 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterContext;
-import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
@@ -130,12 +129,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   private final InetSocketAddress mRpcConnectAddress
       = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC);
 
-  /** The manager of safe mode state. */
-  private final SafeModeManager mSafeModeManager;
-
-  /** The start time for when the master started serving the RPC server. */
-  private final long mStartTimeMs;
-
   /** The address of this master. */
   private Address mMasterAddress;
 
@@ -161,8 +154,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   DefaultMetaMaster(BlockMaster blockMaster, MasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
-    mSafeModeManager = masterContext.getSafeModeManager();
-    mStartTimeMs = masterContext.getStartTimeMs();
     mMasterAddress =
         new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME, "localhost"))
             .setRpcPort(masterContext.getPort());
@@ -259,7 +250,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       }
     }
     String backupFilePath;
-    try (LockResource lr = new LockResource(mPauseStateLock)) {
+    try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
       Instant now = Instant.now();
       String backupFileName = String.format("alluxio-backup-%s-%s.gz",
           DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
@@ -267,7 +258,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       backupFilePath = PathUtils.concatPath(dir, backupFileName);
       OutputStream ufsStream = ufs.create(backupFilePath);
       try {
-        mBackupManager.backup(ufsStream);
+        mMasterContext.getBackupManager().backup(ufsStream);
       } catch (Throwable t) {
         try {
           ufsStream.close();
@@ -367,12 +358,12 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public long getStartTimeMs() {
-    return mStartTimeMs;
+    return mMasterContext.getStartTimeMs();
   }
 
   @Override
   public long getUptimeMs() {
-    return System.currentTimeMillis() - mStartTimeMs;
+    return System.currentTimeMillis() - mMasterContext.getStartTimeMs();
   }
 
   @Override
@@ -382,7 +373,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public boolean isInSafeMode() {
-    return mSafeModeManager.isInSafeMode();
+    return mMasterContext.getSafeModeManager().isInSafeMode();
   }
 
   @Override
