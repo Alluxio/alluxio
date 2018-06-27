@@ -52,6 +52,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsSystem.class);
 
+  private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
+
   /**
    * An enum of supported instance type.
    */
@@ -208,8 +210,6 @@ public final class MetricsSystem {
     }
   }
 
-  private static ConcurrentHashMap<String, String> sCachedMetrics = new ConcurrentHashMap<>();
-
   /**
    * Builds metric registry names for master instance. The pattern is instance.metricName.
    *
@@ -217,11 +217,11 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMasterMetricName(String name) {
-    String result = sCachedMetrics.get(name);
+    String result = CACHED_METRICS.get(name);
     if (result != null) {
       return result;
     }
-    return sCachedMetrics.computeIfAbsent(name, n -> InstanceType.MASTER.toString() + "." + name);
+    return CACHED_METRICS.computeIfAbsent(name, n -> InstanceType.MASTER.toString() + "." + name);
   }
 
   /**
@@ -231,11 +231,11 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getWorkerMetricName(String name) {
-    String result = sCachedMetrics.get(name);
+    String result = CACHED_METRICS.get(name);
     if (result != null) {
       return result;
     }
-    return sCachedMetrics.computeIfAbsent(name,
+    return CACHED_METRICS.computeIfAbsent(name,
         n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
   }
 
@@ -246,11 +246,11 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getClientMetricName(String name) {
-    String result = sCachedMetrics.get(name);
+    String result = CACHED_METRICS.get(name);
     if (result != null) {
       return result;
     }
-    return sCachedMetrics.computeIfAbsent(name,
+    return CACHED_METRICS.computeIfAbsent(name,
         n -> getMetricNameWithUniqueId(InstanceType.CLIENT, name));
   }
 
