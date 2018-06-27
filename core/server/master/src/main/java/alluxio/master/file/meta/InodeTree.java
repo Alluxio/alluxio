@@ -771,7 +771,8 @@ public class InodeTree implements JournalEntryIterable {
    * @param inodePath the root to start locking
    * @param lockMode the lock type to use
    * @param childInode the inode of the child that we are locking
-   * @param pathComponents the array of path components
+   * @param pathComponents the array of pre-parsed path components, or null to parse pathComponents
+   *                       from the uri
    * @return an {@link InodeLockList} representing the list of descendants that got locked as
    * a result of this call.
    * @throws FileDoesNotExistException if the inode does not exist
