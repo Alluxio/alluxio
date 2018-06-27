@@ -60,7 +60,7 @@ public final class AuthenticatedClientUser {
   }
 
   /**
-   * @return the user or null if the user is not set.
+   * @return the user or null if the user is not set
    */
   public static User getOrNull() {
     return sUserThreadLocal.get();

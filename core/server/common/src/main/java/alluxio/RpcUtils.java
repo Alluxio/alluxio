@@ -11,17 +11,14 @@
 
 package alluxio;
 
-import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
-import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.thrift.AlluxioTException;
-import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
 import org.slf4j.Logger;

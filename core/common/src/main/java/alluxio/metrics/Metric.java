@@ -31,6 +31,9 @@ public final class Metric implements Serializable {
 
   private static final String ID_SEPARATOR = "-id:";
   public static final String TAG_SEPARATOR = ":";
+  private static final ConcurrentHashMap<UserKey, String> CACHED_METRICS =
+      new ConcurrentHashMap<>();
+
   private final MetricsSystem.InstanceType mInstanceType;
   private final String mHostname;
   private final String mName;
@@ -208,36 +211,6 @@ public final class Metric implements Serializable {
     return sb.toString();
   }
 
-  private static class UserKey {
-    private String mMetric;
-    private String mUser;
-    private UserKey(String metricName, String userName) {
-      mMetric = metricName;
-      mUser = userName;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (!(o instanceof UserKey)) {
-        return false;
-      }
-      UserKey that = (UserKey) o;
-      return Objects.equal(mMetric, that.mMetric)
-          && Objects.equal(mUser, that.mUser);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(mMetric, mUser);
-    }
-  }
-
-  private static final ConcurrentHashMap<UserKey, String> sCachedMetrics =
-      new ConcurrentHashMap<>();
-
   /**
    * Gets a metric name with a specific user tag.
    *
@@ -247,11 +220,11 @@ public final class Metric implements Serializable {
    */
   public static String getMetricNameWithUserTag(String metricName, String userName) {
     UserKey k = new UserKey(metricName, userName);
-    String result = sCachedMetrics.get(k);
+    String result = CACHED_METRICS.get(k);
     if (result != null) {
       return result;
     }
-    return sCachedMetrics.computeIfAbsent(k, key -> metricName + "." + CommonMetrics.TAG_USER
+    return CACHED_METRICS.computeIfAbsent(k, key -> metricName + "." + CommonMetrics.TAG_USER
         + TAG_SEPARATOR + userName);
   }
 
@@ -322,5 +295,36 @@ public final class Metric implements Serializable {
     return Objects.toStringHelper(this).add("instanceType", mInstanceType)
         .add("hostname", mHostname).add("instanceId", mInstanceId).add("name", mName)
         .add("value", mValue).add("tags", mTags).toString();
+  }
+
+  /**
+   * Data structure representing a metric name and user name.
+   */
+  private static class UserKey {
+    private String mMetric;
+    private String mUser;
+
+    private UserKey(String metricName, String userName) {
+      mMetric = metricName;
+      mUser = userName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof UserKey)) {
+        return false;
+      }
+      UserKey that = (UserKey) o;
+      return Objects.equal(mMetric, that.mMetric)
+          && Objects.equal(mUser, that.mUser);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mMetric, mUser);
+    }
   }
 }
