@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.clock.SystemClock;
+import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
@@ -83,7 +84,8 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
     mMetricsStore = new MetricsStore();
     registerAggregators();
     mClusterMetricsUpdater =
-        new HeartbeatThread("MultiValueMetricsUpdate", new ClusterMetricsUpdater(),
+        new HeartbeatThread(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER,
+            new ClusterMetricsUpdater(),
             Configuration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL));
   }
 
