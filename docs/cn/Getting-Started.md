@@ -319,7 +319,6 @@ Alluxio可以部署在很多不同的环境下。
 * [在集群上独立运行Alluxio](Running-Alluxio-on-a-Cluster.html)
 * [在Virtual Box中运行Alluxio](Running-Alluxio-on-Virtual-Box.html)
 * [在Docker中运行Alluxio](Running-Alluxio-On-Docker.html)
-* [Alluxio独立模式实现容错](Running-Alluxio-Fault-Tolerant.html)
 * [在EC2上运行Alluxio](Running-Alluxio-on-EC2.html)
 * [在GCE上运行Alluxio](Running-Alluxio-on-GCE.html)
 * [在EC2上使用Mesos运行Alluxio](Running-Alluxio-on-Mesos.html)
