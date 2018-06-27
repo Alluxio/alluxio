@@ -46,48 +46,129 @@ By default, Alluxio namespace is mounted onto the directory specified by the
 "primary storage" for Alluxio. In addition, users can use the mounting API to add new and remove
 existing data sources:
 
-{% include Unified-and-Transparent-Namespace/mounting-API.md %}
+```java
+void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath);
+void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options);
+void unmount(AlluxioURI path);
+void unmount(AlluxioURI path, UnmountOptions options);
+```
 
 For example, the primary storage could be HDFS and contain user directories; the `Data` directory
-might be stored in an S3 bucket, which is mounted to the Alluxio namespace through the
-`mount(alluxio://host:port/Data, s3://bucket/directory)` invocation.
+might be stored in an S3 bucket, which is mounted to the Alluxio namespace through
+```java
+mount(new AlluxioURI("alluxio://host:port/Data"), new AlluxioURI("s3a://bucket/directory"));
+```
 
-## Example
+## Examples
 
-In this example, we will showcase the above features. The example assumes that Alluxio source code
+The following examples assume that Alluxio source code
 exists in the `${ALLUXIO_HOME}` directory and that there is an instance of Alluxio running locally.
 
-First, let's create a temporary directory in the local file system that will be used for the example:
+### Transparent Naming
 
-{% include Unified-and-Transparent-Namespace/mkdir.md %}
+In this example, we will showcase how Alluxio provides transparent naming between files in Alluxio space and under storage.
 
-Next, let's mount the directory created above into Alluxio and verify the mounted directory
-appears in Alluxio:
+First, let's create a temporary directory in the local file system that will be used as the under stoage to mount for the example:
 
-{% include Unified-and-Transparent-Namespace/mount-demo.md %}
+```bash
+$ cd /tmp
+$ mkdir alluxio-demo
+$ touch alluxio-demo/hello
+```
+
+Next, let's mount the local directory `/tmp/alluxio-demo` created above into Alluxio namespace and
+verify the mounted directory appears in Alluxio:
+
+```bash
+$ cd ${ALLUXIO_HOME}
+$ bin/alluxio fs mount /demo file:///tmp/alluxio-demo
+Mounted file:///tmp/alluxio-demo at /demo
+$ bin/alluxio fs ls -R /
+... # should contain /demo but not /demo/hello
+```
 
 Next, let's verify that the metadata for content not created through Alluxio is loaded into Alluxio
 the first time the content is accessed:
 
-{% include Unified-and-Transparent-Namespace/ls-demo-hello.md %}
+```bash
+$ bin/alluxio fs ls /demo/hello
+... # should contain /demo/hello
+```
 
-Next, let's create a file under the mounted directory and verify the file is created in the underlying
-file system:
+Next, create a file under the mounted directory and verify the file is created in the underlying file system with the same name:
 
-{% include Unified-and-Transparent-Namespace/create-file.md %}
+```bash
+$ bin/alluxio fs touch /demo/hello2
+/demo/hello2 has been created
+$ bin/alluxio fs persist /demo/hello2
+persisted file /demo/hello2 with size 0
+$ ls /tmp/alluxio-demo
+hello hello2
+```
 
-Next, let's rename a file in Alluxio and verify the file is renamed in the underlying file system:
+Next, rename a file in Alluxio and verify the file is also renamed correspondingly in the
+underlying file system:
 
-{% include Unified-and-Transparent-Namespace/rename.md %}
+```bash
+$ bin/alluxio fs mv /demo/hello2 /demo/world
+Renamed /demo/hello2 to /demo/world
+$ ls /tmp/alluxio-demo
+hello world
+```
 
-Next, let's delete a file in Alluxio and verify the file is deleted in the underlying file system:
+Next, delete a file in Alluxio and verify the file is also deleted in the underlying file system:
 
-{% include Unified-and-Transparent-Namespace/delete.md %}
+```bash
+$ bin/alluxio fs rm /demo/world
+/demo/world has been removed
+$ ls /tmp/alluxio-demo
+hello
+```
 
-Finally, let's unmount the mounted directory and verify that the directory is removed from the
+Finally, unmount the mounted directory and verify that the directory is removed from the
 Alluxio namespace, but its content is preserved in the underlying file system:
 
-{% include Unified-and-Transparent-Namespace/unmount.md %}
+```bash
+$ bin/alluxio fs unmount /demo
+Unmounted /demo
+$ bin/alluxio fs ls -R /
+... # should not contain /demo
+$ ls /tmp/alluxio-demo
+hello
+```
+
+### Unified Namespace
+
+In this example, we will showcase how Alluxio provides a unified file system namespace abstraction
+across multiple under storages of different types. Particularly, we have one HDFS service and two
+S3 buckets from different AWS accounts.
+
+First, mount the first S3 bucket into Alluxio using credential `<accessKeyId1>` and `<secretKey1>` :
+
+```java
+$ bin/alluxio fs mkdir /mnt
+$ bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId1> --option aws.secretKey=<secretKey1>  /mnt/s3bucket1 s3a://data-bucket1/
+```
+
+Next, mount the second S3 bucket into Alluxio using possibly a different set of credential `<accessKeyId2>` and `<secretKey2>`:
+
+```java
+$ bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId2> --option aws.secretKey=<secretKey2>  /mnt/s3bucket2 s3a://data-bucket2/
+```
+
+Finally, mount the HDFS storage also into Alluxio:
+
+```java
+$ bin/alluxio fs mount /mnt/hdfs hdfs://<NAMENODE>:<PORT>/
+```
+
+Now these different directories are all contained in one space from Alluxio:
+
+```bash
+$ bin/alluxio fs ls -R /
+... # should contain /mnt/s3bucket1, /mnt/s3bucket2, /mnt/hdfs
+```
+
 
 ## Resources
 
