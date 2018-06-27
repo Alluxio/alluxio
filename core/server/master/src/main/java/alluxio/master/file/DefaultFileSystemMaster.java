@@ -991,20 +991,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
           ? DescendantType.ALL : DescendantType.NONE;
-
-      String [] parentChildPathComp = null;
+      // This is to generate a parsed child path components to be passed to lockChildPath
+      String [] childComponents = null;
       if (!((InodeDirectory) inode).getChildren().isEmpty()) {
-        String [] parentPathComp = PathUtils.getPathComponents(currInodePath.getUri().getPath());
-        parentChildPathComp = new String[parentPathComp.length + 1];
-        System.arraycopy(parentPathComp, 0, parentChildPathComp, 0,  parentPathComp.length);
+        String [] parentComponents = PathUtils.getPathComponents(currInodePath.getUri().getPath());
+        childComponents = new String[parentComponents.length + 1];
+        System.arraycopy(parentComponents, 0, childComponents, 0,  parentComponents.length);
       }
 
       for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
         // TODO(david): Make extending InodePath more efficient
-        parentChildPathComp[parentChildPathComp.length - 1] = child.getName();
+        childComponents[childComponents.length - 1] = child.getName();
 
         try (LockedInodePath childInodePath  = mInodeTree.lockChildPath(currInodePath,
-            InodeTree.LockMode.READ, child, parentChildPathComp)) {
+            InodeTree.LockMode.READ, child, childComponents)) {
           listStatusInternal(childInodePath, auditContext,
               nextDescendantType, statusList);
         }

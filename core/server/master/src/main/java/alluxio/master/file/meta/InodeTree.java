@@ -760,7 +760,7 @@ public class InodeTree implements JournalEntryIterable {
    */
   public LockedInodePath lockDescendantPath(LockedInodePath inodePath, LockMode lockMode,
       AlluxioURI descendantUri) throws InvalidPathException {
-    InodeLockList descendantLockList =  lockDescendant(inodePath, lockMode, descendantUri);
+    InodeLockList descendantLockList = lockDescendant(inodePath, lockMode, descendantUri);
     return new MutableLockedInodePath(descendantUri,
         new CompositeInodeLockList(inodePath.mLockList, descendantLockList), lockMode);
   }
