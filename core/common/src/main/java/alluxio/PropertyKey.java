@@ -999,9 +999,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey MASTER_HEARTBEAT_TIMEOUT_MS =
-      new Builder(Name.MASTER_HEARTBEAT_TIMEOUT_MS)
-          .setDefaultValue("1min")
+  public static final PropertyKey MASTER_HEARTBEAT_TIMEOUT =
+      new Builder(Name.MASTER_HEARTBEAT_TIMEOUT)
+          .setDefaultValue("10min")
           .setDescription("Timeout between leader master and standby master"
               + " indicating a lost master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3207,7 +3207,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.master.heartbeat.interval";
     public static final String MASTER_WORKER_HEARTBEAT_INTERVAL =
         "alluxio.master.worker.heartbeat.interval";
-    public static final String MASTER_HEARTBEAT_TIMEOUT_MS =
+    public static final String MASTER_HEARTBEAT_TIMEOUT =
         "alluxio.master.heartbeat.timeout";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
     public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =

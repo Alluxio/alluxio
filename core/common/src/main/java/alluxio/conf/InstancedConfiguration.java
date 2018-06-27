@@ -361,6 +361,24 @@ public class InstancedConfiguration implements AlluxioConfiguration {
           PropertyKey.Name.MASTER_WORKER_CONNECT_WAIT_TIME,
           PropertyKey.Name.USER_RPC_RETRY_MAX_SLEEP_MS);
     }
+    checkHeartbeatTimeout(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL,
+        PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
+    // Skip checking block worker heartbeat config because the timeout is master-side while the
+    // heartbeat interval is worker-side.
+  }
+
+  /**
+   * Checks that the interval is shorter than the timeout.
+   *
+   * @param intervalKey property key for an interval
+   * @param timeoutKey property key for a timeout
+   */
+  private void checkHeartbeatTimeout(PropertyKey intervalKey, PropertyKey timeoutKey) {
+    long interval = getMs(intervalKey);
+    long timeout = getMs(timeoutKey);
+    Preconditions.checkState(interval < timeout,
+        "heartbeat interval (%s=%s) must be less than heartbeat timeout (%s=%s)", intervalKey,
+        interval, timeoutKey, timeout);
   }
 
   /**
