@@ -964,6 +964,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The interval for periodically updating the cluster level metrics.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.MASTER_CONNECTION_TIMEOUT_MS)

@@ -60,21 +60,6 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   private final HeartbeatThread mClusterMetricsUpdater;
 
   /**
-   * Heartbeat executor that updates the cluster metrics.
-   */
-  private class ClusterMetricsUpdater implements HeartbeatExecutor {
-    @Override
-    public void heartbeat() throws InterruptedException {
-      updateMultiValueMetrics();
-    }
-
-    @Override
-    public void close() {
-      // nothing to clean up
-    }
-  }
-
-  /**
    * Creates a new instance of {@link MetricsMaster}.
    *
    * @param masterContext the context for metrics master
@@ -230,4 +215,20 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   public void workerHeartbeat(String hostname, List<Metric> metrics) {
     mMetricsStore.putWorkerMetrics(hostname, metrics);
   }
+
+  /**
+   * Heartbeat executor that updates the cluster metrics.
+   */
+  private class ClusterMetricsUpdater implements HeartbeatExecutor {
+    @Override
+    public void heartbeat() throws InterruptedException {
+      updateMultiValueMetrics();
+    }
+
+    @Override
+    public void close() {
+      // nothing to clean up
+    }
+  }
+
 }
