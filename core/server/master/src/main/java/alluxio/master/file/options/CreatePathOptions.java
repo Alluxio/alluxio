@@ -13,7 +13,6 @@ package alluxio.master.file.options;
 
 import alluxio.security.authorization.Mode;
 import alluxio.wire.CommonOptions;
-import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 
@@ -116,21 +115,6 @@ public abstract class CreatePathOptions<T> {
   }
 
   /**
-   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
-   *         should be kept around before it is automatically deleted
-   */
-  public long getTtl() {
-    return getCommonOptions().getTtl();
-  }
-
-  /**
-   * @return action {@link TtlAction} after ttl expired
-   */
-  public TtlAction getTtlAction() {
-    return getCommonOptions().getTtlAction();
-  }
-
-  /**
    * @param options the common options
    * @return the updated options object
    */
@@ -212,25 +196,6 @@ public abstract class CreatePathOptions<T> {
    */
   public T setMetadataLoad(boolean metadataLoad) {
     mMetadataLoad = metadataLoad;
-    return getThis();
-  }
-
-  /**
-   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-   *        created file should be kept around before it is automatically deleted
-   * @return the updated options object
-   */
-  public T setTtl(long ttl) {
-    getCommonOptions().setTtl(ttl);
-    return getThis();
-  }
-
-  /**
-   * @param ttlAction the {@link TtlAction}; It informs the action to take when Ttl is expired;
-   * @return the updated options object
-   */
-  public T setTtlAction(TtlAction ttlAction) {
-    getCommonOptions().setTtlAction(ttlAction);
     return getThis();
   }
 

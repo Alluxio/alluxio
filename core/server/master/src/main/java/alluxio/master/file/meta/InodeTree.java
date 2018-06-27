@@ -579,9 +579,7 @@ public class InodeTree implements JournalEntryIterable {
         .setPersisted(options.isPersisted())
         .setOperationTimeMs(options.getOperationTimeMs())
         .setOwner(options.getOwner())
-        .setGroup(options.getGroup())
-        .setTtl(options.getTtl())
-        .setTtlAction(options.getTtlAction());
+        .setGroup(options.getGroup());
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir = null;
       while (dir == null) {

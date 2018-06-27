@@ -14,7 +14,6 @@ package alluxio.master.file.options;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.underfs.UfsStatus;
 import alluxio.wire.CommonOptions;
-import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 
@@ -89,20 +88,6 @@ public final class LoadMetadataOptions {
   }
 
   /**
-   * @return the time to live of an inode
-   */
-  public long getTtl() {
-    return getCommonOptions().getTtl();
-  }
-
-  /**
-   * @return the action after ttl is expired
-   */
-  public TtlAction getTtlAction() {
-    return getCommonOptions().getTtlAction();
-  }
-
-  /**
    * @param options the common options
    * @return the updated options object
    */
@@ -143,28 +128,6 @@ public final class LoadMetadataOptions {
     return this;
   }
 
-  /**
-   * Sets the ttl of a path.
-   *
-   * @param ttl time to live
-   * @return the updated object
-   */
-  public LoadMetadataOptions setTtl(long ttl) {
-    getCommonOptions().setTtl(ttl);
-    return this;
-  }
-
-  /**
-   * Sets the action after ttl expired.
-   *
-   * @param ttlAction action after ttl expired
-   * @return the updated object
-   */
-  public LoadMetadataOptions setTtlAction(TtlAction ttlAction) {
-    getCommonOptions().setTtlAction(ttlAction);
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -191,7 +154,6 @@ public final class LoadMetadataOptions {
         .add("commonOptions", mCommonOptions)
         .add("createAncestors", mCreateAncestors)
         .add("loadDescendantLevels", mLoadDescendantType)
-        .add("ufsStatus", mUfsStatus)
-        .toString();
+        .add("ufsStatus", mUfsStatus).toString();
   }
 }

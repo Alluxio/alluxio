@@ -71,7 +71,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
         if (path != null) {
           try {
             TtlAction ttlAction = inode.getTtlAction();
-            LOG.info("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
+            LOG.debug("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
             switch (ttlAction) {
               case FREE:
                 // public free method will lock the path, and check WRITE permission required at

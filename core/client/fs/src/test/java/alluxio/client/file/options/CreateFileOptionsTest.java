@@ -113,6 +113,8 @@ public final class CreateFileOptionsTest {
     Assert.assertEquals(blockSize, thriftOptions.getBlockSizeBytes());
     Assert.assertEquals(recursive, thriftOptions.isRecursive());
     Assert.assertEquals(writeType.isThrough(), thriftOptions.isPersisted());
+    Assert.assertEquals(ttl, thriftOptions.getTtl());
+    Assert.assertEquals(alluxio.thrift.TTtlAction.Free, thriftOptions.getTtlAction());
     Assert.assertEquals(mode.toShort(), thriftOptions.getMode());
   }
 
