@@ -699,22 +699,27 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
      
       // qiniu: don't want to change thrift (see its warning), so use '0' to delimit the
       // to_be_remove and already_removed block ids
-      List<Long> evictingBlockIds = new ArrayList<Long>();
+      Set<Long> evictingFiles = new HashSet<Long>();
       for (int i = 0; i < removedBlockIds.size(); i++) {
           if (removedBlockIds.get(i) == 0) {
               for (int j = 0; j < i; j++) {
-                  evictingBlockIds.add(removedBlockIds.get(0));
+                  long containerId = BlockId.getContainerId(removedBlockIds.get(0));
+                  long fileId = IdUtils.createFileId(containerId);
+                  evictingFiles.add(fileId);
                   removedBlockIds.remove(0);
               }
               removedBlockIds.remove(0);
               break;
           }
       }
-      for (long id: evictingBlockIds) {
-          long containerId = BlockId.getContainerId(id);
-          long fileId = IdUtils.createFileId(containerId);
+      /** qiniu
+       * we now add to queue for workerId without blocks, but may move to another worker queue later
+       * sicne we can't get file info in the block context.
+       * we will let the worker with first block to handle persist to avoid duplication.
+       */
+      for (long id: evictingFiles) {
           DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_EVICT, workerId, 
-                  new PersistFile(fileId, new ArrayList<Long>()));  // no block ids yet
+                  new PersistFile(id, new ArrayList<Long>()));  // no block ids yet
       }
 
       processWorkerRemovedBlocks(worker, removedBlockIds);
@@ -725,7 +730,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
       List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
 
-      // _qiniu
+      // qiniu
       ArrayList<Long> ids = new ArrayList<Long>();
       Map<Long, PersistFile> frees = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_FREE, workerId);
       Iterator<Map.Entry<Long, PersistFile>> it = frees.entrySet().iterator();

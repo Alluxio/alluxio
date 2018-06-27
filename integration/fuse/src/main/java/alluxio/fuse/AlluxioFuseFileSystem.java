@@ -22,6 +22,7 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
 
@@ -29,14 +30,17 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+
 import jnr.ffi.Pointer;
 import jnr.ffi.types.gid_t;
 import jnr.ffi.types.mode_t;
 import jnr.ffi.types.off_t;
 import jnr.ffi.types.size_t;
 import jnr.ffi.types.uid_t;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
@@ -59,6 +63,8 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.MetaCache;
 import alluxio.wire.LoadMetadataType;
+import alluxio.retry.CountingRetry;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Main FUSE implementation class.
@@ -68,6 +74,9 @@ import alluxio.wire.LoadMetadataType;
 @ThreadSafe
 final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
+
+  private static final int MAX_WORKERS_TO_RETRY =
+      Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
 
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
@@ -124,9 +133,30 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       return mOpenFiles.get(fid);
   }
 
+  /**
+   * File attributes (URIStatus may change and block may be evicted), in such case, we need to 
+   * reopen the file when receiving an exception.
+   */
+  private void update_ofe(String path, long fid) throws IOException, AlluxioException {
+      OpenFileEntry oe = null, oldOe = null;
+      AlluxioURI uri = MetaCache.getURI(path);
+      oldOe = remove_ofe(path, fid);
+      oe = new OpenFileEntry(mFileSystem.openFile(uri), null, 
+                (oldOe != null) ? oldOe.getFi() : null);
+      if (oldOe != null) oldOe.close();
+
+      synchronized (mOpenFiles) {
+          mOpenFiles.put(fid, oe);
+      }
+  }
+
   private OpenFileEntry remove_ofe(String path, long fid) {
       mTruncatePaths.remove(path);
-      return mOpenFiles.remove(fid);
+      OpenFileEntry oe = null;
+      synchronized (mOpenFiles) {
+        oe = mOpenFiles.remove(fid);
+      }
+      return oe;
   }
 
   /**
@@ -142,7 +172,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     MetaCache.setAlluxioRootPath(mAlluxioRootPath); // call this as earlier as possible - qiniu
     mNextOpenFileId = 0L;
     mOpenFiles = new HashMap<>();
-    mTruncatePaths = new HashMap<>();
+    mTruncatePaths = new ConcurrentHashMap<>();
 
     //final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
     mIsShellGroupMapping = ShellBasedUnixGroupsMapping.class.getName()
@@ -489,6 +519,27 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
+   * FUSE all FileInStrea, which calls BlockInStream. 
+   * If a block is evicted during file persisting, that is, file status changed from
+   * NOT_PERSISTED to PERSISTED, then block may be disappeared and the block read can hit
+   * a NOTFOUNDEXCEPTION (child of IOException). FileInStream already handles some retry for block,
+   * and FUSE needs to handle retry for file, also.
+   */
+  private boolean handleRetryableException(String path, long fd, IOException e) {
+      MetaCache.invalidate(path);
+      if (!(e instanceof NotFoundException)) return false;
+      OpenFileEntry oe = get_ofe(path, fd);
+      if (oe == null) return false;
+      try {
+          update_ofe(path, fd);
+      } catch (IOException | AlluxioException e2) {
+          LOG.error("=== get err when handle retry exception " + e2.getMessage());
+          return false;
+      }
+      return true;
+  }
+
+  /**
    * Reads data from an open file.
    *
    * @param path the FS path of the file to read
@@ -514,45 +565,56 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     final int sz = (int) size;
     final long fd = fi.fh.get();
     OpenFileEntry oe;
-    synchronized (mOpenFiles) {
-      //oe = mOpenFiles.get(fd);
-      oe = this.get_ofe(path, fd);
-    }
-    if (oe == null) {
-      LOG.error("Cannot find fd for {} in table", path);
-      MetaCache.invalidate(path);
-      return -ErrorCodes.EBADFD();
-    }
-
     int rd = 0;
     int nread = 0;
-    if (oe.getIn() == null) {
-      LOG.error("{} was not open for reading", path);
-      return -ErrorCodes.EBADFD();
-    }
-    try {
-      oe.getIn().seek(offset);
-      final byte[] dest = new byte[sz];
-      while (rd >= 0 && nread < size) {
-        rd = oe.getIn().read(dest, nread, sz - nread);
-        if (rd >= 0) {
-          nread += rd;
-        }
-      }
 
-      if (nread == -1) { // EOF
+    CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
+    while (true) {
+        synchronized (mOpenFiles) {
+            //oe = mOpenFiles.get(fd);
+            oe = this.get_ofe(path, fd);
+        }
+        if (oe == null) {
+            LOG.error("Cannot find fd for {} in table", path);
+            MetaCache.invalidate(path);
+            return -ErrorCodes.EBADFD();
+        }
+
+        rd = 0;
         nread = 0;
-      } else if (nread > 0) {
-        buf.put(0, dest, 0, nread);
-      }
-    } catch (IOException e) {
-      MetaCache.invalidate(path);
-      LOG.error("IOException while reading from {}.", path, e);
-      return -ErrorCodes.EIO();
-    } catch (Throwable e) {
-      MetaCache.invalidate(path);
-      LOG.error("Unexpected exception on {}", path, e);
-      return -ErrorCodes.EFAULT();
+        if (oe.getIn() == null) {
+            LOG.error("{} was not open for reading", path);
+            return -ErrorCodes.EBADFD();
+        }
+        try {
+            oe.getIn().seek(offset);
+            final byte[] dest = new byte[sz];
+            while (rd >= 0 && nread < size) {
+                rd = oe.getIn().read(dest, nread, sz - nread);
+                if (rd >= 0) {
+                    nread += rd;
+                }
+            }
+
+            if (nread == -1) { // EOF
+                nread = 0;
+            } else if (nread > 0) {
+                buf.put(0, dest, 0, nread);
+            }
+            break;  //qiniu
+        } catch (IOException e) {
+            MetaCache.invalidate(path);
+            LOG.error("IOException while reading from {}.", path, e);
+            if (handleRetryableException(path, fd, e) && retry.attemptRetry()) {
+                LOG.info("=== retrying {}: path:{} fd:{}", retry.getRetryCount(), path, fd);
+                continue;
+            } 
+            return -ErrorCodes.EIO();
+        } catch (Throwable e) {
+            MetaCache.invalidate(path);
+            LOG.error("Unexpected exception on {}", path, e);
+            return -ErrorCodes.EFAULT();
+        }
     }
 
     return nread;

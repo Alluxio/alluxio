@@ -179,7 +179,9 @@ public final class FileDataManager {
     //qiniu PMW lock local blocks only
     Map<Long, BlockInfo> blocks = new HashMap<Long, BlockInfo>();
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
+    if (fileInfo == null) return blocks;
     for (FileBlockInfo bInfo: fileInfo.getFileBlockInfos()) {
+        if (bInfo.getBlockInfo() == null) continue;
         blocks.put(bInfo.getBlockInfo().getBlockId(), bInfo.getBlockInfo());
     }
     return blocks;
@@ -199,21 +201,14 @@ public final class FileDataManager {
         throw new IOException("the file " + fileId + " is already being persisted");
       }
     }
-
-    // qiniu PMW - only lock blocks in current worker
+    
     Map<Long, BlockInfo> blocks = getBlocks(fileId, blockIds);
-    List<Long> ids = new ArrayList<Long>();
-    for (BlockInfo info: blocks.values()) {
-        if (info.getLocations().size() == 0) continue;
-        if (info.getLocations().get(0).getWorkerId() != mBlockWorker.getWorkerId().get()) continue;
-        ids.add(info.getBlockId());
-    }
-    blockIds = ids;
-    if (blockIds.size() == 0) return;
-
     try {
       // lock all the blocks to prevent any eviction
       for (long blockId : blockIds) {
+        BlockInfo info = blocks.get(blockId);   // qiniu PMW - only lock blocks in current worker
+        if (info == null || info.getLocations().size() == 0) continue;
+        if (info.getLocations().get(0).getWorkerId() != mBlockWorker.getWorkerId().get()) continue;
         long lockId = mBlockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
         blockIdToLockId.put(blockId, lockId);
       }
@@ -280,11 +275,17 @@ public final class FileDataManager {
 
         // obtain block reader
         BlockInfo bInfo = blocks.get(blockId);
+        if ((lockId == null) && (bInfo == null || bInfo.getLocations() == null || bInfo.getLocations().size() == 0
+                    || bInfo.getLocations().get(0).getWorkerAddress() == null
+                    || bInfo.getLocations().get(0).getWorkerAddress().getHost() == null
+                    || bInfo.getLocations().get(0).getWorkerAddress().getHost().equals(""))) {
+            throw new BlockDoesNotExistException("!!!=== block " + blockId + " does not exist. bInfo:" + bInfo);
+        }
         BlockReader reader = (lockId ==  null)  // qiniu PMW
             ? new RemoteBlockReader(blockId, bInfo.getLength(), 
                     new InetSocketAddress(
-                        bInfo.getLocations().iterator().next().getWorkerAddress().getHost(), 
-                        bInfo.getLocations().iterator().next().getWorkerAddress().getDataPort()),
+                        bInfo.getLocations().get(0).getWorkerAddress().getHost(), 
+                        bInfo.getLocations().get(0).getWorkerAddress().getDataPort()),
                     Protocol.OpenUfsBlockOptions.getDefaultInstance())
             : mBlockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
 
