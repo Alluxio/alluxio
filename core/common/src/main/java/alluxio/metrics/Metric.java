@@ -31,7 +31,7 @@ public final class Metric implements Serializable {
 
   private static final String ID_SEPARATOR = "-id:";
   public static final String TAG_SEPARATOR = ":";
-  private static final ConcurrentHashMap<UserKey, String> CACHED_METRICS =
+  private static final ConcurrentHashMap<UserMetricKey, String> CACHED_METRICS =
       new ConcurrentHashMap<>();
 
   private final MetricsSystem.InstanceType mInstanceType;
@@ -219,7 +219,7 @@ public final class Metric implements Serializable {
    * @return a metric name with the user tagged
    */
   public static String getMetricNameWithUserTag(String metricName, String userName) {
-    UserKey k = new UserKey(metricName, userName);
+    UserMetricKey k = new UserMetricKey(metricName, userName);
     String result = CACHED_METRICS.get(k);
     if (result != null) {
       return result;
@@ -300,11 +300,11 @@ public final class Metric implements Serializable {
   /**
    * Data structure representing a metric name and user name.
    */
-  private static class UserKey {
+  private static class UserMetricKey {
     private String mMetric;
     private String mUser;
 
-    private UserKey(String metricName, String userName) {
+    private UserMetricKey(String metricName, String userName) {
       mMetric = metricName;
       mUser = userName;
     }
@@ -314,10 +314,10 @@ public final class Metric implements Serializable {
       if (this == o) {
         return true;
       }
-      if (!(o instanceof UserKey)) {
+      if (!(o instanceof UserMetricKey)) {
         return false;
       }
-      UserKey that = (UserKey) o;
+      UserMetricKey that = (UserMetricKey) o;
       return Objects.equal(mMetric, that.mMetric)
           && Objects.equal(mUser, that.mUser);
     }
