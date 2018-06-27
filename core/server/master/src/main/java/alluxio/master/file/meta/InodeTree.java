@@ -759,10 +759,43 @@ public class InodeTree implements JournalEntryIterable {
    * @throws FileDoesNotExistException if inode does not exist
    */
   public LockedInodePath lockDescendantPath(LockedInodePath inodePath, LockMode lockMode,
-                                            AlluxioURI descendantUri) throws InvalidPathException {
+      AlluxioURI descendantUri) throws InvalidPathException {
     InodeLockList descendantLockList = lockDescendant(inodePath, lockMode, descendantUri);
     return new MutableLockedInodePath(descendantUri,
         new CompositeInodeLockList(inodePath.mLockList, descendantLockList), lockMode);
+  }
+
+  /**
+   * Lock from a specific poiint in the tree to the immediate child, and return a lockedInodePath.
+   *
+   * @param inodePath the root to start locking
+   * @param lockMode the lock type to use
+   * @param childInode the inode of the child that we are locking
+   * @param pathComponents the array of pre-parsed path components, or null to parse pathComponents
+   *                       from the uri
+   * @return an {@link InodeLockList} representing the list of descendants that got locked as
+   * a result of this call.
+   * @throws FileDoesNotExistException if the inode does not exist
+   * @throws InvalidPathException if the path is invalid
+   */
+  public LockedInodePath lockChildPath(LockedInodePath inodePath, LockMode lockMode,
+      Inode<?> childInode, String[] pathComponents)
+      throws FileDoesNotExistException, InvalidPathException {
+    InodeLockList inodeLockList = new InodeLockList();
+
+    if (lockMode == LockMode.READ) {
+      inodeLockList.lockReadAndCheckParent(childInode, inodePath.getInode());
+    } else {
+      inodeLockList.lockWriteAndCheckParent(childInode, inodePath.getInode());
+    }
+
+    if (pathComponents == null) {
+      return new MutableLockedInodePath(inodePath.getUri().join(childInode.getName()),
+          new CompositeInodeLockList(inodePath.mLockList, inodeLockList), lockMode);
+    } else {
+      return new MutableLockedInodePath(inodePath.getUri().join(childInode.getName()),
+          new CompositeInodeLockList(inodePath.mLockList, inodeLockList), pathComponents, lockMode);
+    }
   }
 
   /**

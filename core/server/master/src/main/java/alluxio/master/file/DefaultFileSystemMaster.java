@@ -972,11 +972,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileDoesNotExistException if the path does not exist
    * @throws UnavailableException if the service is temporarily unavailable
    */
-  private void listStatusInternal(LockedInodePath currInodePath,
-                                  AuditContext auditContext,
-                                  DescendantType descendantType,
-                                  List<FileInfo> statusList)
-      throws FileDoesNotExistException, UnavailableException, AccessControlException {
+  private void listStatusInternal(LockedInodePath currInodePath, AuditContext auditContext,
+      DescendantType descendantType, List<FileInfo> statusList)
+      throws FileDoesNotExistException, UnavailableException,
+      AccessControlException, InvalidPathException {
     Inode<?> inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
@@ -992,15 +991,22 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
           ? DescendantType.ALL : DescendantType.NONE;
+      // This is to generate a parsed child path components to be passed to lockChildPath
+      String [] childComponents = null;
+      if (!((InodeDirectory) inode).getChildren().isEmpty()) {
+        String [] parentComponents = PathUtils.getPathComponents(currInodePath.getUri().getPath());
+        childComponents = new String[parentComponents.length + 1];
+        System.arraycopy(parentComponents, 0, childComponents, 0,  parentComponents.length);
+      }
+
       for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
         // TODO(david): Make extending InodePath more efficient
-        try (LockedInodePath childInodePath = mInodeTree.lockDescendantPath(currInodePath,
-            InodeTree.LockMode.READ, currInodePath.getUri().join(child.getName())))  {
+        childComponents[childComponents.length - 1] = child.getName();
+
+        try (LockedInodePath childInodePath  = mInodeTree.lockChildPath(currInodePath,
+            InodeTree.LockMode.READ, child, childComponents)) {
           listStatusInternal(childInodePath, auditContext,
               nextDescendantType, statusList);
-        } catch (InvalidPathException e) {
-          LOG.warn("ListStatus encountered an invalid path {}",
-              currInodePath.getUri().join(child.getName()), e);
         }
       }
     }
