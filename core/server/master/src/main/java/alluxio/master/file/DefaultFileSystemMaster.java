@@ -3369,7 +3369,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // qiniu
     // EVICT -> PERSIST or FREE
-    Map<Long, PersistFile> m = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_EVICT, workerIdworkerId);
+    Map<Long, PersistFile> m = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_EVICT, workerId);
     Iterator<Map.Entry<Long, PersistFile>> it = m.entrySet().iterator();
     PersistFile pf = null;
     FileInfo info = null;
