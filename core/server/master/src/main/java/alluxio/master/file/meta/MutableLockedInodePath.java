@@ -40,6 +40,19 @@ public class MutableLockedInodePath extends LockedInodePath {
   /**
    * Creates an instance of {@link MutableLockedInodePath}.
    *
+   * @param uri the URI
+   * @param lockList the lock list of the inodes
+   * @param pathComponents the array of path components
+   * @param lockMode the lock mode for the path
+   */
+  public MutableLockedInodePath(AlluxioURI uri, InodeLockList lockList, String[] pathComponents,
+      InodeTree.LockMode lockMode) {
+    super(uri, lockList, pathComponents, lockMode);
+  }
+
+  /**
+   * Creates an instance of {@link MutableLockedInodePath}.
+   *
    * @param descendantUri the URI
    * @param lockedInodePath lockedInodePath that is the parent
    * @param descendants Locked descendants
