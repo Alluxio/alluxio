@@ -20,7 +20,7 @@ system namespace.
 ![transparent]({{site.data.img.screenshot_transparent}})
 
 When a user creates objects in the Alluxio namespace, they can choose whether these objects should
-be persisted in the underlying storage system. For objects that are persisted, Alluxio preserve the
+be persisted in the underlying storage system. For objects that are persisted, Alluxio preserves the
 object paths, relative to the underlying storage system directory in which Alluxio objects are
 stored. For instance, if a user creates a top-level directory `Users` with subdirectories `Alice`
 and `Bob`, the directory structure and naming is preserved in the underlying storage system (e.g.
@@ -31,7 +31,7 @@ Furthermore, Alluxio transparently discovers content present in the underlying s
 was not created through Alluxio. For instance, if the underlying storage system contains a directory
 `Data` with files `Reports` and `Sales`, all of which were not created through Alluxio, their
 metadata will be loaded into Alluxio the first time they are accessed (e.g. when a user requests to
-open a file). The data of file is not loaded to Alluxio during this process. To load the data into
+open a file). The data of the file is not loaded to Alluxio during this process. To load the data into
 Alluxio, one can read the data using `FileInStream` or use the `load` command of the Alluxio shell.
 
 ## Unified Namespace
@@ -48,7 +48,7 @@ existing data sources:
 
 {% include Unified-and-Transparent-Namespace/mounting-API.md %}
 
-For example, the primary storage could be HDFS and contains user directories; the `Data` directory
+For example, the primary storage could be HDFS and contain user directories; the `Data` directory
 might be stored in an S3 bucket, which is mounted to the Alluxio namespace through the
 `mount(alluxio://host:port/Data, s3://bucket/directory)` invocation.
 
