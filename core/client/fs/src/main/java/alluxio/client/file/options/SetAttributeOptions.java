@@ -53,7 +53,7 @@ public final class SetAttributeOptions {
     mCommonOptions = CommonOptions.defaults();
     mPinned = null;
     mTtl = null;
-    mTtlAction = TtlAction.FREE;
+    mTtlAction = TtlAction.DELETE;
     mPersisted = null;
     mOwner = null;
     mGroup = null;

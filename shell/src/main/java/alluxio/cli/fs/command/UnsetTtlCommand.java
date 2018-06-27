@@ -52,7 +52,7 @@ public final class UnsetTtlCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI inputPath, CommandLine cl)
       throws AlluxioException, IOException {
     // Expiry doesn't matter in this case
-    FileSystemCommandUtils.setTtl(mFileSystem, inputPath, Constants.NO_TTL, TtlAction.FREE);
+    FileSystemCommandUtils.setTtl(mFileSystem, inputPath, Constants.NO_TTL, TtlAction.DELETE);
     System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
   }
 

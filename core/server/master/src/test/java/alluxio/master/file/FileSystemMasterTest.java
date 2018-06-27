@@ -1140,8 +1140,7 @@ public final class FileSystemMasterTest {
   @Test
   public void ttlFileDelete() throws Exception {
     CreateFileOptions options =
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true)
-            .setTtl(0).setTtlAction(TtlAction.DELETE);
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     assertEquals(fileInfo.getFileId(), fileId);
@@ -1156,8 +1155,7 @@ public final class FileSystemMasterTest {
   @Test
   public void ttlFileDeleteReplay() throws Exception {
     CreateFileOptions options =
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true)
-            .setTtl(0).setTtlAction(TtlAction.DELETE);
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
 
     // Simulate restart.
@@ -1179,8 +1177,7 @@ public final class FileSystemMasterTest {
   @Test
   public void ttlDirectoryDelete() throws Exception {
     CreateDirectoryOptions directoryOptions =
-        CreateDirectoryOptions.defaults().setRecursive(true)
-            .setTtl(0).setTtlAction(TtlAction.DELETE);
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
     long dirId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryOptions);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(dirId);
     assertEquals(fileInfo.getFileId(), dirId);
@@ -1195,8 +1192,7 @@ public final class FileSystemMasterTest {
   @Test
   public void ttlDirectoryDeleteReplay() throws Exception {
     CreateDirectoryOptions directoryOptions =
-        CreateDirectoryOptions.defaults().setRecursive(true)
-            .setTtl(0).setTtlAction(TtlAction.DELETE);
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
     long dirId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryOptions);
 
     // Simulate restart.
@@ -1322,8 +1318,7 @@ public final class FileSystemMasterTest {
     assertEquals(fileId,
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).getFileId());
 
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeOptions.defaults().setTtl(0).setTtlAction(TtlAction.DELETE));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1348,8 +1343,7 @@ public final class FileSystemMasterTest {
     assertEquals(fileId,
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).getFileId());
     // Set ttl.
-    mFileSystemMaster.setAttribute(NESTED_URI,
-        SetAttributeOptions.defaults().setTtl(0).setTtlAction(TtlAction.DELETE));
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(0));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is set to 0, the file and directory should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1372,8 +1366,7 @@ public final class FileSystemMasterTest {
     assertEquals(fileId,
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).getFileId());
 
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeOptions.defaults().setTtl(0).setTtlAction(TtlAction.DELETE));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1392,8 +1385,7 @@ public final class FileSystemMasterTest {
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     assertTrue(
         mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getName() != null);
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults()
-        .setTtl(0).setTtlAction(TtlAction.DELETE));
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(0));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);

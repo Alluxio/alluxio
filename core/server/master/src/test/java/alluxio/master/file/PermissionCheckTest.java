@@ -724,7 +724,7 @@ public final class PermissionCheckTest {
     long ttl = 11;
 
     return SetAttributeOptions.defaults().setPinned(recursive).setTtl(ttl)
-        .setTtlAction(TtlAction.FREE);
+        .setTtlAction(TtlAction.DELETE);
   }
 
   private SetAttributeOptions verifySetState(TestUser user, String path,

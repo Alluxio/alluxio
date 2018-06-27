@@ -42,7 +42,7 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
       Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
       URIStatus status = mFileSystem.getStatus(uri);
       Assert.assertEquals(ttl, status.getTtl());
-      Assert.assertEquals(TtlAction.FREE, status.getTtlAction());
+      Assert.assertEquals(TtlAction.DELETE, status.getTtlAction());
     }
   }
 
@@ -149,7 +149,7 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
       Assert.assertEquals(0, mFsShell.run("setTtl", filePath, testValueWithTimeUnit));
       URIStatus status = mFileSystem.getStatus(uri);
       Assert.assertEquals(numericValue * timeUnitInMilliSeconds, status.getTtl());
-      Assert.assertEquals(TtlAction.FREE, status.getTtlAction());
+      Assert.assertEquals(TtlAction.DELETE, status.getTtlAction());
     }
   }
 

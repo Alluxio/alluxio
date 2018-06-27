@@ -272,7 +272,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     Assert.assertEquals(uri.toString(), fileInfo.getPath());
     Assert.assertTrue(fileInfo.isPinned());
     Assert.assertEquals(100000, fileInfo.getTtl());
-    Assert.assertEquals(TtlAction.FREE, fileInfo.getTtlAction());
+    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
     Assert.assertTrue(fileInfo.isPersisted());
   }
 

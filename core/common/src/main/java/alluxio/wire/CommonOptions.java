@@ -46,7 +46,7 @@ public final class CommonOptions implements Serializable {
   protected CommonOptions() {
     mSyncIntervalMs = Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
     mTtl = Constants.NO_TTL;
-    mTtlAction = TtlAction.FREE;
+    mTtlAction = TtlAction.DELETE;
   }
 
   /**

@@ -188,7 +188,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     assertFalse(fileInfo.isPersisted());
     assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-    Assert.assertEquals(TtlAction.FREE, fileInfo.getTtlAction());
+    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
     Assert.assertEquals("", fileInfo.getOwner());
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
@@ -682,8 +682,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public void ttlExpiredCreateFile() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
-    CreateFileOptions options = CreateFileOptions.defaults()
-        .setTtl(ttl).setTtlAction(TtlAction.DELETE);
+    CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
@@ -715,7 +714,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-    Assert.assertEquals(TtlAction.FREE, fileInfo.getTtlAction());
+    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
   }
 
   @Test

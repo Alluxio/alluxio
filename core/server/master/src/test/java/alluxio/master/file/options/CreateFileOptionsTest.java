@@ -45,7 +45,7 @@ public class CreateFileOptionsTest {
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
-    Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
+    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
     Assert.assertFalse(options.isCacheable());
     ConfigurationTestUtils.resetConfiguration();
   }

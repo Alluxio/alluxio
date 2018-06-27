@@ -46,7 +46,7 @@ public final class CreateDirectoryOptionsTest {
     assertFalse(options.isPersisted());
     assertFalse(options.isRecursive());
     assertEquals(Constants.NO_TTL, options.getTtl());
-    assertEquals(TtlAction.FREE, options.getTtlAction());
+    assertEquals(TtlAction.DELETE, options.getTtlAction());
     ConfigurationTestUtils.resetConfiguration();
   }
 

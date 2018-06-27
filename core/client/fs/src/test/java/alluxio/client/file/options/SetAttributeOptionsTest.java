@@ -42,7 +42,7 @@ public final class SetAttributeOptionsTest {
     assertNull(options.getPersisted());
     assertNull(options.getPinned());
     assertNull(options.getTtl());
-    assertEquals(TtlAction.FREE, options.getTtlAction());
+    assertEquals(TtlAction.DELETE, options.getTtlAction());
     assertNull(options.getOwner());
     assertNull(options.getGroup());
     assertNull(options.getMode());
@@ -107,7 +107,7 @@ public final class SetAttributeOptionsTest {
     assertTrue(thriftOptions.isSetPinned());
     assertEquals(pinned, thriftOptions.isPinned());
     assertTrue(thriftOptions.isSetTtl());
-    assertEquals(alluxio.thrift.TTtlAction.Free, thriftOptions.getTtlAction());
+    assertEquals(alluxio.thrift.TTtlAction.Delete, thriftOptions.getTtlAction());
     assertEquals(ttl, thriftOptions.getTtl());
   }
 
