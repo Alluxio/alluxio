@@ -397,8 +397,11 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the new {@link AlluxioURI}
    */
   public AlluxioURI join(String suffix) {
-    return new AlluxioURI(getScheme(), getAuthority(), getPath() + AlluxioURI.SEPARATOR + suffix,
-        mUri.getQuery());
+    String path = getPath();
+    StringBuilder sb = new StringBuilder(path.length() + 1 + suffix.length());
+
+    return new AlluxioURI(getScheme(), getAuthority(),
+        sb.append(path).append(AlluxioURI.SEPARATOR).append(suffix).toString(), mUri.getQuery());
   }
 
   /**
