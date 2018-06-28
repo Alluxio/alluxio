@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -50,6 +51,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsSystem.class);
+
+  private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
 
   /**
    * An enum of supported instance type.
@@ -214,7 +217,11 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMasterMetricName(String name) {
-    return InstanceType.MASTER + "." + name;
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name, n -> InstanceType.MASTER.toString() + "." + name);
   }
 
   /**
@@ -224,7 +231,12 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getWorkerMetricName(String name) {
-    return getMetricNameWithUniqueId(InstanceType.WORKER, name);
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name,
+        n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
   }
 
   /**
@@ -234,7 +246,12 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getClientMetricName(String name) {
-    return getMetricNameWithUniqueId(InstanceType.CLIENT, name);
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name,
+        n -> getMetricNameWithUniqueId(InstanceType.CLIENT, name));
   }
 
   /**
