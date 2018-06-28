@@ -45,6 +45,14 @@ final class OpenFileEntry implements Closeable {
     this.fi = fi;
   }
 
+  public FuseFileInfo getFi() {
+      return this.fi;
+  }
+
+  public void setFi(FuseFileInfo fi) {
+      this.fi = fi;
+  }
+
   /**
    * Gets the opened input stream for this open file entry. The value returned can be {@code null}
    * if the file is not open for reading.

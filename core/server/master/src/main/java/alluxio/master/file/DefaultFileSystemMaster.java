@@ -3329,6 +3329,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     return new SyncResult(loadMetadata, deletedInode);
   }
 
+  private List<Long> getBlocks4Worker(FileInfo info, long worker) {
+    //qiniu PMW lock local blocks only
+    List<Long> blocks = new ArrayList<Long>();
+    for (FileBlockInfo bInfo: info.getFileBlockInfos()) {
+        for (BlockLocation loc: bInfo.getBlockInfo().getLocations()) {
+            if (loc.getWorkerId() == worker) {
+                blocks.add(bInfo.getBlockInfo().getBlockId());
+                break;
+            }
+        }
+    }
+    return blocks;
+  }
+
   @Override
   public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
       WorkerHeartbeatOptions options)
@@ -3357,21 +3371,38 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // EVICT -> PERSIST or FREE
     Map<Long, PersistFile> m = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_EVICT, workerId);
     Iterator<Map.Entry<Long, PersistFile>> it = m.entrySet().iterator();
+    PersistFile pf = null;
     FileInfo info = null;
     while (it.hasNext()) {
         try {
-            info = getFileInfo(it.next().getValue().getFileId());  // this may throw exception
+            pf = it.next().getValue();
+            info = getFileInfo(pf.getFileId());  // this may throw exception
             if (info.isPersisted()) {
                 DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
-                        new PersistFile(info.getFileId(), 
-                            new ArrayList<Long>(info.getBlockIds())));
-            } else {
-                if (DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_PERSIST, workerId,  // ready for persist 
-                            new PersistFile(info.getFileId(), new ArrayList<Long>(info.getBlockIds())))) {
-                    filesToPersist.add(new PersistFile(info.getFileId(), info.getBlockIds()));
-                    LOG.debug("===== EVICT[PERSIST] worker:" + workerId + " file:" + info.getFileId()
-                            + " blocks:" + info.getBlockIds());
-                }
+                        new PersistFile(info.getFileId(), getBlocks4Worker(info, workerId)));
+                continue;
+            } 
+
+            List<FileBlockInfo> bs = info.getFileBlockInfos();
+            if (bs == null || bs.size() == 0 || bs.get(0).getBlockInfo() == null 
+                    || bs.get(0).getBlockInfo().getLocations() == null
+                    || bs.get(0).getBlockInfo().getLocations().size() == 0) {
+                LOG.error("=== bs invalid" + bs);
+                continue;
+            }
+
+            long firstWorker = bs.get(0).getBlockInfo().getLocations().get(0).getWorkerId();
+            if (firstWorker != workerId) {  // move to own worker
+                DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_EVICT, firstWorker, pf);
+                LOG.info("=== move file {} from {} to {}", info.getPath(), workerId, firstWorker);
+                continue;
+            }
+
+            if (DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_PERSIST, workerId,  // ready for persist 
+                        new PersistFile(info.getFileId(), new ArrayList<Long>(info.getBlockIds())))) {
+                filesToPersist.add(new PersistFile(info.getFileId(), info.getBlockIds()));
+                LOG.debug("===== EVICT[PERSIST] worker:" + workerId + " file:" + info.getPath()
+                        + "(" + info.getFileId() + ")" + " blocks:" + info.getBlockIds());
             }
         } catch (Exception e) {
             LOG.error("==== EVICT[PERSIST or FREE ERROR]:" + e.getMessage());   // complain and ignore the file
@@ -3388,7 +3419,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             info = getFileInfo(it.next().getValue().getFileId());
             if (info.isPersisted()) {
                 DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
-                        new PersistFile(info.getFileId(), info.getBlockIds()));
+                        new PersistFile(info.getFileId(), getBlocks4Worker(info, workerId)));
             }
         } catch (Exception e) {
             LOG.error("==== EVICT[FREE ERROR]:" + e.getMessage());   // complain and ignore the file

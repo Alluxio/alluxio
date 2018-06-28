@@ -116,15 +116,14 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
     IOException lastException = null;
     do {
-      /*updateStream();*/ // qiniu
+      updateStream();
       try {
-        updateStream(); // qiniu
         int result = mBlockInStream.read();
         if (result != -1) {
           mPosition++;
         }
         return result;
-      } catch (/*UnavailableException | DeadlineExceededException | ConnectException |*/ IOException/*qiniu*/ e) {
+      } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
         lastException = e;
         handleRetryableException(mBlockInStream, e);
         mBlockInStream = null;
@@ -154,9 +153,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     int currentOffset = off;
     CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
     while (bytesLeft > 0 && mPosition != mLength) {
-      /*updateStream();*/
+      updateStream();
       try {
-        updateStream(); //qiniu
         int bytesRead = mBlockInStream.read(b, currentOffset, bytesLeft);
         if (bytesRead > 0) {
           bytesLeft -= bytesRead;
@@ -164,7 +162,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           mPosition += bytesRead;
         }
         retry.reset();
-      } catch (/*UnavailableException | ConnectException | DeadlineExceededException |*/ IOException/*qiniu*/ e) {
+      } catch (UnavailableException | ConnectException | DeadlineExceededException e) {
         if (!retry.attemptRetry()) {
           throw e;
         }
@@ -216,9 +214,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       }
       long blockId = mStatus.getBlockIds().get(Math.toIntExact(pos / mBlockSize));
       BlockInStream stream = null;
-      //stream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers); //qiniu
+      stream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
       try {
-        stream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers); //qiniu
         long offset = pos % mBlockSize;
         int bytesRead =
             stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
@@ -227,7 +224,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         off += bytesRead;
         len -= bytesRead;
         retry.reset();
-      } catch (/*UnavailableException | DeadlineExceededException | ConnectException*/ IOException/*qiniu*/ e) {
+      } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
         if (!retry.attemptRetry()) {
           throw e;
         }
