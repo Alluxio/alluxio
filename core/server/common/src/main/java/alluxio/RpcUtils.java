@@ -11,16 +11,14 @@
 
 package alluxio;
 
-import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
-import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
+import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.thrift.AlluxioTException;
-import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
 import org.slf4j.Logger;
@@ -305,13 +303,9 @@ public final class RpcUtils {
   }
 
   private static String getQualifiedMetricNameInternal(String name) {
-    try {
-      if (SecurityUtils.isAuthenticationEnabled() && AuthenticatedClientUser.get() != null) {
-        return Metric.getMetricNameWithTags(name, CommonMetrics.TAG_USER,
-            AuthenticatedClientUser.getClientUser());
-      }
-    } catch (IOException | AccessControlException e) {
-      // fall through
+    User user = AuthenticatedClientUser.getOrNull();
+    if (user != null) {
+      return Metric.getMetricNameWithUserTag(name, user.getName());
     }
     return name;
   }
