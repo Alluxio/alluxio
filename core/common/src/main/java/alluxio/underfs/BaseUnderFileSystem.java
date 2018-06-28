@@ -164,8 +164,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
-    return new AlluxioURI(ufsBaseUri.getScheme(), ufsBaseUri.getAuthority(),
-        PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath), ufsBaseUri.getQueryMap());
+    return new AlluxioURI(ufsBaseUri, PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath));
   }
 
   /**

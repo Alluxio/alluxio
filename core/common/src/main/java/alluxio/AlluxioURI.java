@@ -116,7 +116,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param baseURI the base uri
    * @param newPath the new path component
    */
-  private AlluxioURI(AlluxioURI baseURI, String newPath) {
+  public AlluxioURI(AlluxioURI baseURI, String newPath) {
     mUri = URI.Factory.create(baseURI.mUri, newPath);
   }
 
