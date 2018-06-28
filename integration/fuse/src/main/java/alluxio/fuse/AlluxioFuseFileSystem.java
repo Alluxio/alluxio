@@ -65,6 +65,7 @@ import alluxio.MetaCache;
 import alluxio.wire.LoadMetadataType;
 import alluxio.retry.CountingRetry;
 import java.util.concurrent.ConcurrentHashMap;
+import alluxio.wire.MountPointInfo;
 
 /**
  * Main FUSE implementation class.
@@ -642,12 +643,30 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       CheckConsistencyOptions options = CheckConsistencyOptions.defaults();
       List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(uri, options);
       DeleteOptions delopt = DeleteOptions.defaults().setAlluxioOnly(true);
+      Map<String, MountPointInfo> mountTable = null;
+      try {
+        mountTable = mFileSystem.getMountTable();
+      } catch (IOException e) {
+        LOG.error("we should nerver get here, " +
+          "failed to get mount table in do refresh, err: {}", e);
+        throw e;
+      } catch (AlluxioException e) {
+        LOG.error("we should nerver get here, " +
+          "failed to get mount table in do refresh, err: {}", e);
+        throw new IOException("alluxio exception with message: " + e.getMessage());
+      }
+
       for (AlluxioURI u : inconsistentUris) {
         try {
-            LOG.debug("==== delete {} in alluxio only", u.getPath());
-            mFileSystem.delete(u, delopt);
+          if (mountTable.containsKey(u.getPath())) {
+            LOG.warn("mount point {} is identified inconsistent," +
+              " but we cann't delete it from file system", u.getPath());
+            continue;
+          }
+          LOG.debug("==== delete {} in alluxio only", u.getPath());
+          mFileSystem.delete(u, delopt);
         } catch (Exception e) {
-            LOG.error("==== error during rm {} ", u.getPath());
+          LOG.error("==== error during rm {} ", u.getPath());
         }
       }
   }
