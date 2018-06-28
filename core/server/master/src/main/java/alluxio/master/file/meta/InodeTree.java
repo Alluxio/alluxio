@@ -790,10 +790,10 @@ public class InodeTree implements JournalEntryIterable {
     }
 
     if (pathComponents == null) {
-      return new MutableLockedInodePath(inodePath.getUri().join(childInode.getName()),
+      return new MutableLockedInodePath(inodePath.getUri().joinUnsafe(childInode.getName()),
           new CompositeInodeLockList(inodePath.mLockList, inodeLockList), lockMode);
     } else {
-      return new MutableLockedInodePath(inodePath.getUri().join(childInode.getName()),
+      return new MutableLockedInodePath(inodePath.getUri().joinUnsafe(childInode.getName()),
           new CompositeInodeLockList(inodePath.mLockList, inodeLockList), pathComponents, lockMode);
     }
   }

@@ -82,8 +82,8 @@ public class StandardURI implements URI {
   }
 
   @Override
-  public URI createNewPath(String newPath) {
-    if (needsNormalization(newPath)) {
+  public URI createNewPath(String newPath, boolean needsNormalization) {
+    if (needsNormalization && needsNormalization(newPath)) {
       return new StandardURI(mScheme, mAuthority, newPath, mQuery);
     }
     return new StandardURI(this, newPath);

@@ -175,11 +175,12 @@ public interface URI extends Comparable<URI>, Serializable {
     /**
      * @param baseUri the base URI
      * @param newPath the new path component
+     * @param needsNormalization if true, will try to normalize the path
      * @return a new URI based off a URI and a new path component
      */
-    public static URI create(URI baseUri, String newPath) {
+    public static URI create(URI baseUri, String newPath, boolean needsNormalization) {
       Preconditions.checkArgument(newPath != null, "Can not create a uri with a null newPath.");
-      return baseUri.createNewPath(newPath);
+      return baseUri.createNewPath(newPath, needsNormalization);
     }
 
     /**
@@ -207,9 +208,10 @@ public interface URI extends Comparable<URI>, Serializable {
 
   /**
    * @param newPath the new path component
+   * @param needsNormalization if true, will try to normalize the path
    * @return a new URI based off of this URI, but with a new path component
    */
-  URI createNewPath(String newPath);
+  URI createNewPath(String newPath, boolean needsNormalization);
 
   /**
    * @return the authority of the {@link URI}, null if it does not have one

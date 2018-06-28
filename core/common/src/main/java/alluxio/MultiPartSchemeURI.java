@@ -59,8 +59,8 @@ public final class MultiPartSchemeURI extends StandardURI {
   }
 
   @Override
-  public URI createNewPath(String newPath) {
-    if (needsNormalization(newPath)) {
+  public URI createNewPath(String newPath, boolean needsNormalization) {
+    if (needsNormalization && needsNormalization(newPath)) {
       // Handle schemes with two components.
       Pair<String, String> schemeComponents = getSchemeComponents(mFullScheme);
       String schemePrefix = schemeComponents.getFirst();

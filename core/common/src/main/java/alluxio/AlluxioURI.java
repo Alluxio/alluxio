@@ -115,9 +115,10 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    *
    * @param baseURI the base uri
    * @param newPath the new path component
+   * @param needsNormalization if true, will try to normalize the path
    */
-  public AlluxioURI(AlluxioURI baseURI, String newPath) {
-    mUri = URI.Factory.create(baseURI.mUri, newPath);
+  public AlluxioURI(AlluxioURI baseURI, String newPath, boolean needsNormalization) {
+    mUri = URI.Factory.create(baseURI.mUri, newPath, needsNormalization);
   }
 
   @Override
@@ -269,7 +270,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       int end = hasWindowsDrive(path, true) ? 3 : 0;
       parent = path.substring(0, lastSlash == end ? end + 1 : lastSlash);
     }
-    return new AlluxioURI(this, parent);
+    return new AlluxioURI(this, parent, false);
   }
 
   /**
@@ -411,7 +412,22 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     StringBuilder sb = new StringBuilder(path.length() + 1 + suffix.length());
 
     return new AlluxioURI(this,
-        sb.append(path).append(AlluxioURI.SEPARATOR).append(suffix).toString());
+        sb.append(path).append(AlluxioURI.SEPARATOR).append(suffix).toString(), true);
+  }
+
+  /**
+   * Append additional path elements to the end of an {@link AlluxioURI}. This does not check if
+   * the new path needs normalization.
+   *
+   * @param suffix the suffix to add
+   * @return the new {@link AlluxioURI}
+   */
+  public AlluxioURI joinUnsafe(String suffix) {
+    String path = getPath();
+    StringBuilder sb = new StringBuilder(path.length() + 1 + suffix.length());
+
+    return new AlluxioURI(this,
+        sb.append(path).append(AlluxioURI.SEPARATOR).append(suffix).toString(), false);
   }
 
   /**
