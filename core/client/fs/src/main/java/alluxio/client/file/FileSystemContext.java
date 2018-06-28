@@ -349,7 +349,7 @@ public final class FileSystemContext implements Closeable {
         pool.close();
       }
     }
-    return mNettyChannelPools.get(address).acquire();
+    return mNettyChannelPools.get(key).acquire();
   }
 
   /**
