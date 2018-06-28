@@ -95,7 +95,7 @@ If using the Swift connector, you should see files named like:
 <container>/<folder>/default_tests_files/Basic_CACHE_THROUGH
 ```
 
-To stop Alluxio, you can run:
+To stop Alluxio, run:
 
 ```bash
 $ ./bin/alluxio-stop.sh local
