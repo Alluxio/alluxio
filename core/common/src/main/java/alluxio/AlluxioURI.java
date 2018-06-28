@@ -110,6 +110,16 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     mUri = URI.Factory.create(scheme, authority, path, query);
   }
 
+  /**
+   * Constructs an {@link AlluxioURI} from a base URI and a new path component.
+   *
+   * @param baseURI the base uri
+   * @param newPath the new path component
+   */
+  private AlluxioURI(AlluxioURI baseURI, String newPath) {
+    mUri = URI.Factory.create(baseURI.mUri, newPath);
+  }
+
   @Override
   public int compareTo(AlluxioURI other) {
     return mUri.compareTo(other.mUri);
@@ -259,7 +269,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       int end = hasWindowsDrive(path, true) ? 3 : 0;
       parent = path.substring(0, lastSlash == end ? end + 1 : lastSlash);
     }
-    return new AlluxioURI(mUri.getScheme(), mUri.getAuthority(), parent, mUri.getQuery());
+    return new AlluxioURI(this, parent);
   }
 
   /**
@@ -400,8 +410,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     String path = getPath();
     StringBuilder sb = new StringBuilder(path.length() + 1 + suffix.length());
 
-    return new AlluxioURI(getScheme(), getAuthority(),
-        sb.append(path).append(AlluxioURI.SEPARATOR).append(suffix).toString(), mUri.getQuery());
+    return new AlluxioURI(this,
+        sb.append(path).append(AlluxioURI.SEPARATOR).append(suffix).toString());
   }
 
   /**
