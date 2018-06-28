@@ -2391,9 +2391,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_LOAD_TTL_ACTION =
       new Builder(Name.USER_FILE_LOAD_TTL_ACTION)
-          .setDefaultValue("DELETE")
+          .setDefaultValue("FREE")
           .setDescription("When file's ttl is expired, the action performs on it. "
-              + "DELETE by default")
+              + "FREE by default")
           .build();
   public static final PropertyKey USER_FILE_READ_TYPE_DEFAULT =
       new Builder(Name.USER_FILE_READ_TYPE_DEFAULT)
