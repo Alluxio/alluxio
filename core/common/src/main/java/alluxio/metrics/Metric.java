@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A metric of a given instance. The instance can be master, worker, or client.
@@ -30,6 +31,9 @@ public final class Metric implements Serializable {
 
   private static final String ID_SEPARATOR = "-id:";
   public static final String TAG_SEPARATOR = ":";
+  private static final ConcurrentHashMap<UserMetricKey, String> CACHED_METRICS =
+      new ConcurrentHashMap<>();
+
   private final MetricsSystem.InstanceType mInstanceType;
   private final String mHostname;
   private final String mName;
@@ -208,6 +212,23 @@ public final class Metric implements Serializable {
   }
 
   /**
+   * Gets a metric name with a specific user tag.
+   *
+   * @param metricName the name of the metric
+   * @param userName the user
+   * @return a metric name with the user tagged
+   */
+  public static String getMetricNameWithUserTag(String metricName, String userName) {
+    UserMetricKey k = new UserMetricKey(metricName, userName);
+    String result = CACHED_METRICS.get(k);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(k, key -> metricName + "." + CommonMetrics.TAG_USER
+        + TAG_SEPARATOR + userName);
+  }
+
+  /**
    * Creates the metric from the full name and the value.
    *
    * @param fullName the full name
@@ -274,5 +295,36 @@ public final class Metric implements Serializable {
     return Objects.toStringHelper(this).add("instanceType", mInstanceType)
         .add("hostname", mHostname).add("instanceId", mInstanceId).add("name", mName)
         .add("value", mValue).add("tags", mTags).toString();
+  }
+
+  /**
+   * Data structure representing a metric name and user name.
+   */
+  private static class UserMetricKey {
+    private String mMetric;
+    private String mUser;
+
+    private UserMetricKey(String metricName, String userName) {
+      mMetric = metricName;
+      mUser = userName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof UserMetricKey)) {
+        return false;
+      }
+      UserMetricKey that = (UserMetricKey) o;
+      return Objects.equal(mMetric, that.mMetric)
+          && Objects.equal(mUser, that.mUser);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mMetric, mUser);
+    }
   }
 }
