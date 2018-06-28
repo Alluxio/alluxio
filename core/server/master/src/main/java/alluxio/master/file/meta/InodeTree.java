@@ -611,13 +611,14 @@ public class InodeTree implements JournalEntryIterable {
 
             // if the parent has default ACL, copy that default ACL as the new directory's default
             // and access acl.
-            DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
-            if (!dAcl.isEmpty()) {
-              Pair<AccessControlList, DefaultAccessControlList> pair = dAcl.generateChildDirACL();
-              dir.setInternalAcl(pair.getFirst());
-              dir.setDefaultACL(pair.getSecond());
+            if (!options.isMetadataLoad()) {
+              DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+              if (!dAcl.isEmpty()) {
+                Pair<AccessControlList, DefaultAccessControlList> pair = dAcl.generateChildDirACL();
+                dir.setInternalAcl(pair.getFirst());
+                dir.setDefaultACL(pair.getSecond());
+              }
             }
-
             if (options.isPersisted()) {
               // Do not journal the persist entry, since a creation entry will be journaled instead.
               syncPersistDirectory(RpcContext.NOOP, dir);

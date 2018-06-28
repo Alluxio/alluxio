@@ -2199,6 +2199,9 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests ufs load with ACL.
+   * Currently, it respects the ufs permissions instead of the default ACL for loadMetadata.
+   * We may change that in the future, and change this test.
+   * TODO: (david) update this test when we respect default ACL for loadmetadata
    */
   @Test
   public void loadMetadataWithACL() throws Exception {
@@ -2211,16 +2214,13 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, aclEntryList, SetAclOptions.defaults());
 
     FileInfo infoparent = mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
-    System.out.println(infoparent.getAclEntries());
-    System.out.println(infoparent.getDefaultAclEntries());
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/b/file1").toString());
     uri = new AlluxioURI("alluxio:/a/b/file1");
     mFileSystemMaster.loadMetadata(uri,
         LoadMetadataOptions.defaults().setCreateAncestors(true));
     FileInfo info = mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
-    System.out.println(info.getAclEntries());
-    Assert.assertTrue(info.getAclEntries().contains("user::r-x"));
+    Assert.assertTrue(info.getAclEntries().contains("user::rw-"));
 
   }
 
