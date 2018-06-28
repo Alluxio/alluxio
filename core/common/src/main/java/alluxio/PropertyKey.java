@@ -410,6 +410,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIgnoredSiteProperty(true)
           .setIsHidden(true)
           .build();
+  public static final PropertyKey WEB_FILE_INFO_ENABLED =
+      new Builder(Name.WEB_FILE_INFO_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether detailed file information are enabled for the web UI.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey WEB_RESOURCES =
       new Builder(Name.WEB_RESOURCES)
           .setDefaultValue(String.format("${%s}/core/server/common/src/main/webapp", Name.HOME))
@@ -951,6 +958,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
+      new Builder(Name.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL)
+          .setDefaultValue("1m")
+          .setDescription("The interval for periodically updating the cluster level metrics.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.MASTER_CONNECTION_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.master.connection.timeout.ms"})
@@ -992,9 +1007,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey MASTER_HEARTBEAT_TIMEOUT_MS =
-      new Builder(Name.MASTER_HEARTBEAT_TIMEOUT_MS)
-          .setDefaultValue("1min")
+  public static final PropertyKey MASTER_HEARTBEAT_TIMEOUT =
+      new Builder(Name.MASTER_HEARTBEAT_TIMEOUT)
+          .setDefaultValue("10min")
           .setDescription("Timeout between leader master and standby master"
               + " indicating a lost master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2116,7 +2131,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey LOCALITY_SCRIPT =
       new Builder(Name.LOCALITY_SCRIPT)
-          .setDefaultValue(String.format("${%s}/tiered_identity.sh", Name.CONF_DIR))
+          .setDefaultValue(Constants.ALLUXIO_LOCALITY_SCRIPT)
           .setDescription("A script to determine tiered identity for locality checking")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -2509,7 +2524,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_METRICS_COLLECTION_ENABLED =
       new Builder(Name.USER_METRICS_COLLECTION_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Enable collecting the client-side metrics and hearbeat them to master")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3085,6 +3100,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
     public static final String VERSION = "alluxio.version";
+    public static final String WEB_FILE_INFO_ENABLED = "alluxio.web.file.info.enabled";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_THREADS = "alluxio.web.threads";
     public static final String WORK_DIR = "alluxio.work.dir";
@@ -3190,6 +3206,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
         "alluxio.master.client.socket.cleanup.interval";
+    public static final String MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
+        "alluxio.master.cluster.metrics.update.interval";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
@@ -3199,7 +3217,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.master.heartbeat.interval";
     public static final String MASTER_WORKER_HEARTBEAT_INTERVAL =
         "alluxio.master.worker.heartbeat.interval";
-    public static final String MASTER_HEARTBEAT_TIMEOUT_MS =
+    public static final String MASTER_HEARTBEAT_TIMEOUT =
         "alluxio.master.heartbeat.timeout";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
     public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =

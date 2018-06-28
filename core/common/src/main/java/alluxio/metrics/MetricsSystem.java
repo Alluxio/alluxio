@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -51,14 +52,17 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsSystem.class);
 
+  private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
+
   /**
    * An enum of supported instance type.
    */
   public enum InstanceType {
-    MASTER("master"),
-    WORKER("worker"),
-    CLIENT("client"),
-    PROXY("proxy");
+    MASTER("Master"),
+    WORKER("Worker"),
+    CLUSTER("Cluster"),
+    CLIENT("Client"),
+    PROXY("Proxy");
 
     private String mValue;
 
@@ -213,7 +217,11 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMasterMetricName(String name) {
-    return Joiner.on(".").join(MetricsSystem.InstanceType.MASTER, name);
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name, n -> InstanceType.MASTER.toString() + "." + name);
   }
 
   /**
@@ -223,7 +231,12 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getWorkerMetricName(String name) {
-    return getMetricNameWithUniqueId(InstanceType.WORKER, name);
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name,
+        n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
   }
 
   /**
@@ -233,7 +246,12 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getClientMetricName(String name) {
-    return getMetricNameWithUniqueId(InstanceType.CLIENT, name);
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name,
+        n -> getMetricNameWithUniqueId(InstanceType.CLIENT, name));
   }
 
   /**
@@ -265,8 +283,7 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    return Joiner.on(".").join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'),
-        name);
+    return instance + "." + NetworkAddressUtils.getLocalHostMetricName() + "." + name;
   }
 
   /**
@@ -361,14 +378,21 @@ public final class MetricsSystem {
   }
 
   /**
-   * @return all the worker's gauges and counters in the format of {@link Metric}
+   * @return all the master's metrics in the format of {@link Metric}
+   */
+  public static List<Metric> allMasterMetrics() {
+    return allMetrics(InstanceType.MASTER);
+  }
+
+  /**
+   * @return all the worker's metrics in the format of {@link Metric}
    */
   public static List<Metric> allWorkerMetrics() {
     return allMetrics(InstanceType.WORKER);
   }
 
   /**
-   * @return all the client's gauges and counters in the format of {@link Metric}
+   * @return all the client's metrics in the format of {@link Metric}
    */
   public static List<Metric> allClientMetrics() {
     return allMetrics(InstanceType.CLIENT);
@@ -397,6 +421,9 @@ public final class MetricsSystem {
       // least seconds. if the client's duration is too short (i.e. < 1s), then getOneMinuteRate
       // would return 0
       metrics.add(Metric.from(entry.getKey(), entry.getValue().getOneMinuteRate()));
+    }
+    for (Entry<String, Timer> entry : METRIC_REGISTRY.getTimers().entrySet()) {
+      metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount()));
     }
     return metrics;
   }

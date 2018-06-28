@@ -33,7 +33,7 @@ public final class MetricTest {
 
   @Test
   public void testFullNameParsing() {
-    String fullName = "client.192_1_1_1|A.metric.tag1:A::/.tag2:B:/";
+    String fullName = "Client.192_1_1_1|A.metric.tag1:A::/.tag2:B:/";
     Metric metric = Metric.from(fullName, 1);
     assertEquals(fullName, metric.getFullMetricName());
   }

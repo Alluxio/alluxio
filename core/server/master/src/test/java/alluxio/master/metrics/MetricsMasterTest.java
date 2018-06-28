@@ -14,6 +14,9 @@ package alluxio.master.metrics;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.clock.ManualClock;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.metrics.Metric;
@@ -26,6 +29,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.List;
@@ -36,6 +40,10 @@ import java.util.concurrent.Executors;
  * Unit tests for {@link MetricsMaster}.
  */
 public class MetricsMasterTest {
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallyScheduleRule = new ManuallyScheduleHeartbeat(
+      HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
+
   private DefaultMetricsMaster mMetricsMaster;
   private MasterRegistry mRegistry;
   private ManualClock mClock;
@@ -83,17 +91,18 @@ public class MetricsMasterTest {
   }
 
   @Test
-  public void testMultiValueAggregator() {
+  public void testMultiValueAggregator() throws Exception {
     mMetricsMaster.addAggregator(
-        new SingleTagValueAggregator(MetricsSystem.InstanceType.WORKER, "metric", "tag"));
+        new SingleTagValueAggregator("metric", MetricsSystem.InstanceType.WORKER, "metric", "tag"));
     List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metric.tag:v1", 10),
         Metric.from("worker.192_1_1_1.metric.tag:v2", 20));
     mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
     List<Metric> metrics2 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metric.tag:v1", 1),
         Metric.from("worker.192_1_1_2.metric.tag:v2", 2));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
-    assertEquals(11L, getGauge("metric.v1"));
-    assertEquals(22L, getGauge("metric.v2"));
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
+    assertEquals(11L, getGauge("metric", "tag", "v1"));
+    assertEquals(22L, getGauge("metric", "tag", "v2"));
   }
 
   @Test
@@ -117,6 +126,13 @@ public class MetricsMasterTest {
 
   private Object getGauge(String name) {
     return MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricsSystem.getClusterMetricName(name))
+        .getValue();
+  }
+
+  private Object getGauge(String metricName, String tagName, String tagValue) {
+    return MetricsSystem.METRIC_REGISTRY.getGauges()
+        .get(MetricsSystem
+            .getClusterMetricName(Metric.getMetricNameWithTags(metricName, tagName, tagValue)))
         .getValue();
   }
 }

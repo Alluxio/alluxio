@@ -19,7 +19,7 @@ To run an Alluxio cluster on a set of machines, you must deploy Alluxio server b
 these machines. You can either
 [download the precompiled binaries directly](http://www.alluxio.org/download)
 with the correct Hadoop version (recommended), or
-[compile the binaries from Alluxio source code](building-Alluxio-Master-Branch.html)
+[compile the binaries from Alluxio source code](Building-Alluxio-Master-Branch.html)
 (for advanced users).
 
 Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
@@ -32,7 +32,7 @@ $ mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
 ```
 
 Alluxio provides predefined build profiles including `hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ...
-`hadoop-2.8` for different distributions of Hadoop. If you want to build Alluxio with a specific
+`hadoop-2.9` for different distributions of Hadoop. If you want to build Alluxio with a specific
 Hadoop release version, you can also specify the version in the command. For example,
 
 ```bash

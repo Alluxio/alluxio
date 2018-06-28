@@ -247,7 +247,7 @@ Next, we will mount an existing sample S3 bucket to Alluxio. We have provided a 
 you to use in the rest of this guide.
 
 ```bash
-$ ./bin/alluxio fs mount -readonly alluxio://localhost:19998/mnt/s3 s3a://alluxio-quick-start/data
+$ ./bin/alluxio fs mount --readonly alluxio://localhost:19998/mnt/s3 s3a://alluxio-quick-start/data
 Mounted s3a://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
 ```
 
@@ -310,30 +310,10 @@ sys	0m1.181s
 
 Depending on your network connection, the operation may take over 20 seconds. If reading this file
 takes too long, you may use a smaller dataset. The other files in the directory are smaller subsets
-of this file.
+of this file. As you can see, it takes a lot of time to access the data for each command. Alluxio
+can accelerate access to this data by using memory to store the data.
 
-Now, let’s see how many tweets mention the word "puppy".
-
-```bash
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
-1553
-
-real	0m25.998s
-user	0m6.828s
-sys	0m1.048s
-```
-
-As you can see, it takes a lot of time to access the data for each command. Alluxio can accelerate
-access to this data by using memory to store the data. However, the `cat` shell command does not
-cache data in Alluxio memory. There is a separate shell command, `load`, which tells
-Alluxio to store the data in memory. You can tell Alluxio to load the data into memory with the
-following command.
-
-```bash
-$ ./bin/alluxio fs load /mnt/s3/sample_tweets_150m.csv
-```
-
-After loading the file, you can check the status with the ls command:
+After reading the file by the `cat` command, you can check the status with the `ls` command:
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
@@ -397,7 +377,6 @@ Alluxio can be deployed in many different environments.
 * [Alluxio Standalone on a Cluster](Running-Alluxio-on-a-Cluster.html)
 * [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
 * [Alluxio on Docker](Running-Alluxio-On-Docker.html)
-* [Alluxio Standalone with Fault Tolerance](Running-Alluxio-Fault-Tolerant.html)
 * [Alluxio on EC2](Running-Alluxio-on-EC2.html)
 * [Alluxio on GCE](Running-Alluxio-on-GCE.html)
 * [Alluxio with Mesos on EC2](Running-Alluxio-on-Mesos.html)

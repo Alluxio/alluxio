@@ -81,12 +81,16 @@ docker run -d --net=host alluxio master
 ### 运行Alluxio master
 
 ```bash
+$ # This gets the public ip of the current EC2 instance
+$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 $ docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
+             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio master
 ```
 详细说明:
+- `-e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP}`: 指定 Alluxio master 的监听 IP 地址.
 - `-v $PWD/underStorage:/underStorage`:和Docker容器共享底层存储层文件夹。
 - `-e ALLUXIO_UNDERFS_ADDRESS=/underStorage`:通知worker应用 /underStorage为底层文件存储层。
 
@@ -94,8 +98,6 @@ $ docker run -d --net=host \
 ## 运行Alluxio worker
 
 ```bash
-$ # This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 $ # Launch an Alluxio worker container and save the container ID for later
 $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
              -v /mnt/ramdisk:/opt/ramdisk \
