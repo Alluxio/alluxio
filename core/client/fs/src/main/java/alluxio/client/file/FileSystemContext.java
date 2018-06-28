@@ -28,6 +28,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyChannelPool;
 import alluxio.network.netty.NettyClient;
 import alluxio.resource.CloseableResource;
+import alluxio.security.authentication.TransportProviderUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -37,6 +38,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
+import com.google.common.base.Objects;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -93,7 +95,7 @@ public final class FileSystemContext implements Closeable {
   private final String mAppId;
 
   // The netty data server channel pools.
-  private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
+  private final ConcurrentHashMap<ChannelPoolKey, NettyChannelPool>
       mNettyChannelPools = new ConcurrentHashMap<>();
 
   /** The shared master inquire client associated with the {@link FileSystemContext}. */
@@ -334,13 +336,15 @@ public final class FileSystemContext implements Closeable {
    */
   public Channel acquireNettyChannel(final WorkerNetAddress workerNetAddress) throws IOException {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    if (!mNettyChannelPools.containsKey(address)) {
-      Bootstrap bs = NettyClient.createClientBootstrap(address);
+    ChannelPoolKey key =
+        new ChannelPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
+    if (!mNettyChannelPools.containsKey(key)) {
+      Bootstrap bs = NettyClient.createClientBootstrap(mParentSubject, address);
       bs.remoteAddress(address);
       NettyChannelPool pool = new NettyChannelPool(bs,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
           Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
-      if (mNettyChannelPools.putIfAbsent(address, pool) != null) {
+      if (mNettyChannelPools.putIfAbsent(key, pool) != null) {
         // This can happen if this function is called concurrently.
         pool.close();
       }
@@ -356,11 +360,13 @@ public final class FileSystemContext implements Closeable {
    */
   public void releaseNettyChannel(WorkerNetAddress workerNetAddress, Channel channel) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    if (mNettyChannelPools.containsKey(address)) {
-      mNettyChannelPools.get(address).release(channel);
+    ChannelPoolKey key =
+        new ChannelPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
+    if (mNettyChannelPools.containsKey(key)) {
+      mNettyChannelPools.get(key).release(channel);
     } else {
-      LOG.warn("No channel pool for address {}, closing channel instead. Context is closed: {}",
-          address, mClosed.get());
+      LOG.warn("No channel pool for key {}, closing channel instead. Context is closed: {}",
+          key, mClosed.get());
       CommonUtils.closeChannel(channel);
     }
   }
@@ -463,4 +469,45 @@ public final class FileSystemContext implements Closeable {
 
     private Metrics() {} // prevent instantiation
   }
+
+  /**
+   * Key for Netty channel pools. This requires both the worker address and the username, so that
+   * netty channels are created for different users.
+   */
+  private static final class ChannelPoolKey {
+    private final SocketAddress mSocketAddress;
+    private final String mUsername;
+
+    public ChannelPoolKey(SocketAddress socketAddress, String username) {
+      mSocketAddress = socketAddress;
+      mUsername = username;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mSocketAddress, mUsername);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof ChannelPoolKey)) {
+        return false;
+      }
+      ChannelPoolKey that = (ChannelPoolKey) o;
+      return Objects.equal(mSocketAddress, that.mSocketAddress)
+          && Objects.equal(mUsername, that.mUsername);
+    }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this)
+          .add("socketAddress", mSocketAddress)
+          .add("username", mUsername)
+          .toString();
+    }
+  }
+
 }
