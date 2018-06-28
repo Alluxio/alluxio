@@ -2201,7 +2201,7 @@ public final class FileSystemMasterTest {
    * Tests ufs load with ACL.
    * Currently, it respects the ufs permissions instead of the default ACL for loadMetadata.
    * We may change that in the future, and change this test.
-   * TODO: (david) update this test when we respect default ACL for loadmetadata
+   * TODO(david): update this test when we respect default ACL for loadmetadata
    */
   @Test
   public void loadMetadataWithACL() throws Exception {
