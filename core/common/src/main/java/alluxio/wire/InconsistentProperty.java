@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
@@ -104,8 +105,23 @@ public final class InconsistentProperty {
   public String toString() {
     return Objects.toStringHelper(this)
         .add("key", mName)
-        .add("values", mValues)
+        .add("values", getValuesWithoutOptionalKeyword())
         .toString();
+  }
+
+  /**
+   * @return the string of mValues without Optional keyword
+   */
+  private String getValuesWithoutOptionalKeyword() {
+    String readableNullValue = "no value set";
+    String valueFormat = "%s (%s)";
+    StringJoiner stringJoiner = new StringJoiner(", ");
+    for (Map.Entry<Optional<String>, List<String>> entry : mValues.entrySet()) {
+      stringJoiner.add(String.format(valueFormat,
+          entry.getKey().map(String::toString).orElse(readableNullValue),
+          String.join(", ", entry.getValue())));
+    }
+    return stringJoiner.toString();
   }
 
   /**
