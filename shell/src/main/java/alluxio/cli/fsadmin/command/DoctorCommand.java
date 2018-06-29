@@ -68,7 +68,7 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
     Command command = Command.ALL;
     if (args.length == 1) {
       try {
-        command = Command.valueOf(args[0]);
+        command = Command.valueOf(args[0].toUpperCase());
       } catch (IllegalArgumentException e) {
         System.out.println(getUsage());
         System.out.println(getDescription());
