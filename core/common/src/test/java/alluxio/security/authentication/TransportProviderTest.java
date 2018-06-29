@@ -15,10 +15,12 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
+import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.LoginUser;
+import alluxio.security.LoginUserTestUtils;
 import alluxio.security.User;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -61,6 +63,9 @@ public final class TransportProviderTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @Rule
+  public LoginUserRule mLoginUser = new LoginUserRule("Test");
+
   /**
    * Sets up the server before running a test.
    */
@@ -77,7 +82,6 @@ public final class TransportProviderTest {
   @After
   public void after() {
     ConfigurationTestUtils.resetConfiguration();
-    LoginUser.clear();
   }
 
   /**
@@ -235,6 +239,7 @@ public final class TransportProviderTest {
    */
   @Test
   public void customAuthenticationPropertyPassword() throws Exception {
+    LoginUserTestUtils.resetLoginUser();
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());

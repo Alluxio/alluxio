@@ -65,20 +65,6 @@ public final class LoginUser {
   }
 
   /**
-   * Clears the login user.
-   */
-  public static void clear() {
-    if (sLoginUser == null) {
-      return;
-    }
-    synchronized (LoginUser.class) {
-      if (sLoginUser != null) {
-        sLoginUser = null;
-      }
-    }
-  }
-
-  /**
    * Logs in based on the LoginModules.
    *
    * @return the login user
