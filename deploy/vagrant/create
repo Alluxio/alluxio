@@ -189,8 +189,8 @@ fi
 masters=($(echo $masters | tr '\n' ' ' | tr -d '\r'))
 
 if [[ "$ALLUXIO_MASTERS" -gt 1 ]]; then
-  info "Alluxio is in Fault Tolerant mode, waiting 5 seconds for leader to be selected and web UI to be available"
-  sleep 5
+  info "Alluxio is in Fault Tolerant mode, waiting 20 seconds for leader to be selected and web UI to be available"
+  sleep 20
   for master in ${masters[@]}; do
     info "Alluxio master: ${master}"
     info "Trying to curl Alluxio web UI at ${master}:19999"
