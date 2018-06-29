@@ -19,7 +19,6 @@ import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.network.thrift.ThriftUtils;
-import alluxio.security.LoginUser;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.User;
 import alluxio.util.network.NetworkAddressUtils;
