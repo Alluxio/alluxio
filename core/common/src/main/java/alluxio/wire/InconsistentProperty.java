@@ -118,7 +118,7 @@ public final class InconsistentProperty {
     StringJoiner stringJoiner = new StringJoiner(", ");
     for (Map.Entry<Optional<String>, List<String>> entry : mValues.entrySet()) {
       stringJoiner.add(String.format(valueFormat,
-          entry.getKey().map(String::toString).orElse(readableNullValue),
+          entry.getKey().orElse(readableNullValue),
           String.join(", ", entry.getValue())));
     }
     return stringJoiner.toString();
