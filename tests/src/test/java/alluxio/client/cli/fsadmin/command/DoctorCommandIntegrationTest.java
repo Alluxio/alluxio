@@ -31,10 +31,10 @@ public final class DoctorCommandIntegrationTest extends AbstractFsAdminShellTest
   @Test
   public void doctorCategoryInvalid() {
     mFsAdminShell.run("doctor", "invalidCategory");
-    String expected = String.format("%s%n%s%n%s%n",
+    String expected = String.join("\n",
         DoctorCommand.usage(),
         DoctorCommand.description(),
-        "doctor category is invalid.");
+        "doctor category is invalid.") + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 

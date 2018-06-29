@@ -36,10 +36,10 @@ public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest
   @Test
   public void reportCategoryInvalid() {
     mFsAdminShell.run("report", "invalidCategory");
-    String expected = String.format("%s%n%s%n%s%n",
+    String expected = String.join("\n",
         ReportCommand.usage(),
         ReportCommand.description(),
-        "report category is invalid.");
+        "report category is invalid.") + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 
