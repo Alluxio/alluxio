@@ -67,13 +67,14 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
     // Get the doctor category
     Command command = Command.ALL;
     if (args.length == 1) {
-      try {
-        command = Command.valueOf(args[0].toUpperCase());
-      } catch (IllegalArgumentException e) {
-        System.out.println(getUsage());
-        System.out.println(getDescription());
-        throw new IllegalArgumentException(String
-            .format("doctor category cannot be %s.", args[0]));
+      switch (args[0]) {
+        case "configuration":
+          command = Command.CONFIGURATION;
+          break;
+        default:
+          System.out.println(getUsage());
+          System.out.println(getDescription());
+          throw new InvalidArgumentException("doctor category is invalid.");
       }
     }
 
