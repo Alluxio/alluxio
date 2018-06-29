@@ -29,9 +29,8 @@ public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest
   @Test
   public void masterNotRunning() throws Exception {
     mLocalAlluxioCluster.stopMasters();
-    mFsAdminShell.run("report");
-    String expected = "The Alluxio leader master is not currently serving requests.";
-    Assert.assertThat(mErrOutput.toString(), CoreMatchers.containsString(expected));
+    int ret = mFsAdminShell.run("report");
+    Assert.assertNotEquals(0, ret);
   }
 
   @Test

@@ -14,7 +14,6 @@ package alluxio.client.cli.fsadmin.command;
 import alluxio.cli.fsadmin.command.DoctorCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,9 +24,8 @@ public final class DoctorCommandIntegrationTest extends AbstractFsAdminShellTest
   @Test
   public void masterNotRunning() throws Exception {
     mLocalAlluxioCluster.stopMasters();
-    mFsAdminShell.run("doctor");
-    String expected = "The Alluxio leader master is not currently serving requests.";
-    Assert.assertThat(mErrOutput.toString(), CoreMatchers.containsString(expected));
+    int ret = mFsAdminShell.run("doctor");
+    Assert.assertNotEquals(0, ret);
   }
 
   @Test
@@ -44,7 +42,7 @@ public final class DoctorCommandIntegrationTest extends AbstractFsAdminShellTest
   public void doctorConfiguration() {
     int ret = mFsAdminShell.run("doctor", "configuration");
     Assert.assertEquals(0, ret);
-    String expected = "No server-side configuration errors or warnings.";
+    String expected = "No server-side configuration errors or warnings.\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 }
