@@ -16,6 +16,7 @@ import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.doctor.ConfigurationCommand;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -94,11 +95,27 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
+    return usage();
+  }
+
+  /**
+   * @return the usage for the doctor command
+   */
+  @VisibleForTesting
+  public static String usage() {
     return "doctor [category]";
   }
 
   @Override
   public String getDescription() {
+    return description();
+  }
+
+  /**
+   * @return the description for the doctor command
+   */
+  @VisibleForTesting
+  public static String description() {
     return "Show Alluxio errors and warnings.\n"
         + "Where [category] is an optional argument. If no arguments are passed in, "
         + "all categories of errors/warnings will be printed out.\n"
