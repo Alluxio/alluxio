@@ -105,23 +105,21 @@ public final class InconsistentProperty {
   public String toString() {
     return Objects.toStringHelper(this)
         .add("key", mName)
-        .add("values", getValuesWithoutOptionalKeyword())
+        .add("values", formatValues(mValues))
         .toString();
   }
 
   /**
-   * @return the string of mValues without Optional keyword
+   * @return the formatted string of mValues without Optional keyword
    */
-  private String getValuesWithoutOptionalKeyword() {
-    String readableNullValue = "no value set";
-    String valueFormat = "%s (%s)";
-    StringJoiner stringJoiner = new StringJoiner(", ");
-    for (Map.Entry<Optional<String>, List<String>> entry : mValues.entrySet()) {
-      stringJoiner.add(String.format(valueFormat,
-          entry.getKey().orElse(readableNullValue),
+  private static String formatValues(Map<Optional<String>, List<String>> values) {
+    StringJoiner joiner = new StringJoiner(", ");
+    for (Map.Entry<Optional<String>, List<String>> entry : values.entrySet()) {
+      joiner.add(String.format("%s (%s)",
+          entry.getKey().orElse("no value set"),
           String.join(", ", entry.getValue())));
     }
-    return stringJoiner.toString();
+    return joiner.toString();
   }
 
   /**
