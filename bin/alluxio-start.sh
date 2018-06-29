@@ -204,7 +204,11 @@ start_master() {
 }
 
 start_masters() {
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "master" $1
+  start_opts=""
+  if [[ -n ${journal_backup} ]]; then
+    start_opts="-i ${journal_backup}"
+  fi
+  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "${start_opts}" "master" $1
 }
 
 start_proxy() {
