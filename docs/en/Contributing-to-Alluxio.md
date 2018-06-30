@@ -9,9 +9,9 @@ priority: 2
 * Table of Contents
 {:toc}
 
-> If you are the first time contributor to the Alluxio open source project, please follow
-> the [Tutorial of Contributing to Alluxio](Contributing-Getting-Started.html) to finish a step-by-step
-> example of making contributions to Alluxio.
+> If you are the first time contributor to the Alluxio open source project, we strongly encourage
+> you to follow the step-by-step example in the [Tutorial to Contribute to Alluxio](Contributing-Getting-Started.html)
+> and finish a new contributor task before making more advanced change to Alluxio.
 
 Thank you for your interest in Alluxio! We greatly appreciate any new features or fixes.
 
@@ -36,7 +36,7 @@ Thank you for your interest in Alluxio! We greatly appreciate any new features o
 -   In the description field of the pull request, please include a link to the JIRA ticket.
 
 Note that for some minor changes it is not required to create corresponding JIRA tickets before
-submiting the pull requests. For instance:
+submitting the pull requests. For instance:
 
 -   For pull requests that only address typos or formatting issues in source code, you
     can prefix the titles of your pull requests with "[SMALLFIX]", for example:
@@ -56,18 +56,24 @@ submiting the pull requests. For instance:
 
 ## Unit Tests
 
-- Run all unit tests with
+- Run all unit tests
 
 ```bash
+$ cd ${ALLUXIO_HOME}
 $ mvn test
 ```
 
 This will use the local filesystem as the under filesystem and
 HDFS 2.2.0 as the under filesystem in the HDFS module.
 
-- Run a single unit test: `mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test`
+- Run a single unit test:
 
-- To run tests against specific under filesystems, execute the maven command from the desired
+```bash
+$ mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
+```
+
+- To run tests against specific under filesystems, execute the `maven test` command targeting the
+desired
 submodule directory. For example, to run tests for HDFS you would run
 
 ```bash
@@ -77,29 +83,31 @@ $ mvn test -pl underfs/hdfs
 Run tests with a different Hadoop version:
 
 ```bash
-$ mvn test -pl underfs/hdfs -Dhadoop.version=2.2.0
+# build and run test on HDFS under filesystem module for Hadoop 2.7.0
+$ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
+# build and run test on HDFS under filesystem module for Hadoop 3.0.0
+$ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 ```
 
-To run the UFS contrast tests on a running HDFS deployment rather than the simulated HDFS service
+The above tests will create a simulated HDFS service with the specific version.
+To run more comprehensive tests on HDFS under filesystem using a real and running HDFS deployment:
 
 ```bash
 $ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
 ```
 
-- To have the logs output to STDOUT, append the following to the `mvn` command
+- To have the logs output to STDOUT, append the following arguments to the `mvn` command
 
-```properties
+```
 -Dtest.output.redirect=false -Dalluxio.root.logger=DEBUG,CONSOLE
 ```
 
--   To quickly test the working of some APIs in an interactive manner, you may
+- To quickly test the working of some APIs in an interactive manner, you may
 leverage the Scala shell, as discussed in this
 [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
 
-
--   The fuse tests are ignored if the libfuse library is missing. To run those tests, please install the correct libraries
+- The fuse tests are ignored if the libfuse library is missing. To run those tests, please install the correct libraries
 mentioned in [this page](Mounting-Alluxio-FS-with-FUSE.html#requirements).
-
 
 ### System Settings
 
@@ -113,7 +121,7 @@ $ sudo launchctl limit maxproc 32768 32768
 ```
 
 It is also recommended to exclude your local clone of Alluxio from Spotlight indexing. Otherwise, your Mac may hang constantly trying to re-index the file system during the unit tests.  To do this, go to `System Preferences > Spotlight > Privacy`, click the `+` button, browse to the directory containing your local clone of Alluxio, and click `Choose` to add it to the exclusions list.
-Testing
+
 
 ## Coding Style
 
@@ -148,11 +156,13 @@ Testing
    [checkstyle](http://checkstyle.sourceforge.net) before sending a pull-request to verify no new
    warnings are introduced:
 
-{% include Contributing-to-Alluxio/checkstyle.md %}
+```bash
+$ mvn checkstyle:checkstyle
+```
 
 ## Logging Conventions
 
-Alluxio is using SLF4J for logging with typical usage pattern of:
+Alluxio is using [SLF4J](https://www.slf4j.org/) for logging with typical usage pattern of:
 
 ```java
 import org.slf4j.Logger;
@@ -168,12 +178,12 @@ public MyClass {
 }
 ```
 
-Here is the convention in Alluxio source code to utilize different log levels:
+Here is the convention in Alluxio source code on different log levels:
 
-* Error level logging (i.e., `LOG.error`) indicate system level problems which cannot be recovered from.
+* Error level logging (i.e., `LOG.error`) indicates system level problems which cannot be recovered from.
   It should always be accompanied by a stack trace.
 ```java
-LOG.error("Failed to do something due to an exception e", e);
+LOG.error("Failed to do something due to an exception", e);
 ```
 * Warn level logging (i.e., `LOG.warn`) indicates a logical mismatch between user intended behavior
 and Alluxio behavior. Warn level logs are accompanied by an exception message. The associated stack trace may be found in debug level logs.
@@ -182,19 +192,19 @@ LOG.warm("Failed to do something due to {}", e.getMessage());
 ```
 * Info level logging (i.e., `LOG.info`) records important system state changes. Exception messages and stack traces are never associated with info level logs.
 Note that, this level of logging should not be used on critical path of operations that may
-happen frequently to avoid negative impact on performance.
+happen frequently to prevent negative performance impact.
 ```java
 LOG.info("Master started.");
 ```
 * Debug level logging (i.e., `LOG.debug`) includes detailed information for various aspects of
 the Alluxio system. Control flow logging (Alluxio system enter and exit calls) is done in debug
 level logs. Debug level logging of exceptions typically has the detailed information including
-stack trace. Please avoid constructing strings on debug-level logging which is expensive.
+stack trace. Please avoid the slow strings construction on debug-level logging on critical path.
 ```java
-LOG.debug("Failed to connec to address {} due to exception", host + ":" + port, e); // wrong
-LOG.debug("Failed to connec to address {} due to exception", mAddress, e); // correct
+LOG.debug("Failed to connec to {} due to exception", host + ":" + port, e); // wrong
+LOG.debug("Failed to connec to {} due to exception", mAddress, e); // OK
 if (LOG.isDebugEnabled()) {
-    LOG.debug("Failed to connec to address {} due to exception", host + ":" + port, e); // correct
+    LOG.debug("Failed to connec to address {} due to exception", host + ":" + port, e); // OK
 }
 ```
 * Trace level logging (i.e., `LOG.trace`) is not used in Alluxio.
