@@ -1,8 +1,9 @@
 ---
 layout: global
-title: Unit Testing Guidelines
-nickname: Unit Testing Guidelines
+title: Writie a Unit Test
+nickname: Write a Unit Test
 group: Resources
+priority: 3
 ---
 
 * Table of Contents
