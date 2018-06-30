@@ -253,7 +253,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      *
      * @return the created property key instance
      */
-    private PropertyKey buildUnregistered() {
+    public PropertyKey buildUnregistered() {
       DefaultSupplier defaultSupplier = mDefaultSupplier;
       if (defaultSupplier == null) {
         String defaultString = String.valueOf(mDefaultValue);
