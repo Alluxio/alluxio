@@ -136,6 +136,7 @@ public final class ConfigurationUtils {
         ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true);
     return Configuration.keySet().stream()
         .filter(key -> key.getScope().contains(scope))
+        .filter(key -> key.isValid(key.getName()))
         .map(key -> new ConfigProperty()
             .setName(key.getName())
             .setSource(Configuration.getSource(key).toString()).setValue(
