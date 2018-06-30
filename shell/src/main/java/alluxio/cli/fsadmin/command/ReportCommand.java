@@ -12,18 +12,12 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.cli.fsadmin.report.MetricsCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.cli.fsadmin.report.UfsCommand;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.exception.status.UnavailableException;
-import alluxio.master.MasterInquireClient;
-import alluxio.master.PollingMasterInquireClient;
-import alluxio.resource.CloseableResource;
-import alluxio.retry.ExponentialBackoffRetry;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
@@ -31,9 +25,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Reports Alluxio running cluster information.
@@ -103,6 +94,8 @@ public final class ReportCommand extends AbstractFsAdminCommand {
       return 0;
     }
 
+    FileSystemAdminShellUtils.checkMasterClientService();
+
     // Get the report category
     Command command = Command.SUMMARY;
     if (args.length == 1) {
@@ -132,29 +125,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         throw new InvalidArgumentException(
             String.format("report %s does not support arguments: %s",
                 command.toString().toLowerCase(), cl.getOptions()[0].getOpt()));
-      }
-    }
-
-    // Check if Alluxio master and client services are running
-    try (CloseableResource<FileSystemMasterClient> client =
-             FileSystemContext.get().acquireMasterClientResource()) {
-      MasterInquireClient inquireClient = null;
-      try {
-        InetSocketAddress address = client.get().getAddress();
-        List<InetSocketAddress> addresses = Arrays.asList(address);
-        inquireClient = new PollingMasterInquireClient(addresses, () ->
-            new ExponentialBackoffRetry(50, 100, 2));
-      } catch (UnavailableException e) {
-        System.err.println("Failed to get the leader master.");
-        System.err.println("Please check your Alluxio master status");
-        return 1;
-      }
-      try {
-        inquireClient.getPrimaryRpcAddress();
-      } catch (UnavailableException e) {
-        System.err.println("The Alluxio leader master is not currently serving requests.");
-        System.err.println("Please check your Alluxio master status");
-        return 1;
       }
     }
 
