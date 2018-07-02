@@ -54,7 +54,6 @@ public class MetricsCommand {
    */
   public int run() throws IOException {
     Map<String, MetricValue> metricsMap = new TreeMap<>(mMetaMasterClient.getMetrics());
-
     Set<String> operations = new HashSet<>();
     operations.add("DirectoriesCreated");
     operations.add("FileBlockInfosGot");
@@ -71,8 +70,6 @@ public class MetricsCommand {
     operations.add("PathsUnmounted");
 
     mPrintStream.println("Alluxio logical operations: ");
-    metricsMap.put("FilesPinned", metricsMap.get("master.FilesPinned"));
-    metricsMap.remove("master.FilesPinned");
     for (Map.Entry<String, MetricValue> entry : metricsMap.entrySet()) {
       String key = entry.getKey();
       if (operations.contains(key)) {
