@@ -2206,7 +2206,7 @@ public final class FileSystemMasterTest {
   @Test
   public void loadMetadataWithACL() throws Exception {
     FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
-    AlluxioURI uri = new AlluxioURI("alluxio:/a");
+    AlluxioURI uri = new AlluxioURI("/a");
     mFileSystemMaster.loadMetadata(uri,
         LoadMetadataOptions.defaults().setCreateAncestors(true));
     List<AclEntry> aclEntryList = new ArrayList<>();
@@ -2216,7 +2216,7 @@ public final class FileSystemMasterTest {
     FileInfo infoparent = mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/b/file1").toString());
-    uri = new AlluxioURI("alluxio:/a/b/file1");
+    uri = new AlluxioURI("/a/b/file1");
     mFileSystemMaster.loadMetadata(uri,
         LoadMetadataOptions.defaults().setCreateAncestors(true));
     FileInfo info = mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
