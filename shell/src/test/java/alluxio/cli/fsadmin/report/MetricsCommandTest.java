@@ -11,7 +11,6 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.cli.fsadmin.report.MetricsCommand;
 import alluxio.client.MetaMasterClient;
 import alluxio.wire.MetricValue;
 
@@ -73,7 +72,6 @@ public class MetricsCommandTest {
     map.put("FilesCreated", MetricValue.forLong(534L));
     map.put("FilesFreed", MetricValue.forLong(2141L));
     map.put("FilesPersisted", MetricValue.forLong(4171L));
-    map.put("master.FilesPinned", MetricValue.forLong(2354239L));
     map.put("NewBlocksGot", MetricValue.forLong(4L));
     map.put("PathsDeleted", MetricValue.forLong(583L));
     map.put("PathsMounted", MetricValue.forLong(3635L));
@@ -118,7 +116,6 @@ public class MetricsCommandTest {
         "    FilesCreated                               534",
         "    FilesFreed                               2,141",
         "    FilesPersisted                           4,171",
-        "    FilesPinned                          2,354,239",
         "    NewBlocksGot                                 4",
         "    PathsDeleted                               583",
         "    PathsMounted                             3,635",
