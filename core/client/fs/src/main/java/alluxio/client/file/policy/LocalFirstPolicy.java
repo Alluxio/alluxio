@@ -21,6 +21,8 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +40,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private final TieredIdentity mTieredIdentity;
+
+  private static List<String> writerHosts = null;
+  {
+      String hosts = System.getenv("QINIU_WRITER_HOSTS");
+      if (hosts != null) writerHosts = Arrays.asList(hosts.split("\\s*,\\s*"));
+      if (writerHosts == null) writerHosts = new ArrayList<String>();
+  }
 
   /**
    * Constructs a {@link LocalFirstPolicy}.
@@ -58,9 +67,22 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
     return new LocalFirstPolicy(localTieredIdentity);
   }
 
+  /**
+   * If configured, write goes to specified workers unless there is none satisified.  - qiniu
+   */
   @Override
   @Nullable
-  public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
+  public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList, long blockSizeBytes) {
+    List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(workerInfoList);
+    List<BlockWorkerInfo> candidateWorkers = shuffledWorkers.stream()
+        .filter(w -> writerHosts.contains(w.getNetAddress().getHost() + ":" + w.getNetAddress().getDataPort()))
+        .collect(Collectors.toList());
+    WorkerNetAddress worker = getWorkerForNextBlockImpl(candidateWorkers, blockSizeBytes);
+    if (worker != null) return worker;
+    return getWorkerForNextBlockImpl(workerInfoList, blockSizeBytes);
+  }
+
+  private WorkerNetAddress getWorkerForNextBlockImpl(Iterable<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
     List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(workerInfoList);
     Collections.shuffle(shuffledWorkers);
