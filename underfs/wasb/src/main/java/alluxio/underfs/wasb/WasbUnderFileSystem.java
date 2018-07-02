@@ -54,6 +54,7 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
       }
     }
     wasbConf.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb");
+    wasbConf.set("fs.wasb.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem");
     return wasbConf;
   }
 

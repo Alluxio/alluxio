@@ -35,6 +35,7 @@ import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * Shared configuration and methods for the Netty client.
@@ -60,10 +61,11 @@ public final class NettyClient {
   /**
    * Creates and returns a new Netty client bootstrap for clients to connect to remote servers.
    *
+   * @param subject the subject for this client (can be null)
    * @param address the socket address
    * @return the new client {@link Bootstrap}
    */
-  public static Bootstrap createClientBootstrap(SocketAddress address) {
+  public static Bootstrap createClientBootstrap(Subject subject, SocketAddress address) {
     final Bootstrap boot = new Bootstrap();
 
     boot.group(WORKER_GROUP).channel(NettyUtils

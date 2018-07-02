@@ -76,16 +76,18 @@ public class SocketTrackingTServerSocket extends TServerSocket {
    * Shuts down the executor service.
    */
   private void shutdownExecutor() {
-    if (mExecutor != null) {
-      mExecutor.shutdownNow();
-      try {
-        if (!mExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
-          LOG.warn("Failed to stop socket cleanup thread.");
-        }
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        return;
+    // Possible since super constructor can call close().
+    if (mExecutor == null) {
+      return;
+    }
+    mExecutor.shutdownNow();
+    try {
+      if (!mExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
+        LOG.warn("Failed to stop socket cleanup thread.");
       }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return;
     }
   }
 
@@ -93,6 +95,10 @@ public class SocketTrackingTServerSocket extends TServerSocket {
    * Closes all socket connections that have been accepted by this server socket.
    */
   private void closeClientSockets() throws IOException {
+    // Possible since super constructor can call close().
+    if (mSockets == null) {
+      return;
+    }
     Closer closer = Closer.create();
     int count = 0;
     for (Socket s : mSockets) {
