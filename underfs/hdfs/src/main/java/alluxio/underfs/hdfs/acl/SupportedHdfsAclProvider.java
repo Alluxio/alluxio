@@ -36,6 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Provides the HDFS ACLs. This is only supported in Hadoop versions 2.4 and greater.
  */
 @ThreadSafe
+
 public class SupportedHdfsAclProvider implements HdfsAclProvider {
   private static final Logger LOG = LoggerFactory.getLogger(SupportedHdfsAclProvider.class);
 
