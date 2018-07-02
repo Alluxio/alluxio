@@ -11,6 +11,7 @@
 
 package alluxio.master.meta.checkconf;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -59,6 +60,18 @@ public class ServerConfigurationStoreTest {
 
     assertTrue(confMap.containsKey(mAddressOne));
     assertTrue(confMap.containsKey(mAddressTwo));
+  }
+
+  @Test
+  public void registerNewConfUnknownProperty() {
+    Address testAddress = new Address("test", 0);
+    ServerConfigurationStore configStore = new ServerConfigurationStore();
+    configStore.registerNewConf(testAddress, Arrays.asList(
+        new ConfigProperty().setName("unknown.property")
+    ));
+    Map<Address, List<ConfigRecord>> confMap = configStore.getConfMap();
+    assertTrue(confMap.containsKey(testAddress));
+    assertEquals("unknown.property", confMap.get(testAddress).get(0).getKey().getName());
   }
 
   @Test

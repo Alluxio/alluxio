@@ -73,7 +73,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   @Override
   public GetTResponse get(final long blockId, final ByteBuffer key, GetTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetTResponse>() {
+    return RpcUtils.call(new RpcCallableThrowsIOException<GetTResponse>() {
       @Override
       public GetTResponse call() throws AlluxioException, IOException {
         ByteBuffer value = getInternal(blockId, key);
@@ -128,7 +128,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   @Override
   public GetNextKeysTResponse getNextKeys(final long blockId, final ByteBuffer key,
       final int numKeys, GetNextKeysTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetNextKeysTResponse>() {
+    return RpcUtils.call(new RpcCallableThrowsIOException<GetNextKeysTResponse>() {
       @Override
       public GetNextKeysTResponse call() throws AlluxioException, IOException {
         final long sessionId = Sessions.KEYVALUE_SESSION_ID;
@@ -164,7 +164,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   @Override
   public GetSizeTResponse getSize(final long blockId, GetSizeTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetSizeTResponse>() {
+    return RpcUtils.call(new RpcCallableThrowsIOException<GetSizeTResponse>() {
       @Override
       public GetSizeTResponse call() throws AlluxioException, IOException {
         final long sessionId = Sessions.KEYVALUE_SESSION_ID;

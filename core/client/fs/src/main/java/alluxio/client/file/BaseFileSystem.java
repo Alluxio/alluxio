@@ -40,7 +40,6 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 
@@ -122,9 +121,10 @@ public class BaseFileSystem implements FileSystem {
     try {
       masterClient.createFile(path, options);
       // Do not sync before this getStatus, since the UFS file is expected to not exist.
-      status = masterClient.getStatus(path,
-          GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-              .setCommonOptions(CommonOptions.defaults().setSyncIntervalMs(-1)));
+      GetStatusOptions opts = GetStatusOptions.defaults();
+      opts.setLoadMetadataType(LoadMetadataType.Never);
+      opts.getCommonOptions().setSyncIntervalMs(-1);
+      status = masterClient.getStatus(path, opts);
       LOG.debug("Created file {}, options: {}", path.getPath(), options);
     } catch (AlreadyExistsException e) {
       throw new FileAlreadyExistsException(e.getMessage());

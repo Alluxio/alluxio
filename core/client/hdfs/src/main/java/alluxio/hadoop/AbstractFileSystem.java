@@ -512,7 +512,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // These must be reset to pick up the change to the master address.
     // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
     LineageContext.INSTANCE.reset();
-    FileSystemContext.get().reset();
+    FileSystemContext.get().reset(Configuration.global());
 
     // Try to connect to master, if it fails, the provided uri is invalid.
     FileSystemMasterClient client = FileSystemContext.get().acquireMasterClient();

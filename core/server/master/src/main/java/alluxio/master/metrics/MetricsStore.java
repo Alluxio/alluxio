@@ -20,6 +20,7 @@ import alluxio.metrics.MetricsSystem.InstanceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -74,22 +75,6 @@ public class MetricsStore {
       new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
 
   /**
-   * Gets all the metrics by instance type. The supported instance types are worker and client.
-   *
-   * @param instanceType the instance type
-   * @return the metrics stored in {@link IndexedSet};
-   */
-  private IndexedSet<Metric> getMetricsByInstanceType(MetricsSystem.InstanceType instanceType) {
-    if (instanceType == InstanceType.WORKER) {
-      return mWorkerMetrics;
-    } else if (instanceType == InstanceType.CLIENT) {
-      return mClientMetrics;
-    } else {
-      throw new IllegalArgumentException("Unsupported instance type " + instanceType);
-    }
-  }
-
-  /**
    * Put the metrics from a worker with a hostname. If all the old metrics associated with this
    * instance will be removed and then replaced by the latest.
    *
@@ -139,9 +124,33 @@ public class MetricsStore {
    * @param name the metric name
    * @return the set of matched metrics
    */
-  public synchronized Set<Metric> getMetricsByInstanceTypeAndName(
-      MetricsSystem.InstanceType instanceType, String name) {
-    return getMetricsByInstanceType(instanceType).getByField(NAME_INDEX, name);
+  public Set<Metric> getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType instanceType,
+      String name) {
+    if (instanceType == InstanceType.MASTER) {
+      return getMasterMetrics(name);
+    }
+
+    if (instanceType == InstanceType.WORKER) {
+      synchronized (mWorkerMetrics) {
+        return mWorkerMetrics.getByField(NAME_INDEX, name);
+      }
+    } else if (instanceType == InstanceType.CLIENT) {
+      synchronized (mWorkerMetrics) {
+        return mClientMetrics.getByField(NAME_INDEX, name);
+      }
+    } else {
+      throw new IllegalArgumentException("Unsupported instance type " + instanceType);
+    }
+  }
+
+  private Set<Metric> getMasterMetrics(String name) {
+    Set<Metric> metrics = new HashSet<>();
+    for (Metric metric : MetricsSystem.allMasterMetrics()) {
+      if (metric.getName().equals(name)) {
+        metrics.add(metric);
+      }
+    }
+    return metrics;
   }
 
   /**

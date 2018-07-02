@@ -82,7 +82,8 @@ public class ConfigurationCommand {
       for (InconsistentProperty prop : list) {
         mPrintStream.println("key: " + prop.getName());
         for (Map.Entry<Optional<String>, List<String>> entry : prop.getValues().entrySet()) {
-          mPrintStream.println("    value: " + String.format("%s (%s)", entry.getKey(),
+          mPrintStream.println("    value: " + String.format("%s (%s)",
+              entry.getKey().orElse("no value set"),
               String.join(", ", entry.getValue())));
         }
       }

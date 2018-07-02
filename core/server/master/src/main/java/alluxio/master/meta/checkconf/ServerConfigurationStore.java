@@ -67,11 +67,21 @@ public class ServerConfigurationStore {
     Preconditions.checkNotNull(configList, "configuration list should not be null");
     // Instead of recording property name, we record property key.
     mConfMap.put(address, configList.stream().map(c -> new ConfigRecord()
-        .setKey(PropertyKey.fromString(c.getName())).setSource(c.getSource())
+        .setKey(toPropertyKey(c.getName())).setSource(c.getSource())
         .setValue(c.getValue())).collect(Collectors.toList()));
     mLostNodes.remove(address);
     for (Runnable function : mChangeListeners) {
       function.run();
+    }
+  }
+
+  private static PropertyKey toPropertyKey(String name) {
+    if (PropertyKey.isValid(name)) {
+      return PropertyKey.fromString(name);
+    } else {
+      // Worker might have properties that the master doesn't yet know about, e.g. UFS specific
+      // properties, or properties from a different version of Alluxio.
+      return new PropertyKey.Builder(name).setIsBuiltIn(false).buildUnregistered();
     }
   }
 

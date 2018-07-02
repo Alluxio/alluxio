@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
@@ -104,8 +105,21 @@ public final class InconsistentProperty {
   public String toString() {
     return Objects.toStringHelper(this)
         .add("key", mName)
-        .add("values", mValues)
+        .add("values", formatValues(mValues))
         .toString();
+  }
+
+  /**
+   * @return the formatted string of mValues without Optional keyword
+   */
+  private static String formatValues(Map<Optional<String>, List<String>> values) {
+    StringJoiner joiner = new StringJoiner(", ");
+    for (Map.Entry<Optional<String>, List<String>> entry : values.entrySet()) {
+      joiner.add(String.format("%s (%s)",
+          entry.getKey().orElse("no value set"),
+          String.join(", ", entry.getValue())));
+    }
+    return joiner.toString();
   }
 
   /**
