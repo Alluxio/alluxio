@@ -763,6 +763,13 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       }
     }
 
+    /** - qiniu
+     * This will clear the path cache after release, but stat cache will be shared during traversing
+     * the blocks. Usually, file won't be repeatly visited, so this won't impact performance a lot,
+     * however, the attr and block cache can be refreshed next time the file is visited. 
+     */
+    MetaCache.invalidate(path);
+
     try {
       oe.close();
     } catch (IOException e) {

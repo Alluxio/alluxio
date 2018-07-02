@@ -47,6 +47,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +67,13 @@ public final class AlluxioBlockStore {
 
   private final FileSystemContext mContext;
   private final TieredIdentity mTieredIdentity;
+
+  private static List<String> readerExHosts = null;
+  {
+      String hosts = System.getenv("QINIU_READER_EX_HOSTS");
+      if (hosts != null) readerExHosts = Arrays.asList(hosts.split("\\s*,\\s*"));
+      if (readerExHosts == null) readerExHosts = new ArrayList<String>();
+  }
 
   /**
    * Creates an Alluxio block store with default file system context and default local host name.
@@ -104,10 +113,12 @@ public final class AlluxioBlockStore {
    * @return a {@link BlockInfo} containing the metadata of the block
    */
   public BlockInfo getInfo(long blockId) throws IOException {
+    BlockInfo info = MetaCache.getBlockInfoCache(blockId); //qiniu2
+    if (info != null) return info;
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireBlockMasterClientResource()) {
       //return masterClientResource.get().getBlockInfo(blockId); -- qiniu2
-      BlockInfo info = masterClientResource.get().getBlockInfo(blockId);
+      info = masterClientResource.get().getBlockInfo(blockId);
       if (info != null) MetaCache.addBlockInfoCache(blockId, info); //qiniu2
       return info;
     }
@@ -158,21 +169,12 @@ public final class AlluxioBlockStore {
    */
   public BlockInStream getInStream(long blockId, InStreamOptions options,
       Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
-    // Get the latest block info from master
-    BlockInfo info = MetaCache.getBlockInfoCache(blockId); //qiniu2
-    if (info == null) {
-        /*try (CloseableResource<BlockMasterClient> masterClientResource =
-                 mContext.acquireBlockMasterClientResource()) {
-          info = masterClientResource.get().getBlockInfo(blockId);
-          
-        }*/
-        try {   // qiniu
-            info = getInfo(blockId);
-        } catch (Exception e)  {
-            LOG.info("==== fail to get block info for " + blockId);
-            throw e;
-        }
-    }
+    /*try (CloseableResource<BlockMasterClient> masterClientResource =
+             mContext.acquireBlockMasterClientResource()) {
+      info = masterClientResource.get().getBlockInfo(blockId);
+      
+    }*/
+    BlockInfo info = getInfo(blockId);
     List<BlockLocation> locations = info.getLocations();
 
     //qiniu
@@ -182,10 +184,17 @@ public final class AlluxioBlockStore {
 
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
     // Initial target workers to read the block given the block locations.
+    // By default, read will no go to QINIU_READER_EX_HOSTS unless the block is already there - qiniu
     Set<WorkerNetAddress> workerPool;
     if (options.getStatus().isPersisted()) {
       blockWorkerInfo = getEligibleWorkers();
       workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
+      if (readerExHosts.size() > 0) {
+          Set<WorkerNetAddress> subPool = workerPool.stream()
+              .filter(w -> blockWorkers.contains(w) || !readerExHosts.contains(w.getHost() + ":" + w.getDataPort()))
+              .collect(toSet());
+          if (!failedWorkers.keySet().containsAll(subPool)) workerPool = subPool;
+      }
     } else {
       workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
     }
@@ -274,11 +283,7 @@ public final class AlluxioBlockStore {
           mContext.acquireBlockMasterClientResource()) {
         blockSize = blockMasterClientResource.get().getBlockInfo(blockId).getLength();
       }*/
-      try {
-          blockSize = getInfo(blockId).getLength();
-      } catch (Exception e) {
-          LOG.info("==== in getOutStream fail to get block info for " + blockId);
-      }
+      blockSize = getInfo(blockId).getLength();
     }
     // No specified location to write to.
     if (address == null) {
