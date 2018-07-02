@@ -96,6 +96,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   // Table of open files with corresponding InputStreams and OutputStreams
   private final Map<Long, OpenFileEntry> mOpenFiles;
   private long mNextOpenFileId;
+  private final Map<String, Long> mCreateFiles;
 
   /**
    * The idea here to support overwrite (only support truncate with size 0 now) is:
@@ -157,6 +158,9 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       synchronized (mOpenFiles) {
         oe = mOpenFiles.remove(fid);
       }
+      synchronized(mCreateFiles) {
+          mCreateFiles.remove(path);
+      }
       return oe;
   }
 
@@ -173,6 +177,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     MetaCache.setAlluxioRootPath(mAlluxioRootPath); // call this as earlier as possible - qiniu
     mNextOpenFileId = 0L;
     mOpenFiles = new HashMap<>();
+    mCreateFiles = new HashMap<>();
     mTruncatePaths = new ConcurrentHashMap<>();
 
     //final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
@@ -278,6 +283,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         LOG.debug("Alluxio OutStream created for {}", path);
         if (fi != null) {
             mOpenFiles.put(mNextOpenFileId, ofe);
+            mCreateFiles.put(path, mNextOpenFileId);
             fi.fh.set(mNextOpenFileId);
             // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
             mNextOpenFileId += 1;
@@ -846,23 +852,44 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     MetaCache.invalidate(path);
     LOG.debug("========== truncate {} size {}", path, size);
     try {
-      if (!mFileSystem.exists(uri)) {
-        LOG.error("File {} does not exist", uri);
-        return -ErrorCodes.ENOENT();
-      }
-      if (0 == size) {
-          try {
-              unlink(path); 
-          } catch (Exception e) {
-              LOG.warn("=== exception during unlink {} in trunk {}", path, e.getMessage());
-          }
-          return create(path, 0, null);
-      } else {
-          // some file with hole will cause fuse subsystem to call truncate() or ftruncate() with 
-          // available content length. For now, we just keep the maximum available content.
-          // The full solution will be to send a thrift RPC to master to update the status.length
-          return 0;
-      }
+        if (!mFileSystem.exists(uri)) {
+            LOG.error("File {} does not exist", uri);
+            return -ErrorCodes.ENOENT();
+        }
+        if (0 == size) {
+            try {
+                unlink(path); 
+            } catch (Exception e) {
+                LOG.warn("=== exception during unlink {} in trunk {}", path, e.getMessage());
+            }
+            return create(path, 0, null);
+        } 
+        Long fd = null;
+        OpenFileEntry oe = null;
+        synchronized (mCreateFiles) {
+            fd = mCreateFiles.get(path);
+        }
+        if (fd != null) {
+            synchronized (mOpenFiles) {
+                oe = this.get_ofe(path, fd);
+            }
+        }
+        if (fd == null || oe == null || oe.getOut() == null || size < oe.getWriteOffset()) {
+            LOG.error("File {} does not exist or not open for write or size {} is too small", uri, size);
+            return -ErrorCodes.EINVAL();
+        }
+        int mb = 1024 * 1024;
+        byte[] bz = new byte[mb];
+        while (oe.getWriteOffset() < size) {
+            if (oe.getWriteOffset() + mb < size) {
+                oe.getOut().write(bz);
+                oe.setWriteOffset(oe.getWriteOffset() + mb);
+            } else {
+                oe.getOut().write(bz, 0, (int)(size - oe.getWriteOffset()));
+                oe.setWriteOffset(size);
+            }
+        }
+        return 0;
     } catch (IOException e) {
       LOG.error("IOException encountered at path {}", path, e);
       return -ErrorCodes.EIO();
