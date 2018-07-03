@@ -61,7 +61,7 @@ the `${ALLUXIO_HOME}/assembly/server/target` directory.
 First create the configuration file from the template.
 
 ```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Then edit `conf/alluxio-site.properties` file to set the under storage address to the HDFS namenode
@@ -71,12 +71,12 @@ mapping HDFS root directory to Alluxio, or `hdfs://localhost:9000/alluxio/data` 
 directory `/alluxio/data` is mapped to Alluxio.
 
 ```
-alluxio.underfs.address=hdfs://NAMENODE:PORT
+alluxio.underfs.address=hdfs://<NAMENODE>:<PORT>
 ```
 
 ### HDFS configuration files
 
-To ensure Alluxio client picks up HDFS configurations in classpath, please copy secure HDFS
+To ensure Alluxio servers pick up HDFS configurations in classpath, please copy secure HDFS
 configuration xml files (`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to
 `${ALLUXIO_HOME}/conf/`
 
