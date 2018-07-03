@@ -70,7 +70,7 @@ bin/alluxio extensions install <extension.jar>
 ```bash
 bin/alluxio fs mount /my-storage <scheme>://<path>/ --option <key>=<value>
 ```
-其中，key=value项可以被底层存储的任何必需配置替代。
+其中，`<key>=<value>`可以被底层存储的任何必需配置替代。
 
 执行完整的测试：
 
