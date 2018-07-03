@@ -286,6 +286,9 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public T setGroup(String group) {
     mAcl.setOwningGroup(group);
+    if (isDirectory()) {
+      getDefaultACL().setOwningGroup(group);
+    }
     return getThis();
   }
 
@@ -375,6 +378,9 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public T setOwner(String owner) {
     mAcl.setOwningUser(owner);
+    if (isDirectory()) {
+      getDefaultACL().setOwningUser(owner);
+    }
     return getThis();
   }
 
@@ -415,6 +421,16 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
         mAcl.setEntry(entry);
       }
     }
+    return getThis();
+  }
+
+  /**
+   * Sets the internal ACL to a specified ACL.
+   * @param acl the specified ACL
+   * @return the updated object
+   */
+  public T setInternalAcl(AccessControlList acl) {
+    mAcl = acl;
     return getThis();
   }
 
