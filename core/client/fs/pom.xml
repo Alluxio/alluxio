@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core-client</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-client-fs</artifactId>
   <packaging>jar</packaging>
