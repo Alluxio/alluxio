@@ -32,7 +32,7 @@ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 
 ## 1 在Alluxio上创建Hive表
 
-有不同的方法可以将Hive与Alluxio整合。这一节讨论的是如何将Alluxio作为文件系统的一员（像HDFS）来存储Hive表。这些表可以是[内部的（托管的）或外部的](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables)，新创建的表或HDFS中已存在的表。[下一节](Running-Hive-with-Alluxio.html#use-alluxio-as-default-filesystem)讨论的是如何将Alluxio作为Hive的默认文件系统。在接下来的部分，文档中的Hive运行在Hadoop MapReduce上。
+有不同的方法可以将Hive与Alluxio整合。这一节讨论的是如何将Alluxio作为文件系统的一员（像HDFS）来存储Hive表。这些表可以是[内部的或外部的](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables)，新创建的表或HDFS中已存在的表。[下一节](Running-Hive-with-Alluxio.html#use-alluxio-as-default-filesystem)讨论的是如何将Alluxio作为Hive的默认文件系统。在接下来的部分，文档中的Hive运行在Hadoop MapReduce上。
 *建议：接下来所有的Hive命令行例子同样适用于Hive Beeline。你可以在Beeline shell中尝试这些例子*
 
 ### 使用文件在Alluxio中创建新表
