@@ -49,6 +49,8 @@ public class HdfsUnderFileOutputStream extends OutputStream {
     //#ifdef HADOOP1
     mOut.sync();
     //#else
+    // Note that, hsync() flushes out the data in client's user buffer all the way to the disk
+    // device which may result in much slower performance than sync().
     mOut.hsync();
     //#endif
   }
