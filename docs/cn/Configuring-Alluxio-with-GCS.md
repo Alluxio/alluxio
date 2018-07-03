@@ -27,11 +27,11 @@ priority: 0
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-为了使用GCS作为其底层文件系统，你需要配置Alluxio。第一个需要修改的地方就是指定一个已有的bucket以及bucket中的目录作为底层文件系统。你可以通过向`conf/alluxio-env.sh`文件添加以下代码来指定：
+你需要配置Alluxio以使用GCS作为其底层文件系统。第一个需要修改的地方就是指定一个已有的bucket以及bucket中的目录作为底层文件系统。你可以通过向`conf/alluxio-env.sh`文件添加以下代码来指定：
 
 {% include Configuring-Alluxio-with-GCS/underfs-address.md %}
 
-接下来，你需要指定Google证书来接入GCS。在`conf/alluxio-site.properties`中，添加:
+接下来，你需要指定Google证书来接入GCS。在`conf/alluxio-site.properties`文件中添加:
 
 {% include Configuring-Alluxio-with-GCS/google.md %}
 
