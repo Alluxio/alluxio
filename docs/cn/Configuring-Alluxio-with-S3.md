@@ -9,7 +9,7 @@ priority: 0
 * 内容列表
 {:toc}
 
-该指南介绍配置[Amazon S3](https://aws.amazon.com/s3/)作为Alluxio底层文件系统的指令。Alluxio采用s3a:// scheme并且使用aws-sdk访问S3。
+该指南介绍配置[Amazon S3](https://aws.amazon.com/s3/)作为Alluxio底层文件系统的指令。Alluxio采用s3a://scheme并且使用aws-sdk访问S3。
 
 ## 初始步骤
 
