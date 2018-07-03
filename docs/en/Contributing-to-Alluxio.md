@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Guidelines to Contribute
-nickname: Guidelines to Contribute
+title: Contributing to Alluxio Guidelines
+nickname: Contributing to Alluxio Guidelines
 group: Resources
 priority: 2
 ---
@@ -10,8 +10,8 @@ priority: 2
 {:toc}
 
 > If you are the first time contributor to the Alluxio open source project, we strongly encourage
-> you to follow the step-by-step example in the [Tutorial to Contribute to Alluxio](Contributing-Getting-Started.html)
-> and finish a new contributor task before making more advanced change to Alluxio.
+> you to follow the step-by-step example in the [Contributing to Alluxio Tutorial](Contributing-Getting-Started.html)
+> and finish a new contributor task before making more advanced changes to Alluxio.
 
 Thank you for your interest in Alluxio! We greatly appreciate any new features or fixes.
 
@@ -63,8 +63,7 @@ $ cd ${ALLUXIO_HOME}
 $ mvn test
 ```
 
-This will use the local filesystem as the under filesystem and
-HDFS 2.2.0 as the under filesystem in the HDFS module.
+This will use the local filesystem as the under filesystem.
 
 - Run a single unit test:
 
@@ -72,15 +71,14 @@ HDFS 2.2.0 as the under filesystem in the HDFS module.
 $ mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
 ```
 
-- To run tests against specific under filesystems, execute the `maven test` command targeting the
-desired
-submodule directory. For example, to run tests for HDFS you would run
+- To run unit tests for a specific module, execute the `maven test` command targeting
+ the desired submodule directory. For example, to run tests for HDFS UFS module you would run
 
 ```bash
 $ mvn test -pl underfs/hdfs
 ```
 
-Run tests with a different Hadoop version:
+Run unit tests for HDFS UFS module with a different Hadoop version:
 
 ```bash
 # build and run test on HDFS under filesystem module for Hadoop 2.7.0
@@ -89,7 +87,7 @@ $ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
 $ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 ```
 
-The above tests will create a simulated HDFS service with the specific version.
+The above unit tests will create a simulated HDFS service with the specific version.
 To run more comprehensive tests on HDFS under filesystem using a real and running HDFS deployment:
 
 ```bash

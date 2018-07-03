@@ -1,7 +1,7 @@
 ---
 layout: global
-title: A Tutorial to Contribute
-nickname: A Tutorial to Contribute
+title: Contributing to Alluxio Tutorial
+nickname: Contributing to Alluxio Tutorial
 group: Resources
 priority: 2
 ---
@@ -284,7 +284,7 @@ There are a few things that new contributors can do to familiarize themselves wi
 1.  [Run Alluxio on a Cluster](Running-Alluxio-on-a-Cluster.html)
 1.  Read [Configuration-Settings](Configuration-Settings.html) and [Command-Line Interface](Command-Line-Interface.html)
 1.  Read a [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
-1.  [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
+1.  [Build Alluxio From Source](Building-Alluxio-Master-Branch.html)
 1.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request. You are also welcome to address
 issues in our [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO).
 Here is a list of unassigned

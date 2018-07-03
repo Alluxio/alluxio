@@ -35,7 +35,7 @@ $ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
 Build the source code using Maven:
 
 ```java
-$ mvn install -DskipTests
+$ mvn clean install -DskipTests
 ```
 
 To speed up the compilation, you can run the following instruction to skip different checks:
@@ -44,7 +44,8 @@ To speed up the compilation, you can run the following instruction to skip diffe
 $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
 ```
 
-If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please execute:
+If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please set the following
+variable to increase the memory heap size for maven:
 
 ```bash
 $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
@@ -57,6 +58,7 @@ The Maven build system fetches its dependencies, compiles source code, runs unit
 Once Alluxio is built, you can start it with:
 
 ```bash
+$ echo "alluxio.master.hostname=localhost" > conf/alluxio-site.properties
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
