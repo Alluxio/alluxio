@@ -37,14 +37,14 @@ alluxio.underfs.address=s3n://S3_BUCKET/S3_DIRECTORY
 
 接着，需要指定AWS证书以便访问S3，你可以用不同的方式来指定证书，从最高级到最低级：
 
-Priority
-* aws.accessKeyId and aws.secretKey specified as mount options
-* aws.accessKeyId and aws.secretKey specified as Java system properties
-* aws.accessKeyId and aws.secretKey in Alluxio site properties
-* Environment Variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (either is acceptable) and
-`AWS_SECRET_ACCESS_KEY` or  `AWS_SECRET_KEY` (either is acceptable) on the Alluxio servers
-* Profile file containing credentials at `~/.aws/credentials`
-* AWS Instance profile credentials, if you are using an EC2 instance
+优先级
+* 被指定为挂载选项的aws.accessKeyId和aws.secretKey
+* 被指定为Java系统属性的aws.accessKeyId和aws.secretKey
+* 在Alluxio site属性中的aws.accessKeyId和aws.secretKey
+* 在Alluxio服务器端的环境变量`AWS_ACCESS_KEY_ID`或`AWS_ACCESS_KEY`（都是可接受的）和
+`AWS_SECRET_ACCESS_KEY`或`AWS_SECRET_KEY`（都是可接受的）
+* `~/.aws/credentials`目录下包含证书的配置文件
+* AWS实例配置文件证书，如果你正在使用一个EC2实例
 
 当使用一个AWS实例配置文件作为证书提供者：
 * 通过访问被挂载的bucket创建一个[IAM Role](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
