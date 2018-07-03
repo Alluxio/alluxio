@@ -29,10 +29,10 @@ Alluxio文件系统识别访问服务的用户。使用其他安全特性(如授
 当`alluxio.security.authentication.type` 类型'被设置为`SIMPLE`，身份验证被启用。
 在客户端访问服务之前，该客户端按以下列次序指示Alluxio服务检索要报告的用户信息
 
-1。如果`alluxio.security.login.username` 在客户端上设置，其值将作为
+1 如果`alluxio.security.login.username` 在客户端上设置，其值将作为
 此客户端的登录用户。
 
-2。否则，将从操作系统获取登录用户。
+2 否则，将从操作系统获取登录用户。
 
 客户端检索用户信息后，将使用该用户信息进行连接该服务。在客户端创建目录/文件之后，将用户信息添加到元数据中
 
