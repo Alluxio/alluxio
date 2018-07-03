@@ -10,7 +10,7 @@ title: 底层存储扩展
 这篇文档是帮助用户进行文件系统的扩展，请查看[开发扩展](DevelopingUFSExtensions.html)来阅读扩展开发文档。
 
 Alluxio可以在运行时扩展额外的底层存储模块，底层存储模块的扩展（通过JARs包进行编译）可以被包括在一个Alluxio Core中具体的位置，
-不需要重启运行的进程。对于没有现有原生支持的存储系统，添加与Alluxio相连的底层存储模块可以使其于Alluxio一起工作。
+不需要重启运行的进程。对于没有现有原生支持的存储系统，添加与Alluxio相连的底层存储模块可以使其与Alluxio一起工作。
 
 # 扩展列表
 
@@ -70,9 +70,9 @@ bin/alluxio extensions install <extension.jar>
 ```bash
 bin/alluxio fs mount /my-storage <scheme>://<path>/ --option <key>=<value>
 ```
-where, `<key>=<value>` can be replaced with any required configuration for the under storage.
+其中，<key>=<value>可以被底层存储的任何必需配置替代。
 
-To run sanity tests execute:
+执行完整的测试：
 
 ```bash
 bin/alluxio runTests --directory /my-storage
