@@ -56,7 +56,7 @@ alluxio.user.file.writetype.default:
   创建Alluxio文件时的默认写类型。可选值为`MUST_CACHE` (数据仅仅存储在Alluxio中，并且必须存储在其中),
   `CACHE_THROUGH` (尽量缓冲数据，同时同步写入到底层文件系统), `THROUGH` (不缓冲数据，同步写入到底层文件系统)。
 alluxio.user.heartbeat.interval:
-  Alluxio worker的心跳时间间隔）。
+  Alluxio worker的心跳时间间隔。
 alluxio.user.hostname:
   给alluxio客户端使用的主机名。
 alluxio.user.lineage.enabled:
