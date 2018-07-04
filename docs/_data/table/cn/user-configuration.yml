@@ -10,10 +10,12 @@ alluxio.user.block.remote.writer.class:
   这个设置已经不推荐使用，将在2.0.0版本中删除。
 alluxio.user.block.size.bytes.default:
   Alluxio文件的默认大小。
-alluxio.user.block.worker.client.pool.gc.threshold.ms:
+alluxio.user.block.worker.client.pool.gc.threshold:
   数据块worker client如果闲置超过这个时间会被关闭。
 alluxio.user.block.worker.client.pool.size.max:
   数据块worker client池中缓存的worker client的最大数目。
+alluxio.user.block.worker.client.read.retry:
+  客户端放弃读某个块之前最大重试worker个数。
 alluxio.user.block.worker.client.threads:
   数据块worker client向worker发送心跳的线程池大小，如果某些worker宕机会影响client与其他正常worker的通信，那就增大该值。
 alluxio.user.date.format.pattern:
@@ -32,13 +34,15 @@ alluxio.user.file.master.client.threads:
   文件master client与文件master通信时使用的线程数目。
 alluxio.user.file.metadata.load.type:
   从UFS中加载元数据的行为。当访问关于路径的信息，但该路径在Alluxio中不存在时，元数据能够从UFS中加载。合法的选项有`Always`，`Never`，`Once`。`Always`将总是访问UFS来看路径是否存在于UFS中。`Never`表示从来不会访问UFS。`Once`表示在”首次“的时候会访问UFS（根据缓存），但是以后都不会在访问。默认值为`Once`。
+alluxio.user.file.metadata.sync.interval:
+  在调用路径上的操作之前同步UFS元数据的时间间隔。-1表示不会发生同步。0意味着在操作之前，代理总是会同步路径的元数据。如果指定了一个时间间隔，就可以在该时间间隔内(尽可能)不重新同步路径。同步路径的元数据必须与UFS交互，所以这是一个昂贵的操作。如果对一个操作执行同步，则配置为“alluxio.user.file.metadata.load”将被忽略。
 alluxio.user.file.passive.cache.enabled:
   当从Alluxio远程worker读文件时，是否缓存文件到Alluxio的本地worker。当从UFS读文件时，是否缓存到本地worker与这个选项无关。
 alluxio.user.file.readtype.default:
   创建Alluxio文件时的默认读类型。可选值为`CACHE_PROMOTE` (如果数据已经在Alluxio存储内，将其移动到最高存储层，如果数据需要从底层存储进行读取，将其写到本地Alluxio的最高存储层)、`CACHE` (如果数据需要从底层存储进行读取，将其写到本地Alluxio的最高存储层), `NO_CACHE` (数据不与Alluxio交互，如果是从Alluxio中进行读取，将不会发生数据块迁移或者剔除)。
 alluxio.user.file.seek.buffer.size.bytes:
   在文件seek操作中使用的缓存大小。这个选项只在 `alluxio.user.file.cache.partially.read.block` 打开的时候有效。
-alluxio.user.file.waitcompleted.poll.ms:
+alluxio.user.file.waitcompleted.poll:
   当使用waitCompleted机制时，查询文件完成状态的时间间隔。
 alluxio.user.file.worker.client.threads:
   文件worker client从worker读取数据时使用的线程数目。
@@ -51,7 +55,7 @@ alluxio.user.file.write.tier.default:
 alluxio.user.file.writetype.default:
   创建Alluxio文件时的默认写类型。可选值为`MUST_CACHE` (数据仅仅存储在Alluxio中，并且必须存储在其中),
   `CACHE_THROUGH` (尽量缓冲数据，同时同步写入到底层文件系统), `THROUGH` (不缓冲数据，同步写入到底层文件系统)。
-alluxio.user.heartbeat.interval.ms:
+alluxio.user.heartbeat.interval:
   Alluxio worker的心跳时间间隔（单位：毫秒）。
 alluxio.user.hostname:
   给alluxio客户端使用的主机名。
@@ -59,26 +63,49 @@ alluxio.user.lineage.enabled:
   是否启用lineage。
 alluxio.user.lineage.master.client.threads:
   lineage master client与lineage master通信所使用的线程数目。
+alluxio.user.local.reader.packet.size.bytes:
+  当client从本地worker读数据，数据包的最大容量。
+alluxio.user.local.writer.packet.size.bytes:
+  当client向本地worker写数据，数据包的最大容量。
+alluxio.user.network.netty.channel:
+  netty网络通道类型。
 alluxio.user.network.netty.channel.pool.disabled:
   禁用netty网络通道池特性。设置这个选项为真如果客户端的版本 >= 1.3.0 但是服务器版本 <= 1.2.x。
-alluxio.user.network.netty.channel.pool.gc.threshold.ms:
+alluxio.user.network.netty.channel.pool.gc.threshold:
   netty网络通道会被关闭如果它被闲置超过这个时间。
 alluxio.user.network.netty.channel.pool.size.max:
   netty网络通道池的最大容量。
-alluxio.user.network.netty.timeout.ms:
+alluxio.user.network.netty.reader.buffer.size.packets:
+  当client从远程worker读数据，client可缓存数据包的最大数量。
+alluxio.user.network.netty.reader.packet.size.bytes:
+  当client从远程worker读数据，数据包的最大容量。
+alluxio.user.network.netty.timeout:
   Netty client（用于数据块的读写操作）等待数据服务端回复的最长时间（单位：毫秒）。
 alluxio.user.network.netty.worker.threads:
   远程数据块worker client从远程数据块worker读取数据使用的线程数目。
-alluxio.user.network.netty.writer.close.timeout.ms:
+alluxio.user.network.netty.writer.buffer.size.packets:
+  当client向远程worker写数据，client可缓存数据包的最大数量。
+alluxio.user.network.netty.writer.close.timeout:
   Netty 客户端关闭的最长时间（单位：毫秒）。
-alluxio.user.rpc.retry.base.sleep.ms:
+alluxio.user.network.netty.writer.packet.size.bytes:
+  当client向远程worker写数据，数据包的最大容量。
+alluxio.user.rpc.retry.base.sleep:
   在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了这个指数级重试的基数。
+alluxio.user.rpc.retry.max.duration:
+  在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了放弃前重试的最大时延。
 alluxio.user.rpc.retry.max.num.retry:
   在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了重试的最大次数。
-alluxio.user.rpc.retry.max.sleep.ms:
+alluxio.user.rpc.retry.max.sleep:
   在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了这个重试延迟的最大值。
 alluxio.user.short.circuit.enabled:
   是否允许用户绕过Alluxio读取数据。
+alluxio.user.ufs.block.read.concurrency.max:
+  一个Block Worker上的一个UFS块并发访问的最大个数。
+alluxio.user.ufs.block.read.location.policy:
+  当Alluxio client从UFS读取文件时，它将读取委托给Alluxio worker。client使用此策略来选择要阅读哪个worker。
+  内置选择有：[<a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.file.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstPolicy.html">alluxio.client.file.policy.LocalFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/MostAvailableFirstPolicy.html">alluxio.client.file.policy.MostAvailableFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/RoundRobinPolicy.html">alluxio.client.file.policy.RoundRobinPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/SpecificHostPolicy.html">alluxio.client.file.policy.SpecificHostPolicy</a>]
+alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
+  当alluxio.user.ufs.block.read.location.policy设为alluxio.client.block.policy.DeterministicHashPolicy，这设定了hash shards的数量。
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
   通过Alluxio worker从ufs读取数据时使用的缓存大小，每个读取操作至少会读取该数量的字节，除非已经到文件结束位置。
 alluxio.user.ufs.delegation.write.buffer.size.bytes:
