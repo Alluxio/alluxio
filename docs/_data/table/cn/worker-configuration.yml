@@ -4,10 +4,12 @@ alluxio.worker.allocator.class:
   `alluxio.worker.block.allocator.RoundRobinAllocator`。
 alluxio.worker.bind.host:
   Alluxio worker节点绑定的主机名，参考<a href="#configure-multihomed-networks">多宿主网络</a>
-alluxio.worker.block.heartbeat.interval.ms:
+alluxio.worker.block.heartbeat.interval:
   worker心跳时间间隔（单位：毫秒）。
-alluxio.worker.block.heartbeat.timeout.ms:
+alluxio.worker.block.heartbeat.timeout:
   worker心跳超时时间（单位：毫秒）。
+alluxio.worker.block.master.client.pool.size:
+  block master在Alluxio worker上的client池容量。
 alluxio.worker.block.threads.max:
   worker能处理的最大RPC并发请求数目，该值用于配置worker的Thrift线程池的最大线程数。
 alluxio.worker.block.threads.min:
@@ -20,12 +22,16 @@ alluxio.worker.data.folder.tmp:
   相对于 alluxio.worker.data.folder 的路径, 用于存放临时数据.
 alluxio.worker.data.tmp.subdir.max:
   在 alluxio.worker.data.folder.tmp 中可以创建的文件夹的最大数目.
+alluxio.worker.data.hostname:
+  Alluxio worker数据服务的主机名。
 alluxio.worker.data.port:
   运行Alluxio worker数据服务的端口。
 alluxio.worker.data.server.class:
   选择运行worker的网络栈，可选值为：`alluxio.worker.netty.NettyDataServer`。
 alluxio.worker.data.server.domain.socket.address:
   domain socket 路径。如果设置，Alluxio worker 通过这个路径读写数据。
+alluxio.worker.data.server.domain.socket.as.uuid:
+  如果为真，则属性worker.data.server.domain.socket是域套接字的主目录的路径，也是唯一标识符用作域套接字名称。此外，客户端忽略alluxio.user.hostname在检测本地工作人员进行短路操作时。如果为false，则该属性是UNIX域套接字的绝对路径。
 alluxio.worker.evictor.class:
   当某个存储层空间不足时，worker剔除块文件的策略。可选值包括`alluxio.worker.block.evictor.LRFUEvictor`、
   `alluxio.worker.block.evictor.GreedyEvictor`、 `alluxio.worker.block.evictor.LRUEvictor`。
@@ -33,20 +39,36 @@ alluxio.worker.evictor.lrfu.attenuation.factor:
   在[2, INF)之间的一个衰减因子，用于控制LRFU策略行为。
 alluxio.worker.evictor.lrfu.step.factor:
   在[0, 1]之间的一个因子，用于控制LRFU策略行为：较小值使LRFU更接近于LFU，较大值更接近于LRU。
+alluxio.worker.file.buffer.size:
+  worker将数据写入分层存储的缓冲区大小。
 alluxio.worker.file.persist.pool.size:
   在worker上用于异步存储ASYNC_THROUGH类型文件的线程池大小。每个线程会存储一个文件。
 alluxio.worker.file.persist.rate.limit.enabled:
   是否在异步存储时启用限流功能。
 alluxio.worker.file.persist.rate.limit:
   异步存储时每秒最大写入速度。
-alluxio.worker.filesystem.heartbeat.interval.ms:
+alluxio.worker.filesystem.heartbeat.interval:
   worker和文件系统master之间的心跳检测时间间隔（单位：毫秒）。
+alluxio.worker.free.space.timeout:
+  worker等待驱逐来为客户端写请求提供空间的持续时间。
 alluxio.worker.hostname:
   Alluxio worker的主机名。
+alluxio.worker.jvm.monitor.enabled:
+  是否在worker上启用JVM monitor线程。
 alluxio.worker.memory.size:
   每个worker节点的内存容量。
+alluxio.worker.network.netty.async.cache.manager.threads.max:
+  用于异步缓存netty数据服务器中的块的最大线程数。
+alluxio.worker.network.netty.backlog:
+  netty套接字选项SO_BACKLOG：集合队列数量。
 alluxio.worker.network.netty.boss.threads:
   收到新的请求时启用的线程数目。
+alluxio.worker.network.netty.buffer.receive:
+  netty套接字选项SO_RCVBUF：用于接收的应有缓存大小。
+alluxio.worker.network.netty.buffer.send:
+  netty套接字选项SO_SNDBUF：用于发送的应有缓存大小。
+alluxio.worker.network.netty.channel:
+  netty通道类型：NIO或EPOLL。
 alluxio.worker.network.netty.file.transfer:
   当将文件返回给用户时，该配置项用于选择数据如何传输，有效值为`MAPPED` (使用java MappedByteBuffer)以及`TRANSFER` (使用Java FileChannel.transferTo)
 alluxio.worker.network.netty.shutdown.quiet.period:
@@ -65,11 +87,15 @@ alluxio.worker.network.netty.block.writer.threads.max:
   处理写数据块的线程数目。
 alluxio.worker.network.netty.file.writer.threads.max:
   处理往底层文件系统写文件的线程数目。
+alluxio.worker.network.netty.reader.buffer.size.packets：
+  client从worker读数据时最大并行数据包数量。
 alluxio.worker.network.netty.rpc.threads.max:
   处理RPC的线程数目。
+alluxio.worker.network.netty.writer.buffer.size.packets:
+  client向worker写数据时最大并行数据包数量。
 alluxio.worker.port:
   Alluxio worker节点运行端口。
-alluxio.worker.session.timeout.ms:
+alluxio.worker.session.timeout:
   worker和client连接的超时时间（单位：毫秒），超时后表明该会话失效。
 alluxio.worker.tieredstore.block.lock.readers:
   一个Alluxio数据块锁最大允许的并行读数目。
@@ -83,16 +109,26 @@ alluxio.worker.tieredstore.level0.dirs.path:
   顶层存储层在存储目录中的路径。注意对于MacoS该值应为`/Volumes/`。
 alluxio.worker.tieredstore.level0.dirs.quota:
   顶层存储层容量。
+alluxio.worker.tieredstore.level0.reserved.ratio:
+  在顶部存储层预留的空间的一部分。这已被弃用，请使用low and high watermark代替。
 alluxio.worker.tieredstore.level0.watermark.high.ratio:
   在顶层存储层中的高水位比例 （取值为0到1之间）。
 alluxio.worker.tieredstore.level0.watermark.low.ratio:
   在顶层存储层中的低水位比例 （取值为0到1之间）。
 alluxio.worker.tieredstore.reserver.enabled:
   是否启用层次化存储空间预留服务。
-alluxio.worker.tieredstore.reserver.interval.ms:
+alluxio.worker.tieredstore.reserver.interval:
   空间预留服务运行的时间间隔（单位：毫秒），该服务为每个存储层预留一定比例的空间。
 alluxio.worker.tieredstore.retry:
   worker在处理每个存储层block操作时的最大重试次数。
+alluxio.worker.ufs.block.open.timeout:
+  从UFS打开一个块的时限。
+alluxio.worker.ufs.instream.cache.enabled:
+  在存储输入流下启用缓存，以便以后在同一个文件上查找操作可重用缓存的输入流。这将提高位置读取性能，因为一些文件系统的打开操作是昂贵的。当UFS文件被修改时，缓存的输入流将过时，而不通知Alluxio。
+alluxio.worker.ufs.instream.cache.expiration.time:
+  缓存的UFS输入流过期时间。
+alluxio.worker.ufs.instream.cache.max.size:
+  UFS输入流缓存中最大输入数。
 alluxio.worker.web.bind.host:
   Alluxio worker web服务绑定的主机名，参考See <a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.worker.web.hostname:
