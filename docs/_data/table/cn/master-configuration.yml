@@ -24,7 +24,7 @@ alluxio.master.journal.gc.threshold:
   垃圾收集检查点的最小年龄。
 alluxio.master.journal.log.size.bytes.max:
   如果一个日志文件大小超过该值，会产生下一个文件。
-alluxio.master.journal.tailer.&#8203;shutdown.quiet.wait.time:
+alluxio.master.journal.tailer.shutdown.quiet.wait.time:
   在备用master停止监听线程之前，在该配置项指定的时间内不应对leader master的journal作任何更新。
 alluxio.master.journal.tailer.sleep.time:
   指定当备用master无法检测到leader master journal的更新时，其睡眠时间。
@@ -61,7 +61,7 @@ alluxio.master.periodic.block.integrity.check.repair:
 alluxio.master.port:
   Alluxio master的运行端口。
 alluxio.master.retry:
-  "client尝试与master相连的最大重试次数。（注意：该配置项目前不推荐使用，建议使用`alluxio.user.rpc.retry.max.num.retry`替代该项）"
+  client尝试与master相连的最大重试次数。(注意：该配置项目前不推荐使用，建议使用`alluxio.user.rpc.retry.max.num.retry`替代该项)
 alluxio.master.startup.block.integrity.check.enabled:
   是否应该在启动时检查系统孤立的块(由于各种系统故障而没有相应文件但仍然占用系统资源的块)。如果此属性为真，则在主启动期间将删除孤立的块。此属性自1.7.1开始可用。
 alluxio.master.startup.consistency.check.enabled:
@@ -105,5 +105,5 @@ alluxio.master.keytab.file:
   Alluxio master的Kerberos密钥表文件。
 alluxio.master.principal:
   Alluxio master的Kerberos主体。
-alluxio.master.connection.timeout.ms:
-  Alluxio master设置Thrift的超时时间（单位：毫秒），超过该时间关闭连接,默认值是0,表示无时间限制
+alluxio.master.connection.timeout:
+  Alluxio master设置Thrift的超时时间，超过该时间关闭连接,默认值是0,表示无时间限制
