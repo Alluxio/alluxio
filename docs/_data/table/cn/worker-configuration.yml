@@ -5,9 +5,9 @@ alluxio.worker.allocator.class:
 alluxio.worker.bind.host:
   Alluxio worker节点绑定的主机名，参考<a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.worker.block.heartbeat.interval:
-  worker心跳时间间隔（单位：毫秒）。
+  worker心跳时间间隔。
 alluxio.worker.block.heartbeat.timeout:
-  worker心跳超时时间（单位：毫秒）。
+  worker心跳超时时间。
 alluxio.worker.block.master.client.pool.size:
   block master在Alluxio worker上的client池容量。
 alluxio.worker.block.threads.max:
@@ -48,7 +48,7 @@ alluxio.worker.file.persist.rate.limit.enabled:
 alluxio.worker.file.persist.rate.limit:
   异步存储时每秒最大写入速度。
 alluxio.worker.filesystem.heartbeat.interval:
-  worker和文件系统master之间的心跳检测时间间隔（单位：毫秒）。
+  worker和文件系统master之间的心跳检测时间间隔。
 alluxio.worker.free.space.timeout:
   worker等待驱逐来为客户端写请求提供空间的持续时间。
 alluxio.worker.hostname:
@@ -72,9 +72,9 @@ alluxio.worker.network.netty.channel:
 alluxio.worker.network.netty.file.transfer:
   当将文件返回给用户时，该配置项用于选择数据如何传输，有效值为`MAPPED` (使用java MappedByteBuffer)以及`TRANSFER` (使用Java FileChannel.transferTo)
 alluxio.worker.network.netty.shutdown.quiet.period:
-  沉默期时间长度（单位：秒）。当netty服务器正终止时，要确保在该时间段内不会产生RPC调用。如果出现了RPC调用，那么在该netty服务器终止时会该沉默期会重新开始。
+  沉默期时间长度。当netty服务器正终止时，要确保在该时间段内不会产生RPC调用。如果出现了RPC调用，那么在该netty服务器终止时会该沉默期会重新开始。
 alluxio.worker.network.netty.shutdown.timeout:
-  等待netty服务器终止的最长时间（单位：秒）（忽略沉默期）。
+  等待netty服务器终止的最长时间（忽略沉默期）。
 alluxio.worker.network.netty.watermark.high:
   在切换到不可写状态之前，写队列中可存放的最大字节数。
 alluxio.worker.network.netty.watermark.low:
@@ -96,7 +96,7 @@ alluxio.worker.network.netty.writer.buffer.size.packets:
 alluxio.worker.port:
   Alluxio worker节点运行端口。
 alluxio.worker.session.timeout:
-  worker和client连接的超时时间（单位：毫秒），超时后表明该会话失效。
+  worker和client连接的超时时间，超时后表明该会话失效。
 alluxio.worker.tieredstore.block.lock.readers:
   一个Alluxio数据块锁最大允许的并行读数目。
 alluxio.worker.tieredstore.block.locks:
@@ -118,7 +118,7 @@ alluxio.worker.tieredstore.level0.watermark.low.ratio:
 alluxio.worker.tieredstore.reserver.enabled:
   是否启用层次化存储空间预留服务。
 alluxio.worker.tieredstore.reserver.interval:
-  空间预留服务运行的时间间隔（单位：毫秒），该服务为每个存储层预留一定比例的空间。
+  空间预留服务运行的时间间隔，该服务为每个存储层预留一定比例的空间。
 alluxio.worker.tieredstore.retry:
   worker在处理每个存储层block操作时的最大重试次数。
 alluxio.worker.ufs.block.open.timeout:
