@@ -602,4 +602,10 @@ public class AccessControlList {
     }
     return entries;
   }
+
+  @Override
+  public String toString() {
+    List<String> entries = toStringEntries();
+    return String.join("," , entries);
+  }
 }
