@@ -3814,40 +3814,56 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * {@link alluxio.web.WebInterfaceMasterMetricsServlet}.
    */
   public static final class Metrics {
-    private static final Counter DIRECTORIES_CREATED = MetricsSystem.counter("DirectoriesCreated");
-    private static final Counter FILE_BLOCK_INFOS_GOT = MetricsSystem.counter("FileBlockInfosGot");
-    private static final Counter FILE_INFOS_GOT = MetricsSystem.counter("FileInfosGot");
-    private static final Counter FILES_COMPLETED = MetricsSystem.counter("FilesCompleted");
-    private static final Counter FILES_CREATED = MetricsSystem.counter("FilesCreated");
-    private static final Counter FILES_FREED = MetricsSystem.counter("FilesFreed");
-    private static final Counter FILES_PERSISTED = MetricsSystem.counter("FilesPersisted");
-    private static final Counter NEW_BLOCKS_GOT = MetricsSystem.counter("NewBlocksGot");
-    private static final Counter PATHS_DELETED = MetricsSystem.counter("PathsDeleted");
-    private static final Counter PATHS_MOUNTED = MetricsSystem.counter("PathsMounted");
-    private static final Counter PATHS_RENAMED = MetricsSystem.counter("PathsRenamed");
-    private static final Counter PATHS_UNMOUNTED = MetricsSystem.counter("PathsUnmounted");
+    private static final Counter DIRECTORIES_CREATED
+        = MetricsSystem.counter(Constants.DIRECTORIES_CREATED_METRICS_NAME);
+    private static final Counter FILE_BLOCK_INFOS_GOT
+        = MetricsSystem.counter(Constants.FILE_BLOCK_INFOS_GOT_METRICS_NAME);
+    private static final Counter FILE_INFOS_GOT
+        = MetricsSystem.counter(Constants.FILE_INFOS_GOT_METRICS_NAME);
+    private static final Counter FILES_COMPLETED
+        = MetricsSystem.counter(Constants.FILES_COMPLETED_METRICS_NAME);
+    private static final Counter FILES_CREATED
+        = MetricsSystem.counter(Constants.FILES_CREATED_METRICS_NAME);
+    private static final Counter FILES_FREED
+        = MetricsSystem.counter(Constants.FILES_FREED_METRICS_NAME);
+    private static final Counter FILES_PERSISTED
+        = MetricsSystem.counter(Constants.FILES_PERSISTED_METRICS_NAME);
+    private static final Counter NEW_BLOCKS_GOT
+        = MetricsSystem.counter(Constants.NEW_BLOCKS_GOT_METRICS_NAME);
+    private static final Counter PATHS_DELETED
+        = MetricsSystem.counter(Constants.PATHS_DELETED_METRICS_NAME);
+    private static final Counter PATHS_MOUNTED
+        = MetricsSystem.counter(Constants.PATHS_MOUNTED_METRICS_NAME);
+    private static final Counter PATHS_RENAMED
+        = MetricsSystem.counter(Constants.PATHS_RENAMED_METRICS_NAME);
+    private static final Counter PATHS_UNMOUNTED
+        = MetricsSystem.counter(Constants.PATHS_UNMOUNTED_METRICS_NAME);
 
     // TODO(peis): Increment the RPCs OPs at the place where we receive the RPCs.
-    private static final Counter COMPLETE_FILE_OPS = MetricsSystem.counter("CompleteFileOps");
-    private static final Counter CREATE_DIRECTORIES_OPS =
-        MetricsSystem.counter("CreateDirectoryOps");
-    private static final Counter CREATE_FILES_OPS = MetricsSystem.counter("CreateFileOps");
-    private static final Counter DELETE_PATHS_OPS = MetricsSystem.counter("DeletePathOps");
-    private static final Counter FREE_FILE_OPS = MetricsSystem.counter("FreeFileOps");
-    private static final Counter GET_FILE_BLOCK_INFO_OPS =
-        MetricsSystem.counter("GetFileBlockInfoOps");
-    private static final Counter GET_FILE_INFO_OPS = MetricsSystem.counter("GetFileInfoOps");
-    private static final Counter GET_NEW_BLOCK_OPS = MetricsSystem.counter("GetNewBlockOps");
-    private static final Counter MOUNT_OPS = MetricsSystem.counter("MountOps");
-    private static final Counter RENAME_PATH_OPS = MetricsSystem.counter("RenamePathOps");
-    private static final Counter SET_ATTRIBUTE_OPS = MetricsSystem.counter("SetAttributeOps");
-    private static final Counter UNMOUNT_OPS = MetricsSystem.counter("UnmountOps");
-
-    public static final String FILES_PINNED = "FilesPinned";
-    public static final String PATHS_TOTAL = "PathsTotal";
-    public static final String UFS_CAPACITY_TOTAL = "UfsCapacityTotal";
-    public static final String UFS_CAPACITY_USED = "UfsCapacityUsed";
-    public static final String UFS_CAPACITY_FREE = "UfsCapacityFree";
+    private static final Counter COMPLETE_FILE_OPS
+        = MetricsSystem.counter(Constants.COMPLETE_FILE_OPS_METRICS_NAME);
+    private static final Counter CREATE_DIRECTORIES_OPS
+        = MetricsSystem.counter(Constants.CREATE_DIRECTORIES_OPS_METRICS_NAME);
+    private static final Counter CREATE_FILES_OPS
+        = MetricsSystem.counter(Constants.CREATE_FILES_OPS_METRICS_NAME);
+    private static final Counter DELETE_PATHS_OPS
+        = MetricsSystem.counter(Constants.DELETE_PATHS_OPS_METRICS_NAME);
+    private static final Counter FREE_FILE_OPS
+        = MetricsSystem.counter(Constants.FREE_FILE_OPS_METRICS_NAME);
+    private static final Counter GET_FILE_BLOCK_INFO_OPS
+        = MetricsSystem.counter(Constants.GET_FILE_BLOCK_INFO_OPS_METRICS_NAME);
+    private static final Counter GET_FILE_INFO_OPS
+        = MetricsSystem.counter(Constants.GET_FILE_INFO_OPS_METRICS_NAME);
+    private static final Counter GET_NEW_BLOCK_OPS
+        = MetricsSystem.counter(Constants.GET_NEW_BLOCK_OPS_METRICS_NAME);
+    private static final Counter MOUNT_OPS
+        = MetricsSystem.counter(Constants.MOUNT_OPS_METRICS_NAME);
+    private static final Counter RENAME_PATH_OPS
+        = MetricsSystem.counter(Constants.RENAME_PATH_OPS_METRICS_NAME);
+    private static final Counter SET_ATTRIBUTE_OPS
+        = MetricsSystem.counter(Constants.SET_ATTRIBUTE_OPS_METRICS_NAME);
+    private static final Counter UNMOUNT_OPS
+        = MetricsSystem.counter(Constants.UNMOUNT_OPS_METRICS_NAME);
 
     /**
      * Register some file system master related gauges.
@@ -3858,7 +3874,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     @VisibleForTesting
     public static void registerGauges(
         final FileSystemMaster master, final UfsManager ufsManager) {
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(FILES_PINNED),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem
+              .getMetricName(Constants.FILES_PINNED_METRICS_NAME),
           new Gauge<Integer>() {
             @Override
             public Integer getValue() {
@@ -3866,12 +3883,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(PATHS_TOTAL),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem
+              .getMetricName(Constants.PATHS_TOTAL_METRICS_NAME),
           () -> master.getNumberOfPaths());
 
       final String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(UFS_CAPACITY_TOTAL),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem
+              .getMetricName(Constants.UFS_CAPACITY_TOTAL_METRICS_NAME),
           () -> {
             try (CloseableResource<UnderFileSystem> ufsResource =
                 ufsManager.getRoot().acquireUfsResource()) {
@@ -3883,7 +3902,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(UFS_CAPACITY_USED),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem
+              .getMetricName(Constants.UFS_CAPACITY_USED_METRICS_NAME),
           () -> {
             try (CloseableResource<UnderFileSystem> ufsResource =
                 ufsManager.getRoot().acquireUfsResource()) {
@@ -3895,7 +3915,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(UFS_CAPACITY_FREE),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem
+              .getMetricName(Constants.UFS_CAPACITY_FREE_METRICS_NAME),
           new Gauge<Long>() {
             @Override
             public Long getValue() {

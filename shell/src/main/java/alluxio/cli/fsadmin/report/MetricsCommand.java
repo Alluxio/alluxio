@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin.report;
 
+import alluxio.Constants;
 import alluxio.client.MetaMasterClient;
 import alluxio.wire.MetricValue;
 
@@ -55,19 +56,18 @@ public class MetricsCommand {
   public int run() throws IOException {
     Map<String, MetricValue> metricsMap = new TreeMap<>(mMetaMasterClient.getMetrics());
     Set<String> operations = new HashSet<>();
-    operations.add("DirectoriesCreated");
-    operations.add("FileBlockInfosGot");
-    operations.add("FileInfosGot");
-    operations.add("FilesCompleted");
-    operations.add("FilesCreated");
-    operations.add("FilesFreed");
-    operations.add("FilesPersisted");
-    operations.add("FilesPinned");
-    operations.add("NewBlocksGot");
-    operations.add("PathsDeleted");
-    operations.add("PathsMounted");
-    operations.add("PathsRenamed");
-    operations.add("PathsUnmounted");
+    operations.add(Constants.DIRECTORIES_CREATED_METRICS_NAME);
+    operations.add(Constants.FILE_BLOCK_INFOS_GOT_METRICS_NAME);
+    operations.add(Constants.FILE_INFOS_GOT_METRICS_NAME);
+    operations.add(Constants.FILES_COMPLETED_METRICS_NAME);
+    operations.add(Constants.FILES_CREATED_METRICS_NAME);
+    operations.add(Constants.FILES_FREED_METRICS_NAME);
+    operations.add(Constants.FILES_PERSISTED_METRICS_NAME);
+    operations.add(Constants.NEW_BLOCKS_GOT_METRICS_NAME);
+    operations.add(Constants.PATHS_DELETED_METRICS_NAME);
+    operations.add(Constants.PATHS_MOUNTED_METRICS_NAME);
+    operations.add(Constants.PATHS_RENAMED_METRICS_NAME);
+    operations.add(Constants.PATHS_UNMOUNTED_METRICS_NAME);
 
     mPrintStream.println("Alluxio logical operations: ");
     for (Map.Entry<String, MetricValue> entry : metricsMap.entrySet()) {
@@ -78,18 +78,18 @@ public class MetricsCommand {
     }
 
     Set<String> rpcInvocations = new HashSet<>();
-    rpcInvocations.add("CompleteFileOps");
-    rpcInvocations.add("CreateDirectoryOps");
-    rpcInvocations.add("CreateFileOps");
-    rpcInvocations.add("DeletePathOps");
-    rpcInvocations.add("FreeFileOps");
-    rpcInvocations.add("GetFileBlockInfoOps");
-    rpcInvocations.add("GetFileInfoOps");
-    rpcInvocations.add("GetNewBlockOps");
-    rpcInvocations.add("MountOps");
-    rpcInvocations.add("RenamePathOps");
-    rpcInvocations.add("SetAttributeOps");
-    rpcInvocations.add("UnmountOps");
+    rpcInvocations.add(Constants.COMPLETE_FILE_OPS_METRICS_NAME);
+    rpcInvocations.add(Constants.CREATE_DIRECTORIES_OPS_METRICS_NAME);
+    rpcInvocations.add(Constants.CREATE_FILES_OPS_METRICS_NAME);
+    rpcInvocations.add(Constants.DELETE_PATHS_OPS_METRICS_NAME);
+    rpcInvocations.add(Constants.FREE_FILE_OPS_METRICS_NAME);
+    rpcInvocations.add(Constants.GET_FILE_BLOCK_INFO_OPS_METRICS_NAME);
+    rpcInvocations.add(Constants.GET_FILE_INFO_OPS_METRICS_NAME);
+    rpcInvocations.add(Constants.GET_NEW_BLOCK_OPS_METRICS_NAME);
+    rpcInvocations.add(Constants.MOUNT_OPS_METRICS_NAME);
+    rpcInvocations.add(Constants.RENAME_PATH_OPS_METRICS_NAME);
+    rpcInvocations.add(Constants.SET_ATTRIBUTE_OPS_METRICS_NAME);
+    rpcInvocations.add(Constants.UNMOUNT_OPS_METRICS_NAME);
 
     mPrintStream.println("\nAlluxio RPC invocations: ");
     for (Map.Entry<String, MetricValue> entry : metricsMap.entrySet()) {

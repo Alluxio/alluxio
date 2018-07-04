@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.file.DefaultFileSystemMaster.Metrics;
 import alluxio.metrics.MetricsSystem;
@@ -44,13 +45,13 @@ public class FileSystemMasterMetricsTest {
   @Test
   public void testMetricsFilesPinned() {
     when(mFileSystemMaster.getNumberOfPinnedFiles()).thenReturn(100);
-    assertEquals(100, getGauge(Metrics.FILES_PINNED));
+    assertEquals(100, getGauge(Constants.FILES_PINNED_METRICS_NAME));
   }
 
   @Test
   public void testMetricsPathsTotal() {
     when(mFileSystemMaster.getNumberOfPaths()).thenReturn(90);
-    assertEquals(90, getGauge(Metrics.PATHS_TOTAL));
+    assertEquals(90, getGauge(Constants.PATHS_TOTAL_METRICS_NAME));
   }
 
   @Test
@@ -66,9 +67,9 @@ public class FileSystemMasterMetricsTest {
       public void close() {}
     });
     when(mUfsManager.getRoot()).thenReturn(client);
-    assertEquals(1000L, getGauge(Metrics.UFS_CAPACITY_TOTAL));
-    assertEquals(200L, getGauge(Metrics.UFS_CAPACITY_USED));
-    assertEquals(800L, getGauge(Metrics.UFS_CAPACITY_FREE));
+    assertEquals(1000L, getGauge(Constants.UFS_CAPACITY_TOTAL_METRICS_NAME));
+    assertEquals(200L, getGauge(Constants.UFS_CAPACITY_USED_METRICS_NAME));
+    assertEquals(800L, getGauge(Constants.UFS_CAPACITY_FREE_METRICS_NAME));
   }
 
   private Object getGauge(String name) {
