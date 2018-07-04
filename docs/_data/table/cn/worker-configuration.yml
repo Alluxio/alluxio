@@ -87,7 +87,7 @@ alluxio.worker.network.netty.block.writer.threads.max:
   处理写数据块的线程数目。
 alluxio.worker.network.netty.file.writer.threads.max:
   处理往底层文件系统写文件的线程数目。
-alluxio.worker.network.netty.reader.buffer.size.packets：
+alluxio.worker.network.netty.reader.buffer.size.packets:
   client从worker读数据时最大并行数据包数量。
 alluxio.worker.network.netty.rpc.threads.max:
   处理RPC的线程数目。
