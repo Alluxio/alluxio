@@ -31,7 +31,7 @@ import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.base.Function;
+import java.util.concurrent.TimeoutException;
 
 public class MasterTestUtils {
 
@@ -88,12 +88,10 @@ public class MasterTestUtils {
    *
    * @param master the file system master which is starting up
    */
-  public static void waitForStartupConsistencyCheck(final FileSystemMaster master) {
-    CommonUtils.waitFor("Startup consistency check completion", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void aVoid) {
-        return master.getStartupConsistencyCheck().getStatus() != Status.RUNNING;
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
+  public static void waitForStartupConsistencyCheck(final FileSystemMaster master)
+      throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("Startup consistency check completion",
+        () -> master.getStartupConsistencyCheck().getStatus() != Status.RUNNING,
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 }

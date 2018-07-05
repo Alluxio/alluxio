@@ -33,7 +33,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.LoadMetadataType;
 
-import com.google.common.base.Function;
 import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Assert;
@@ -254,17 +253,14 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
       // absent cache. Wait until the path shows up in the absent cache.
       final UfsAbsentPathCache cache = Whitebox.getInternalState(
           mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-              .getMaster(FileSystemMaster.class), "mUfsAbsentPathCache");
-      CommonUtils.waitFor("path (" + path + ") to be added to absent cache",
-          new Function<Void, Boolean>() {
-            @Override
-            public Boolean apply(Void input) {
-              if (cache.isAbsent(new AlluxioURI(path))) {
-                return true;
-              }
-              return false;
-            }
-          }, WaitForOptions.defaults().setTimeoutMs(60000));
+              .getMaster(FileSystemMaster.class),
+          "mUfsAbsentPathCache");
+      CommonUtils.waitFor("path (" + path + ") to be added to absent cache", () -> {
+        if (cache.isAbsent(new AlluxioURI(path))) {
+          return true;
+        }
+        return false;
+      }, WaitForOptions.defaults().setTimeoutMs(60000));
     }
 
     if (expectExists && expectLoadFromUfs) {
@@ -272,17 +268,14 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
       // absent cache. Wait until the path is removed.
       final UfsAbsentPathCache cache = Whitebox.getInternalState(
           mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-              .getMaster(FileSystemMaster.class), "mUfsAbsentPathCache");
-      CommonUtils.waitFor("path (" + path + ") to be removed from absent cache",
-          new Function<Void, Boolean>() {
-            @Override
-            public Boolean apply(Void input) {
-              if (cache.isAbsent(new AlluxioURI(path))) {
-                return false;
-              }
-              return true;
-            }
-          }, WaitForOptions.defaults().setTimeoutMs(60000));
+              .getMaster(FileSystemMaster.class),
+          "mUfsAbsentPathCache");
+      CommonUtils.waitFor("path (" + path + ") to be removed from absent cache", () -> {
+        if (cache.isAbsent(new AlluxioURI(path))) {
+          return false;
+        }
+        return true;
+      }, WaitForOptions.defaults().setTimeoutMs(60000));
     }
   }
 }

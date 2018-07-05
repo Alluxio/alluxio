@@ -20,7 +20,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -132,7 +132,8 @@ public final class FileSystemUtils {
    * @param fs {@link FileSystem} to carry out Alluxio operations
    * @param uri the uri of the file to persist
    */
-  public static void persistFile(final FileSystem fs, final AlluxioURI uri) throws IOException {
+  public static void persistFile(final FileSystem fs, final AlluxioURI uri)
+      throws IOException, TimeoutException, InterruptedException {
     FileSystemContext context = FileSystemContext.get();
     FileSystemMasterClient client = context.acquireMasterClient();
     try {
@@ -140,15 +141,12 @@ public final class FileSystemUtils {
     } finally {
       context.releaseMasterClient(client);
     }
-    CommonUtils.waitFor("Wait for the file to be persisted", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        try {
-          return fs.getStatus(uri).isPersisted();
-        } catch (Exception e) {
-          Throwables.propagateIfPossible(e);
-          throw new RuntimeException(e);
-        }
+    CommonUtils.waitFor(String.format("%s to be persisted", uri) , () -> {
+      try {
+        return fs.getStatus(uri).isPersisted();
+      } catch (Exception e) {
+        Throwables.propagateIfPossible(e);
+        throw new RuntimeException(e);
       }
     }, WaitForOptions.defaults().setTimeoutMs(20 * Constants.MINUTE_MS)
         .setInterval(Constants.SECOND_MS));

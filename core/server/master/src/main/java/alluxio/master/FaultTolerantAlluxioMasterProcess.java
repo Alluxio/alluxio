@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -161,7 +162,15 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
   @Override
   public boolean waitForReady(int timeoutMs) {
-    return CommonUtils.waitFor(this + " to start", input -> (mServingThread == null || isServing()),
-        WaitForOptions.defaults().setTimeoutMs(timeoutMs).setThrowOnTimeout(false));
+    try {
+      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isServing()),
+          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 }
