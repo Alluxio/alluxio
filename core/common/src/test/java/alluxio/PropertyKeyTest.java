@@ -271,14 +271,14 @@ public final class PropertyKeyTest {
   @Test
   public void impersonationRegex() {
     // test groups
-    String name = "a-a.b-b.c-c.groups";
+    String name = "a-A_1.b-B_2@.groups";
     String groups = String.format("alluxio.master.security.impersonation.%s.groups", name);
     Matcher matcher = PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION.match(groups);
     assertTrue(matcher.matches());
     assertEquals(name, matcher.group(1));
 
     // test users
-    name = "a-a.b-b.c-c.users";
+    name = "a-A_1.b-B_2@.users";
     String users = String.format("alluxio.master.security.impersonation.%s.users", name);
     matcher = Template.MASTER_IMPERSONATION_USERS_OPTION.match(users);
     assertTrue(matcher.matches());
