@@ -175,6 +175,21 @@ public class InodeLockList implements AutoCloseable {
   }
 
   /**
+   * @param index the index of the list
+   * @return the inode at the specified index
+   */
+  public synchronized Inode<?> get(int index) {
+    return mInodes.get(index);
+  }
+
+  /**
+   * @return the size of the list
+   */
+  public synchronized int size() {
+    return mInodes.size();
+  }
+
+  /**
    * @return true if the locklist is empty
    */
   public synchronized boolean isEmpty() {
