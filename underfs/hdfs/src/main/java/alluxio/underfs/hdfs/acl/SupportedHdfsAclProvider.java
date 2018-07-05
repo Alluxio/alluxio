@@ -75,8 +75,10 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
   public void setAcl(FileSystem hdfs, String path, AccessControlList acl) throws IOException {
     // convert AccessControlList into hdfsAcl
     List<AclEntry> aclSpecs = new ArrayList<>();
+
     for (alluxio.security.authorization.AclEntry entry : acl.getEntries()) {
-      aclSpecs.add(getHdfsAclEntry(entry));
+      AclEntry hdfsAclEntry = getHdfsAclEntry(entry);
+      aclSpecs.add(hdfsAclEntry);
     }
     // set hdfsAcl;
     hdfs.setAcl(new Path(path), aclSpecs);
@@ -87,7 +89,12 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
   private AclEntry getHdfsAclEntry(alluxio.security.authorization.AclEntry entry)
       throws IOException {
     AclEntry.Builder builder = new AclEntry.Builder();
-    builder.setName(entry.getSubject());
+    // Do not set name for unnamed entries
+    if (entry.getType() != alluxio.security.authorization.AclEntryType.OWNING_USER
+        && entry.getType() != alluxio.security.authorization.AclEntryType.OWNING_GROUP) {
+      builder.setName(entry.getSubject());
+    }
+
     builder.setScope(entry.isDefault() ? AclEntryScope.DEFAULT : AclEntryScope.ACCESS);
     builder.setType(getHdfsAclEntryType(entry));
     FsAction permission = FsAction.getFsAction(entry.getActions().toCliString());
