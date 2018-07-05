@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.MetaMasterClient;
+import alluxio.metrics.MasterMetrics;
 import alluxio.wire.MetricValue;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
@@ -65,31 +66,31 @@ public class MetricsCommandTest {
    */
   private Map<String, MetricValue> generateMetricsMap() {
     Map<String, MetricValue> map = new HashMap<>();
-    map.put("DirectoriesCreated", MetricValue.forLong(121L));
-    map.put("FileBlockInfosGot", MetricValue.forLong(31243412L));
-    map.put("FileInfosGot", MetricValue.forLong(12312321434276L));
-    map.put("FilesCompleted", MetricValue.forLong(0L));
-    map.put("FilesCreated", MetricValue.forLong(534L));
-    map.put("FilesFreed", MetricValue.forLong(2141L));
-    map.put("FilesPersisted", MetricValue.forLong(4171L));
-    map.put("NewBlocksGot", MetricValue.forLong(4L));
-    map.put("PathsDeleted", MetricValue.forLong(583L));
-    map.put("PathsMounted", MetricValue.forLong(3635L));
-    map.put("PathsRenamed", MetricValue.forLong(382L));
-    map.put("PathsUnmounted", MetricValue.forLong(975L));
+    map.put(MasterMetrics.DIRECTORIES_CREATED, MetricValue.forLong(121L));
+    map.put(MasterMetrics.FILE_BLOCK_INFOS_GOT, MetricValue.forLong(31243412L));
+    map.put(MasterMetrics.FILE_INFOS_GOT, MetricValue.forLong(12312321434276L));
+    map.put(MasterMetrics.FILES_COMPLETED, MetricValue.forLong(0L));
+    map.put(MasterMetrics.FILES_CREATED, MetricValue.forLong(534L));
+    map.put(MasterMetrics.FILES_FREED, MetricValue.forLong(2141L));
+    map.put(MasterMetrics.FILES_PERSISTED, MetricValue.forLong(4171L));
+    map.put(MasterMetrics.NEW_BLOCKS_GOT, MetricValue.forLong(4L));
+    map.put(MasterMetrics.PATHS_DELETED, MetricValue.forLong(583L));
+    map.put(MasterMetrics.PATHS_MOUNTED, MetricValue.forLong(3635L));
+    map.put(MasterMetrics.PATHS_RENAMED, MetricValue.forLong(382L));
+    map.put(MasterMetrics.PATHS_UNMOUNTED, MetricValue.forLong(975L));
 
-    map.put("CompleteFileOps", MetricValue.forLong(813L));
-    map.put("CreateDirectoryOps", MetricValue.forLong(325728397L));
-    map.put("CreateFileOps", MetricValue.forLong(89L));
-    map.put("DeletePathOps", MetricValue.forLong(21L));
-    map.put("FreeFileOps", MetricValue.forLong(5213L));
-    map.put("GetFileBlockInfoOps", MetricValue.forLong(798L));
-    map.put("GetFileInfoOps", MetricValue.forLong(32L));
-    map.put("GetNewBlockOps", MetricValue.forLong(912572136653L));
-    map.put("MountOps", MetricValue.forLong(953795L));
-    map.put("RenamePathOps", MetricValue.forLong(29L));
-    map.put("SetAttributeOps", MetricValue.forLong(0L));
-    map.put("UnmountOps", MetricValue.forLong(1L));
+    map.put(MasterMetrics.COMPLETE_FILE_OPS, MetricValue.forLong(813L));
+    map.put(MasterMetrics.CREATE_DIRECTORIES_OPS, MetricValue.forLong(325728397L));
+    map.put(MasterMetrics.CREATE_FILES_OPS, MetricValue.forLong(89L));
+    map.put(MasterMetrics.DELETE_PATHS_OPS, MetricValue.forLong(21L));
+    map.put(MasterMetrics.FREE_FILE_OPS, MetricValue.forLong(5213L));
+    map.put(MasterMetrics.GET_FILE_BLOCK_INFO_OPS, MetricValue.forLong(798L));
+    map.put(MasterMetrics.GET_FILE_INFO_OPS, MetricValue.forLong(32L));
+    map.put(MasterMetrics.GET_NEW_BLOCK_OPS, MetricValue.forLong(912572136653L));
+    map.put(MasterMetrics.MOUNT_OPS, MetricValue.forLong(953795L));
+    map.put(MasterMetrics.RENAME_PATH_OPS, MetricValue.forLong(29L));
+    map.put(MasterMetrics.SET_ATTRIBUTE_OPS, MetricValue.forLong(0L));
+    map.put(MasterMetrics.UNMOUNT_OPS, MetricValue.forLong(1L));
 
     map.put("UfsSessionCount-Ufs:_alluxio_underFSStorage",
         MetricValue.forLong(8535L));
