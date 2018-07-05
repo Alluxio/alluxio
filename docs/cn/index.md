@@ -10,7 +10,7 @@ group: Home
 Alluxio（之前名为Tachyon）是世界上第一个以内存为中心的虚拟的分布式存储系统。它统一了数据访问的方式，为上层计算框架和底层存储系统构建了桥梁。
 应用只需要连接Alluxio即可访问存储在底层任意存储系统中的数据。此外，Alluxio的以内存为中心的架构使得数据的访问速度能比现有方案快几个数量级。
 
-在大数据生态系统中，Alluxio介于计算框架(如Apache Spark，Apache MapReduce，Apache HBase，Apache Hive，Apache Flink)和现有的存储系统（如Amazon S3，OpenStack Swift，GlusterFS，HDFS，MaprFS，Ceph，NFS，OSS）之间。
+在大数据生态系统中，Alluxio介于计算框架(如Apache Spark，Apache MapReduce，Apache HBase，Apache Hive，Apache Flink)和现有的存储系统（如Amazon S3，Google Cloud Storage, OpenStack Swift，GlusterFS，HDFS，MaprFS，Ceph，NFS，OSS）之间。
 Alluxio为大数据软件栈带来了显著的性能提升。例如，[百度](https://www.baidu.com)采用Alluxio使他们数据分析流水线的吞吐量提升了[30倍](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf)。
 巴克莱银行使用Alluxio将他们的作业分析的耗时从[小时级降到秒级](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon)。
 去哪儿网基于Alluxio进行[实时数据分析](http://www.alluxio.com/2016/07/qunar-performs-real-time-data-analytics-up-to-300x-faster-with-alluxio/)。
@@ -23,8 +23,8 @@ Alluxio为大数据软件栈带来了显著的性能提升。例如，[百度](h
 [Apache Yarn](Running-Alluxio-Yarn-Integration.html)安装Alluxio。
 
 Alluxio与Hadoop是兼容的。现有的数据分析应用，如Spark和MapReduce程序，可以不修改代码直接在Alluxio上运行。Alluxio是一个已在多家公司部署的开源项目([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE))。
-Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以来，已有超过100个组织机构的
-[500多贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到Alluxio的开发中。包括
+Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以来，已有超过150个组织机构的
+[700多贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到Alluxio的开发中。包括
 [阿里巴巴](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/), [百度](https://www.baidu.com),
 [卡内基梅隆大学](https://www.cmu.edu/),[Google](https://www.google.com)，[IBM](https://www.ibm.com)，[Intel](http://www.intel.com/),
 [南京大学](http://pasa-bigdata.nju.edu.cn/),
