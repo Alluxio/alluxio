@@ -1,7 +1,7 @@
 ---
 layout: global
 group: Resources
-title: Develop Under Storage Extensions
+title: Developing Under Storage Extensions
 priority: 3
 ---
 
