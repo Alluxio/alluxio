@@ -58,7 +58,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(ObjectUnderFileSystem.class);
 
   /** Default maximum length for a single listing query. */
-  private static final int DEFAULT_MAX_LISTING_CHUNK_LENGTH = 200;
+  private static final int DEFAULT_MAX_LISTING_CHUNK_LENGTH = 1000;
 
   /** Value used to indicate nested structure. */
   protected static final char PATH_SEPARATOR_CHAR = '/';
@@ -909,7 +909,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       }
       chunk = chunk.getNextChunk();
     }
-    UfsStatus[] ret = new UfsStatus[children.size()];
+    UfsStatus[] ret = new UfsStatus[children.size()];// all UfsFileStatus convert to UfsStatus
     int pos = 0;
     for (UfsStatus status : children.values()) {
       ret[pos++] = status;
