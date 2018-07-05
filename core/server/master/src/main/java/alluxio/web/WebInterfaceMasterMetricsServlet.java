@@ -12,8 +12,8 @@
 package alluxio.web;
 
 import alluxio.master.block.DefaultBlockMaster;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.util.FormatUtils;
@@ -89,10 +89,10 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("masterCapacityFreePercentage", 100 - masterCapacityUsedPercentage);
 
     Long masterUnderfsCapacityTotal = (Long) mr.getGauges()
-        .get(MetricsSystem.getMetricName(DefaultFileSystemMaster.Metrics.UFS_CAPACITY_TOTAL))
+        .get(MetricsSystem.getMetricName(MasterMetrics.UFS_CAPACITY_TOTAL))
         .getValue();
     Long masterUnderfsCapacityUsed = (Long) mr.getGauges()
-        .get(MetricsSystem.getMetricName(DefaultFileSystemMaster.Metrics.UFS_CAPACITY_USED))
+        .get(MetricsSystem.getMetricName(MasterMetrics.UFS_CAPACITY_USED))
         .getValue();
 
     int masterUnderfsCapacityUsedPercentage = (masterUnderfsCapacityTotal > 0)
@@ -124,7 +124,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
       operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
     }
     String filesPinnedProperty =
-        MetricsSystem.getMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
     operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
         mr.getGauges().get(filesPinnedProperty));
 
