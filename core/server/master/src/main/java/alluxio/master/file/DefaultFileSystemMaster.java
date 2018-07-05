@@ -905,6 +905,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
 
       loadMetadataIfNotExistAndJournal(inodePath, loadMetadataOptions, journalContext);
+      // set LoadMetadataType to default
+      listStatusOptions.setLoadMetadataType(LoadMetadataType.Once);
       ensureFullPathAndUpdateCache(inodePath);
       inode = inodePath.getInode();
       auditContext.setSrcInode(inode);
@@ -1075,7 +1077,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
-      completeFileAndJournal(inodePath, options, journalContext);
+      completeFileAndJournal(inodePath, options, journalContext, null);
       auditContext.setSucceeded(true);
     }
   }
@@ -1095,7 +1097,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidFileSizeException if an invalid file size is encountered
    */
   private void completeFileAndJournal(LockedInodePath inodePath, CompleteFileOptions options,
-      JournalContext journalContext)
+      JournalContext journalContext, UfsStatus status)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException, UnavailableException {
     Inode<?> inode = inodePath.getInode();
@@ -1135,7 +1137,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI resolvedUri = resolution.getUri();
       UnderFileSystem ufs = resolution.getUfs();
-      ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
+      if (status == null) {
+        ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
+      } else {
+        ufsFingerprint = Fingerprint.create(mUfsManager.getRoot().getUfs().
+          getUnderFSType(), status).serialize();
+      }
     }
 
     completeFileInternal(fileInode.getBlockIds(), inodePath, length, options.getOperationTimeMs(),
@@ -2543,7 +2550,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UnderFileSystem ufs = resolution.getUfs();
 
     long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
-    UfsFileStatus ufsStatus = (UfsFileStatus) options.getUfsStatus();
+    UfsFileStatus ufsStatus = (UfsFileStatus) options.getUfsStatus(); // convert UfsStatus to UfsFileStatus
     if (ufsStatus == null) {
       ufsStatus = ufs.getFileStatus(ufsUri.toString());
     }
@@ -2563,8 +2570,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     try {
       createFileAndJournal(inodePath, createFileOptions, journalContext);
-      CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength);
-      completeFileAndJournal(inodePath, completeOptions, journalContext);
+      CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength); // no LastModifyTime
+      completeOptions.setOperationTimeMs(ufsStatus.getLastModifiedTime()); // useless
+      completeFileAndJournal(inodePath, completeOptions, journalContext, options.getUfsStatus());
       if (inodePath.getLockMode() == InodeTree.LockMode.READ) {
         // After completing the inode, the lock on the last inode which stands for the created file
         // should be downgraded to a read lock, so that it won't block the reads operations from
