@@ -28,7 +28,7 @@ public class NoopHdfsAclProvider implements HdfsAclProvider {
 
   @Override
   public void setAcl(FileSystem hdfs, String path, AccessControlList acl) throws IOException {
-    throw new UnsupportedOperationException("setAcl not supported");
+    
   }
 
 }
