@@ -29,7 +29,9 @@ Alluxio server使用Java [ServiceLoader](https://docs.oracle.com/javase/7/docs/a
 建立一个新的底层存储连接涉及:
 
 -实现所需的存储接口
+
 -声明服务实现
+
 -将实现和传递依赖打包到一个uber JAR中
 
 参考的实现可以在[alluxio-extensions](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/tutorial)找到。
