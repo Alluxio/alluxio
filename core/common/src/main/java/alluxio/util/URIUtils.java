@@ -35,6 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class URIUtils {
   public static final char QUERY_SEPARATOR = '&';
   public static final char QUERY_KEY_VALUE_SEPARATOR = '=';
+  private static final int TO_LOWER_OFFSET = 'a' - 'A';
 
   private URIUtils() {} // prevent instantiation
 
@@ -139,5 +140,186 @@ public final class URIUtils {
     return uri.startsWith(AlluxioURI.SEPARATOR)
         || uri.startsWith("file://")
         || AlluxioURI.hasWindowsDrive(uri, false);
+  }
+
+  /**
+   * @param s1 first string (can be null)
+   * @param s2 second string (can be null)
+   * @return negative integer, zero, or positive integer, if the first string is less
+   *         than, equal to, or greater than the second string
+   */
+  public static int compare(String s1, String s2) {
+    if (s1 == s2) {
+      return 0;
+    }
+    if (s1 == null) {
+      return -1;
+    }
+    if (s2 == null) {
+      return 1;
+    }
+    return s1.compareTo(s2);
+  }
+
+  /**
+   * Checks if two (nullable) strings are equal. Handles `%` codes in URIs.
+   *
+   * @param s1 the first string to compare (can be null)
+   * @param s2 the second string to compare (can be null)
+   * @return true if the strings are equal
+   */
+  public static boolean equals(String s1, String s2) {
+    if (s1 == s2) {
+      return true;
+    }
+    if ((s1 != null) && (s2 != null)) {
+      if (s1.length() != s2.length()) {
+        return false;
+      }
+      if (s1.indexOf('%') < 0) {
+        return s1.equals(s2);
+      }
+      int length = s1.length();
+      for (int i = 0; i < length; i++) {
+        char c1 = s1.charAt(i);
+        char c2 = s2.charAt(i);
+        if (c1 != '%') {
+          if (c1 != c2) {
+            return false;
+          }
+          continue;
+        }
+        // c1 is '%'
+        if (c2 != '%') {
+          return false;
+        }
+        // check next 2 characters
+        i++;
+        if (toLower(s1.charAt(i)) != toLower(s2.charAt(i))) {
+          return false;
+        }
+        i++;
+        if (toLower(s1.charAt(i)) != toLower(s2.charAt(i))) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * @param c the character to convert
+   * @return the lowercase counterpart to the input character
+   */
+  public static int toLower(char c) {
+    if (c >= 'A' && c <= 'Z') {
+      return c + TO_LOWER_OFFSET;
+    }
+    return c;
+  }
+
+  /**
+   * Returns true if the path requires normalization. A path needs normalization if it has segments
+   * of: ".", "..", or consecutive "/".
+   * @param path path to check
+   * @return true if the path requires normalization
+   */
+  public static boolean needsNormalization(String path) {
+    int last = path.length() - 1;
+    int curr = 0;
+
+    // Skip initial slashes
+    while (curr <= last) {
+      if (path.charAt(curr) != '/') {
+        break;
+      }
+      curr++;
+    }
+    if (curr > 1) {
+      return true;
+    }
+
+    while (curr <= last) {
+      // segment is "." or "./"
+      if ((path.charAt(curr) == '.') && ((curr == last) || (path.charAt(curr + 1) == '/'))) {
+        return true;
+      }
+      // segment is ".." or "../"
+      if ((path.charAt(curr) == '.') && (path.charAt(curr + 1) == '.') && ((curr + 1 == last) || (
+          path.charAt(curr + 2) == '/'))) {
+        return true;
+      }
+      while (curr <= last) {
+        // Find next '/'
+        if (path.charAt(curr++) != '/') {
+          continue;
+        }
+        // Previous 'curr' was a '/'. Check for redundant slashes.
+        if (path.charAt(curr) != '/') {
+          break;
+        }
+        // multiple slashes
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Hashes a string for a URI hash. Handles octets.
+   *
+   * @param hash the input hash
+   * @param s the string to hash and combine with the input hash
+   * @return the resulting hash
+   */
+  public static int hash(int hash, String s) {
+    if (s == null) {
+      return hash;
+    }
+    // similar to Arrays.hashCode
+    return s.indexOf('%') < 0 ? 31 * hash + s.hashCode() : normalizedHash(hash, s);
+  }
+
+  /**
+   * Hashes a string for a URI hash, while ignoring the case.
+   *
+   * @param hash the input hash
+   * @param s the string to hash and combine with the input hash
+   * @return the resulting hash
+   */
+  public static int hashIgnoreCase(int hash, String s) {
+    if (s == null) {
+      return hash;
+    }
+    int length = s.length();
+    for (int i = 0; i < length; i++) {
+      hash = 31 * hash + URIUtils.toLower(s.charAt(i));
+    }
+    return hash;
+  }
+
+  /**
+   * Hashes a string (which includes octets) for a URI hash.
+   *
+   * @param hash the input hash
+   * @param s the string to hash and combine with the input hash
+   * @return the resulting hash
+   */
+  private static int normalizedHash(int hash, String s) {
+    int nextHash = 0;
+    for (int index = 0; index < s.length(); index++) {
+      char ch = s.charAt(index);
+      nextHash = 31 * nextHash + ch;
+      if (ch == '%') {
+        // hash next 2 characters
+        index++;
+        nextHash = 31 * nextHash + URIUtils.toLower(s.charAt(index));
+        index++;
+        nextHash = 31 * nextHash + URIUtils.toLower(s.charAt(index));
+      }
+    }
+    // similar to Arrays.hashCode
+    return hash * 31 + nextHash;
   }
 }

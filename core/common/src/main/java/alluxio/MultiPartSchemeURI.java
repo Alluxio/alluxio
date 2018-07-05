@@ -14,6 +14,7 @@ package alluxio;
 import static alluxio.URI.Factory.getSchemeComponents;
 
 import alluxio.collections.Pair;
+import alluxio.util.URIUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -59,8 +60,8 @@ public final class MultiPartSchemeURI extends StandardURI {
   }
 
   @Override
-  public URI createNewPath(String newPath, boolean needsNormalization) {
-    if (needsNormalization && needsNormalization(newPath)) {
+  public URI createNewPath(String newPath, boolean checkNormalization) {
+    if (checkNormalization && URIUtils.needsNormalization(newPath)) {
       // Handle schemes with two components.
       Pair<String, String> schemeComponents = getSchemeComponents(mFullScheme);
       String schemePrefix = schemeComponents.getFirst();

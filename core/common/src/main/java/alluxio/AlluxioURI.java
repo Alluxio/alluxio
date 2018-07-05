@@ -115,10 +115,10 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    *
    * @param baseURI the base uri
    * @param newPath the new path component
-   * @param needsNormalization if true, will try to normalize the path
+   * @param checkNormalization if true, will check if the path requires normalization
    */
-  public AlluxioURI(AlluxioURI baseURI, String newPath, boolean needsNormalization) {
-    mUri = URI.Factory.create(baseURI.mUri, newPath, needsNormalization);
+  public AlluxioURI(AlluxioURI baseURI, String newPath, boolean checkNormalization) {
+    mUri = URI.Factory.create(baseURI.mUri, newPath, checkNormalization);
   }
 
   @Override
@@ -408,6 +408,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the new {@link AlluxioURI}
    */
   public AlluxioURI join(String suffix) {
+    // TODO(gpang): there should be other usage of join() which can use joinUnsafe() instead.
     String path = getPath();
     StringBuilder sb = new StringBuilder(path.length() + 1 + suffix.length());
 
@@ -417,7 +418,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
 
   /**
    * Append additional path elements to the end of an {@link AlluxioURI}. This does not check if
-   * the new path needs normalization.
+   * the new path needs normalization, and is less CPU intensive than {@link #join(String)}.
    *
    * @param suffix the suffix to add
    * @return the new {@link AlluxioURI}
