@@ -606,6 +606,6 @@ public class AccessControlList {
   @Override
   public String toString() {
     List<String> entries = toStringEntries();
-    return String.join("," , entries);
+    return String.join(",", entries);
   }
 }

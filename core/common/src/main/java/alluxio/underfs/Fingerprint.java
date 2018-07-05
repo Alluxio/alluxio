@@ -80,7 +80,7 @@ public final class Fingerprint {
     if (status == null) {
       return new Fingerprint(Collections.emptyMap());
     }
-    return new Fingerprint(Fingerprint.createInternal(ufsName, status));
+    return new Fingerprint(Fingerprint.createTags(ufsName, status));
   }
 
   /**
@@ -95,12 +95,21 @@ public final class Fingerprint {
     if (status == null) {
       return new Fingerprint(Collections.emptyMap());
     }
-    Map<Tag, String> tagMap = Fingerprint.createInternal(ufsName, status);
-    tagMap.put(Tag.ACL, acl.toString());
+    Map<Tag, String> tagMap = Fingerprint.createTags(ufsName, status);
+    if (acl != null) {
+      tagMap.put(Tag.ACL, acl.toString());
+    }
     return new Fingerprint(tagMap);
   }
 
-  private static Map<Tag, String> createInternal(String ufsName, UfsStatus status) {
+  /**
+   * Parses the input status and returns a tag map.
+   *
+   * @param ufsName the name of the ufs, should be {@link UnderFileSystem#getUnderFSType()}
+   * @param status the {@link UfsStatus} to create the tagmap from
+   * @return the tag map object
+   */
+  private static Map<Tag, String> createTags(String ufsName, UfsStatus status) {
     Map<Tag, String> tagMap = new HashMap<>();
     tagMap.put(Tag.UFS, ufsName);
     tagMap.put(Tag.OWNER, status.getOwner());
