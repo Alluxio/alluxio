@@ -15,7 +15,7 @@ priority: 2
 
 2. Alluxio可以运行在哪些平台和Java版本上?
 
-   Alluxio可以在Linux / Mac的各种发行版上使用Java 1.7或更高版本运行。
+   Alluxio可以在Linux / Mac的各种发行版上使用Java 1.8或更高版本运行。
 
 3. 是否有简单的方法来查看群集的状态和运行状况？
   
@@ -32,7 +32,7 @@ priority: 2
 6. 什么是底层存储系统？Alluxio支持多少种底层存储系统？
 
    Alluxio 使用底层存储系统作为其持久化存储系统，当前支持 [Amazon S3](Configuring-Alluxio-with-S3.html), 
-   [Swift](Configuring-Alluxio-with-Swift.html), [GCS](Configuring-Alluxio-with-GCS.html), [HDFS](Configuring-Alluxio-with-HDFS.html)等其他存储系统。
+   [Swift](Configuring-Alluxio-with-Swift.html), [GCS](Configuring-Alluxio-with-GCS.html), [HDFS](Configuring-Alluxio-with-HDFS.html)以及很多其他存储系统。
 
 7. 是否可以支持其他底层存储系统？
 
