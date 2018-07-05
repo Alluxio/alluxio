@@ -16,6 +16,8 @@ alluxio.worker.data.bind.host:
   'The hostname that the Alluxio worker''s data server runs on. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
 alluxio.worker.data.folder:
   'A relative path within each storage directory used as the data folder for Alluxio worker to put data for tiered store.'
+alluxio.worker.data.folder.permissions:
+  'The permission set for the worker data folder. If short circuit is used this folder should be accessible by all users (rwxrwxrwx).'
 alluxio.worker.data.folder.tmp:
   'A relative path in alluxio.worker.data.folder used to store the temporary data for uncommitted files.'
 alluxio.worker.data.hostname:
