@@ -169,36 +169,5 @@ public final class Constants {
   // Ufs fingerprint
   public static final String INVALID_UFS_FINGERPRINT = "";
 
-  // Metrics-related constants
-  public static final String DIRECTORIES_CREATED_METRICS_NAME = "DirectoriesCreated";
-  public static final String FILE_BLOCK_INFOS_GOT_METRICS_NAME = "FileBlockInfosGot";
-  public static final String FILE_INFOS_GOT_METRICS_NAME = "FileInfosGot";
-  public static final String FILES_COMPLETED_METRICS_NAME = "FilesCompleted";
-  public static final String FILES_CREATED_METRICS_NAME = "FilesCreated";
-  public static final String FILES_FREED_METRICS_NAME = "FilesFreed";
-  public static final String FILES_PERSISTED_METRICS_NAME = "FilesPersisted";
-  public static final String NEW_BLOCKS_GOT_METRICS_NAME = "NewBlocksGot";
-  public static final String PATHS_DELETED_METRICS_NAME = "PathsDeleted";
-  public static final String PATHS_MOUNTED_METRICS_NAME = "PathsMounted";
-  public static final String PATHS_RENAMED_METRICS_NAME = "PathsRenamed";
-  public static final String PATHS_UNMOUNTED_METRICS_NAME = "PathsUnmounted";
-  public static final String COMPLETE_FILE_OPS_METRICS_NAME = "CompleteFileOps";
-  public static final String CREATE_DIRECTORIES_OPS_METRICS_NAME = "CreateDirectoryOps";
-  public static final String CREATE_FILES_OPS_METRICS_NAME = "CreateFileOps";
-  public static final String DELETE_PATHS_OPS_METRICS_NAME = "DeletePathOps";
-  public static final String FREE_FILE_OPS_METRICS_NAME = "FreeFileOps";
-  public static final String GET_FILE_BLOCK_INFO_OPS_METRICS_NAME = "GetFileBlockInfoOps";
-  public static final String GET_FILE_INFO_OPS_METRICS_NAME = "GetFileInfoOps";
-  public static final String GET_NEW_BLOCK_OPS_METRICS_NAME = "GetNewBlockOps";
-  public static final String MOUNT_OPS_METRICS_NAME = "MountOps";
-  public static final String RENAME_PATH_OPS_METRICS_NAME = "RenamePathOps";
-  public static final String SET_ATTRIBUTE_OPS_METRICS_NAME = "SetAttributeOps";
-  public static final String UNMOUNT_OPS_METRICS_NAME = "UnmountOps";
-  public static final String FILES_PINNED_METRICS_NAME = "FilesPinned";
-  public static final String PATHS_TOTAL_METRICS_NAME = "PathsTotal";
-  public static final String UFS_CAPACITY_TOTAL_METRICS_NAME = "UfsCapacityTotal";
-  public static final String UFS_CAPACITY_USED_METRICS_NAME = "UfsCapacityUsed";
-  public static final String UFS_CAPACITY_FREE_METRICS_NAME = "UfsCapacityFree";
-
   private Constants() {} // prevent instantiation
 }

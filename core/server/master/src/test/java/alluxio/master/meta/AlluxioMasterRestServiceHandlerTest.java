@@ -22,7 +22,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationRule;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.MasterContext;
@@ -33,6 +32,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
+import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.underfs.UnderFileSystem;
@@ -110,7 +110,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     String filesPinnedProperty =
-        MetricsSystem.getMetricName(Constants.FILES_PINNED_METRICS_NAME);
+        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
     MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
   }
 
@@ -196,7 +196,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   public void getMetrics() {
     final int FILES_PINNED_TEST_VALUE = 100;
     String filesPinnedProperty =
-        MetricsSystem.getMetricName(Constants.FILES_PINNED_METRICS_NAME);
+        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
     Gauge<Integer> filesPinnedGauge = new Gauge<Integer>() {
       @Override
       public Integer getValue() {

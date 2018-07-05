@@ -11,8 +11,8 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.Constants;
 import alluxio.client.MetaMasterClient;
+import alluxio.metrics.MasterMetrics;
 import alluxio.wire.MetricValue;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
@@ -66,31 +66,31 @@ public class MetricsCommandTest {
    */
   private Map<String, MetricValue> generateMetricsMap() {
     Map<String, MetricValue> map = new HashMap<>();
-    map.put(Constants.DIRECTORIES_CREATED_METRICS_NAME, MetricValue.forLong(121L));
-    map.put(Constants.FILE_BLOCK_INFOS_GOT_METRICS_NAME, MetricValue.forLong(31243412L));
-    map.put(Constants.FILE_INFOS_GOT_METRICS_NAME, MetricValue.forLong(12312321434276L));
-    map.put(Constants.FILES_COMPLETED_METRICS_NAME, MetricValue.forLong(0L));
-    map.put(Constants.FILES_CREATED_METRICS_NAME, MetricValue.forLong(534L));
-    map.put(Constants.FILES_FREED_METRICS_NAME, MetricValue.forLong(2141L));
-    map.put(Constants.FILES_PERSISTED_METRICS_NAME, MetricValue.forLong(4171L));
-    map.put(Constants.NEW_BLOCKS_GOT_METRICS_NAME, MetricValue.forLong(4L));
-    map.put(Constants.PATHS_DELETED_METRICS_NAME, MetricValue.forLong(583L));
-    map.put(Constants.PATHS_MOUNTED_METRICS_NAME, MetricValue.forLong(3635L));
-    map.put(Constants.PATHS_RENAMED_METRICS_NAME, MetricValue.forLong(382L));
-    map.put(Constants.PATHS_UNMOUNTED_METRICS_NAME, MetricValue.forLong(975L));
+    map.put(MasterMetrics.DIRECTORIES_CREATED, MetricValue.forLong(121L));
+    map.put(MasterMetrics.FILE_BLOCK_INFOS_GOT, MetricValue.forLong(31243412L));
+    map.put(MasterMetrics.FILE_INFOS_GOT, MetricValue.forLong(12312321434276L));
+    map.put(MasterMetrics.FILES_COMPLETED, MetricValue.forLong(0L));
+    map.put(MasterMetrics.FILES_CREATED, MetricValue.forLong(534L));
+    map.put(MasterMetrics.FILES_FREED, MetricValue.forLong(2141L));
+    map.put(MasterMetrics.FILES_PERSISTED, MetricValue.forLong(4171L));
+    map.put(MasterMetrics.NEW_BLOCKS_GOT, MetricValue.forLong(4L));
+    map.put(MasterMetrics.PATHS_DELETED, MetricValue.forLong(583L));
+    map.put(MasterMetrics.PATHS_MOUNTED, MetricValue.forLong(3635L));
+    map.put(MasterMetrics.PATHS_RENAMED, MetricValue.forLong(382L));
+    map.put(MasterMetrics.PATHS_UNMOUNTED, MetricValue.forLong(975L));
 
-    map.put(Constants.COMPLETE_FILE_OPS_METRICS_NAME, MetricValue.forLong(813L));
-    map.put(Constants.CREATE_DIRECTORIES_OPS_METRICS_NAME, MetricValue.forLong(325728397L));
-    map.put(Constants.CREATE_FILES_OPS_METRICS_NAME, MetricValue.forLong(89L));
-    map.put(Constants.DELETE_PATHS_OPS_METRICS_NAME, MetricValue.forLong(21L));
-    map.put(Constants.FREE_FILE_OPS_METRICS_NAME, MetricValue.forLong(5213L));
-    map.put(Constants.GET_FILE_BLOCK_INFO_OPS_METRICS_NAME, MetricValue.forLong(798L));
-    map.put(Constants.GET_FILE_INFO_OPS_METRICS_NAME, MetricValue.forLong(32L));
-    map.put(Constants.GET_NEW_BLOCK_OPS_METRICS_NAME, MetricValue.forLong(912572136653L));
-    map.put(Constants.MOUNT_OPS_METRICS_NAME, MetricValue.forLong(953795L));
-    map.put(Constants.RENAME_PATH_OPS_METRICS_NAME, MetricValue.forLong(29L));
-    map.put(Constants.SET_ATTRIBUTE_OPS_METRICS_NAME, MetricValue.forLong(0L));
-    map.put(Constants.UNMOUNT_OPS_METRICS_NAME, MetricValue.forLong(1L));
+    map.put(MasterMetrics.COMPLETE_FILE_OPS, MetricValue.forLong(813L));
+    map.put(MasterMetrics.CREATE_DIRECTORIES_OPS, MetricValue.forLong(325728397L));
+    map.put(MasterMetrics.CREATE_FILES_OPS, MetricValue.forLong(89L));
+    map.put(MasterMetrics.DELETE_PATHS_OPS, MetricValue.forLong(21L));
+    map.put(MasterMetrics.FREE_FILE_OPS, MetricValue.forLong(5213L));
+    map.put(MasterMetrics.GET_FILE_BLOCK_INFO_OPS, MetricValue.forLong(798L));
+    map.put(MasterMetrics.GET_FILE_INFO_OPS, MetricValue.forLong(32L));
+    map.put(MasterMetrics.GET_NEW_BLOCK_OPS, MetricValue.forLong(912572136653L));
+    map.put(MasterMetrics.MOUNT_OPS, MetricValue.forLong(953795L));
+    map.put(MasterMetrics.RENAME_PATH_OPS, MetricValue.forLong(29L));
+    map.put(MasterMetrics.SET_ATTRIBUTE_OPS, MetricValue.forLong(0L));
+    map.put(MasterMetrics.UNMOUNT_OPS, MetricValue.forLong(1L));
 
     map.put("UfsSessionCount-Ufs:_alluxio_underFSStorage",
         MetricValue.forLong(8535L));
