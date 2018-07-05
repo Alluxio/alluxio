@@ -1493,9 +1493,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         auditContext.setAllowed(false);
         throw e;
       }
-      if (!options.isAlluxioOnly()) {
-        mMountTable.checkUnderWritableMountPoint(path);
-      }
+      mMountTable.checkUnderWritableMountPoint(path);
       // Possible ufs sync.
       syncMetadata(rpcContext, inodePath, lockingScheme,
           options.isRecursive() ? DescendantType.ALL : DescendantType.ONE);
@@ -3118,6 +3116,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         auditContext.setAllowed(false);
         throw e;
       }
+      mMountTable.checkUnderWritableMountPoint(path);
       // Possible ufs sync.
       syncMetadata(rpcContext, inodePath, lockingScheme,
           options.isRecursive() ? DescendantType.ALL : DescendantType.ONE);
