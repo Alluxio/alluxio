@@ -148,7 +148,7 @@ $ git pull upstream master
 
 这将会获取到Alluxio项目中所有的更新，并合并到你的本地`master`分支里。
 
-现在，你可以新建一个分支来进行之前领取的**New Contributor**啦！运行以下命令创建一个名为**awesome_feature**的分支：
+现在，你可以新建一个分支来进行之前领取的**New Contributor**任务啦！运行以下命令创建一个名为**awesome_feature**的分支：
 
 ```bash
 $ git checkout -b awesome_feature
