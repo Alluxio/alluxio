@@ -417,6 +417,16 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
+   * Append additional path elements to the end of an {@link AlluxioURI}.
+   *
+   * @param suffix the suffix to add
+   * @return the new {@link AlluxioURI}
+   */
+  public AlluxioURI join(AlluxioURI suffix) {
+    return join(suffix.toString());
+  }
+
+  /**
    * Append additional path elements to the end of an {@link AlluxioURI}. This does not check if
    * the new path needs normalization, and is less CPU intensive than {@link #join(String)}.
    *
@@ -429,16 +439,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
 
     return new AlluxioURI(this,
         sb.append(path).append(AlluxioURI.SEPARATOR).append(suffix).toString(), false);
-  }
-
-  /**
-   * Append additional path elements to the end of an {@link AlluxioURI}.
-   *
-   * @param suffix the suffix to add
-   * @return the new {@link AlluxioURI}
-   */
-  public AlluxioURI join(AlluxioURI suffix) {
-    return join(suffix.toString());
   }
 
   /**
