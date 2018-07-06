@@ -47,7 +47,7 @@ Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以�
 <style>
 #current-features + ul li {height:210px;}
 </style>
-# 现有功能 {#current-features}
+## 现有功能 {#current-features}
 <!--for using the CSS，when tranlasting English title to Chinese,must specify the id for Chinese which is identical as the generated id in CSS for English title-->
 
 * **[灵活的文件API](File-System-API.html)** Alluxio的本地API类似于``java.io.File``类，提供了
@@ -82,4 +82,6 @@ HDFS，MaprFS，Ceph，NFS，Alibaba OSS，Minio以及单节点本地文件系�
 ## 下载
 
 你可以从[Alluxio下载页面](http://alluxio.org/download)获取已发布版本。每个版本都是由已编译二进制文件组成，与各种Hadoop版本兼容。如果你想从源码编译生成Alluxio，请前往
-[从Master分支构建Alluxio](Building-Alluxio-Master-Branch.html)。
+[从Master分支构建Alluxio](Building-Alluxio-Master-Branch.html)。如果你有任何疑问，请联系我们
+[用户邮箱列表](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)。 对于无法使用Google Group的用户，请使用它的[mirror](http://alluxio-users.85194.x6.nabble.com/)
+(注意：该镜像可能不包含2016年五月份以前的信息)。
