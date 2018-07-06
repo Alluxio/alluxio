@@ -68,8 +68,6 @@ public class MetricsCommand {
     mPrintStream.println("Total IO Size: ");
     printMetric(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
         "Short-circuit Read", true);
-    printMetric(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
-        "Short-circuit Read", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO),
         "From Remote Instances", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL),
@@ -108,11 +106,11 @@ public class MetricsCommand {
         + String.format(mInfoFormat, "Miss", cacheMissPercentage));
 
     mPrintStream.println("\nLogical Operations: ");
-    mPrintStream.print(MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED));
     printMetric(MasterMetrics.DIRECTORIES_CREATED, "Directories Created", false);
     printMetric(MasterMetrics.FILE_BLOCK_INFOS_GOT, "File Block Infos Got", false);
     printMetric(MasterMetrics.FILE_INFOS_GOT, "File Infos Got", false);
     printMetric(MasterMetrics.FILES_COMPLETED, "Files Completed", false);
+    printMetric(MasterMetrics.FILES_CREATED, "Files Created", false);
     printMetric(MasterMetrics.FILES_FREED, "Files Freed", false);
     printMetric(MasterMetrics.FILES_PERSISTED, "Files Persisted", false);
     printMetric(MasterMetrics.FILES_PINNED, "Files Pinned", false);
@@ -123,7 +121,7 @@ public class MetricsCommand {
     printMetric(MasterMetrics.PATHS_UNMOUNTED, "Paths Unmounted", false);
 
     mPrintStream.println("\nRPC Invocations: ");
-    printMetric(MasterMetrics.COMPLETE_FILE_OPS, "Directories Created", false);
+    printMetric(MasterMetrics.COMPLETE_FILE_OPS, "Complete File Operations", false);
     printMetric(MasterMetrics.CREATE_DIRECTORIES_OPS, "Create Directory Operations", false);
     printMetric(MasterMetrics.CREATE_FILES_OPS, "Create File Operations", false);
     printMetric(MasterMetrics.DELETE_PATHS_OPS, "Delete Path Operations", false);
@@ -146,7 +144,7 @@ public class MetricsCommand {
   }
 
   /**
-   * Print the metrics information.
+   * Prints the metrics information.
    *
    * @param metricName the metric name to get metric value
    * @param nickName the metric name to print
