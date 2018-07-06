@@ -149,7 +149,8 @@ public final class URIUtils {
    *         than, equal to, or greater than the second string
    */
   public static int compare(String s1, String s2) {
-    if (s1 == s2) {
+    if ((Object)s1 == (Object)s2) {
+      // Check for null and reference equality
       return 0;
     }
     if (s1 == null) {
@@ -169,7 +170,8 @@ public final class URIUtils {
    * @return true if the strings are equal
    */
   public static boolean equals(String s1, String s2) {
-    if (s1 == s2) {
+    if ((Object)s1 == (Object)s2) {
+      // Check for null and reference equality
       return true;
     }
     if ((s1 != null) && (s2 != null)) {
