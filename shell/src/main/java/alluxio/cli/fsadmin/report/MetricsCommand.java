@@ -13,6 +13,7 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.client.MetaMasterClient;
 import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.util.FormatUtils;
@@ -107,33 +108,33 @@ public class MetricsCommand {
         + String.format(mInfoFormat, "Miss", cacheMissPercentage));
 
     mPrintStream.println("\nLogical Operations: ");
-    // TODO(lu) change the metric names to constants
-    printMetric("DirectoriesCreated", "Directories Created", false);
-    printMetric("FileBlockInfosGot", "File Block Infos Got", false);
-    printMetric("FileInfosGot", "File Infos Got", false);
-    printMetric("FilesCompleted", "Files Completed", false);
-    printMetric("FilesFreed", "Files Freed", false);
-    printMetric("FilesPersisted", "Files Persisted", false);
-    printMetric("FilesPinned", "Files Pinned", false);
-    printMetric("NewBlocksGot", "New Blocks Got", false);
-    printMetric("PathsDeleted", "Paths Deleted", false);
-    printMetric("PathsMounted", "Paths Mounted", false);
-    printMetric("PathsRenamed", "Paths Renamed", false);
-    printMetric("PathsUnmounted", "Paths Unmounted", false);
+    mPrintStream.print(MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED));
+    printMetric(MasterMetrics.DIRECTORIES_CREATED, "Directories Created", false);
+    printMetric(MasterMetrics.FILE_BLOCK_INFOS_GOT, "File Block Infos Got", false);
+    printMetric(MasterMetrics.FILE_INFOS_GOT, "File Infos Got", false);
+    printMetric(MasterMetrics.FILES_COMPLETED, "Files Completed", false);
+    printMetric(MasterMetrics.FILES_FREED, "Files Freed", false);
+    printMetric(MasterMetrics.FILES_PERSISTED, "Files Persisted", false);
+    printMetric(MasterMetrics.FILES_PINNED, "Files Pinned", false);
+    printMetric(MasterMetrics.NEW_BLOCKS_GOT, "New Blocks Got", false);
+    printMetric(MasterMetrics.PATHS_DELETED, "Paths Deleted", false);
+    printMetric(MasterMetrics.PATHS_MOUNTED, "Paths Mounted", false);
+    printMetric(MasterMetrics.PATHS_RENAMED, "Paths Renamed", false);
+    printMetric(MasterMetrics.PATHS_UNMOUNTED, "Paths Unmounted", false);
 
     mPrintStream.println("\nRPC Invocations: ");
-    printMetric("CompleteFileOps", "Directories Created", false);
-    printMetric("CreateDirectoryOps", "Create Directory Operations", false);
-    printMetric("CreateFileOps", "Create File Operations", false);
-    printMetric("DeletePathOps", "Delete Path Operations", false);
-    printMetric("FreeFileOps", "Free File Operations", false);
-    printMetric("GetFileBlockInfoOps", "Get File Block Info Operations", false);
-    printMetric("GetFileInfoOps", "Get File Info Operations", false);
-    printMetric("GetNewBlockOps", "Get New Block Operations", false);
-    printMetric("MountOps", "Mount Operations", false);
-    printMetric("RenamePathOps", "Rename Path Operations", false);
-    printMetric("SetAttributeOps", "Set Attribute Operations", false);
-    printMetric("UnmountOps", "Unmount Operations", false);
+    printMetric(MasterMetrics.COMPLETE_FILE_OPS, "Directories Created", false);
+    printMetric(MasterMetrics.CREATE_DIRECTORIES_OPS, "Create Directory Operations", false);
+    printMetric(MasterMetrics.CREATE_FILES_OPS, "Create File Operations", false);
+    printMetric(MasterMetrics.DELETE_PATHS_OPS, "Delete Path Operations", false);
+    printMetric(MasterMetrics.FREE_FILE_OPS, "Free File Operations", false);
+    printMetric(MasterMetrics.GET_FILE_BLOCK_INFO_OPS, "Get File Block Info Operations", false);
+    printMetric(MasterMetrics.GET_FILE_INFO_OPS, "Get File Info Operations", false);
+    printMetric(MasterMetrics.GET_NEW_BLOCK_OPS, "Get New Block Operations", false);
+    printMetric(MasterMetrics.MOUNT_OPS, "Mount Operations", false);
+    printMetric(MasterMetrics.RENAME_PATH_OPS, "Rename Path Operations", false);
+    printMetric(MasterMetrics.SET_ATTRIBUTE_OPS, "Set Attribute Operations", false);
+    printMetric(MasterMetrics.UNMOUNT_OPS, "Unmount Operations", false);
 
     mPrintStream.println("\nOther metrics information: ");
     mInfoFormat = "%s  (%s)"; // Some property names are too long to fit in previous info format

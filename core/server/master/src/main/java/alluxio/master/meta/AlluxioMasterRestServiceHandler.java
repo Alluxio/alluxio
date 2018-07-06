@@ -20,9 +20,9 @@ import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
+import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.LogUtils;
@@ -429,7 +429,7 @@ public final class AlluxioMasterRestServiceHandler {
     // free/used
     // spaces, those statistics can be gotten via other REST apis.
     String filesPinnedProperty =
-        MetricsSystem.getMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
     @SuppressWarnings("unchecked") Gauge<Integer> filesPinned =
         (Gauge<Integer>) MetricsSystem.METRIC_REGISTRY.getGauges().get(filesPinnedProperty);
 
