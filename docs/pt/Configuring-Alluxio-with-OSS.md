@@ -17,8 +17,8 @@ confiável como um serviço de armazenamento na nuvem fornecido pela Aliyun.
 
 Para executar o Alluxio `cluster` em um conjunto de máquina, você deve implantar os binários do Alluxio em
 cada um de seus servidores. Você pode também
-[compilar os binários a partir do código fonte](http://alluxio.org/documentation/master/Building-Alluxio-Master-Branch.html)
-ou [baixar o binário pré-compilador diretamente](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html).
+[compilar os binários a partir do código fonte](Building-Alluxio-From-Source.html)
+ou [baixar o binário pré-compilador diretamente](Running-Alluxio-Locally.html).
 
 Então se você não ainda não criou o arquivo de configuração do `template`, faça-o:
 
