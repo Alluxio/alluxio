@@ -9,55 +9,49 @@ priority: 1
 * 内容列表
 {:toc}
 
-Alluxio安全性目前有三个特性，该文档介绍它们的概念以及用法。
+该文档介绍Alluxio安全性的概念以及用法。
 
-1. [安全认证](#authentication)：在启用安全认证的情况下，Alluxio文件系统能够识别确认访问用户的身份，这是访问权限等其他安全特性的基础。
-2. [访问权限控制](#authorization)：在启用访问权限控制的情况下，Alluxio文件系统能够控制用户的访问，Alluxio使用POSIX标准的授权模型赋予用户相应访问权限。
-3. [审查机制](#auditing)：在启用审查机制的情况下,Alluxio文件系统会维护一个审查日志，用于记录用户获取文件元数据。
+1. [安全认证](#authentication): 如果是`alluxio.security.authentication.type=SIMPLE`(默认情况下),
+Alluxio文件系统识别访问服务的用户。使用其他安全特性(如授权)需要具有`SIMPLE`身份验证。
+还支持其他身份验证模式，如`NOSASL`和`CUSTOM`。
+2. [访问权限控制](#authorization): 如果是 `alluxio.security.authorization.permission.enabled=true`
+(在默认情况下)，根据请求用户和要访问的文件或目录的POSIX权限模型，Alluxio文件系统将授予或拒绝用户访问。
+注意，身份验证不能是“NOSASL”，因为授权需要用户信息。
+3. [审查机制](#auditing): 如果是 `alluxio.master.audit.logging.enabled=true`, Alluxio 文件系统
+维护用户访问文件元数据的审计日志。
 
-默认情况下，Alluxio会以SIMPLE安全模式启动并要求一个简单的认证。
-SIMPLE模式表明服务端信任客户端声明的任何身份。
-参考[安全性配置项](Configuration-Settings.html#security-configuration)的信息以启用安全特性。
+参考[安全性配置项](Configuration-Settings.html#security-configuration)的信息以启用不同安全特性。
 
 ## 安全认证 {#Authentication}
 
-Alluxio通过Thrift RPC提供文件系统服务，客户端（代表一个用户）和服务端（例如master）应该通过认证建立连接以通信，若认证成功，则建立连接；若失败，则该连接不应当被建立，并且会向客户端抛出一个异常。
+### SIMPLE
 
-目前支持三种认证模式：SIMPLE（默认模式）、CUSTOM以及NOSASL。
+当`alluxio.security.authentication.type` 类型'被设置为`SIMPLE`，身份验证被启用。
+在客户端访问服务之前，该客户端按以下列次序指示Alluxio服务检索要报告的用户信息
 
-### 用户账户
+1. 如果`alluxio.security.login.username` 在客户端上设置，其值将作为
+此客户端的登录用户。
 
-Alluxio中的通信实体包括master、worker以及client，其中各者都需要了解运行它们的用户是谁，即登录用户。Alluxio使用JAAS (Java Authentication and
-Authorization Service)确认执行任务的用户的身份。
+2. 否则，将从操作系统获取登录用户。
 
-当安全认证启用时，某个组建（master、worker和client）的登录用户可通过以下步骤获取：
+客户端检索用户信息后，将使用该用户信息进行连接该服务。在客户端创建目录/文件之后，将用户信息添加到元数据中
 
-1. 通过配置的用户登录。若`alluxio.security.login.username`属性已被应用设置，其值即为登录用户。
-2. 若该值为空，通过系统账户登录。
-
-若登录失败，会抛出一个异常。若登录成功，
-
-1. 对于master，登录用户即为Alluxio文件系统的超级用户，同时也是根目录的所属用户。
-2. 对于worker和client，登录用户与master通信从而访问文件，其通过RPC连接传输到master节点进行认证。
+并且可以在CLI和UI中检索。
 
 ### NOSASL
 
-禁用安全认证。
-SASL (Simple Authentication and Security Layer)是一个定义客户端和服务端应用之间安全认证的框架，该框架被Alluxio使用以实现安全认证，因此NOSASL表示禁用并且Alluxio文件系统行为和之前一致。
-
-### SIMPLE
-
-启用安全认证。Alluxio文件系统能够知道访问用户的身份，并简单地认为该用户的身份与他声称的一致。
-
-在用户创建目录或文件后，该用户的用户名被添加到元数据中。该用户的信息可以在CLI和UI中进行查看。
+当`alluxio.security.authentication.type` 值为 `NOSASL`,，身份验证被禁用。服务将忽略客户端的用户，
+并且没有任何信息将与该用户创建的文件或目录相关联。
 
 ### CUSTOM
 
-启用安全认证。Alluxio文件系统能够知道访问用户的身份，并且通过已定义的`AuthenticationProvider`对该用户身份进行确认。
+当`alluxio.security.authentication.type` 值为 `CUSTOM`，身份验证被启用。Alluxio客户端
+检查 `alluxio.security.authentication.custom.provider.class`类的名称
+用于检索用户。此类是`alluxio.security.authentication.AuthenticationProvider`的实现
 
-该模式目前在实验阶段，只在测试中使用。
+这种模式目前还处于试验阶段，应该只在测试中使用。
 
-## 访问权限控制 {#Authorization}
+## 访问权限控制
 
 Alluxio文件系统为目录和文件实现了一个访问权限模型，该模型与POSIX标准的访问权限模型类似。
 
@@ -83,9 +77,13 @@ Alluxio文件系统为目录和文件实现了一个访问权限模型，该模�
 
 例如，当启用访问权限控制时，运行shell命令`ls -R`后其输出如下：
 
-{% include Security/lsr.md %}
+```bash
+$ ./bin/alluxio fs ls /
+drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2017 13:24:15:649  DIR /default_tests_files
+-rw-r--r-- jack           staff                       80   NOT_PERSISTED 11-20-2017 13:24:15:649 100% /default_tests_files/BASIC_CACHE_PROMOTE_MUST_CACHE
+```
 
-### 用户-组映射 {#user-group-mapping}
+### 用户-组映射 
 
 当用户确定后，其组列表通过一个组映射服务确定，该服务通过`alluxio.security.group.mapping.class`配置，其默认实现是
 `alluxio.security.group.provider.ShellBasedUnixGroupsMapping`，该实现通过执行`groups` shell命令获取一个给定用户的组关系。
@@ -131,7 +129,7 @@ Alluxio支持用户模拟，以便用户代表另一个用户访问Alluxio。如
 为了使得用户`alluxio_user`能够模拟其他用户，你至少需要设置`alluxio.master.security.impersonation.<USERNAME>.users`和
 `alluxio.master.security.impersonation.<USERNAME>.groups`的其中一个（将`<USERNAME>`替换为`alluxio_user`）。你可以将两个参数设置为同一个用户。
 
-### Client Configuration
+### 客户端配置
 如果master配置为允许某些用户模拟其他的用户，client端也要进行相应的配置。使用`alluxio.security.login.impersonation.username`进行配置。
 这表示进行连接的Alluxio client保持不变，但是是模拟的一个不同的用户。参数可以设置为以下值：
 
