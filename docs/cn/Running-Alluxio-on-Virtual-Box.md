@@ -80,7 +80,7 @@ Hadoop Web UI的默认端口为**50070**。
 {% include Running-Alluxio-on-Virtual-Box/runTests.md %}
 
 在所有测试完成后，再次访问Alluxio的web UI `http://{MASTER_IP}:19999`，在导航栏中点
-击`Browse`，你应该能看到测试过程中写入到Alluxio的文件。
+击`Browse File System`，你应该能看到测试过程中写入到Alluxio的文件。
 
 在集群中的某个节点上，可以通过ssh免密码登陆到集群中的其他节点：
 
