@@ -14,6 +14,7 @@ package alluxio.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -24,6 +25,7 @@ import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 
 import com.google.common.collect.Lists;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -44,6 +46,7 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * Tests the {@link CommonUtils} class.
@@ -491,5 +494,57 @@ public class CommonUtilsTest {
     } catch (Exception e) {
       assertSame(testException, e);
     }
+  }
+
+  /** Returns true starting at the nth query. */
+  private static class CountCondition implements Supplier<Boolean> {
+    private final int mTarget;
+    private int mCount = 0;
+
+    public CountCondition(int target) {
+      mTarget = target;
+    }
+
+    @Override
+    public Boolean get() {
+      return ++mCount >= mTarget;
+    }
+
+    private int invocations() {
+      return mCount;
+    }
+  }
+
+  @Test
+  public void waitForFirstTry() throws Exception {
+    testNthSuccess(1);
+  }
+
+  @Test
+  public void waitForSecondTry() throws Exception {
+    testNthSuccess(2);
+  }
+
+  @Test
+  public void waitForFiftyTry() throws Exception {
+    testNthSuccess(5);
+  }
+
+  private void testNthSuccess(int n) throws Exception {
+    CountCondition cond = new CountCondition(n);
+    int intervalMs = 10;
+    WaitForOptions opts = WaitForOptions.defaults().setInterval(intervalMs);
+    long start = System.currentTimeMillis();
+    CommonUtils.waitFor("", cond, opts);
+    long durationMs = System.currentTimeMillis() - start;
+    assertThat((int) durationMs, Matchers.greaterThanOrEqualTo((n - 1) * intervalMs));
+    assertEquals(n, cond.invocations());
+  }
+
+  @Test(expected = TimeoutException.class)
+  public void waitForTimeout() throws Exception {
+    CountCondition cond = new CountCondition(100);
+    WaitForOptions opts = WaitForOptions.defaults().setInterval(3).setTimeoutMs(100);
+    CommonUtils.waitFor("", cond, opts);
   }
 }

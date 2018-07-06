@@ -46,7 +46,6 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
@@ -493,12 +492,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     MasterRegistry registry = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
     final FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     try {
-      CommonUtils.waitFor("journal checkpoint replay", new Function<Void, Boolean>() {
-        @Override
-        public Boolean apply(Void input) {
-          return fsMaster.getMountTable().containsKey(mountUri.toString());
-        }
-      }, WaitForOptions.defaults().setTimeoutMs(60 * Constants.SECOND_MS));
+      CommonUtils.waitFor("journal checkpoint replay",
+          () -> fsMaster.getMountTable().containsKey(mountUri.toString()),
+          WaitForOptions.defaults().setTimeoutMs(60 * Constants.SECOND_MS));
     } finally {
       registry.stop();
     }

@@ -38,7 +38,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.base.Function;
 import jersey.repackaged.com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assume;
@@ -51,6 +50,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2818")
 public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
@@ -137,15 +137,12 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
    * @param timeoutMs the number of milliseconds to wait before timing out
    */
   private void waitForWorkerRegistration(final AlluxioBlockStore store, final int numWorkers,
-      int timeoutMs) {
-    CommonUtils.waitFor("Worker to register.", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void aVoid) {
-        try {
-          return store.getEligibleWorkers().size() >= numWorkers;
-        } catch (Exception e) {
-          return false;
-        }
+      int timeoutMs) throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("Worker to register.", () -> {
+      try {
+        return store.getEligibleWorkers().size() >= numWorkers;
+      } catch (Exception e) {
+        return false;
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
   }
