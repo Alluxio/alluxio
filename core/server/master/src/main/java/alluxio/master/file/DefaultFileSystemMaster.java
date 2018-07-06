@@ -1592,15 +1592,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // Inodes for which deletion will be attempted
     List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete = new ArrayList<>();
 
-    // Add root of sub-tree
+    // Add root of sub-tree to delete
     inodesToDelete.add(new Pair<>(inodePath.getUri(), inodePath));
 
-    try (LockedInodePathList lockedInodePathList =
+    try (LockedInodePathList children =
         mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       // Traverse inodes top-down
-      for (LockedInodePath lockedInodePath : lockedInodePathList.getInodePathList()) {
+      for (LockedInodePath child : children.getInodePathList()) {
         inodesToDelete
-            .add(new Pair<>(mInodeTree.getPath(lockedInodePath.getInode()), lockedInodePath));
+            .add(new Pair<>(mInodeTree.getPath(child.getInode()), child));
       }
 
       // Prepare to delete persisted inodes
