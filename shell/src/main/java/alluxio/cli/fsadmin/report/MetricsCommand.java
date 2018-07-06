@@ -86,6 +86,8 @@ public class MetricsCommand {
         "Under Filesystem Read", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT),
         "Alluxio Write", true);
+    printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT),
+        "Under Filesystem Write", true);
 
     mPrintStream.println("\nCache Hit Rate (Percentage): ");
     long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs;
@@ -111,7 +113,6 @@ public class MetricsCommand {
     printMetric(MasterMetrics.FILES_CREATED, "Files Created", false);
     printMetric(MasterMetrics.FILES_FREED, "Files Freed", false);
     printMetric(MasterMetrics.FILES_PERSISTED, "Files Persisted", false);
-    printMetric(MasterMetrics.FILES_PINNED, "Files Pinned", false);
     printMetric(MasterMetrics.NEW_BLOCKS_GOT, "New Blocks Got", false);
     printMetric(MasterMetrics.PATHS_DELETED, "Paths Deleted", false);
     printMetric(MasterMetrics.PATHS_MOUNTED, "Paths Mounted", false);
@@ -132,6 +133,7 @@ public class MetricsCommand {
     printMetric(MasterMetrics.SET_ATTRIBUTE_OPS, "Set Attribute Operations", false);
     printMetric(MasterMetrics.UNMOUNT_OPS, "Unmount Operations", false);
 
+    // TODO(lu) improve printout info to sync with web UI
     mPrintStream.println("\nOther metrics information: ");
     mInfoFormat = "%s  (%s)"; // Some property names are too long to fit in previous info format
     for (Map.Entry<String, MetricValue> entry : mMetricsMap.entrySet()) {

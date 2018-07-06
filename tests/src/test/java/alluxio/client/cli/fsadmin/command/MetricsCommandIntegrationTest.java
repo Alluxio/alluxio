@@ -51,6 +51,7 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
         "    From Remote Instances                            0B",
         "    Under Filesystem Read                            0B",
         "    Alluxio Write                                    0B",
+        "    Under Filesystem Write                           0B",
         "",
         "Cache Hit Rate (Percentage): ",
         "    Alluxio Local                                  0.00",
