@@ -1,17 +1,23 @@
 command,args
+extensions,None
 format,[-s]
+formatMaster,None
 formatWorker,None
 bootstrapConf,&lt;ALLUXIO_MASTER_HOSTNAME&gt;
 fs,[fs-commands]
+fsadmin,[fsadmin-commands]
+getConf,[key]
 loadufs,&lt;AlluxioPath&gt; &lt;UfsPath&gt; [ExcludePathPrefixes]
 logLevel,[--level &lt;arg&gt;] --logName &lt;arg&gt; [--target &lt;arg&gt;]
 runTest,&lt;Example&gt; &lt;ReadType&gt; &lt;WriteType&gt;
 runTests,None
 journalCrashTest,[-creates &lt;arg&gt;] [-deletes &lt;arg&gt;] [-renames &lt;arg&gt;] [-maxAlive &lt;arg&gt;] [-testDir &lt;arg&gt;] [-totalTime &lt;arg&gt;] [-help]
 readJournal,[-help] [-noTimeout]
+upgradeJournal,None
 killAll,&lt;WORD&gt;
 copyDir,&lt;PATH&gt;
 clearCache,None
+confDocGen,None
 thriftGen,None
 protoGen,None
 version,None

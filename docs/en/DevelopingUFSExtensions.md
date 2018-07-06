@@ -2,6 +2,7 @@
 layout: global
 group: Resources
 title: Developing Under Storage Extensions
+priority: 3
 ---
 
 * Table of Contents
