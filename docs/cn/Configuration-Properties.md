@@ -74,17 +74,17 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
 {% endfor %}
 </table>
 
-### 集群管理配置项 {#cluster-management}
+### 集群管理配置项 {#cluster-management-configuration}
 
 如果使用诸如Mesos和YARN的集群管理器运行Alluxio，还有额外的配置项。
 
 <table class="table table-striped">
 <tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
-{% for item in site.data.table.cluster-management %}
+{% for item in site.data.table.cluster-management-configuration %}
   <tr>
     <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.cluster-management[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.cluster-management-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
