@@ -21,7 +21,7 @@ priority: 2
 
 ## 配置Hive
 
-我们建议您从Alluxio[下载页面](http://www.alluxio.org/download)下载压缩包。或者，高级用户可以选择按照[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)的说明来从源码编译这个客户端jar。Alluxio客户端jar可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`找到。
+我们建议您从Alluxio[下载页面](http://www.alluxio.org/download)下载压缩包。或者，高级用户可以选择按照[这里](Building-Alluxio-From-Source.html#compute-framework-support)的说明来从源码编译这个客户端jar。Alluxio客户端jar可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`找到。
 
 在shell或`conf/hive-env.sh`中设置`HIVE_AUX_JARS_PATH`：
 

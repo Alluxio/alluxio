@@ -17,7 +17,7 @@ priority: 3
 
 要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。
 你可以或者[下载对应hadoop版本的预编译二进制包](http://www.alluxio.org/download)(推荐)，
-或者[从源码编译Alluxio](building-Alluxio-Master-Branch.html)(高级用户)。
+或者[从源码编译Alluxio](Building-Alluxio-From-Source.html)(高级用户)。
 
 注意，当从源码编译Alluxio时，默认预编译的Alluxio服务器二进制包适用于HDFS `2.2.0`。若使用其他版本的Hadoop，需要指定正确的Hadoop配置文件，然后在你的Alluxio目录下运行一下命令：
 
@@ -33,7 +33,7 @@ $ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 ```
 
 这会将为Apache Hadoop 2.7.1编译Alluxio。
-请访问[Building Alluxio Master Branch](Building-Alluxio-Master-Branch.html#distro-support)以获取更多关于支持其它版本的信息。
+请访问[Building Alluxio Master Branch](Building-Alluxio-From-Source.html#distro-support)以获取更多关于支持其它版本的信息。
 
 如果一切正常，在`assembly/server/target`目录中应当能看到`alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`文件并且使用该jar文件即可运行Alluxio Master和Worker。
 

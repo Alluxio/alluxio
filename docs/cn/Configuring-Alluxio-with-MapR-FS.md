@@ -13,7 +13,7 @@ priority: 3
 
 ## 以特定MapR版本编译Alluxio
 
-Alluxio要与MapR-FS结合，必须以相对应的MapR版本进行[编译](Building-Alluxio-Master-Branch.html)，以下是一些对应于不同MapR版本的`hadoop.version`：
+Alluxio要与MapR-FS结合，必须以相对应的MapR版本进行[编译](Building-Alluxio-From-Source.html)，以下是一些对应于不同MapR版本的`hadoop.version`：
 
 <table class="table table-striped">
 <tr><th>MapR Version</th><th>hadoop.version</th></tr>

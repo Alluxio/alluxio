@@ -101,4 +101,4 @@ básicos em um ambiente local.
 Você pode baixar as versões de lançamento do Alluxio a partir da página
 [Project Downloads](http://alluxio.org/downloads). Cada lançamento vem com um binário compatível com
 diversas versões do `Hadoop`. Se você quer construir o projeto a partir do código fonte, veja a página
-[Construindo A Partir da Documentação Master Branch](Building-Alluxio-Master-Branch.html).
+[Construindo A Partir da Documentação Master Branch](Building-Alluxio-From-Source.html).

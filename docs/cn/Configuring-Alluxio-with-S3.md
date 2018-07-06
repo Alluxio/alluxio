@@ -13,7 +13,7 @@ priority: 0
 
 ## 初始步骤
 
-首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
+首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 另外，为了在S3上使用Alluxio，需要创建一个bucket（或者使用一个已有的bucket）。还要注意在该bucket里使用的目录，可以在该bucket中新建一个目录，或者使用一个存在的目录。在该向导中，S3 bucket的名称为`S3_BUCKET`，在该bucket里的目录名称为`S3_DIRECTORY`。
 

@@ -60,7 +60,7 @@ We need to make the Alluxio client jar file available to HBase, because it conta
 We recommend you to download the tarball from
 Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can choose to compile this client jar from the source code
-by following the instructions [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
+by following the instructions [here](Building-Alluxio-From-Source.html#compute-framework-support).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 There are two ways to achieve that:

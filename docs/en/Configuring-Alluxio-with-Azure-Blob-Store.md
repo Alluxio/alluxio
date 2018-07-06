@@ -13,7 +13,7 @@ This guide describes how to configure Alluxio with [Azure Blob Store](https://az
 
 ## Initial Setup
 
-To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these machines. You can either [compile the binaries from Alluxio source code](Building-Alluxio-Master-Branch.html), or [download the precompiled binaries directly](Running-Alluxio-Locally.html).
+To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these machines. You can either [compile the binaries from Alluxio source code](Building-Alluxio-From-Source.html), or [download the precompiled binaries directly](Running-Alluxio-Locally.html).
 
 Also, in preparation for using Azure Blob Store with Alluxio, create a new container in your Azure
 storage account or use an existing container. You should also note that the directory you want to

@@ -13,7 +13,7 @@ priority: 4
 
 ## 初始步骤
 
-要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
+要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 另外，为了在OSS上使用Alluxio，需要创建一个bucket（或者使用一个已有的bucket）。还要注意在该bucket里使用的目录，可以在该bucket中新建一个目录，或者使用一个存在的目录。在该指南中，OSS bucket的名称为OSS_BUCKET，在该bucket里的目录名称为OSS_DIRECTORY。另外，要使用OSS服务，还需提供一个oss 端点，该端点指定了你的bucket在哪个范围，本向导中的端点名为OSS_ENDPOINT。要了解更多指定范围的端点的具体内容，可以参考[这里](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region)，要了解更多OSS Bucket的信息，请参考[这里](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/function&bucket)
 
