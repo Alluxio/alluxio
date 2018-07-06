@@ -45,7 +45,6 @@ public class UfsCommand {
     Map<String, MountPointInfo> mountTable = mFileSystemMasterClient.getMountTable();
     System.out.println("Alluxio under filesystem information: ");
     printMountInfo(mountTable);
-    // TODO(lu) add UfsSessionCount metrics information
     return 0;
   }
 
