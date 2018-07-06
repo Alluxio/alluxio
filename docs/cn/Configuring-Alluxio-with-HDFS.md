@@ -13,7 +13,7 @@ priority: 3
 
 ## 初始步骤
 
-要在一组机器上运行一个Alluxio集群，需要在每台机器上部署Alluxio二进制包。你可以[下载正确Hadoop版本的二进制包](Running-Alluxio-Locally.html)，对于高级用户，也可[编译Alluxio](Building-Alluxio-Master-Branch.html)，
+要在一组机器上运行一个Alluxio集群，需要在每台机器上部署Alluxio二进制服务端包。你可以[下载带有正确Hadoop版本的预编译二进制包](Running-Alluxio-Locally.html)，对于高级用户，也可[源码编译Alluxio](Building-Alluxio-Master-Branch.html)，
 
 注意，在编译源码包的时候，默认的Alluxio二进制包适用于HDFS `2.2.0`，若使用其他版本的Hadoop，需要指定正确的Hadoop版本，并且在Alluxio源码目录下运行如下命令：
 
@@ -21,7 +21,7 @@ priority: 3
 $ mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
 ```
 
-Alluxio提供了预定义配置文件，其包含`hadoop-1`，`hadoop-2.2`，`hadoop-2.3` ··· `hadoop-2.8`的Hadoop版本。如果你想编译特Hadoop版本的Alluxio，你应该在命令中指定版本。
+Alluxio提供了预定义配置文件，其包含`hadoop-1`，`hadoop-2.2`，`hadoop-2.3` ··· `hadoop-2.9`的Hadoop版本。如果你想编译特定Hadoop版本的Alluxio，你应该在命令中指定版本。
 例如，
 
 ```bash
@@ -38,7 +38,7 @@ $ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-### Basic Configuration
+### 基本配置
 
 修改`conf/alluxio-site.properties`文件，将底层存储系统的地址设置为HDFS namenode的地址以及你想挂载到Alluxio根目录下的HDFS目录。例如，若你的HDFS namenode是在本地默认端口运行，并且HDFS的根目录已经被映射到Alluxio根目录，则该地址为`hdfs://localhost:9000`；若只有`/alluxio/data`这一个HDFS目录被映射到Alluxio根目录，则该地址为`hdfs://localhost:9000/alluxio/data`。
 
@@ -52,9 +52,9 @@ alluxio.underfs.address=hdfs://<NAMENODE>:<PORT>
 要配置Alluxio在HA模式下HDFS的namenode，你应该正确配置Alluxio的服务端以访问HDFS。请注意一旦设置，你使用Alluxio客户端的应用程序不再需要任何特殊的配置。
 
 有两种可能的方法：
-- 将hadoop安装目录下的`hdfs-site.xml`和`core-site.xml`文件拷贝或者符号连接到`${ALLUXIO_HOME}/conf`目录下。确保设置在所有正在运行Alluxio的服务端上。
+- 将hadoop安装目录下的`hdfs-site.xml`和`core-site.xml`文件拷贝或者符号连接到`${ALLUXIO_HOME}/conf`目录下。确保在所有正在运行Alluxio的服务端上设置了。
 
-- 或者，你可以在`conf/alluxio-site.properties`文件中将`alluxio.underfs.hdfs.configuration`设置为hadoop属性文件`hdfs-site.xml`或者`core-site.xml`。确保所有的相关配置在文件中可用。
+- 或者，你可以在`conf/alluxio-site.properties`文件中将`alluxio.underfs.hdfs.configuration`指向`hdfs-site.xml`或者`core-site.xml`。确保配置在所有正在运行Alluxio的服务端上设置了。
 
 ```
 alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
@@ -79,16 +79,14 @@ Alluxio支持类POSIX文件系统[用户和权限检查](Security.html)，这从
 
 ## 使用HDFS在本地运行Alluxio
 
-在开始本步骤之前，请确保HDFS集群已经启动运行并且映射到Alluxio根目录下的HDFS目录已经存在。
-
-配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
+在开始本步骤之前，请确保HDFS集群已经启动运行并且映射到Alluxio根目录下的HDFS目录已经存在。配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
 ```bash
 $ bin/alluxio format
 $ bin/alluxio-start.sh local
 ```
 
-该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
+该命令应当会本地启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，你可以运行一个简单的示例程序：
 
