@@ -131,7 +131,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
       });
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      return;
+      throw new RuntimeException(e);
     } catch (TimeoutException e) {
       throw new RuntimeException(e);
     }

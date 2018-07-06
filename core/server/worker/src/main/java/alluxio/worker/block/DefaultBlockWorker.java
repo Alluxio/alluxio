@@ -268,6 +268,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       });
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
     } catch (TimeoutException e) {
       throw new RuntimeException(e);
     }

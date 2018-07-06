@@ -255,12 +255,9 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
           mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
               .getMaster(FileSystemMaster.class),
           "mUfsAbsentPathCache");
-      CommonUtils.waitFor("path (" + path + ") to be added to absent cache", () -> {
-        if (cache.isAbsent(new AlluxioURI(path))) {
-          return true;
-        }
-        return false;
-      }, WaitForOptions.defaults().setTimeoutMs(60000));
+      CommonUtils.waitFor("path (" + path + ") to be added to absent cache",
+          () -> cache.isAbsent(new AlluxioURI(path)),
+          WaitForOptions.defaults().setTimeoutMs(60000));
     }
 
     if (expectExists && expectLoadFromUfs) {

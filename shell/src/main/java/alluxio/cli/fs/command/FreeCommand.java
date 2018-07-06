@@ -86,7 +86,10 @@ public final class FreeCommand extends AbstractFileSystemCommand {
         }
       }, WaitForOptions.defaults().setTimeoutMs(10 * Math.toIntExact(interval))
           .setInterval(interval));
-    } catch (TimeoutException | InterruptedException e) {
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    } catch (TimeoutException e) {
       throw new RuntimeException(e);
     }
     System.out.println(path + " was successfully freed from memory.");
