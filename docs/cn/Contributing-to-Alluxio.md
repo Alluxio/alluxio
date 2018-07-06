@@ -34,7 +34,7 @@ group: Resources
 
 ### 提交代码
 
--   我们鼓励你每次尽可能提交小的、单一目的的补丁包，因为要合并一个含有许多不相干的特性的大的改动十分困难。
+-   我们鼓励你每次尽可能提交小的、单一目的的补丁包，因为要合并一个含有许多不相关的特性的大的改动十分困难。
 
 -   我们会追踪[JIRA](https://alluxio.atlassian.net/)里的issues和features，如果你还没有帐号，请先进行注册。
 
@@ -47,8 +47,6 @@ group: Resources
 ~~~~~
 [ALLUXIO-100] Implement an awesome new feature
 ~~~~~
-
--   添加一个GitHub标签表明你的修改属于Alluxio的哪个组件，如果你对此不确定，那么就选择包含最多的修改代码的那个组件（组件与根目录下的目录一一对应）。
 
 -   在pull request的描述框中，请添加该JIRA ticket的超链接。
 
@@ -71,8 +69,6 @@ group: Resources
 -   使用``mvn test``命令运行所有单元测试（会将本地文件系统作为底层文件系统，在HDFS模块中将HDFS 1.0.4作为底层文件系统），``mvn -Dhadoop.version=2.4.0 test``命令将HDFS 2.4.0作为HDFS模块中的底层文件系统。
 
 -   要在特定的底层文件系统上运行测试，在对应的子模块目录下运行Maven命令，例如，要运行针对HDFS的测试，在``alluxio/underfs/hdfs``目录下运行``mvn test``。
-
--   对于GlusterFS环境的单元测试，可以在``alluxio/underfs/glusterfs``目录下运行`mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dalluxio.underfs.glusterfs.mounts=/vol -Dalluxio.underfs.glusterfs.volumes=testvol test`（将GlusterFS作为底层文件系统，`/vol`为一个有效GlusterFS挂载点）。
 
 -   要进行单个单元测试，运行`mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test`。
 
