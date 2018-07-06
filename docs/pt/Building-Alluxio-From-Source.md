@@ -15,11 +15,11 @@ O pré-requisito para este guia é que você tenha [Java 7 (or above)](Java-Setu
 
 Confira o Alluxio `master branch` a partir do Github e empacote-o:
 
-{% include Building-Alluxio-Master-Branch/checkout.md %}
+{% include Building-Alluxio-From-Source/checkout.md %}
 
 Se você estiver vendo o `java.lang.OutOfMemoryError: Java heap space`, por favor execute:
 
-{% include Building-Alluxio-Master-Branch/OutOfMemoryError.md %}
+{% include Building-Alluxio-From-Source/OutOfMemoryError.md %}
 
 Se você quer construir alguma versão particular do Alluxio, por exemplo {{site.ALLUXIO_RELEASED_VERSION}},
 por favor execute `git checkout v{{site.ALLUXIO_RELEASED_VERSION}}` depois de `cd alluxio`.
@@ -39,7 +39,7 @@ ou checar os `logs` dentro do diretório `alluxio/logs`. Você também pode exec
 
 Você deverá estar apto para ver os resultados, semelhantes aos resultados seguintes:
 
-{% include Building-Alluxio-Master-Branch/test-result.md %}
+{% include Building-Alluxio-From-Source/test-result.md %}
 
 Você pode parar o sistema executando:
 
@@ -49,21 +49,21 @@ Você pode parar o sistema executando:
 
 Para rodar todas as unidades de testes:
 
-{% include Building-Alluxio-Master-Branch/unit-tests.md %}
+{% include Building-Alluxio-From-Source/unit-tests.md %}
 
 Para rodar todas as unidades de teste com um armazenamento inferior (`under storage`) diferente do `filesystem`
 local, execute:
 
-{% include Building-Alluxio-Master-Branch/under-storage.md %}
+{% include Building-Alluxio-From-Source/under-storage.md %}
 
 Atualmente, os valores suportados para `<under-storage-profile>` são:
 
-{% include Building-Alluxio-Master-Branch/supported-values.md %}
+{% include Building-Alluxio-From-Source/supported-values.md %}
 
 Para ter a saída dos `logs` direcionados para o STDOUT, adicione a instrução a seguir para
 o commando `mvn`:
 
-{% include Building-Alluxio-Master-Branch/STDOUT.md %}
+{% include Building-Alluxio-From-Source/STDOUT.md %}
 
 ## Suporte de Distribuições
 
@@ -75,31 +75,31 @@ Para construir o Alluxio sobre qualquer versão diferente do `hadoop`, você ape
 Todas as construções principais são do Apache portanto todas as versões Apache podem ser utilizadas
 diretamente:
 
-{% include Building-Alluxio-Master-Branch/Apache.md %}
+{% include Building-Alluxio-From-Source/Apache.md %}
 
 ### Cloudera
 
 Para construir sobre uma versão do Cloudera, apenas mencione a versão como `$apacheRelease-cdh$cdhRelease`:
 
-{% include Building-Alluxio-Master-Branch/Cloudera.md %}
+{% include Building-Alluxio-From-Source/Cloudera.md %}
 
 ### MapR
 
 Para construir sobre uma versão MapR:
 
-{% include Building-Alluxio-Master-Branch/MapR.md %}
+{% include Building-Alluxio-From-Source/MapR.md %}
 
 ### Pivotal
 
 Para construir sobre uma versão Pivotal release, apenas mencione a versão como `$apacheRelease-gphd-$pivotalRelease`:
 
-{% include Building-Alluxio-Master-Branch/Pivotal.md %}
+{% include Building-Alluxio-From-Source/Pivotal.md %}
 
 ### Hortonworks
 
 Para construir sobre uma versão Hortonworks, apenas mencione a versão como `$apacheRelease.$hortonRelease`:
 
-{% include Building-Alluxio-Master-Branch/Hortonworks.md %}
+{% include Building-Alluxio-From-Source/Hortonworks.md %}
 
 ## Configurações de Sistema
 
@@ -110,7 +110,7 @@ unidades de teste concluam Uma configuração comum que pode ser necessário é 
 
 Para aumentar a quantidade de arquivos e processos permitidos, execute o passo a seguir:
 
-{% include Building-Alluxio-Master-Branch/increase-number.md %}
+{% include Building-Alluxio-From-Source/increase-number.md %}
 
 Também é recomendado que exclua o clone local do Alluxio a partir da indexação do Spotlight. Caso
 contrário, o seu Mac pode travar constantemente tentando re-indexar o `file system` durante as

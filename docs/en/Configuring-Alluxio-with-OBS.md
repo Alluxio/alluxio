@@ -17,7 +17,7 @@ Service (OBS) is a massive, secure and highly reliable cloud storage service pro
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines. You can either
-[compile the binaries from Alluxio source code](http://alluxio.org/documentation/master/Building-Alluxio-Master-Branch.html),
+[compile the binaries from Alluxio source code](http://alluxio.org/documentation/master/Building-Alluxio-From-Source.html),
 or [download the precompiled binaries directly](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html).
 
 OBS under storage is implemented as an under storage extension. A precompiled OBS under storage jar can be downloaded from [here](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs/target).

@@ -90,7 +90,7 @@ Presto的Hive集成里使用了配置[`hive.max-split-size`](https://teradata.gi
 
 # 分发Alluxio客户端jar包
 
-推荐您从[http://www.alluxio.org/download](http://www.alluxio.org/download)下载压缩包。另外，高阶用户可以按照指导[here](Building-Alluxio-Master-Branch.html#compute-framework-support)从源码编译这个客户端jar包。在路径`{{site.ALLUXIO_CLIENT_JAR_PATH}}`下可以找到Alluxio客户端jar包。
+推荐您从[http://www.alluxio.org/download](http://www.alluxio.org/download)下载压缩包。另外，高阶用户可以按照指导[here](Building-Alluxio-From-Source.html#compute-framework-support)从源码编译这个客户端jar包。在路径`{{site.ALLUXIO_CLIENT_JAR_PATH}}`下可以找到Alluxio客户端jar包。
 
 将Alluxio客户端Jar包分发到Presto所有节点中：
 - 你必须将Alluxio客户端jar包 `{{site.ALLUXIO_CLIENT_JAR_PATH_PRESTO}}`放置在所有Presto节点的`$PRESTO_HOME/plugin/hive-hadoop2/`

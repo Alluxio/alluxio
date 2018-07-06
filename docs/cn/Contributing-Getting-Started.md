@@ -115,7 +115,7 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dche
 
 这应该用不到一分钟。
 
-这里有更多[编译Alluxio的细节](Building-Alluxio-Master-Branch.html)。
+这里有更多[编译Alluxio的细节](Building-Alluxio-From-Source.html)。
 
 ## 领取一个New Contributor JIRA Ticket
 

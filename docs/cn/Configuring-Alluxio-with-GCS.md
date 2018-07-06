@@ -13,7 +13,7 @@ priority: 0
 
 ## 初始步骤
 
-首先，在你的机器上必须安装Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
+首先，在你的机器上必须安装Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 而且，为了在Alluxio上使用GCS, 需要创建一个bucket（或者使用一个已有的bucket)。你应该注意你在这个bucket里准备使用的目录，你可以自己在这个bucket里面创建一个新目录，或者使用一个已有的目录。在这个指南中，我们将GCS bucket取名为`GCS_BUCKET`，bucket中的目录取名为`GCS_DIRECTORY`。
 
