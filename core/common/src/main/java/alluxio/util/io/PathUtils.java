@@ -59,8 +59,8 @@ public final class PathUtils {
    * @throws IllegalArgumentException if base or paths is null
    */
   public static String concatPath(Object base, Object path) throws IllegalArgumentException {
-    Preconditions.checkArgument(base != null, "Failed to concatPath: base is null");
-    Preconditions.checkArgument(path != null, "Failed to concatPath: path is null");
+    Preconditions.checkNotNull(base, "base");
+    Preconditions.checkNotNull(path, "path");
     String trimmedBase = SEPARATOR_MATCHER.trimTrailingFrom(base.toString());
     String trimmedPath = SEPARATOR_MATCHER.trimFrom(path.toString());
 
