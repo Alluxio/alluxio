@@ -1589,30 +1589,28 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     }
 
-    List<Pair<AlluxioURI, LockedInodePath>> delInodes = new ArrayList<>();
+    // Inodes for which deletion will be attempted
+    List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete = new ArrayList<>();
 
-    Pair<AlluxioURI, LockedInodePath> inodePair = new Pair<>(inodePath.getUri(), inodePath);
-    delInodes.add(inodePair);
+    // Add root of sub-tree
+    inodesToDelete.add(new Pair<>(inodePath.getUri(), inodePath));
 
     try (LockedInodePathList lockedInodePathList =
         mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       // Traverse inodes top-down
       for (LockedInodePath lockedInodePath : lockedInodePathList.getInodePathList()) {
-        Inode descendant  = lockedInodePath.getInode();
-        AlluxioURI descendantPath = mInodeTree.getPath(descendant);
-        Pair<AlluxioURI, LockedInodePath> descendantPair =
-            new Pair<>(descendantPath, lockedInodePath);
-        delInodes.add(descendantPair);
+        inodesToDelete
+            .add(new Pair<>(mInodeTree.getPath(lockedInodePath.getInode()), lockedInodePath));
       }
 
       // Prepare to delete persisted inodes
       UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
       if (!(replayed || deleteOptions.isAlluxioOnly())) {
-        ufsDeleter = new SafeUfsDeleter(mMountTable, delInodes, deleteOptions);
+        ufsDeleter = new SafeUfsDeleter(mMountTable, inodesToDelete, deleteOptions);
       }
 
       // Inodes to delete from tree after attempting to delete from UFS
-      List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete = new ArrayList<>();
+      List<Pair<AlluxioURI, LockedInodePath>> revisedInodesToDelete = new ArrayList<>();
       // Inodes that are not safe for recursive deletes
       Set<Long> unsafeInodes = new HashSet<>();
       // Alluxio URIs (and the reason for failure) which could not be deleted
@@ -1620,49 +1618,49 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
-      for (int i = delInodes.size() - 1; i >= 0; i--) {
-        Pair<AlluxioURI, LockedInodePath> delInodePair = delInodes.get(i);
-        AlluxioURI alluxioUriToDel = delInodePair.getFirst();
-        Inode delInode = delInodePair.getSecond().getInode();
+      for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
+        Pair<AlluxioURI, LockedInodePath> inodePairToDelete = inodesToDelete.get(i);
+        AlluxioURI alluxioUriToDelete = inodePairToDelete.getFirst();
+        Inode inodeToDelete = inodePairToDelete.getSecond().getInode();
 
         String failureReason = null;
-        if (unsafeInodes.contains(delInode.getId())) {
+        if (unsafeInodes.contains(inodeToDelete.getId())) {
           failureReason = ExceptionMessage.DELETE_FAILED_DIR_NONEMPTY.getMessage();
-        } else if (!replayed && delInode.isPersisted()) {
+        } else if (!replayed && inodeToDelete.isPersisted()) {
           // If this is a mount point, we have deleted all the children and can unmount it
           // TODO(calvin): Add tests (ALLUXIO-1831)
-          if (mMountTable.isMountPoint(alluxioUriToDel)) {
-            unmountInternal(alluxioUriToDel);
+          if (mMountTable.isMountPoint(alluxioUriToDelete)) {
+            unmountInternal(alluxioUriToDelete);
           } else {
             if (!(replayed || deleteOptions.isAlluxioOnly())) {
               try {
-                checkUfsMode(alluxioUriToDel, OperationType.WRITE);
+                checkUfsMode(alluxioUriToDelete, OperationType.WRITE);
                 // Attempt to delete node if all children were deleted successfully
-                ufsDeleter.delete(alluxioUriToDel, delInode);
+                ufsDeleter.delete(alluxioUriToDelete, inodeToDelete);
               } catch (AccessControlException e) {
                 // In case ufs is not writable, we will still attempt to delete other entries
                 // if any as they may be from a different mount point
-                // TODO(adit): reason for failure is swallowed here
                 LOG.warn(e.getMessage());
                 failureReason = e.getMessage();
               } catch (IOException e) {
+                LOG.warn(e.getMessage());
                 failureReason = e.getMessage();
               }
             }
           }
         }
         if (failureReason == null) {
-          inodesToDelete.add(new Pair<>(alluxioUriToDel, delInodePair.getSecond()));
+          revisedInodesToDelete.add(new Pair<>(alluxioUriToDelete, inodePairToDelete.getSecond()));
         } else {
-          unsafeInodes.add(delInode.getId());
+          unsafeInodes.add(inodeToDelete.getId());
           // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
-          unsafeInodes.add(delInode.getParentId());
-          failedUris.add(new Pair<>(alluxioUriToDel.toString(), failureReason));
+          unsafeInodes.add(inodeToDelete.getParentId());
+          failedUris.add(new Pair<>(alluxioUriToDelete.toString(), failureReason));
         }
       }
 
       // Delete Inodes
-      for (Pair<AlluxioURI, LockedInodePath> delInodePair : inodesToDelete) {
+      for (Pair<AlluxioURI, LockedInodePath> delInodePair : revisedInodesToDelete) {
         Inode delInode = delInodePair.getSecond().getInode();
         LockedInodePath tempInodePath = delInodePair.getSecond();
         // Do not journal entries covered recursively for performance
@@ -1684,7 +1682,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
 
-    Metrics.PATHS_DELETED.inc(delInodes.size());
+    Metrics.PATHS_DELETED.inc(inodesToDelete.size());
   }
 
   @Override
