@@ -86,8 +86,6 @@ public class MetricsCommand {
         "Under Filesystem Read", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT),
         "Alluxio Write", true);
-    printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT),
-        "Under Filesystem Write", true);
 
     mPrintStream.println("\nCache Hit Rate (Percentage): ");
     long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs;
