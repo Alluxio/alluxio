@@ -146,7 +146,7 @@ public final class Constants {
   public static final int THRIFT_STOP_TIMEOUT_SECONDS = 60;
 
   // Time-to-live
-  public static final long NO_TTL = -1;
+  public static final long NO_TTL = 0;
 
   // Security
   public static final int DEFAULT_FILE_SYSTEM_UMASK = 0022;
