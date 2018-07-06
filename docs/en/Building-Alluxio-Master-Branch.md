@@ -1,69 +1,90 @@
 ---
 layout: global
-title: Building Alluxio Master Branch
-nickname: Building Master Branch
+title: Building Alluxio From Source Code
+nickname: Building Alluxio From Source Code
 group: Resources
+priority: 1
 ---
 
 * Table of Contents
 {:toc}
 
+# Build Alluxio
+
 This guide describes how to compile Alluxio from the beginning.
 
-The prerequisite for this guide is that you have [Java 8 or later](Java-Setup.html), [Maven 3.3.9 or later](Maven.html), and [Thrift 0.9.3](Thrift.html) (Optional) installed.
+The prerequisite for this guide is that you have [Java 8 or later](Java-Setup.html), [Maven 3.3.9 or later](Maven.html) installed.
+
+## Checkout Alluxio Source Code
+
 
 Checkout the Alluxio master branch from Github and build the source code:
 
-{% include Building-Alluxio-Master-Branch/checkout.md %}
+```bash
+$ git clone git://github.com/alluxio/alluxio.git
+$ cd alluxio
+```
 
-If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please execute:
+Optionally, you can build a particular version of Alluxio, for example {{site
+.ALLUXIO_RELEASED_VERSION}}. Otherwise, this will build the master branch of the source code.
 
-{% include Building-Alluxio-Master-Branch/OutOfMemoryError.md %}
+```bash
+$ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
+```
 
-If you want to build a particular version of Alluxio, for example {{site.ALLUXIO_RELEASED_VERSION}}, please do `git checkout v{{site.ALLUXIO_RELEASED_VERSION}}` after `cd alluxio`.
+Build the source code using Maven:
+
+```java
+$ mvn clean install -DskipTests
+```
+
+To speed up the compilation, you can run the following instruction to skip different checks:
+
+```bash
+$ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
+```
+
+If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please set the following
+variable to increase the memory heap size for maven:
+
+```bash
+$ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
+```
 
 The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages the system. If this is the first time you are building the project, it can take a while to download all the dependencies. Subsequent builds, however, will be much faster.
 
+## Verify Alluxio is Built
+
 Once Alluxio is built, you can start it with:
 
-{% include Common-Commands/start-alluxio.md %}
+```bash
+$ echo "alluxio.master.hostname=localhost" > conf/alluxio-site.properties
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
+```
 
 To verify that Alluxio is running, you can visit [http://localhost:19999](http://localhost:19999) or check the log in the `alluxio/logs` directory. You can also run a simple program:
 
-{% include Common-Commands/runTests.md %}
+```bash
+$ ./bin/alluxio runTests
+```
 
-You should be able to see results similar to the following:
-
-{% include Building-Alluxio-Master-Branch/test-result.md %}
+You should be able to see the result `Passed the test!`
 
 You can also stop the system by using:
 
-{% include Common-Commands/stop-alluxio.md %}
+```bash
+$ ./bin/alluxio-stop.sh local
+```
 
-## Unit Tests
-
-To run all unit tests:
-
-{% include Building-Alluxio-Master-Branch/unit-tests.md %}
-
-To run all the unit tests with under storage other than local filesystem:
-
-{% include Building-Alluxio-Master-Branch/under-storage.md %}
-
-Currently supported values for `<under-storage-profile>` are:
-
-{% include Building-Alluxio-Master-Branch/supported-values.md %}
-
-To have the logs output to STDOUT, append the following to the `mvn` command
-
-{% include Building-Alluxio-Master-Branch/STDOUT.md %}
+# Build Options
 
 ## Compute Framework Support
 
-Since Alluxio 1.7, the Alluxio client jar built and located at
+Since Alluxio 1.7, **you do not need to run Maven build with different compute profiles.**
+The Alluxio client jar built and located at
 `{{site.ALLUXIO_CLIENT_JAR_PATH}}` will work with different compute frameworks
-(e.g., Spark, Flink, Presto and etc). **You do not need run Maven build with different compute
-profiles.**
+(e.g., Spark, Flink, Presto and etc) by default.
 
 ## Hadoop Distribution Support
 
@@ -74,7 +95,7 @@ To build Alluxio against one of the different distributions of hadoop, you can r
 $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 ```
 where `<HADOOP_VERSION>` can be set for different distributions.
-Available Hadoop profiles include `hadoop-1`, `hadoop-2`, `hadoop-3` to cover the major Hadoop 
+Available Hadoop profiles include `hadoop-1`, `hadoop-2`, `hadoop-3` to cover the major Hadoop
 versions 1.x, 2.x and 3.x.
 
 ### Apache
@@ -124,15 +145,3 @@ To build against a Hortonworks release, just use a version like `$apacheRelease.
 -Phadoop-2 -Dhadoop.version=2.2.0.2.1.0.0-92
 -Phadoop-2 -Dhadoop.version=2.4.0.2.1.3.0-563
 ```
-
-## System Settings
-
-Sometimes you will need to play with a few system settings in order to have the unit tests pass locally.  A common setting that may need to be set is ulimit.
-
-### Mac
-
-In order to increase the number of files and processes allowed, run the following
-
-{% include Building-Alluxio-Master-Branch/increase-number.md %}
-
-It is also recommended to exclude your local clone of Alluxio from Spotlight indexing. Otherwise, your Mac may hang constantly trying to re-index the file system during the unit tests.  To do this, go to `System Preferences > Spotlight > Privacy`, click the `+` button, browse to the directory containing your local clone of Alluxio, and click `Choose` to add it to the exclusions list.
