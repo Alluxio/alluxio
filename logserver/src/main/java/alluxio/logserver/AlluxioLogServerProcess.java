@@ -31,6 +31,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.GuardedBy;
 
@@ -172,7 +173,15 @@ public class AlluxioLogServerProcess implements Process {
 
   @Override
   public boolean waitForReady(int timeoutMs) {
-    return CommonUtils.waitFor(this + " to start", input -> mStopped == false,
-        WaitForOptions.defaults().setTimeoutMs(timeoutMs).setThrowOnTimeout(false));
+    try {
+      CommonUtils.waitFor(this + " to start", () -> mStopped == false,
+          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 }

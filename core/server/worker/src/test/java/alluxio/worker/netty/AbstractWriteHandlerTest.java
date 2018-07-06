@@ -25,7 +25,6 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
 
-import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelPipeline;
@@ -37,6 +36,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Unit tests for {@link AbstractWriteHandler}.
@@ -200,13 +200,10 @@ public abstract class AbstractWriteHandlerTest {
    *
    * @return the response
    */
-  protected Object waitForResponse(final EmbeddedChannel channel) {
-    return CommonUtils.waitForResult("response from the channel.", new Function<Void, Object>() {
-      @Override
-      public Object apply(Void v) {
-        return channel.readOutbound();
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
+  protected Object waitForResponse(final EmbeddedChannel channel)
+      throws TimeoutException, InterruptedException {
+    return CommonUtils.waitForResult("response from the channel.", () -> channel.readOutbound(),
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 
   protected Protocol.WriteRequest newWriteRequestProto(long offset) {

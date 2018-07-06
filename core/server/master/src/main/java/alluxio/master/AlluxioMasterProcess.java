@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
@@ -214,10 +215,18 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public boolean waitForReady(int timeoutMs) {
-    return CommonUtils.waitFor(this + " to start",
-        input -> mThriftServer != null && mThriftServer.isServing() && mWebServer != null
-            && mWebServer.getServer().isRunning(),
-        WaitForOptions.defaults().setTimeoutMs(timeoutMs).setThrowOnTimeout(false));
+    try {
+      CommonUtils.waitFor(this + " to start",
+          () -> mThriftServer != null && mThriftServer.isServing() && mWebServer != null
+              && mWebServer.getServer().isRunning(),
+          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 
   @Override
