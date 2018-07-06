@@ -36,9 +36,9 @@ public class MetricsCommand {
   private static final String INDENT = "    ";
 
   private final MetaMasterClient mMetaMasterClient;
-  private final Map<String, MetricValue> mMetricsMap;
   private final PrintStream mPrintStream;
   private String mInfoFormat = "%-30s %20s";
+  private Map<String, MetricValue> mMetricsMap;
 
   /**
    * Creates a new instance of {@link MetricsCommand}.
@@ -50,7 +50,6 @@ public class MetricsCommand {
       throws IOException {
     mMetaMasterClient = metaMasterClient;
     mPrintStream = printStream;
-    mMetricsMap = new TreeMap<>(mMetaMasterClient.getMetrics());
   }
 
   /**
@@ -59,6 +58,7 @@ public class MetricsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
+    mMetricsMap = new TreeMap<>(mMetaMasterClient.getMetrics());
     Long bytesReadLocal = mMetricsMap.getOrDefault(MetricsSystem.getClusterMetricName(
         ClientMetrics.BYTES_READ_LOCAL), MetricValue.forLong(0L)).getLongValue();
     Long bytesReadRemote = mMetricsMap.getOrDefault(MetricsSystem.getClusterMetricName(
@@ -66,7 +66,7 @@ public class MetricsCommand {
     Long bytesReadUfs =  mMetricsMap.getOrDefault(MetricsSystem.getClusterMetricName(
         WorkerMetrics.BYTES_READ_UFS_ALL), MetricValue.forLong(0L)).getLongValue();
 
-    mPrintStream.println("Total IO Size: ");
+    mPrintStream.println("Total IO: ");
     printMetric(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
         "Short-circuit Read", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO),
@@ -135,7 +135,7 @@ public class MetricsCommand {
     printMetric(MasterMetrics.UNMOUNT_OPS, "Unmount Operations", false);
 
     // TODO(lu) improve printout info to sync with web UI
-    mPrintStream.println("\nOther metrics information: ");
+    mPrintStream.println("\nOther Metrics: ");
     mInfoFormat = "%s  (%s)"; // Some property names are too long to fit in previous info format
     for (Map.Entry<String, MetricValue> entry : mMetricsMap.entrySet()) {
       mPrintStream.println(INDENT + String.format(mInfoFormat,
@@ -152,7 +152,7 @@ public class MetricsCommand {
    * @param valueIsBytes whether the metric value is bytes
    */
   private void printMetric(String metricName, String nickName, boolean valueIsBytes) {
-    if (!mMetricsMap.containsKey(metricName)) {
+    if (mMetricsMap == null || !mMetricsMap.containsKey(metricName)) {
       return;
     }
     MetricValue metricValue = mMetricsMap.get(metricName);

@@ -39,7 +39,7 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
    */
   private void checkMetricsResults(String output) {
     List<String> expectedOutput = Arrays.asList(
-        "Total IO Size: ",
+        "Total IO: ",
         "    Short-circuit Read                               0B",
         "    From Remote Instances                            0B",
         "    Under Filesystem Read                            0B",
@@ -86,7 +86,7 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
         "    Set Attribute Operations                          0",
         "    Unmount Operations                                0",
         "",
-        "Other metrics information: ");
+        "Other Metrics: ");
     List<String> testOutput = Arrays.asList(output.split("\n")).subList(0, expectedOutput.size());
     Assert.assertThat(testOutput,
         IsIterableContainingInOrder.contains(expectedOutput.toArray()));

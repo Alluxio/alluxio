@@ -135,7 +135,7 @@ public class MetricsCommandTest {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
     // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
     List<String> expectedOutput = Arrays.asList(
-        "Total IO Size: ",
+        "Total IO: ",
         "    Short-circuit Read                          11.47GB",
         "    From Remote Instances                      401.79MB",
         "    Under Filesystem Read                      509.47MB",
@@ -182,7 +182,7 @@ public class MetricsCommandTest {
         "    Set Attribute Operations                          0",
         "    Unmount Operations                                1",
         "",
-        "Other metrics information: ",
+        "Other Metrics: ",
         "    UfsSessionCount-Ufs:_alluxio_underFSStorage  (8,535)",
         "    UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder  (1,231)",
         "    heap.used  (0.00283)",
