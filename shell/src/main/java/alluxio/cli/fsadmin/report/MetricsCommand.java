@@ -36,9 +36,9 @@ public class MetricsCommand {
   private static final String INDENT = "    ";
 
   private final MetaMasterClient mMetaMasterClient;
+  private final Map<String, MetricValue> mMetricsMap;
   private final PrintStream mPrintStream;
   private String mInfoFormat = "%-30s %20s";
-  private Map<String, MetricValue> mMetricsMap;
 
   /**
    * Creates a new instance of {@link MetricsCommand}.
@@ -46,9 +46,11 @@ public class MetricsCommand {
    * @param metaMasterClient client to connect to meta master client
    * @param printStream stream to print operation metrics information to
    */
-  public MetricsCommand(MetaMasterClient metaMasterClient, PrintStream printStream) {
+  public MetricsCommand(MetaMasterClient metaMasterClient, PrintStream printStream)
+      throws IOException {
     mMetaMasterClient = metaMasterClient;
     mPrintStream = printStream;
+    mMetricsMap = new TreeMap<>(mMetaMasterClient.getMetrics());
   }
 
   /**
@@ -57,7 +59,6 @@ public class MetricsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    mMetricsMap = new TreeMap<>(mMetaMasterClient.getMetrics());
     Long bytesReadLocal = mMetricsMap.getOrDefault(MetricsSystem.getClusterMetricName(
         ClientMetrics.BYTES_READ_LOCAL), MetricValue.forLong(0L)).getLongValue();
     Long bytesReadRemote = mMetricsMap.getOrDefault(MetricsSystem.getClusterMetricName(
