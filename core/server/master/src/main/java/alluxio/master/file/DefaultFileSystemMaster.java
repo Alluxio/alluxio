@@ -1486,9 +1486,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         LockedInodePath inodePath =
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
         FileSystemMasterAuditContext auditContext =
-            createAuditContext("delete", path, null, inodePath.getInodeOrNull())) {
+            createAuditContext("delete", path, null, inodePath.getInodeOrNull());
+        LockedInodePathList children = !options.isRecursive() ? null
+            : mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+        if (options.isRecursive()) {
+          for (LockedInodePath child : children.getInodePathList()) {
+            mPermissionChecker.checkPermission(Mode.Bits.WRITE, child);
+          }
+        }
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
         throw e;
