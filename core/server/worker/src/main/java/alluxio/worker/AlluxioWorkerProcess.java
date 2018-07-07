@@ -38,7 +38,6 @@ import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 
-import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.apache.thrift.TMultiplexedProcessor;
@@ -59,6 +58,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -372,13 +372,18 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public boolean waitForReady(int timeoutMs) {
-    return CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return mThriftServer.isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
-            && mWebServer.getServer().isRunning();
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs).setThrowOnTimeout(false));
+    try {
+      CommonUtils.waitFor(this + " to start",
+          () -> mThriftServer.isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
+              && mWebServer.getServer().isRunning(),
+          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 
   @Override

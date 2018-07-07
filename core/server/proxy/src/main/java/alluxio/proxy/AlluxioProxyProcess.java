@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -94,27 +95,35 @@ public final class AlluxioProxyProcess implements ProxyProcess {
 
   @Override
   public boolean waitForReady(int timeoutMs) {
-    return CommonUtils.waitFor(this + " to start", input -> {
-      if (mWebServer == null || !mWebServer.getServer().isRunning()) {
-        return false;
-      }
-      HttpClient client = HttpClientBuilder.create().build();
-      HttpPost method = new HttpPost(String
-          .format("http://%s:%d%s/%s///%s", mWebServer.getBindHost(), mWebServer.getLocalPort(),
-              Constants.REST_API_PREFIX, PathsRestServiceHandler.SERVICE_PREFIX,
-              PathsRestServiceHandler.EXISTS));
-      try {
-        HttpResponse response = client.execute(method);
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-          return true;
+    try {
+      CommonUtils.waitFor(this + " to start", () -> {
+        if (mWebServer == null || !mWebServer.getServer().isRunning()) {
+          return false;
         }
-        LOG.debug(IOUtils.toString(response.getEntity().getContent()));
-        return false;
-      } catch (IOException e) {
-        LOG.debug("Exception: ", e);
-        return false;
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs).setThrowOnTimeout(false));
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost method = new HttpPost(String
+            .format("http://%s:%d%s/%s///%s", mWebServer.getBindHost(), mWebServer.getLocalPort(),
+                Constants.REST_API_PREFIX, PathsRestServiceHandler.SERVICE_PREFIX,
+                PathsRestServiceHandler.EXISTS));
+        try {
+          HttpResponse response = client.execute(method);
+          if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            return true;
+          }
+          LOG.debug(IOUtils.toString(response.getEntity().getContent()));
+          return false;
+        } catch (IOException e) {
+          LOG.debug("Exception: ", e);
+          return false;
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 
   @Override

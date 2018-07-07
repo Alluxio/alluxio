@@ -1845,6 +1845,80 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Tests a readOnly mount for the create directory op.
+   */
+  @Test
+  public void mountReadOnlyCreateDirectory() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+
+    mThrown.expect(AccessControlException.class);
+    AlluxioURI path = new AlluxioURI("/hello/dir1");
+    mFileSystemMaster.createDirectory(path, CreateDirectoryOptions.defaults());
+  }
+
+  /**
+   * Tests a readOnly mount for the create file op.
+   */
+  @Test
+  public void mountReadOnlyCreateFile() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+
+    mThrown.expect(AccessControlException.class);
+    AlluxioURI path = new AlluxioURI("/hello/file1");
+    mFileSystemMaster.createFile(path, CreateFileOptions.defaults());
+  }
+
+  /**
+   * Tests a readOnly mount for the delete op.
+   */
+  @Test
+  public void mountReadOnlyDeleteFile() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    createTempUfsFile("ufs/hello/file1");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+
+    mThrown.expect(AccessControlException.class);
+    AlluxioURI path = new AlluxioURI("/hello/file1");
+    mFileSystemMaster.delete(path, DeleteOptions.defaults());
+  }
+
+  /**
+   * Tests a readOnly mount for the rename op.
+   */
+  @Test
+  public void mountReadOnlyRenameFile() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    createTempUfsFile("ufs/hello/file1");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+
+    mThrown.expect(AccessControlException.class);
+    AlluxioURI src = new AlluxioURI("/hello/file1");
+    AlluxioURI dst = new AlluxioURI("/hello/file2");
+    mFileSystemMaster.rename(src, dst, RenameOptions.defaults());
+  }
+
+  /**
+   * Tests a readOnly mount for the set attribute op.
+   */
+  @Test
+  public void mountReadOnlySetAttribute() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    createTempUfsFile("ufs/hello/file1");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+
+    mThrown.expect(AccessControlException.class);
+    AlluxioURI path = new AlluxioURI("/hello/file1");
+    mFileSystemMaster.setAttribute(path, SetAttributeOptions.defaults().setOwner("owner"));
+  }
+
+  /**
    * Tests mounting a shadow Alluxio dir.
    */
   @Test
@@ -1946,6 +2020,16 @@ public final class FileSystemMasterTest {
    */
   private AlluxioURI createTempUfsDir(String ufsPath) throws IOException {
     String path = mTestFolder.newFolder(ufsPath.split("/")).getPath();
+    return new AlluxioURI(path);
+  }
+  /**
+   * Creates a file in a temporary UFS folder.
+   *
+   * @param ufsPath the UFS path of the temp file to create
+   * @return the AlluxioURI of the temp file
+   */
+  private AlluxioURI createTempUfsFile(String ufsPath) throws IOException {
+    String path = mTestFolder.newFile(ufsPath).getPath();
     return new AlluxioURI(path);
   }
 

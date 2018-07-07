@@ -20,11 +20,12 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.proto.ProtoMessage;
 
-import com.google.common.base.Function;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.concurrent.TimeoutException;
 
 /**
  * Test for {@link UnsupportedMessageHandler}.
@@ -54,13 +55,9 @@ public class UnsupportedMessageHandlerTest {
     Assert.assertEquals(PStatus.UNIMPLEMENTED, r.getStatus());
   }
 
-  private Object waitForResponse(final EmbeddedChannel channel) {
-    return CommonUtils
-        .waitForResult("response from the channel.", new Function<Void, Object>() {
-          @Override
-          public Object apply(Void v) {
-            return channel.readOutbound();
-          }
-        }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
+  private Object waitForResponse(final EmbeddedChannel channel)
+      throws TimeoutException, InterruptedException {
+    return CommonUtils.waitForResult("response from the channel.", () -> channel.readOutbound(),
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 }

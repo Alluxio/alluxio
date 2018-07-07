@@ -38,7 +38,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.MasterInfo;
 import alluxio.zookeeper.RestartableTestingServer;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.apache.commons.io.Charsets;
@@ -61,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -121,7 +121,7 @@ public final class MultiProcessCluster implements TestRule {
     mNumMasters = numMasters;
     mNumWorkers = numWorkers;
     // Add a unique number so that different runs of the same test use different cluster names.
-    mClusterName = clusterName + ThreadLocalRandom.current().nextLong();
+    mClusterName = clusterName + "-" + Math.abs(ThreadLocalRandom.current().nextInt());
     mDeployMode = mode;
     mMasters = new ArrayList<>();
     mWorkers = new ArrayList<>();
@@ -196,7 +196,8 @@ public final class MultiProcessCluster implements TestRule {
    * @param timeoutMs maximum amount of time to wait, in milliseconds
    * @return the ID of the killed master
    */
-  public synchronized int waitForAndKillPrimaryMaster(int timeoutMs) {
+  public synchronized int waitForAndKillPrimaryMaster(int timeoutMs)
+      throws TimeoutException, InterruptedException {
     int index = getPrimaryMasterIndex(timeoutMs);
     mMasters.get(index).close();
     return index;
@@ -208,21 +209,19 @@ public final class MultiProcessCluster implements TestRule {
    * @param timeoutMs maximum amount of time to wait, in milliseconds
    * @return the index of the primary master
    */
-  public synchronized int getPrimaryMasterIndex(int timeoutMs) {
+  public synchronized int getPrimaryMasterIndex(int timeoutMs)
+      throws TimeoutException, InterruptedException {
     final FileSystem fs = getFileSystemClient();
     final MasterInquireClient inquireClient = getMasterInquireClient();
-    CommonUtils.waitFor("a primary master to be serving", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        try {
-          // Make sure the leader is serving.
-          fs.getStatus(new AlluxioURI("/"));
-          return true;
-        } catch (UnavailableException e) {
-          return false;
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
+    CommonUtils.waitFor("a primary master to be serving", () -> {
+      try {
+        // Make sure the leader is serving.
+        fs.getStatus(new AlluxioURI("/"));
+        return true;
+      } catch (UnavailableException e) {
+        return false;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     int primaryRpcPort;
@@ -243,14 +242,15 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
-   * Waits for the number of live nodes in server configuration store
-   * reached the number of nodes in this cluster and gets meta master client.
+   * Waits for the number of live nodes in server configuration store reached the number of nodes in
+   * this cluster and gets meta master client.
    *
    * @param timeoutMs maximum amount of time to wait, in milliseconds
    */
-  public synchronized void waitForAllNodesRegistered(int timeoutMs) {
+  public synchronized void waitForAllNodesRegistered(int timeoutMs)
+      throws TimeoutException, InterruptedException {
     MetaMasterClient metaMasterClient = getMetaMasterClient();
-    CommonUtils.waitFor("all nodes registered", x -> {
+    CommonUtils.waitFor("all nodes registered", () -> {
       try {
         MasterInfo masterInfo = metaMasterClient.getMasterInfo(null);
         int liveNodeNum = masterInfo.getMasterAddresses().size()

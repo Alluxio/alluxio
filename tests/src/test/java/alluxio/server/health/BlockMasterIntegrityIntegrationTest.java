@@ -59,7 +59,7 @@ public class BlockMasterIntegrityIntegrationTest {
     mCluster.startWorkers(); // creates a new worker, so need to get the new BlockWorker
     BlockWorker newWorker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
     CommonUtils.waitFor("orphan blocks to be deleted",
-        (v) -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,
+        () -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,
         WaitForOptions.defaults().setTimeoutMs(2000));
   }
 
@@ -80,7 +80,7 @@ public class BlockMasterIntegrityIntegrationTest {
     mCluster.startWorkers(); // creates a new worker, so need to get the new BlockWorker
     BlockWorker newWorker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
     CommonUtils.waitFor("invalid blocks to be deleted",
-        (v) -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,
+        () -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,
         WaitForOptions.defaults().setTimeoutMs(2000));
   }
 
@@ -98,7 +98,7 @@ public class BlockMasterIntegrityIntegrationTest {
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
     removeFileMetadata(uri);
     CommonUtils.waitFor("invalid blocks to be deleted",
-        (v) -> worker.getStoreMetaFull().getNumberOfBlocks() == 0,
+        () -> worker.getStoreMetaFull().getNumberOfBlocks() == 0,
         WaitForOptions.defaults().setTimeoutMs(2000));
   }
 

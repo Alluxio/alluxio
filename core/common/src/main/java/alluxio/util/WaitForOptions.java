@@ -24,8 +24,6 @@ public final class WaitForOptions {
   private int mIntervalMs;
   /** How long to wait before giving up. */
   private int mTimeoutMs;
-  /** Whether to throw an exception on timeout. If false, we will return false instead. */
-  private boolean mThrowOnTimeout;
 
   private WaitForOptions() {}
 
@@ -33,8 +31,7 @@ public final class WaitForOptions {
    * @return the default instance of {@link WaitForOptions}
    */
   public static WaitForOptions defaults() {
-    return new WaitForOptions().setInterval(DEFAULT_INTERVAL).setTimeoutMs(NEVER)
-        .setThrowOnTimeout(true);
+    return new WaitForOptions().setInterval(DEFAULT_INTERVAL).setTimeoutMs(NEVER);
   }
 
   /**
@@ -49,13 +46,6 @@ public final class WaitForOptions {
    */
   public int getTimeoutMs() {
     return mTimeoutMs;
-  }
-
-  /**
-   * @return whether to throw an exception on timeout
-   */
-  public boolean isThrowOnTimeout() {
-    return mThrowOnTimeout;
   }
 
   /**
@@ -76,15 +66,6 @@ public final class WaitForOptions {
     return this;
   }
 
-  /**
-   * @param throwOnTimeout whether to throw an exception on timeout
-   * @return the updated options object
-   */
-  public WaitForOptions setThrowOnTimeout(boolean throwOnTimeout) {
-    mThrowOnTimeout = throwOnTimeout;
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -95,13 +76,12 @@ public final class WaitForOptions {
     }
     WaitForOptions that = (WaitForOptions) o;
     return mIntervalMs == that.mIntervalMs
-        && mTimeoutMs == that.mTimeoutMs
-        && mThrowOnTimeout == that.mThrowOnTimeout;
+        && mTimeoutMs == that.mTimeoutMs;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mIntervalMs, mTimeoutMs, mThrowOnTimeout);
+    return Objects.hashCode(mIntervalMs, mTimeoutMs);
   }
 
   @Override
@@ -109,7 +89,6 @@ public final class WaitForOptions {
     return Objects.toStringHelper(this)
         .add("interval", mIntervalMs)
         .add("timeout", mTimeoutMs)
-        .add("throwOnTimeout", mThrowOnTimeout)
         .toString();
   }
 }

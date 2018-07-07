@@ -45,7 +45,7 @@ $ ./bin/alluxio runTests
 
 若正确运行，应能看到类似以下输出结果：
 
-``bash
+```bash
 /default_tests_files/BasicFile_STORE_SYNC_PERSIST has been removed
 2015-10-20 23:02:54,403 INFO   (ClientBase.java:connect) - Alluxio client (version 1.0.0) is trying to connect with FileSystemMaster master @ localhost/127.0.0.1:19998
 2015-10-20 23:02:54,422 INFO   (ClientBase.java:connect) - Client registered with FileSystemMaster master @ localhost/127.0.0.1:19998
@@ -59,6 +59,7 @@ $ ./bin/alluxio runTests
 2015-10-20 23:02:54,754 INFO   (BasicOperations.java:writeFile) - writeFile to file /default_tests_files/BasicFile_STORE_SYNC_PERSIST took 294 ms.
 2015-10-20 23:02:54,803 INFO   (BasicOperations.java:readFile) - readFile file /default_tests_files/BasicFile_STORE_SYNC_PERSIST took 47 ms.
 Passed the test!
+```
 
 执行以下命令停止Alluxio：
 
@@ -99,53 +100,40 @@ gcsTest       # Tests against Google Cloud Storage (requires a real GCS bucket)
 ```
 
 ## 计算框架支持
-针对不同的计算框架编译Alluxio，可以使用不同的计算配置文件运行Maven。 生成的Alluxio客户端位于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`。
+自Alluxio 1.7开始，编译后位于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`的Alluxio客户端jar包将适用于不同的计算框架（如：Spark、Flink，Presto等）。你不要在运行Maven编译的时候使用不同计算框架的配置文件。
 
-### Hadoop
-
-你可以运行以下命令以使用Hadoop编译Alluxio。
-
-```bash
-$ mvn install -P<HADOOP_PROFILE> -DskipTests
-```
-
-对于不同的Hadoop发行版，可用的Hadoop配置文件包括`hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ... `hadoop-2.8`。通过查看[这节](#发行版支持)，你可以进一步设置特定的Hadoop发行版来编译。
-
-### Spark/Flink/Presto和其他框架
-
-你可以运行以下命令编译不同计算框架的Alluxio服务器和客户端Jar包。
-
-```bash
-$ mvn install -DskipTests
-```
-
-## 发行版支持
-
-要针对不同hadoop发行版编译Alluxio，只需修改
-`hadoop.version`。你可以运行以下命令：
+## Hadoop分布式支持
+要针对hadoop发行版本中某一个版本构建Alluxio，可以通过指定`<HADOOP_PROFILE>`和对应的hadoop.version`来运行如下命令：
 
 ```bash
 $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 ```
-其中`<HADOOP_VERSION>`可以根据不同的发行版设置
+
+`<HADOOP_VERSION>`可以被设置不同值。可用的Hadoop配置文件包括`hadoop-1`, `hadoop-2`, `hadoop-3`，涵盖主要的Hadoop版本1.x, 2.x和3.x。
 
 ### Apache
+所有主要版本都来自Apache，所以所有Apache发行版都可以直接使用。
 
-由于所有主要构建版本都来自Apache，因此所有Apache发行版可以直接使用
-
-```properties
--Dhadoop.version=2.2.0
--Dhadoop.version=2.3.0
--Dhadoop.version=2.4.0
+``properties
+-Phadoop-1 -Dhadoop.version=1.0.4
+-Phadoop-1 -Dhadoop.version=1.2.0
+-Phadoop-2 -Dhadoop.version=2.2.0
+-Phadoop-2 -Dhadoop.version=2.3.0
+-Phadoop-2 -Dhadoop.version=2.4.1
+-Phadoop-2 -Dhadoop.version=2.5.2
+-Phadoop-2 -Dhadoop.version=2.6.5
+-Phadoop-2 -Dhadoop.version=2.7.3
+-Phadoop-2 -Dhadoop.version=2.8.0
+-Phadoop-2 -Dhadoop.version=2.9.0
+-Phadoop-3 -Dhadoop.version=3.0.0
 ```
 
 ### Cloudera
-
 对于Cloudera发行版，使用该形式`$apacheRelease-cdh$cdhRelease`的版本号
 
 ```properties
--Dhadoop.version=2.3.0-cdh5.1.0
--Dhadoop.version=2.0.0-cdh4.7.0
+-Phadoop-2 -Dhadoop.version=2.3.0-cdh5.1.0
+-Phadoop-2 -Dhadoop.version=2.0.0-cdh4.7.0
 ```
 
 ### MapR
@@ -153,19 +141,10 @@ $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 对于MapR发行版，其值为
 
 ```properties
--Dhadoop.version=2.7.0-mapr-1607
--Dhadoop.version=2.7.0-mapr-1602
--Dhadoop.version=2.7.0-mapr-1506
--Dhadoop.version=2.3.0-mapr-4.0.0-FCS
-```
-
-### Pivotal
-
-对于Pivotal发行版，使用`$apacheRelease-gphd-$pivotalRelease`形式的版本号
-
-```properties
--Dhadoop.version=2.0.5-alpha-gphd-2.1.1.0
--Dhadoop.version=2.2.0-gphd-3.0.1.0
+-Phadoop-2 -Dhadoop.version=2.7.0-mapr-1607
+-Phadoop-2 -Dhadoop.version=2.7.0-mapr-1602
+-Phadoop-2 -Dhadoop.version=2.7.0-mapr-1506
+-Phadoop-2 -Dhadoop.version=2.3.0-mapr-4.0.0-FCS
 ```
 
 ### Hortonworks
@@ -173,9 +152,9 @@ $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 对于Hortonworks发行版，使用`$apacheRelease.$hortonRelease`形式的版本号
 
 ```properties
--Dhadoop.version=2.1.0.2.0.5.0-67
--Dhadoop.version=2.2.0.2.1.0.0-92
--Dhadoop.version=2.4.0.2.1.3.0-563
+-Phadoop-2 -Dhadoop.version=2.1.0.2.0.5.0-67
+-Phadoop-2 -Dhadoop.version=2.2.0.2.1.0.0-92
+-Phadoop-2 -Dhadoop.version=2.4.0.2.1.3.0-563
 ```
 
 ## 系统设置
