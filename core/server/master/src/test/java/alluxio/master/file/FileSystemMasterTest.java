@@ -116,6 +116,7 @@ public final class FileSystemMasterTest {
 
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
+  private static final AlluxioURI NESTED_FILE2_URI = new AlluxioURI("/nested/test/file2");
   private static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
   private static final AlluxioURI ROOT_URI = new AlluxioURI("/");
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
@@ -359,10 +360,13 @@ public final class FileSystemMasterTest {
     assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
     assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
 
-    // Case 2: userA has permissions to delete directory but not the file
+    // Case 2: userA has permissions to delete directory but not one of the files
     createFileWithSingleBlock(NESTED_FILE_URI);
+    createFileWithSingleBlock(NESTED_FILE2_URI);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeOptions.defaults().setMode((short) 0700));
+    mFileSystemMaster.setAttribute(NESTED_FILE2_URI,
+        SetAttributeOptions.defaults().setMode((short) 0777));
     try (UserResource userA = new UserResource("userA")) {
       mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(true));
       Assert.fail("Deleting a directory w/ insufficient permission on child should fail");
@@ -373,6 +377,8 @@ public final class FileSystemMasterTest {
     }
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+    // TODO(adit): check partial deletion
+    // assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE2_URI));
   }
 
   /**

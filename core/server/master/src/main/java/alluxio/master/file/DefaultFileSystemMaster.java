@@ -1493,7 +1493,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
         if (options.isRecursive()) {
           for (LockedInodePath child : children.getInodePathList()) {
-            // TODO(adit): should we delete as much as possible?
+            // TODO(adit): do not stop entirely if insufficient permissions to a single child
             mPermissionChecker.checkPermission(Mode.Bits.WRITE, child);
           }
         }
