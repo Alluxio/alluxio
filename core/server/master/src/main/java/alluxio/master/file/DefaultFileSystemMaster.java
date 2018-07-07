@@ -1492,9 +1492,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
         if (options.isRecursive()) {
+          List<String> failedChildren = new ArrayList<>();
           for (LockedInodePath child : children.getInodePathList()) {
-            // TODO(adit): do not stop entirely if insufficient permissions to a single child
-            mPermissionChecker.checkPermission(Mode.Bits.WRITE, child);
+            try {
+              mPermissionChecker.checkPermission(Mode.Bits.WRITE, child);
+            } catch (AccessControlException e) {
+              failedChildren.add(e.getMessage());
+            }
+          }
+          if (failedChildren.size() > 0) {
+            // TODO(adit): do not stop entirely if insufficient permissions to some children
+            throw new DirectoryNotEmptyException(ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_FAILED_CHILDREN.getMessage(path, StringUtils.join(failedChildren, ",")));
           }
         }
       } catch (AccessControlException e) {

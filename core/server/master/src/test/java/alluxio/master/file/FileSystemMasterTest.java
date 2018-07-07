@@ -370,15 +370,17 @@ public final class FileSystemMasterTest {
     try (UserResource userA = new UserResource("userA")) {
       mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(true));
       Assert.fail("Deleting a directory w/ insufficient permission on child should fail");
-    } catch (AccessControlException e) {
-      String expectedMessage = ExceptionMessage.PERMISSION_DENIED
+    } catch (DirectoryNotEmptyException e) {
+      String expectedChildMessage = ExceptionMessage.PERMISSION_DENIED
           .getMessage("user=userA, access=-w-, path=" + NESTED_FILE_URI + ": failed at file");
-      assertTrue(e.getMessage().startsWith(expectedMessage));
+      assertTrue(
+          e.getMessage().startsWith(ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_FAILED_CHILDREN
+              .getMessage(NESTED_URI, expectedChildMessage)));
     }
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
     // TODO(adit): check partial deletion
-    // assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE2_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE2_URI));
   }
 
   /**

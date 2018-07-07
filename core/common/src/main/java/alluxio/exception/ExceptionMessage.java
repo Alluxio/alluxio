@@ -129,6 +129,8 @@ public enum ExceptionMessage {
   DELETE_FAILED_DIRECTORY_NOT_IN_SYNC(
       "Cannot delete {0} because the UFS has contents not loaded into Alluxio. Sync Alluxio with "
           + "UFS or run delete with unchecked flag to forcibly delete"),
+  DELETE_NONEMPTY_DIRECTORY_FAILED_CHILDREN(
+      "Cannot delete non-empty directory {0}. Failed to delete children: {1}"),
   DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
       "Cannot delete non-empty directory {0} because recursive is set to false"),
   DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
