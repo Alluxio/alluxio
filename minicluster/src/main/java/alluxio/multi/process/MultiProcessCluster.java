@@ -121,7 +121,7 @@ public final class MultiProcessCluster implements TestRule {
     mNumMasters = numMasters;
     mNumWorkers = numWorkers;
     // Add a unique number so that different runs of the same test use different cluster names.
-    mClusterName = clusterName + ThreadLocalRandom.current().nextLong();
+    mClusterName = clusterName + "-" + Math.abs(ThreadLocalRandom.current().nextInt());
     mDeployMode = mode;
     mMasters = new ArrayList<>();
     mWorkers = new ArrayList<>();
