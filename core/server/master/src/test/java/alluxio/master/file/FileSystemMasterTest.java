@@ -67,6 +67,7 @@ import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.thrift.UfsInfo;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -1195,6 +1196,8 @@ public final class FileSystemMasterTest {
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(dirId);
     assertEquals(fileInfo.getFileId(), dirId);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
+    // Short wait to ensure file is deleted.
+    CommonUtils.sleepMs(5);
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(dirId);
   }
@@ -1333,7 +1336,9 @@ public final class FileSystemMasterTest {
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(1));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    // TTL is set to 0, the file should have been deleted during last TTL check.
+    // Short wait to ensure file is deleted.
+    CommonUtils.sleepMs(5);
+    // TTL is set to 1, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }

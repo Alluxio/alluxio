@@ -28,7 +28,7 @@ import java.util.List;
  */
 public final class TtlBucketListTest {
   private static final long BUCKET_INTERVAL = 10;
-  private static final long BUCKET1_START = 0;
+  private static final long BUCKET1_START = 1;
   private static final long BUCKET1_END = BUCKET1_START + BUCKET_INTERVAL;
   private static final long BUCKET2_START = BUCKET1_END;
   private static final long BUCKET2_END =  BUCKET2_START + BUCKET_INTERVAL;
