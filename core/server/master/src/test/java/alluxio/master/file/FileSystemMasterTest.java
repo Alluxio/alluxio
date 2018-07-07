@@ -25,6 +25,8 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
+import alluxio.UserResource;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -61,7 +63,13 @@ import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
+import alluxio.resource.CloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
+import alluxio.security.LoginUser;
+import alluxio.security.LoginUserTest;
+import alluxio.security.LoginUserTestUtils;
+import alluxio.security.User;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -341,6 +349,36 @@ public final class FileSystemMasterTest {
     Files.delete(Paths.get(ufsMount.join("dir1").getPath()));
     assertEquals(IdUtils.INVALID_FILE_ID,
         mFileSystemMaster.getFileId(new AlluxioURI("/mnt/local/dir1")));
+  }
+
+  @Test
+  public void deleteDirRecursiveWithPermissions() throws Exception {
+    // Case 1: userA has permissions to delete directory and file
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        SetAttributeOptions.defaults().setMode((short) 0777));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeOptions.defaults().setMode((short) 0777));
+    try (UserResource userA = new UserResource("userA")) {
+      mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(true));
+    }
+    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
+    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+
+    // Case 2: userA has permissions to delete directory but not the file
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeOptions.defaults().setMode((short) 0700));
+    try (UserResource userA = new UserResource("userA")) {
+      mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(true));
+      Assert.fail("Deleting a directory w/ insufficient permission on child should fail");
+    } catch (AccessControlException e) {
+      String expectedMessage = ExceptionMessage.PERMISSION_DENIED
+          .getMessage("user=userA, access=-w-, path=" + NESTED_FILE_URI + ": failed at file");
+      assertTrue(e.getMessage().startsWith(expectedMessage));
+    }
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
   }
 
   /**
