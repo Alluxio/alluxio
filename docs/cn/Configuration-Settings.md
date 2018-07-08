@@ -46,10 +46,6 @@ val sc = new SparkContext(conf)
 
 ## Hadoop MapReduce 作业
 
-Hadoop MapReduce users can add `"-Dproperty=value"` after the `hadoop jar` or `yarn jar` command
-and the properties will be propagated to all the tasks of this job.  For example, the following
-MapReduce job of wordcount sets write type to `CACHE_THROUGH` when writing to Alluxio:
-
 Hadoop MapReduce用户可以在`hadoop jar`或“`yarn jar`命令后添加`"-Dproperty=value"`。
 属性将被传播到这个作业的所有任务中。例如,下面的
 MapReduce任务中设置wordcount集写入Alluxio类型为`CACHE_THROUGH`：
@@ -87,12 +83,6 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 客户端仍然可以忽略或覆盖集群范围内的默认值，通过指定属性`alluxio.user.conf.cluster.default.enabled=false`，
 以更改加载集群范围内的默认值，或者遵循前面描述的方法[为应用程序配置文件](Configuration-Settings.html#configure-applications)覆盖相同的属性。
-
-> Note that, before v1.8, `${ALLUXIO_HOME}/conf/alluxio-site.properties` file is only loaded by
-Alluxio server
-> processes and will be ignored by applications interacting with Alluxio service through Alluxio
-client,
-> unless `${ALLUXIO_HOME}/conf` is on applications' classpath.
 
 >注意到，在v1.8之前，`${ALLUXIO_HOME}/conf/alluxio-site.properties`属性的文件只被加载Alluxio服务器
 >进程，并将被应用程序通过Alluxio客户端与Alluxio服务交互所忽略，
