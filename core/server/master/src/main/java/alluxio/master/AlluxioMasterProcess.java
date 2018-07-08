@@ -24,7 +24,6 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
-import alluxio.file.FileSystemMasterService;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
@@ -362,7 +361,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       Master master = getMaster(FileSystemMaster.class);
       LOG.info("Starting gRPC server on port {}", port);
       mGrpcServer = GrpcServerBuilder.forPort(port)
-          .addService(new FileSystemMasterClientServiceHandlerNew((FileSystemMasterService) master))
+          .addService(new FileSystemMasterClientServiceHandlerNew((FileSystemMaster) master))
           .executor(executorService)
           .build()
           .start();

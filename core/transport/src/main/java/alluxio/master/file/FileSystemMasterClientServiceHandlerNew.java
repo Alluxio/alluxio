@@ -12,13 +12,11 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
-import alluxio.file.FileSystemMasterOptions;
 import alluxio.util.RpcUtilsNew;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.FileSystemMasterServiceGrpc;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPResponse;
-import alluxio.file.FileSystemMasterService;
 import alluxio.util.grpc.GrpcUtils;
 
 import io.grpc.stub.StreamObserver;
@@ -36,7 +34,7 @@ public final class FileSystemMasterClientServiceHandlerNew
     extends FileSystemMasterServiceGrpc.FileSystemMasterServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandlerNew.class);
-  private final FileSystemMasterService mFileSystemMaster;
+  private final FileSystemMaster mFileSystemMaster;
   private final FileSystemMasterOptions mOptionsService;
 
   /**
@@ -44,7 +42,7 @@ public final class FileSystemMasterClientServiceHandlerNew
    *
    * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
    */
-  public FileSystemMasterClientServiceHandlerNew(FileSystemMasterService fileSystemMaster) {
+  public FileSystemMasterClientServiceHandlerNew(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
     mOptionsService = fileSystemMaster.getMasterOptions();

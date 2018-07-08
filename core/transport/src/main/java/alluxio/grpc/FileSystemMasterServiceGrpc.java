@@ -24,7 +24,7 @@ public final class FileSystemMasterServiceGrpc {
 
   private FileSystemMasterServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.FileSystemMasterService";
+  public static final String SERVICE_NAME = "alluxio.grpc.FileSystemMaster";
 
   // Static method descriptors that strictly reflect the proto.
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
@@ -51,7 +51,7 @@ public final class FileSystemMasterServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetStatusPRequest, alluxio.grpc.GetStatusPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.FileSystemMasterService", "GetStatus"))
+                  "alluxio.grpc.FileSystemMaster", "GetStatus"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetStatusPRequest.getDefaultInstance()))
@@ -242,7 +242,7 @@ public final class FileSystemMasterServiceGrpc {
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.ServiceDescriptor getServiceDescriptor() {
-      return getFileDescriptor().findServiceByName("FileSystemMasterService");
+      return getFileDescriptor().findServiceByName("FileSystemMaster");
     }
   }
 

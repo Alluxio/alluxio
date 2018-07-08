@@ -9,23 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file;
-
-import alluxio.master.file.options.CommonOptions;
-import alluxio.master.file.options.GetStatusOptions;
+package alluxio.underfs;
 
 /**
- * The file system class to set default options.
+ * Operation mode for under storage. During maintenance the operation mode may be changed to
+ * NO_ACCESS or READ_ONLY.
  */
-public final class DefaultFileSystemMasterOptions implements FileSystemMasterOptions {
-
-  @Override
-  public CommonOptions getCommonOptions() {
-    return CommonOptions.defaults();
-  }
-
-  @Override
-  public GetStatusOptions getGetStatusOptions() {
-    return GetStatusOptions.defaults();
-  }
+public enum UfsMode {
+  NO_ACCESS,
+  READ_ONLY,
+  READ_WRITE
 }

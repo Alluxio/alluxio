@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.file;
+package alluxio.master.file;
 
 import alluxio.file.options.GetStatusOptions;
 import alluxio.file.options.CommonOptions;

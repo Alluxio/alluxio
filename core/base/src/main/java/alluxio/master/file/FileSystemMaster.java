@@ -24,25 +24,24 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.options.CheckConsistencyOptions;
-import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.FreeOptions;
-import alluxio.master.file.options.ListStatusOptions;
-import alluxio.master.file.options.LoadMetadataOptions;
-import alluxio.master.file.options.MountOptions;
-import alluxio.master.file.options.RenameOptions;
-import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.file.options.WorkerHeartbeatOptions;
+import alluxio.file.options.CheckConsistencyOptions;
+import alluxio.file.options.CompleteFileOptions;
+import alluxio.file.options.CreateDirectoryOptions;
+import alluxio.file.options.CreateFileOptions;
+import alluxio.file.options.DeleteOptions;
+import alluxio.file.options.FreeOptions;
+import alluxio.file.options.ListStatusOptions;
+import alluxio.file.options.LoadMetadataOptions;
+import alluxio.file.options.MountOptions;
+import alluxio.file.options.RenameOptions;
+import alluxio.file.options.SetAttributeOptions;
+import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.file.options.GetStatusOptions;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.UfsInfo;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UfsMode;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -55,10 +54,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The interface of file system master.
+ * The interface of file system master service.
  */
-public interface FileSystemMaster extends Master {
-  /**
+public interface FileSystemMaster {
+  // Server side defaults
+  FileSystemMasterOptions getMasterOptions();
+
+    /**
    * @return the status of the startup consistency check and inconsistent paths if it is complete
    */
   StartupConsistencyCheck getStartupConsistencyCheck();
@@ -103,8 +105,7 @@ public interface FileSystemMaster extends Master {
   FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnavailableException, IOException;
-
-  /**
+ /**
    * Returns the persistence state for a file id. This method is used by the lineage master.
    *
    * @param fileId the file id
@@ -123,7 +124,7 @@ public interface FileSystemMaster extends Master {
    * EXECUTE permission on the path if it is a directory.
    *
    * @param path the path to get the {@link FileInfo} list for
-   * @param listStatusOptions the {@link alluxio.master.file.options.ListStatusOptions}
+   * @param listStatusOptions the {@link alluxio.file.options.ListStatusOptions}
    * @return the list of {@link FileInfo}s
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the file does not exist
@@ -480,7 +481,7 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidPathException if ufs path is not used by any mount point
    * @throws InvalidArgumentException if arguments for the method are invalid
    */
-  void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
+  void updateUfsMode(AlluxioURI ufsPath, UfsMode ufsMode)
       throws InvalidPathException, InvalidArgumentException, UnavailableException,
       AccessControlException;
 

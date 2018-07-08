@@ -11,7 +11,7 @@
 
 package alluxio.util.grpc;
 
-import alluxio.file.FileSystemMasterOptions;
+import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.file.options.CommonOptions;
 import alluxio.file.options.GetStatusOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
