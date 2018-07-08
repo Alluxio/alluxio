@@ -32,7 +32,7 @@ alluxio.master.journal.folder=/opt/alluxio/journal
 
 第一次启动Alluxio master节点时，日志必须格式化。
 
-**WARNING: formatting the journal will delete all Alluxio metadata**
+**警告: 格式化日志将会删除Alluxio所有元数据**
 ```bash
 $ bin/alluxio formatMaster
 ```
