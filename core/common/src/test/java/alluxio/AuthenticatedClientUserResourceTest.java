@@ -36,6 +36,6 @@ public final class AuthenticatedClientUserResourceTest {
     AuthenticatedClientUser.set(ORIGINAL_USER);
     User original = AuthenticatedClientUser.get();
     new AuthenticatedClientUserResource(TESTCASE_USER).close();
-    assertSame(original,AuthenticatedClientUser.get());
+    assertSame(original, AuthenticatedClientUser.get());
   }
 }
