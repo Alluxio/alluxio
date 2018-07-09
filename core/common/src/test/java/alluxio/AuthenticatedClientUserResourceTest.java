@@ -11,11 +11,11 @@
 
 package alluxio;
 
-import org.junit.After;
-import org.junit.Test;
-
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
+
+import org.junit.After;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link AuthenticatedClientUserResource}.
