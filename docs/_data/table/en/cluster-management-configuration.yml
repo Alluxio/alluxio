@@ -7,7 +7,7 @@ alluxio.integration.mesos.alluxio.jar.url:
 alluxio.integration.mesos.jdk.path:
   'If installing java from a remote URL during mesos deployment, this must be set to the directory name of the untarred jdk.'
 alluxio.integration.mesos.jdk.url:
-  'A url from which to install the jdk during Mesos deployment. When using this property, alluxio.integration.mesos.jdk.path must also be set correctly.'
+  'A url from which to install the jdk during Mesos deployment. Default to LOCAL which tells Mesos to use the local JDK on the system. When using this property, alluxio.integration.mesos.jdk.path must also be set correctly.'
 alluxio.integration.mesos.master.name:
   'The name of the master process to use within Mesos.'
 alluxio.integration.mesos.master.node.count:
