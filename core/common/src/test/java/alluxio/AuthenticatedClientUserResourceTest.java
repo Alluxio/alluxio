@@ -11,27 +11,29 @@
 
 package alluxio;
 
+import org.junit.After;
+import org.junit.Test;
+
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
-import java.io.Closeable;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
 /**
- * A resource for changing the Alluxio authenticated client user during a test.
+ * Unit tests for {@link AuthenticatedClientUserResource}.
  */
-@NotThreadSafe
-public final class AuthenticatedClientUserResource implements Closeable {
-  User mOriginal;
+public final class AuthenticatedClientUserResourceTest {
+  private static final String TESTCASE_USER = "userA";
+  private static final String ORIGINAL_USER = "alluxio";
 
-  public AuthenticatedClientUserResource(String user) throws Exception {
-    mOriginal = AuthenticatedClientUser.get();
-    AuthenticatedClientUser.set(user);
+  @After
+  public void after() {
+    AuthenticatedClientUser.remove();
   }
 
-  @Override
-  public void close() {
-    AuthenticatedClientUser.set(mOriginal);
+  @Test
+  public void userRestored() throws Exception {
+    AuthenticatedClientUser.set(ORIGINAL_USER);
+    User original = AuthenticatedClientUser.get();
+    new AuthenticatedClientUserResource(TESTCASE_USER).close();
+    assert original == AuthenticatedClientUser.get();
   }
 }

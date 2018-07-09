@@ -1487,8 +1487,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
         FileSystemMasterAuditContext auditContext =
             createAuditContext("delete", path, null, inodePath.getInodeOrNull());
-        LockedInodePathList children = !options.isRecursive() ? null
-            : mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
+        LockedInodePathList children =
+            options.isRecursive() ? mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)
+                : null) {
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
         if (children != null) {
@@ -1503,7 +1504,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           if (failedChildren.size() > 0) {
             // TODO(adit): do not stop entirely if insufficient permissions to some children
             throw new DirectoryNotEmptyException(
-                ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_FAILED_CHILDREN.getMessage(path,
+                ExceptionMessage.DELETE_FAILED_DIR_CHILDREN.getMessage(path,
                     StringUtils.join(failedChildren, ",")));
           }
         }
