@@ -1502,7 +1502,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           }
           if (failedChildren.size() > 0) {
             // TODO(adit): do not stop entirely if insufficient permissions to some children
-            throw new DirectoryNotEmptyException(ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_FAILED_CHILDREN.getMessage(path, StringUtils.join(failedChildren, ",")));
+            throw new DirectoryNotEmptyException(
+                ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_FAILED_CHILDREN.getMessage(path,
+                    StringUtils.join(failedChildren, ",")));
           }
         }
       } catch (AccessControlException e) {
