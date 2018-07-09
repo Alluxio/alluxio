@@ -25,6 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class InodeLockList implements AutoCloseable {
+  private static final int INITIAL_CAPACITY = 4;
   protected List<Inode<?>> mInodes;
   protected List<InodeTree.LockMode> mLockModes;
 
@@ -32,8 +33,8 @@ public class InodeLockList implements AutoCloseable {
    * Creates a new instance of {@link InodeLockList}.
    */
   public InodeLockList() {
-    mInodes = new ArrayList<>();
-    mLockModes = new ArrayList<>();
+    mInodes = new ArrayList<>(INITIAL_CAPACITY);
+    mLockModes = new ArrayList<>(INITIAL_CAPACITY);
   }
 
   /**
