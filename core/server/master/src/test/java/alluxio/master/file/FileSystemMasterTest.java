@@ -19,13 +19,13 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
+import alluxio.AuthenticatedClientUserResource;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
-import alluxio.AutenticatedClientUserResource;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -354,7 +354,7 @@ public final class FileSystemMasterTest {
         SetAttributeOptions.defaults().setMode((short) 0777));
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeOptions.defaults().setMode((short) 0777));
-    try (AutenticatedClientUserResource userA = new AutenticatedClientUserResource("userA")) {
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
       mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(true));
     }
     assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
@@ -367,7 +367,7 @@ public final class FileSystemMasterTest {
         SetAttributeOptions.defaults().setMode((short) 0700));
     mFileSystemMaster.setAttribute(NESTED_FILE2_URI,
         SetAttributeOptions.defaults().setMode((short) 0777));
-    try (AutenticatedClientUserResource userA = new AutenticatedClientUserResource("userA")) {
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
       mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(true));
       Assert.fail("Deleting a directory w/ insufficient permission on child should fail");
     } catch (DirectoryNotEmptyException e) {

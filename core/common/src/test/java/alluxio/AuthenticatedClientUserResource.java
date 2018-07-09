@@ -22,10 +22,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A resource for changing the Alluxio authenticated client user during a test.
  */
 @NotThreadSafe
-public final class AutenticatedClientUserResource implements Closeable {
+public final class AuthenticatedClientUserResource implements Closeable {
   User mPreviousAuthenticated;
 
-  public AutenticatedClientUserResource(String user) throws Exception {
+  public AuthenticatedClientUserResource(String user) throws Exception {
     mPreviousAuthenticated = AuthenticatedClientUser.get();
 
     AuthenticatedClientUser.set(user);
