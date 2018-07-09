@@ -400,6 +400,7 @@ public class AlluxioMasterProcess implements MasterProcess {
         .protocolFactory(ThriftUtils.createThriftProtocolFactory())
         .stopTimeoutVal((int) TimeUnit.MILLISECONDS
             .toSeconds(Configuration.getMs(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT)));
+    args.stopTimeoutUnit = TimeUnit.SECONDS;
     mThriftServer = new TThreadPoolServer(args);
 
     // start thrift rpc server
