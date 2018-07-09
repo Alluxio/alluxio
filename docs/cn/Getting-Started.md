@@ -58,6 +58,10 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 在`conf/alluxio-site.properties`文件中将 `alluxio.master.hostname`更新为你打算运行Alluxio Master的机器主机名。
+
+```bash
+$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
+```
 ### [奖励] AWS相关配置
 
 如果你有一个包含access key id和secret accsee key的AWS账户，你可以添加你的Alluxio配置以备接下来与Amazon S3的交互。如下命令可以添加你的AWS访问信息到`conf/alluxio-site.properties`文件。
@@ -319,7 +323,6 @@ Alluxio可以部署在很多不同的环境下。
 * [在集群上独立运行Alluxio](Running-Alluxio-on-a-Cluster.html)
 * [在Virtual Box中运行Alluxio](Running-Alluxio-on-Virtual-Box.html)
 * [在Docker中运行Alluxio](Running-Alluxio-On-Docker.html)
-* [Alluxio独立模式实现容错](Running-Alluxio-Fault-Tolerant.html)
 * [在EC2上运行Alluxio](Running-Alluxio-on-EC2.html)
 * [在GCE上运行Alluxio](Running-Alluxio-on-GCE.html)
 * [在EC2上使用Mesos运行Alluxio](Running-Alluxio-on-Mesos.html)

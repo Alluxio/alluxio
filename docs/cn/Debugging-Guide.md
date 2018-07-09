@@ -152,6 +152,20 @@ $ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.
 这是因为Alluxio master还没有根据`alluxio.master.journal.folder`属性来更新HDFS目录下的日志文件。有多种原因可以导致这种类型的错误，其中典型的原因是：
 一些用来管理日志文件的HDFS datanode处于高负载状态或者磁盘空间已经用完。当日志目录设置在HDFS中时，请确保HDFS部署处于连接状态并且能够让Alluxio正常存储日志文件。
 
+#### 问题：当我看见客户端请求被主机所拒绝。
+
+解决办法: 当你看见类似 `"alluxio.exception.status.UnavailableException:
+Failed to connect to BlockMasterClient @ hostname:19998 after 13 attempts"` 并且
+在 `logs/master.log`中有如下警告: `"WARN  TThreadPoolServer - Task has been rejected by
+ExecutorService 9 times till timedout, reason: java.util.concurrent.RejectedExecutionException:
+Task org.apache.thrift.server.TThreadPoolServer$WorkerProcess@22fba58c rejected from
+java.util.concurrent.ThreadPoolExecutor@19593091[Running, pool size = 2048, active threads = 2048,
+queued tasks = 0, completed tasks = 14]"`, 这表明Alluxio服务器主机用完了线程池因而不能为后面的客户端提供服务。
+
+要解决该问题，你可以尝试：
+- 增大`alluxio.master.worker.threads.max`来增加主机响应客户端请求的线程池容量。你可以在`conf/alluxio-site.properties`中将其设置为一个更大的值。要注意，这个值不能比系统允许的最大打开文件数量更大。在Linux中你可以用`"ulimit -n"`查看该上限或者用
+[other approaches](https://stackoverflow.com/questions/880557/socket-accept-too-many-open-files)。
+- 减小`alluxio.user.block.master.client.threads` (默认为10)和`alluxio.user.file.master.client.threads` (默认为10)来减少客户端向主机发送请求的连接池容量。你可以在`conf/alluxio-site.properties`中将其设置为一个更小的值。要注意，减小这两个值可能会增加主机响应请求的延时。
 
 ## Alluxio性能常见问题
 

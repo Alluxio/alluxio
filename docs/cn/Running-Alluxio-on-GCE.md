@@ -27,7 +27,7 @@ $ vagrant box add google https://github.com/mitchellh/vagrant-google/raw/master/
 
 **安装 Alluxio**
 
-下载 [Alluxio](https://alluxio.org/download)到你本地的机器上并解压(unzip)。
+复制 [Alluxio]目录(https://github.com/Alluxio/alluxio)到你本地的机器上。
 
 **安装python依赖库**
 
@@ -64,7 +64,7 @@ $ gcloud init
 $ gcloud compute config-ssh
 ```
 
-运行以下命令复制`deploy/vagrant/conf/gce.yml.template`到`deploy/vagrant/conf/gce.yml`:
+通过复制下面提供的模板来创建Vagrant GCE配置文件:
 
 ```bash
 $ cp deploy/vagrant/conf/gce.yml.template deploy/vagrant/conf/gce.yml
@@ -96,8 +96,8 @@ $ ./create <number of machines> google
 命令 `./create <number of machines> google` 运行成功后, 在shell中会输出类似下面的两条语句:
 
 ```bash
->>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI<<<
->>> visit default port of the web UI of what you deployed <<<
+>>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI
+>>> visit default port of the web UI of what you deployed
 ```
 
 Alluxio Web UI的默认端口为 **19999**.
@@ -135,7 +135,7 @@ $ vagrant ssh <node name>
 $ vagrant ssh AlluxioMaster
 ```
 
-所有的软件都安装在根目录下，例如Alluxio安装在 `/alluxio`。
+Alluxio安装在 `/alluxio`。
 
 在 `AlluxioMaster` 节点上，可以对Alluxio运行测试检测其健康状态:
 

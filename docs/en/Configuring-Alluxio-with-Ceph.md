@@ -18,7 +18,7 @@ using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
 ## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-Master-Branch.html), or
+[compile Alluxio](Building-Alluxio-From-Source.html), or
 [download the binaries locally](Running-Alluxio-Locally.html).
 
 ## Configuring Alluxio
@@ -95,7 +95,7 @@ If using the Swift connector, you should see files named like:
 <container>/<folder>/default_tests_files/Basic_CACHE_THROUGH
 ```
 
-To stop Alluxio, you can run:
+To stop Alluxio, run:
 
 ```bash
 $ ./bin/alluxio-stop.sh local
