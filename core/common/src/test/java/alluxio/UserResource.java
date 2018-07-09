@@ -21,7 +21,7 @@ import java.io.Closeable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A resource for changing the Alluxio login user during a test.
+ * A resource for changing the Alluxio client user during a test.
  */
 @NotThreadSafe
 public final class UserResource implements Closeable {
