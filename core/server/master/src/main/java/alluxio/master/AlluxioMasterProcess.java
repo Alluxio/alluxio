@@ -50,6 +50,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.Map;
+<<<<<<< HEAD
+=======
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+>>>>>>> bfd317ef5b... [ALLUXIO-3246] Fix unit for master client thread pool keep-alive time (#7586)
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
@@ -388,7 +393,9 @@ public class AlluxioMasterProcess implements MasterProcess {
         .processor(processor)
         .transportFactory(transportFactory)
         .protocolFactory(ThriftUtils.createThriftProtocolFactory())
-        .stopTimeoutVal((int) Configuration.getMs(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT));
+        .stopTimeoutVal((int) TimeUnit.MILLISECONDS
+            .toSeconds(Configuration.getMs(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT)));
+    args.stopTimeoutUnit = TimeUnit.SECONDS;
     mThriftServer = new TThreadPoolServer(args);
 
     // start thrift rpc server
