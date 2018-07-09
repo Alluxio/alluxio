@@ -513,10 +513,10 @@ public interface UnderFileSystem extends Closeable {
 
   /**
    * Sets the access control list of a file or directory in under file system.
+   * if the ufs does not support acls, this is a noop.
    *
    * @param path the path to the file or directory
    * @param acl the access control list
-   * @throws IOException if ACL can not be set successfully
    */
   void setAcl(String path, AccessControlList acl) throws IOException;
 

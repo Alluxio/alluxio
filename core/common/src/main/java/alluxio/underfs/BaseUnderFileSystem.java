@@ -84,8 +84,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public void setAcl(String path, AccessControlList acl) throws IOException {
-    throw new UnsupportedOperationException("setting ACL not supported");
+  public void setAcl(String path, AccessControlList acl) {
+    // Noop here by default
   }
 
   @Override

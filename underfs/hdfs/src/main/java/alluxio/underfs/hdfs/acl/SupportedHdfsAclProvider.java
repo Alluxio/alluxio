@@ -36,7 +36,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * Provides the HDFS ACLs. This is only supported in Hadoop versions 2.4 and greater.
  */
 @ThreadSafe
-
 public class SupportedHdfsAclProvider implements HdfsAclProvider {
   private static final Logger LOG = LoggerFactory.getLogger(SupportedHdfsAclProvider.class);
 
@@ -82,8 +81,6 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
     }
     // set hdfsAcl;
     hdfs.setAcl(new Path(path), aclSpecs);
-    // set owner and owning group
-    hdfs.setOwner(new Path(path), acl.getOwningUser(), acl.getOwningGroup());
   }
 
   private AclEntry getHdfsAclEntry(alluxio.security.authorization.AclEntry entry)
@@ -102,6 +99,10 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
     return builder.build();
   }
 
+  /**
+   * @param aclEntry an alluxio acl entry
+   * @return alluxio acl entry type
+   */
   private AclEntryType getHdfsAclEntryType(alluxio.security.authorization.AclEntry aclEntry)
       throws IOException {
     switch (aclEntry.getType()) {
@@ -120,6 +121,10 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
     }
   }
 
+  /**
+   * @param entry an hdfs acl entry
+   * @return alluxio acl entry type
+   */
   private alluxio.security.authorization.AclEntryType getAclEntryType(AclEntry entry)
       throws IOException {
     switch (entry.getType()) {

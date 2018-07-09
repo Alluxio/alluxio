@@ -388,7 +388,6 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   *
    * @return the access control list
    */
   public AccessControlList getACL() {

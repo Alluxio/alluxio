@@ -3158,7 +3158,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             InodeDirectory inodeDirectory = (InodeDirectory) inode;
             ufs.setAcl(ufsUri, inodeDirectory.getDefaultACL());
           }
-          // TODO(david): set ufs's default ACL as well.
         } catch (IOException e) {
           throw new AccessControlException("Could not setAcl for UFS file" + ufsUri + ".");
         }
