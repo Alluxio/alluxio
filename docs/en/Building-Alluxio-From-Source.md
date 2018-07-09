@@ -25,8 +25,8 @@ $ git clone git://github.com/alluxio/alluxio.git
 $ cd alluxio
 ```
 
-Optionally, you can build a particular version of Alluxio, for example {{site
-.ALLUXIO_RELEASED_VERSION}}. Otherwise, this will build the master branch of the source code.
+Optionally, you can build a particular version of Alluxio, for example {{site.ALLUXIO_RELEASED_VERSION}}.
+Otherwise, this will build the master branch of the source code.
 
 ```bash
 $ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
