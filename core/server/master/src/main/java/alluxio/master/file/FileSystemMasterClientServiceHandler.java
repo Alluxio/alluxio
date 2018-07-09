@@ -435,16 +435,16 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<UpdateUfsModeTResponse>() {
       @Override
       public UpdateUfsModeTResponse call() throws AlluxioException, IOException {
-        UnderFileSystem.UfsMode ufsMode;
+        UfsMode ufsMode;
         switch (options.getUfsMode()) {
           case NoAccess:
-            ufsMode = UnderFileSystem.UfsMode.NO_ACCESS;
+            ufsMode = UfsMode.NO_ACCESS;
             break;
           case ReadOnly:
-            ufsMode = UnderFileSystem.UfsMode.READ_ONLY;
+            ufsMode = UfsMode.READ_ONLY;
             break;
           default:
-            ufsMode = UnderFileSystem.UfsMode.READ_WRITE;
+            ufsMode = UfsMode.READ_WRITE;
             break;
         }
         mFileSystemMaster.updateUfsMode(new AlluxioURI(ufsPath), ufsMode);

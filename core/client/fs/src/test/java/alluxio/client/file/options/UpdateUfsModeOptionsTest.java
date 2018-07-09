@@ -28,7 +28,7 @@ public class UpdateUfsModeOptionsTest {
     UpdateUfsModeOptions options = UpdateUfsModeOptions.defaults();
 
     Assert.assertNotNull(options);
-    Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE, options.getUfsMode());
+    Assert.assertEquals(UfsMode.READ_WRITE, options.getUfsMode());
   }
 
   @Test
@@ -42,8 +42,8 @@ public class UpdateUfsModeOptionsTest {
   @Test
   public void fields() {
     UpdateUfsModeOptions options =
-        UpdateUfsModeOptions.defaults().setUfsMode(UnderFileSystem.UfsMode.READ_ONLY);
-    Assert.assertEquals(UnderFileSystem.UfsMode.READ_ONLY, options.getUfsMode());
+        UpdateUfsModeOptions.defaults().setUfsMode(UfsMode.READ_ONLY);
+    Assert.assertEquals(UfsMode.READ_ONLY, options.getUfsMode());
   }
 
   /**
@@ -52,11 +52,11 @@ public class UpdateUfsModeOptionsTest {
   @Test
   public void toThrift() {
     UpdateUfsModeOptions options =
-        UpdateUfsModeOptions.defaults().setUfsMode(UnderFileSystem.UfsMode.NO_ACCESS);
+        UpdateUfsModeOptions.defaults().setUfsMode(UfsMode.NO_ACCESS);
     UpdateUfsModeTOptions thriftOptions = options.toThrift();
 
     Assert.assertEquals(UfsMode.NoAccess, thriftOptions.getUfsMode());
-    Assert.assertEquals(UnderFileSystem.UfsMode.NO_ACCESS,
+    Assert.assertEquals(UfsMode.NO_ACCESS,
         new UpdateUfsModeOptions(thriftOptions).getUfsMode());
   }
 }

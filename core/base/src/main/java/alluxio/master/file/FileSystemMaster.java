@@ -39,8 +39,8 @@ import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.file.options.GetStatusOptions;
-import alluxio.thrift.FileSystemCommand;
-import alluxio.thrift.UfsInfo;
+//import alluxio.thrift.FileSystemCommand;
+//import alluxio.thrift.UfsInfo;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
@@ -359,7 +359,7 @@ public interface FileSystemMaster {
    * @param mountId the mount id to query
    * @return the ufs information for the given mount id
    */
-  UfsInfo getUfsInfo(long mountId);
+//  UfsInfo getUfsInfo(long mountId);
 
   /**
    * @return the white list
@@ -507,9 +507,9 @@ public interface FileSystemMaster {
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if permission checking fails
    */
-  FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
-      WorkerHeartbeatOptions options)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
+//  FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
+//      WorkerHeartbeatOptions options)
+//      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
 
   /**
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio

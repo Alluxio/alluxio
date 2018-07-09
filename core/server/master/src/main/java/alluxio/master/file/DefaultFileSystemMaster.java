@@ -117,6 +117,7 @@ import alluxio.underfs.Fingerprint.Tag;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
+import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -3607,7 +3608,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
+  public void updateUfsMode(AlluxioURI ufsPath, UfsMode ufsMode)
       throws InvalidPathException, InvalidArgumentException, UnavailableException,
       AccessControlException {
     // TODO(adit): Create new fsadmin audit context
@@ -3629,7 +3630,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidArgumentException if arguments for the method are invalid
    */
   private void updateUfsModeAndJournal(RpcContext rpcContext, AlluxioURI ufsPath,
-      UnderFileSystem.UfsMode ufsMode) throws InvalidPathException, InvalidArgumentException {
+      UfsMode ufsMode) throws InvalidPathException, InvalidArgumentException {
     updateUfsModeInternal(ufsPath, ufsMode);
     // Journal
     File.UfsMode ufsModeEntry;
@@ -3661,16 +3662,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private void updateUfsModeFromEntry(File.UpdateUfsModeEntry entry)
       throws InvalidPathException, InvalidArgumentException {
     String ufsPath = entry.getUfsPath();
-    UnderFileSystem.UfsMode ufsMode;
+    UfsMode ufsMode;
     switch (entry.getUfsMode()) {
       case NO_ACCESS:
-        ufsMode = UnderFileSystem.UfsMode.NO_ACCESS;
+        ufsMode = UfsMode.NO_ACCESS;
         break;
       case READ_ONLY:
-        ufsMode = UnderFileSystem.UfsMode.READ_ONLY;
+        ufsMode = UfsMode.READ_ONLY;
         break;
       case READ_WRITE:
-        ufsMode = UnderFileSystem.UfsMode.READ_WRITE;
+        ufsMode = UfsMode.READ_WRITE;
         break;
       default:
         throw new InvalidArgumentException(
@@ -3679,7 +3680,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     updateUfsModeInternal(new AlluxioURI(ufsPath), ufsMode);
   }
 
-  private void updateUfsModeInternal(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
+  private void updateUfsModeInternal(AlluxioURI ufsPath, UfsMode ufsMode)
       throws InvalidPathException {
     mUfsManager.setUfsMode(ufsPath, ufsMode);
   }
@@ -3696,16 +3697,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
-      UnderFileSystem.UfsMode ufsMode =
+      UfsMode ufsMode =
           ufs.getOperationMode(mUfsManager.getPhysicalUfsState(ufs.getPhysicalStores()));
       switch (ufsMode) {
         case NO_ACCESS:
           throw new AccessControlException(ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType,
-              resolution.getUri(), UnderFileSystem.UfsMode.NO_ACCESS));
+              resolution.getUri(), UfsMode.NO_ACCESS));
         case READ_ONLY:
           if (opType == OperationType.WRITE) {
             throw new AccessControlException(ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType,
-                resolution.getUri(), UnderFileSystem.UfsMode.READ_ONLY));
+                resolution.getUri(), UfsMode.READ_ONLY));
           }
           break;
         default:
