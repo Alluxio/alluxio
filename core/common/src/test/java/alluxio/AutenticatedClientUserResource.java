@@ -11,8 +11,6 @@
 
 package alluxio;
 
-import alluxio.security.LoginUser;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
@@ -21,24 +19,20 @@ import java.io.Closeable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A resource for changing the Alluxio client user during a test.
+ * A resource for changing the Alluxio authenticated client user during a test.
  */
 @NotThreadSafe
-public final class UserResource implements Closeable {
-  User mPreviousLogin;
+public final class AutenticatedClientUserResource implements Closeable {
   User mPreviousAuthenticated;
 
-  public UserResource(String user) throws Exception {
-    mPreviousLogin = LoginUser.get();
+  public AutenticatedClientUserResource(String user) throws Exception {
     mPreviousAuthenticated = AuthenticatedClientUser.get();
 
-    LoginUserTestUtils.resetLoginUser(user);
     AuthenticatedClientUser.set(user);
   }
 
   @Override
   public void close() {
-    LoginUserTestUtils.resetLoginUser(mPreviousLogin.getName());
     AuthenticatedClientUser.set(mPreviousAuthenticated.getName());
   }
 }
