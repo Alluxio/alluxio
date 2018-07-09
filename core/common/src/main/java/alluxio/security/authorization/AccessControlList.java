@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -49,14 +50,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class AccessControlList {
-  /**
-   * Initial capacity for {@link #mUserActions} and {@link #mGroupActions}.
-   * Most of the time, only owning user and owning group exists in {@link #mUserActions} and
-   * {@link #mGroupActions}.
-   */
-  protected static final int ACTIONS_MAP_INITIAL_CAPACITY = 1;
-  /** Initial load factor. */
-  protected static final int ACTIONS_MAP_INITIAL_LOAD_FACTOR = 1;
   /** Key representing owning user in {@link #mUserActions}. */
   protected static final String OWNING_USER_KEY = "";
   /** Key representing owning group in {@link #mGroupActions}. */
@@ -83,9 +76,9 @@ public class AccessControlList {
    * Clears out all entries (does not modify the owner name and owning group).
    */
   public void clearEntries() {
-    mUserActions = new HashMap<>(ACTIONS_MAP_INITIAL_CAPACITY, ACTIONS_MAP_INITIAL_LOAD_FACTOR);
+    mUserActions = new TreeMap<>();
     mUserActions.put(OWNING_USER_KEY, new AclActions());
-    mGroupActions = new HashMap<>(ACTIONS_MAP_INITIAL_CAPACITY, ACTIONS_MAP_INITIAL_LOAD_FACTOR);
+    mGroupActions = new TreeMap<>();
     mGroupActions.put(OWNING_GROUP_KEY, new AclActions());
     mMaskActions = new AclActions();
     mOtherActions = new AclActions();
