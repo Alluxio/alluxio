@@ -81,39 +81,3 @@ alluxioFs.setAttribute(path);
 
 See the [Javadocs](http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html) for
 more details.
-
-### Passively on load metadata or create file
-
-Whenever a new file is added to the Alluxio namespace, the user has the option of passively adding
-a TTL to that file. This is useful in cases where files accessed by the user are expected to be
-temporarily used. Instead of calling the API many times, it is automatically set on file discovery.
-
-Note: passive TTL is more convenient but also less flexible. The options are client level, so all
-TTL requests from the client will have the same action and duration.
-
-Passive TTL works with the following configuration options:
-
-* `alluxio.user.file.load.ttl` - the default duration to give any file newly loaded into Alluxio
-from an under store. By default this is no ttl.
-* `alluxio.user.file.load.ttl.action` - the default action for any ttl set on a file newly loaded
-into Alluxio from an under store. By default this is `DELETE`.
-* `alluxio.user.file.create.ttl` - the default duration to give any file newly created in Alluxio.
-By default this is no ttl.
-* `alluxio.user.file.create.ttl.action` - the default action for any ttl set on a file newly created
-in Alluxio. By default this is `DELETE`.
-
-There are two pairs of options, one for `load` and one for `create`. `Load` refers to files which
-are discovered by Alluxio from the under store. `Create` refers to new files or directories created
-in Alluxio.
-
-Both options are disabled by default and should only be enabled by clients which have strict data
-access patterns.
-
-For example, to delete the files created by the `runTests` after 1 minute:
-
-```
-bin/alluxio runTests -Dalluxio.user.file.create.ttl=1m -Dalluxio.user.file.create.ttl.action=DELETE
-```
-
-Note, if you try this example, make sure the `alluxio.master.ttl.checker.interval` is set to a short
-duration, ie. 1 minute.
