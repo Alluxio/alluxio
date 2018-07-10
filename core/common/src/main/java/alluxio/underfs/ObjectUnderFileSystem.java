@@ -574,8 +574,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
     // Rename each child in the src folder to destination/child
     for (UfsStatus child : children) {
-      String childSrcPath = PathUtils.concatPath(src, child);
-      String childDstPath = PathUtils.concatPath(dst, child);
+      String childSrcPath = PathUtils.concatPath(src, child.getName());
+      String childDstPath = PathUtils.concatPath(dst, child.getName());
       boolean success;
       if (child.isDirectory()) {
         // Recursive call
@@ -584,7 +584,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         success = renameFile(childSrcPath, childDstPath);
       }
       if (!success) {
-        LOG.error("Failed to rename path {}, aborting rename.", child);
+        LOG.error("Failed to rename path {} to {}, aborting rename.", childSrcPath, childDstPath);
         return false;
       }
     }

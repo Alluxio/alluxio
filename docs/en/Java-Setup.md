@@ -24,4 +24,4 @@ title: Java Setup
 
 {% include Java-Setup/install-jdk-linux.md %}
 
-4.  The Java Development Kit files are installed in a directory called `jdk1.7.0_` in the current directory. Delete the .tar.gz file if you want to save disk space.
+4.  The Java Development Kit files are installed in a directory called `jdk1.8.0_` in the current directory. Delete the .tar.gz file if you want to save disk space.

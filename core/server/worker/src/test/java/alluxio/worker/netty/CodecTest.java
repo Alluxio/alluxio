@@ -21,12 +21,13 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.proto.ProtoMessage;
 
-import com.google.common.base.Function;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.util.ResourceLeakDetector;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.concurrent.TimeoutException;
 
 public final class CodecTest {
   private EmbeddedChannel mChannel;
@@ -175,13 +176,10 @@ public final class CodecTest {
    *
    * @return the response
    */
-  private Object waitForOneResponse(final EmbeddedChannel channel) {
-    return CommonUtils.waitForResult("response from the channel", new Function<Void, Object>() {
-      @Override
-      public Object apply(Void v) {
-        return channel.readOutbound();
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
+  private Object waitForOneResponse(final EmbeddedChannel channel)
+      throws TimeoutException, InterruptedException {
+    return CommonUtils.waitForResult("response from the channel", () -> channel.readOutbound(),
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 
   /**
@@ -189,12 +187,9 @@ public final class CodecTest {
    *
    * @return the request
    */
-  private Object waitForOneRequest(final EmbeddedChannel channel) {
-    return CommonUtils.waitForResult("response from the channel", new Function<Void, Object>() {
-      @Override
-      public Object apply(Void v) {
-        return channel.readInbound();
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
+  private Object waitForOneRequest(final EmbeddedChannel channel)
+      throws TimeoutException, InterruptedException {
+    return CommonUtils.waitForResult("response from the channel", () -> channel.readInbound(),
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 }

@@ -107,7 +107,7 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
 
   @Override
   public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetFileStatusMs());
+    sleepIfNecessary(mOptions.getGetDirectoryStatusMs());
     return super.getDirectoryStatus(cleanPath(path));
   }
 

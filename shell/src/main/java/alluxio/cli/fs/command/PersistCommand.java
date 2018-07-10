@@ -25,6 +25,7 @@ import org.apache.commons.cli.CommandLine;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -91,7 +92,14 @@ public final class PersistCommand extends AbstractFileSystemCommand {
     } else if (status.isPersisted()) {
       System.out.println(filePath + " is already persisted");
     } else {
-      FileSystemUtils.persistFile(mFileSystem, filePath);
+      try {
+        FileSystemUtils.persistFile(mFileSystem, filePath);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
+      } catch (TimeoutException e) {
+        throw new RuntimeException(e);
+      }
       System.out.println("persisted file " + filePath + " with size " + status.getLength());
     }
   }

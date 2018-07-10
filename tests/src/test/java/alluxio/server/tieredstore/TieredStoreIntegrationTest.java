@@ -78,10 +78,11 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void deleteWhileRead() throws Exception {
+    int fileSize = MEM_CAPACITY_BYTES / 2; // Small enough not to trigger async eviction
     HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
 
     AlluxioURI file = new AlluxioURI("/test1");
-    FileSystemTestUtils.createByteFile(mFileSystem, file, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    FileSystemTestUtils.createByteFile(mFileSystem, file, WriteType.MUST_CACHE, fileSize);
 
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
@@ -100,10 +101,10 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     Assert.assertFalse(mFileSystem.exists(file));
 
     // However, the previous read should still be able to read it as the data still exists
-    byte[] res = new byte[MEM_CAPACITY_BYTES];
-    Assert.assertEquals(MEM_CAPACITY_BYTES - 1, in.read(res, 1, MEM_CAPACITY_BYTES - 1));
+    byte[] res = new byte[fileSize];
+    Assert.assertEquals(fileSize - 1, in.read(res, 1, fileSize - 1));
     res[0] = 0;
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(MEM_CAPACITY_BYTES, res));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileSize, res));
     in.close();
 
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);

@@ -14,7 +14,7 @@ as the under storage system.
 
 ## Compiling Alluxio with MapR Version
 
-Alluxio must be [compiled](Building-Alluxio-Master-Branch.html) with the correct MapR distribution
+Alluxio must be [compiled](Building-Alluxio-From-Source.html) with the correct MapR distribution
 to integrate with MapR-FS. Here are some values of `hadoop.version` for different MapR
 distributions:
 
@@ -62,12 +62,6 @@ This configuration parameter should be set for all the Alluxio servers (masters,
 read how to [configure Alluxio](Configuration-Settings.html). For Alluxio processes, this parameter
 can be set in the property file `alluxio-site.properties`. For more information, please read about
 [configuration of Alluxio with property files](Configuration-Settings.html#property-files).
-
-This parameter should also be set any client that accesses Alluxio. This means the parameter should
-be set for any application (MapReduce, Spark, Flink, etc.) that accesses Alluxio. This can typically
-be done by adding `-Dalluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///` to the command. For more
-information, please read about [configurating applications for Alluxio](Configuration-Settings.html
-#application-settings).
 
 ## Configuring Alluxio to use MapR-FS as Under File System
 

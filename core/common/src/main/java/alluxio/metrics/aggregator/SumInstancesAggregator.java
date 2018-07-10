@@ -12,9 +12,9 @@
 package alluxio.metrics.aggregator;
 
 import alluxio.metrics.Metric;
-import alluxio.metrics.MetricsAggregator;
 import alluxio.metrics.MetricsFilter;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.SingleValueAggregator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -27,23 +27,26 @@ import java.util.Set;
  * An aggregator that sums the metric values from all the metrics of a given instance type and
  * metric name. The aggregated metric will have name of pattern cluster.metric_name.
  */
-public class SumInstancesAggregator implements MetricsAggregator {
+public class SumInstancesAggregator implements SingleValueAggregator {
   private final MetricsSystem.InstanceType mInstanceType;
-  private final String mName;
+  private final String mAggregationName;
   private final MetricsFilter mFilter;
 
   /**
    * Creates an instance of {@link SumInstancesAggregator}.
    *
+   * @param aggregationName the aggregation name
    * @param instanceType instance type which can be worker or client
-   * @param name the metric name
+   * @param metricName the metric name
    */
-  public SumInstancesAggregator(MetricsSystem.InstanceType instanceType, String name) {
+  public SumInstancesAggregator(String aggregationName, MetricsSystem.InstanceType instanceType,
+      String metricName) {
     Preconditions.checkNotNull(instanceType, "instance type");
-    Preconditions.checkNotNull(name, "name");
+    Preconditions.checkNotNull(metricName, "metricName");
+    Preconditions.checkNotNull(aggregationName, "aggregationName");
     mInstanceType = instanceType;
-    mName = name;
-    mFilter = new MetricsFilter(mInstanceType, name);
+    mAggregationName = aggregationName;
+    mFilter = new MetricsFilter(mInstanceType, metricName);
   }
 
   /**
@@ -55,7 +58,7 @@ public class SumInstancesAggregator implements MetricsAggregator {
 
   @Override
   public String getName() {
-    return mName;
+    return mAggregationName;
   }
 
   @Override

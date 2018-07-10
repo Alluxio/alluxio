@@ -34,7 +34,7 @@ import java.net.ServerSocket;
 public final class ThriftUtils {
   /** Timeout for client socket in ms. */
   private static final int SOCKET_TIMEOUT_MS = (int) Configuration
-      .getMs(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
+      .getMs(PropertyKey.USER_NETWORK_SOCKET_TIMEOUT);
   /** Timeout for server socket in ms. */
   private static final int SERVER_SOCKET_TIMEOUT_MS = (int) Configuration
       .getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
@@ -79,7 +79,9 @@ public final class ThriftUtils {
     // The socket tracking socket will close all client sockets when the server socket is closed.
     // This is necessary so that clients don't receive spurious errors during failover. The master
     // will close this socket before resetting its state during stepdown.
-    return new SocketTrackingTServerSocket(address, SERVER_SOCKET_TIMEOUT_MS);
+    return new SocketTrackingTServerSocket(
+        (new TServerSocket.ServerSocketTransportArgs()).bindAddr(address)
+            .clientTimeout(SERVER_SOCKET_TIMEOUT_MS));
   }
 
   /**

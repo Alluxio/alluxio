@@ -13,7 +13,7 @@ priority: 2
 
 ## 初始步骤
 
-首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
+首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 ## 配置Alluxio
 
@@ -23,7 +23,7 @@ priority: 2
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-假定GlusterFS bricks与Alluxio部署在同样的节点上，且GlusterFS volume挂载在`/alluxio_vol`，那以下的环境变量要添加到`conf/alluxio-site.properties`配置文件中：
+假定GlusterFS bricks与Alluxio部署在同样的节点上，且GlusterFS volume挂载在`/mnt/gluster`，那以下的环境变量要添加到`conf/alluxio-site.properties`配置文件中：
 
 ```properties
 alluxio.underfs.address=/mnt/gluster

@@ -24,13 +24,13 @@ import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
 import alluxio.worker.block.BlockWorker;
 
-import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Util methods for writing integration tests.
@@ -44,7 +44,7 @@ public final class IntegrationTestUtils {
    * @param uri the file uri to wait to be persisted
    */
   public static void waitForPersist(LocalAlluxioClusterResource localAlluxioClusterResource,
-      AlluxioURI uri) throws IOException {
+      AlluxioURI uri) throws TimeoutException, InterruptedException {
     waitForPersist(localAlluxioClusterResource, uri, 15 * Constants.SECOND_MS);
   }
 
@@ -56,17 +56,14 @@ public final class IntegrationTestUtils {
    * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
    */
   public static void waitForPersist(final LocalAlluxioClusterResource localAlluxioClusterResource,
-      final AlluxioURI uri, int timeoutMs) {
+      final AlluxioURI uri, int timeoutMs) throws InterruptedException, TimeoutException {
     try (FileSystemMasterClient client =
         FileSystemMasterClient.Factory.create(MasterClientConfig.defaults())) {
-      CommonUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
-        @Override
-        public Boolean apply(Void input) {
-          try {
-            return client.getStatus(uri, GetStatusOptions.defaults()).isPersisted();
-          } catch (Exception e) {
-            throw Throwables.propagate(e);
-          }
+      CommonUtils.waitFor(uri + " to be persisted", () -> {
+        try {
+          return client.getStatus(uri, GetStatusOptions.defaults()).isPersisted();
+        } catch (Exception e) {
+          throw Throwables.propagate(e);
         }
       }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     } catch (IOException e) {
@@ -82,8 +79,8 @@ public final class IntegrationTestUtils {
    * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
    */
   public static void waitForFileCached(final FileSystem fileSystem, final AlluxioURI uri,
-      int timeoutMs) {
-    CommonUtils.waitFor(uri + " to be cached", (input) -> {
+      int timeoutMs) throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor(uri + " to be cached", () -> {
       try {
         return fileSystem.getStatus(uri).getInAlluxioPercentage() == 100;
       } catch (Exception e) {
@@ -100,20 +97,18 @@ public final class IntegrationTestUtils {
    * @param bw the block worker that will remove the blocks
    * @param blockIds a list of blockIds to be removed
    */
-  public static void waitForBlocksToBeFreed(final BlockWorker bw, final Long... blockIds) {
+  public static void waitForBlocksToBeFreed(final BlockWorker bw, final Long... blockIds)
+      throws TimeoutException {
     try {
       // Execute 1st heartbeat from worker.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
       // Waiting for the blocks to be added into the heartbeat reportor, so that they will be
       // removed from master in the next heartbeat.
-      CommonUtils.waitFor("blocks to be removed", new Function<Void, Boolean>() {
-        @Override
-        public Boolean apply(Void input) {
-          BlockHeartbeatReporter reporter = Whitebox.getInternalState(bw, "mHeartbeatReporter");
-          List<Long> blocksToRemove = Whitebox.getInternalState(reporter, "mRemovedBlocks");
-          return blocksToRemove.containsAll(Arrays.asList(blockIds));
-        }
+      CommonUtils.waitFor("blocks to be removed", () -> {
+        BlockHeartbeatReporter reporter = Whitebox.getInternalState(bw, "mHeartbeatReporter");
+        List<Long> blocksToRemove = Whitebox.getInternalState(reporter, "mRemovedBlocks");
+        return blocksToRemove.containsAll(Arrays.asList(blockIds));
       }, WaitForOptions.defaults().setTimeoutMs(100 * Constants.SECOND_MS));
 
       // Execute 2nd heartbeat from worker.

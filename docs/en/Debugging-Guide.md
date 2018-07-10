@@ -1,7 +1,8 @@
 ---
 layout: global
-title: Debugging Guide
+title: Tips to Diagnose Issues
 group: Resources
+priority: 4
 ---
 
 * Table of Contents

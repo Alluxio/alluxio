@@ -13,7 +13,7 @@ priority: 3
 
 ## 以特定MapR版本编译Alluxio
 
-Alluxio要与MapR-FS结合，必须以相对应的MapR版本进行[编译](Building-Alluxio-Master-Branch.html)，以下是一些对应于不同MapR版本的`hadoop.version`：
+Alluxio要与MapR-FS结合，必须以相对应的MapR版本进行[编译](Building-Alluxio-From-Source.html)，以下是一些对应于不同MapR版本的`hadoop.version`：
 
 <table class="table table-striped">
 <tr><th>MapR Version</th><th>hadoop.version</th></tr>
@@ -52,8 +52,6 @@ alluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///
 ```
 
 该配置项需要在所有的Alluxio服务器上（masters和workers）进行设置，具体可以参考[Alluxio配置](Configuration-Settings.html)。对于Alluxio进程，该配置项能够在`alluxio-site.properties`配置文件中设置，请参考[通过属性文件配置Alluxio](Configuration-Settings.html#property-files)获取更多信息。
-
-另外，该配置项还需要在所有访问Alluxio的客户端中进行配置，这也就意味着在所有访问Alluxio的应用中（MapReduce、Spark、Flink等等）也要进行配置。通常可以在命令行中添加`-Dalluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///`完成设置，可以参考[配置Alluxio应用](Configuration-Settings.html#application-settings)获取更多信息。
 
 ## 配置Alluxio以使用MapR-FS作为底层文件系统
 

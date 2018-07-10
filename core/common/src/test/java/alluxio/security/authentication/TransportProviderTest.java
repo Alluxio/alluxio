@@ -46,6 +46,7 @@ public final class TransportProviderTest {
 
   private TThreadPoolServer mServer;
   private InetSocketAddress mServerAddress;
+  private TTransport mBaseTransport;
   private TServerSocket mServerTSocket;
   private TransportProvider mTransportProvider;
 
@@ -65,6 +66,7 @@ public final class TransportProviderTest {
     mServerTSocket = new TServerSocket(new InetSocketAddress(localhost, 0));
     int port = ThriftUtils.getThriftPort(mServerTSocket);
     mServerAddress = new InetSocketAddress(localhost, port);
+    mBaseTransport = ThriftUtils.createThriftSocket(mServerAddress);
   }
 
   @After

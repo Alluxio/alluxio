@@ -90,11 +90,9 @@ Presto的Hive集成里使用了配置[`hive.max-split-size`](https://teradata.gi
 
 # 分发Alluxio客户端jar包
 
-推荐您从[http://www.alluxio.org/download](http://www.alluxio.org/download)下载压缩包。另外，高阶用户可以按照指导[here](Building-Alluxio-Master-Branch.html#compute-framework-support)从源码编译这个客户端jar包。在路径`{{site.ALLUXIO_CLIENT_JAR_PATH}}`下可以找到Alluxio客户端jar包。
+推荐您从[http://www.alluxio.org/download](http://www.alluxio.org/download)下载压缩包。另外，高阶用户可以按照指导[here](Building-Alluxio-From-Source.html#compute-framework-support)从源码编译这个客户端jar包。在路径`{{site.ALLUXIO_CLIENT_JAR_PATH}}`下可以找到Alluxio客户端jar包。
 
 将Alluxio客户端Jar包分发到Presto所有节点中：
-- 因为Presto使用的guava版本是18.0，而Alluxio使用的是14.0，所以需要将Alluxio client端的pom.xml中guava版本修改为18.0并重新编译Alluxio客户端。
-
 - 你必须将Alluxio客户端jar包 `{{site.ALLUXIO_CLIENT_JAR_PATH_PRESTO}}`放置在所有Presto节点的`$PRESTO_HOME/plugin/hive-hadoop2/`
 目录中（针对不同hadoop版本，放到相应的文件夹下），并且重启所有coordinator和worker。
 

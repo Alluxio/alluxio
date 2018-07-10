@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -85,7 +86,7 @@ public final class TieredIdentityFactory {
         value = scriptTier.getValue();
       }
       // Explicit configuration overrides script output.
-      if (Configuration.containsKey(Template.LOCALITY_TIER.format(tierName))) {
+      if (Configuration.isSet(Template.LOCALITY_TIER.format(tierName))) {
         value = Configuration.get(Template.LOCALITY_TIER.format(tierName));
       }
       tiers.add(new LocalityTier(tierName, value));
@@ -104,10 +105,17 @@ public final class TieredIdentityFactory {
    */
   @Nullable
   private static TieredIdentity fromScript() {
-    Path script = Paths.get(Configuration.get(PropertyKey.LOCALITY_SCRIPT));
+    String scriptName = Configuration.get(PropertyKey.LOCALITY_SCRIPT);
+    Path script = Paths.get(scriptName);
     if (!Files.exists(script)) {
-      return null;
+      URL resource = TieredIdentityFactory.class.getClassLoader().getResource(scriptName);
+      if (resource != null) {
+        script = Paths.get(resource.getPath());
+      } else {
+        return null;
+      }
     }
+    LOG.debug("Found tiered identity script at {}", script);
     String identityString;
     try {
       identityString = ShellUtils.execCommand(script.toString());

@@ -11,29 +11,110 @@
 
 package alluxio.conf;
 
+import com.google.common.base.Objects;
+
 /**
  * The source of a configuration property.
  */
-public enum Source {
+public class Source implements Comparable<Source> {
+  public static final Source UNKNOWN = new Source(Type.UNKNOWN);
+  public static final Source DEFAULT = new Source(Type.DEFAULT);
+  public static final Source CLUSTER_DEFAULT = new Source(Type.CLUSTER_DEFAULT);
+  public static final Source SYSTEM_PROPERTY = new Source(Type.SYSTEM_PROPERTY);
+  public static final Source RUNTIME = new Source(Type.RUNTIME);
+
   /**
-   * The unknown source which has the lowest priority.
+   * Source type.
    */
-  UNKNOWN,
+  public enum Type {
+    /**
+     * The unknown source which has the lowest priority.
+     */
+    UNKNOWN,
+    /**
+     * The default property value from <code>PropertyKey</code> on compile time.
+     */
+    DEFAULT,
+    /**
+     * The default property value as loaded from the masters of the cluster.
+     */
+    CLUSTER_DEFAULT,
+    /**
+     * The property value is specified in site properties file (alluxio-site.properties).
+     */
+    SITE_PROPERTY,
+    /**
+     * The property value is specified with JVM -D options before passed to Alluxio.
+     */
+    SYSTEM_PROPERTY,
+    /**
+     * The property value is set by user during runtime (e.g., Configuration.set or through
+     * HadoopConf). This source has the highest priority.
+     */
+    RUNTIME,
+  }
+
+  protected final Type mType;
+
+  private Source(Type type) {
+    mType = type;
+  }
+
   /**
-   * The default property value from <code>PropertyKey</code> on compile time.
+   * @return the type of the source
    */
-  DEFAULT,
+  public Type getType() {
+    return mType;
+  }
+
   /**
-   * The property value is specified in site properties file (alluxio-site.properties).
+   * Creates a site property source with the specified filename.
+   *
+   * @param filename the filename
+   * @return the source
    */
-  SITE_PROPERTY,
-  /**
-   * The property value is specified with JVM -D options before passed to Alluxio.
-   */
-  SYSTEM_PROPERTY,
-  /**
-   * The property value is set by user during runtime (e.g., Configuration.set or through
-   * HadoopConf). This source has the highest priority.
-   */
-  RUNTIME,
+  public static Source siteProperty(String filename) {
+    return new SitePropertySource(filename);
+  }
+
+  @Override
+  public int compareTo(Source other) {
+    return mType.compareTo(other.mType);
+  }
+
+  @Override
+  public String toString() {
+    return mType.name();
+  }
+
+  private static final class SitePropertySource extends Source {
+    private final String mFilename;
+
+    private SitePropertySource(String filename) {
+      super(Type.SITE_PROPERTY);
+      mFilename = filename;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof SitePropertySource)) {
+        return false;
+      }
+      SitePropertySource that = (SitePropertySource) o;
+      return Objects.equal(mFilename, that.mFilename);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mFilename);
+    }
+
+    @Override
+    public String toString() {
+      return String.format("%s (%s)", mType, mFilename);
+    }
+  }
 }

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
+import alluxio.util.URIUtils;
 
 import com.google.common.base.Preconditions;
 
@@ -42,8 +43,6 @@ public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
     if (path == null) {
       return false;
     }
-    return path.startsWith(AlluxioURI.SEPARATOR)
-        || path.startsWith("file://")
-        || AlluxioURI.hasWindowsDrive(path, false);
+    return URIUtils.isLocalFilesystem(path);
   }
 }

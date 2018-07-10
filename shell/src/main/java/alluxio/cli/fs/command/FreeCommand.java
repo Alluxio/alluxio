@@ -28,6 +28,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -71,19 +72,26 @@ public final class FreeCommand extends AbstractFileSystemCommand {
         Math.toIntExact(Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     FreeOptions options = FreeOptions.defaults().setRecursive(true).setForced(cl.hasOption("f"));
     mFileSystem.free(path, options);
-    CommonUtils.waitFor("file to be freed. Another user may be loading it.", (v) -> {
-      try {
-        boolean freed = mFileSystem.getStatus(path).getInAlluxioPercentage() == 0;
-        if (!freed) {
-          mFileSystem.free(path, options);
+    try {
+      CommonUtils.waitFor("file to be freed. Another user may be loading it.", () -> {
+        try {
+          boolean freed = mFileSystem.getStatus(path).getInAlluxioPercentage() == 0;
+          if (!freed) {
+            mFileSystem.free(path, options);
+          }
+          return freed;
+        } catch (Exception e) {
+          Throwables.propagateIfPossible(e);
+          throw new RuntimeException(e);
         }
-        return freed;
-      } catch (Exception e) {
-        Throwables.propagateIfPossible(e);
-        throw new RuntimeException(e);
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(10 * Math.toIntExact(interval))
-        .setInterval(interval));
+      }, WaitForOptions.defaults().setTimeoutMs(10 * Math.toIntExact(interval))
+          .setInterval(interval));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    } catch (TimeoutException e) {
+      throw new RuntimeException(e);
+    }
     System.out.println(path + " was successfully freed from memory.");
   }
 

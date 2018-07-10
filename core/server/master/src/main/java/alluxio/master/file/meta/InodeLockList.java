@@ -13,6 +13,8 @@ package alluxio.master.file.meta;
 
 import alluxio.exception.InvalidPathException;
 
+import com.google.common.collect.Lists;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,16 +24,17 @@ import javax.annotation.concurrent.ThreadSafe;
  * Manages the locks for a list of {@link Inode}.
  */
 @ThreadSafe
-public final class InodeLockList implements AutoCloseable {
-  private final List<Inode<?>> mInodes;
-  private final List<InodeTree.LockMode> mLockModes;
+public class InodeLockList implements AutoCloseable {
+  private static final int INITIAL_CAPACITY = 4;
+  protected List<Inode<?>> mInodes;
+  protected List<InodeTree.LockMode> mLockModes;
 
   /**
    * Creates a new instance of {@link InodeLockList}.
    */
-  InodeLockList() {
-    mInodes = new ArrayList<>();
-    mLockModes = new ArrayList<>();
+  public InodeLockList() {
+    mInodes = new ArrayList<>(INITIAL_CAPACITY);
+    mLockModes = new ArrayList<>(INITIAL_CAPACITY);
   }
 
   /**
@@ -164,10 +167,34 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
-   * @return the list of inodes locked in this lock list, in order of when the inodes were locked
+   * @return a copy of the the list of inodes locked in this lock list, in order of when
+   * the inodes were locked
    */
+  // TODO(david): change this API to not return a copy
   public synchronized List<Inode<?>> getInodes() {
-    return mInodes;
+    return Lists.newArrayList(mInodes);
+  }
+
+  /**
+   * @param index the index of the list
+   * @return the inode at the specified index
+   */
+  public synchronized Inode<?> get(int index) {
+    return mInodes.get(index);
+  }
+
+  /**
+   * @return the size of the list
+   */
+  public synchronized int size() {
+    return mInodes.size();
+  }
+
+  /**
+   * @return true if the locklist is empty
+   */
+  public synchronized boolean isEmpty() {
+    return mInodes.isEmpty();
   }
 
   @Override

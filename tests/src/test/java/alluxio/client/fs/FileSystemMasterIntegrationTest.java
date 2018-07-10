@@ -494,7 +494,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     assertFalse(fs.exists(dir));
     // Make sure that the blocks are cleaned up
     BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
-    CommonUtils.waitFor("data to be deleted", (x) -> {
+    CommonUtils.waitFor("data to be deleted", () -> {
       try {
         return blockClient.getUsedBytes() == 0;
       } catch (Exception e) {
@@ -1209,7 +1209,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String parentPath = Paths.get(ufs, "d1").toString();
     FileUtils.createDir(parentPath);
-    FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 600).toString());
+    FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0600).toString());
     AlluxioURI path = new AlluxioURI(Paths.get("/d1", "d2", "d3", "d4").toString());
 
     // this should fail
