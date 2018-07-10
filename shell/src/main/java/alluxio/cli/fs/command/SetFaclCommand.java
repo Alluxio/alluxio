@@ -71,7 +71,11 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
       .hasArg(false)
       .desc("Operations apply to the default ACL")
       .build();
-  // TODO(gpang): support remove defaults
+  private static final Option REMOVE_DEFAULT_OPTION = Option.builder("k")
+      .required(false)
+      .hasArg(false)
+      .desc("Remove the default acl. If no default acl exists, no warnings are given.")
+      .build();
 
   /**
    * @param fs the filesystem of Alluxio
@@ -88,7 +92,8 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION).addOption(SET_OPTION).addOption(MODIFY_OPTION)
-        .addOption(REMOVE_OPTION).addOption(REMOVE_ALL_OPTION).addOption(DEFAULT_OPTION);
+        .addOption(REMOVE_OPTION).addOption(REMOVE_ALL_OPTION).addOption(DEFAULT_OPTION)
+        .addOption(REMOVE_DEFAULT_OPTION);
   }
 
   @Override
@@ -147,6 +152,11 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
     if (cl.hasOption(REMOVE_ALL_OPTION.getOpt())) {
       specifiedActions.add(REMOVE_ALL_OPTION.getOpt());
       action = SetAclAction.REMOVE_ALL;
+    }
+
+    if (cl.hasOption(REMOVE_DEFAULT_OPTION.getOpt())) {
+      specifiedActions.add(REMOVE_DEFAULT_OPTION.getOpt());
+      action = SetAclAction.REMOVE_DEFAULT;
     }
 
     if (specifiedActions.isEmpty()) {
