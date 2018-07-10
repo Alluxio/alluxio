@@ -42,7 +42,8 @@ public final class HadoopUtils {
    * @return whether the uri is Alluxio on Zookeeper URI
    */
   public static boolean isZookeeperUri(URI uri) {
-    return uri.getAuthority().contains(ZOOKEEPER_IDENTIFIER);
+    String authority = uri.getAuthority();
+    return authority != null && authority.contains(ZOOKEEPER_IDENTIFIER);
   }
 
   /**
