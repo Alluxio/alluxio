@@ -79,7 +79,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public AccessControlList getAcl(String path) throws IOException {
+    public AccessControlList getAcl(String path) throws IOException {
     return null;
   }
 
@@ -88,7 +88,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
     try {
       UfsStatus status = getStatus(path);
       AccessControlList acl = getAcl(path);
-      if (acl == null) {
+      if (acl == null || !acl.hasExtended()) {
         return Fingerprint.create(getUnderFSType(), status).serialize();
       } else {
         return Fingerprint.create(getUnderFSType(), status, acl).serialize();
