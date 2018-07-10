@@ -13,6 +13,7 @@ package alluxio;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -624,6 +625,7 @@ public class AlluxioURITest {
         new AlluxioURI("alluxio:/a/c.txt").join(new AlluxioURI("/../b.txt")));
     assertEquals(new AlluxioURI("C:\\\\a\\b"),
         new AlluxioURI("C:\\\\a").join(new AlluxioURI("\\b")));
+    assertEquals(new AlluxioURI("/a/b"), new AlluxioURI("/a").joinUnsafe("///b///"));
 
     final String pathWithSpecialChar = "����,��b����$o����[| =B����";
     assertEquals(new AlluxioURI("/" + pathWithSpecialChar),
@@ -632,6 +634,32 @@ public class AlluxioURITest {
     final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
     assertEquals(new AlluxioURI("/" + pathWithSpecialCharAndColon),
         new AlluxioURI("/").join(pathWithSpecialCharAndColon));
+  }
+
+  @Test
+  public void joinUnsafe() {
+    assertEquals(new AlluxioURI("/a"), new AlluxioURI("/").joinUnsafe("a"));
+    assertEquals(new AlluxioURI("/a/b"), new AlluxioURI("/a").joinUnsafe("b"));
+    assertEquals(new AlluxioURI("a/b"), new AlluxioURI("a").joinUnsafe("b"));
+    assertEquals(new AlluxioURI("a/b.txt"), new AlluxioURI("a").joinUnsafe("/b.txt"));
+    assertEquals(new AlluxioURI("alluxio:/a/b.txt"),
+        new AlluxioURI("alluxio:/a").joinUnsafe("/b.txt"));
+    assertEquals(new AlluxioURI("C:\\\\a\\b"), new AlluxioURI("C:\\\\a").joinUnsafe("\\b"));
+    assertEquals(new AlluxioURI("/a/b"), new AlluxioURI("/a").joinUnsafe("///b///"));
+
+    final String pathWithSpecialChar = "����,��b����$o����[| =B����";
+    assertEquals(new AlluxioURI("/" + pathWithSpecialChar),
+        new AlluxioURI("/").joinUnsafe(pathWithSpecialChar));
+
+    final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
+    assertEquals(new AlluxioURI("/" + pathWithSpecialCharAndColon),
+        new AlluxioURI("/").joinUnsafe(pathWithSpecialCharAndColon));
+
+    // The following joins are not "safe", because the new path component requires normalization.
+    assertNotEquals(new AlluxioURI("/a/c"), new AlluxioURI("/a").joinUnsafe("b/../c"));
+    assertNotEquals(new AlluxioURI("a/b.txt"), new AlluxioURI("a").joinUnsafe("/c/../b.txt"));
+    assertNotEquals(new AlluxioURI("alluxio:/a/b.txt"),
+        new AlluxioURI("alluxio:/a/c.txt").joinUnsafe("/../b.txt"));
   }
 
   /**
