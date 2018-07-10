@@ -40,7 +40,7 @@ public interface HdfsAclProvider {
    * @param hdfs the HDFS client
    * @param path the path to set the ACL for
    * @param acl the {@link AccessControlList} representation
-   * @throws IOException if ACL can not be set or not supported
+   * @throws IOException if ACL can not be set
    */
   void setAcl(FileSystem hdfs, String path, AccessControlList acl) throws IOException;
 }

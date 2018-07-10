@@ -84,7 +84,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public void setAcl(String path, AccessControlList acl) {
+  public void setAcl(String path, AccessControlList acl) throws IOException{
     // Noop here by default
   }
 

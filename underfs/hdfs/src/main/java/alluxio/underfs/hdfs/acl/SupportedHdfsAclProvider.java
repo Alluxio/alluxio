@@ -101,7 +101,7 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
 
   /**
    * @param aclEntry an alluxio acl entry
-   * @return alluxio acl entry type
+   * @return hdfs acl entry type
    */
   private AclEntryType getHdfsAclEntryType(alluxio.security.authorization.AclEntry aclEntry)
       throws IOException {
