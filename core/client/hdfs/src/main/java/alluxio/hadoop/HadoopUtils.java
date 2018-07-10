@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -32,6 +33,17 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class HadoopUtils {
   private static final Logger LOG = LoggerFactory.getLogger(HadoopUtils.class);
+  private static final String ZOOKEEPER_IDENTIFIER = "zk@";
+
+  /**
+   * Identifies whether a {@link URI} uri is an Alluxio on Zookeeper URI.
+   *
+   * @param uri the input uri
+   * @return whether the uri is Alluxio on Zookeeper URI
+   */
+  public static boolean isZookeeperUri(URI uri) {
+    return uri.getAuthority().contains(ZOOKEEPER_IDENTIFIER);
+  }
 
   /**
    * Given a {@link Path} path, it returns the path component of its URI, which has the form
@@ -42,6 +54,24 @@ public final class HadoopUtils {
    */
   public static String getPathWithoutScheme(Path path) {
     return path.toUri().getPath();
+  }
+
+  /**
+   * Gets the zookeeper addresses from the Alluxio on Zookeeper URI.
+   *
+   * @param uri the input uri to get zookeeper addresses from
+   * @return the zookeeper addresses
+   */
+  public static String getZookeeperAddresses(URI uri) {
+    String zookeeperAddresses;
+    try {
+      zookeeperAddresses = uri.getAuthority().substring(ZOOKEEPER_IDENTIFIER.length())
+          .replaceAll(";", ",");
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Alluxio on Zookeeper URI is invalid. "
+          + "The URI should be of format \"alluxio://zk@host1:port1;host2:port2/path/to/file\"");
+    }
+    return zookeeperAddresses;
   }
 
   /**

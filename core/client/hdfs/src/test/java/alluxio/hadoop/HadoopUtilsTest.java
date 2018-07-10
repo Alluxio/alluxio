@@ -72,4 +72,16 @@ public final class HadoopUtilsTest {
     final String output = HadoopUtils.getPathWithoutScheme(path);
     assertEquals("/foo/bar/baz", output);
   }
+
+  /**
+   * Test for the {@link HadoopUtils#getPathWithoutScheme(Path)} method
+   * from a Alluxio on Zookeeper URI.
+   */
+  @Test
+  public void testGetPathWithoutSchemaFromZookeeperURI() {
+    final Path path = new Path(URI.create("alluxio://zk@host1:port1;host2:port2/foo/bar/baz"));
+
+    final String output = HadoopUtils.getPathWithoutScheme(path);
+    assertEquals("/foo/bar/baz", output);
+  }
 }

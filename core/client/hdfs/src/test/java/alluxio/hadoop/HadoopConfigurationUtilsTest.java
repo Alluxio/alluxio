@@ -20,10 +20,15 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 /**
  * Tests for the {@link HadoopConfigurationUtils} class.
  */
 public final class HadoopConfigurationUtilsTest {
+  private static final String ALLUXIO_NORMAL_URI = "alluxio://host:port/path";
+  private static final String ALLUXIO_ZOOKEEPER_URI = "alluxio://zk@host1:port1;host2:port2/path";
   private static final String TEST_S3_ACCCES_KEY = "TEST ACCESS KEY";
   private static final String TEST_S3_SECRET_KEY = "TEST SECRET KEY";
   private static final String TEST_ALLUXIO_PROPERTY = "alluxio.unsupported.parameter";
@@ -39,19 +44,21 @@ public final class HadoopConfigurationUtilsTest {
    * configuration.
    */
   @Test
-  public void mergeEmptyHadoopConfiguration() {
+  public void mergeEmptyHadoopConfiguration() throws URISyntaxException {
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
     long beforeSize = Configuration.toMap().size();
-    HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, Configuration.global());
+    HadoopConfigurationUtils.mergeHadoopConfiguration(new URI(ALLUXIO_NORMAL_URI),
+        hadoopConfig, Configuration.global());
     long afterSize = Configuration.toMap().size();
     Assert.assertEquals(beforeSize, afterSize);
+    Assert.assertEquals(false, Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
   }
 
   /**
    * Test for the {@link HadoopConfigurationUtils#mergeHadoopConfiguration} method.
    */
   @Test
-  public void mergeHadoopConfiguration() {
+  public void mergeHadoopConfiguration() throws URISyntaxException {
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
     hadoopConfig.set(PropertyKey.S3A_ACCESS_KEY.toString(), TEST_S3_ACCCES_KEY);
     hadoopConfig.set(PropertyKey.S3A_SECRET_KEY.toString(), TEST_S3_SECRET_KEY);
@@ -59,10 +66,29 @@ public final class HadoopConfigurationUtilsTest {
 
     // This hadoop config will not be loaded into Alluxio configuration.
     hadoopConfig.set("hadoop.config.parameter", "hadoop config value");
-    HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, Configuration.global());
+    HadoopConfigurationUtils.mergeHadoopConfiguration(new URI(ALLUXIO_NORMAL_URI),
+        hadoopConfig, Configuration.global());
     Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(PropertyKey.S3A_ACCESS_KEY));
     Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(PropertyKey.S3A_SECRET_KEY));
     Assert.assertEquals(Source.RUNTIME, Configuration.getSource(PropertyKey.S3A_ACCESS_KEY));
     Assert.assertEquals(Source.RUNTIME, Configuration.getSource(PropertyKey.S3A_SECRET_KEY));
+    Assert.assertEquals(false, Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+  }
+
+  /**
+   * Test for the {@link HadoopConfigurationUtils#mergeHadoopConfiguration} method for an empty
+   * configuration with Zookeeper configuration in URI.
+   */
+  @Test
+  public void mergeHadoopConfigurationWithZookeeperURI() throws URISyntaxException {
+    org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
+    long beforeSize = Configuration.toMap().size();
+    HadoopConfigurationUtils.mergeHadoopConfiguration(new URI(ALLUXIO_ZOOKEEPER_URI),
+        hadoopConfig, Configuration.global());
+    long afterSize = Configuration.toMap().size();
+    Assert.assertEquals(beforeSize, afterSize);
+    Assert.assertEquals(true, Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    Assert.assertEquals("host1:port1,host2:port2",
+        Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
   }
 }

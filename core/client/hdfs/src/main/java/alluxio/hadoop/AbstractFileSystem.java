@@ -498,7 +498,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
     // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
     // We assume here that all clients use the same configuration.
-    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, Configuration.global());
+    HadoopConfigurationUtils.mergeHadoopConfiguration(uri, conf, Configuration.global());
     Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
     // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
     // configuration property, so the user doesn't need to specify the authority.
@@ -536,7 +536,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Create the master inquire client that we would have after merging the hadoop conf into
     // Alluxio Configuration.
     AlluxioConfiguration alluxioConf = new InstancedConfiguration(Configuration.global());
-    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioConf);
+    HadoopConfigurationUtils.mergeHadoopConfiguration(uri, conf, alluxioConf);
     ConnectDetails newDetails = Factory.getConnectDetails(alluxioConf);
 
     return newDetails.equals(FileSystemContext.get().getMasterInquireClient().getConnectDetails());
