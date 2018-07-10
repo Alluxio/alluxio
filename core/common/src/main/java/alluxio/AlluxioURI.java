@@ -99,18 +99,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Constructs an {@link AlluxioURI} from components.
-   *
-   * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
-   * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
-   * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
-   * @param query the query component of the URI
-   */
-  private AlluxioURI(String scheme, String authority, String path, String query) {
-    mUri = URI.Factory.create(scheme, authority, path, query);
-  }
-
-  /**
    * Constructs an {@link AlluxioURI} from a base URI and a new path component.
    *
    * @param baseURI the base uri
