@@ -80,7 +80,11 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
       aclSpecs.add(hdfsAclEntry);
     }
     // set hdfsAcl;
-    hdfs.setAcl(new Path(path), aclSpecs);
+    try {
+      hdfs.setAcl(new Path(path), aclSpecs);
+    } catch (UnsupportedOperationException e) {
+      LOG.warn("Setting ACL on HDFS with acl disabled");
+    }
   }
 
   private AclEntry getHdfsAclEntry(alluxio.security.authorization.AclEntry entry)
