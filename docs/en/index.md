@@ -106,7 +106,7 @@ You can get the released versions of Alluxio from the
 [Project Downloads Page](http://alluxio.org/download). Each release comes with prebuilt
 binaries compatibile with various Hadoop versions. If you would like to build the project from the
 source code, check out the
-[Building From Master Branch Documentation](Building-Alluxio-Master-Branch.html). If you have any
+[Building From Master Branch Documentation](Building-Alluxio-From-Source.html). If you have any
 questions, please feel free to ask at our
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users). For users
 can not access Google Group, please use its

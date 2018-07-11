@@ -84,6 +84,7 @@ public final class Constants {
   public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 2;
   public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
   public static final long METRICS_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 2;
@@ -93,6 +94,7 @@ public final class Constants {
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String LINEAGE_MASTER_NAME = "LineageMaster";
   public static final String KEY_VALUE_MASTER_NAME = "KeyValueMaster";
+  public static final String META_MASTER_NAME = "MetaMaster";
   public static final String METRICS_MASTER_NAME = "MetricsMaster";
   public static final String BLOCK_WORKER_NAME = "BlockWorker";
   public static final String FILE_SYSTEM_WORKER_NAME = "FileSystemWorker";
@@ -103,7 +105,10 @@ public final class Constants {
   public static final String FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME = "FileSystemMasterClient";
   public static final String FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME = "FileSystemMasterWorker";
   public static final String LINEAGE_MASTER_CLIENT_SERVICE_NAME = "LineageMasterClient";
-  public static final String META_MASTER_SERVICE_NAME = "MetaMaster";
+  // TODO(binfan): set META_MASTER_CLIENT_SERVICE_NAME to "MetaMasterClient" after 2.0.
+  // Its value is "MetaMaster" for backwards compatibility so 1.7 clients can talk to 1.8 MetaMaster
+  public static final String META_MASTER_CLIENT_SERVICE_NAME = "MetaMaster";
+  public static final String META_MASTER_MASTER_SERVICE_NAME = "MetaMasterMaster";
   public static final String METRICS_MASTER_CLIENT_SERVICE_NAME = "MetricsMasterClient";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
@@ -124,6 +129,7 @@ public final class Constants {
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 
   public static final String SITE_PROPERTIES = "alluxio-site.properties";
+  public static final String ALLUXIO_LOCALITY_SCRIPT = "alluxio-locality.sh";
 
   public static final String SWIFT_AUTH_KEYSTONE = "keystone";
   public static final String SWIFT_AUTH_KEYSTONE_V3 = "keystonev3";
@@ -148,6 +154,7 @@ public final class Constants {
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
   public static final short INVALID_MODE = -1;
   public static final String IMPERSONATION_HDFS_USER = "_HDFS_USER_";
+<<<<<<< HEAD
   public static final String MODE_BITS_NONE = "---";
   public static final String MODE_BITS_EXECUTE = "--x";
   public static final String MODE_BITS_WRITE = "-w-";
@@ -156,6 +163,10 @@ public final class Constants {
   public static final String MODE_BITS_READ_EXECUTE = "r-x";
   public static final String MODE_BITS_READ_WRITE = "rw-";
   public static final String MODE_BITS_ALL = "rwx";
+||||||| merged common ancestors
+=======
+  public static final String IMPERSONATION_NONE = "_NONE_";
+>>>>>>> master
 
   // Specific tier write
   public static final int FIRST_TIER = 0;

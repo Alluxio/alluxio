@@ -5,6 +5,8 @@ include "exception.thrift"
 
 struct FileSystemMasterCommonTOptions {
   1: optional i64 syncIntervalMs
+  2: optional i64 ttl
+  3: optional common.TTtlAction ttlAction
 }
 
 struct CheckConsistencyTOptions {
@@ -25,8 +27,8 @@ struct CreateDirectoryTOptions {
   2: optional bool recursive
   3: optional bool allowExists
   4: optional i16 mode
-  5: optional i64 ttl
-  6: optional common.TTtlAction ttlAction
+  5: optional i64 ttlNotUsed // deprecated from 1.8
+  6: optional common.TTtlAction ttlActionNotUsed // deprecated from 1.8
   7: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct CreateDirectoryTResponse {}
@@ -35,9 +37,9 @@ struct CreateFileTOptions {
   1: optional i64 blockSizeBytes
   2: optional bool persisted
   3: optional bool recursive
-  4: optional i64 ttl
+  4: optional i64 ttlNotUsed // deprecated from 1.8
   5: optional i16 mode
-  6: optional common.TTtlAction ttlAction
+  6: optional common.TTtlAction ttlActionNotUsed // deprecated from 1.8
   7: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct CreateFileTResponse {}

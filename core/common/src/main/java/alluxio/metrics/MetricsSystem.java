@@ -15,10 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.metrics.sink.Sink;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.JvmAttributeGaugeSet;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
@@ -34,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -49,13 +52,17 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsSystem.class);
 
+  private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
+
   /**
    * An enum of supported instance type.
    */
   public enum InstanceType {
-    MASTER("master"),
-    WORKER("worker"),
-    CLIENT("client");
+    MASTER("Master"),
+    WORKER("Worker"),
+    CLUSTER("Cluster"),
+    CLIENT("Client"),
+    PROXY("Proxy");
 
     private String mValue;
 
@@ -96,6 +103,7 @@ public final class MetricsSystem {
 
   static {
     METRIC_REGISTRY = new MetricRegistry();
+    METRIC_REGISTRY.registerAll(new JvmAttributeGaugeSet());
     METRIC_REGISTRY.registerAll(new GarbageCollectorMetricSet());
     METRIC_REGISTRY.registerAll(new MemoryUsageGaugeSet());
   }
@@ -182,13 +190,38 @@ public final class MetricsSystem {
   }
 
   /**
+   * Converts a simple string to a qualified metric name based on the process type.
+   *
+   * @param name the name of the metric
+   * @return the metric with instance and id tags
+   */
+  public static String getMetricName(String name) {
+    switch (CommonUtils.PROCESS_TYPE.get()) {
+      case CLIENT:
+        return getClientMetricName(name);
+      case MASTER:
+        return getMasterMetricName(name);
+      case PROXY:
+        return getProxyMetricName(name);
+      case WORKER:
+        return getWorkerMetricName(name);
+      default:
+        throw new IllegalStateException("Unknown process type");
+    }
+  }
+
+  /**
    * Builds metric registry names for master instance. The pattern is instance.metricName.
    *
    * @param name the metric name
    * @return the metric registry name
    */
-  public static String getMasterMetricName(String name) {
-    return Joiner.on(".").join(MetricsSystem.InstanceType.MASTER, name);
+  private static String getMasterMetricName(String name) {
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name, n -> InstanceType.MASTER.toString() + "." + name);
   }
 
   /**
@@ -197,8 +230,13 @@ public final class MetricsSystem {
    * @param name the metric name
    * @return the metric registry name
    */
-  public static String getWorkerMetricName(String name) {
-    return getMetricNameWithUniqueId(InstanceType.WORKER, name);
+  private static String getWorkerMetricName(String name) {
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name,
+        n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
   }
 
   /**
@@ -207,8 +245,23 @@ public final class MetricsSystem {
    * @param name the metric name
    * @return the metric registry name
    */
-  public static String getClientMetricName(String name) {
-    return getMetricNameWithUniqueId(InstanceType.CLIENT, name);
+  private static String getClientMetricName(String name) {
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name,
+        n -> getMetricNameWithUniqueId(InstanceType.CLIENT, name));
+  }
+
+  /**
+   * Builds metric registry name for a proxy instance. The pattern is instance.uniqueId.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  private static String getProxyMetricName(String name) {
+    return getMetricNameWithUniqueId(InstanceType.PROXY, name);
   }
 
   /**
@@ -229,9 +282,8 @@ public final class MetricsSystem {
    * @param name the metric name
    * @return the metric registry name
    */
-  public static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    return Joiner.on(".").join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'),
-        name);
+  private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
+    return instance + "." + NetworkAddressUtils.getLocalHostMetricName() + "." + name;
   }
 
   /**
@@ -280,67 +332,27 @@ public final class MetricsSystem {
   // Some helper functions.
 
   /**
-   * @param name the metric name
-   * @return the timer
+   * @param name the name of the metric
+   * @return a counter object with the qualified metric name
    */
-  public static Timer masterTimer(String name) {
-    return METRIC_REGISTRY.timer(getMasterMetricName(name));
+  public static Counter counter(String name) {
+    return METRIC_REGISTRY.counter(getMetricName(name));
   }
 
   /**
-   * @param name the metric name
-   * @return the counter
+   * @param name the name of the metric
+   * @return a meter object with the qualified metric name
    */
-  public static Counter masterCounter(String name) {
-    return METRIC_REGISTRY.counter((getMasterMetricName(name)));
+  public static Meter meter(String name) {
+    return METRIC_REGISTRY.meter(getMetricName(name));
   }
 
   /**
-   * @param name the metric name
-   * @return the timer
+   * @param name the name of the metric
+   * @return a timer object with the qualified metric name
    */
-  public static Timer workerTimer(String name) {
-    return METRIC_REGISTRY.timer(getWorkerMetricName(name));
-  }
-
-  /**
-   * @param name the meter name
-   * @return the meter
-   */
-  public static Meter workerMeter(String name) {
-    return METRIC_REGISTRY.meter(getWorkerMetricName(name));
-  }
-
-  /**
-   * @param name the metric name
-   * @return the counter
-   */
-  public static Counter workerCounter(String name) {
-    return METRIC_REGISTRY.counter((getWorkerMetricName(name)));
-  }
-
-  /**
-   * @param name the metric name
-   * @return the timer
-   */
-  public static Timer clientTimer(String name) {
-    return METRIC_REGISTRY.timer(getClientMetricName(name));
-  }
-
-  /**
-   * @param name the metric name
-   * @return the counter
-   */
-  public static Counter clientCounter(String name) {
-    return METRIC_REGISTRY.counter(getClientMetricName(name));
-  }
-
-  /**
-   * @param name the meter name
-   * @return the meter
-   */
-  public static Meter clientMeter(String name) {
-    return METRIC_REGISTRY.meter(getClientMetricName(name));
+  public static Timer timer(String name) {
+    return METRIC_REGISTRY.timer(getMetricName(name));
   }
 
   /**
@@ -366,14 +378,21 @@ public final class MetricsSystem {
   }
 
   /**
-   * @return all the worker's gauges and counters in the format of {@link Metric}
+   * @return all the master's metrics in the format of {@link Metric}
+   */
+  public static List<Metric> allMasterMetrics() {
+    return allMetrics(InstanceType.MASTER);
+  }
+
+  /**
+   * @return all the worker's metrics in the format of {@link Metric}
    */
   public static List<Metric> allWorkerMetrics() {
     return allMetrics(InstanceType.WORKER);
   }
 
   /**
-   * @return all the client's gauges and counters in the format of {@link Metric}
+   * @return all the client's metrics in the format of {@link Metric}
    */
   public static List<Metric> allClientMetrics() {
     return allMetrics(InstanceType.CLIENT);
@@ -402,6 +421,9 @@ public final class MetricsSystem {
       // least seconds. if the client's duration is too short (i.e. < 1s), then getOneMinuteRate
       // would return 0
       metrics.add(Metric.from(entry.getKey(), entry.getValue().getOneMinuteRate()));
+    }
+    for (Entry<String, Timer> entry : METRIC_REGISTRY.getTimers().entrySet()) {
+      metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount()));
     }
     return metrics;
   }

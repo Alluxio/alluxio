@@ -18,6 +18,9 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.login.AppLoginModule;
 import alluxio.security.login.LoginModuleConfiguration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -36,6 +39,7 @@ import javax.security.auth.login.LoginException;
  */
 @ThreadSafe
 public final class LoginUser {
+  private static final Logger LOG = LoggerFactory.getLogger(LoginUser.class);
 
   /** User instance of the login user in Alluxio client process. */
   private static User sLoginUser;
@@ -82,6 +86,7 @@ public final class LoginUser {
       throw new UnauthenticatedException("Failed to login: " + e.getMessage(), e);
     }
 
+    LOG.debug("login subject: {}", subject);
     Set<User> userSet = subject.getPrincipals(User.class);
     if (userSet.isEmpty()) {
       throw new UnauthenticatedException("Failed to login: No Alluxio User is found.");

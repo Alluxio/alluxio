@@ -15,7 +15,7 @@ Este guia descreve como configurar o Alluxio com
 ## Configuração Inicial
 
 Primeiro, os binários do Alluxio devem estar em sua máquina. Você pode
-[compilar o Alluxio](Building-Alluxio-Master-Branch.html) ou
+[compilar o Alluxio](Building-Alluxio-From-Source.html) ou
 [baixar os binários localmente](Running-Alluxio-Locally.html).
 
 Depois, crie o arquivo de configuração a partir do `template`, caso ainda não tenha efetuado:

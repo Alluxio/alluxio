@@ -49,7 +49,7 @@ $ ./bin/alluxio-start.sh logserver
 ### Start Alluxio
 On Alluxio master, execute the following command.
 ```bash
-$ ./bin/alluxio-start.sh all
+$ ./bin/alluxio-start.sh all SudoMount
 ```
 
 ## Verify Log Server Has Started

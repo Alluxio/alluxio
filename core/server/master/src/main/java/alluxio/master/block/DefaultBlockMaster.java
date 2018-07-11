@@ -25,8 +25,8 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.NoWorkerException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -44,17 +44,21 @@ import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Block.DeleteBlockEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.LockResource;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
+import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -84,6 +88,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -167,6 +173,17 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+
+  /** Listeners to call when lost workers are found. */
+  private final List<Consumer<Address>> mLostWorkerFoundListeners
+      = new ArrayList<>();
+
+  /** Listeners to call when workers are lost. */
+  private final List<Consumer<Address>> mWorkerLostListeners = new ArrayList<>();
+
+  /** Listeners to call when a new worker registers. */
+  private final List<BiConsumer<Address, List<ConfigProperty>>> mWorkerRegisteredListeners
+      = new ArrayList<>();
 
   /** Handle to the metrics master. */
   private final MetricsMaster mMetricsMaster;
@@ -293,7 +310,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     if (isLeader) {
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
-          (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+          (int) Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL)));
     }
   }
 
@@ -336,7 +353,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
-    if (mSafeModeManager.isInSafeMode()) {
+    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
@@ -350,7 +367,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException {
-    if (mSafeModeManager.isInSafeMode()) {
+    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mLostWorkers.size());
@@ -366,7 +383,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public List<WorkerInfo> getWorkerReport(GetWorkerReportOptions options)
       throws UnavailableException, InvalidArgumentException {
-    if (mSafeModeManager.isInSafeMode()) {
+    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
 
@@ -532,14 +549,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   // TODO(binfan): check the logic is correct or not when commitBlock is a retry
   @Override
   public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
-      long length) throws NoWorkerException, UnavailableException {
+      long length) throws NotFoundException, UnavailableException {
     LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
         workerId, usedBytesOnTier, blockId, length);
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     // TODO(peis): Check lost workers as well.
     if (worker == null) {
-      throw new NoWorkerException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
 
     // Lock the worker metadata first.
@@ -695,6 +712,10 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         lostWorker.updateLastUpdatedTimeMs();
         mWorkers.add(lostWorker);
         mLostWorkers.remove(lostWorker);
+        WorkerNetAddress workerAddress = lostWorker.getWorkerAddress();
+        for (Consumer<Address> function : mLostWorkerFoundListeners) {
+          function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
+        }
         return lostWorkerId;
       }
     }
@@ -712,10 +733,12 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException {
+      Map<String, List<Long>> currentBlocksOnTiers,
+      RegisterWorkerTOptions options) throws NotFoundException {
+
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
-      throw new NoWorkerException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
 
     // Gather all blocks on this worker.
@@ -733,6 +756,16 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
       processWorkerOrphanedBlocks(worker);
     }
+    if (options.isSetConfigList()) {
+      List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
+          .stream().map(alluxio.wire.ConfigProperty::fromThrift)
+          .collect(Collectors.toList());
+      for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
+        WorkerNetAddress workerAddress = worker.getWorkerAddress();
+        function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
+            wireConfigList);
+      }
+    }
 
     LOG.info("registerWorker(): {}", worker);
   }
@@ -747,7 +780,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       return new Command(CommandType.Register, new ArrayList<Long>());
     }
 
-    synchronized (worker) {
+    try (LockResource r = new LockResource(worker.getHeartbeatLock())) {
       // Technically, 'worker' should be confirmed to still be in the data structure. Lost worker
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
       // will just re-register regardless.
@@ -857,7 +890,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    */
   @GuardedBy("masterBlockInfo")
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) throws UnavailableException {
-    if (mSafeModeManager.isInSafeMode()) {
+    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     // "Join" to get all the addresses of the workers.
@@ -909,7 +942,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
     @Override
     public void heartbeat() {
-      int masterWorkerTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
+      long masterWorkerTimeoutMs = Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
         synchronized (worker) {
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
@@ -918,6 +951,10 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
                 worker.getWorkerAddress(), lastUpdate);
             mLostWorkers.add(worker);
             mWorkers.remove(worker);
+            WorkerNetAddress workerAddress = worker.getWorkerAddress();
+            for (Consumer<Address> function : mWorkerLostListeners) {
+              function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
+            }
             processWorkerRemovedBlocks(worker, worker.getBlocks());
           }
         }
@@ -967,6 +1004,21 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     }).collect(Collectors.toSet());
   }
 
+  @Override
+  public void registerLostWorkerFoundListener(Consumer<Address> function) {
+    mLostWorkerFoundListeners.add(function);
+  }
+
+  @Override
+  public void registerWorkerLostListener(Consumer<Address> function) {
+    mWorkerLostListeners.add(function);
+  }
+
+  @Override
+  public void registerNewWorkerConfListener(BiConsumer<Address, List<ConfigProperty>> function) {
+    mWorkerRegisteredListeners.add(function);
+  }
+
   /**
    * Class that contains metrics related to BlockMaster.
    */
@@ -984,7 +1036,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
      */
     @VisibleForTesting
     public static void registerGauges(final BlockMaster master) {
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_TOTAL),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_TOTAL),
           new Gauge<Long>() {
             @Override
             public Long getValue() {
@@ -992,7 +1044,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_USED),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_USED),
           new Gauge<Long>() {
             @Override
             public Long getValue() {
@@ -1000,7 +1052,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_FREE),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_FREE),
           new Gauge<Long>() {
             @Override
             public Long getValue() {
@@ -1011,7 +1063,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       for (int i = 0; i < master.getGlobalStorageTierAssoc().size(); i++) {
         String alias = master.getGlobalStorageTierAssoc().getAlias(i);
         MetricsSystem.registerGaugeIfAbsent(
-            MetricsSystem.getMasterMetricName(CAPACITY_TOTAL + TIER + alias), new Gauge<Long>() {
+            MetricsSystem.getMetricName(CAPACITY_TOTAL + TIER + alias), new Gauge<Long>() {
               @Override
               public Long getValue() {
                 return master.getTotalBytesOnTiers().getOrDefault(alias, 0L);
@@ -1019,14 +1071,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             });
 
         MetricsSystem.registerGaugeIfAbsent(
-            MetricsSystem.getMasterMetricName(CAPACITY_USED + TIER + alias), new Gauge<Long>() {
+            MetricsSystem.getMetricName(CAPACITY_USED + TIER + alias), new Gauge<Long>() {
               @Override
               public Long getValue() {
                 return master.getUsedBytesOnTiers().getOrDefault(alias, 0L);
               }
             });
         MetricsSystem.registerGaugeIfAbsent(
-            MetricsSystem.getMasterMetricName(CAPACITY_FREE + TIER + alias), new Gauge<Long>() {
+            MetricsSystem.getMetricName(CAPACITY_FREE + TIER + alias), new Gauge<Long>() {
               @Override
               public Long getValue() {
                 return master.getTotalBytesOnTiers().getOrDefault(alias, 0L)
@@ -1035,7 +1087,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             });
       }
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(WORKERS),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(WORKERS),
           new Gauge<Integer>() {
             @Override
             public Integer getValue() {

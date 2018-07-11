@@ -13,15 +13,27 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+<<<<<<< HEAD
 import alluxio.exception.status.UnimplementedException;
 import alluxio.security.authorization.AccessControlList;
+||||||| merged common ancestors
+=======
+import alluxio.metrics.CommonMetrics;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.WorkerMetrics;
+import alluxio.security.authentication.AuthenticatedClientUser;
+>>>>>>> master
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.SecurityUtils;
 
+import com.codahale.metrics.Timer;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,16 +52,22 @@ import java.util.Map;
 public class UnderFileSystemWithLogging implements UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemWithLogging.class);
 
+  private static final String NAME_SEPARATOR = ":";
+
   private final UnderFileSystem mUnderFileSystem;
+  private final String mPath;
 
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
    * {@link UnderFileSystem} implementation.
    *
+   * @param path the UFS path
    * @param ufs the implementation which will handle all the calls
    */
   // TODO(adit): Remove this method. ALLUXIO-2643.
-  UnderFileSystemWithLogging(UnderFileSystem ufs) {
+  UnderFileSystemWithLogging(String path, UnderFileSystem ufs) {
+    Preconditions.checkNotNull(path, "path");
+    mPath = path;
     mUnderFileSystem = ufs;
   }
 
@@ -580,11 +598,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    */
   private <T> T call(UfsCallable<T> callable) throws IOException {
     LOG.debug("Enter: {}", callable);
-    try {
+    String methodName = callable.toString().split(NAME_SEPARATOR)[0];
+    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       T ret = callable.call();
       LOG.debug("Exit (OK): {}", callable);
       return ret;
     } catch (IOException e) {
+      MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       LOG.debug("Exit (Error): {}, Error={}", callable, e.getMessage());
       throw e;
     }
@@ -593,5 +613,27 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   @Override
   public boolean isSeekable() {
     return mUnderFileSystem.isSeekable();
+  }
+
+  // TODO(calvin): General tag logic should be in getMetricName
+  private String getQualifiedMetricName(String metricName) {
+    try {
+      if (SecurityUtils.isAuthenticationEnabled() && AuthenticatedClientUser.get() != null) {
+        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
+            AuthenticatedClientUser.get().getName(), WorkerMetrics.TAG_UFS,
+            MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
+            mUnderFileSystem.getUnderFSType());
+      }
+    } catch (IOException e) {
+      // fall through
+    }
+    return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
+        MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
+        mUnderFileSystem.getUnderFSType());
+  }
+
+  // TODO(calvin): This should not be in this class
+  private String getQualifiedFailureMetricName(String metricName) {
+    return getQualifiedMetricName(metricName + "Failures");
   }
 }

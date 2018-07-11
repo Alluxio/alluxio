@@ -15,7 +15,7 @@ This guide describes how to configure Alluxio with an under storage system suppo
 ## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-Master-Branch.html), or
+[compile Alluxio](Building-Alluxio-From-Source.html), or
 [download the binaries locally](Running-Alluxio-Locally.html).
 
 ## Configuring Alluxio

@@ -28,7 +28,6 @@ import alluxio.thrift.FileSystemMasterClientService.Client;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.util.CommonUtils;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
@@ -71,20 +70,10 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     final AlluxioOperationThread thread =
         new AlluxioOperationThread(mCluster.getFileSystemClient());
     thread.start();
-    CommonUtils.waitFor("a successful operation to be performed", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return thread.successes() > 0;
-      }
-    });
+    CommonUtils.waitFor("a successful operation to be performed", () -> thread.successes() > 0);
     mCluster.stopZk();
     long zkStopTime = System.currentTimeMillis();
-    CommonUtils.waitFor("operations to start failing", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return thread.getLatestFailure() != null;
-      }
-    });
+    CommonUtils.waitFor("operations to start failing", () -> thread.getLatestFailure() != null);
 
     assertFalse(rpcServiceAvailable());
     LOG.info("First operation failed {}ms after stopping the Zookeeper cluster",
@@ -93,12 +82,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     mCluster.restartZk();
     long zkStartTime = System.currentTimeMillis();
     CommonUtils.waitFor("another successful operation to be performed",
-        new Function<Void, Boolean>() {
-          @Override
-          public Boolean apply(Void input) {
-            return thread.successes() > successes;
-          }
-        });
+        () -> thread.successes() > successes);
     LOG.info("Recovered after {}ms", System.currentTimeMillis() - zkStartTime);
     mCluster.notifySuccess();
   }

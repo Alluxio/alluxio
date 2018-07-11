@@ -14,6 +14,7 @@ package alluxio.hadoop;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import alluxio.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
@@ -29,12 +30,14 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.lineage.LineageContext;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterInquireClient.ConnectDetails;
+import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileBlockInfo;
@@ -56,7 +59,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -458,16 +460,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
-    boolean masterAddIsSameAsDefault = checkMasterAddress();
+    boolean connectDetailsMatch = connectDetailsMatch(mUri, conf);
 
-    if (sInitialized && masterAddIsSameAsDefault) {
+    if (sInitialized && connectDetailsMatch) {
       updateFileSystemAndContext();
       return;
     }
     synchronized (INIT_LOCK) {
       // If someone has initialized the object since the last check, return
       if (sInitialized) {
-        if (masterAddIsSameAsDefault) {
+        if (connectDetailsMatch) {
           updateFileSystemAndContext();
           return;
         } else {
@@ -496,7 +498,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
     // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
     // We assume here that all clients use the same configuration.
-    HadoopConfigurationUtils.mergeHadoopConfiguration(conf);
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, Configuration.global());
     Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
     // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
     // configuration property, so the user doesn't need to specify the authority.
@@ -510,7 +512,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // These must be reset to pick up the change to the master address.
     // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
     LineageContext.INSTANCE.reset();
-    FileSystemContext.get().reset();
+    FileSystemContext.get().reset(Configuration.global());
 
     // Try to connect to master, if it fails, the provided uri is invalid.
     FileSystemMasterClient client = FileSystemContext.get().acquireMasterClient();
@@ -523,37 +525,37 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
+   * Checks whether the connect details from the uri + hadoop conf + global Alluxio conf are the
+   * same as the connect details currently being used by {@link FileSystemContext}.
+   *
+   * @param uri the uri
+   * @param conf the hadoop conf
+   * @return whether the details match
+   */
+  private boolean connectDetailsMatch(URI uri, org.apache.hadoop.conf.Configuration conf) {
+    // Create the master inquire client that we would have after merging the hadoop conf into
+    // Alluxio Configuration.
+    AlluxioConfiguration alluxioConf = new InstancedConfiguration(Configuration.global());
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioConf);
+    ConnectDetails newDetails = Factory.getConnectDetails(alluxioConf);
+
+    return newDetails.equals(FileSystemContext.get().getMasterInquireClient().getConnectDetails());
+  }
+
+  /**
    * Sets the file system and context.
    */
   private void updateFileSystemAndContext() {
     Subject subject = getHadoopSubject();
     if (subject != null) {
+      LOG.debug("Using Hadoop subject: {}", subject);
       mContext = FileSystemContext.create(subject);
       mFileSystem = FileSystem.Factory.get(mContext);
     } else {
+      LOG.debug("No Hadoop subject. Using default FS Context.");
       mContext = FileSystemContext.get();
       mFileSystem = FileSystem.Factory.get();
     }
-  }
-
-  /**
-   * @return true if the master address in mUri is the same as the one in the default file
-   *         system context.
-   */
-  private boolean checkMasterAddress() {
-    InetSocketAddress masterAddress = null;
-    try {
-      masterAddress = FileSystemContext.get().getMasterAddress();
-    } catch (UnavailableException e) {
-      LOG.warn("Failed to determine master RPC address: {}", e.toString());
-      return false;
-    }
-    boolean sameHost = masterAddress.getHostString().equals(mUri.getHost());
-    boolean samePort = masterAddress.getPort() == mUri.getPort();
-    if (sameHost && samePort) {
-      return true;
-    }
-    return false;
   }
 
   /**

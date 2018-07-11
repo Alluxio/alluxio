@@ -27,7 +27,6 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.base.Function;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -84,12 +83,8 @@ public class JournalIntegrationTest {
     Thread t = new Thread(toucher);
     t.start();
     try {
-      CommonUtils.waitFor("20 files to be created", new Function<Void, Boolean>() {
-        @Override
-        public Boolean apply(Void input) {
-          return toucher.getFilesTouched() >= 20;
-        }
-      }, WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS));
+      CommonUtils.waitFor("20 files to be created", () -> toucher.getFilesTouched() >= 20,
+          WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS));
       mCluster.restartMasters();
     } catch (Exception e) {
       // If an exception occurred, throw it instead of the timeout exception

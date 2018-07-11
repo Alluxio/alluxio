@@ -109,7 +109,7 @@ function main {
   fi
 
   source "${ALLUXIO_PATH}/libexec/alluxio-config.sh"
-  ALLUXIO_CHECKER_JAR="${ALLUXIO_PATH}/checker/target/alluxio-checker-${VERSION}-jar-with-dependencies.jar"
+  ALLUXIO_CHECKER_JAR="${ALLUXIO_PATH}/integration/checker/target/alluxio-checker-${VERSION}-jar-with-dependencies.jar"
   ALLUXIO_BIN_PATH="${ALLUXIO_PATH}/bin/alluxio"
 
   if [[ "${HIVE_USER_MODE}" == "location" ]]; then

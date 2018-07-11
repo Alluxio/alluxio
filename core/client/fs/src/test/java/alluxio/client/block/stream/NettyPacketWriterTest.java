@@ -28,7 +28,6 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -50,6 +49,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, WorkerNetAddress.class})
@@ -241,18 +241,14 @@ public final class NettyPacketWriterTest {
       final long checksumEnd) {
     return EXECUTOR.submit(new Callable<Long>() {
       @Override
-      public Long call() {
+      public Long call() throws TimeoutException, InterruptedException {
         try {
           long checksum = 0;
           long pos = 0;
           while (true) {
-            RPCProtoMessage request = (RPCProtoMessage) CommonUtils
-                .waitForResult("wrtie request", new Function<Void, Object>() {
-                  @Override
-                  public Object apply(Void v) {
-                    return channel.readOutbound();
-                  }
-                }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
+            RPCProtoMessage request = (RPCProtoMessage) CommonUtils.waitForResult("write request",
+                () -> channel.readOutbound(),
+                WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
             validateWriteRequest(request.getMessage().asWriteRequest(), pos);
 
             DataBuffer buffer = request.getPayloadDataBuffer();

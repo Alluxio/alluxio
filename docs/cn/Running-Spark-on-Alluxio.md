@@ -22,9 +22,9 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 * Alluxio集群根据向导搭建完成(可以是[本地模式](Running-Alluxio-Locally.html)或者[集群模式](Running-Alluxio-on-a-Cluster.html))。
 
 * 我们建议您从Alluxio[下载页面](http://www.alluxio.org/download)下载tarball.
-  另外，高级用户可以选择根据[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)的说明将源代码编译为客户端jar包，并在本文余下部分使用于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`路径处生成的jar包。
+  另外，高级用户可以选择根据[这里](Building-Alluxio-From-Source.html#compute-framework-support)的说明将源代码编译为客户端jar包，并在本文余下部分使用于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`路径处生成的jar包。
 
-* 为使Spark应用程序能够在Alluxio中读写文件， 必须将Alluxio客户端jar包分布在不同节点的应用程序的classpath中（每个节点必须使客户端jar包具有相同的本地路径{{site.ALLUXIO_CLIENT_JAR_PATH}}）
+* 为使Spark应用程序能够在Alluxio中读写文件， 必须将Alluxio客户端jar包分布在不同节点的应用程序的classpath中（每个节点必须使客户端jar包具有相同的本地路径`{{site.ALLUXIO_CLIENT_JAR_PATH}}`）
 
 * 请添加如下代码到`spark/conf/spark-defaults.conf`。
 

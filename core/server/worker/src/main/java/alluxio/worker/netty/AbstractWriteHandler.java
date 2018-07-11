@@ -24,6 +24,7 @@ import alluxio.resource.LockResource;
 import alluxio.util.network.NettyUtils;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
@@ -470,7 +471,10 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
    */
   private void incrementMetrics(long bytesWritten) {
     Counter counter = mContext.getCounter();
-    Preconditions.checkState(counter != null);
+    Meter meter = mContext.getMeter();
+    Preconditions.checkState(counter != null, "counter");
+    Preconditions.checkState(meter != null, "meter");
     counter.inc(bytesWritten);
+    meter.mark(bytesWritten);
   }
 }

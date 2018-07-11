@@ -13,7 +13,7 @@ priority: 1
 
 ## 初始安装步骤
   
-首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
+首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 ## 配置Alluxio
 
@@ -49,7 +49,7 @@ fs.swift.region=<swift-preferred-region>
 
 使用Swift模块使得Alluxio能使用[Ceph Object Storage](https://ceph.com/ceph-storage/object-storage/)以及[IBM SoftLayer](http://www.softlayer.com/object-storage)对象存储作为底层存储。若要使用Ceph，必须部署[Rados Gateway](http://docs.ceph.com/docs/master/radosgw/)模块。
 
-## 在本地Swift上运行Alluxio
+## 使用Swift本地运行Alluxio
 
 完成配置后，你可以启动一个Alluxio集群：
 
