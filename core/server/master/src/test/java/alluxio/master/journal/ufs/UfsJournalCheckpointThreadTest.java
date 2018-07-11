@@ -22,7 +22,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import org.junit.After;
 import org.junit.Assert;
@@ -71,21 +70,18 @@ public final class UfsJournalCheckpointThreadTest {
     UfsJournalCheckpointThread checkpointThread =
         new UfsJournalCheckpointThread(mockMaster, mJournal);
     checkpointThread.start();
-    CommonUtils.waitFor("checkpoint", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        try {
-          UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
-          if (!snapshot.getCheckpoints().isEmpty()
-              && snapshot.getCheckpoints().get(snapshot.getCheckpoints().size() - 1).getEnd()
-              == 10) {
-            return true;
-          }
-        } catch (IOException e) {
-          return false;
+    CommonUtils.waitFor("checkpoint", () -> {
+      try {
+        UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+        if (!snapshot.getCheckpoints().isEmpty()
+            && snapshot.getCheckpoints().get(snapshot.getCheckpoints().size() - 1).getEnd()
+            == 10) {
+          return true;
         }
+      } catch (IOException e) {
         return false;
       }
+      return false;
     }, WaitForOptions.defaults().setTimeoutMs(20000));
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     Assert.assertEquals(1, snapshot.getCheckpoints().size());

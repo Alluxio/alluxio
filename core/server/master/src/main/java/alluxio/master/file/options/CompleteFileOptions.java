@@ -12,6 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.CompleteFileTOptions;
+import alluxio.underfs.UfsStatus;
 import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
@@ -26,6 +27,7 @@ public final class CompleteFileOptions {
   private CommonOptions mCommonOptions;
   private long mUfsLength;
   private long mOperationTimeMs;
+  private UfsStatus mUfsStatus;
 
   /**
    * @return the default {@link CompleteFileOptions}
@@ -53,6 +55,7 @@ public final class CompleteFileOptions {
     mCommonOptions = CommonOptions.defaults();
     mUfsLength = 0;
     mOperationTimeMs = System.currentTimeMillis();
+    mUfsStatus = null;
   }
 
   /**
@@ -74,6 +77,13 @@ public final class CompleteFileOptions {
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @return the ufs status
+   */
+  public UfsStatus getUfsStatus() {
+    return mUfsStatus;
   }
 
   /**
@@ -103,6 +113,15 @@ public final class CompleteFileOptions {
     return this;
   }
 
+  /**
+   * @param ufsStatus the ufs status to use
+   * @return the updated options object
+   */
+  public CompleteFileOptions setUfsStatus(UfsStatus ufsStatus) {
+    mUfsStatus = ufsStatus;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -114,12 +133,13 @@ public final class CompleteFileOptions {
     CompleteFileOptions that = (CompleteFileOptions) o;
     return Objects.equal(mUfsLength, that.mUfsLength)
         && Objects.equal(mCommonOptions, that.mCommonOptions)
-        && mOperationTimeMs == that.mOperationTimeMs;
+        && mOperationTimeMs == that.mOperationTimeMs
+        && Objects.equal(mUfsStatus, that.mUfsStatus);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mUfsLength, mOperationTimeMs, mCommonOptions);
+    return Objects.hashCode(mUfsLength, mOperationTimeMs, mCommonOptions, mUfsStatus);
   }
 
   @Override
@@ -128,6 +148,7 @@ public final class CompleteFileOptions {
         .add("commonOptions", mCommonOptions)
         .add("ufsLength", mUfsLength)
         .add("operationTimeMs", mOperationTimeMs)
+        .add("ufsStatus", mUfsStatus)
         .toString();
   }
 }

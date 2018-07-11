@@ -1,43 +1,77 @@
 alluxio.master.bind.host:
   Alluxio master绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
-alluxio.master.heartbeat.interval.ms:
-  Alluxio master心跳间隔（单位：毫秒）。
+alluxio.master.heartbeat.interval:
+  Alluxio master心跳间隔。
 alluxio.master.hostname:
   Alluxio master主机名。
 alluxio.master.file.async.persist.handler:
   处理异步持久化请求的处理类。
 alluxio.master.format.file_prefix:
   当journal被格式化时，在joural文件夹下生成的文件的文件名前缀。当判断journal是否被格式化时master会查找文件名以该前缀开头的文件。
-alluxio.master.journal.flush.batch.time.ms:
-  等待批处理日志写入的时间（以毫秒为单位）。
-alluxio.master.journal.flush.timeout.ms:
-  在放弃和关闭master之前保持重试日志写入的时间量（以毫秒为单位）。
+alluxio.master.journal.checkpoint.period.entries:
+  在创建一个新journal检查点之前写入的journal数。
+alluxio.master.journal.flush.batch.time:
+  等待批处理日志写入的时间。
+alluxio.master.journal.flush.timeout:
+  在放弃和关闭master之前保持重试日志写入的时间量。
 alluxio.master.journal.folder:
   存储master journal日志的路径。
 alluxio.master.journal.formatter.class:
   序列化journal的类。
+alluxio.master.journal.gc.period:
+  扫描和删除陈旧的journal检查点的频率。
+alluxio.master.journal.gc.threshold:
+  垃圾收集检查点的最小年龄。
 alluxio.master.journal.log.size.bytes.max:
   如果一个日志文件大小超过该值，会产生下一个文件。
-alluxio.master.journal.tailer.&#8203;shutdown.quiet.wait.time.ms:
-  在备用master停止监听线程之前，在该配置项指定的时间（单位：毫秒）内不应对leader master的journal作任何更新。
-alluxio.master.journal.tailer.sleep.time.ms:
-  指定当备用master无法检测到leader master journal的更新时，其睡眠时间（单位：毫秒）。
-alluxio.master.lineage.checkpoint.interval.ms:
-  Alluxio checkpoint机制的时间间隔（单位：毫秒）。
+alluxio.master.journal.tailer.shutdown.quiet.wait.time:
+  在备用master停止监听线程之前，在该配置项指定的时间内不应对leader master的journal作任何更新。
+alluxio.master.journal.tailer.sleep.time:
+  指定当备用master无法检测到leader master journal的更新时，其睡眠时间。
+alluxio.master.journal.temporary.file.gc.threshold:
+  临时文件垃圾收集检查点的最小年龄。
+alluxio.master.journal.type:
+  使用journal类型，UFS（存储journal在UFS中）和NOOP（不使用journal）。
+alluxio.master.journal.ufs.option:
+  journal操作使用的配置。
+alluxio.master.jvm.monitor.enabled:
+  是否在master上启动JVM monitor线程。
+alluxio.master.lineage.checkpoint.interval:
+  Alluxio checkpoint机制的时间间隔。
 alluxio.master.lineage.checkpoint.class:
   用于生成lineage文件的checkpoint策略的类名，默认的策略是将最新的完整的lineage作为检查点，即所有输出文件都完成了的lineage。
-alluxio.master.lineage.recompute.interval.ms:
-  Alluxio执行重新计算任务的时间间隔（单位：毫秒），executor根据lineage扫描到所有丢失的文件，然后重新执行对应的计算任务。
+alluxio.master.lineage.recompute.interval:
+  Alluxio执行重新计算任务的时间间隔，executor根据lineage扫描到所有丢失的文件，然后重新执行对应的计算任务。
 alluxio.master.lineage.recompute.log.path:
   执行重新计算任务时将日志的标准输出重定向到该配置项指定的路径。
+alluxio.master.mount.table.root.alluxio:
+  Alluxio mount根节点。
+alluxio.master.mount.table.root.option:
+  Alluxio mount根节点UFS配置。
+alluxio.master.mount.table.root.readonly:
+  Alluxio mount根节点是否只读。
+alluxio.master.mount.table.root.shared:
+  Alluxio mount根节点是否共享。
+alluxio.master.mount.table.root.ufs:
+  挂载到Alluxio mount根节点的UFS。
+alluxio.master.periodic.block.integrity.check.interval:
+  块完整性检查的间隔，如果小于0则不启用。
+alluxio.master.periodic.block.integrity.check.repair:
+  完整性检查时是否要删除孤儿块。这是个实验性的属性。
 alluxio.master.port:
   Alluxio master的运行端口。
 alluxio.master.retry:
-  "client尝试与master相连的最大重试次数。（注意：该配置项目前不推荐使用，建议使用`alluxio.user.rpc.retry.max.num.retry`替代该项）"
+  client尝试与master相连的最大重试次数。(注意：该配置项目前不推荐使用，建议使用`alluxio.user.rpc.retry.max.num.retry`替代该项)
+alluxio.master.startup.block.integrity.check.enabled:
+  是否应该在启动时检查系统孤立的块(由于各种系统故障而没有相应文件但仍然占用系统资源的块)。如果此属性为真，则在主启动期间将删除孤立的块。此属性自1.7.1开始可用。
 alluxio.master.startup.consistency.check.enabled:
   当Alluxio启动时是否检查与底层存储系统的一致性，在该检查过程中，Alluxio会进入只读模式。该检查默认开启。
-alluxio.master.ttl.checker.interval.ms:
-  清除过期ttl值的文件任务的时间间隔（单位：毫秒）。
+alluxio.master.thrift.shutdown.timeout:
+  thrift server在关闭时的最大等待时间。
+alluxio.master.ttl.checker.interval:
+  清除过期ttl值的文件任务的时间间隔。
+alluxio.master.ufs.block.location.cache.capacity:
+  UFS块缓存的容量。这个cache缓存UFS块位置，适用于要保存但不在Alluxio空间中的文件，以便这些文件的列表状态不需要反复询问UFS的块位置。如果将此设置为0，则缓存将被禁用。
 alluxio.master.ufs.path.cache.capacity:
   UFS路径缓存的容量。此缓存用来近似`一次性`元数据加载行为。（查看 `alluxio.user.file.metadata.load.type`)。更大的缓存将耗费更大的内存，但是能够更好地近似`一次性`行为。
 alluxio.master.ufs.path.cache.threads:
@@ -55,8 +89,10 @@ alluxio.master.worker.threads.max:
   Alluxio master能处理的最大RPC并发请求数目，该值用于配置master的Thrift线程池的最大线程数。
 alluxio.master.worker.threads.min:
   Alluxio master用于处理RPC请求的最小线程数，该值用于配置master的Thrift线程池的最小线程数。
-alluxio.master.worker.timeout.ms:
-  Alluxio master与worker之间响应的最大超时时间（单位：毫秒），超过该时间表明该worker失效。
+alluxio.master.worker.connect.wait.time:
+  在开始接受client请求之前，Alluxio master会等待一段时间，让所有worker注册。此属性决定等待时间。
+alluxio.master.worker.timeout:
+  Alluxio master与worker之间响应的最大超时时间，超过该时间表明该worker失效。
 alluxio.master.tieredstore.global.levels:
   系统中存储层的总数目。
 alluxio.master.tieredstore.global.level0.alias:
@@ -69,5 +105,5 @@ alluxio.master.keytab.file:
   Alluxio master的Kerberos密钥表文件。
 alluxio.master.principal:
   Alluxio master的Kerberos主体。
-alluxio.master.connection.timeout.ms:
-  Alluxio master设置Thrift的超时时间（单位：毫秒），超过该时间关闭连接,默认值是0,表示无时间限制
+alluxio.master.connection.timeout:
+  Alluxio master设置Thrift的超时时间，超过该时间关闭连接,默认值是0,表示无时间限制

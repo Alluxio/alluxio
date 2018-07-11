@@ -13,11 +13,11 @@ priority: 0
 
 ## 初始步骤
 
-首先，在你的机器上必须安装Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
+首先，在你的机器上必须安装Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 而且，为了在Alluxio上使用GCS, 需要创建一个bucket（或者使用一个已有的bucket)。你应该注意你在这个bucket里准备使用的目录，你可以自己在这个bucket里面创建一个新目录，或者使用一个已有的目录。在这个指南中，我们将GCS bucket取名为`GCS_BUCKET`，bucket中的目录取名为`GCS_DIRECTORY`。
 
-如果你刚接触GCS，请先阅读GCS[文档](https://cloud.google.com/storage/docs/overview)。
+如果想要了解更多关于GCS的信息，请阅读它的[文档](https://cloud.google.com/storage/docs/overview)。
 
 ## 配置Alluxio
 
@@ -27,12 +27,11 @@ priority: 0
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-为了配置Alluxio以使用GCS作为其底层文件系统，需要修改`conf/alluxio-env.sh`文件。第一个需要修改的地方就是指定一个已有的bucket以及bucket中的目录作为底层文件系统。你可以通过向`conf/alluxio-env.sh`文件添加以下代码来指定：
+你需要配置Alluxio，以使用GCS作为其底层文件系统。第一个需要修改的地方就是指定一个已有的bucket以及bucket中的目录作为底层文件系统。你可以通过向`conf/alluxio-site.properties`文件添加以下代码来指定：
 
 {% include Configuring-Alluxio-with-GCS/underfs-address.md %}
 
-接下来，你需要指定Google证书来接入GCS。在`conf/alluxio-env.sh`文件的
-`ALLUXIO_JAVA_OPTS`部分添加:
+接下来，你需要指定Google证书来接入GCS。在`conf/alluxio-site.properties`文件中添加:
 
 {% include Configuring-Alluxio-with-GCS/google.md %}
 

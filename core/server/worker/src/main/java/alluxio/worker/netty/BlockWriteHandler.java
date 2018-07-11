@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -158,10 +159,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
         context.setBytesReserved(bytesReserved + bytesToReserve);
       }
       if (context.getBlockWriter() == null) {
-        String metricName = "BytesWrittenAlluxio";
+        String metricName = WorkerMetrics.BYTES_WRITTEN_ALLUXIO;
         context.setBlockWriter(
             mWorker.getTempBlockWriterRemote(request.getSessionId(), request.getId()));
-        context.setCounter(MetricsSystem.workerCounter(metricName));
+        context.setCounter(MetricsSystem.counter(metricName));
+        context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT));
       }
       Preconditions.checkState(context.getBlockWriter() != null);
       int sz = buf.readableBytes();

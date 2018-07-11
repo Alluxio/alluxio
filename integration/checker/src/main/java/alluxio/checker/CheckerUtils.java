@@ -102,7 +102,7 @@ public final class CheckerUtils {
   public static boolean supportAlluxioHA(PrintWriter reportWriter) {
     if (alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       reportWriter.println("Alluixo is running in high availability mode.\n");
-      if (!alluxio.Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
+      if (!alluxio.Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
         reportWriter.println("Please set Zookeeper address to support "
             + "Alluxio high availability mode.\n");
         return false;

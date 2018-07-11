@@ -39,6 +39,8 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("FileSystemMasterCommonTOptions");
 
   private static final org.apache.thrift.protocol.TField SYNC_INTERVAL_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("syncIntervalMs", org.apache.thrift.protocol.TType.I64, (short)1);
+  private static final org.apache.thrift.protocol.TField TTL_FIELD_DESC = new org.apache.thrift.protocol.TField("ttl", org.apache.thrift.protocol.TType.I64, (short)2);
+  private static final org.apache.thrift.protocol.TField TTL_ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlAction", org.apache.thrift.protocol.TType.I32, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,10 +49,18 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
   }
 
   private long syncIntervalMs; // optional
+  private long ttl; // optional
+  private alluxio.thrift.TTtlAction ttlAction; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    SYNC_INTERVAL_MS((short)1, "syncIntervalMs");
+    SYNC_INTERVAL_MS((short)1, "syncIntervalMs"),
+    TTL((short)2, "ttl"),
+    /**
+     * 
+     * @see alluxio.thrift.TTtlAction
+     */
+    TTL_ACTION((short)3, "ttlAction");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -67,6 +77,10 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
       switch(fieldId) {
         case 1: // SYNC_INTERVAL_MS
           return SYNC_INTERVAL_MS;
+        case 2: // TTL
+          return TTL;
+        case 3: // TTL_ACTION
+          return TTL_ACTION;
         default:
           return null;
       }
@@ -108,13 +122,18 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
 
   // isset id assignments
   private static final int __SYNCINTERVALMS_ISSET_ID = 0;
+  private static final int __TTL_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.SYNC_INTERVAL_MS};
+  private static final _Fields optionals[] = {_Fields.SYNC_INTERVAL_MS,_Fields.TTL,_Fields.TTL_ACTION};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.SYNC_INTERVAL_MS, new org.apache.thrift.meta_data.FieldMetaData("syncIntervalMs", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.TTL, new org.apache.thrift.meta_data.FieldMetaData("ttl", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.TTL_ACTION, new org.apache.thrift.meta_data.FieldMetaData("ttlAction", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, alluxio.thrift.TTtlAction.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileSystemMasterCommonTOptions.class, metaDataMap);
   }
@@ -128,6 +147,10 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
   public FileSystemMasterCommonTOptions(FileSystemMasterCommonTOptions other) {
     __isset_bitfield = other.__isset_bitfield;
     this.syncIntervalMs = other.syncIntervalMs;
+    this.ttl = other.ttl;
+    if (other.isSetTtlAction()) {
+      this.ttlAction = other.ttlAction;
+    }
   }
 
   public FileSystemMasterCommonTOptions deepCopy() {
@@ -138,6 +161,9 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
   public void clear() {
     setSyncIntervalMsIsSet(false);
     this.syncIntervalMs = 0;
+    setTtlIsSet(false);
+    this.ttl = 0;
+    this.ttlAction = null;
   }
 
   public long getSyncIntervalMs() {
@@ -163,6 +189,61 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SYNCINTERVALMS_ISSET_ID, value);
   }
 
+  public long getTtl() {
+    return this.ttl;
+  }
+
+  public FileSystemMasterCommonTOptions setTtl(long ttl) {
+    this.ttl = ttl;
+    setTtlIsSet(true);
+    return this;
+  }
+
+  public void unsetTtl() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TTL_ISSET_ID);
+  }
+
+  /** Returns true if field ttl is set (has been assigned a value) and false otherwise */
+  public boolean isSetTtl() {
+    return EncodingUtils.testBit(__isset_bitfield, __TTL_ISSET_ID);
+  }
+
+  public void setTtlIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TTL_ISSET_ID, value);
+  }
+
+  /**
+   * 
+   * @see alluxio.thrift.TTtlAction
+   */
+  public alluxio.thrift.TTtlAction getTtlAction() {
+    return this.ttlAction;
+  }
+
+  /**
+   * 
+   * @see alluxio.thrift.TTtlAction
+   */
+  public FileSystemMasterCommonTOptions setTtlAction(alluxio.thrift.TTtlAction ttlAction) {
+    this.ttlAction = ttlAction;
+    return this;
+  }
+
+  public void unsetTtlAction() {
+    this.ttlAction = null;
+  }
+
+  /** Returns true if field ttlAction is set (has been assigned a value) and false otherwise */
+  public boolean isSetTtlAction() {
+    return this.ttlAction != null;
+  }
+
+  public void setTtlActionIsSet(boolean value) {
+    if (!value) {
+      this.ttlAction = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case SYNC_INTERVAL_MS:
@@ -173,6 +254,22 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
       }
       break;
 
+    case TTL:
+      if (value == null) {
+        unsetTtl();
+      } else {
+        setTtl((Long)value);
+      }
+      break;
+
+    case TTL_ACTION:
+      if (value == null) {
+        unsetTtlAction();
+      } else {
+        setTtlAction((alluxio.thrift.TTtlAction)value);
+      }
+      break;
+
     }
   }
 
@@ -180,6 +277,12 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     switch (field) {
     case SYNC_INTERVAL_MS:
       return getSyncIntervalMs();
+
+    case TTL:
+      return getTtl();
+
+    case TTL_ACTION:
+      return getTtlAction();
 
     }
     throw new IllegalStateException();
@@ -194,6 +297,10 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     switch (field) {
     case SYNC_INTERVAL_MS:
       return isSetSyncIntervalMs();
+    case TTL:
+      return isSetTtl();
+    case TTL_ACTION:
+      return isSetTtlAction();
     }
     throw new IllegalStateException();
   }
@@ -220,6 +327,24 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
         return false;
     }
 
+    boolean this_present_ttl = true && this.isSetTtl();
+    boolean that_present_ttl = true && that.isSetTtl();
+    if (this_present_ttl || that_present_ttl) {
+      if (!(this_present_ttl && that_present_ttl))
+        return false;
+      if (this.ttl != that.ttl)
+        return false;
+    }
+
+    boolean this_present_ttlAction = true && this.isSetTtlAction();
+    boolean that_present_ttlAction = true && that.isSetTtlAction();
+    if (this_present_ttlAction || that_present_ttlAction) {
+      if (!(this_present_ttlAction && that_present_ttlAction))
+        return false;
+      if (!this.ttlAction.equals(that.ttlAction))
+        return false;
+    }
+
     return true;
   }
 
@@ -231,6 +356,16 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     list.add(present_syncIntervalMs);
     if (present_syncIntervalMs)
       list.add(syncIntervalMs);
+
+    boolean present_ttl = true && (isSetTtl());
+    list.add(present_ttl);
+    if (present_ttl)
+      list.add(ttl);
+
+    boolean present_ttlAction = true && (isSetTtlAction());
+    list.add(present_ttlAction);
+    if (present_ttlAction)
+      list.add(ttlAction.getValue());
 
     return list.hashCode();
   }
@@ -249,6 +384,26 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     }
     if (isSetSyncIntervalMs()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.syncIntervalMs, other.syncIntervalMs);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetTtl()).compareTo(other.isSetTtl());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetTtl()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ttl, other.ttl);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetTtlAction()).compareTo(other.isSetTtlAction());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetTtlAction()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ttlAction, other.ttlAction);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -276,6 +431,22 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     if (isSetSyncIntervalMs()) {
       sb.append("syncIntervalMs:");
       sb.append(this.syncIntervalMs);
+      first = false;
+    }
+    if (isSetTtl()) {
+      if (!first) sb.append(", ");
+      sb.append("ttl:");
+      sb.append(this.ttl);
+      first = false;
+    }
+    if (isSetTtlAction()) {
+      if (!first) sb.append(", ");
+      sb.append("ttlAction:");
+      if (this.ttlAction == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ttlAction);
+      }
       first = false;
     }
     sb.append(")");
@@ -331,6 +502,22 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 2: // TTL
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.ttl = iprot.readI64();
+              struct.setTtlIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 3: // TTL_ACTION
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.ttlAction = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
+              struct.setTtlActionIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -350,6 +537,18 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
         oprot.writeFieldBegin(SYNC_INTERVAL_MS_FIELD_DESC);
         oprot.writeI64(struct.syncIntervalMs);
         oprot.writeFieldEnd();
+      }
+      if (struct.isSetTtl()) {
+        oprot.writeFieldBegin(TTL_FIELD_DESC);
+        oprot.writeI64(struct.ttl);
+        oprot.writeFieldEnd();
+      }
+      if (struct.ttlAction != null) {
+        if (struct.isSetTtlAction()) {
+          oprot.writeFieldBegin(TTL_ACTION_FIELD_DESC);
+          oprot.writeI32(struct.ttlAction.getValue());
+          oprot.writeFieldEnd();
+        }
       }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -372,19 +571,39 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
       if (struct.isSetSyncIntervalMs()) {
         optionals.set(0);
       }
-      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetTtl()) {
+        optionals.set(1);
+      }
+      if (struct.isSetTtlAction()) {
+        optionals.set(2);
+      }
+      oprot.writeBitSet(optionals, 3);
       if (struct.isSetSyncIntervalMs()) {
         oprot.writeI64(struct.syncIntervalMs);
+      }
+      if (struct.isSetTtl()) {
+        oprot.writeI64(struct.ttl);
+      }
+      if (struct.isSetTtlAction()) {
+        oprot.writeI32(struct.ttlAction.getValue());
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, FileSystemMasterCommonTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(1);
+      BitSet incoming = iprot.readBitSet(3);
       if (incoming.get(0)) {
         struct.syncIntervalMs = iprot.readI64();
         struct.setSyncIntervalMsIsSet(true);
+      }
+      if (incoming.get(1)) {
+        struct.ttl = iprot.readI64();
+        struct.setTtlIsSet(true);
+      }
+      if (incoming.get(2)) {
+        struct.ttlAction = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
+        struct.setTtlActionIsSet(true);
       }
     }
   }

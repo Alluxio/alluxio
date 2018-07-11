@@ -11,11 +11,11 @@
 
 package alluxio.master.file;
 
+import alluxio.network.thrift.BootstrapServerTransport;
 import alluxio.thrift.FileSystemMasterClientService;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TSaslServerTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
@@ -65,14 +65,14 @@ public class FileSystemMasterClientServiceProcessor
   @Override
   public boolean process(TProtocol in, TProtocol out) throws TException {
     TTransport transport = in.getTransport();
-    if (transport instanceof TSaslServerTransport) {
-      transport = ((TSaslServerTransport) transport).getUnderlyingTransport();
+    if (transport instanceof BootstrapServerTransport) {
+      transport = ((BootstrapServerTransport) transport).getBaseTransport();
     }
     if (transport instanceof TSocket) {
       String ip = ((TSocket) transport).getSocket().getInetAddress().toString();
       sClientIpThreadLocal.set(ip);
     } else {
-      LOG.warn("Failed to obtain client IP: underlying transport is not TSocket");
+      LOG.warn("Failed to obtain client IP: underlying transport is not TSocket but {}", transport);
       sClientIpThreadLocal.set(null);
     }
     return super.process(in, out);

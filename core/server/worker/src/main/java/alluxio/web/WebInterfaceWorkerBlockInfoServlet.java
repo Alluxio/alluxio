@@ -12,6 +12,8 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -72,6 +74,9 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      return;
+    }
     request.setAttribute("fatalError", "");
     String filePath = request.getParameter("path");
     if (!(filePath == null || filePath.isEmpty())) {

@@ -57,4 +57,9 @@ public class UfsDirectoryStatus extends UfsStatus {
   public UfsDirectoryStatus copy() {
     return new UfsDirectoryStatus(this);
   }
+
+  @Override
+  public String toString() {
+    return toStringHelper().toString();
+  }
 }

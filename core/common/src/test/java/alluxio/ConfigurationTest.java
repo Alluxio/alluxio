@@ -13,6 +13,7 @@ package alluxio;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -27,10 +28,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.powermock.reflect.Whitebox;
 
+import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -69,6 +73,20 @@ public class ConfigurationTest {
       Configuration.reset();
       assertEquals(100, Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS));
     }
+  }
+
+  @Test
+  public void containsKey() {
+    assertFalse(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
+    Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, "address");
+    assertTrue(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
+  }
+
+  @Test
+  public void isSet() {
+    assertFalse(Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS));
+    Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, "address");
+    assertTrue(Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS));
   }
 
   @Test
@@ -385,6 +403,12 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void getUnsetValueThrowsException() {
+    mThrown.expect(RuntimeException.class);
+    Configuration.get(PropertyKey.S3A_ACCESS_KEY);
+  }
+
+  @Test
   public void getNestedProperties() {
     Configuration.set(
         PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
@@ -511,6 +535,14 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void shortMasterHeartBeatTimeout() {
+    Configuration.set(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL, "5min");
+    Configuration.set(PropertyKey.MASTER_HEARTBEAT_TIMEOUT, "4min");
+    mThrown.expect(IllegalStateException.class);
+    Configuration.validate();
+  }
+
+  @Test
   public void setUserFileBufferBytesMaxInteger() {
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(Integer.MAX_VALUE) + "B");
     assertEquals(Integer.MAX_VALUE,
@@ -526,11 +558,11 @@ public class ConfigurationTest {
 
   @Test
   public void unset() {
-    assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertFalse(Configuration.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "test");
-    assertTrue(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertTrue(Configuration.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
     Configuration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
-    assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertFalse(Configuration.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
   }
 
   @Test
@@ -658,8 +690,8 @@ public class ConfigurationTest {
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       Configuration.reset();
       // set only in site prop
-      assertEquals(Source.SITE_PROPERTY,
-          Configuration.getSource(PropertyKey.MASTER_HOSTNAME));
+      assertEquals(Source.Type.SITE_PROPERTY,
+          Configuration.getSource(PropertyKey.MASTER_HOSTNAME).getType());
       // set both in site and system prop
       assertEquals(Source.SYSTEM_PROPERTY,
           Configuration.getSource(PropertyKey.MASTER_WEB_PORT));
@@ -724,15 +756,152 @@ public class ConfigurationTest {
     String testValue = String.format("${%s}.test", "alluxio.extensions.dir");
     Configuration.set(testKey, testValue);
 
-    Map<String, String> rawMap = Configuration.toRawMap();
+    Map<String, String> rawMap =
+        Configuration.toMap(ConfigurationValueOptions.defaults().useRawValue(true));
 
     // Test if the value of the created nested property remains raw
     assertEquals(testValue, rawMap.get(testKey.toString()));
 
-    // Test if some values in raw map is of ${VALUE} format
+    // Test if some value in raw map is of ${VALUE} format
     String regexString = "(\\$\\{([^{}]*)\\})";
     Pattern confRegex = Pattern.compile(regexString);
-    assertTrue(confRegex.matcher(rawMap.get("alluxio.locality.script")).find());
     assertTrue(confRegex.matcher(rawMap.get("alluxio.logs.dir")).find());
+  }
+
+  @Test
+  public void getCredentialsDisplayValue() {
+    PropertyKey testKey = PropertyKey.S3A_SECRET_KEY;
+    String testValue = "12345";
+    assertEquals(PropertyKey.DisplayType.CREDENTIALS, testKey.getDisplayType());
+    Configuration.set(testKey, testValue);
+
+    assertNotEquals(testValue, Configuration.get(testKey,
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
+    assertNotEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
+        .get(testKey.getName()));
+  }
+
+  @Test
+  public void getDefaultDisplayValue() {
+    PropertyKey testKey = PropertyKey.SECURITY_LOGIN_USERNAME;
+    String testValue = "12345";
+    assertEquals(PropertyKey.DisplayType.DEFAULT, testKey.getDisplayType());
+    Configuration.set(testKey, testValue);
+
+    assertEquals(testValue, Configuration.get(testKey,
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
+    assertEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
+        .get(testKey.getName()));
+  }
+
+  @Test
+  public void getNestedCredentialsDisplayValue() {
+    PropertyKey nestedProperty =
+        PropertyKey.fromString("alluxio.master.journal.ufs.option.aws.secretKey");
+    String testValue = "12345";
+    Configuration.set(nestedProperty, testValue);
+
+    assertNotEquals(testValue, Configuration.get(nestedProperty,
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
+    assertNotEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
+        .get(nestedProperty.getName()));
+    assertNotEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true))
+        .get(nestedProperty.getName()));
+  }
+
+  @Test
+  public void getNestedDefaultDisplayValue() {
+    PropertyKey nestedProperty = PropertyKey.fromString(
+        "alluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration");
+    String testValue = "conf/core-site.xml:conf/hdfs-site.xml";
+    Configuration.set(nestedProperty, testValue);
+
+    assertEquals(testValue, Configuration.get(nestedProperty,
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
+    assertEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
+        .get(nestedProperty.getName()));
+    assertEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true))
+        .get(nestedProperty.getName()));
+  }
+
+  @Test
+  public void getTemplateCredentialsDisplayValue() {
+    PropertyKey templateProperty = PropertyKey.fromString(
+        "fs.azure.account.key.someone.blob.core.windows.net");
+    String testValue = "12345";
+    Configuration.set(templateProperty, testValue);
+
+    assertNotEquals(testValue, Configuration.get(templateProperty,
+        ConfigurationValueOptions.defaults().useDisplayValue(true)));
+    assertNotEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true))
+        .get(templateProperty.getName()));
+    assertNotEquals(testValue, Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true))
+        .get(templateProperty.getName()));
+  }
+
+  @Test
+  public void getCredentialsDisplayValueIdentical() {
+    PropertyKey testKey = PropertyKey.S3A_SECRET_KEY;
+    String testValue = "12345";
+    assertEquals(PropertyKey.DisplayType.CREDENTIALS, testKey.getDisplayType());
+
+    Configuration.set(testKey, testValue);
+    String displayValue1 = Configuration.get(testKey,
+        ConfigurationValueOptions.defaults().useDisplayValue(true));
+
+    String testValue2 = "abc";
+    Configuration.set(testKey, testValue2);
+
+    String displayValue2 = Configuration.get(testKey,
+        ConfigurationValueOptions.defaults().useDisplayValue(true));
+    assertEquals(displayValue1, displayValue2);
+  }
+
+  @Test
+  public void extensionProperty() {
+    // simulate the case a ext key is picked by site property, unrecognized
+    String fakeKeyName = "fake.extension.key";
+    Configuration.merge(ImmutableMap.of(fakeKeyName, "value"), Source.siteProperty("ignored"));
+    assertFalse(PropertyKey.fromString(fakeKeyName).isBuiltIn());
+    // simulate the case the same key is built again inside the extension
+    PropertyKey fakeExtensionKey = new PropertyKey.Builder(fakeKeyName).build();
+    assertEquals("value", Configuration.get(fakeExtensionKey));
+    assertTrue(PropertyKey.fromString(fakeKeyName).isBuiltIn());
+  }
+
+  @Test
+  public void findPropertiesFileClasspath() throws Exception {
+    try (Closeable p =
+        new SystemPropertyRule(PropertyKey.TEST_MODE.toString(), "false").toResource()) {
+      File dir = AlluxioTestDirectory.createTemporaryDirectory("findPropertiesFileClasspath");
+      Whitebox.invokeMethod(ClassLoader.getSystemClassLoader(), "addURL", dir.toURI().toURL());
+      File props = new File(dir, "alluxio-site.properties");
+      try (BufferedWriter writer = Files.newBufferedWriter(props.toPath())) {
+        writer.write(String.format("%s=%s", PropertyKey.MASTER_HOSTNAME, "test_hostname"));
+      }
+      Configuration.reset();
+      assertEquals("test_hostname", Configuration.get(PropertyKey.MASTER_HOSTNAME));
+      assertEquals(Source.siteProperty(props.getPath()),
+          Configuration.getSource(PropertyKey.MASTER_HOSTNAME));
+      props.delete();
+    }
+  }
+
+  @Test
+  public void noPropertiesAnywhere() throws Exception {
+    try (Closeable p =
+             new SystemPropertyRule(PropertyKey.TEST_MODE.toString(), "false").toResource()) {
+      Configuration.set(PropertyKey.SITE_CONF_DIR, "");
+      Configuration.reset();
+      assertEquals("0.0.0.0", Configuration.get(PropertyKey.PROXY_WEB_BIND_HOST));
+    }
   }
 }

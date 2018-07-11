@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.base.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +31,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.GuardedBy;
 
@@ -172,12 +172,16 @@ public class AlluxioLogServerProcess implements Process {
   }
 
   @Override
-  public void waitForReady() {
-    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return mStopped == false;
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
+  public boolean waitForReady(int timeoutMs) {
+    try {
+      CommonUtils.waitFor(this + " to start", () -> mStopped == false,
+          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 }

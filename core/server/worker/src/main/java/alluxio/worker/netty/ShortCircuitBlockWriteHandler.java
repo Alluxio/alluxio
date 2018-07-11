@@ -105,11 +105,9 @@ class ShortCircuitBlockWriteHandler extends ChannelInboundHandlerAdapter {
    */
   private void handleBlockCreateRequest(final ChannelHandlerContext ctx,
       final Protocol.LocalBlockCreateRequest request) {
-    mRpcExecutor.submit(new Runnable() {
-      @Override
-      public void run() {
-        RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRPCCallable<Void>() {
-
+    final String methodName = request.getOnlyReserveSpace() ? "ReserveSpace" : "CreateBlock";
+    mRpcExecutor.submit(() ->
+        RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<Void>() {
           @Override
           public Void call() throws Exception {
             if (request.getOnlyReserveSpace()) {
@@ -143,18 +141,7 @@ class ShortCircuitBlockWriteHandler extends ChannelInboundHandlerAdapter {
             ctx.writeAndFlush(
                 RPCProtoMessage.createResponse(AlluxioStatusException.fromThrowable(throwable)));
           }
-
-          @Override
-          public String toString() {
-            if (request.getOnlyReserveSpace()) {
-              return String.format("Session %d: reserve space: %s", mSessionId, request.toString());
-            } else {
-              return String.format("Session %d: create block: %s", mSessionId, request.toString());
-            }
-          }
-        });
-      }
-    });
+        }, methodName, "Session=%d, Request=%s", mSessionId, request));
   }
 
   /**
@@ -165,12 +152,9 @@ class ShortCircuitBlockWriteHandler extends ChannelInboundHandlerAdapter {
    */
   private void handleBlockCompleteRequest(final ChannelHandlerContext ctx,
       final Protocol.LocalBlockCompleteRequest request) {
-    mRpcExecutor.submit(new Runnable() {
-      @Override
-      public void run() {
-
-        RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRPCCallable<Void>() {
-
+    final String methodName = request.getCancel() ? "AbortBlock" : "CommitBlock";
+    mRpcExecutor.submit(() ->
+        RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<Void>() {
           @Override
           public Void call() throws Exception {
             if (request.getCancel()) {
@@ -189,17 +173,6 @@ class ShortCircuitBlockWriteHandler extends ChannelInboundHandlerAdapter {
                 RPCProtoMessage.createResponse(AlluxioStatusException.fromThrowable(throwable)));
             mSessionId = INVALID_SESSION_ID;
           }
-
-          @Override
-          public String toString() {
-            if (request.getCancel()) {
-              return String.format("Session %d: abort block: %s", mSessionId, request.toString());
-            } else {
-              return String.format("Session %d: commit block: %s", mSessionId, request.toString());
-            }
-          }
-        });
-      }
-    });
+        }, methodName, "Session=%d, Request=%s", mSessionId, request));
   }
 }

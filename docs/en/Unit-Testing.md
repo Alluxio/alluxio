@@ -3,6 +3,7 @@ layout: global
 title: Unit Testing Guidelines
 nickname: Unit Testing Guidelines
 group: Resources
+priority: 3
 ---
 
 * Table of Contents
