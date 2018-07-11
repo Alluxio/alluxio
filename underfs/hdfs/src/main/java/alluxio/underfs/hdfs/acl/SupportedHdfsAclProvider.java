@@ -83,6 +83,7 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
     try {
       hdfs.setAcl(new Path(path), aclSpecs);
     } catch (UnsupportedOperationException e) {
+      // noop if hdfs does not support acl
     }
   }
 
