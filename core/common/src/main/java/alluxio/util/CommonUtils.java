@@ -51,6 +51,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -549,8 +550,8 @@ public final class CommonUtils {
    * NOTE: This will only be set by main methods of Alluxio processes. It will not be set properly
    * for tests. Avoid using this field if at all possible.
    */
-  public static final java.util.concurrent.atomic.AtomicReference<ProcessType> PROCESS_TYPE =
-      new java.util.concurrent.atomic.AtomicReference<>(ProcessType.CLIENT);
+  public static final AtomicReference<ProcessType> PROCESS_TYPE =
+      new AtomicReference<>(ProcessType.CLIENT);
 
   /**
    * Unwraps a {@link alluxio.proto.dataserver.Protocol.Response}.
