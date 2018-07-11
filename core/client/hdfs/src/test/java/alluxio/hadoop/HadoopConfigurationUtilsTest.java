@@ -77,7 +77,7 @@ public final class HadoopConfigurationUtilsTest {
 
   /**
    * Test for the {@link HadoopConfigurationUtils#mergeHadoopConfiguration} method for an empty
-   * configuration with Zookeeper configuration in URI.
+   * configuration with Alluxio on Zookeeper URI.
    */
   @Test
   public void mergeHadoopConfigurationWithZookeeperURI() throws URISyntaxException {

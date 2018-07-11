@@ -98,3 +98,19 @@ Run the following command from the top level Flink project directory:
 {% include Running-Flink-on-Alluxio/wordcount.md %}
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There should be an output file `output` which contains the word counts of the file `LICENSE`.
+
+### Wordcount Example with Alluxio in fault tolerant mode
+
+This example assumes you have set up [Alluxio cluster in fault tolerant mode with Zookeeper](Running-Alluxio-on-a-Cluster.html#running-alluxio-with-high-availability)
+and Flink as previously described.
+
+Put the file `LICENSE` into Alluxio, assuming you are in the top level Alluxio project directory:
+
+{% include Running-Flink-on-Alluxio/license-zk.md %}
+
+Now we can run a Flink job for wordcount using the Alluxio on Zookeeper URI.
+
+{% include Running-Flink-on-Alluxio/wordcount-zk.md %}
+
+`zk@` tells Alluxio the following hosts and ports are Zookeeper addresses 
+which should be separated by comma.

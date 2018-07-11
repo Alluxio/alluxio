@@ -12,6 +12,7 @@
 package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 
 import org.apache.hadoop.conf.Configuration;
@@ -58,10 +59,10 @@ public final class HadoopUtils {
   }
 
   /**
-   * Gets the zookeeper addresses from the Alluxio on Zookeeper URI.
+   * Gets the Zookeeper addresses from the Alluxio on Zookeeper URI.
    *
-   * @param uri the input uri to get zookeeper addresses from
-   * @return the zookeeper addresses
+   * @param uri the input uri to get Zookeeper addresses from
+   * @return the Zookeeper addresses
    */
   public static String getZookeeperAddresses(URI uri) {
     String zookeeperAddresses;
@@ -69,8 +70,9 @@ public final class HadoopUtils {
       zookeeperAddresses = uri.getAuthority().substring(ZOOKEEPER_IDENTIFIER.length())
           .replaceAll(";", ",");
     } catch (Exception e) {
-      throw new IllegalArgumentException("Alluxio on Zookeeper URI is invalid. "
-          + "The URI should be of format \"alluxio://zk@host1:port1;host2:port2/path/to/file\"");
+      throw new IllegalArgumentException(
+          "Alluxio on Zookeeper URI is invalid. The URI should begin with "
+          + Constants.HEADER + ZOOKEEPER_IDENTIFIER);
     }
     return zookeeperAddresses;
   }
