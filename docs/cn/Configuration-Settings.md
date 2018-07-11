@@ -11,11 +11,11 @@ priority: 1
 可以通过设置受支持的[configuration properties](Configuration-Properties.html)的值来配置Alluxio。了解用户如何定制应用程序
 (例如，Spark或MapReduce作业)与Alluxio交互，参见[如何配置引用应用程序](#configure-applications);要了解冲浪者管理员如何定制冲浪者服务，请参见[如何配置Alluxio集群](#configure-alluxio-cluster)。
 
-# 配置应用
+# 配置应用 {#application-settings}
 
 自定义应用程序作业如何与Alluxio服务交互是面向不同应用程序的。这里我们为一些常见的应用程序提供建议。
 
-## Alluxio Shell Commands
+## Alluxio Shell 命令
 
 在`fs` 命令和子命令之前(例如，`copyFromLocal`)，可以将JVM系统属性 `-Dproperty=value`放入到命令行中，以指定引用属性。例如，下面的Alluxio shell命令在将文件复制到Alluxio时将写入类型设置为`CACHE_THROUGH`:
 
@@ -59,7 +59,7 @@ $ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.
 
 # 配置Alluxio集群
 
-## 使用 Site-Property 文件 (推荐)
+## 使用 Site-Property 文件 (推荐) {#property-files}
 
 Alluxio管理员可以创建和定制属性文件`alluxio-site.properties`来配置一个Alluxio集群。
 如果该文件不存在，可以从模板文件`${ALLUXIO_HOME}/conf`:中创建:
@@ -88,7 +88,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 >进程，并将被应用程序通过Alluxio客户端与Alluxio服务交互所忽略，
 >除非`${ALLUXIO_HOME}/conf`在应用程序的类路径中。
 
-## 使用环境变量
+## 使用环境变量 {#environment-variables}
 
 Alluxio通过环境变量来支持一些常用的配置设置，包括:
 
@@ -170,7 +170,7 @@ $ export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=d
 $ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```
 
-# Configuration Sources
+# 配置资源
 
 Alluxio属性可以在多个资源中配置。在这种情况下，它的最终值由列表中最早的资源配置决定:
 
