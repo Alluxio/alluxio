@@ -51,6 +51,10 @@ for Hive. In the following sections, Hive is running on Hadoop MapReduce in this
 
 > Tips：All the following Hive CLI examples are also applicable to Hive Beeline. You can try these commands out in Beeline shell.
 
+> Tips：All the following examples are also applicable to Alluxio in fault tolerant mode with Zookeeper. 
+You can replace the Alluxio URI (alluxio://master_hostname:port/path) with Alluxio on Zookeeper URI 
+(alluxio://zk@zookeeper_hostname1:port1,zookeeper_hostname2:port2,zookeeper_hostname3:port3/path).
+
 ### Create New Tables from Alluxio Files
 
 Hive can create new tables from files stored on Alluxio. The setup is fairly straightforward
@@ -201,19 +205,26 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 </property>
 ```
 
-To use fault tolerant mode, set the Alluxio cluster properties appropriately (see example below) in
-an `alluxio-site.properties` file which is on the classpath.
+When Alluxio is running in fault tolerant mode, change the Alluxio URI to Alluxio on Zookeeper URI.
 
-```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=[zookeeper_hostname]:2181
-```
+ ```xml
+ <property>
+    <name>fs.defaultFS</name>
+    <value>alluxio://zk@zookeeper_hostname1:port1,zookeeper_hostname2:port2,zookeeper_hostname3:port3</value>
+ </property>
+ ```
 
-Alternatively you can add the properties to the Hive `hive-site.xml` configuration which is then
-propagated to Alluxio.
+`zk@` tells Alluxio the following hosts and ports are Zookeeper addresses 
+which should be separated by comma.
+
+Alternatively you can add the following properties to the Hive `hive-site.xml` in fault tolerant mode
 
 ```xml
 <configuration>
+  <property>
+    <name>fs.defaultFS</name>
+    <value>alluxio://master_hostname:port</value>
+  </property>
   <property>
     <name>alluxio.zookeeper.enabled</name>
     <value>true</value>
@@ -224,7 +235,6 @@ propagated to Alluxio.
   </property>
 </configuration>
 ```
-
 
 ### Add additional Alluxio site properties to Hive
 

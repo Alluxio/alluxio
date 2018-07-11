@@ -55,7 +55,11 @@ spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 </configuration>
 ```
 
-* If you are running Alluxio in fault tolerant mode with zookeeper,
+* If you are running Alluxio in fault tolerant mode with Zookeeper, 
+you can add the Zookeeper information in configuration files 
+or directly use the Alluxio on Zookeeper URI.
+
+If you choose to add the Zookeeper information in configuration files, 
 add the following line to `${SPARK_HOME}/conf/spark-defaults.conf`:
 
 ```bash
@@ -154,13 +158,25 @@ should be an output `LICENSE_HDFS2` which doubles each line in the file `LICENSE
 
 ### Using Fault Tolerant Mode
 
-When running Alluxio with fault tolerant mode, you can point to any Alluxio master:
+When running Alluxio with fault tolerant mode, if you have added Zookeeper information in configuration files, 
+you can point to any Alluxio master:
 
 ```scala
 > val s = sc.textFile("alluxio://standbyHost:19998/LICENSE")
 > val double = s.map(line => line + line)
 > double.saveAsTextFile("alluxio://activeHost:19998/LICENSE2")
 ```
+
+Otherwise, you should use Alluxio on Zookeeper URI.
+
+```scala
+> val s = sc.textFile("alluxio://zk@zookeeper_hostname1:2181;zookeeper_hostname2:2181;zookeeper_hostname3:2181/LICENSE")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio://zk@zookeeper_hostname1:2181;zookeeper_hostname2:2181;zookeeper_hostname3:2181/LICENSE2")
+```
+
+`zk@` tells Alluxio the following hosts and ports are Zookeeper addresses 
+which should be separated by semicolons.
 
 ## Data Locality
 

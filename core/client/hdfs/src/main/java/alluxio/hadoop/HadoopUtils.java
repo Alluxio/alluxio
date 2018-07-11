@@ -33,7 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class HadoopUtils {
   private static final Logger LOG = LoggerFactory.getLogger(HadoopUtils.class);
-  private static final String ZOOKEEPER_IDENTIFIER = "zk@";
+  public static final String ZOOKEEPER_IDENTIFIER = "zk@";
 
   /**
    * Identifies whether a {@link URI} uri is an Alluxio on Zookeeper URI.

@@ -72,6 +72,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.security.auth.Subject;
@@ -212,6 +213,22 @@ public class AbstractFileSystemTest {
   }
 
   /**
+   * Ensures that Hadoop loads the Alluxio file system with Zookeeper URI.
+   */
+  @Test
+  public void hadoopShouldLoadFileSystemWithZkUri() throws Exception {
+    org.apache.hadoop.conf.Configuration conf = getConf();
+
+    URI uri = URI.create(Constants.HEADER
+        + HadoopUtils.ZOOKEEPER_IDENTIFIER + "zkHost:2181/tmp/path.txt");
+
+    try (Closeable c = new ConfigurationRule(new HashMap<>()).toResource()) {
+      final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+      assertTrue(fs instanceof FileSystem);
+    }
+  }
+
+  /**
    * Tests that initializing the {@link AbstractFileSystem} will reinitialize the file system
    * context.
    */
@@ -219,6 +236,20 @@ public class AbstractFileSystemTest {
   public void resetContext() throws Exception {
     // Change to otherhost:410
     URI uri = URI.create(Constants.HEADER + "otherhost:410/");
+    org.apache.hadoop.fs.FileSystem fileSystem =
+        org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+
+    verify(mMockFileSystemContext).reset(alluxio.Configuration.global());
+  }
+
+  /**
+   * Tests that initializing the {@link AbstractFileSystem} with Alluxio on Zookeeper URI
+   * will reinitialize the file system context.
+   */
+  @Test
+  public void resetContextWithZkUri() throws Exception {
+    // Change to otherhost:410
+    URI uri = URI.create(Constants.HEADER + HadoopUtils.ZOOKEEPER_IDENTIFIER + "otherhost:410/");
     org.apache.hadoop.fs.FileSystem fileSystem =
         org.apache.hadoop.fs.FileSystem.get(uri, getConf());
 
