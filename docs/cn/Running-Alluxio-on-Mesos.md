@@ -15,6 +15,32 @@ Alluxio能够通过Mesos进行部署，这样可以让Mesos对Alluxio使用的�
 
 Alluxio兼容Mesos 0.23.0及之后的版本。
 
+## Mesos需求
+
+默认情况下，Alluxio Master需要端口19998和19999，Alluxio Worker需要端口29998,29999和30000。
+要使Mesos运行Alluxio，您必须将这些端口提供给Mesos框架，或者更改Alluxio端口。
+
+####使端口可用
+
+启动Mesos slave时，可以指定要管理的端口资源。
+
+```bash
+$ /usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
+```
+
+####更改Alluxio端口
+
+或者，您可以在`alluxio-site.properties`文件中指定Alluxio端口，如下所示：
+
+```properties
+alluxio.master.port=31398
+alluxio.master.web.port=31399
+
+alluxio.worker.port=31498
+alluxio.worker.data.port=31499
+alluxio.worker.web.port=31500
+```
+
 ## 在Mesos上部署Alluxio
 
 要在Mesos上部署Alluxio，需要让Mesos能获取到Alluxio发布包。有两个方法：

@@ -55,6 +55,14 @@ Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-b
 $ ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
 Successfully backed up journal to file:///opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
 ```
+### doctor
+
+`doctor`命令显示Alluxio错误和警告。
+
+```bash
+# shows server-side configuration errors and warnings
+$ ./bin/alluxio fsadmin doctor configuration
+```
 
 ### report
 
