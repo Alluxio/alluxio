@@ -25,4 +25,10 @@ public class NoopHdfsAclProvider implements HdfsAclProvider {
   public AccessControlList getAcl(FileSystem hdfs, String path) throws IOException {
     return null;
   }
+
+  @Override
+  public void setAcl(FileSystem hdfs, String path, AccessControlList acl) throws IOException {
+    // Noop for setAcl
+  }
+
 }

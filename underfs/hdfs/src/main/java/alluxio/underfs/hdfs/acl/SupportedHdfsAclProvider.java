@@ -13,12 +13,13 @@ package alluxio.underfs.hdfs.acl;
 
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
-import alluxio.security.authorization.AclEntryType;
 import alluxio.underfs.hdfs.HdfsAclProvider;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.AclEntry;
+import org.apache.hadoop.fs.permission.AclEntryScope;
+import org.apache.hadoop.fs.permission.AclEntryType;
 import org.apache.hadoop.fs.permission.AclStatus;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.hdfs.protocol.AclException;
@@ -26,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -67,18 +70,80 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
     return acl;
   }
 
-  private AclEntryType getAclEntryType(AclEntry entry) throws IOException {
-    switch (entry.getType()) {
-      case USER:
-        return entry.getName().isEmpty() ? AclEntryType.OWNING_USER : AclEntryType.NAMED_USER;
-      case GROUP:
-        return entry.getName().isEmpty() ? AclEntryType.OWNING_GROUP : AclEntryType.NAMED_GROUP;
+  @Override
+  public void setAcl(FileSystem hdfs, String path, AccessControlList acl) throws IOException {
+    // convert AccessControlList into hdfsAcl
+    List<AclEntry> aclSpecs = new ArrayList<>();
+
+    for (alluxio.security.authorization.AclEntry entry : acl.getEntries()) {
+      AclEntry hdfsAclEntry = getHdfsAclEntry(entry);
+      aclSpecs.add(hdfsAclEntry);
+    }
+    // set hdfsAcl;
+    try {
+      hdfs.setAcl(new Path(path), aclSpecs);
+    } catch (UnsupportedOperationException e) {
+      // noop if hdfs does not support acl
+    }
+  }
+
+  private AclEntry getHdfsAclEntry(alluxio.security.authorization.AclEntry entry)
+      throws IOException {
+    AclEntry.Builder builder = new AclEntry.Builder();
+    // Do not set name for unnamed entries
+    if (entry.getType() != alluxio.security.authorization.AclEntryType.OWNING_USER
+        && entry.getType() != alluxio.security.authorization.AclEntryType.OWNING_GROUP) {
+      builder.setName(entry.getSubject());
+    }
+
+    builder.setScope(entry.isDefault() ? AclEntryScope.DEFAULT : AclEntryScope.ACCESS);
+    builder.setType(getHdfsAclEntryType(entry));
+    FsAction permission = FsAction.getFsAction(entry.getActions().toCliString());
+    builder.setPermission(permission);
+    return builder.build();
+  }
+
+  /**
+   * @param aclEntry an alluxio acl entry
+   * @return hdfs acl entry type
+   */
+  private AclEntryType getHdfsAclEntryType(alluxio.security.authorization.AclEntry aclEntry)
+      throws IOException {
+    switch (aclEntry.getType()) {
+      case OWNING_USER:
+      case NAMED_USER:
+        return AclEntryType.USER;
+      case OWNING_GROUP:
+      case NAMED_GROUP:
+        return AclEntryType.GROUP;
       case MASK:
         return AclEntryType.MASK;
       case OTHER:
         return AclEntryType.OTHER;
       default:
-        throw new IOException("Unknown ACL entry type: " + entry.getType());
+        throw new IOException("Unknown Alluxio ACL entry type: " + aclEntry.getType());
+    }
+  }
+
+  /**
+   * @param entry an hdfs acl entry
+   * @return alluxio acl entry type
+   */
+  private alluxio.security.authorization.AclEntryType getAclEntryType(AclEntry entry)
+      throws IOException {
+    switch (entry.getType()) {
+      case USER:
+        return entry.getName().isEmpty() ? alluxio.security.authorization.AclEntryType.OWNING_USER
+            : alluxio.security.authorization.AclEntryType.NAMED_USER;
+      case GROUP:
+        return entry.getName().isEmpty() ? alluxio.security.authorization.AclEntryType.OWNING_GROUP
+            : alluxio.security.authorization.AclEntryType.NAMED_GROUP;
+      case MASK:
+        return alluxio.security.authorization.AclEntryType.MASK;
+      case OTHER:
+        return alluxio.security.authorization.AclEntryType.OTHER;
+      default:
+        throw new IOException("Unknown HDFS ACL entry type: " + entry.getType());
     }
   }
 }
