@@ -691,8 +691,9 @@ public class InodeTree implements JournalEntryIterable {
               currentInodeDirectory.getId(), name, directoryOptions);
 
           // Lock the created inode before subsequent operations, and add it to the lock group.
-<<<<<<< HEAD
-          lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
+
+          extensibleInodePath.getLockList().lockWriteAndCheckNameAndParent(lastInode,
+              currentInodeDirectory, name);
 
           // if the parent has default ACL, copy that default ACL as the new directory's default
           // and access acl.
@@ -704,12 +705,6 @@ public class InodeTree implements JournalEntryIterable {
             lastInodeDirectory.setDefaultACL(pair.getSecond());
           }
 
-||||||| merged common ancestors
-          lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
-=======
-          extensibleInodePath.getLockList().lockWriteAndCheckNameAndParent(lastInode,
-              currentInodeDirectory, name);
->>>>>>> master
           if (directoryOptions.isPersisted()) {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
             // TODO(david): remove this call to syncPersistDirectory to improve performance
@@ -721,8 +716,9 @@ public class InodeTree implements JournalEntryIterable {
           lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
               currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
           // Lock the created inode before subsequent operations, and add it to the lock group.
-<<<<<<< HEAD
-          lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
+
+          extensibleInodePath.getLockList().lockWriteAndCheckNameAndParent(lastInode,
+              currentInodeDirectory, name);
 
           // if the parent has a default ACL, copy that default ACL as the new file's access ACL.
           DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
@@ -731,12 +727,6 @@ public class InodeTree implements JournalEntryIterable {
             lastInode.setInternalAcl(acl);
           }
 
-||||||| merged common ancestors
-          lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
-=======
-          extensibleInodePath.getLockList().lockWriteAndCheckNameAndParent(lastInode,
-              currentInodeDirectory, name);
->>>>>>> master
           if (fileOptions.isCacheable()) {
             ((InodeFile) lastInode).setCacheable(true);
           }

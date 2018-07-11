@@ -153,8 +153,10 @@ public final class Constants {
   public static final short DEFAULT_FILE_SYSTEM_MODE = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
   public static final short INVALID_MODE = -1;
+
   public static final String IMPERSONATION_HDFS_USER = "_HDFS_USER_";
-<<<<<<< HEAD
+  public static final String IMPERSONATION_NONE = "_NONE_";
+
   public static final String MODE_BITS_NONE = "---";
   public static final String MODE_BITS_EXECUTE = "--x";
   public static final String MODE_BITS_WRITE = "-w-";
@@ -163,10 +165,6 @@ public final class Constants {
   public static final String MODE_BITS_READ_EXECUTE = "r-x";
   public static final String MODE_BITS_READ_WRITE = "rw-";
   public static final String MODE_BITS_ALL = "rwx";
-||||||| merged common ancestors
-=======
-  public static final String IMPERSONATION_NONE = "_NONE_";
->>>>>>> master
 
   // Specific tier write
   public static final int FIRST_TIER = 0;

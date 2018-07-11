@@ -78,7 +78,6 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
 
 import com.google.common.base.Preconditions;
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -288,24 +287,16 @@ public final class FileSystemMasterClientServiceHandler implements
 
   @Override
   public SetAclTResponse setAcl(String path, TSetAclAction action, List<TAclEntry> entries,
-      SetAclTOptions options) throws AlluxioTException, TException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<SetAclTResponse>() {
-      @Override
-      public SetAclTResponse call() throws AlluxioException, IOException {
-        List<AclEntry> aclEntries = Collections.emptyList();
-        if (entries != null) {
-          aclEntries = entries.stream().map(AclEntry::fromThrift).collect(Collectors.toList());
-        }
-        mFileSystemMaster.setAcl(new AlluxioURI(path), SetAclAction.fromThrift(action), aclEntries,
-            new SetAclOptions(options));
-        return new SetAclTResponse();
+      SetAclTOptions options) throws AlluxioTException {
+    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<SetAclTResponse>) () -> {
+      List<AclEntry> aclEntries = Collections.emptyList();
+      if (entries != null) {
+        aclEntries = entries.stream().map(AclEntry::fromThrift).collect(Collectors.toList());
       }
-
-      @Override
-      public String toString() {
-        return String.format("SetAcl: path=%s, entries=%s, options=%s", path, entries, options);
-      }
-    });
+      mFileSystemMaster.setAcl(new AlluxioURI(path), SetAclAction.fromThrift(action), aclEntries,
+          new SetAclOptions(options));
+      return new SetAclTResponse();
+    }, "SetAcl", "path=%s, entries=%s, options=%s", path, entries, options);
   }
 
   @Override

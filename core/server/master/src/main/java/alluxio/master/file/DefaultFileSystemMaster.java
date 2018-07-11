@@ -149,12 +149,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
-<<<<<<< HEAD
 import com.google.common.collect.Sets;
-||||||| merged common ancestors
-=======
 import com.google.common.io.Closer;
->>>>>>> master
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TProcessor;
@@ -3980,50 +3976,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         = MetricsSystem.counter(MasterMetrics.PATHS_UNMOUNTED);
 
     // TODO(peis): Increment the RPCs OPs at the place where we receive the RPCs.
-<<<<<<< HEAD
-    private static final Counter COMPLETE_FILE_OPS = MetricsSystem.masterCounter("CompleteFileOps");
-    private static final Counter CREATE_DIRECTORIES_OPS =
-        MetricsSystem.masterCounter("CreateDirectoryOps");
-    private static final Counter CREATE_FILES_OPS = MetricsSystem.masterCounter("CreateFileOps");
-    private static final Counter DELETE_PATHS_OPS = MetricsSystem.masterCounter("DeletePathOps");
-    private static final Counter FREE_FILE_OPS = MetricsSystem.masterCounter("FreeFileOps");
-    private static final Counter GET_FILE_BLOCK_INFO_OPS =
-        MetricsSystem.masterCounter("GetFileBlockInfoOps");
-    private static final Counter GET_FILE_INFO_OPS = MetricsSystem.masterCounter("GetFileInfoOps");
-    private static final Counter GET_NEW_BLOCK_OPS = MetricsSystem.masterCounter("GetNewBlockOps");
-    private static final Counter MOUNT_OPS = MetricsSystem.masterCounter("MountOps");
-    private static final Counter RENAME_PATH_OPS = MetricsSystem.masterCounter("RenamePathOps");
-    private static final Counter SET_ACL_OPS = MetricsSystem.masterCounter("SetAclOps");
-    private static final Counter SET_ATTRIBUTE_OPS = MetricsSystem.masterCounter("SetAttributeOps");
-    private static final Counter UNMOUNT_OPS = MetricsSystem.masterCounter("UnmountOps");
-
-    public static final String FILES_PINNED = "FilesPinned";
-    public static final String PATHS_TOTAL = "PathsTotal";
-    public static final String UFS_CAPACITY_TOTAL = "UfsCapacityTotal";
-    public static final String UFS_CAPACITY_USED = "UfsCapacityUsed";
-    public static final String UFS_CAPACITY_FREE = "UfsCapacityFree";
-||||||| merged common ancestors
-    private static final Counter COMPLETE_FILE_OPS = MetricsSystem.masterCounter("CompleteFileOps");
-    private static final Counter CREATE_DIRECTORIES_OPS =
-        MetricsSystem.masterCounter("CreateDirectoryOps");
-    private static final Counter CREATE_FILES_OPS = MetricsSystem.masterCounter("CreateFileOps");
-    private static final Counter DELETE_PATHS_OPS = MetricsSystem.masterCounter("DeletePathOps");
-    private static final Counter FREE_FILE_OPS = MetricsSystem.masterCounter("FreeFileOps");
-    private static final Counter GET_FILE_BLOCK_INFO_OPS =
-        MetricsSystem.masterCounter("GetFileBlockInfoOps");
-    private static final Counter GET_FILE_INFO_OPS = MetricsSystem.masterCounter("GetFileInfoOps");
-    private static final Counter GET_NEW_BLOCK_OPS = MetricsSystem.masterCounter("GetNewBlockOps");
-    private static final Counter MOUNT_OPS = MetricsSystem.masterCounter("MountOps");
-    private static final Counter RENAME_PATH_OPS = MetricsSystem.masterCounter("RenamePathOps");
-    private static final Counter SET_ATTRIBUTE_OPS = MetricsSystem.masterCounter("SetAttributeOps");
-    private static final Counter UNMOUNT_OPS = MetricsSystem.masterCounter("UnmountOps");
-
-    public static final String FILES_PINNED = "FilesPinned";
-    public static final String PATHS_TOTAL = "PathsTotal";
-    public static final String UFS_CAPACITY_TOTAL = "UfsCapacityTotal";
-    public static final String UFS_CAPACITY_USED = "UfsCapacityUsed";
-    public static final String UFS_CAPACITY_FREE = "UfsCapacityFree";
-=======
     private static final Counter COMPLETE_FILE_OPS
         = MetricsSystem.counter(MasterMetrics.COMPLETE_FILE_OPS);
     private static final Counter CREATE_DIRECTORIES_OPS
@@ -4044,11 +3996,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         = MetricsSystem.counter(MasterMetrics.MOUNT_OPS);
     private static final Counter RENAME_PATH_OPS
         = MetricsSystem.counter(MasterMetrics.RENAME_PATH_OPS);
+    private static final Counter SET_ACL_OPS
+        = MetricsSystem.counter(MasterMetrics.SET_ACL_OPS);
     private static final Counter SET_ATTRIBUTE_OPS
         = MetricsSystem.counter(MasterMetrics.SET_ATTRIBUTE_OPS);
     private static final Counter UNMOUNT_OPS
         = MetricsSystem.counter(MasterMetrics.UNMOUNT_OPS);
->>>>>>> master
 
     /**
      * Register some file system master related gauges.

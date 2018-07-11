@@ -13,17 +13,13 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-<<<<<<< HEAD
 import alluxio.exception.status.UnimplementedException;
 import alluxio.security.authorization.AccessControlList;
-||||||| merged common ancestors
-=======
 import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.security.authentication.AuthenticatedClientUser;
->>>>>>> master
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;

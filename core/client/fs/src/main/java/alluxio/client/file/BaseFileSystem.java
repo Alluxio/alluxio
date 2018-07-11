@@ -41,13 +41,7 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-<<<<<<< HEAD
 import alluxio.security.authorization.AclEntry;
-import alluxio.wire.CommonOptions;
-||||||| merged common ancestors
-import alluxio.wire.CommonOptions;
-=======
->>>>>>> master
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
