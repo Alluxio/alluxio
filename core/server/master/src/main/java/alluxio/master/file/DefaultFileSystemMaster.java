@@ -1640,49 +1640,27 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         String failureReason = null;
         if (unsafeInodes.contains(inodeToDelete.getId())) {
           failureReason = ExceptionMessage.DELETE_FAILED_DIR_NONEMPTY.getMessage();
-<<<<<<< HEAD
-        } else if (!replayed && delInode.isPersisted()) {
+        } else if (!replayed && inodeToDelete.isPersisted()) {
           try {
             // If this is a mount point, we have deleted all the children and can unmount it
             // TODO(calvin): Add tests (ALLUXIO-1831)
-            if (mMountTable.isMountPoint(alluxioUriToDel)) {
-              unmountInternal(alluxioUriToDel);
+            if (mMountTable.isMountPoint(alluxioUriToDelete)) {
+              unmountInternal(alluxioUriToDelete);
             } else {
               if (!(replayed || deleteOptions.isAlluxioOnly())) {
                 try {
-                  checkUfsMode(alluxioUriToDel, OperationType.WRITE);
+                  checkUfsMode(alluxioUriToDelete, OperationType.WRITE);
                   // Attempt to delete node if all children were deleted successfully
-                  ufsDeleter.delete(alluxioUriToDel, delInode);
+                  ufsDeleter.delete(alluxioUriToDelete, inodeToDelete);
                 } catch (AccessControlException e) {
                   // In case ufs is not writable, we will still attempt to delete other entries
                   // if any as they may be from a different mount point
-                  // TODO(adit): reason for failure is swallowed here
                   LOG.warn(e.getMessage());
                   failureReason = e.getMessage();
                 } catch (IOException e) {
+                  LOG.warn(e.getMessage());
                   failureReason = e.getMessage();
                 }
-=======
-        } else if (!replayed && inodeToDelete.isPersisted()) {
-          // If this is a mount point, we have deleted all the children and can unmount it
-          // TODO(calvin): Add tests (ALLUXIO-1831)
-          if (mMountTable.isMountPoint(alluxioUriToDelete)) {
-            unmountInternal(alluxioUriToDelete);
-          } else {
-            if (!(replayed || deleteOptions.isAlluxioOnly())) {
-              try {
-                checkUfsMode(alluxioUriToDelete, OperationType.WRITE);
-                // Attempt to delete node if all children were deleted successfully
-                ufsDeleter.delete(alluxioUriToDelete, inodeToDelete);
-              } catch (AccessControlException e) {
-                // In case ufs is not writable, we will still attempt to delete other entries
-                // if any as they may be from a different mount point
-                LOG.warn(e.getMessage());
-                failureReason = e.getMessage();
-              } catch (IOException e) {
-                LOG.warn(e.getMessage());
-                failureReason = e.getMessage();
->>>>>>> 547403bda2... [ALLUXIO-3245] Fix recursive delete permission checking (#7585)
               }
             }
           } catch (InvalidPathException e) {
