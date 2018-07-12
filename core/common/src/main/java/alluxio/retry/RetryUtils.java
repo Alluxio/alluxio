@@ -11,10 +11,14 @@
 
 package alluxio.retry;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
 
 /**
  * Utilities for performing retries.
@@ -43,6 +47,40 @@ public final class RetryUtils {
       }
     }
     throw e;
+  }
+
+  /**
+   * @return the default client retry
+   */
+  public static RetryPolicy defaultClientRetry() {
+    Duration maxRetryDuration = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
+    Duration baseSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+    Duration maxSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+    return ExponentialTimeBoundedRetry.builder()
+        .withMaxDuration(maxRetryDuration)
+        .withInitialSleep(baseSleepMs)
+        .withMaxSleep(maxSleepMs)
+        .build();
+  }
+
+  /**
+   * @return the default worker to master client retry
+   */
+  public static RetryPolicy defaultWorkerMasterClientRetry() {
+    return ExponentialTimeBoundedRetry.builder()
+        .withMaxDuration(Duration
+            .ofMillis(Configuration.getMs(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)))
+        .withInitialSleep(Duration.ofMillis(100))
+        .withMaxSleep(Duration.ofSeconds(5))
+        .build();
+  }
+
+  /**
+   * @return the default metrics client retry
+   */
+  public static RetryPolicy defaultMetricsClientRetry() {
+    // No retry for metrics since they are best effort and automatically retried with the heartbeat.
+    return new CountingRetry(0);
   }
 
   /**
