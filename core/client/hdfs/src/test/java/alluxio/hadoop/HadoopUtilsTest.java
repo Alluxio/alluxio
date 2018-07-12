@@ -75,7 +75,8 @@ public final class HadoopUtilsTest {
 
   @Test
   public void testGetPathWithoutSchemaFromZookeeperURI() {
-    Path path = new Path(URI.create("alluxio://zk@host1:port1,host2:port2,host3:port3/foo/bar/baz"));
+    Path path
+        = new Path(URI.create("alluxio://zk@host1:port1,host2:port2,host3:port3/foo/bar/baz"));
     String output = HadoopUtils.getPathWithoutScheme(path);
     assertEquals("/foo/bar/baz", output);
   }
