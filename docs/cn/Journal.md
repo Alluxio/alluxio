@@ -1,7 +1,7 @@
 ---
 layout: global
 title: 日志
-nickname: Journal
+nickname: 日志
 group: Features
 priority: 0
 ---
