@@ -3107,9 +3107,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
          LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme.getPath(),
              lockingScheme.getMode());
          FileSystemMasterAuditContext auditContext = createAuditContext("setAcl", path, null,
-             inodePath.getInodeOrNull())) {
+             inodePath.getInodeOrNull());
+         LockedInodePathList children = options.getRecursive()
+             ? mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE) : null) {
       try {
         mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
+
+        if (children != null) {
+          for (LockedInodePath child : children.getInodePathList()) {
+            mPermissionChecker.checkPermission(Mode.Bits.WRITE, child);
+          }
+        }
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
         throw e;
@@ -3210,13 +3218,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
-  private void setAclInternal(RpcContext rpcContext, SetAclAction action, LockedInodePath inodePath,
-      List<AclEntry> entries, boolean replay, long opTimeMs, SetAclOptions options)
+  private void setAclSingleInode(RpcContext rpcContext, SetAclAction action,
+      LockedInodePath inodePath, List<AclEntry> entries, boolean replay, long opTimeMs)
       throws IOException, FileDoesNotExistException {
     Inode<?> targetInode = inodePath.getInode();
-
-    // TODO(gpang): handle recursive
-    // TODO(gpang): apply to UFS
     switch (action) {
       case REPLACE:
         // fully replace the acl for the path
@@ -3246,6 +3251,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     targetInode.setLastModificationTimeMs(opTimeMs);
+  }
+
+  private void setAclInternal(RpcContext rpcContext, SetAclAction action, LockedInodePath inodePath,
+      List<AclEntry> entries, boolean replay, long opTimeMs, SetAclOptions options)
+      throws IOException, FileDoesNotExistException {
+    try (LockedInodePathList children = options.getRecursive()
+        ? mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE) : null) {
+      if (children != null) {
+        for (LockedInodePath child : children.getInodePathList()) {
+          setAclSingleInode(rpcContext, action, child, entries, replay, opTimeMs);
+        }
+      }
+    }
+    setAclSingleInode(rpcContext, action, inodePath, entries, replay, opTimeMs);
+
   }
 
   @Override
