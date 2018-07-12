@@ -64,7 +64,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
   /** Duration to sleep during the rename call to show the benefits of concurrency. */
   private static final long SLEEP_MS = Constants.SECOND_MS / 10;
   /** Timeout for the concurrent test after which we will mark the test as failed. */
-  private static final long LIMIT_MS = SLEEP_MS * CONCURRENCY_FACTOR / 10;
+  private static final long LIMIT_MS = SLEEP_MS * CONCURRENCY_FACTOR / 2;
   /**
    * Options to mark a created file as persisted. Note that this does not actually persist the
    * file but flag the file to be treated as persisted, which will invoke ufs operations.
