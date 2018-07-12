@@ -1318,6 +1318,38 @@ public final class FileSystemMasterTest {
     assertTrue(deleteEntries.stream().noneMatch(finalEntries::contains));
   }
 
+  @Test
+  public void setRecursiveAcl() throws Exception {
+    final int files = 10;
+    SetAclOptions options = SetAclOptions.defaults().setRecursive(true);
+
+    // Test files in root directory.
+    for (int i = 0; i < files; i++) {
+      createFileWithSingleBlock(ROOT_URI.join("file" + String.format("%05d", i)));
+    }
+    // Test files in nested directory.
+    for (int i = 0; i < files; i++) {
+      createFileWithSingleBlock(NESTED_URI.join("file" + String.format("%05d", i)));
+    }
+
+    // Test files in nested directory.
+    for (int i = 0; i < files; i++) {
+      createFileWithSingleBlock(NESTED_DIR_URI.join("file" + String.format("%05d", i)));
+    }
+
+    // replace
+    Set<String> newEntries = Sets.newHashSet("user::rw-", "group::r-x", "other::-wx");
+    mFileSystemMaster.setAcl(ROOT_URI, SetAclAction.REPLACE,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+
+    List<FileInfo> infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusOptions.defaults()
+        .setLoadMetadataType(LoadMetadataType.Once).setRecursive(true));
+    assertEquals(files * 3 + 3, infos.size());
+    for (FileInfo info : infos) {
+      assertEquals(newEntries, Sets.newHashSet(info.getAclEntries()));
+    }
+  }
+
   /**
    * Tests that an exception is in the
    * {@link FileSystemMaster#createFile(AlluxioURI, CreateFileOptions)} with a TTL set in the
