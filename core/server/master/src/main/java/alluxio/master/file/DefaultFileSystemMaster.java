@@ -3256,6 +3256,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private void setAclInternal(RpcContext rpcContext, SetAclAction action, LockedInodePath inodePath,
       List<AclEntry> entries, boolean replay, long opTimeMs, SetAclOptions options)
       throws IOException, FileDoesNotExistException {
+    setAclSingleInode(rpcContext, action, inodePath, entries, replay, opTimeMs);
     try (LockedInodePathList children = options.getRecursive()
         ? mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE) : null) {
       if (children != null) {
@@ -3264,8 +3265,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
     }
-    setAclSingleInode(rpcContext, action, inodePath, entries, replay, opTimeMs);
-
   }
 
   @Override
