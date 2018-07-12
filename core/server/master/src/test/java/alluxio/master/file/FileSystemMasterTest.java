@@ -16,9 +16,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
+import alluxio.AuthenticatedClientUserResource;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
@@ -115,6 +117,7 @@ public final class FileSystemMasterTest {
 
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
+  private static final AlluxioURI NESTED_FILE2_URI = new AlluxioURI("/nested/test/file2");
   private static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
   private static final AlluxioURI ROOT_URI = new AlluxioURI("/");
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
@@ -244,7 +247,7 @@ public final class FileSystemMasterTest {
     // cannot delete root
     try {
       mFileSystemMaster.delete(ROOT_URI, DeleteOptions.defaults().setRecursive(true));
-      Assert.fail("Should not have been able to delete the root");
+      fail("Should not have been able to delete the root");
     } catch (InvalidPathException e) {
       assertEquals(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage(), e.getMessage());
     }
@@ -255,7 +258,7 @@ public final class FileSystemMasterTest {
 
     try {
       mBlockMaster.getBlockInfo(blockId);
-      Assert.fail("Expected blockInfo to fail");
+      fail("Expected blockInfo to fail");
     } catch (BlockInfoException e) {
       // expected
     }
@@ -302,7 +305,7 @@ public final class FileSystemMasterTest {
     String dirName = mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getName();
     try {
       mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(false));
-      Assert.fail("Deleting a non-empty directory without setting recursive should fail");
+      fail("Deleting a non-empty directory without setting recursive should fail");
     } catch (DirectoryNotEmptyException e) {
       String expectedMessage =
           ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage(dirName);
@@ -342,6 +345,46 @@ public final class FileSystemMasterTest {
     Files.delete(Paths.get(ufsMount.join("dir1").getPath()));
     assertEquals(IdUtils.INVALID_FILE_ID,
         mFileSystemMaster.getFileId(new AlluxioURI("/mnt/local/dir1")));
+  }
+
+  @Test
+  public void deleteDirRecursiveWithPermissions() throws Exception {
+    // userA has permissions to delete directory and nested file
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        SetAttributeOptions.defaults().setMode((short) 0777));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeOptions.defaults().setMode((short) 0777));
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
+      mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(true));
+    }
+    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
+    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+  }
+
+  @Test
+  public void deleteDirRecursiveWithInsufficientPermissions() throws Exception {
+    // userA has permissions to delete directory but not one of the nested files
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    createFileWithSingleBlock(NESTED_FILE2_URI);
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        SetAttributeOptions.defaults().setMode((short) 0777));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeOptions.defaults().setMode((short) 0700));
+    mFileSystemMaster.setAttribute(NESTED_FILE2_URI,
+        SetAttributeOptions.defaults().setMode((short) 0777));
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
+      mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(true));
+      fail("Deleting a directory w/ insufficient permission on child should fail");
+    } catch (AccessControlException e) {
+      String expectedChildMessage = ExceptionMessage.PERMISSION_DENIED
+          .getMessage("user=userA, access=-w-, path=" + NESTED_FILE_URI + ": failed at file");
+      assertTrue(e.getMessage().startsWith(ExceptionMessage.DELETE_FAILED_DIR_CHILDREN
+          .getMessage(NESTED_URI, expectedChildMessage)));
+    }
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE2_URI));
   }
 
   /**
@@ -571,7 +614,7 @@ public final class FileSystemMasterTest {
     // get non-existent id
     try {
       mFileSystemMaster.getPath(rootId + 1234);
-      Assert.fail("getPath() for a non-existent id should fail.");
+      fail("getPath() for a non-existent id should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -589,7 +632,7 @@ public final class FileSystemMasterTest {
     // get non-existent id
     try {
       mFileSystemMaster.getPersistenceState(rootId + 1234);
-      Assert.fail("getPath() for a non-existent id should fail.");
+      fail("getPath() for a non-existent id should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -651,7 +694,7 @@ public final class FileSystemMasterTest {
     // Test non-existent id.
     try {
       mFileSystemMaster.getFileInfo(fileId + 1234);
-      Assert.fail("getFileInfo() for a non-existent id should fail.");
+      fail("getFileInfo() for a non-existent id should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -659,19 +702,19 @@ public final class FileSystemMasterTest {
     // Test non-existent URIs.
     try {
       mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_OPTIONS);
-      Assert.fail("getFileInfo() for a non-existent URI should fail.");
+      fail("getFileInfo() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
     try {
       mFileSystemMaster.getFileInfo(TEST_URI, GET_STATUS_OPTIONS);
-      Assert.fail("getFileInfo() for a non-existent URI should fail.");
+      fail("getFileInfo() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
     try {
       mFileSystemMaster.getFileInfo(NESTED_URI.join("DNE"), GET_STATUS_OPTIONS);
-      Assert.fail("getFileInfo() for a non-existent URI should fail.");
+      fail("getFileInfo() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -737,7 +780,7 @@ public final class FileSystemMasterTest {
     try {
       mFileSystemMaster.listStatus(uri,
           ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
-      Assert.fail("Exception expected");
+      fail("Exception expected");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -921,7 +964,7 @@ public final class FileSystemMasterTest {
     try {
       mFileSystemMaster.listStatus(NESTED_URI.join("DNE"),
           ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
-      Assert.fail("listStatus() for a non-existent URI should fail.");
+      fail("listStatus() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -1057,7 +1100,7 @@ public final class FileSystemMasterTest {
     // Test directory URI.
     try {
       mFileSystemMaster.getFileBlockInfoList(NESTED_URI);
-      Assert.fail("getFileBlockInfoList() for a directory URI should fail.");
+      fail("getFileBlockInfoList() for a directory URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -1065,7 +1108,7 @@ public final class FileSystemMasterTest {
     // Test non-existent URI.
     try {
       mFileSystemMaster.getFileBlockInfoList(TEST_URI);
-      Assert.fail("getFileBlockInfoList() for a non-existent URI should fail.");
+      fail("getFileBlockInfoList() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -1079,7 +1122,7 @@ public final class FileSystemMasterTest {
     // Alluxio mount point should not exist before mounting.
     try {
       mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GET_STATUS_OPTIONS);
-      Assert.fail("getFileInfo() for a non-existent URI (before mounting) should fail.");
+      fail("getFileInfo() for a non-existent URI (before mounting) should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -1094,7 +1137,7 @@ public final class FileSystemMasterTest {
     // Alluxio mount point should not exist after unmounting.
     try {
       mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GET_STATUS_OPTIONS);
-      Assert.fail("getFileInfo() for a non-existent URI (before mounting) should fail.");
+      fail("getFileInfo() for a non-existent URI (before mounting) should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -1123,7 +1166,7 @@ public final class FileSystemMasterTest {
     uri = new AlluxioURI("/mnt/local/nested/file");
     try {
       mFileSystemMaster.loadMetadata(uri, LoadMetadataOptions.defaults().setCreateAncestors(false));
-      Assert.fail("loadMetadata() without recursive, for a nested file should fail.");
+      fail("loadMetadata() without recursive, for a nested file should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -1540,7 +1583,7 @@ public final class FileSystemMasterTest {
     // try to rename a file to root
     try {
       mFileSystemMaster.rename(NESTED_FILE_URI, ROOT_URI, RenameOptions.defaults());
-      Assert.fail("Renaming to root should fail.");
+      fail("Renaming to root should fail.");
     } catch (InvalidPathException e) {
       assertEquals(ExceptionMessage.RENAME_CANNOT_BE_TO_ROOT.getMessage(), e.getMessage());
     }
@@ -1548,7 +1591,7 @@ public final class FileSystemMasterTest {
     // move root to another path
     try {
       mFileSystemMaster.rename(ROOT_URI, TEST_URI, RenameOptions.defaults());
-      Assert.fail("Should not be able to rename root");
+      fail("Should not be able to rename root");
     } catch (InvalidPathException e) {
       assertEquals(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage(), e.getMessage());
     }
@@ -1556,7 +1599,7 @@ public final class FileSystemMasterTest {
     // move to existing path
     try {
       mFileSystemMaster.rename(NESTED_FILE_URI, NESTED_URI, RenameOptions.defaults());
-      Assert.fail("Should not be able to overwrite existing file.");
+      fail("Should not be able to overwrite existing file.");
     } catch (FileAlreadyExistsException e) {
       assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(NESTED_URI.getPath()),
           e.getMessage());
@@ -1598,7 +1641,7 @@ public final class FileSystemMasterTest {
 
     try {
       mFileSystemMaster.rename(NESTED_URI, new AlluxioURI("/testDNE/b"), RenameOptions.defaults());
-      Assert.fail("Rename to a non-existent parent path should not succeed.");
+      fail("Rename to a non-existent parent path should not succeed.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -2066,7 +2109,7 @@ public final class FileSystemMasterTest {
     try {
       mFileSystemMaster.createDirectory(new AlluxioURI("alluxio:/a"),
           CreateDirectoryOptions.defaults());
-      Assert.fail("createDirectory was expected to fail with FileAlreadyExistsException");
+      fail("createDirectory was expected to fail with FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
       assertEquals(
           ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a")),
@@ -2087,7 +2130,7 @@ public final class FileSystemMasterTest {
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     try {
       mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f2"), CreateFileOptions.defaults());
-      Assert.fail("createDirectory was expected to fail with FileAlreadyExistsException");
+      fail("createDirectory was expected to fail with FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
       assertEquals(
           ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a/f2")),
