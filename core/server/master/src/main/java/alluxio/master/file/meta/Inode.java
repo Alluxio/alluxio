@@ -15,6 +15,11 @@ import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.JournalEntryRepresentable;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclAction;
+import alluxio.security.authorization.AclActions;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -22,6 +27,8 @@ import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -46,11 +53,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   private long mParentId;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
-
-  private String mOwner;
-  private String mGroup;
-  private short mMode;
-
+  protected AccessControlList mAcl;
   private String mUfsFingerprint;
 
   private final ReentrantReadWriteLock mLock;
@@ -59,17 +62,15 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mCreationTimeMs = System.currentTimeMillis();
     mDeleted = false;
     mDirectory = isDirectory;
-    mGroup = "";
     mId = id;
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mLastModificationTimeMs = mCreationTimeMs;
     mName = null;
     mParentId = InodeTree.NO_PARENT;
-    mMode = Constants.INVALID_MODE;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
-    mOwner = "";
+    mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     mLock = new ReentrantReadWriteLock();
   }
@@ -85,7 +86,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the group of the inode
    */
   public String getGroup() {
-    return mGroup;
+    return mAcl.getOwningGroup();
   }
 
   /**
@@ -127,7 +128,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the mode of the inode
    */
   public short getMode() {
-    return mMode;
+    return mAcl.getMode();
   }
 
   /**
@@ -165,7 +166,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the owner of the inode
    */
   public String getOwner() {
-    return mOwner;
+    return mAcl.getOwningUser();
   }
 
   /**
@@ -211,6 +212,57 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
+   * Removes the extended ACL entries. The base entries are retained.
+   *
+   * @return the updated object
+   */
+  public T removeExtendedAcl() {
+    mAcl.removeExtendedEntries();
+    return getThis();
+  }
+
+  /**
+   * Removes ACL entries.
+   *
+   * @param entries the ACL entries to remove
+   * @return the updated object
+   */
+  public T removeAcl(List<AclEntry> entries) throws IOException {
+    for (AclEntry entry : entries) {
+      if (entry.isDefault()) {
+        AccessControlList defaultAcl = getDefaultACL();
+        defaultAcl.removeEntry(entry);
+      } else {
+        mAcl.removeEntry(entry);
+      }
+    }
+    return getThis();
+  }
+
+  /**
+   * Replaces all existing ACL entries with a new list of entries.
+   *
+   * @param entries the new list of ACL entries
+   * @return the updated object
+   */
+  public T replaceAcl(List<AclEntry> entries) {
+    boolean clearACL = false;
+    for (AclEntry entry : entries) {
+      /**
+       * if we are only setting default ACLs, we do not need to clear access ACL entries
+       * observed same behavior on linux
+       */
+      if (!entry.isDefault()) {
+        clearACL = true;
+      }
+    }
+    if (clearACL) {
+      mAcl.clearEntries();
+    }
+    return setAcl(entries);
+  }
+
+  /**
    * @param creationTimeMs the creation time to use (in milliseconds)
    * @return the updated object
    */
@@ -233,7 +285,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the updated object
    */
   public T setGroup(String group) {
-    mGroup = group;
+    mAcl.setOwningGroup(group);
+    if (isDirectory()) {
+      getDefaultACL().setOwningGroup(group);
+    }
     return getThis();
   }
 
@@ -322,7 +377,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the updated object
    */
   public T setOwner(String owner) {
-    mOwner = owner;
+    mAcl.setOwningUser(owner);
+    if (isDirectory()) {
+      getDefaultACL().setOwningUser(owner);
+    }
     return getThis();
   }
 
@@ -331,7 +389,55 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the updated object
    */
   public T setMode(short mode) {
-    mMode = mode;
+    mAcl.setMode(mode);
+    return getThis();
+  }
+
+  /**
+   * @return the access control list
+   */
+  public AccessControlList getACL() {
+    return mAcl;
+  }
+
+  /**
+   * @return the default ACL associated with this inode
+   * @throws UnsupportedOperationException if the inode is a file
+   */
+  public abstract DefaultAccessControlList getDefaultACL() throws UnsupportedOperationException;
+
+  /**
+   * @param acl set the default ACL associated with this inode
+   * @throws UnsupportedOperationException if the inode is a file
+   */
+  public abstract void setDefaultACL(DefaultAccessControlList acl)
+      throws UnsupportedOperationException;
+
+  /**
+   * Sets ACL entries into the internal ACL.
+   * The entries will overwrite any existing correspondent entries in the internal ACL.
+   *
+   * @param entries the ACL entries
+   * @return the updated object
+   */
+  public T setAcl(List<AclEntry> entries) {
+    for (AclEntry entry : entries) {
+      if (entry.isDefault()) {
+        getDefaultACL().setEntry(entry);
+      } else {
+        mAcl.setEntry(entry);
+      }
+    }
+    return getThis();
+  }
+
+  /**
+   * Sets the internal ACL to a specified ACL.
+   * @param acl the specified ACL
+   * @return the updated object
+   */
+  public T setInternalAcl(AccessControlList acl) {
+    mAcl = acl;
     return getThis();
   }
 
@@ -486,6 +592,32 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     return mLock.getReadHoldCount() > 0;
   }
 
+  /**
+   * Checks whether the user or one of the groups has the permission to take the action.
+   *
+   *
+   * @param user the user checking permission
+   * @param groups the groups the user belongs to
+   * @param action the action to take
+   * @return whether permitted to take the action
+   * @see AccessControlList#checkPermission(String, List, AclAction)
+   */
+  public boolean checkPermission(String user, List<String> groups, AclAction action) {
+    return mAcl.checkPermission(user, groups, action);
+  }
+
+  /**
+   * Gets the permitted actions for a user.
+   *
+   * @param user the user
+   * @param groups the groups the user belongs to
+   * @return the permitted actions
+   * @see AccessControlList#getPermission(String, List)
+   */
+  public AclActions getPermission(String user, List<String> groups) {
+    return mAcl.getPermission(user, groups);
+  }
+
   @Override
   public int hashCode() {
     return ((Long) mId).hashCode();
@@ -508,8 +640,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
         .add("creationTimeMs", mCreationTimeMs).add("pinned", mPinned).add("deleted", mDeleted)
         .add("ttl", mTtl).add("ttlAction", mTtlAction)
         .add("directory", mDirectory).add("persistenceState", mPersistenceState)
-        .add("lastModificationTimeMs", mLastModificationTimeMs).add("owner", mOwner)
-        .add("group", mGroup).add("permission", mMode)
+        .add("lastModificationTimeMs", mLastModificationTimeMs)
+        .add("owner", mAcl.getOwningUser())
+        .add("group", mAcl.getOwningGroup())
+        .add("permission", mAcl.getMode())
         .add("ufsFingerprint", mUfsFingerprint);
   }
 }

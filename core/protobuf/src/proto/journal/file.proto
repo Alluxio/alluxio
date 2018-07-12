@@ -48,7 +48,56 @@ message DeleteMountPointEntry {
   optional string alluxio_path = 1;
 }
 
-// next available id: 15
+// next available id: 3
+enum AclAction {
+  READ = 0;
+  WRITE = 1;
+  EXECUTE = 2;
+}
+
+// next available id: 6
+enum AclEntryType {
+  OWNER = 0;
+  NAMED_USER = 1;
+  OWNING_GROUP = 2;
+  NAMED_GROUP = 3;
+  MASK = 4;
+  OTHER = 5;
+}
+
+// next available id: 2
+message AclActions {
+  repeated AclAction actions = 1;
+}
+
+// next available id: 5
+message AclEntry {
+  optional AclEntryType type = 1;
+  optional string subject = 2;
+  repeated AclAction actions = 3;
+  optional bool isDefault = 4;
+}
+
+// AclActions for a String name.
+// next available id: 3
+message NamedAclActions {
+  optional string name = 1;
+  optional AclActions actions = 2;
+}
+
+// next available id: 9
+message AccessControlList {
+  optional string owningUser = 1;
+  optional string owningGroup = 2;
+  repeated NamedAclActions userActions = 3;
+  repeated NamedAclActions groupActions = 4;
+  optional AclActions maskActions = 5;
+  optional AclActions otherActions = 6;
+  optional bool isDefault = 7;
+  optional bool isEmpty = 8;
+}
+
+// next available id: 17
 message InodeDirectoryEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -64,6 +113,8 @@ message InodeDirectoryEntry {
   optional bool direct_children_loaded = 12;
   optional int64 ttl = 13;
   optional PTtlAction ttlAction = 14 [default = DELETE];
+  optional AccessControlList acl = 15;
+  optional AccessControlList defaultAcl = 16;
 }
 
 // next available id: 3
@@ -77,7 +128,7 @@ enum PTtlAction {
   FREE = 1;
 }
 
-// next available id: 19
+// next available id: 20
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -97,6 +148,7 @@ message InodeFileEntry {
   optional int32 mode = 16;
   optional PTtlAction ttlAction = 17 [default = DELETE];
   optional string ufs_fingerprint = 18;
+  optional AccessControlList acl = 19;
 }
 
 // next available id: 3
@@ -130,6 +182,23 @@ message RenameEntry {
   optional int64 id = 1;
   optional string dst_path = 2;
   optional int64 op_time_ms = 3;
+}
+
+enum SetAclAction {
+  REPLACE = 0;
+  MODIFY = 1;
+  REMOVE = 2;
+  REMOVE_ALL = 3;
+  REMOVE_DEFAULT = 4;
+}
+
+// next available id: 6
+message SetAclEntry {
+  optional int64 id = 1;
+  optional int64 op_time_ms = 2;
+  optional SetAclAction action = 3;
+  repeated AclEntry entries = 4;
+  optional bool recursive = 5;
 }
 
 // next available id: 11
