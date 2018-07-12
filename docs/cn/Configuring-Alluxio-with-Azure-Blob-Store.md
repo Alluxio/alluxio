@@ -1,10 +1,9 @@
-
 ---
-layout： global
-title： 在Azure Blob Store上配置Alluxio
-nickname： Alluxio使用Azure Blob Store
-group： Under Store
-priority： 0
+layout: global
+title: Configuring Alluxio with Azure Blob Store
+nickname: Alluxio使用Azure Blob Store
+group: Under Store
+priority: 0
 ---
 
 * 内容列表
