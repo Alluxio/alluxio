@@ -14,6 +14,7 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -106,6 +107,11 @@ public final class UIFileInfo {
    * @param status underlying {@link URIStatus}
    */
   public UIFileInfo(URIStatus status) {
+    // detect the extended acls
+    AccessControlList acl = AccessControlList
+        .fromStringEntries(status.getOwner(), status.getGroup(), status.getAclEntries());
+    boolean hasExtended = acl.hasExtended() || !status.getDefaultAclEntries().isEmpty();
+
     mId = status.getFileId();
     mName = status.getName();
     mAbsolutePath = status.getPath();
@@ -119,7 +125,7 @@ public final class UIFileInfo {
     mPinned = status.isPinned();
     mOwner = status.getOwner();
     mGroup = status.getGroup();
-    mMode = FormatUtils.formatMode((short) status.getMode(), status.isFolder());
+    mMode = FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended);
     mPersistenceState = status.getPersistenceState();
     mFileLocations = new ArrayList<>();
   }
@@ -152,7 +158,7 @@ public final class UIFileInfo {
     mPinned = false;
     mOwner = "";
     mGroup = "";
-    mMode = FormatUtils.formatMode(Mode.createNoAccess().toShort(), true);
+    mMode = FormatUtils.formatMode(Mode.createNoAccess().toShort(), true, false);
     mPersistenceState = PersistenceState.NOT_PERSISTED.name();
     mFileLocations = new ArrayList<>();
   }

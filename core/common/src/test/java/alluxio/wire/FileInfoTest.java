@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +29,7 @@ public class FileInfoTest {
   public void json() throws Exception {
     FileInfo fileInfo = createRandom();
     ObjectMapper mapper = new ObjectMapper();
+    String s = mapper.writeValueAsString(fileInfo);
     FileInfo other = mapper.readValue(mapper.writeValueAsBytes(fileInfo), FileInfo.class);
     checkEquality(fileInfo, other);
   }
@@ -65,6 +68,7 @@ public class FileInfoTest {
     Assert.assertEquals(a.isPersisted(), b.isPersisted());
     Assert.assertEquals(a.isPinned(), b.isPinned());
     Assert.assertEquals(a.getInAlluxioPercentage(), b.getInAlluxioPercentage());
+    Assert.assertEquals(a.getAclEntries(), b.getAclEntries());
     Assert.assertEquals(a, b);
   }
 
@@ -130,6 +134,9 @@ public class FileInfoTest {
     result.setMountId(mountId);
     result.setUfsPath(ufsPath);
     result.setInAlluxioPercentage(inAlluxioPercentage);
+    AccessControlList acl = new AccessControlList();
+    result.setAclEntries(acl.toStringEntries());
+    result.setDefaultAclEntries(new DefaultAccessControlList().toStringEntries());
     return result;
   }
 }

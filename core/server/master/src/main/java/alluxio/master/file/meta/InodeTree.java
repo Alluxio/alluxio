@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
+import alluxio.collections.Pair;
 import alluxio.collections.UniqueFieldIndex;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
@@ -38,6 +39,8 @@ import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -607,6 +610,17 @@ public class InodeTree implements JournalEntryIterable {
           try {
             // Successfully added the child, while holding the write lock.
             dir.setPinned(currentInodeDirectory.isPinned());
+
+            // if the parent has default ACL, copy that default ACL as the new directory's default
+            // and access acl.
+            if (!options.isMetadataLoad()) {
+              DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+              if (!dAcl.isEmpty()) {
+                Pair<AccessControlList, DefaultAccessControlList> pair = dAcl.generateChildDirACL();
+                dir.setInternalAcl(pair.getFirst());
+                dir.setDefaultACL(pair.getSecond());
+              }
+            }
             if (options.isPersisted()) {
               // Do not journal the persist entry, since a creation entry will be journaled instead.
               syncPersistDirectory(RpcContext.NOOP, dir);
@@ -675,9 +689,22 @@ public class InodeTree implements JournalEntryIterable {
           lastInode = InodeDirectory.create(
               mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
               currentInodeDirectory.getId(), name, directoryOptions);
+
           // Lock the created inode before subsequent operations, and add it to the lock group.
+
           extensibleInodePath.getLockList().lockWriteAndCheckNameAndParent(lastInode,
               currentInodeDirectory, name);
+
+          // if the parent has default ACL, copy that default ACL as the new directory's default
+          // and access acl.
+          DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+          if (!dAcl.isEmpty()) {
+            Pair<AccessControlList, DefaultAccessControlList> pair = dAcl.generateChildDirACL();
+            InodeDirectory lastInodeDirectory = (InodeDirectory) lastInode;
+            lastInodeDirectory.setInternalAcl(pair.getFirst());
+            lastInodeDirectory.setDefaultACL(pair.getSecond());
+          }
+
           if (directoryOptions.isPersisted()) {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
             // TODO(david): remove this call to syncPersistDirectory to improve performance
@@ -689,8 +716,17 @@ public class InodeTree implements JournalEntryIterable {
           lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
               currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
           // Lock the created inode before subsequent operations, and add it to the lock group.
+
           extensibleInodePath.getLockList().lockWriteAndCheckNameAndParent(lastInode,
               currentInodeDirectory, name);
+
+          // if the parent has a default ACL, copy that default ACL as the new file's access ACL.
+          DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+          if (!dAcl.isEmpty()) {
+            AccessControlList acl = dAcl.generateChildFileACL();
+            lastInode.setInternalAcl(acl);
+          }
+
           if (fileOptions.isCacheable()) {
             ((InodeFile) lastInode).setCacheable(true);
           }

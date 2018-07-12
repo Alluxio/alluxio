@@ -222,6 +222,9 @@ public enum ExceptionMessage {
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
+  ACL_BASE_REQUIRED(
+      "Replacing ACL entries must include the base entries for 'user', 'group', and 'other'. "
+          + "missing: {0}"),
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
   IMPERSONATION_NOT_CONFIGURED(

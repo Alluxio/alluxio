@@ -25,10 +25,12 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.RenameOptions;
+import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
+import alluxio.security.authorization.AclEntry;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.GetMountTableTResponse;
@@ -38,11 +40,13 @@ import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.UnmountTOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.SetAclAction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -199,6 +203,17 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public synchronized void rename(final AlluxioURI src, final AlluxioURI dst,
       final RenameOptions options) throws AlluxioStatusException {
     retryRPC(() -> mClient.rename(src.getPath(), dst.getPath(), options.toThrift()), "Rename");
+  }
+
+  @Override
+  public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
+      SetAclOptions options) throws AlluxioStatusException {
+    retryRPC(() -> {
+      mClient.setAcl(path.getPath(), action.toThrift(),
+          entries.stream().map(AclEntry::toThrift).collect(Collectors.toList()),
+          options.toThrift());
+      return null;
+    });
   }
 
   @Override

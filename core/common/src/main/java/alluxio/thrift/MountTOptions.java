@@ -592,15 +592,15 @@ public class MountTOptions implements org.apache.thrift.TBase<MountTOptions, Mou
           case 2: // PROPERTIES
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map48 = iprot.readMapBegin();
-                struct.properties = new HashMap<String,String>(2*_map48.size);
-                String _key49;
-                String _val50;
-                for (int _i51 = 0; _i51 < _map48.size; ++_i51)
+                org.apache.thrift.protocol.TMap _map64 = iprot.readMapBegin();
+                struct.properties = new HashMap<String,String>(2*_map64.size);
+                String _key65;
+                String _val66;
+                for (int _i67 = 0; _i67 < _map64.size; ++_i67)
                 {
-                  _key49 = iprot.readString();
-                  _val50 = iprot.readString();
-                  struct.properties.put(_key49, _val50);
+                  _key65 = iprot.readString();
+                  _val66 = iprot.readString();
+                  struct.properties.put(_key65, _val66);
                 }
                 iprot.readMapEnd();
               }
@@ -651,10 +651,10 @@ public class MountTOptions implements org.apache.thrift.TBase<MountTOptions, Mou
           oprot.writeFieldBegin(PROPERTIES_FIELD_DESC);
           {
             oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.properties.size()));
-            for (Map.Entry<String, String> _iter52 : struct.properties.entrySet())
+            for (Map.Entry<String, String> _iter68 : struct.properties.entrySet())
             {
-              oprot.writeString(_iter52.getKey());
-              oprot.writeString(_iter52.getValue());
+              oprot.writeString(_iter68.getKey());
+              oprot.writeString(_iter68.getValue());
             }
             oprot.writeMapEnd();
           }
@@ -710,10 +710,10 @@ public class MountTOptions implements org.apache.thrift.TBase<MountTOptions, Mou
       if (struct.isSetProperties()) {
         {
           oprot.writeI32(struct.properties.size());
-          for (Map.Entry<String, String> _iter53 : struct.properties.entrySet())
+          for (Map.Entry<String, String> _iter69 : struct.properties.entrySet())
           {
-            oprot.writeString(_iter53.getKey());
-            oprot.writeString(_iter53.getValue());
+            oprot.writeString(_iter69.getKey());
+            oprot.writeString(_iter69.getValue());
           }
         }
       }
@@ -735,15 +735,15 @@ public class MountTOptions implements org.apache.thrift.TBase<MountTOptions, Mou
       }
       if (incoming.get(1)) {
         {
-          org.apache.thrift.protocol.TMap _map54 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.properties = new HashMap<String,String>(2*_map54.size);
-          String _key55;
-          String _val56;
-          for (int _i57 = 0; _i57 < _map54.size; ++_i57)
+          org.apache.thrift.protocol.TMap _map70 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.properties = new HashMap<String,String>(2*_map70.size);
+          String _key71;
+          String _val72;
+          for (int _i73 = 0; _i73 < _map70.size; ++_i73)
           {
-            _key55 = iprot.readString();
-            _val56 = iprot.readString();
-            struct.properties.put(_key55, _val56);
+            _key71 = iprot.readString();
+            _val72 = iprot.readString();
+            struct.properties.put(_key71, _val72);
           }
         }
         struct.setPropertiesIsSet(true);

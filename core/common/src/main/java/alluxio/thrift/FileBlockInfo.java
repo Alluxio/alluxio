@@ -638,14 +638,14 @@ public class FileBlockInfo implements org.apache.thrift.TBase<FileBlockInfo, Fil
           case 3: // UFS_LOCATIONS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list16 = iprot.readListBegin();
-                struct.ufsLocations = new ArrayList<alluxio.thrift.WorkerNetAddress>(_list16.size);
-                alluxio.thrift.WorkerNetAddress _elem17;
-                for (int _i18 = 0; _i18 < _list16.size; ++_i18)
+                org.apache.thrift.protocol.TList _list32 = iprot.readListBegin();
+                struct.ufsLocations = new ArrayList<alluxio.thrift.WorkerNetAddress>(_list32.size);
+                alluxio.thrift.WorkerNetAddress _elem33;
+                for (int _i34 = 0; _i34 < _list32.size; ++_i34)
                 {
-                  _elem17 = new alluxio.thrift.WorkerNetAddress();
-                  _elem17.read(iprot);
-                  struct.ufsLocations.add(_elem17);
+                  _elem33 = new alluxio.thrift.WorkerNetAddress();
+                  _elem33.read(iprot);
+                  struct.ufsLocations.add(_elem33);
                 }
                 iprot.readListEnd();
               }
@@ -657,13 +657,13 @@ public class FileBlockInfo implements org.apache.thrift.TBase<FileBlockInfo, Fil
           case 4: // UFS_STRING_LOCATIONS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list19 = iprot.readListBegin();
-                struct.ufsStringLocations = new ArrayList<String>(_list19.size);
-                String _elem20;
-                for (int _i21 = 0; _i21 < _list19.size; ++_i21)
+                org.apache.thrift.protocol.TList _list35 = iprot.readListBegin();
+                struct.ufsStringLocations = new ArrayList<String>(_list35.size);
+                String _elem36;
+                for (int _i37 = 0; _i37 < _list35.size; ++_i37)
                 {
-                  _elem20 = iprot.readString();
-                  struct.ufsStringLocations.add(_elem20);
+                  _elem36 = iprot.readString();
+                  struct.ufsStringLocations.add(_elem36);
                 }
                 iprot.readListEnd();
               }
@@ -699,9 +699,9 @@ public class FileBlockInfo implements org.apache.thrift.TBase<FileBlockInfo, Fil
         oprot.writeFieldBegin(UFS_LOCATIONS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.ufsLocations.size()));
-          for (alluxio.thrift.WorkerNetAddress _iter22 : struct.ufsLocations)
+          for (alluxio.thrift.WorkerNetAddress _iter38 : struct.ufsLocations)
           {
-            _iter22.write(oprot);
+            _iter38.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -711,9 +711,9 @@ public class FileBlockInfo implements org.apache.thrift.TBase<FileBlockInfo, Fil
         oprot.writeFieldBegin(UFS_STRING_LOCATIONS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.ufsStringLocations.size()));
-          for (String _iter23 : struct.ufsStringLocations)
+          for (String _iter39 : struct.ufsStringLocations)
           {
-            oprot.writeString(_iter23);
+            oprot.writeString(_iter39);
           }
           oprot.writeListEnd();
         }
@@ -759,18 +759,18 @@ public class FileBlockInfo implements org.apache.thrift.TBase<FileBlockInfo, Fil
       if (struct.isSetUfsLocations()) {
         {
           oprot.writeI32(struct.ufsLocations.size());
-          for (alluxio.thrift.WorkerNetAddress _iter24 : struct.ufsLocations)
+          for (alluxio.thrift.WorkerNetAddress _iter40 : struct.ufsLocations)
           {
-            _iter24.write(oprot);
+            _iter40.write(oprot);
           }
         }
       }
       if (struct.isSetUfsStringLocations()) {
         {
           oprot.writeI32(struct.ufsStringLocations.size());
-          for (String _iter25 : struct.ufsStringLocations)
+          for (String _iter41 : struct.ufsStringLocations)
           {
-            oprot.writeString(_iter25);
+            oprot.writeString(_iter41);
           }
         }
       }
@@ -791,27 +791,27 @@ public class FileBlockInfo implements org.apache.thrift.TBase<FileBlockInfo, Fil
       }
       if (incoming.get(2)) {
         {
-          org.apache.thrift.protocol.TList _list26 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.ufsLocations = new ArrayList<alluxio.thrift.WorkerNetAddress>(_list26.size);
-          alluxio.thrift.WorkerNetAddress _elem27;
-          for (int _i28 = 0; _i28 < _list26.size; ++_i28)
+          org.apache.thrift.protocol.TList _list42 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.ufsLocations = new ArrayList<alluxio.thrift.WorkerNetAddress>(_list42.size);
+          alluxio.thrift.WorkerNetAddress _elem43;
+          for (int _i44 = 0; _i44 < _list42.size; ++_i44)
           {
-            _elem27 = new alluxio.thrift.WorkerNetAddress();
-            _elem27.read(iprot);
-            struct.ufsLocations.add(_elem27);
+            _elem43 = new alluxio.thrift.WorkerNetAddress();
+            _elem43.read(iprot);
+            struct.ufsLocations.add(_elem43);
           }
         }
         struct.setUfsLocationsIsSet(true);
       }
       if (incoming.get(3)) {
         {
-          org.apache.thrift.protocol.TList _list29 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.ufsStringLocations = new ArrayList<String>(_list29.size);
-          String _elem30;
-          for (int _i31 = 0; _i31 < _list29.size; ++_i31)
+          org.apache.thrift.protocol.TList _list45 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.ufsStringLocations = new ArrayList<String>(_list45.size);
+          String _elem46;
+          for (int _i47 = 0; _i47 < _list45.size; ++_i47)
           {
-            _elem30 = iprot.readString();
-            struct.ufsStringLocations.add(_elem30);
+            _elem46 = iprot.readString();
+            struct.ufsStringLocations.add(_elem46);
           }
         }
         struct.setUfsStringLocationsIsSet(true);
