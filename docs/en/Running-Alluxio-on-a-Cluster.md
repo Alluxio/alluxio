@@ -208,15 +208,14 @@ connect to the cluster using Alluxio on Zookeeper URI.
 
 Use `alluxio://zk@` to tell Alluxio the following addresses are Zookeeper addresses.
 
-For most applications (e.g., MapReduce, Hive, Flink and HBase), you could use
+For most applications (e.g., Hadoop, HBase, Hive and Flink), you could use
 `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`:
 
 ```
 hadoop fs -ls alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/directory
 ```
 
-Some applications (e.g., Spark), you need to use semicolons to separate Zookeeper addresses
-`alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path`:
+Some applications (e.g., Spark), you need to use semicolons to separate Zookeeper addresses:
 
 ```scala
 > val s = sc.textFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/LICENSE")

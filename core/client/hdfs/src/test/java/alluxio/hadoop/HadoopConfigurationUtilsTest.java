@@ -47,7 +47,7 @@ public final class HadoopConfigurationUtilsTest {
     HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, Configuration.global());
     long afterSize = Configuration.toMap().size();
     Assert.assertEquals(beforeSize, afterSize);
-    Assert.assertEquals(false, Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    Assert.assertFalse(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
   }
 
   /**
@@ -67,13 +67,9 @@ public final class HadoopConfigurationUtilsTest {
     Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(PropertyKey.S3A_SECRET_KEY));
     Assert.assertEquals(Source.RUNTIME, Configuration.getSource(PropertyKey.S3A_ACCESS_KEY));
     Assert.assertEquals(Source.RUNTIME, Configuration.getSource(PropertyKey.S3A_SECRET_KEY));
-    Assert.assertEquals(false, Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    Assert.assertFalse(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
   }
 
-  /**
-   * Test for the {@link HadoopConfigurationUtils#mergeHadoopConfiguration} method for an hadoop
-   * configuration with Zookeeper information.
-   */
   @Test
   public void mergeHadoopConfigurationWithZookeeperInformation() throws URISyntaxException {
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
@@ -84,7 +80,7 @@ public final class HadoopConfigurationUtilsTest {
     HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, Configuration.global());
     long afterSize = Configuration.toMap().size();
     Assert.assertEquals(beforeSize, afterSize);
-    Assert.assertEquals(true, Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    Assert.assertTrue(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     Assert.assertEquals("host1:port1,host2:port2;host3:port3",
         Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
   }

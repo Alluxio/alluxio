@@ -69,11 +69,5 @@ public final class ConfigurationRule extends AbstractResourceRule {
         Configuration.unset(entry.getKey());
       }
     }
-    // Zookeeper configuration may be set through the Alluxio on Zookeeper URI
-    // and should be unset after tests.
-    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, false);
-    if (Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
-      Configuration.unset(PropertyKey.ZOOKEEPER_ADDRESS);
-    }
   }
 }

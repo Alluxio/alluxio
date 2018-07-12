@@ -764,6 +764,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @return whether the uri is Alluxio on Zookeeper URI
    */
   private static boolean isZookeeperUri(URI uri) {
+    // TODO(lu) make Alluxio URI capable of processing Alluxio on Zookeeper URI
+    // and expose methods to get URI type and Zookeeper addresses.
     String authority = uri.getAuthority();
     return authority != null && authority.contains(ZOOKEEPER_IDENTIFIER);
   }

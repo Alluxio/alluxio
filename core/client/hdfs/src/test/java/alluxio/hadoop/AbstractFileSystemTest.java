@@ -125,11 +125,14 @@ public class AbstractFileSystemTest {
   @After
   public void after() {
     HadoopClientTestUtils.resetClient();
+    // Zookeeper configuration may be set through Alluxio on Zookeeper URI
+    // and should be unset after each test.
+    alluxio.Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, false);
+    if (alluxio.Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
+      alluxio.Configuration.unset(PropertyKey.ZOOKEEPER_ADDRESS);
+    }
   }
 
-  /**
-   * Ensures that Hadoop loads {@link FaultTolerantFileSystem} when configured.
-   */
   @Test
   public void hadoopShouldLoadFaultTolerantFileSystemWhenConfigured() throws Exception {
     URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
@@ -195,9 +198,6 @@ public class AbstractFileSystemTest {
     }
   }
 
-  /**
-   * Ensures that Hadoop loads the Alluxio file system when configured.
-   */
   @Test
   public void hadoopShouldLoadFileSystemWhenConfigured() throws Exception {
     org.apache.hadoop.conf.Configuration conf = getConf();
