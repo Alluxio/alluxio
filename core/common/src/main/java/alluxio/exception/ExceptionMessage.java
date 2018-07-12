@@ -121,6 +121,8 @@ public enum ExceptionMessage {
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
+  DELETE_FAILED_DIR_CHILDREN(
+      "Cannot delete directory {0}. Failed to delete children: {1}"),
   DELETE_FAILED_DIR_NONEMPTY("Directory not empty"),
   DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
   DELETE_FAILED_UFS_DIR("UFS delete dir failed"),
