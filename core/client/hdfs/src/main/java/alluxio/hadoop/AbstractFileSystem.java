@@ -17,6 +17,7 @@ import static java.util.stream.Collectors.toMap;
 import alluxio.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
@@ -89,6 +90,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
   /** Lock for initializing the contexts, currently only one set of contexts is supported. */
   private static final Object INIT_LOCK = new Object();
+  private static final String ZOOKEEPER_IDENTIFIER = "zk@";
 
   /** Flag for if the contexts have been initialized. */
   @GuardedBy("INIT_LOCK")
@@ -498,7 +500,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
     // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
     // We assume here that all clients use the same configuration.
-    HadoopConfigurationUtils.mergeHadoopConfiguration(uri, conf, Configuration.global());
+    if (isZookeeperUri(uri)) {
+      conf.setBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
+      conf.set(PropertyKey.ZOOKEEPER_ADDRESS.getName(), getZookeeperAddresses(uri));
+    }
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, Configuration.global());
     Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
     // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
     // configuration property, so the user doesn't need to specify the authority.
@@ -536,7 +542,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Create the master inquire client that we would have after merging the hadoop conf into
     // Alluxio Configuration.
     AlluxioConfiguration alluxioConf = new InstancedConfiguration(Configuration.global());
-    HadoopConfigurationUtils.mergeHadoopConfiguration(uri, conf, alluxioConf);
+    if (isZookeeperUri(uri)) {
+      conf.setBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
+      conf.set(PropertyKey.ZOOKEEPER_ADDRESS.getName(), getZookeeperAddresses(uri));
+    }
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioConf);
     ConnectDetails newDetails = Factory.getConnectDetails(alluxioConf);
 
     return newDetails.equals(FileSystemContext.get().getMasterInquireClient().getConnectDetails());
@@ -745,5 +755,35 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     return workers.stream().collect(
         toMap(worker -> worker.getNetAddress().getHost(), BlockWorkerInfo::getNetAddress,
             (worker1, worker2) -> worker1));
+  }
+
+  /**
+   * Identifies whether a {@link URI} uri is an Alluxio on Zookeeper URI.
+   *
+   * @param uri the input uri
+   * @return whether the uri is Alluxio on Zookeeper URI
+   */
+  private static boolean isZookeeperUri(URI uri) {
+    String authority = uri.getAuthority();
+    return authority != null && authority.contains(ZOOKEEPER_IDENTIFIER);
+  }
+
+  /**
+   * Gets the Zookeeper addresses from the Alluxio on Zookeeper URI.
+   *
+   * @param uri the input uri to get Zookeeper addresses from
+   * @return the Zookeeper addresses
+   */
+  private static String getZookeeperAddresses(URI uri) {
+    String zookeeperAddresses;
+    try {
+      zookeeperAddresses = uri.getAuthority().substring(ZOOKEEPER_IDENTIFIER.length())
+          .replaceAll(";", ",");
+    } catch (Exception e) {
+      throw new IllegalArgumentException(
+          "Alluxio on Zookeeper URI is invalid. The URI should begin with "
+              + Constants.HEADER + ZOOKEEPER_IDENTIFIER);
+    }
+    return zookeeperAddresses;
   }
 }

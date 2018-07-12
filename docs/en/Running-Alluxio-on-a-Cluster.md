@@ -200,6 +200,32 @@ Alluxio leader master.
 hadoop fs -ls alluxio:///directory
 ```
 
+##### Alluxio on Zookeeper URI
+
+Set `alluxio.zookeeper.enable` and `alluxio.zookeeper.address` is always favored when client applications
+want to connect to Alluxio cluster in fault tolerant mode, but we also provide a convenient way to 
+connect to the cluster using Alluxio on Zookeeper URI.
+
+Use `alluxio://zk@` to tell Alluxio the following addresses are Zookeeper addresses.
+
+For most applications (e.g., MapReduce, Hive, Flink and HBase), you could use
+`alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`:
+
+```
+hadoop fs -ls alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/directory
+```
+
+Some applications (e.g., Spark), you need to use semicolons to separate Zookeeper addresses
+`alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path`:
+
+```scala
+> val s = sc.textFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/LICENSE")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/LICENSE2")
+```
+
+Alluxio will help you set Zookeeper properties and find Alluxio leader master.
+
 #### Automatic Fail Over
 
 To test automatic fail over, ssh into current Alluxio master leader, and find process ID of

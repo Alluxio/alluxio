@@ -12,7 +12,6 @@
 package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 
 import org.apache.hadoop.conf.Configuration;
@@ -24,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,18 +32,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class HadoopUtils {
   private static final Logger LOG = LoggerFactory.getLogger(HadoopUtils.class);
-  public static final String ZOOKEEPER_IDENTIFIER = "zk@";
-
-  /**
-   * Identifies whether a {@link URI} uri is an Alluxio on Zookeeper URI.
-   *
-   * @param uri the input uri
-   * @return whether the uri is Alluxio on Zookeeper URI
-   */
-  public static boolean isZookeeperUri(URI uri) {
-    String authority = uri.getAuthority();
-    return authority != null && authority.contains(ZOOKEEPER_IDENTIFIER);
-  }
 
   /**
    * Given a {@link Path} path, it returns the path component of its URI, which has the form
@@ -56,25 +42,6 @@ public final class HadoopUtils {
    */
   public static String getPathWithoutScheme(Path path) {
     return path.toUri().getPath();
-  }
-
-  /**
-   * Gets the Zookeeper addresses from the Alluxio on Zookeeper URI.
-   *
-   * @param uri the input uri to get Zookeeper addresses from
-   * @return the Zookeeper addresses
-   */
-  public static String getZookeeperAddresses(URI uri) {
-    String zookeeperAddresses;
-    try {
-      zookeeperAddresses = uri.getAuthority().substring(ZOOKEEPER_IDENTIFIER.length())
-          .replaceAll(";", ",");
-    } catch (Exception e) {
-      throw new IllegalArgumentException(
-          "Alluxio on Zookeeper URI is invalid. The URI should begin with "
-          + Constants.HEADER + ZOOKEEPER_IDENTIFIER);
-    }
-    return zookeeperAddresses;
   }
 
   /**

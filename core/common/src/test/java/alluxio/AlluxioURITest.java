@@ -431,9 +431,9 @@ public class AlluxioURITest {
     assertEquals(1, new AlluxioURI("C:\\a").getDepth());
     assertEquals(1, new AlluxioURI("C:\\\\a").getDepth());
     assertEquals(0, new AlluxioURI("C:\\\\").getDepth());
-    assertEquals(0, new AlluxioURI("alluxio://localhost:1998/").getDepth());
-    assertEquals(1, new AlluxioURI("alluxio://localhost:1998/a").getDepth());
-    assertEquals(2, new AlluxioURI("alluxio://localhost:1998/a/b.txt").getDepth());
+    assertEquals(0, new AlluxioURI("alluxio://localhost:19998/").getDepth());
+    assertEquals(1, new AlluxioURI("alluxio://localhost:19998/a").getDepth());
+    assertEquals(2, new AlluxioURI("alluxio://localhost:19998/a/b.txt").getDepth());
   }
 
   /**

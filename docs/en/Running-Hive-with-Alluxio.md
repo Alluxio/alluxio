@@ -53,7 +53,7 @@ for Hive. In the following sections, Hive is running on Hadoop MapReduce in this
 
 > Tips：All the following examples are also applicable to Alluxio in fault tolerant mode with Zookeeper. 
 You can replace the Alluxio URI (alluxio://master_hostname:port/path) with Alluxio on Zookeeper URI 
-(alluxio://zk@zookeeper_hostname1:port1,zookeeper_hostname2:port2,zookeeper_hostname3:port3/path).
+(alluxio://zk@zookeeper_hostname1:2181,zookeeper_hostname2:2181,zookeeper_hostname3:2181/path).
 
 ### Create New Tables from Alluxio Files
 
@@ -205,26 +205,19 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 </property>
 ```
 
-When Alluxio is running in fault tolerant mode, change the Alluxio URI to Alluxio on Zookeeper URI.
+To use fault tolerant mode, set the Alluxio cluster properties appropriately (see example below) in
+an `alluxio-site.properties` file which is on the classpath.
 
- ```xml
- <property>
-    <name>fs.defaultFS</name>
-    <value>alluxio://zk@zookeeper_hostname1:port1,zookeeper_hostname2:port2,zookeeper_hostname3:port3</value>
- </property>
- ```
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
+```
 
-`zk@` tells Alluxio the following hosts and ports are Zookeeper addresses 
-which should be separated by comma.
-
-Alternatively you can add the following properties to the Hive `hive-site.xml` in fault tolerant mode
+Alternatively you can add the properties to the Hive `hive-site.xml` configuration which is then
+propagated to Alluxio.
 
 ```xml
 <configuration>
-  <property>
-    <name>fs.defaultFS</name>
-    <value>alluxio://master_hostname:port</value>
-  </property>
   <property>
     <name>alluxio.zookeeper.enabled</name>
     <value>true</value>

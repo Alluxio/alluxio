@@ -148,9 +148,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * /a/b/                              = 3
    * a/b                                = 2
    * a\b                                = 2
-   * alluxio://localhost:1998/          = 0
-   * alluxio://localhost:1998/a         = 1
-   * alluxio://localhost:1998/a/b.txt   = 2
+   * alluxio://localhost:19998/          = 0
+   * alluxio://localhost:19998/a         = 1
+   * alluxio://localhost:19998/a/b.txt   = 2
    * C:\a                               = 1
    * C:                                 = 0
    * </pre>

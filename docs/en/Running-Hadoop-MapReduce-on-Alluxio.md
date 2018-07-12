@@ -152,19 +152,6 @@ $ bin/alluxio fs ls /wordcount/output
 $ bin/alluxio fs cat /wordcount/output/part-r-00000
 ```
 
-## Running Hadoop wordcount with Alluxio in fault tolerant mode
-
-Set up a [Alluxio cluster in fault tolerant mode with Zookeeper](Running-Alluxio-on-a-Cluster.html#running-alluxio-with-high-availability)
-and copy the `LICENSE` file into Alluxio namespace as the above example.
-
-Now we can run a MapReduce job (using Hadoop 2.7.3 as example) for wordcount using the Alluxio on Zookeeper URI.
-
-```bash
-$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount 
-  -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} 
-  alluxio://zk@zookeeper_hostname1:2181,zookeeper_hostname2:2181,zookeeper_hostname3:2181/wordcount/input.txt 
-  alluxio://zk@zookeeper_hostname1:2181,zookeeper_hostname2:2181,zookeeper_hostname3:2181/wordcount/output
-```
-
-`zk@` tells Alluxio the following hosts and ports are Zookeeper addresses 
-which should be separated by comma.
+> Tips：The previous wordcount example is also applicable to Alluxio in fault tolerant mode with Zookeeper. 
+You can replace the Alluxio URI (alluxio://master_hostname:port/path) with Alluxio on Zookeeper URI 
+(alluxio://zk@zookeeper_hostname1:2181,zookeeper_hostname2:2181,zookeeper_hostname3:2181/path).
