@@ -71,9 +71,8 @@ public final class LocalFilePacketReader implements PacketReader {
     ByteBuffer buffer = mReader.read(mPos, Math.min(mPacketSize, mEnd - mPos));
     DataBuffer dataBuffer = new DataByteBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
-    MetricsSystem.clientCounter(ClientMetrics.BYTES_READ_LOCAL).inc(dataBuffer.getLength());
-    MetricsSystem.clientMeter(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT)
-        .mark(dataBuffer.getLength());
+    MetricsSystem.counter(ClientMetrics.BYTES_READ_LOCAL).inc(dataBuffer.getLength());
+    MetricsSystem.meter(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT).mark(dataBuffer.getLength());
     return dataBuffer;
   }
 

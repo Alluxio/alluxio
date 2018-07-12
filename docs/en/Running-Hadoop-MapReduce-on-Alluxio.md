@@ -30,7 +30,7 @@ For the MapReduce applications to communicate with Alluxio service, it is requir
 Alluxio client jar on their classpaths. We recommend you to download the tarball from
 Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can choose to compile this client jar from the source code
-by following the instructions [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
+by following the instructions [here](Building-Alluxio-From-Source.html#compute-framework-support).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 ## Configuring Hadoop
@@ -123,7 +123,7 @@ $ bin/start-all.sh
 Start Alluxio locally:
 
 ```bash
-$ bin/alluxio-start.sh local
+$ bin/alluxio-start.sh local SudoMount
 ```
 
 You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:

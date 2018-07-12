@@ -71,7 +71,7 @@ $ ./bin/alluxio-start.sh local
 
 ## 用户没有sudo权限，仍然可以在linux下使用Alluxio么？
 
-假设用户没有sudo权限，如果一个RAMFS（例如`/path/to/ramdisk`）已经被系统管理员挂载，Alluxio可以在此RAMFS下正常运行。你可以在`conf/alluxio-site
+假设用户没有sudo权限，那么必须有一个RAMFS（例如`/path/to/ramdisk`）已经被系统管理员挂载，并且用户对此RAMFS有读写权限。你可以在`conf/alluxio-site
 .properties`文件中指定该路径：
 
 ```
@@ -79,15 +79,15 @@ alluxio.worker.tieredstore.level0.alias=MEM
 alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 ```
 
-然后在不需要请求root权限的情况下启动Alluxio：
+然后在不需要请求root权限的情况下启动Alluxio，使用上述的目录作为存储器：
 
 ```bash
 $ ./bin/alluxio-start.sh local NoMount
 ```
 
-另外，用户可以使用Linux[tmpFS](https://en.wikipedia.org/wiki/Tmpfs)存储内存数据，
+另外，用户可以使用Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)存储数据，
 Tmpfs是一个由内存支持的临时文件夹(e.g.,常见的Linux下的 `/dev/shm`)，但会使用交换空间，
-因此相比于使用RAMFS，Tmpfs提供的性能保证更少。和使用预先挂载的RAMFS类似，用户可以通过`conf/alluxio-site.properties`配置项配置Tmpfs文件夹
+因此相比于使用RAMFS，Tmpfs提供的性能会稍差。和使用预先挂载的RAMFS类似，用户可以通过`conf/alluxio-site.properties`配置项配置Tmpfs文件夹
 
 ```
 alluxio.worker.tieredstore.level0.alias=MEM

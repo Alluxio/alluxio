@@ -30,7 +30,7 @@ MapReduce can run with Alluxio.
 We recommend you to download the tarball from
 Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can choose to compile this client jar from the source code
-by following Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
+by following Follow the instructs [here](Building-Alluxio-From-Source.html#compute-framework-support).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 Set `HIVE_AUX_JARS_PATH` either in shell or `conf/hive-env.sh`:

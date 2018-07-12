@@ -80,7 +80,7 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
       return true;
     }
     String principal = null;
-    if (Configuration.containsKey(mPrincipalProperty)) {
+    if (Configuration.isSet(mPrincipalProperty)) {
       principal = Configuration.get(mPrincipalProperty);
     }
     if (principal == null || principal.isEmpty()) {

@@ -11,11 +11,13 @@
 
 package alluxio.cli.fs;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -57,6 +59,8 @@ public final class FileSystemShell extends AbstractShell {
       System.exit(1);
     }
 
+    // Reduce the RPC retry max duration to fall earlier for CLIs
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
     try (FileSystemShell shell = new FileSystemShell()) {
       ret = shell.run(argv);
     }

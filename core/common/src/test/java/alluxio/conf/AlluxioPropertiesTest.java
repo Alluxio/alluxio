@@ -76,7 +76,7 @@ public class AlluxioPropertiesTest {
     assertEquals("value1", mProperties.get(mKeyWithValue));
     assertEquals("value2", mProperties.get(mKeyWithoutValue));
 
-    mProperties.put(mKeyWithValue, "valueLowerPriority", Source.SITE_PROPERTY);
+    mProperties.put(mKeyWithValue, "valueLowerPriority", Source.siteProperty(""));
     assertEquals("value1", mProperties.get(mKeyWithValue));
     mProperties.put(mKeyWithValue, "valueSamePriority", Source.SYSTEM_PROPERTY);
     assertEquals("valueSamePriority", mProperties.get(mKeyWithValue));
@@ -91,13 +91,13 @@ public class AlluxioPropertiesTest {
   }
 
   @Test
-  public void hasValueSet() {
-    assertTrue(mProperties.hasValueSet(mKeyWithValue));
-    assertFalse(mProperties.hasValueSet(mKeyWithoutValue));
+  public void isSet() {
+    assertTrue(mProperties.isSet(mKeyWithValue));
+    assertFalse(mProperties.isSet(mKeyWithoutValue));
     mProperties.remove(mKeyWithValue);
     mProperties.put(mKeyWithoutValue, "value", Source.RUNTIME);
-    assertFalse(mProperties.hasValueSet(mKeyWithValue));
-    assertTrue(mProperties.hasValueSet(mKeyWithoutValue));
+    assertFalse(mProperties.isSet(mKeyWithValue));
+    assertTrue(mProperties.isSet(mKeyWithoutValue));
   }
 
   @Test

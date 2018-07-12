@@ -37,7 +37,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.LineageInfo;
 
-import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
@@ -158,18 +157,15 @@ public class LineageMasterIntegrationTest extends BaseIntegrationTest {
     }
 
     // Wait for the log file to be created by the recompute job
-    CommonUtils.waitFor("the log file to be written", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        if (!logFile.exists()) {
-          return false;
-        }
-        try (BufferedReader reader = new BufferedReader(new FileReader(logFile))) {
-          String line = reader.readLine();
-          return line != null && line.equals("hello world");
-        } catch (Exception e) {
-          throw Throwables.propagate(e);
-        }
+    CommonUtils.waitFor("the log file to be written", () -> {
+      if (!logFile.exists()) {
+        return false;
+      }
+      try (BufferedReader reader = new BufferedReader(new FileReader(logFile))) {
+        String line = reader.readLine();
+        return line != null && line.equals("hello world");
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
       }
     }, WaitForOptions.defaults().setTimeoutMs(100 * Constants.SECOND_MS));
   }

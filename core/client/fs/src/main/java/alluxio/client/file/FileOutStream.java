@@ -25,6 +25,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.WorkerMetrics;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -297,7 +298,8 @@ public class FileOutStream extends AbstractOutStream {
    */
   @ThreadSafe
   private static final class Metrics {
-    private static final Counter BYTES_WRITTEN_UFS = MetricsSystem.clientCounter("BytesWrittenUfs");
+    private static final Counter BYTES_WRITTEN_UFS =
+        MetricsSystem.counter(WorkerMetrics.BYTES_WRITTEN_UFS);
 
     private Metrics() {} // prevent instantiation
   }

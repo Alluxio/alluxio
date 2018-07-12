@@ -164,6 +164,9 @@ Also, specify the correct journal folder by setting `alluxio.master.journal.fold
 
     alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/alluxio/journal
 
+In addition, be sure to list all the masters' addresses in `conf/masters`. This allows the
+startup script to start Alluxio master processes on the appropriate machines. 
+
 Once all the Alluxio masters are configured in this way, they can all be started to achieve highly
 available Alluxio. One of the masters will become the leader, and the others will replay the journal
 and wait until the current master dies.

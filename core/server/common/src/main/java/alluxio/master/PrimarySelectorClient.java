@@ -31,19 +31,15 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Masters use this client to elect a leader.
  */
 @NotThreadSafe
-public final class PrimarySelectorClient
-    implements Closeable, LeaderSelectorListener, PrimarySelector {
+public final class PrimarySelectorClient extends AbstractPrimarySelector
+    implements Closeable, LeaderSelectorListener {
   private static final Logger LOG = LoggerFactory.getLogger(PrimarySelectorClient.class);
 
   /** The election path in Zookeeper. */
@@ -56,16 +52,6 @@ public final class PrimarySelectorClient
   private String mName;
   /** The address to Zookeeper. */
   private final String mZookeeperAddress;
-
-  private final Lock mStateLock = new ReentrantLock();
-  private final Condition mStateCondition = mStateLock.newCondition();
-  /**
-   * Whether this master is the primary master now. Whenever this changes, {@link #mStateCondition}
-   * must be signalled. To enforce this, all modification should go through
-   * {@link #setState(State)}.
-   */
-  @GuardedBy("mStateLock")
-  private State mState = State.SECONDARY;
 
   /**
    * Constructs a new {@link PrimarySelectorClient}.
@@ -132,18 +118,6 @@ public final class PrimarySelectorClient
     }
   }
 
-  @Override
-  public void waitForState(State state) throws InterruptedException {
-    mStateLock.lock();
-    try {
-      while (mState != state) {
-        mStateCondition.await();
-      }
-    } finally {
-      mStateLock.unlock();
-    }
-  }
-
   /**
    * Starts the leader selection. If the leader selector client loses connection to Zookeeper or
    * gets closed, the calling thread will be interrupted.
@@ -182,14 +156,7 @@ public final class PrimarySelectorClient
     client.create().creatingParentsIfNeeded().forPath(mLeaderFolder + mName);
     LOG.info("{} is now the leader.", mName);
     try {
-      mStateLock.lock();
-      try {
-        while (mState == State.PRIMARY) {
-          mStateCondition.await();
-        }
-      } finally {
-        mStateLock.unlock();
-      }
+      waitForState(State.SECONDARY);
     } finally {
       LOG.warn("{} relinquishing leadership.", mName);
       LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
@@ -221,15 +188,5 @@ public final class PrimarySelectorClient
         new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     client.start();
     return client;
-  }
-
-  private void setState(State state) {
-    mStateLock.lock();
-    try {
-      mState = state;
-      mStateCondition.signalAll();
-    } finally {
-      mStateLock.unlock();
-    }
   }
 }

@@ -23,6 +23,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.MasterProcess;
+import alluxio.master.TestUtils;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.network.NetworkAddressUtils;
@@ -84,9 +85,9 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
     runProcess(mExecutor, worker1);
     runProcess(mExecutor, worker2);
 
-    master.waitForReady();
-    worker1.waitForReady();
-    worker2.waitForReady();
+    TestUtils.waitForReady(master);
+    TestUtils.waitForReady(worker1);
+    TestUtils.waitForReady(worker2);
 
     FileSystem fs = FileSystem.Factory.get();
 

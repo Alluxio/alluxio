@@ -11,6 +11,7 @@
 
 package alluxio.util.network;
 
+import alluxio.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
@@ -59,6 +60,7 @@ public final class NetworkAddressUtils {
   public static final boolean WINDOWS = OSUtils.isWindows();
 
   private static String sLocalHost;
+  private static String sLocalHostMetricName;
   private static String sLocalIP;
 
   private NetworkAddressUtils() {}
@@ -199,7 +201,65 @@ public final class NetworkAddressUtils {
    *         communicate with service.
    */
   public static InetSocketAddress getConnectAddress(ServiceType service) {
-    return new InetSocketAddress(getConnectHost(service), getPort(service));
+    return getConnectAddress(service, Configuration.global());
+  }
+
+  /**
+   * Helper method to get the {@link InetSocketAddress} address for client to communicate with the
+   * service.
+   *
+   * @param service the service name used to connect
+   * @param conf the configuration to use for looking up the connect address
+   * @return the service address that a client (typically outside the service machine) uses to
+   *         communicate with service.
+   */
+  public static InetSocketAddress getConnectAddress(ServiceType service,
+      AlluxioConfiguration conf) {
+    return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
+  }
+
+  /**
+   * Provides an externally resolvable hostname for client to communicate with the service. If the
+   * hostname is not explicitly specified, Alluxio will try to use the bind host. If the bind host
+   * is wildcard, Alluxio will automatically determine an appropriate hostname from local machine.
+   * The various possibilities shown in the following table:
+   * <table>
+   * <caption>Hostname Scenarios</caption> <thead>
+   * <tr>
+   * <th>Specified Hostname</th>
+   * <th>Specified Bind Host</th>
+   * <th>Returned Connect Host</th>
+   * </tr>
+   * </thead> <tbody>
+   * <tr>
+   * <td>hostname</td>
+   * <td>hostname</td>
+   * <td>hostname</td>
+   * </tr>
+   * <tr>
+   * <td>not defined</td>
+   * <td>hostname</td>
+   * <td>hostname</td>
+   * </tr>
+   * <tr>
+   * <td>hostname</td>
+   * <td>0.0.0.0 or not defined</td>
+   * <td>hostname</td>
+   * </tr>
+   * <tr>
+   * <td>not defined</td>
+   * <td>0.0.0.0 or not defined</td>
+   * <td>localhost</td>
+   * </tr>
+   * </tbody>
+   * </table>
+   *
+   * @param service Service type used to connect
+   * @return the externally resolvable hostname that the client can use to communicate with the
+   *         service.
+   */
+  public static String getConnectHost(ServiceType service) {
+    return getConnectHost(service, Configuration.global());
   }
 
   /**
@@ -241,18 +301,19 @@ public final class NetworkAddressUtils {
    * </table>
    *
    * @param service Service type used to connect
+   * @param conf configuration
    * @return the externally resolvable hostname that the client can use to communicate with the
    *         service.
    */
-  public static String getConnectHost(ServiceType service) {
-    if (Configuration.containsKey(service.mHostNameKey)) {
-      String connectHost = Configuration.get(service.mHostNameKey);
+  public static String getConnectHost(ServiceType service, AlluxioConfiguration conf) {
+    if (conf.isSet(service.mHostNameKey)) {
+      String connectHost = conf.get(service.mHostNameKey);
       if (!connectHost.isEmpty() && !connectHost.equals(WILDCARD_ADDRESS)) {
         return connectHost;
       }
     }
-    if (Configuration.containsKey(service.mBindHostKey)) {
-      String bindHost = Configuration.get(service.mBindHostKey);
+    if (conf.isSet(service.mBindHostKey)) {
+      String bindHost = conf.get(service.mBindHostKey);
       if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
         return bindHost;
       }
@@ -268,7 +329,19 @@ public final class NetworkAddressUtils {
    * @return the service port number
    */
   public static int getPort(ServiceType service) {
-    return Configuration.getInt(service.mPortKey);
+    return getPort(service, Configuration.global());
+  }
+
+  /**
+   * Gets the port number on a given service type. If user defined port number is not explicitly
+   * specified, Alluxio will use the default service port.
+   *
+   * @param service Service type used to connect
+   * @param config configuration
+   * @return the service port number
+   */
+  public static int getPort(ServiceType service, AlluxioConfiguration config) {
+    return config.getInt(service.mPortKey);
   }
 
   /**
@@ -297,7 +370,7 @@ public final class NetworkAddressUtils {
    * @return the bind hostname
    */
   public static String getBindHost(ServiceType service) {
-    if (Configuration.containsKey(service.mBindHostKey) && !Configuration.get(service.mBindHostKey)
+    if (Configuration.isSet(service.mBindHostKey) && !Configuration.get(service.mBindHostKey)
         .isEmpty()) {
       return Configuration.get(service.mBindHostKey);
     } else {
@@ -312,7 +385,7 @@ public final class NetworkAddressUtils {
    * @return the local hostname for the client
    */
   public static String getClientHostName() {
-    if (Configuration.containsKey(PropertyKey.USER_HOSTNAME)) {
+    if (Configuration.isSet(PropertyKey.USER_HOSTNAME)) {
       return Configuration.get(PropertyKey.USER_HOSTNAME);
     }
     return getLocalHostName();
@@ -326,17 +399,17 @@ public final class NetworkAddressUtils {
   public static String getLocalNodeName() {
     switch (CommonUtils.PROCESS_TYPE.get()) {
       case CLIENT:
-        if (Configuration.containsKey(PropertyKey.USER_HOSTNAME)) {
+        if (Configuration.isSet(PropertyKey.USER_HOSTNAME)) {
           return Configuration.get(PropertyKey.USER_HOSTNAME);
         }
         break;
       case MASTER:
-        if (Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
+        if (Configuration.isSet(PropertyKey.MASTER_HOSTNAME)) {
           return Configuration.get(PropertyKey.MASTER_HOSTNAME);
         }
         break;
       case WORKER:
-        if (Configuration.containsKey(PropertyKey.WORKER_HOSTNAME)) {
+        if (Configuration.isSet(PropertyKey.WORKER_HOSTNAME)) {
           return Configuration.get(PropertyKey.WORKER_HOSTNAME);
         }
         break;
@@ -378,6 +451,20 @@ public final class NetworkAddressUtils {
     } catch (UnknownHostException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Gets a local hostname for the host this JVM is running on with '.' replaced with '_' for
+   * metrics usage.
+   *
+   * @return the metrics system friendly local host name
+   */
+  public static synchronized String getLocalHostMetricName() {
+    if (sLocalHostMetricName != null) {
+      return sLocalHostMetricName;
+    }
+    sLocalHostMetricName = getLocalHostName().replace('.', '_');
+    return sLocalHostMetricName;
   }
 
   /**

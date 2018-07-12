@@ -19,7 +19,7 @@ BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 #start up alluxio
 
-USAGE="Usage: alluxio-start.sh [-hNwm] ACTION [MOPT] [-f]
+USAGE="Usage: alluxio-start.sh [-hNwm] [-i backup] ACTION [MOPT] [-f]
 Where ACTION is one of:
   all [MOPT]         \tStart all masters, proxies, and workers.
   local [MOPT]       \tStart all processes locally.
@@ -41,13 +41,16 @@ MOPT (Mount Option) is one of:
   NoMount  \tDo not mount the configured RamFS.
            \tNotice: to avoid sudo requirement but using tmpFS in Linux,
              set ALLUXIO_RAM_FOLDER=/dev/shm on each worker and use NoMount.
-  SudoMount is assumed if MOPT is not specified.
+  NoMount is assumed if MOPT is not specified.
 
--f  format Journal, UnderFS Data and Workers Folder on master
--N  do not try to kill previous running processes before starting new ones
--w  wait for processes to end before returning
--m  launch monitor process to ensure the target processes come up.
--h  display this help."
+-f         format Journal, UnderFS Data and Workers Folder on master.
+-h         display this help.
+-i backup  a journal backup to restore the master from. The backup should be
+           a URI path within the root under filesystem, e.g.
+           hdfs://mycluster/alluxio_backups/alluxio-journal-YYYY-MM-DD-timestamp.gz.
+-m         launch monitor process to ensure the target processes come up.
+-N         do not try to kill previous running processes before starting new ones.
+-w         wait for processes to end before returning."
 
 ensure_dirs() {
   if [[ ! -d "${ALLUXIO_LOGS_DIR}" ]]; then
@@ -103,12 +106,9 @@ check_mount_mode() {
       fi
       is_ram_folder_mounted "${tier_path}"
       if [[ $? -ne 0 ]]; then
-        if [[ $(uname -s) == Darwin ]]; then
-          # Assuming Mac OS X
-          echo "ERROR: NoMount is not supported on Mac OS X." >&2
-          echo -e "${USAGE}" >&2
-          exit 1
-        fi
+        echo "ERROR: Ramdisk ${tier_path} is not mounted with mount option NoMount. Use alluxio-mount.sh to mount ramdisk." >&2
+        echo -e "${USAGE}" >&2
+        exit 1
       fi
       if [[ "${tier_path}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
         echo "WARNING: Using tmpFS does not guarantee data to be stored in memory."
@@ -186,6 +186,9 @@ start_master() {
     if [[ -z ${ALLUXIO_MASTER_JAVA_OPTS} ]]; then
       ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
     fi
+    if [[ -n ${journal_backup} ]]; then
+      ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.journal.init.from.backup=${journal_backup}"
+    fi
 
     # use a default Xmx value for the master
     contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx"
@@ -201,7 +204,11 @@ start_master() {
 }
 
 start_masters() {
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "master" $1
+  start_opts=""
+  if [[ -n ${journal_backup} ]]; then
+    start_opts="-i ${journal_backup}"
+  fi
+  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" ${start_opts} "master" $1
 }
 
 start_proxy() {
@@ -345,20 +352,23 @@ main() {
   # ensure log/data dirs
   ensure_dirs
 
-  while getopts "hNwm" o; do
+  while getopts "hNwmi:" o; do
     case "${o}" in
       h)
         echo -e "${USAGE}"
         exit 0
+        ;;
+      i)
+        journal_backup=${OPTARG}
+        ;;
+      m)
+        monitor="true"
         ;;
       N)
         killonstart="no"
         ;;
       w)
         wait="true"
-        ;;
-      m)
-        monitor="true"
         ;;
       *)
         echo -e "${USAGE}" >&2
@@ -381,7 +391,9 @@ main() {
   # Set MOPT.
   case "${ACTION}" in
     all|worker|workers|local)
-      if [[ -z "${MOPT}" || "${MOPT}" == "-f" ]]; then
+      if [[ -z "${MOPT}" ]]; then
+        MOPT="NoMount"
+      elif [[ "${MOPT}" == "-f" ]]; then
         MOPT="SudoMount"
       else
         shift

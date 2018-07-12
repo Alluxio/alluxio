@@ -25,6 +25,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -37,8 +38,8 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
+import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
-import alluxio.master.TestSafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.PersistenceState;
@@ -58,7 +59,6 @@ import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -68,6 +68,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.thrift.UfsInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -141,6 +142,8 @@ public final class FileSystemMasterTest {
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
   private SafeModeManager mSafeModeManager;
+  private long mStartTimeMs;
+  private int mPort;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
   private long mWorkerId1;
@@ -1990,6 +1993,80 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Tests a readOnly mount for the create directory op.
+   */
+  @Test
+  public void mountReadOnlyCreateDirectory() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+
+    mThrown.expect(AccessControlException.class);
+    AlluxioURI path = new AlluxioURI("/hello/dir1");
+    mFileSystemMaster.createDirectory(path, CreateDirectoryOptions.defaults());
+  }
+
+  /**
+   * Tests a readOnly mount for the create file op.
+   */
+  @Test
+  public void mountReadOnlyCreateFile() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+
+    mThrown.expect(AccessControlException.class);
+    AlluxioURI path = new AlluxioURI("/hello/file1");
+    mFileSystemMaster.createFile(path, CreateFileOptions.defaults());
+  }
+
+  /**
+   * Tests a readOnly mount for the delete op.
+   */
+  @Test
+  public void mountReadOnlyDeleteFile() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    createTempUfsFile("ufs/hello/file1");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+
+    mThrown.expect(AccessControlException.class);
+    AlluxioURI path = new AlluxioURI("/hello/file1");
+    mFileSystemMaster.delete(path, DeleteOptions.defaults());
+  }
+
+  /**
+   * Tests a readOnly mount for the rename op.
+   */
+  @Test
+  public void mountReadOnlyRenameFile() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    createTempUfsFile("ufs/hello/file1");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+
+    mThrown.expect(AccessControlException.class);
+    AlluxioURI src = new AlluxioURI("/hello/file1");
+    AlluxioURI dst = new AlluxioURI("/hello/file2");
+    mFileSystemMaster.rename(src, dst, RenameOptions.defaults());
+  }
+
+  /**
+   * Tests a readOnly mount for the set attribute op.
+   */
+  @Test
+  public void mountReadOnlySetAttribute() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    createTempUfsFile("ufs/hello/file1");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+
+    mThrown.expect(AccessControlException.class);
+    AlluxioURI path = new AlluxioURI("/hello/file1");
+    mFileSystemMaster.setAttribute(path, SetAttributeOptions.defaults().setOwner("owner"));
+  }
+
+  /**
    * Tests mounting a shadow Alluxio dir.
    */
   @Test
@@ -2093,6 +2170,16 @@ public final class FileSystemMasterTest {
     String path = mTestFolder.newFolder(ufsPath.split("/")).getPath();
     return new AlluxioURI(path);
   }
+  /**
+   * Creates a file in a temporary UFS folder.
+   *
+   * @param ufsPath the UFS path of the temp file to create
+   * @return the AlluxioURI of the temp file
+   */
+  private AlluxioURI createTempUfsFile(String ufsPath) throws IOException {
+    String path = mTestFolder.newFile(ufsPath).getPath();
+    return new AlluxioURI(path);
+  }
 
   /**
    * Tests the {@link DefaultFileSystemMaster#stop()} method.
@@ -2105,7 +2192,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#workerHeartbeat(long, List)} method.
+   * Tests the {@link FileSystemMaster#workerHeartbeat} method.
    */
   @Test
   public void workerHeartbeat() throws Exception {
@@ -2322,21 +2409,19 @@ public final class FileSystemMasterTest {
 
   private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new TestSafeModeManager();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
+    MasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem);
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
-    mBlockMaster =
-        new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
-    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster,
-        new MasterContext(mJournalSystem, mSafeModeManager),
+    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();
-    mJournalSystem.setMode(Mode.PRIMARY);
+    mJournalSystem.gainPrimacy();
     mRegistry.start(true);
 
     // set up workers
@@ -2345,13 +2430,13 @@ public final class FileSystemMasterTest {
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>());
+        new HashMap<String, List<Long>>(), new RegisterWorkerTOptions());
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>());
+        new HashMap<String, List<Long>>(), new RegisterWorkerTOptions());
   }
 
   private void stopServices() throws Exception {

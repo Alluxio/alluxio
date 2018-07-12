@@ -12,6 +12,7 @@
 package alluxio.proxy;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.web.ProxyWebServer;
@@ -20,8 +21,6 @@ import alluxio.wire.AlluxioProxyInfo;
 import com.qmino.miredot.annotations.ReturnType;
 
 import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -93,10 +92,7 @@ public final class AlluxioProxyRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    Set<Map.Entry<String, String>> properties = raw ? Configuration.toRawMap().entrySet() :
-        Configuration.toMap().entrySet();
-    SortedMap<String, String> configuration = new TreeMap<>();
-    properties.forEach(entry -> configuration.put(entry.getKey(), entry.getValue()));
-    return configuration;
+    return new TreeMap<>(Configuration
+        .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 }

@@ -75,7 +75,7 @@ public final class BlockWorkerMetricsTest {
   }
 
   private Object getGauge(String name) {
-    return MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricsSystem.getWorkerMetricName(name))
+    return MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricsSystem.getMetricName(name))
         .getValue();
   }
 }
