@@ -53,10 +53,6 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
 
   private boolean mDirectChildrenLoaded;
 
-  /**
-   * Empty property is used to indicate whether the defaultACL is empty or not.
-   * When it is not empty, it has at least entries for OWNING_USER, OWNING_GROUP and OTHER.
-   */
   private DefaultAccessControlList mDefaultAcl;
 
   /**
