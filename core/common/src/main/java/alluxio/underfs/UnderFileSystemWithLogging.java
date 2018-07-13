@@ -13,6 +13,8 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.exception.status.UnimplementedException;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
@@ -200,6 +202,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("Exists: path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public AccessControlList getAcl(String path) throws IOException, UnimplementedException {
+    return call(new UfsCallable<AccessControlList>() {
+      @Override
+      public AccessControlList call() throws IOException {
+        return mUnderFileSystem.getAcl(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetAcl: path=%s", path);
       }
     });
   }
@@ -504,6 +521,22 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   @Override
   public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
     return mUnderFileSystem.resolveUri(ufsBaseUri, alluxioPath);
+  }
+
+  @Override
+  public void setAcl(String path, AccessControlList acl) throws IOException {
+    call(new UfsCallable<Void>() {
+      @Override
+      public Void call() throws IOException {
+        mUnderFileSystem.setAcl(path, acl);
+        return null;
+      }
+
+      @Override
+      public String toString() {
+        return String.format("SetAcl: path=%s, ACL=%s", path, acl);
+      }
+    });
   }
 
   @Override
