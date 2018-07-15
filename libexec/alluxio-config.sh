@@ -34,6 +34,10 @@ ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-asse
 ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
 ALLUXIO_LOGS_DIR="${ALLUXIO_LOGS_DIR:-${ALLUXIO_HOME}/logs}"
 
+if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
+  . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
+fi
+
 if [[ -z "$(which java)" ]]; then
   echo "Cannot find the 'java' command."
   exit 1
@@ -41,10 +45,6 @@ fi
 
 JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
-
-if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
-  . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
-fi
 
 if [[ -n "${ALLUXIO_MASTER_ADDRESS}" ]]; then
   echo "ALLUXIO_MASTER_ADDRESS is deprecated since version 1.1 and will be remove in version 2.0."
