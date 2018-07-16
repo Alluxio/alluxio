@@ -590,6 +590,57 @@ public class AbstractFileSystemTest {
     verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
   }
 
+  @Test
+  public void isZookeeperUri() {
+    URI uri = URI.create("alluxio://zk@host:port/path");
+    assertTrue(AbstractFileSystem.isZookeeperUri(uri));
+
+    uri = URI.create("alluxio://zk@host1:port1,host2:port2/path");
+    assertTrue(AbstractFileSystem.isZookeeperUri(uri));
+
+    uri = URI.create("alluxio://zk@host1:port1;host2:port2/path");
+    assertTrue(AbstractFileSystem.isZookeeperUri(uri));
+
+    uri = URI.create("alluxio://randomStringzk@host:port/path");
+    assertFalse(AbstractFileSystem.isZookeeperUri(uri));
+
+    uri = URI.create("alluxio://host:port/zk@");
+    assertFalse(AbstractFileSystem.isZookeeperUri(uri));
+
+    uri = URI.create("alluxio://host:port/path");
+    assertFalse(AbstractFileSystem.isZookeeperUri(uri));
+  }
+
+  @Test
+  public void getZookeeperAddresses() {
+    URI uri = URI.create("alluxio://zk@host:port");
+    assertEquals("host:port", AbstractFileSystem.getZookeeperAddresses(uri));
+
+    uri = URI.create("alluxio://zk@host1:port1,host2:port2");
+    assertEquals("host1:port1,host2:port2", AbstractFileSystem.getZookeeperAddresses(uri));
+
+    uri = URI.create("alluxio://zk@host:port/path");
+    assertEquals("host:port", AbstractFileSystem.getZookeeperAddresses(uri));
+
+    uri = URI.create("alluxio://zk@host1:port1,host2:port2/path");
+    assertEquals("host1:port1,host2:port2", AbstractFileSystem.getZookeeperAddresses(uri));
+
+    uri = URI.create("alluxio://zk@host1:port1;host2:port2/path");
+    assertEquals("host1:port1,host2:port2", AbstractFileSystem.getZookeeperAddresses(uri));
+
+    uri = URI.create("alluxio://zk@/path");
+    assertEquals(null, AbstractFileSystem.getZookeeperAddresses(uri));
+
+    uri = URI.create("alluxio://host:port/path");
+    assertEquals(null, AbstractFileSystem.getZookeeperAddresses(uri));
+
+    uri = URI.create("alluxio-zk://host:port/path");
+    assertEquals(null, AbstractFileSystem.getZookeeperAddresses(uri));
+
+    uri = URI.create("alluxio://randomStringzk@host:port/path");
+    assertEquals(null, AbstractFileSystem.getZookeeperAddresses(uri));
+  }
+
   void verifyBlockLocations(List<WorkerNetAddress> blockWorkers, List<String> ufsLocations,
       List<WorkerNetAddress> allWorkers, List<WorkerNetAddress> expectedWorkers) throws Exception {
     FileBlockInfo blockInfo = new FileBlockInfo().setBlockInfo(

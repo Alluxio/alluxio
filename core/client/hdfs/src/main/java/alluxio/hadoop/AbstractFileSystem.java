@@ -17,7 +17,6 @@ import static java.util.stream.Collectors.toMap;
 import alluxio.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
@@ -44,6 +43,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -68,6 +68,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -90,7 +92,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
   /** Lock for initializing the contexts, currently only one set of contexts is supported. */
   private static final Object INIT_LOCK = new Object();
-  private static final String ZOOKEEPER_IDENTIFIER = "zk@";
 
   /** Flag for if the contexts have been initialized. */
   @GuardedBy("INIT_LOCK")
@@ -500,10 +501,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
     // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
     // We assume here that all clients use the same configuration.
-    if (isZookeeperUri(uri)) {
-      conf.setBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
-      conf.set(PropertyKey.ZOOKEEPER_ADDRESS.getName(), getZookeeperAddresses(uri));
-    }
+    checkAndSetZookeeperConfiguration(uri, conf);
     HadoopConfigurationUtils.mergeHadoopConfiguration(conf, Configuration.global());
     Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
     // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
@@ -542,10 +540,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Create the master inquire client that we would have after merging the hadoop conf into
     // Alluxio Configuration.
     AlluxioConfiguration alluxioConf = new InstancedConfiguration(Configuration.global());
-    if (isZookeeperUri(uri)) {
-      conf.setBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
-      conf.set(PropertyKey.ZOOKEEPER_ADDRESS.getName(), getZookeeperAddresses(uri));
-    }
+    checkAndSetZookeeperConfiguration(uri, conf);
     HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioConf);
     ConnectDetails newDetails = Factory.getConnectDetails(alluxioConf);
 
@@ -729,6 +724,57 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
+   * Check if the input URI is Alluxio on Zookeeper URI.
+   * If it is, set Zookeeper configuration in Hadoop configuration.
+   *
+   * @param uri a uri that may contain Zookeeper information
+   * @param conf hadoop configuration to set
+   */
+  private static void checkAndSetZookeeperConfiguration(URI uri,
+      org.apache.hadoop.conf.Configuration conf) {
+    if (isZookeeperUri(uri)) {
+      conf.setBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
+      String zkAddress = getZookeeperAddresses(uri);
+      if (zkAddress == null) {
+        throw new IllegalArgumentException("Alluxio on Zookeeper URI is invalid, "
+            + "URI should be of format: alluxio://zk@host:port/path");
+      }
+      conf.set(PropertyKey.ZOOKEEPER_ADDRESS.getName(), zkAddress);
+    }
+  }
+
+  /**
+   * Identifies whether a {@link URI} uri is an Alluxio on Zookeeper URI.
+   *
+   * @param uri the input uri
+   * @return whether the uri is Alluxio on Zookeeper URI
+   */
+  @VisibleForTesting
+  public static boolean isZookeeperUri(URI uri) {
+    String alluxioZkUriPattern = "^alluxio://zk@(.*)";
+    return uri.toString().matches(alluxioZkUriPattern);
+  }
+
+  /**
+   * Gets the Zookeeper addresses from the Alluxio on Zookeeper URI.
+   * Null means no valid Zookeeper address could be found inside this uri.
+   *
+   * @param uri the input uri to get Zookeeper addresses from
+   * @return the Zookeeper addresses
+   */
+  @VisibleForTesting
+  public static String getZookeeperAddresses(URI uri) {
+    String uriStr = uri.toString() + "/";
+    Pattern pattern = Pattern.compile("^alluxio://zk@(.*?)/");
+    Matcher matcher = pattern.matcher(uriStr);
+    if (matcher.find()) {
+      String zkAddress = matcher.group(1);
+      return zkAddress.length() == 0 ? null : zkAddress.replaceAll(";", ",");
+    }
+    return null;
+  }
+
+  /**
    * Convenience method which ensures the given path exists, wrapping any {@link AlluxioException}
    * in {@link IOException}.
    *
@@ -755,37 +801,5 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     return workers.stream().collect(
         toMap(worker -> worker.getNetAddress().getHost(), BlockWorkerInfo::getNetAddress,
             (worker1, worker2) -> worker1));
-  }
-
-  /**
-   * Identifies whether a {@link URI} uri is an Alluxio on Zookeeper URI.
-   *
-   * @param uri the input uri
-   * @return whether the uri is Alluxio on Zookeeper URI
-   */
-  private static boolean isZookeeperUri(URI uri) {
-    // TODO(lu) make Alluxio URI capable of processing Alluxio on Zookeeper URI
-    // and expose methods to get URI type and Zookeeper addresses.
-    String authority = uri.getAuthority();
-    return authority != null && authority.contains(ZOOKEEPER_IDENTIFIER);
-  }
-
-  /**
-   * Gets the Zookeeper addresses from the Alluxio on Zookeeper URI.
-   *
-   * @param uri the input uri to get Zookeeper addresses from
-   * @return the Zookeeper addresses
-   */
-  private static String getZookeeperAddresses(URI uri) {
-    String zookeeperAddresses;
-    try {
-      zookeeperAddresses = uri.getAuthority().substring(ZOOKEEPER_IDENTIFIER.length())
-          .replaceAll(";", ",");
-    } catch (Exception e) {
-      throw new IllegalArgumentException(
-          "Alluxio on Zookeeper URI is invalid. The URI should begin with "
-              + Constants.HEADER + ZOOKEEPER_IDENTIFIER);
-    }
-    return zookeeperAddresses;
   }
 }
