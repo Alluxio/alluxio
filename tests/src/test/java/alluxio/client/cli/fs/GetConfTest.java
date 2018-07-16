@@ -55,6 +55,21 @@ public final class GetConfTest {
   }
 
   @Test
+  public void getConfByAlias() {
+    PropertyKey testProperty = new PropertyKey.Builder("alluxio.test.property")
+        .setAlias(new String[] {"alluxio.test.property.alias"})
+        .setDefaultValue("testValue")
+        .build();
+    assertEquals(0, GetConf.getConf("alluxio.test.property.alias"));
+    assertEquals("testValue\n", mOutputStream.toString());
+
+    mOutputStream.reset();
+    assertEquals(0, GetConf.getConf("alluxio.test.property"));
+    assertEquals("testValue\n", mOutputStream.toString());
+    PropertyKey.unregister(testProperty);
+  }
+
+  @Test
   public void getConfWithCorrectUnit() throws Exception {
     Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
     assertEquals(0, GetConf.getConf("--unit", "B", PropertyKey.WORKER_MEMORY_SIZE.toString()));

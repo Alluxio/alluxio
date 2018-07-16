@@ -11,6 +11,11 @@
 
 package alluxio;
 
+import static alluxio.URI.Factory.getSchemeComponents;
+
+import alluxio.collections.Pair;
+import alluxio.util.URIUtils;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,7 +44,31 @@ public final class MultiPartSchemeURI extends StandardURI {
   public MultiPartSchemeURI(String schemePrefix, String scheme, String authority, String path,
       String query) {
     super(scheme, authority, path, query);
-    mFullScheme = getFullScheme(schemePrefix, mUri.getScheme());
+    mFullScheme = getFullScheme(schemePrefix, mScheme);
+  }
+
+  /**
+   * Constructs a new URI from a base URI, but with a new path component.
+   *
+   * @param baseUri the base uri
+   * @param fullScheme the full scheme
+   * @param newPath the new path component
+   */
+  protected MultiPartSchemeURI(URI baseUri, String fullScheme, String newPath) {
+    super(baseUri, newPath);
+    mFullScheme = fullScheme;
+  }
+
+  @Override
+  public URI createNewPath(String newPath, boolean checkNormalization) {
+    if (checkNormalization && URIUtils.needsNormalization(newPath)) {
+      // Handle schemes with two components.
+      Pair<String, String> schemeComponents = getSchemeComponents(mFullScheme);
+      String schemePrefix = schemeComponents.getFirst();
+
+      return new MultiPartSchemeURI(schemePrefix, mScheme, mAuthority, newPath, mQuery);
+    }
+    return new MultiPartSchemeURI(this, mFullScheme, newPath);
   }
 
   @Override

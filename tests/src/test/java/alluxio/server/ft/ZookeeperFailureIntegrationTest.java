@@ -67,7 +67,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void zkFailure() throws Exception {
-    final AlluxioOperationThread thread =
+    AlluxioOperationThread thread =
         new AlluxioOperationThread(mCluster.getFileSystemClient());
     thread.start();
     CommonUtils.waitFor("a successful operation to be performed", () -> thread.successes() > 0);
@@ -83,6 +83,8 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     long zkStartTime = System.currentTimeMillis();
     CommonUtils.waitFor("another successful operation to be performed",
         () -> thread.successes() > successes);
+    thread.interrupt();
+    thread.join();
     LOG.info("Recovered after {}ms", System.currentTimeMillis() - zkStartTime);
     mCluster.notifySuccess();
   }

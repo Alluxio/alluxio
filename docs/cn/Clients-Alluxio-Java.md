@@ -61,7 +61,7 @@ Alluxio使用两种不同的存储类型：Alluxio管理存储和底层存储。
 {% for readtype in site.data.table.ReadType %}
 <tr>
   <td>{{readtype.readtype}}</td>
-  <td>{{site.data.table.en.ReadType[readtype.readtype]}}</td>
+  <td>{{site.data.table.cn.ReadType[readtype.readtype]}}</td>
 </tr>
 {% endfor %}
 </table>
@@ -74,7 +74,7 @@ Alluxio使用两种不同的存储类型：Alluxio管理存储和底层存储。
 {% for writetype in site.data.table.WriteType %}
 <tr>
   <td>{{writetype.writetype}}</td>
-  <td>{{site.data.table.en.WriteType[writetype.writetype]}}</td>
+  <td>{{site.data.table.cn.WriteType[writetype.writetype]}}</td>
 </tr>
 {% endfor %}
 </table>

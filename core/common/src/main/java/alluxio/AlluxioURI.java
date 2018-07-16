@@ -99,15 +99,14 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Constructs an {@link AlluxioURI} from components.
+   * Constructs an {@link AlluxioURI} from a base URI and a new path component.
    *
-   * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
-   * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
-   * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
-   * @param query the query component of the URI
+   * @param baseURI the base uri
+   * @param newPath the new path component
+   * @param checkNormalization if true, will check if the path requires normalization
    */
-  private AlluxioURI(String scheme, String authority, String path, String query) {
-    mUri = URI.Factory.create(scheme, authority, path, query);
+  public AlluxioURI(AlluxioURI baseURI, String newPath, boolean checkNormalization) {
+    mUri = URI.Factory.create(baseURI.mUri, newPath, checkNormalization);
   }
 
   @Override
@@ -259,7 +258,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       int end = hasWindowsDrive(path, true) ? 3 : 0;
       parent = path.substring(0, lastSlash == end ? end + 1 : lastSlash);
     }
-    return new AlluxioURI(mUri.getScheme(), mUri.getAuthority(), parent, mUri.getQuery());
+    return new AlluxioURI(this, parent, false);
   }
 
   /**
@@ -397,8 +396,12 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the new {@link AlluxioURI}
    */
   public AlluxioURI join(String suffix) {
-    return new AlluxioURI(getScheme(), getAuthority(), getPath() + AlluxioURI.SEPARATOR + suffix,
-        mUri.getQuery());
+    // TODO(gpang): there should be other usage of join() which can use joinUnsafe() instead.
+    String path = getPath();
+    StringBuilder sb = new StringBuilder(path.length() + 1 + suffix.length());
+
+    return new AlluxioURI(this,
+        sb.append(path).append(AlluxioURI.SEPARATOR).append(suffix).toString(), true);
   }
 
   /**
@@ -409,6 +412,21 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   public AlluxioURI join(AlluxioURI suffix) {
     return join(suffix.toString());
+  }
+
+  /**
+   * Append additional path elements to the end of an {@link AlluxioURI}. This does not check if
+   * the new path needs normalization, and is less CPU intensive than {@link #join(String)}.
+   *
+   * @param suffix the suffix to add
+   * @return the new {@link AlluxioURI}
+   */
+  public AlluxioURI joinUnsafe(String suffix) {
+    String path = getPath();
+    StringBuilder sb = new StringBuilder(path.length() + 1 + suffix.length());
+
+    return new AlluxioURI(this,
+        sb.append(path).append(AlluxioURI.SEPARATOR).append(suffix).toString(), false);
   }
 
   /**

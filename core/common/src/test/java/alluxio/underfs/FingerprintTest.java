@@ -15,11 +15,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
+import alluxio.security.authorization.AccessControlList;
 import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -115,5 +117,23 @@ public final class FingerprintTest {
     assertEquals(owner, fp.getTag(Fingerprint.Tag.OWNER));
     assertEquals(group, fp.getTag(Fingerprint.Tag.GROUP));
     assertEquals(String.valueOf(mode), fp.getTag(Fingerprint.Tag.MODE));
+  }
+
+  @Test
+  public void createACLFingeprint() {
+    UfsStatus status = new UfsFileStatus(CommonUtils.randomAlphaNumString(10),
+        CommonUtils.randomAlphaNumString(10), mRandom.nextLong(), mRandom.nextLong(),
+        CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10),
+        (short) mRandom.nextInt());
+    AccessControlList acl = AccessControlList.fromStringEntries(
+        CommonUtils.randomAlphaNumString(10),
+        CommonUtils.randomAlphaNumString(10),
+        Arrays.asList("user::rw-", "group::r--", "other::rwx"));
+    Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), status, acl);
+    String expected = fp.serialize();
+    Assert.assertNotNull(expected);
+    Assert.assertEquals("user::rw-,group::r--,other::rwx",
+        Fingerprint.parse(expected).getTag(Fingerprint.Tag.ACL));
+    Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
   }
 }

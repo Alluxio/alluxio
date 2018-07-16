@@ -200,11 +200,12 @@ public final class GetConf {
         System.out.print(output.toString());
         break;
       case 1:
-        String key = args[0];
-        if (!PropertyKey.isValid(key)) {
-          printHelp(String.format("%s is not a valid configuration key", key));
+        if (!PropertyKey.isValid(args[0])) {
+          printHelp(String.format("%s is not a valid configuration key", args[0]));
           return 1;
         }
+        // args[0] can be the alias
+        String key = PropertyKey.fromString(args[0]).getName();
         ConfigProperty property = confMap.get(key);
         if (property == null) {
           printHelp(String.format("%s is not found", key));

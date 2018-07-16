@@ -121,6 +121,8 @@ public enum ExceptionMessage {
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
+  DELETE_FAILED_DIR_CHILDREN(
+      "Cannot delete directory {0}. Failed to delete children: {1}"),
   DELETE_FAILED_DIR_NONEMPTY("Directory not empty"),
   DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
   DELETE_FAILED_UFS_DIR("UFS delete dir failed"),
@@ -220,6 +222,9 @@ public enum ExceptionMessage {
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
+  ACL_BASE_REQUIRED(
+      "Replacing ACL entries must include the base entries for 'user', 'group', and 'other'. "
+          + "missing: {0}"),
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
   IMPERSONATION_NOT_CONFIGURED(
