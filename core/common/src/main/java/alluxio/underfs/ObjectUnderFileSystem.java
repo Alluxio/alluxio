@@ -341,10 +341,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         try {
           result.addAll(list.get());
         } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
           // If operation was interrupted do not add to successfully deleted list
           LOG.warn("Interrupted while waiting for the result of batch delete. UFS and Alluxio "
               + "state may be inconsistent. Error: {}", e.getMessage());
-          Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
           // If operation failed to execute do not add to successfully deleted list
           LOG.warn("A batch delete failed. UFS and Alluxio state may be inconsistent. Error: {}",

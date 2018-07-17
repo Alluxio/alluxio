@@ -114,6 +114,7 @@ public abstract class AbstractMaster implements Master {
             LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
           }
         } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
           LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
         }
       } finally {
