@@ -260,7 +260,8 @@ to make sure your change will not break backwards compatibility. Next,
 If you have brew, you can do this by running
 
 ```bash
-$ brew install protobuf
+$ brew install protobuf@2.5
+$ brew link --force protobuf@2.5
 ```
 
 Then to regenerate the Java code, run
