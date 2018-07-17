@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Getting Started on a Cluster
+title: 集群使用指南
 group: User Guide
 priority: 2
 ---
