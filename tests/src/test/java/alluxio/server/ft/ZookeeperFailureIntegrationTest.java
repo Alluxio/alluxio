@@ -31,6 +31,7 @@ import alluxio.util.CommonUtils;
 import com.google.common.collect.ImmutableMap;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -65,6 +66,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
    * This test starts alluxio in HA mode, kills Zookeeper, waits for Alluxio to fail, then restarts
    * Zookeeper. Alluxio should recover when Zookeeper is restarted.
    */
+  @Ignore
   @Test
   public void zkFailure() throws Exception {
     AlluxioOperationThread thread =
