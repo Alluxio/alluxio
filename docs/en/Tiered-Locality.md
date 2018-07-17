@@ -16,8 +16,8 @@ identity is an address tuple such as `(node=..., rack=...)`. Each pair in the tu
 a *locality tier*. The locality tiers are ordered from most specific to least specific, so if
 two entities have the same node name, they are assumed to also have the same rack name. Alluxio
 uses tiered identities to optimize for locality. For example, when the client wants to read a
-file from the UFS, it will prefer to read through an Alluxio worker on the same node. 
-If there is no local worker in the first tier (node), the next tier (rack) will be checked 
+file from the UFS, it will prefer to read through an Alluxio worker on the same node.
+If there is no local worker in the first tier (node), the next tier (rack) will be checked
 to prefer rack-local data transfer. If no workers share a node or rack with the client, an
 arbitrary worker will be chosen.
 
@@ -35,9 +35,8 @@ alluxio.locality.[tiername]=...
 See the [Configuration-Settings](Configuration-Settings.html) page for details on how
 to set configuration properties.
 
-It is also possible to configure tiered identity info via script. By default Alluxio looks
-for a script at `${ALLUXIO_HOME}/conf/tiered_identity.sh`. You can override this location
-by setting
+It is also possible to configure tiered identity info via script. By default Alluxio searches
+the classpath for a script named `alluxio-locality.sh`. You can override this name by setting
 
 ```
 alluxio.locality.script=/path/to/script
@@ -90,4 +89,3 @@ Note that this configuration must be set for all entities, including Alluxio cli
 Now to set the availability zone for each entity, either set the
 `alluxio.locality.availability_zone` property key, or use a locality script and include
 `availability_zone=...` in the output.
-
