@@ -261,7 +261,7 @@ $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 
 输出显示文件已经100%被加载到Alluxio中，既然如此，那么再次访问该文件的速度应该会快很多。
 
-让我们来数一数拥有“puppy”这个单词的微博的数目。
+让我们来统计一下拥有“puppy”这个单词的微博的数目。
 
 ```bash
 $ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
@@ -273,7 +273,7 @@ sys	0m0.243s
 ```
 
 如你所见，读文件的速度非常快，仅仅需要数秒钟！并且，因为数据已经存放到了Alluxio中了，你可以轻易的以较快的速度再次读该文件。
-现在让我们来数一数有多少微博包含“bunny”这个词。
+现在让我们来统计一下有多少微博包含“bunny”这个词。
 
 ```bash
 $ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c bunny
