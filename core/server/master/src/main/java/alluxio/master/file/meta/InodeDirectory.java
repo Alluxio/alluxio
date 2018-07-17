@@ -274,11 +274,11 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(isMountPoint());
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
-    ret.setAclEntries(mAcl.toStringEntries());
+    ret.setAclEntries(mAcl);
     if (!mDefaultAcl.isEmpty()) {
-      ret.setDefaultAclEntries(mDefaultAcl.toStringEntries());
+      ret.setDefaultAclEntries(mDefaultAcl);
     } else {
-      ret.setDefaultAclEntries(Collections.emptyList());
+      ret.setDefaultAclEntries(new DefaultAccessControlList());
     }
     return ret;
   }

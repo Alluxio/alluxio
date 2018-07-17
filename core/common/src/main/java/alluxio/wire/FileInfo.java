@@ -16,6 +16,7 @@ import static alluxio.util.StreamUtils.map;
 import alluxio.Constants;
 import alluxio.security.authorization.AccessControlList;
 
+import alluxio.security.authorization.DefaultAccessControlList;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -59,9 +60,9 @@ public final class FileInfo implements Serializable {
   private long mMountId;
   private int mInAlluxioPercentage;
   private String mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
-  // A list of String ACL entries, to support json serialization.
-  private ArrayList<String> mAclEntries = new ArrayList<>();
-  private ArrayList<String> mDefaultAclEntries = new ArrayList<>();
+
+  private AccessControlList mAcl = null;
+  private DefaultAccessControlList mDefaultAcl = null;
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -254,14 +255,14 @@ public final class FileInfo implements Serializable {
    * @return the ACL entries for this file
    */
   public List<String> getAclEntries() {
-    return mAclEntries;
+    return (mAcl == null) ? new ArrayList<>() : mAcl.toStringEntries();
   }
 
   /**
    * @return the default ACL entries for this file
    */
   public List<String> getDefaultAclEntries() {
-    return mDefaultAclEntries;
+    return (mDefaultAcl == null) ? new ArrayList<>() : mDefaultAcl.toStringEntries();
   }
 
   /**
@@ -509,19 +510,17 @@ public final class FileInfo implements Serializable {
    * @param acl the ACL entries to use
    * @return the file information
    */
-  public FileInfo setAclEntries(List<String> acl) {
-    mAclEntries = new ArrayList<>();
-    mAclEntries.addAll(acl);
+  public FileInfo setAclEntries(AccessControlList acl) {
+    mAcl = acl;
     return this;
   }
 
   /**
-   * @param acl the ACL entries to use
+   * @param defaultAcl the ACL entries to use
    * @return the file information
    */
-  public FileInfo setDefaultAclEntries(List<String> acl) {
-    mDefaultAclEntries = new ArrayList<>();
-    mDefaultAclEntries.addAll(acl);
+  public FileInfo setDefaultAclEntries(DefaultAccessControlList defaultAcl) {
+    mDefaultAcl = defaultAcl;
     return this;
   }
 
@@ -534,10 +533,9 @@ public final class FileInfo implements Serializable {
       fileBlockInfos.add(fileBlockInfo.toThrift());
     }
 
-    AccessControlList tAcl = AccessControlList.fromStringEntries(mOwner, mGroup, mAclEntries);
+    AccessControlList tAcl = mAcl == null ? new AccessControlList() : mAcl;
     AccessControlList defaultAcl;
-    defaultAcl = AccessControlList.fromStringEntries(mOwner,
-        mGroup, mDefaultAclEntries);
+    defaultAcl = mDefaultAcl == null ? new DefaultAccessControlList() : mDefaultAcl;
 
     alluxio.thrift.FileInfo info =
         new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
@@ -585,10 +583,10 @@ public final class FileInfo implements Serializable {
         .setUfsFingerprint(info.isSetUfsFingerprint() ? info.getUfsFingerprint()
             : Constants.INVALID_UFS_FINGERPRINT)
         .setAclEntries(info.isSetAcl()
-            ? (AccessControlList.fromThrift(info.getAcl())).toStringEntries() : new ArrayList<>())
+            ? (AccessControlList.fromThrift(info.getAcl())) : new AccessControlList())
         .setDefaultAclEntries(info.isSetDefaultAcl()
-            ? (AccessControlList.fromThrift(info.getDefaultAcl())).toStringEntries()
-            : new ArrayList<>());
+            ? ((DefaultAccessControlList) AccessControlList.fromThrift(info.getDefaultAcl()))
+            : new DefaultAccessControlList());
   }
 
   @Override
@@ -612,8 +610,8 @@ public final class FileInfo implements Serializable {
         && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
         && mUfsFingerprint.equals(that.mUfsFingerprint)
-        && mAclEntries.equals(that.mAclEntries)
-        && mDefaultAclEntries.equals(that.mDefaultAclEntries);
+        && mAcl.equals(that.mAcl)
+        && mDefaultAcl.equals(that.mDefaultAcl);
   }
 
   @Override
@@ -622,7 +620,7 @@ public final class FileInfo implements Serializable {
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction, mInAlluxioPercentage,
-        mUfsFingerprint, mAclEntries, mDefaultAclEntries);
+        mUfsFingerprint, mAcl, mDefaultAcl);
   }
 
   @Override
@@ -638,8 +636,8 @@ public final class FileInfo implements Serializable {
         .add("fileBlockInfos", mFileBlockInfos)
         .add("mountId", mMountId).add("inAlluxioPercentage", mInAlluxioPercentage)
         .add("ufsFingerprint", mUfsFingerprint)
-        .add("aclEntries", mAclEntries)
-        .add("defaultAclEntries", mDefaultAclEntries)
+        .add("aclEntries", mAcl.toString())
+        .add("defaultAclEntries", mDefaultAcl.toString())
         .toString();
   }
 }

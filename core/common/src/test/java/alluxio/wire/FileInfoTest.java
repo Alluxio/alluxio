@@ -135,8 +135,8 @@ public class FileInfoTest {
     result.setUfsPath(ufsPath);
     result.setInAlluxioPercentage(inAlluxioPercentage);
     AccessControlList acl = new AccessControlList();
-    result.setAclEntries(acl.toStringEntries());
-    result.setDefaultAclEntries(new DefaultAccessControlList().toStringEntries());
+    result.setAclEntries(acl);
+    result.setDefaultAclEntries(new DefaultAccessControlList());
     return result;
   }
 }
