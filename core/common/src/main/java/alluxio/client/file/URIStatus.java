@@ -46,14 +46,14 @@ public class URIStatus {
    * @return the ACL entries for this path, mutable
    */
   public List<String> getAclEntries() {
-    return mInfo.getAclEntries();
+    return mInfo.convertAclToStringEntries();
   }
 
   /**
    * @return the default ACL entries for this path, mutable
    */
   public List<String> getDefaultAclEntries() {
-    return mInfo.getDefaultAclEntries();
+    return mInfo.convertDefaultAclToStringEntries();
   }
 
   /**

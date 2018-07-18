@@ -19,17 +19,34 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 public class FileInfoTest {
 
   @Test
+  public void javaSerialization() throws Exception {
+    FileInfo fileInfo = createRandom();
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    new ObjectOutputStream(byteArrayOutputStream).writeObject(fileInfo);
+    ByteArrayInputStream byteArrayInputStream =
+        new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+    FileInfo newFileInfo = (FileInfo) new ObjectInputStream(byteArrayInputStream).readObject();
+    checkEquality(fileInfo, newFileInfo);
+  }
+
+  @Test
   public void json() throws Exception {
     FileInfo fileInfo = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     String s = mapper.writeValueAsString(fileInfo);
+
     FileInfo other = mapper.readValue(mapper.writeValueAsBytes(fileInfo), FileInfo.class);
     checkEquality(fileInfo, other);
   }
@@ -68,7 +85,7 @@ public class FileInfoTest {
     Assert.assertEquals(a.isPersisted(), b.isPersisted());
     Assert.assertEquals(a.isPinned(), b.isPinned());
     Assert.assertEquals(a.getInAlluxioPercentage(), b.getInAlluxioPercentage());
-    Assert.assertEquals(a.getAclEntries(), b.getAclEntries());
+    Assert.assertEquals(a.getAcl(), b.getAcl());
     Assert.assertEquals(a, b);
   }
 
@@ -134,9 +151,14 @@ public class FileInfoTest {
     result.setMountId(mountId);
     result.setUfsPath(ufsPath);
     result.setInAlluxioPercentage(inAlluxioPercentage);
-    AccessControlList acl = new AccessControlList();
-    result.setAclEntries(acl);
-    result.setDefaultAclEntries(new DefaultAccessControlList());
+    List<String> stringEntries = Arrays.asList("user::rw-", "group::r--", "other::rwx");
+    AccessControlList acl =
+        AccessControlList.fromStringEntries(userName, groupName, stringEntries);
+    result.setAcl(acl);
+    List<String> defaultStringEntries =
+        Arrays.asList("default:user::rw-", "default:group::r--", "default:other::rwx");
+    result.setDefaultAcl((DefaultAccessControlList) AccessControlList
+        .fromStringEntries(userName, groupName, defaultStringEntries));
     return result;
   }
 }

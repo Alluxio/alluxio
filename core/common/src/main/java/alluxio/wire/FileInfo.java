@@ -15,8 +15,8 @@ import static alluxio.util.StreamUtils.map;
 
 import alluxio.Constants;
 import alluxio.security.authorization.AccessControlList;
-
 import alluxio.security.authorization.DefaultAccessControlList;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -30,6 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The file information.
  */
 @NotThreadSafe
+
 // TODO(jiri): Consolidate with URIStatus.
 public final class FileInfo implements Serializable {
   private static final long serialVersionUID = 7119966306934831779L;
@@ -252,16 +253,30 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @return the ACL entries for this file
+   * @return the ACL object for this file
    */
-  public List<String> getAclEntries() {
+  public AccessControlList getAcl() {
+    return mAcl;
+  }
+
+  /**
+   * @return the default ACL object for this file
+   */
+  public DefaultAccessControlList getDefaultAcl() {
+    return mDefaultAcl;
+  }
+
+  /**
+   * @return the ACL as string entries for this file
+   */
+  public List<String> convertAclToStringEntries() {
     return (mAcl == null) ? new ArrayList<>() : mAcl.toStringEntries();
   }
 
   /**
-   * @return the default ACL entries for this file
+   * @return the default ACL as string entries for this file
    */
-  public List<String> getDefaultAclEntries() {
+  public List<String> convertDefaultAclToStringEntries() {
     return (mDefaultAcl == null) ? new ArrayList<>() : mDefaultAcl.toStringEntries();
   }
 
@@ -510,7 +525,7 @@ public final class FileInfo implements Serializable {
    * @param acl the ACL entries to use
    * @return the file information
    */
-  public FileInfo setAclEntries(AccessControlList acl) {
+  public FileInfo setAcl(AccessControlList acl) {
     mAcl = acl;
     return this;
   }
@@ -519,7 +534,7 @@ public final class FileInfo implements Serializable {
    * @param defaultAcl the ACL entries to use
    * @return the file information
    */
-  public FileInfo setDefaultAclEntries(DefaultAccessControlList defaultAcl) {
+  public FileInfo setDefaultAcl(DefaultAccessControlList defaultAcl) {
     mDefaultAcl = defaultAcl;
     return this;
   }
@@ -582,9 +597,9 @@ public final class FileInfo implements Serializable {
         .setInAlluxioPercentage(info.getInAlluxioPercentage())
         .setUfsFingerprint(info.isSetUfsFingerprint() ? info.getUfsFingerprint()
             : Constants.INVALID_UFS_FINGERPRINT)
-        .setAclEntries(info.isSetAcl()
+        .setAcl(info.isSetAcl()
             ? (AccessControlList.fromThrift(info.getAcl())) : new AccessControlList())
-        .setDefaultAclEntries(info.isSetDefaultAcl()
+        .setDefaultAcl(info.isSetDefaultAcl()
             ? ((DefaultAccessControlList) AccessControlList.fromThrift(info.getDefaultAcl()))
             : new DefaultAccessControlList());
   }
