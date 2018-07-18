@@ -25,8 +25,7 @@ arbitrary worker will be chosen.
 
 If the user does nothing to provide tiered identity info, each entity will
 perform a localhost lookup to set its node-level identity info. If other locality tiers
-are left unset, they will not be used to inform locality decisions. To set
-the value for a locality tier, set the configuration property
+are left unset, they will not be used to inform locality decisions. 
 
 By default, the locality order is set to node,rack.
 
