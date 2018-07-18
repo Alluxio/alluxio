@@ -1420,6 +1420,8 @@ public final class FileSystemMasterTest {
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     assertEquals(fileInfo.getFileId(), fileId);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
+    // Short wait to ensure file is deleted.
+    CommonUtils.sleepMs(5);
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }
