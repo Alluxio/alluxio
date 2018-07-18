@@ -188,10 +188,10 @@ public final class CommonUtils {
     try {
       Thread.sleep(timeMs);
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       if (logger != null) {
         logger.warn(e.getMessage(), e);
       }
-      Thread.currentThread().interrupt();
     }
   }
 
@@ -477,8 +477,8 @@ public final class CommonUtils {
         throw new IllegalStateException("Failed to shutdown service");
       }
     } catch (InterruptedException e) {
-      service.shutdownNow();
       Thread.currentThread().interrupt();
+      service.shutdownNow();
       throw new RuntimeException(e);
     }
   }

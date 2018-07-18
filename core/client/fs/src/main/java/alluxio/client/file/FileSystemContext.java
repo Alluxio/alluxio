@@ -443,6 +443,7 @@ public final class FileSystemContext implements Closeable {
           mClientMasterSync.heartbeat();
         }
       } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
         LOG.error("Failed to heartbeat to the metrics master before exit");
       }
     }
