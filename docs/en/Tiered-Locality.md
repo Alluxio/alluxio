@@ -25,18 +25,32 @@ arbitrary worker will be chosen.
 
 If the user does nothing to provide tiered identity info, each entity will
 perform a localhost lookup to set its node-level identity info. If other locality tiers
-are left unset, they will not be used to inform locality decisions. To set
-the value for a locality tier, set the configuration property
+are left unset, they will not be used to inform locality decisions. 
+
+By default, the locality order is set to node,rack.
+
+```
+alluxio.locality.order=node,rack
+```
+
+To set the values for locality tiers, set the configuration properties
 
 ```
 alluxio.locality.[tiername]=...
+```
+
+For example, set the node and rack locality values
+
+```
+alluxio.locality.node=localhost
+alluxio.locality.rack=rack1
 ```
 
 See the [Configuration-Settings](Configuration-Settings.html) page for details on how
 to set configuration properties.
 
 It is also possible to configure tiered identity info via script. By default Alluxio looks
-for a script at `${ALLUXIO_HOME}/conf/tiered_identity.sh`. You can override this location
+for a script at `${ALLUXIO_HOME}/conf/alluxio-locality.sh`. You can override this location
 by setting
 
 ```
@@ -49,7 +63,7 @@ pairs. Here is an example script for reference:
 ```bash
 #!/bin/bash
 
-echo "host=$(hostname),rack=/rack1"
+echo "node=$(hostname),rack=/rack1"
 ```
 
 If the no script exists at `alluxio.locality.script`, the property will be ignored. If

@@ -2131,7 +2131,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey LOCALITY_SCRIPT =
       new Builder(Name.LOCALITY_SCRIPT)
-          .setDefaultValue(Constants.ALLUXIO_LOCALITY_SCRIPT)
+          .setDefaultValue(String.format("${%s}/conf/%s", Name.HOME, Constants.ALLUXIO_LOCALITY_SCRIPT))
           .setDescription("A script to determine tiered identity for locality checking")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
