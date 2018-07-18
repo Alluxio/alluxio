@@ -171,8 +171,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
   private void printLsString(URIStatus status, boolean hSize) {
     // detect the extended acls
     AccessControlList acl = AccessControlList
-        .fromStringEntries(status.getOwner(), status.getGroup(), status.getAclEntries());
-    boolean hasExtended = acl.hasExtended() || !status.getDefaultAclEntries().isEmpty();
+        .fromStringEntries(status.getOwner(), status.getGroup(), status.getAcl().toStringEntries());
+    boolean hasExtended = acl.hasExtended() || !status.getDefaultAcl().toStringEntries().isEmpty();
 
     System.out.print(formatLsString(hSize, SecurityUtils.isSecurityEnabled(), status.isFolder(),
         FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended),

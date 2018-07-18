@@ -49,8 +49,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     URIStatus status = mFileSystem.getStatus(uri);
     // detect the extended acls
     AccessControlList acl = AccessControlList
-        .fromStringEntries(status.getOwner(), status.getGroup(), status.getAclEntries());
-    boolean hasExtended = acl.hasExtended() || !status.getDefaultAclEntries().isEmpty();
+        .fromStringEntries(status.getOwner(), status.getGroup(), status.getAcl().toStringEntries());
+    boolean hasExtended = acl.hasExtended() || !status.getDefaultAcl().toStringEntries().isEmpty();
 
     return getLsResultStr(uri.getPath(), status.getLastModificationTimeMs(), size,
         STATE_FILE_IN_ALLUXIO, testUser, testGroup, status.getMode(), hasExtended,

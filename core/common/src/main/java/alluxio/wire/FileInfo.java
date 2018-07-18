@@ -62,8 +62,8 @@ public final class FileInfo implements Serializable {
   private int mInAlluxioPercentage;
   private String mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
 
-  private AccessControlList mAcl = null;
-  private DefaultAccessControlList mDefaultAcl = null;
+  private AccessControlList mAcl = new AccessControlList();
+  private DefaultAccessControlList mDefaultAcl = new DefaultAccessControlList();
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -651,8 +651,8 @@ public final class FileInfo implements Serializable {
         .add("fileBlockInfos", mFileBlockInfos)
         .add("mountId", mMountId).add("inAlluxioPercentage", mInAlluxioPercentage)
         .add("ufsFingerprint", mUfsFingerprint)
-        .add("aclEntries", mAcl.toString())
-        .add("defaultAclEntries", mDefaultAcl.toString())
+        .add("acl", mAcl.toString())
+        .add("defaultAcl", mDefaultAcl.toString())
         .toString();
   }
 }

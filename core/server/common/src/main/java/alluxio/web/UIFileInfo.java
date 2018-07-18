@@ -109,8 +109,8 @@ public final class UIFileInfo {
   public UIFileInfo(URIStatus status) {
     // detect the extended acls
     AccessControlList acl = AccessControlList
-        .fromStringEntries(status.getOwner(), status.getGroup(), status.getAclEntries());
-    boolean hasExtended = acl.hasExtended() || !status.getDefaultAclEntries().isEmpty();
+        .fromStringEntries(status.getOwner(), status.getGroup(), status.getAcl().toStringEntries());
+    boolean hasExtended = acl.hasExtended() || !status.getDefaultAcl().toStringEntries().isEmpty();
 
     mId = status.getFileId();
     mName = status.getName();
