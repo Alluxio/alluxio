@@ -103,12 +103,8 @@ public final class ClientRWLock implements ReadWriteLock {
     }
 
     @Override
-    public boolean tryLock(long time, TimeUnit unit) {
-      try {
-        return mAvailable.tryAcquire(mPermits, time, unit);
-      } catch (InterruptedException e) {
-        return false;
-      }
+    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+      return mAvailable.tryAcquire(mPermits, time, unit);
     }
 
     @Override

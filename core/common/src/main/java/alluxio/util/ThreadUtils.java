@@ -70,10 +70,9 @@ public final class ThreadUtils {
         }
       }
     } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt();
       // (Re-)Cancel if current thread also interrupted
       pool.shutdownNow();
-      // Preserve interrupt status
-      Thread.currentThread().interrupt();
     }
   }
 

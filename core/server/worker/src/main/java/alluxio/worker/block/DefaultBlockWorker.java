@@ -256,6 +256,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
         try {
           return getExecutorService().awaitTermination(100, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
           throw new RuntimeException(e);
         }
       });
