@@ -394,8 +394,25 @@ public final class Mode {
     /**
      * @return the set of {@link AclAction}s implied by this mode
      */
-    public Set<AclAction> toAclActions() {
+    public Set<AclAction> toAclActionSet() {
       Set<AclAction> actions = new HashSet<>();
+      if (imply(READ)) {
+        actions.add(AclAction.READ);
+      }
+      if (imply(WRITE)) {
+        actions.add(AclAction.WRITE);
+      }
+      if (imply(EXECUTE)) {
+        actions.add(AclAction.EXECUTE);
+      }
+      return actions;
+    }
+
+    /**
+     * @return the set of {@link AclAction}s implied by this mode
+     */
+    public AclActions toAclActions() {
+      AclActions actions = new AclActions();
       if (imply(READ)) {
         actions.add(AclAction.READ);
       }

@@ -17,7 +17,6 @@ import com.google.common.base.Objects;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -56,9 +55,7 @@ public class DefaultAccessControlList extends AccessControlList {
     mAccessAcl = acl;
     mOwningUser = acl.mOwningUser;
     mOwningGroup = acl.mOwningGroup;
-    mUserActions.put(OWNING_USER_KEY, new AclActions(acl.mUserActions.get(OWNING_USER_KEY)));
-    mGroupActions.put(OWNING_GROUP_KEY, new AclActions(acl.mGroupActions.get(OWNING_GROUP_KEY)));
-    mOtherActions = new AclActions(acl.mOtherActions);
+    mMode = acl.mMode;
   }
 
   /**
@@ -69,10 +66,12 @@ public class DefaultAccessControlList extends AccessControlList {
     AccessControlList acl = new AccessControlList();
     acl.mOwningUser = mOwningUser;
     acl.mOwningGroup = mOwningGroup;
-    acl.mUserActions = new HashMap<>(mUserActions);
-    acl.mGroupActions = new HashMap<>(mGroupActions);
-    acl.mOtherActions = new AclActions(mOtherActions);
-    acl.mMaskActions = new AclActions(mMaskActions);
+    acl.mMode = mMode;
+    if (mExtendedEntries == null) {
+      acl.mExtendedEntries = null;
+    } else {
+      acl.mExtendedEntries = new ExtendedACLEntries(mExtendedEntries);
+    }
     return acl;
   }
 
@@ -85,29 +84,13 @@ public class DefaultAccessControlList extends AccessControlList {
     DefaultAccessControlList dAcl = new DefaultAccessControlList(acl);
     dAcl.mOwningUser = mOwningUser;
     dAcl.mOwningGroup = mOwningGroup;
-    dAcl.mUserActions = new HashMap<>(mUserActions);
-    dAcl.mGroupActions = new HashMap<>(mGroupActions);
-    dAcl.mOtherActions = new AclActions(mOtherActions);
-    dAcl.mMaskActions = new AclActions(mMaskActions);
+    dAcl.mMode = mMode;
+    if (mExtendedEntries == null) {
+      dAcl.mExtendedEntries = null;
+    } else {
+      dAcl.mExtendedEntries = new ExtendedACLEntries(mExtendedEntries);
+    }
     return new Pair<>(acl, dAcl);
-  }
-
-  private void fillDefault() {
-    if (mAccessAcl == null) {
-      return;
-    }
-    setEmpty(false);
-    if (mUserActions.get(OWNING_USER_KEY) == null) {
-      mUserActions.put(OWNING_USER_KEY,
-          new AclActions(mAccessAcl.mUserActions.get(OWNING_USER_KEY)));
-    }
-    if (mGroupActions.get(OWNING_GROUP_KEY) == null) {
-      mGroupActions.put(OWNING_GROUP_KEY,
-          new AclActions(mAccessAcl.mGroupActions.get(OWNING_GROUP_KEY)));
-    }
-    if (mOtherActions == null) {
-      mOtherActions = new AclActions(mAccessAcl.mOtherActions);
-    }
   }
 
   /**
@@ -124,16 +107,31 @@ public class DefaultAccessControlList extends AccessControlList {
         super.removeEntry(entry);
         return;
       case OWNING_USER:
-        mUserActions.remove(entry.getSubject());
-        fillDefault();
+        Mode modeOwner = new Mode(mMode);
+        modeOwner.setOwnerBits(Mode.Bits.NONE);
+        if (mAccessAcl != null) {
+          // overwrite the owner actions from the access ACL.
+          modeOwner.setOwnerBits(new Mode(mAccessAcl.mMode).getOwnerBits());
+        }
+        mMode = modeOwner.toShort();
         return;
       case OWNING_GROUP:
-        mGroupActions.remove(entry.getSubject());
-        fillDefault();
+        Mode modeGroup = new Mode(mMode);
+        modeGroup.setGroupBits(Mode.Bits.NONE);
+        if (mAccessAcl != null) {
+          // overwrite the group actions from the access ACL.
+          modeGroup.setGroupBits(new Mode(mAccessAcl.mMode).getGroupBits());
+        }
+        mMode = modeGroup.toShort();
         return;
       case OTHER:
-        mOtherActions = null;
-        fillDefault();
+        Mode modeOther = new Mode(mMode);
+        modeOther.setOtherBits(Mode.Bits.NONE);
+        if (mAccessAcl != null) {
+          // overwrite the other actions from the access ACL.
+          modeOther.setOtherBits(new Mode(mAccessAcl.mMode).getOtherBits());
+        }
+        mMode = modeOther.toShort();
         return;
       default:
         throw new IllegalStateException("Unknown ACL entry type: " + entry.getType());
@@ -189,18 +187,18 @@ public class DefaultAccessControlList extends AccessControlList {
       return false;
     }
     DefaultAccessControlList that = (DefaultAccessControlList) o;
+    boolean extendedEquals = (mExtendedEntries == null && that.mExtendedEntries == null)
+        || (mExtendedEntries != null && mExtendedEntries.equals(that.mExtendedEntries))
+        || (that.mExtendedEntries != null && that.mExtendedEntries.equals(mExtendedEntries));
     return mOwningUser.equals(that.mOwningUser)
         && mOwningGroup.equals(that.mOwningGroup)
-        && mUserActions.equals(that.mUserActions)
-        && mGroupActions.equals(that.mGroupActions)
-        && mMaskActions.equals(that.mMaskActions)
-        && mOtherActions.equals(that.mOtherActions)
+        && mMode == that.mMode
+        && extendedEquals
         && mEmpty == (that.mEmpty);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mOwningUser, mOwningGroup, mUserActions, mGroupActions, mMaskActions,
-        mOtherActions, mEmpty);
+    return Objects.hashCode(mOwningUser, mOwningGroup, mMode, mExtendedEntries, mEmpty);
   }
 }

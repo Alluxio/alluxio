@@ -94,12 +94,12 @@ public final class ModeBitsTest {
   }
 
   /**
-   * Tests {@link Mode.Bits#toAclActions()}.
+   * Tests {@link Mode.Bits#toAclActionSet()}.
    */
   @Test
   public void toAclActions() {
     for (Mode.Bits bits : Mode.Bits.values()) {
-      Assert.assertEquals(bits, new AclActions(bits.toAclActions()).toModeBits());
+      Assert.assertEquals(bits, new AclActions(bits.toAclActionSet()).toModeBits());
     }
   }
 }
