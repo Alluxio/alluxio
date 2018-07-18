@@ -17,7 +17,7 @@ como um sistema de armazenamento inferior.
 
 Para rodar um Allucio `cluster` em um conjunto de máquinas, você deve colocar os binários do
 Alluxio em cada uma destas máquinas. Você pode
-[compilar o Alluxio](Building-Alluxio-Master-Branch.html) ou
+[compilar o Alluxio](Building-Alluxio-From-Source.html) ou
 [baixar os binários localmente](Running-Alluxio-Locally.html).
 
 Atente que, por padrão, os binários do Alluxio foram construídos para trabalhar com a versão

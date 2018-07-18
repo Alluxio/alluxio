@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -116,6 +117,7 @@ public class AlluxioOperationThread extends Thread {
         LOG.error("Failure during operation {}", op, t);
         mLatestFailure.set(t);
       }
+      CommonUtils.sleepMs(mIntervalMs);
     }
   }
 

@@ -60,7 +60,7 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
   /** Duration to sleep during the rename call to show the benefits of concurrency. */
   private static final long SLEEP_MS = Constants.SECOND_MS;
   /** Timeout for the concurrent test after which we will mark the test as failed. */
-  private static final long LIMIT_MS = SLEEP_MS * CONCURRENCY_FACTOR / 10;
+  private static final long LIMIT_MS = SLEEP_MS * CONCURRENCY_FACTOR / 2;
   /** The interval of the ttl bucket. */
   private static final int TTL_INTERVAL_MS = 100;
 

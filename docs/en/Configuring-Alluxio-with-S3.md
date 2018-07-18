@@ -15,7 +15,7 @@ under storage system. Alluxio recognizes the s3a:// scheme and uses the aws-sdk 
 ## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-Master-Branch.html), or
+[compile Alluxio](Building-Alluxio-From-Source.html), or
 [download the binaries locally](Running-Alluxio-Locally.html).
 
 Also, in preparation for using S3 with Alluxio, create a bucket (or use an existing bucket). You

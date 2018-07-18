@@ -1,8 +1,8 @@
 ---
 layout: global
-title: Configuration Properties
+title: Alluxio Configuration Properties
 group: Resources
-priority: 1
+priority: 4
 ---
 
 * Table of Contents

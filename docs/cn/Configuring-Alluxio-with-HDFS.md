@@ -13,7 +13,7 @@ priority: 3
 
 ## 初始步骤
 
-要在一组机器上运行一个Alluxio集群，需要在每台机器上部署Alluxio二进制服务端包。你可以[下载带有正确Hadoop版本的预编译二进制包](Running-Alluxio-Locally.html)，对于高级用户，也可[源码编译Alluxio](Building-Alluxio-Master-Branch.html)，
+要在一组机器上运行一个Alluxio集群，需要在每台机器上部署Alluxio二进制服务端包。你可以[下载带有正确Hadoop版本的预编译二进制包](Running-Alluxio-Locally.html)，对于高级用户，也可[源码编译Alluxio](Building-Alluxio-From-Source.html)，
 
 注意，在编译源码包的时候，默认的Alluxio二进制包适用于HDFS `2.2.0`，若使用其他版本的Hadoop，需要指定正确的Hadoop版本，并且在Alluxio源码目录下运行如下命令：
 
@@ -28,7 +28,7 @@ Alluxio提供了预定义配置文件，其包含`hadoop-1`，`hadoop-2.2`，`ha
 $ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 ```
 
-将会编译Hadoop 2.7.1版本的Alluxio。如果想获取更多的版本支持，请访问[编译Alluxio主分支](Building-Alluxio-Master-Branch.html#distro-support)。
+将会编译Hadoop 2.7.1版本的Alluxio。如果想获取更多的版本支持，请访问[编译Alluxio主分支](Building-Alluxio-From-Source.html#distro-support)。
 
 ## 配置Alluxio
 

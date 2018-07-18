@@ -28,7 +28,9 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
+import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.security.authorization.AclEntry;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CheckConsistencyTOptions;
 import alluxio.thrift.CheckConsistencyTResponse;
@@ -61,23 +63,30 @@ import alluxio.thrift.RenameTOptions;
 import alluxio.thrift.RenameTResponse;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTResponse;
+import alluxio.thrift.SetAclTOptions;
+import alluxio.thrift.SetAclTResponse;
 import alluxio.thrift.SetAttributeTOptions;
 import alluxio.thrift.SetAttributeTResponse;
+import alluxio.thrift.TAclEntry;
+import alluxio.thrift.TSetAclAction;
 import alluxio.thrift.UnmountTOptions;
 import alluxio.thrift.UnmountTResponse;
 import alluxio.thrift.UpdateUfsModeTOptions;
 import alluxio.thrift.UpdateUfsModeTResponse;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.SetAclAction;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -274,6 +283,20 @@ public final class FileSystemMasterClientServiceHandler implements
           mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
           return new ScheduleAsyncPersistenceTResponse();
         }, "ScheduleAsyncPersist", "path=%s, options=%s", path, options);
+  }
+
+  @Override
+  public SetAclTResponse setAcl(String path, TSetAclAction action, List<TAclEntry> entries,
+      SetAclTOptions options) throws AlluxioTException {
+    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<SetAclTResponse>) () -> {
+      List<AclEntry> aclEntries = Collections.emptyList();
+      if (entries != null) {
+        aclEntries = entries.stream().map(AclEntry::fromThrift).collect(Collectors.toList());
+      }
+      mFileSystemMaster.setAcl(new AlluxioURI(path), SetAclAction.fromThrift(action), aclEntries,
+          new SetAclOptions(options));
+      return new SetAclTResponse();
+    }, "SetAcl", "path=%s, entries=%s, options=%s", path, entries, options);
   }
 
   @Override

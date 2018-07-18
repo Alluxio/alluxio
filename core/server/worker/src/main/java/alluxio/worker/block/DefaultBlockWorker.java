@@ -28,7 +28,6 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryUtils;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.underfs.UfsManager;
@@ -45,7 +44,6 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.codahale.metrics.Gauge;
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -53,13 +51,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -202,12 +200,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mAddress = address;
     try {
       RetryUtils.retry("get worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
-          ExponentialTimeBoundedRetry.builder()
-              .withMaxDuration(Duration
-                  .ofMillis(Configuration.getMs(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)))
-              .withInitialSleep(Duration.ofMillis(100))
-              .withMaxSleep(Duration.ofSeconds(5))
-              .build());
+          RetryUtils.defaultWorkerMasterClientRetry());
     } catch (Exception e) {
       throw new RuntimeException("Failed to get a worker id from block master: " + e.getMessage());
     }
@@ -257,17 +250,21 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mSessionCleaner.stop();
     // The executor shutdown needs to be done in a loop with retry because the interrupt
     // signal can sometimes be ignored.
-    CommonUtils.waitFor("block worker executor shutdown", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
+    try {
+      CommonUtils.waitFor("block worker executor shutdown", () -> {
         getExecutorService().shutdownNow();
         try {
           return getExecutorService().awaitTermination(100, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
-      }
-    });
+      });
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    } catch (TimeoutException e) {
+      throw new RuntimeException(e);
+    }
     mBlockMasterClientPool.release(mBlockMasterClient);
     try {
       mBlockMasterClientPool.close();

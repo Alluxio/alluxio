@@ -38,6 +38,7 @@ public final class MasterMetrics {
   public static final String GET_NEW_BLOCK_OPS = "GetNewBlockOps";
   public static final String MOUNT_OPS = "MountOps";
   public static final String RENAME_PATH_OPS = "RenamePathOps";
+  public static final String SET_ACL_OPS = "SetAclOps";
   public static final String SET_ATTRIBUTE_OPS = "SetAttributeOps";
   public static final String UNMOUNT_OPS = "UnmountOps";
   public static final String FILES_PINNED = "FilesPinned";

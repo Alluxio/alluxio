@@ -11,13 +11,14 @@
 
 package alluxio;
 
+import alluxio.util.URIUtils;
+
 import java.net.URISyntaxException;
-import java.util.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper class around {@link java.net.URI}.
+ * A standard URI implementation.
  */
 @ThreadSafe
 public class StandardURI implements URI {
@@ -27,7 +28,15 @@ public class StandardURI implements URI {
    * A hierarchical URI. {@link java.net.URI} is used to hold the URI components as well as to
    * reuse URI functionality.
    */
-  protected final java.net.URI mUri;
+  protected final String mScheme;
+  protected final String mSchemeSpecificPart;
+  protected final String mAuthority;
+  protected final String mHost;
+  protected final int mPort;
+  protected final String mPath;
+  protected final String mQuery;
+
+  protected int mHashCode;
 
   /**
    * @param scheme the scheme string of the URI
@@ -37,55 +46,88 @@ public class StandardURI implements URI {
    */
   public StandardURI(String scheme, String authority, String path, String query) {
     try {
+      // Use java.net.URI to parse the URI components.
+      java.net.URI uri;
       if (AlluxioURI.CUR_DIR.equals(path)) {
-        mUri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null);
+        uri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null);
       } else {
-        mUri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null)
-                .normalize();
+        uri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null)
+            .normalize();
       }
+      mScheme = uri.getScheme();
+      mSchemeSpecificPart = uri.getSchemeSpecificPart();
+      mAuthority = uri.getAuthority();
+      mHost = uri.getHost();
+      mPort = uri.getPort();
+      mPath = uri.getPath();
+      mQuery = uri.getQuery();
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
   }
 
+  /**
+   * Constructs a new URI from a base URI, but with a new path component.
+   *
+   * @param baseUri the base uri
+   * @param newPath the new path component
+   */
+  protected StandardURI(URI baseUri, String newPath) {
+    mScheme = baseUri.getScheme();
+    mSchemeSpecificPart = baseUri.getSchemeSpecificPart();
+    mAuthority = baseUri.getAuthority();
+    mHost = baseUri.getHost();
+    mPort = baseUri.getPort();
+    mPath = AlluxioURI.normalizePath(newPath);
+    mQuery = baseUri.getQuery();
+  }
+
+  @Override
+  public URI createNewPath(String newPath, boolean checkNormalization) {
+    if (checkNormalization && URIUtils.needsNormalization(newPath)) {
+      return new StandardURI(mScheme, mAuthority, newPath, mQuery);
+    }
+    return new StandardURI(this, newPath);
+  }
+
   @Override
   public String getAuthority() {
-    return mUri.getAuthority();
+    return mAuthority;
   }
 
   @Override
   public String getHost() {
-    return mUri.getHost();
+    return mHost;
   }
 
   @Override
   public String getPath() {
-    return mUri.getPath();
+    return mPath;
   }
 
   @Override
   public String getQuery() {
-    return mUri.getQuery();
+    return mQuery;
   }
 
   @Override
   public int getPort() {
-    return mUri.getPort();
+    return mPort;
   }
 
   @Override
   public String getScheme() {
-    return mUri.getScheme();
+    return mScheme;
+  }
+
+  @Override
+  public String getSchemeSpecificPart() {
+    return mSchemeSpecificPart;
   }
 
   @Override
   public boolean isAbsolute() {
     return getScheme() != null;
-  }
-
-  @Override
-  public java.net.URI getBaseURI() {
-    return mUri;
   }
 
   @Override
@@ -95,8 +137,40 @@ public class StandardURI implements URI {
     if (compare != 0) {
       return compare;
     }
-    // schemes are equal, so use java.net.URI compare.
-    return mUri.compareTo(other.getBaseURI());
+
+    // schemes are equal.
+    if (mPath == null) {
+      if (other.getPath() == null) {
+        if ((compare = URIUtils.compare(mSchemeSpecificPart, other.getSchemeSpecificPart()))
+            != 0) {
+          return compare;
+        }
+        return 0;
+      }
+      return 1;
+    } else if (other.getPath() == null) {
+      return -1;
+    }
+
+    if ((mHost != null) && (other.getHost() != null)) {
+      // compare host-based authority
+      if ((compare = mHost.compareToIgnoreCase(other.getHost())) != 0) {
+        return compare;
+      }
+      if ((compare = mPort - other.getPort()) != 0) {
+        return compare;
+      }
+    } else if ((compare = URIUtils.compare(mAuthority, other.getAuthority())) != 0) {
+      return compare;
+    }
+
+    if ((compare = URIUtils.compare(mPath, other.getPath())) != 0) {
+      return compare;
+    }
+    if ((compare = URIUtils.compare(mQuery, other.getQuery())) != 0) {
+      return compare;
+    }
+    return 0;
   }
 
   /**
@@ -136,11 +210,61 @@ public class StandardURI implements URI {
     if (compareScheme(that) != 0) {
       return false;
     }
-    return mUri.equals(that.getBaseURI());
+
+    if ((this.mPath == null && that.mPath != null) || (this.mPath != null && that.mPath == null)) {
+      return false;
+    }
+
+    if (this.mPath == null) {
+      return URIUtils.equals(this.mSchemeSpecificPart, that.mSchemeSpecificPart);
+    }
+    if (!URIUtils.equals(this.mPath, that.mPath)) {
+      return false;
+    }
+    if (!URIUtils.equals(this.mQuery, that.mQuery)) {
+      return false;
+    }
+
+    if (this.mAuthority == that.mAuthority) {
+      return true;
+    }
+    if (this.mHost != null) {
+      // host-based authority
+      if (that.mHost == null) {
+        return false;
+      }
+      if (this.mHost.compareToIgnoreCase(that.mHost) != 0) {
+        return false;
+      }
+      if (this.mPort != that.mPort) {
+        return false;
+      }
+    } else if (!URIUtils.equals(this.mAuthority, that.mAuthority)) {
+      return false;
+    }
+    return true;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mUri, getScheme());
+    if (mHashCode != 0) {
+      return mHashCode;
+    }
+
+    int hashCode = URIUtils.hashIgnoreCase(0, getScheme());
+    if (mPath == null) {
+      hashCode = URIUtils.hash(hashCode, mSchemeSpecificPart);
+    } else {
+      hashCode = URIUtils.hash(hashCode, mPath);
+      hashCode = URIUtils.hash(hashCode, mQuery);
+      if (mHost != null) {
+        hashCode = URIUtils.hashIgnoreCase(hashCode, mHost);
+        hashCode += 1949 * mPort;
+      } else {
+        hashCode = URIUtils.hash(hashCode, mAuthority);
+      }
+    }
+    mHashCode = hashCode;
+    return hashCode;
   }
 }

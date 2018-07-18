@@ -22,7 +22,7 @@ To run an Alluxio cluster on a set of machines, you must deploy Alluxio server b
 these machines. You can either
 [download the precompiled binaries directly](http://www.alluxio.org/download)
 with the correct Hadoop version (recommended), or
-[compile the binaries from Alluxio source code](building-Alluxio-Master-Branch.html)
+[compile the binaries from Alluxio source code](Building-Alluxio-From-Source.html)
 (for advanced users).
 
 Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
@@ -46,7 +46,7 @@ $ mvn install -Phadoop-3 -Dhadoop.version=3.0.0 -DskipTests
 ```
 
 Please visit the
-[Building Alluxio Master Branch](Building-Alluxio-Master-Branch.html#distro-support) page for more
+[Building Alluxio Master Branch](Building-Alluxio-From-Source.html#distro-support) page for more
 information about support for other distributions.
 
 If everything succeeds, you should see

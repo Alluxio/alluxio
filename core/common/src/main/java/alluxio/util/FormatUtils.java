@@ -250,9 +250,10 @@ public final class FormatUtils {
    *
    * @param mode file mode
    * @param directory if the mode corresponds to a directory
+   * @param hasExtended true if extended acls exist
    * @return human-readable version of the given mode
    */
-  public static String formatMode(short mode, boolean directory) {
+  public static String formatMode(short mode, boolean directory, boolean hasExtended) {
     StringBuilder str = new StringBuilder();
     if (directory) {
       str.append("d");
@@ -260,6 +261,9 @@ public final class FormatUtils {
       str.append("-");
     }
     str.append(new Mode(mode).toString());
+    if (hasExtended) {
+      str.append("+");
+    }
     return str.toString();
   }
 

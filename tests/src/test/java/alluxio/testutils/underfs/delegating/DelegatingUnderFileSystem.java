@@ -12,6 +12,7 @@
 package alluxio.testutils.underfs.delegating;
 
 import alluxio.AlluxioURI;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -85,6 +86,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     return mUfs.exists(path);
+  }
+
+  @Override
+  public AccessControlList getAcl(String path) throws IOException {
+    return mUfs.getAcl(path);
   }
 
   @Override
@@ -206,6 +212,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
     return mUfs.resolveUri(ufsBaseUri, alluxioPath);
+  }
+
+  @Override
+  public void setAcl(String path, AccessControlList acl) throws IOException {
+    mUfs.setAcl(path, acl);
   }
 
   @Override

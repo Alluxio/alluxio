@@ -536,7 +536,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
         ExistsOptions.defaults().setCommonOptions(SYNC_ALWAYS)));
     mFileSystem.free(new AlluxioURI("/"), FreeOptions.defaults().setRecursive(true));
     BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
-    CommonUtils.waitFor("data to be freed", (x) -> {
+    CommonUtils.waitFor("data to be freed", () -> {
       try {
         return blockClient.getUsedBytes() == 0;
       } catch (Exception e) {

@@ -47,6 +47,15 @@ public final class AuthenticatedClientUser {
   }
 
   /**
+   * Sets {@link User} to the {@link ThreadLocal} variable.
+   *
+   * @param user the client user object
+   */
+  public static void set(User user) {
+    sUserThreadLocal.set(user);
+  }
+
+  /**
    * Gets the {@link User} from the {@link ThreadLocal} variable.
    *
    * @return the client user, null if the user is not present

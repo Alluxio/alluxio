@@ -13,7 +13,7 @@ priority: 5
 
 ## 初始步骤
 
-要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](http://alluxio.org/documentation/master/Building-Alluxio-Master-Branch.html)，或者[下载二进制包](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html)。
+要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)。
 
 OBS底层存储系统可作为扩展实现。预编译的OBS底层存储jar包可以从[这里](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs/target)下载。
 
