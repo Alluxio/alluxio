@@ -136,7 +136,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"conf/alluxio-env.sh.template",
 		"conf/alluxio-site.properties.template",
 		"conf/core-site.xml.template",
-		"conf/log4j.properties",
+		"conf/log4j.properties.template",
 		"conf/masters",
 		"conf/metrics.properties.template",
 		"conf/workers",
