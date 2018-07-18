@@ -124,7 +124,9 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   public void pinFile() throws Exception {
     // Create a file that fills the entire Alluxio store
     AlluxioURI file = new AlluxioURI("/test1");
-    FileSystemTestUtils.createByteFile(mFileSystem, file, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    // Half of mem capacity to avoid triggering async eviction
+    FileSystemTestUtils.createByteFile(mFileSystem, file, WriteType.MUST_CACHE,
+        MEM_CAPACITY_BYTES / 2);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     // Pin the file
