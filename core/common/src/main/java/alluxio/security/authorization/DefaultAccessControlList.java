@@ -25,7 +25,7 @@ import java.util.List;
  */
 public class DefaultAccessControlList extends AccessControlList {
   private static final long serialVersionUID = 8649647787531425489L;
-  
+
   /**
    * a reference to the access ACL associated with the same inode so that we can fill the default
    * value for OWNING_USER, OWNING_GROUP and OTHER.
