@@ -621,6 +621,8 @@ public class AccessControlList implements Serializable {
    * This is a custom json serializer for AccessControlList class.
    */
   public static class AccessControlListSerializer extends StdSerializer<AccessControlList> {
+    private static final long serialVersionUID = -8523910728069876504L;
+
     /**
      * Creates a AccessControlListSerializer.
      */
@@ -650,6 +652,8 @@ public class AccessControlList implements Serializable {
    * This is a custom json deserializer for AccessControlList class.
    */
   public static class AccessControlListDeserializer extends StdDeserializer<AccessControlList> {
+    private static final long serialVersionUID = 5524283318028333563L;
+
     /**
      * Creates a AccessControlListDeserializer.
      */
