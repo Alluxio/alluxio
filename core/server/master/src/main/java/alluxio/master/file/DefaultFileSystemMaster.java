@@ -883,8 +883,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // If synced, do not load metadata.
         listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
       }
-      // always load metadata when ls
-      listStatusOptions.setLoadMetadataType(LoadMetadataType.Always);
+      
       // load metadata for 1 level of descendants
       DescendantType loadDescendantType =
           (listStatusOptions.getLoadMetadataType() != LoadMetadataType.Never) ? DescendantType.ONE :
@@ -905,8 +904,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
 
       loadMetadataIfNotExistAndJournal(inodePath, loadMetadataOptions, journalContext);
-      // set LoadMetadataType to default
-      listStatusOptions.setLoadMetadataType(LoadMetadataType.Once);
       ensureFullPathAndUpdateCache(inodePath);
       inode = inodePath.getInode();
       auditContext.setSrcInode(inode);
