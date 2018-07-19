@@ -49,10 +49,10 @@ public final class GetFaclCommand extends AbstractFileSystemCommand {
     System.out.println("# file: " + status.getPath());
     System.out.println("# owner: " + status.getOwner());
     System.out.println("# group: " + status.getGroup());
-    for (String entry : status.getAclEntries()) {
+    for (String entry : status.getAcl().toStringEntries()) {
       System.out.println(entry);
     }
-    List<String> defaultAclEntries = status.getDefaultAclEntries();
+    List<String> defaultAclEntries = status.getDefaultAcl().toStringEntries();
     for (String entry: defaultAclEntries) {
       System.out.println(entry);
     }

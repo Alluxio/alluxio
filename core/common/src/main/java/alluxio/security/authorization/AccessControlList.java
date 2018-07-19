@@ -15,12 +15,24 @@ import alluxio.proto.journal.File;
 import alluxio.thrift.TAcl;
 import alluxio.thrift.TAclEntry;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -48,7 +60,17 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Also, the access control list contains owning user and owning group of a file or directory.
  */
 @NotThreadSafe
-public class AccessControlList {
+@JsonSerialize(using = AccessControlList.AccessControlListSerializer.class)
+@JsonDeserialize(using = AccessControlList.AccessControlListDeserializer.class)
+public class AccessControlList implements Serializable {
+  private static final long serialVersionUID = 106023217076996L;
+
+  public static final AccessControlList EMPTY_ACL = new AccessControlList();
+
+  public static final String OWNER_FIELD = "owner";
+  public static final String OWNING_GROUP_FIELD = "owningGroup";
+  public static final String STRING_ENTRY_FIELD = "stringEntries";
+
   /** Key representing owning user in {@link #mUserActions}. */
   protected static final String OWNING_USER_KEY = "";
   /** Key representing owning group in {@link #mGroupActions}. */
@@ -599,5 +621,72 @@ public class AccessControlList {
   public String toString() {
     List<String> entries = toStringEntries();
     return String.join(",", entries);
+  }
+
+  /**
+   * This is a custom json serializer for AccessControlList class.
+   */
+  public static class AccessControlListSerializer extends StdSerializer<AccessControlList> {
+    private static final long serialVersionUID = -8523910728069876504L;
+
+    /**
+     * Creates a AccessControlListSerializer.
+     */
+    public AccessControlListSerializer() {
+      super(AccessControlList.class);
+    }
+
+    /**
+     * Serialize an AccessControlList object.
+     * @param accessControlList the ACL object to be serialized
+     * @param jsonGenerator json generator
+     * @param serializerProvider default serializer
+     * @throws IOException
+     */
+    @Override
+    public void serialize(AccessControlList accessControlList, JsonGenerator jsonGenerator,
+        SerializerProvider serializerProvider) throws IOException {
+      jsonGenerator.writeStartObject();
+      jsonGenerator.writeStringField(OWNER_FIELD, accessControlList.getOwningUser());
+      jsonGenerator.writeStringField(OWNING_GROUP_FIELD, accessControlList.getOwningGroup());
+      jsonGenerator.writeObjectField(STRING_ENTRY_FIELD, accessControlList.toStringEntries());
+      jsonGenerator.writeEndObject();
+    }
+  }
+
+  /**
+   * This is a custom json deserializer for AccessControlList class.
+   */
+  public static class AccessControlListDeserializer extends StdDeserializer<AccessControlList> {
+    private static final long serialVersionUID = 5524283318028333563L;
+
+    /**
+     * Creates a AccessControlListDeserializer.
+     */
+    public AccessControlListDeserializer() {
+      super(AccessControlList.class);
+    }
+
+    /**
+     * Deserialize an AccessControlList object.
+     * @param jsonParser the json parser
+     * @param deserializationContext deserializationcontext
+     * @return
+     * @throws IOException
+     * @throws JsonProcessingException
+     */
+    @Override
+    public AccessControlList deserialize(JsonParser jsonParser,
+        DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+      JsonNode node = jsonParser.getCodec().readTree(jsonParser);
+      String owner = node.get(OWNER_FIELD).asText();
+      String owningGroup = node.get(OWNING_GROUP_FIELD).asText();
+      List<String> stringEntries = new ArrayList<>();
+      Iterator<JsonNode> nodeIterator = node.get(STRING_ENTRY_FIELD).elements();
+      while (nodeIterator.hasNext()) {
+        stringEntries.add(nodeIterator.next().asText());
+      }
+      return AccessControlList.fromStringEntries(owner, owningGroup, stringEntries);
+    }
   }
 }

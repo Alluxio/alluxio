@@ -19,7 +19,6 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.security.authorization.AccessControlList;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
@@ -170,9 +169,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
   private void printLsString(URIStatus status, boolean hSize) {
     // detect the extended acls
-    AccessControlList acl = AccessControlList
-        .fromStringEntries(status.getOwner(), status.getGroup(), status.getAclEntries());
-    boolean hasExtended = acl.hasExtended() || !status.getDefaultAclEntries().isEmpty();
+    boolean hasExtended = status.getAcl().hasExtended()
+        || !status.getDefaultAcl().isEmpty();
 
     System.out.print(formatLsString(hSize, SecurityUtils.isSecurityEnabled(), status.isFolder(),
         FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended),

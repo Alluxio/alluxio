@@ -16,6 +16,7 @@ import alluxio.proto.journal.File;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 
+import java.io.Serializable;
 import java.util.BitSet;
 import java.util.Set;
 
@@ -25,7 +26,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Permitted actions of an entry in {@link AccessControlList}.
  */
 @NotThreadSafe
-public final class AclActions {
+public final class AclActions implements Serializable {
+  private static final long serialVersionUID = 4500558548535992938L;
+
   // TODO(ohboring): have a static default AclActions object, and then copy on write.
   /**
    * Initial bits of the actions bitset.
