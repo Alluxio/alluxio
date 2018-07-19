@@ -62,8 +62,8 @@ public final class FileInfo implements Serializable {
   private int mInAlluxioPercentage;
   private String mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
 
-  private AccessControlList mAcl = new AccessControlList();
-  private DefaultAccessControlList mDefaultAcl = new DefaultAccessControlList();
+  private AccessControlList mAcl = AccessControlList.EMPTY_ACL;
+  private DefaultAccessControlList mDefaultAcl = DefaultAccessControlList.EMPTY_DEFAULT_ACL;
 
   /**
    * Creates a new instance of {@link FileInfo}.

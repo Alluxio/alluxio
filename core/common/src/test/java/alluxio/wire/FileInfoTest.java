@@ -86,6 +86,7 @@ public class FileInfoTest {
     Assert.assertEquals(a.isPinned(), b.isPinned());
     Assert.assertEquals(a.getInAlluxioPercentage(), b.getInAlluxioPercentage());
     Assert.assertEquals(a.getAcl(), b.getAcl());
+    Assert.assertEquals(a.getDefaultAcl(), b.getDefaultAcl());
     Assert.assertEquals(a, b);
   }
 

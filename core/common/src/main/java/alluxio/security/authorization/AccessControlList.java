@@ -65,6 +65,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class AccessControlList implements Serializable {
   private static final long serialVersionUID = 106023217076996L;
 
+  public static final AccessControlList EMPTY_ACL = new AccessControlList();
+
+  public static final String OWNER_FIELD = "owner";
+  public static final String OWNING_GROUP_FIELD = "owningGroup";
+  public static final String STRING_ENTRY_FIELD = "stringEntries";
+
   /** Key representing owning user in {@link #mUserActions}. */
   protected static final String OWNING_USER_KEY = "";
   /** Key representing owning group in {@link #mGroupActions}. */
@@ -641,9 +647,9 @@ public class AccessControlList implements Serializable {
     public void serialize(AccessControlList accessControlList, JsonGenerator jsonGenerator,
         SerializerProvider serializerProvider) throws IOException {
       jsonGenerator.writeStartObject();
-      jsonGenerator.writeStringField("owner", accessControlList.getOwningUser());
-      jsonGenerator.writeStringField("owningGroup", accessControlList.getOwningGroup());
-      jsonGenerator.writeObjectField("stringEntries", accessControlList.toStringEntries());
+      jsonGenerator.writeStringField(OWNER_FIELD, accessControlList.getOwningUser());
+      jsonGenerator.writeStringField(OWNING_GROUP_FIELD, accessControlList.getOwningGroup());
+      jsonGenerator.writeObjectField(STRING_ENTRY_FIELD, accessControlList.toStringEntries());
       jsonGenerator.writeEndObject();
     }
   }
@@ -673,10 +679,10 @@ public class AccessControlList implements Serializable {
     public AccessControlList deserialize(JsonParser jsonParser,
         DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
       JsonNode node = jsonParser.getCodec().readTree(jsonParser);
-      String owner = node.get("owner").asText();
-      String owningGroup = node.get("owningGroup").asText();
+      String owner = node.get(OWNER_FIELD).asText();
+      String owningGroup = node.get(OWNING_GROUP_FIELD).asText();
       List<String> stringEntries = new ArrayList<>();
-      Iterator<JsonNode> nodeIterator = node.get("stringEntries").elements();
+      Iterator<JsonNode> nodeIterator = node.get(STRING_ENTRY_FIELD).elements();
       while (nodeIterator.hasNext()) {
         stringEntries.add(nodeIterator.next().asText());
       }
