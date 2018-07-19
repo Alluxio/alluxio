@@ -212,6 +212,16 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
+   * Formats the master and then restarts it. This is useful if a fresh state is desired, for
+   * example when restoring from a backup.
+   */
+  public void formatAndRestartMasters() throws Exception {
+    stopMasters();
+    Format.format(Format.Mode.MASTER);
+    startMasters();
+  }
+
+  /**
    * Stops the masters.
    */
   protected abstract void stopMasters() throws Exception;
