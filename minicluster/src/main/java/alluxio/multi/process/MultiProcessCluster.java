@@ -254,13 +254,19 @@ public final class MultiProcessCluster implements TestRule {
         MasterInfo masterInfo = metaMasterClient.getMasterInfo(null);
         int liveNodeNum = masterInfo.getMasterAddresses().size()
             + masterInfo.getWorkerAddresses().size();
-        return liveNodeNum == (mNumMasters + mNumWorkers);
+        if (liveNodeNum == (mNumMasters + mNumWorkers)) {
+          return true;
+        } else {
+          LOG.info("Master addresses: {}. Worker addresses: {}", masterInfo.getMasterAddresses(),
+              masterInfo.getWorkerAddresses());
+          return false;
+        }
       } catch (UnavailableException e) {
         return false;
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
   }
 
   /**
