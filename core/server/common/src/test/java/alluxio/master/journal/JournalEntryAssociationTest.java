@@ -29,7 +29,6 @@ import alluxio.proto.journal.File.InodeLastModificationTimeEntry;
 import alluxio.proto.journal.File.PersistDirectoryEntry;
 import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
-import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -86,7 +85,6 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setReinitializeFile(ReinitializeFileEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRename(RenameEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRenameStore(RenameStoreEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setSetAcl(SetAclEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setSetAttribute(SetAttributeEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setUpdateUfsMode(UpdateUfsModeEntry.getDefaultInstance()).build()
   );
