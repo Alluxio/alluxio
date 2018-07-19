@@ -270,6 +270,7 @@ public final class FileInfo implements Serializable {
    * @return the ACL as string entries for this file
    */
   public List<String> convertAclToStringEntries() {
+    // do not use getX as the name of the method, otherwise it will be used by json serialization
     return (mAcl == null) ? new ArrayList<>() : mAcl.toStringEntries();
   }
 
@@ -277,6 +278,7 @@ public final class FileInfo implements Serializable {
    * @return the default ACL as string entries for this file
    */
   public List<String> convertDefaultAclToStringEntries() {
+    // do not use getX as the name of the method, otherwise it will be used by json serialization
     return (mDefaultAcl == null) ? new ArrayList<>() : mDefaultAcl.toStringEntries();
   }
 
