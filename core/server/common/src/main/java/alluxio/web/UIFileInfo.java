@@ -14,7 +14,6 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -108,9 +107,7 @@ public final class UIFileInfo {
    */
   public UIFileInfo(URIStatus status) {
     // detect the extended acls
-    AccessControlList acl = AccessControlList
-        .fromStringEntries(status.getOwner(), status.getGroup(), status.getAclEntries());
-    boolean hasExtended = acl.hasExtended() || !status.getDefaultAclEntries().isEmpty();
+    boolean hasExtended = status.getAcl().hasExtended() || !status.getDefaultAcl().isEmpty();
 
     mId = status.getFileId();
     mName = status.getName();

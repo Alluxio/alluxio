@@ -12,6 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
@@ -45,15 +47,15 @@ public class URIStatus {
   /**
    * @return the ACL entries for this path, mutable
    */
-  public List<String> getAclEntries() {
-    return mInfo.getAclEntries();
+  public AccessControlList getAcl() {
+    return mInfo.getAcl();
   }
 
   /**
    * @return the default ACL entries for this path, mutable
    */
-  public List<String> getDefaultAclEntries() {
-    return mInfo.getDefaultAclEntries();
+  public DefaultAccessControlList getDefaultAcl() {
+    return mInfo.getDefaultAcl();
   }
 
   /**

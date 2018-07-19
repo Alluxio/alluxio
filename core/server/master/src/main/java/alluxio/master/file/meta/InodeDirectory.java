@@ -26,7 +26,6 @@ import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -274,12 +273,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(isMountPoint());
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
-    ret.setAclEntries(mAcl.toStringEntries());
-    if (!mDefaultAcl.isEmpty()) {
-      ret.setDefaultAclEntries(mDefaultAcl.toStringEntries());
-    } else {
-      ret.setDefaultAclEntries(Collections.emptyList());
-    }
+    ret.setAcl(mAcl);
+    ret.setDefaultAcl(mDefaultAcl);
     return ret;
   }
 

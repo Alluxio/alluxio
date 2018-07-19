@@ -23,7 +23,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
@@ -48,9 +47,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
       throws IOException, AlluxioException {
     URIStatus status = mFileSystem.getStatus(uri);
     // detect the extended acls
-    AccessControlList acl = AccessControlList
-        .fromStringEntries(status.getOwner(), status.getGroup(), status.getAclEntries());
-    boolean hasExtended = acl.hasExtended() || !status.getDefaultAclEntries().isEmpty();
+    boolean hasExtended = status.getAcl().hasExtended()
+        || !status.getDefaultAcl().isEmpty();
 
     return getLsResultStr(uri.getPath(), status.getLastModificationTimeMs(), size,
         STATE_FILE_IN_ALLUXIO, testUser, testGroup, status.getMode(), hasExtended,
