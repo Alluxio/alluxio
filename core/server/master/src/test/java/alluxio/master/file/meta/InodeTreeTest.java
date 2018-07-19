@@ -36,6 +36,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.authorization.Mode;
@@ -112,7 +113,7 @@ public final class InodeTreeTest {
 
     mRegistry.start(true);
 
-    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_DIR_MODE);
+    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_DIR_MODE, NoopJournalContext.INSTANCE);
   }
 
   @After
@@ -142,7 +143,7 @@ public final class InodeTreeTest {
   public void initializeRootTwice() throws Exception {
     Inode<?> root = getInodeByPath(mTree, new AlluxioURI("/"));
     // initializeRoot call does nothing
-    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_DIR_MODE);
+    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_DIR_MODE, NoopJournalContext.INSTANCE);
     assertEquals(TEST_OWNER, root.getOwner());
     Inode<?> newRoot = getInodeByPath(mTree, new AlluxioURI("/"));
     assertEquals(root, newRoot);

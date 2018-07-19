@@ -30,6 +30,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
@@ -151,10 +152,12 @@ public class InodeTree implements JournalEntryIterable {
    * @param owner the root owner
    * @param group the root group
    * @param mode the root mode
+   * @param context the journal context to journal the initialization to
    */
-  public void initializeRoot(String owner, String group, Mode mode) throws UnavailableException {
+  public void initializeRoot(String owner, String group, Mode mode, JournalContext context)
+      throws UnavailableException {
     if (mRoot == null) {
-      InodeDirectory root = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
+      InodeDirectory root = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(context),
           NO_PARENT, ROOT_INODE_NAME,
           CreateDirectoryOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
       setRoot(root);
