@@ -36,7 +36,9 @@ public final class JournalEntryAssociation {
         || entry.hasPersistDirectory()
         || entry.hasRename()
         || entry.hasReinitializeFile()
-        || entry.hasSetAttribute()) {
+        || entry.hasSetAcl()
+        || entry.hasSetAttribute()
+        || entry.hasUpdateUfsMode()) {
       return Constants.FILE_SYSTEM_MASTER_NAME;
     }
     if (entry.hasBlockContainerIdGenerator()
@@ -53,6 +55,7 @@ public final class JournalEntryAssociation {
       return Constants.KEY_VALUE_MASTER_NAME;
     }
     if (entry.hasDeleteLineage()
+        || entry.hasLineageIdGenerator()
         || entry.hasLineage()) {
       return Constants.LINEAGE_MASTER_NAME;
     }
