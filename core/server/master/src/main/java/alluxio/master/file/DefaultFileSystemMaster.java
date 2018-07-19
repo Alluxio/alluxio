@@ -587,7 +587,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         try (JournalContext context = createJournalContext()) {
           mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(),
               SecurityUtils.getGroupFromLoginModule(),
-              Mode.createFullAccess().applyDirectoryUMask());
+              Mode.createFullAccess().applyDirectoryUMask(), context);
           context.append(mInodeTree.getRoot().toJournalEntry());
         }
       } else {
