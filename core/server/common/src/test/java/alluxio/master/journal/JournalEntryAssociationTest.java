@@ -59,6 +59,8 @@ public class JournalEntryAssociationTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   // CHECKSTYLE.OFF: LineLengthExceed
+  // This list must contain one of every type of journal entry. If you create a new type of
+  // journal entry, make sure to add it here.
   private static List<JournalEntry> ENTRIES = Arrays.asList(
       JournalEntry.newBuilder().setAddMountPoint(AddMountPointEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAsyncPersistRequest(AsyncPersistRequestEntry.getDefaultInstance()).build(),
