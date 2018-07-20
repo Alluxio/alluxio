@@ -69,9 +69,8 @@ public class AccessControlList implements Serializable {
   public static final String OWNING_GROUP_FIELD = "owningGroup";
   public static final String STRING_ENTRY_FIELD = "stringEntries";
 
-  /** Key representing owning user in {@link #mUserActions}. */
+  /** Keys representing owning user and group for proto ser/de. */
   protected static final String OWNING_USER_KEY = "";
-  /** Key representing owning group in {@link #mGroupActions}. */
   protected static final String OWNING_GROUP_KEY = "";
 
   protected String mOwningUser;
