@@ -275,8 +275,12 @@
                 <th><%= request.getAttribute("RenamePathOps") %></th>
               </tr>
               <tr>
-                <th>SetAttribute Operations</th>
-                <th><%= request.getAttribute("SetAttributeOps") %></th>
+                 <th>SetAcl Operations</th>
+                 <th><%= request.getAttribute("SetAclOps") %></th>
+                 <th>SetAttribute Operations</th>
+                 <th><%= request.getAttribute("SetAttributeOps") %></th>
+              </tr>
+              <tr>
                 <th>Unmount Operations</th>
                 <th><%= request.getAttribute("UnmountOps") %></th>
               </tr>
