@@ -573,7 +573,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // The mount table should be written to the checkpoint after the inodes are written, so that
         // when replaying the checkpoint, the inodes exist before mount entries. Replaying a mount
         // entry traverses the inode tree.
-        mMountTable.getJournalEntryIterator());
+        mMountTable.getJournalEntryIterator(),
+        mUfsManager.getJournalEntryIterator()
+    );
   }
 
   @Override
@@ -3917,29 +3919,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param ufsPath the ufs path
    * @param ufsMode the ufs mode
    * @throws InvalidPathException if path is not used by any mount point
-   * @throws InvalidArgumentException if arguments for the method are invalid
    */
   private void updateUfsModeAndJournal(RpcContext rpcContext, AlluxioURI ufsPath,
-      UnderFileSystem.UfsMode ufsMode) throws InvalidPathException, InvalidArgumentException {
-    updateUfsModeInternal(ufsPath, ufsMode);
-    // Journal
-    File.UfsMode ufsModeEntry;
-    switch (ufsMode) {
-      case NO_ACCESS:
-        ufsModeEntry = File.UfsMode.NO_ACCESS;
-        break;
-      case READ_ONLY:
-        ufsModeEntry = File.UfsMode.READ_ONLY;
-        break;
-      case READ_WRITE:
-        ufsModeEntry = File.UfsMode.READ_WRITE;
-        break;
-      default:
-        throw new InvalidArgumentException(ExceptionMessage.INVALID_UFS_MODE.getMessage(ufsMode));
-    }
-    File.UpdateUfsModeEntry ufsEntry = File.UpdateUfsModeEntry.newBuilder()
-        .setUfsPath(ufsPath.getRootPath()).setUfsMode(ufsModeEntry).build();
-    rpcContext.journal(JournalEntry.newBuilder().setUpdateUfsMode(ufsEntry).build());
+      UnderFileSystem.UfsMode ufsMode) throws InvalidPathException {
+    updateUfsModeInternal(ufsPath, ufsMode, rpcContext);
   }
 
   /**
@@ -3947,32 +3930,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param entry the update ufs mode journal entry
    * @throws InvalidPathException if the path is not used by any mount point
-   * @throws InvalidArgumentException if arguments for the method are invalid
    */
-  private void updateUfsModeFromEntry(File.UpdateUfsModeEntry entry)
-      throws InvalidPathException, InvalidArgumentException {
+  private void updateUfsModeFromEntry(File.UpdateUfsModeEntry entry) throws InvalidPathException {
     String ufsPath = entry.getUfsPath();
-    UnderFileSystem.UfsMode ufsMode;
-    switch (entry.getUfsMode()) {
-      case NO_ACCESS:
-        ufsMode = UnderFileSystem.UfsMode.NO_ACCESS;
-        break;
-      case READ_ONLY:
-        ufsMode = UnderFileSystem.UfsMode.READ_ONLY;
-        break;
-      case READ_WRITE:
-        ufsMode = UnderFileSystem.UfsMode.READ_WRITE;
-        break;
-      default:
-        throw new InvalidArgumentException(
-            ExceptionMessage.INVALID_UFS_MODE.getMessage(entry.getUfsMode()));
-    }
-    updateUfsModeInternal(new AlluxioURI(ufsPath), ufsMode);
+    UnderFileSystem.UfsMode ufsMode = UnderFileSystem.UfsMode.valueOf(entry.getUfsMode().name());
+    updateUfsModeInternal(new AlluxioURI(ufsPath), ufsMode, RpcContext.NOOP);
   }
 
-  private void updateUfsModeInternal(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
-      throws InvalidPathException {
-    mUfsManager.setUfsMode(ufsPath, ufsMode);
+  private void updateUfsModeInternal(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode,
+      RpcContext rpcContext) throws InvalidPathException {
+    mUfsManager.setUfsMode(ufsPath, ufsMode, rpcContext);
   }
 
   /**

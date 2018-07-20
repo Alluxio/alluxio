@@ -12,17 +12,26 @@
 package alluxio.server.ft.journal;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.client.file.options.UpdateUfsModeOptions;
+import alluxio.exception.AccessControlException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientConfig;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.underfs.UnderFileSystem.UfsMode;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -43,9 +52,15 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  public LocalAlluxioCluster mCluster;
+
+  @Before
+  public void before() {
+    mCluster = mClusterResource.get();
+  }
+
   @Test
   public void recoverMounts() throws Exception {
-    LocalAlluxioCluster mCluster = mClusterResource.get();
     AlluxioURI alluxioMount1 = new AlluxioURI("/mount1");
     AlluxioURI alluxioMount2 = new AlluxioURI("/mount2");
     AlluxioURI fileMount1 = new AlluxioURI(mFolder.newFolder("1").getAbsolutePath());
@@ -53,16 +68,36 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
     mCluster.getClient().mount(alluxioMount1, fileMount1);
     mCluster.getClient().mount(alluxioMount2, fileMount2);
 
-    // Take a backup and restart.
-    File backup = mFolder.newFolder("backup");
-    MetaMasterClient metaClient = new RetryHandlingMetaMasterClient(MasterClientConfig.defaults());
-    AlluxioURI backupURI = metaClient.backup(backup.getAbsolutePath(), true).getBackupUri();
-    Configuration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupURI);
-    mCluster.formatAndRestartMasters();
+    backupAndRestore();
 
     assertEquals(3, mCluster.getClient().getMountTable().size());
     mCluster.getClient().unmount(alluxioMount1);
     assertEquals(2, mCluster.getClient().getMountTable().size());
     Configuration.unset(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP);
+  }
+
+  @Test
+  public void recoverUfsState() throws Exception {
+    FileSystemMasterClient client =
+        new RetryHandlingFileSystemMasterClient(MasterClientConfig.defaults());
+    client.updateUfsMode(new AlluxioURI(""),
+        UpdateUfsModeOptions.defaults().setUfsMode(UfsMode.READ_ONLY));
+
+    backupAndRestore();
+    try {
+      mCluster.getClient().createDirectory(new AlluxioURI("/test"),
+          CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH));
+      fail("Expected an exception to be thrown");
+    } catch (AccessControlException e) {
+      // Expected
+    }
+  }
+
+  private void backupAndRestore() throws Exception {
+    File backup = mFolder.newFolder("backup");
+    MetaMasterClient metaClient = new RetryHandlingMetaMasterClient(MasterClientConfig.defaults());
+    AlluxioURI backupURI = metaClient.backup(backup.getAbsolutePath(), true).getBackupUri();
+    Configuration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupURI);
+    mCluster.formatAndRestartMasters();
   }
 }
