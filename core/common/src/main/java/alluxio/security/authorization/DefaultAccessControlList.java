@@ -187,9 +187,17 @@ public class DefaultAccessControlList extends AccessControlList {
       return false;
     }
     DefaultAccessControlList that = (DefaultAccessControlList) o;
-    boolean extendedEquals = (mExtendedEntries == null && that.mExtendedEntries == null)
-        || (mExtendedEntries != null && mExtendedEntries.equals(that.mExtendedEntries))
-        || (that.mExtendedEntries != null && that.mExtendedEntries.equals(mExtendedEntries));
+    // If the extended acl object is empty (does not have any extended entries), it is equivalent
+    // to a null object.
+    boolean extendedNull = (mExtendedEntries == null && that.mExtendedEntries == null);
+    boolean extendedNotNull1 =
+        mExtendedEntries != null && (mExtendedEntries.equals(that.mExtendedEntries) || (
+            !mExtendedEntries.hasExtended() && that.mExtendedEntries == null));
+    boolean extendedNotNull2 =
+        that.mExtendedEntries != null && (that.mExtendedEntries.equals(mExtendedEntries) || (
+            !that.mExtendedEntries.hasExtended() && mExtendedEntries == null));
+    boolean extendedEquals = extendedNull || extendedNotNull1 || extendedNotNull2;
+
     return mOwningUser.equals(that.mOwningUser)
         && mOwningGroup.equals(that.mOwningGroup)
         && mMode == that.mMode

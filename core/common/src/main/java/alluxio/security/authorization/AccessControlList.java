@@ -65,11 +65,11 @@ public class AccessControlList implements Serializable {
 
   public static final AccessControlList EMPTY_ACL = new AccessControlList();
 
+  /** Keys representing owning user and group for proto ser/de. */
   public static final String OWNER_FIELD = "owner";
   public static final String OWNING_GROUP_FIELD = "owningGroup";
   public static final String STRING_ENTRY_FIELD = "stringEntries";
 
-  /** Keys representing owning user and group for proto ser/de. */
   protected static final String OWNING_USER_KEY = "";
   protected static final String OWNING_GROUP_KEY = "";
 
