@@ -266,7 +266,6 @@ public enum ExceptionMessage {
 
   // ufs maintenance
   UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),
-  INVALID_UFS_MODE("{0} is not a valid ufs mode"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
