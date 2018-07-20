@@ -19,7 +19,7 @@ priority: 0
 
 如果想要了解更多关于GCS的信息，请阅读它的[文档](https://cloud.google.com/storage/docs/overview)。
 
-### 配置Alluxio
+## 配置Alluxio
 
 你需要通过修改`conf/alluxio-site.properties`文件配置Alluxio以使用底层文件系统。如果该文件不存在，根据模板创建新的配置文件。
 

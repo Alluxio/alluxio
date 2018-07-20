@@ -51,8 +51,11 @@ mount(new AlluxioURI("alluxio://host:port/Data"), new AlluxioURI("s3a://bucket/d
 
 ## 示例
 
-在该示例中，我们将演示以上提到的特性。该示例假定Alluxio的源代码在`${ALLUXIO_HOME}`目录中，并且Alluxio正在
-本地运行。
+以下示例假设Alluxio源代码在 `${ALLUXIO_HOME}` 文件夹下，并且有一个本地运行的Alluxio进程。
+
+### 透明命名
+
+在这个例子中，我们将展示Alluxio提供Aluxio空间和底层存储系统的透明命名机制。
 
 先在本地文件系统中创建一个临时目录：
 
