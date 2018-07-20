@@ -2,7 +2,7 @@
 layout: global
 title: 在Kubernetes上运行Alluxio
 nickname: Kubernetes上的Alluxio
-group: 部署Alluxio
+group: Deploying Alluxio
 priority: 3
 ---
 
