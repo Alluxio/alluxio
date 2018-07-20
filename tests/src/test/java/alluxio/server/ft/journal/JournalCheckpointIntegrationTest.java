@@ -20,6 +20,7 @@ import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientConfig;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Rule;
@@ -31,7 +32,7 @@ import java.io.File;
 /**
  * Tests checkpoints remain consistent with intended master state.
  */
-public class JournalCheckpointIntegrationTest {
+public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
