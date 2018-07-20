@@ -1,8 +1,9 @@
 ---
 layout: global
-title: 编译Alluxio代码主分支
-nickname: 编译主分支
+title: 编译Alluxio源代码
+nickname: 编译Alluxio源代码
 group: Resources
+priority: 1
 ---
 
 * 内容列表
@@ -12,7 +13,7 @@ group: Resources
 
 该指南介绍如何从头编译Alluxio。
 
-这部分内容的前提条件是你已安装[Java JDK 8或以上](Java-Setup.html)、[Maven 3.3.9或以上](Maven.html)以及[Thrift 0.9.3](Thrift.html) (可选)。
+这部分内容的前提条件是你已安装[Java JDK 8或以上](Java-Setup.html)、[Maven 3.3.9或以上](Maven.html)。
 
 ## Checkout Alluxio 源码
 
@@ -22,7 +23,7 @@ group: Resources
 $ git clone git://github.com/alluxio/alluxio.git
 $ cd alluxio
 ```
-您可以编译特定版本的Alluxio，例如{{site.ALLUXIO_RELEASED_VERSION}}。否则这将编译源码的主分支。
+您可以编译特定版本的Alluxio，例如{{site.ALLUXIO_RELEASED_VERSION}}。否则这将编译源码的master分支。
 
 ```bash
 $ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
@@ -77,7 +78,7 @@ $ ./bin/alluxio-stop.sh local
 ## 计算框架支持
 自Alluxio 1.7开始，**你不要在Maven编译的时候使用不同计算框架的配置文件**。编译后位于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`的Alluxio客户端jar包将适用于不同的计算框架（如：Spark、Flink，Presto等）。
 
-## Hadoop分布式支持
+## Hadoop发行版的支持
 要针对hadoop发行版本中某一个版本构建Alluxio，可以通过指定`<HADOOP_PROFILE>`和对应的`hadoop.version`来运行如下命令：
 
 ```bash
@@ -130,3 +131,4 @@ $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 -Phadoop-2 -Dhadoop.version=2.1.0.2.0.5.0-67
 -Phadoop-2 -Dhadoop.version=2.2.0.2.1.0.0-92
 -Phadoop-2 -Dhadoop.version=2.4.0.2.1.3.0-563
+```
