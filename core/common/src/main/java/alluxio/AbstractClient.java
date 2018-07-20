@@ -148,6 +148,17 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
+   * This method is called before the connection is connected. Implementations should add any
+   * additional operations before the connection is connected.
+   */
+  protected void beforeConnect() throws IOException {
+    // Bootstrap once for clients
+    if (!isConnected()) {
+      Configuration.loadClusterDefault(mAddress);
+    }
+  }
+
+  /**
    * This method is called after the connection is disconnected. Implementations should clean up any
    * additional state created for the connection.
    */
@@ -161,20 +172,6 @@ public abstract class AbstractClient implements Client {
    */
   protected void beforeDisconnect() {
     // Empty implementation.
-  }
-
-  private void doConnect() throws IOException, TTransportException {
-    LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
-        RuntimeConstants.VERSION, getServiceName(), mAddress);
-    // The wrapper transport
-    TTransport clientTransport =
-        mTransportProvider.getClientTransport(mParentSubject, mAddress);
-    mProtocol = ThriftUtils.createThriftProtocol(clientTransport, getServiceName());
-    mProtocol.getTransport().open();
-    LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
-    mConnected = true;
-    afterConnect();
-    checkVersion(getClient(), getServiceVersion());
   }
 
   /**
@@ -201,18 +198,19 @@ public abstract class AbstractClient implements Client {
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
-      // Bootstrap once for clients
-      if (!isConnected()) {
-        try {
-          Configuration.loadClusterDefault(mAddress);
-        } catch (UnavailableException e) {
-          LOG.warn("Failed to handshake ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
-              getServiceName(), mAddress, e.getMessage());
-          continue;
-        }
-      }
       try {
-        doConnect();
+        beforeConnect();
+        LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
+            RuntimeConstants.VERSION, getServiceName(), mAddress);
+        // The wrapper transport
+        TTransport clientTransport =
+            mTransportProvider.getClientTransport(mParentSubject, mAddress);
+        mProtocol = ThriftUtils.createThriftProtocol(clientTransport, getServiceName());
+        mProtocol.getTransport().open();
+        LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
+        mConnected = true;
+        afterConnect();
+        checkVersion(getClient(), getServiceVersion());
         return;
       } catch (IOException | TTransportException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
