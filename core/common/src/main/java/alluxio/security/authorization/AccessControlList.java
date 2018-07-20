@@ -349,9 +349,18 @@ public class AccessControlList implements Serializable {
       return false;
     }
     AccessControlList that = (AccessControlList) o;
-    boolean extendedEquals = (mExtendedEntries == null && that.mExtendedEntries == null)
-        || (mExtendedEntries != null && mExtendedEntries.equals(that.mExtendedEntries))
-        || (that.mExtendedEntries != null && that.mExtendedEntries.equals(mExtendedEntries));
+
+    // If the extended acl object is empty (does not have any extended entries), it is equivalent
+    // to a null object.
+    boolean extendedNull = (mExtendedEntries == null && that.mExtendedEntries == null);
+    boolean extendedNotNull1 =
+        mExtendedEntries != null && (mExtendedEntries.equals(that.mExtendedEntries) || (
+            !mExtendedEntries.hasExtended() && that.mExtendedEntries == null));
+    boolean extendedNotNull2 =
+        that.mExtendedEntries != null && (that.mExtendedEntries.equals(mExtendedEntries) || (
+            !that.mExtendedEntries.hasExtended() && mExtendedEntries == null));
+    boolean extendedEquals = extendedNull || extendedNotNull1 || extendedNotNull2;
+
     return mOwningUser.equals(that.mOwningUser)
         && mOwningGroup.equals(that.mOwningGroup)
         && mMode == that.mMode
@@ -381,6 +390,9 @@ public class AccessControlList implements Serializable {
       return ret;
     }
 
+    // true if there are any extended entries (named user or named group)
+    boolean hasExtended = false;
+
     for (File.NamedAclActions namedActions : acl.getUserActionsList()) {
       String name = namedActions.getName();
       AclActions actions = AclActions.fromProtoBuf(namedActions.getActions());
@@ -389,6 +401,7 @@ public class AccessControlList implements Serializable {
         entry = new AclEntry.Builder().setType(AclEntryType.OWNING_USER)
             .setSubject(acl.getOwningUser()).setActions(actions).build();
       } else {
+        hasExtended = true;
         entry = new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
             .setSubject(name).setActions(actions).build();
       }
@@ -403,19 +416,23 @@ public class AccessControlList implements Serializable {
         entry = new AclEntry.Builder().setType(AclEntryType.OWNING_GROUP)
             .setSubject(acl.getOwningGroup()).setActions(actions).build();
       } else {
+        hasExtended = true;
         entry = new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP)
             .setSubject(name).setActions(actions).build();
       }
       ret.setEntry(entry);
     }
 
-    AclActions actions = AclActions.fromProtoBuf(acl.getMaskActions());
-    AclEntry entry = new AclEntry.Builder().setType(AclEntryType.MASK)
-        .setActions(actions).build();
-    ret.setEntry(entry);
+    if (hasExtended) {
+      // Only set the mask if there are any extended acl entries.
+      AclActions actions = AclActions.fromProtoBuf(acl.getMaskActions());
+      AclEntry entry = new AclEntry.Builder().setType(AclEntryType.MASK)
+          .setActions(actions).build();
+      ret.setEntry(entry);
+    }
 
-    actions = AclActions.fromProtoBuf(acl.getOtherActions());
-    entry = new AclEntry.Builder().setType(AclEntryType.OTHER)
+    AclActions actions = AclActions.fromProtoBuf(acl.getOtherActions());
+    AclEntry entry = new AclEntry.Builder().setType(AclEntryType.OTHER)
         .setActions(actions).build();
     ret.setEntry(entry);
 
