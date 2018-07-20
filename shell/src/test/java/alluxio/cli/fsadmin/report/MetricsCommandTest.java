@@ -114,6 +114,7 @@ public class MetricsCommandTest {
     map.put(MasterMetrics.GET_NEW_BLOCK_OPS, MetricValue.forLong(912572136653L));
     map.put(MasterMetrics.MOUNT_OPS, MetricValue.forLong(953795L));
     map.put(MasterMetrics.RENAME_PATH_OPS, MetricValue.forLong(29L));
+    map.put(MasterMetrics.SET_ACL_OPS, MetricValue.forLong(316L));
     map.put(MasterMetrics.SET_ATTRIBUTE_OPS, MetricValue.forLong(0L));
     map.put(MasterMetrics.UNMOUNT_OPS, MetricValue.forLong(1L));
 
@@ -179,6 +180,7 @@ public class MetricsCommandTest {
         "    Get New Block Operations            912,572,136,653",
         "    Mount Operations                            953,795",
         "    Rename Path Operations                           29",
+        "    Set ACL Operations                              316",
         "    Set Attribute Operations                          0",
         "    Unmount Operations                                1",
         "",

@@ -83,6 +83,7 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
         "    Get New Block Operations                          0",
         "    Mount Operations                                  0",
         "    Rename Path Operations                            0",
+        "    Set ACL Operations                                0",
         "    Set Attribute Operations                          0",
         "    Unmount Operations                                0",
         "",

@@ -131,6 +131,7 @@ public class MetricsCommand {
     printMetric(MasterMetrics.GET_NEW_BLOCK_OPS, "Get New Block Operations", false);
     printMetric(MasterMetrics.MOUNT_OPS, "Mount Operations", false);
     printMetric(MasterMetrics.RENAME_PATH_OPS, "Rename Path Operations", false);
+    printMetric(MasterMetrics.SET_ACL_OPS, "Set ACL Operations", false);
     printMetric(MasterMetrics.SET_ATTRIBUTE_OPS, "Set Attribute Operations", false);
     printMetric(MasterMetrics.UNMOUNT_OPS, "Unmount Operations", false);
 
