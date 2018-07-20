@@ -248,7 +248,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
     if (inode == null) {
       return;
     }
-    for (AclAction action : bits.toAclActions()) {
+    for (AclAction action : bits.toAclActionSet()) {
       if (!inode.checkPermission(user, groups, action)) {
         throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
             .getMessage(toExceptionMessage(user, bits, path, inode)));

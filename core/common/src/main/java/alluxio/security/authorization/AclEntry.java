@@ -240,7 +240,7 @@ public final class AclEntry implements Serializable {
     builder.setSubject(subject);
 
     Mode.Bits bits = Mode.Bits.fromString(actions);
-    for (AclAction action : bits.toAclActions()) {
+    for (AclAction action : bits.toAclActionSet()) {
       builder.addAction(action);
     }
     return builder.build();
