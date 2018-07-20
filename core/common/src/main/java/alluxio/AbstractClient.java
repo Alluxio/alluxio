@@ -157,6 +157,7 @@ public abstract class AbstractClient implements Client {
   /**
    * This method is called before the connection is connected. Implementations should add any
    * additional operations before the connection is connected.
+<<<<<<< HEAD
    * loading the cluster defaults
    */
   protected void beforeConnect()
@@ -164,6 +165,13 @@ public abstract class AbstractClient implements Client {
     // Bootstrap once for clients
     if (!isConnected()) {
       mContext.loadConfIfNotLoaded(mAddress);
+=======
+   */
+  protected void beforeConnect() throws IOException {
+    // Bootstrap once for clients
+    if (!isConnected()) {
+      Configuration.loadClusterDefault(mAddress);
+>>>>>>> d391446ced... Move loading cluster default configuration into beforeConnect (#7646)
     }
   }
 
