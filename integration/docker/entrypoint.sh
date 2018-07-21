@@ -60,7 +60,14 @@ for keyvaluepair in $(env); do
   key=$(echo ${keyvaluepair} | cut -d= -f1)
   value=$(echo ${keyvaluepair} | cut -d= -f2-)
   if [[ "${alluxio_env_vars[*]}" =~ "${key}" ]]; then
-    echo "export ${key}=${value}" >> conf/alluxio-env.sh
+    # wrap string value with "" to get rid of values with spaces/# .eg charactors
+    if [ "$value" -eq "$value" ] 2>/dev/null; then
+      echo "export ${key}=${value}" >> conf/alluxio-env.sh
+    elif [[ "$value" == "true" || "$value" == "false" ]]; then
+      echo "export ${key}=${value}" >> conf/alluxio-env.sh
+    else
+      echo "export ${key}=\"${value}\"" >> conf/alluxio-env.sh
+    fi
   else
     # check if property name is valid
     if confkey=$(bin/alluxio runClass alluxio.cli.GetConfKey ${key} 2> /dev/null); then
