@@ -293,11 +293,13 @@ public final class FileDataManager {
         ReadableByteChannel inputChannel = reader.getChannel();
         BufferUtils.fastCopy(inputChannel, outputChannel);
         reader.close();
-        LOG.info("=== Persit {}({}):{} get {} reader {}:{}",
+        LOG.debug("=== Persit {}({}):{} get {} reader {}:{}",
             fileInfo.getPath(), fileId, blockId, (lockId == null) ? "remote" : "local",
             bInfo.getLocations().size() == 0 ? "" : bInfo.getLocations().iterator().next().getWorkerAddress().getHost(), 
             bInfo.getLocations().size() == 0 ? 0 : bInfo.getLocations().iterator().next().getWorkerAddress().getDataPort());
       }
+      LOG.info("=== Persit {}({}):{} ", fileInfo.getPath(), fileId, blockIds);
+
     } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
       errors.add(e);
     } finally {

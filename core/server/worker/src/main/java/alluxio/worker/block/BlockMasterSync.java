@@ -102,8 +102,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mHeartbeatTimeoutMs = (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mRemovingBlockIdToFinished = new HashMap<>();
 
+    mLastSuccessfulHeartbeatMs = System.currentTimeMillis();  // qiniu
     registerWithMaster();
-    mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
+    //mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
   }
 
   /**

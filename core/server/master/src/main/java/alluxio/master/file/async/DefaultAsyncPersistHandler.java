@@ -169,6 +169,7 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     List<PersistFile> filesToPersist = new ArrayList<>();
     List<Long> fileIdsToPersist = new ArrayList<>();
+    List<Long> fileIdsRemoved = new ArrayList<>();
 
     if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
       return filesToPersist;
@@ -177,23 +178,29 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
     Set<Long> scheduledFiles = mWorkerToAsyncPersistFiles.get(workerId);
     try {
       for (long fileId : scheduledFiles) {
-        FileInfo fileInfo = mFileSystemMasterView.getFileInfo(fileId);
-        if (fileInfo.isCompleted()) {
-          fileIdsToPersist.add(fileId);
-          List<Long> blockIds = new ArrayList<>();
-          for (FileBlockInfo fileBlockInfo : mFileSystemMasterView
-              .getFileBlockInfoList(mFileSystemMasterView.getPath(fileId))) {
-            blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
-          }
+          try { // qiniu
+              FileInfo fileInfo = mFileSystemMasterView.getFileInfo(fileId);
+              if (fileInfo.isCompleted()) {
+                  fileIdsToPersist.add(fileId);
+                  List<Long> blockIds = new ArrayList<>();
+                  for (FileBlockInfo fileBlockInfo : mFileSystemMasterView
+                          .getFileBlockInfoList(mFileSystemMasterView.getPath(fileId))) {
+                      blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
+                          }
 
-          filesToPersist.add(new PersistFile(fileId, blockIds));
-        }
+                  filesToPersist.add(new PersistFile(fileId, blockIds));
+              }
+          } catch (FileDoesNotExistException e) {
+              LOG.warn("==== fileId {} removed during asyn persist", fileId);
+              fileIdsRemoved.add(fileId);
+          }
       }
     } catch (UnavailableException e) {
       return filesToPersist;
     }
 
     mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsToPersist);
+    mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsRemoved); //qiniu
     return filesToPersist;
   }
 }
