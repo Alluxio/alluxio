@@ -124,7 +124,7 @@ public final class MountTable implements JournalEntryIterable {
         }
 
         AddMountPointEntry addMountPoint =
-            AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath)
+            AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath).setMountId(info.getMountId())
                 .setUfsPath(info.getUfsUri().toString()).setReadOnly(info.getOptions().isReadOnly())
                 .addAllProperties(protoProperties).setShared(info.getOptions().isShared()).build();
         return Journal.JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build();
