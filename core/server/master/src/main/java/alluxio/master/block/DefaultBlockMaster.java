@@ -210,6 +210,18 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       return true;
   }
 
+  static public long getEvictFileCnt(int type, long worker) {
+      Map <Long, Map<Long, PersistFile> > m = (EVICT_EVICT == type) ? mEvictEvict : 
+                            (( EVICT_PERSIST == type) ? mEvictPersist : mEvictFree);
+      long count = 0;
+      for (Map.Entry<Long, Map<Long, PersistFile>> entry : m.entrySet()) {
+          if (worker == IdUtils.INVALID_WORKER_ID || worker == entry.getKey()) {
+              count += entry.getValue().size();
+          }
+      }
+      return count;
+  }
+
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
