@@ -72,7 +72,6 @@ import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.thrift.UfsInfo;
-import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
