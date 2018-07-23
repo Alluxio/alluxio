@@ -80,10 +80,9 @@ public final class TtlBucketListTest {
 
     mBucketList.insert(BUCKET1_FILE2);
     // Only the first bucket should expire.
-    for (long end = BUCKET2_START; end < BUCKET2_END; end++) {
-      expired = getSortedExpiredBuckets(end);
-      assertExpired(expired, 0, BUCKET1_FILE1, BUCKET1_FILE2);
-    }
+    long bucket1File2End = BUCKET1_END - 1 + BUCKET_INTERVAL;
+    expired = getSortedExpiredBuckets(bucket1File2End);
+    assertExpired(expired, 0, BUCKET1_FILE1, BUCKET1_FILE2);
 
     mBucketList.insert(BUCKET2_FILE);
     // All buckets should expire.
@@ -101,7 +100,8 @@ public final class TtlBucketListTest {
     mBucketList.insert(BUCKET1_FILE2);
     mBucketList.insert(BUCKET2_FILE);
 
-    List<TtlBucket> expired = getSortedExpiredBuckets(BUCKET1_END);
+    long bucket1File2End = BUCKET1_END - 1 + BUCKET_INTERVAL;
+    List<TtlBucket> expired = getSortedExpiredBuckets(bucket1File2End);
     assertExpired(expired, 0, BUCKET1_FILE1, BUCKET1_FILE2);
 
     mBucketList.remove(BUCKET1_FILE1);
