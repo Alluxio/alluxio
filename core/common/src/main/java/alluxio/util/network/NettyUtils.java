@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -168,12 +169,20 @@ public final class NettyUtils {
    * @return {@link ChannelType} to use
    */
   private static ChannelType getChannelType() {
-    try {
-      EpollChannelOption.class.getField("EPOLL_MODE");
-    } catch (Throwable e) {
-      LOG.warn("EPOLL_MODE is not supported in netty with version < 4.0.26.Final.");
-      return ChannelType.NIO;
+    ChannelType configured =
+        Configuration.getEnum(PropertyKey.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
+    if (configured == ChannelType.EPOLL) {
+      if (!Epoll.isAvailable()) {
+        LOG.info("EPOLL is not available, will use NIO");
+        return ChannelType.NIO;
+      }
+      try {
+        EpollChannelOption.class.getField("EPOLL_MODE");
+      } catch (Throwable e) {
+        LOG.warn("EPOLL_MODE is not supported in netty with version < 4.0.26.Final, will use NIO");
+        return ChannelType.NIO;
+      }
     }
-    return Configuration.getEnum(PropertyKey.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
+    return configured;
   }
 }
