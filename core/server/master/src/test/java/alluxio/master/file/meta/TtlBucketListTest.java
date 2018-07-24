@@ -35,7 +35,7 @@ public final class TtlBucketListTest {
   private static final InodeFile BUCKET1_FILE1 =
       InodeFile.create(0, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(BUCKET1_START));
   private static final InodeFile BUCKET1_FILE2 =
-      InodeFile.create(1, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(BUCKET1_END - 1));
+      InodeFile.create(1, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(BUCKET1_END - 2));
   private static final InodeFile BUCKET2_FILE =
       InodeFile.create(2, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(BUCKET2_START));
 
@@ -80,8 +80,7 @@ public final class TtlBucketListTest {
 
     mBucketList.insert(BUCKET1_FILE2);
     // Only the first bucket should expire.
-    long bucket1File2End = BUCKET1_END - 1 + BUCKET_INTERVAL;
-    expired = getSortedExpiredBuckets(bucket1File2End);
+    expired = getSortedExpiredBuckets(BUCKET2_END);
     assertExpired(expired, 0, BUCKET1_FILE1, BUCKET1_FILE2);
 
     mBucketList.insert(BUCKET2_FILE);
@@ -100,7 +99,7 @@ public final class TtlBucketListTest {
     mBucketList.insert(BUCKET1_FILE2);
     mBucketList.insert(BUCKET2_FILE);
 
-    long bucket1File2End = BUCKET1_END - 1 + BUCKET_INTERVAL;
+    long bucket1File2End = BUCKET1_END + BUCKET_INTERVAL;
     List<TtlBucket> expired = getSortedExpiredBuckets(bucket1File2End);
     assertExpired(expired, 0, BUCKET1_FILE1, BUCKET1_FILE2);
 
