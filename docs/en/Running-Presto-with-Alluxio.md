@@ -102,7 +102,7 @@ Presto's Hive integration uses the config [`hive.max-split-size`](https://terada
 We recommend you to download the tarball from
 Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can choose to compile this client jar from the source code
-by following the instructs [here](Building-Alluxio-From-Source.html#compute-framework-support).
+by following the instructions [here](Building-Alluxio-From-Source.html#compute-framework-support).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 Distribute the Alluxio client jar to all worker nodes in Presto:
@@ -159,13 +159,13 @@ Start your Presto server. Presto server runs on port 8080 by default:
 $ /<PATH_TO_PRESTO>/bin/launcher run
 ```
 
-Download the `presto-cli-<YOUR_PRESTO_VERSION>-executable.jar` from [Presto CLI guidence](https://prestodb.io/docs/current/installation/cli.html) 
-and rename it to presto.
+Follow [Presto CLI guidence](https://prestodb.io/docs/current/installation/cli.html) to download to `presto-cli-<PRESTO_VERSION>-executable.jar`,
+rename it to presto, make it executable with `chmod +x`.
 
 Run a single query similar to:
 
 ```bash
-$ /<PATH_TO_PRESTO>/bin/presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
+$ ./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
 ```
 
 And you can see the query results from console:
