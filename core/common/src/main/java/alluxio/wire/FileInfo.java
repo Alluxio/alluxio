@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 
+import alluxio.thrift.TAcl;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -62,8 +63,8 @@ public final class FileInfo implements Serializable {
   private int mInAlluxioPercentage;
   private String mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
 
-  private AccessControlList mAcl = AccessControlList.EMPTY_ACL;
-  private DefaultAccessControlList mDefaultAcl = DefaultAccessControlList.EMPTY_DEFAULT_ACL;
+  private AccessControlList mAcl = null;
+  private DefaultAccessControlList mDefaultAcl = null;
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -550,16 +551,15 @@ public final class FileInfo implements Serializable {
       fileBlockInfos.add(fileBlockInfo.toThrift());
     }
 
-    AccessControlList tAcl = mAcl == null ? new AccessControlList() : mAcl;
-    AccessControlList defaultAcl;
-    defaultAcl = mDefaultAcl == null ? new DefaultAccessControlList() : mDefaultAcl;
+    TAcl mAclThrift = mAcl == null ? null : mAcl.toThrift();
+    TAcl mDefaultAclThrift = mDefaultAcl == null ? null : mDefaultAcl.toThrift();
 
     alluxio.thrift.FileInfo info =
         new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, fileBlockInfos, TtlAction.toThrift(mTtlAction), mMountId,
-        mInAlluxioPercentage, mUfsFingerprint, tAcl.toThrift(), defaultAcl.toThrift());
+        mInAlluxioPercentage, mUfsFingerprint, mAclThrift, mDefaultAclThrift);
 
     return info;
   }
@@ -600,10 +600,10 @@ public final class FileInfo implements Serializable {
         .setUfsFingerprint(info.isSetUfsFingerprint() ? info.getUfsFingerprint()
             : Constants.INVALID_UFS_FINGERPRINT)
         .setAcl(info.isSetAcl()
-            ? (AccessControlList.fromThrift(info.getAcl())) : new AccessControlList())
+            ? (AccessControlList.fromThrift(info.getAcl())) : null)
         .setDefaultAcl(info.isSetDefaultAcl()
             ? ((DefaultAccessControlList) AccessControlList.fromThrift(info.getDefaultAcl()))
-            : new DefaultAccessControlList());
+            : null);
   }
 
   @Override
@@ -627,8 +627,8 @@ public final class FileInfo implements Serializable {
         && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
         && mUfsFingerprint.equals(that.mUfsFingerprint)
-        && mAcl.equals(that.mAcl)
-        && mDefaultAcl.equals(that.mDefaultAcl);
+        && Objects.equal(mDefaultAcl, that.mDefaultAcl)
+        && Objects.equal(mDefaultAcl, that.mDefaultAcl);
   }
 
   @Override
