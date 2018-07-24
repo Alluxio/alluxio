@@ -159,8 +159,9 @@ Start your Presto server. Presto server runs on port 8080 by default:
 $ /<PATH_TO_PRESTO>/bin/launcher run
 ```
 
-Follow [Presto CLI guidence](https://prestodb.io/docs/current/installation/cli.html) to download to `presto-cli-<PRESTO_VERSION>-executable.jar`,
-rename it to `presto`, make it executable with `chmod +x`.
+Follow [Presto CLI guidence](https://prestodb.io/docs/current/installation/cli.html) to download the `presto-cli-<PRESTO_VERSION>-executable.jar`,
+rename it to `presto`, and make it executable with `chmod +x` 
+(sometimes the executable `presto` exists in `/<PATH_TO_PRESTO>/bin/presto` and you can use it directly).
 
 Run a single query similar to:
 
