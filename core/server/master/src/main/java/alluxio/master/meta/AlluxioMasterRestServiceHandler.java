@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.MasterStorageTierAssoc;
-import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.MasterProcess;
@@ -96,7 +95,6 @@ public final class AlluxioMasterRestServiceHandler {
   private final MasterProcess mMasterProcess;
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
-  private final String mUfsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.
