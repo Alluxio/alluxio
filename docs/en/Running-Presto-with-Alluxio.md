@@ -160,7 +160,7 @@ $ /<PATH_TO_PRESTO>/bin/launcher run
 ```
 
 Follow [Presto CLI guidence](https://prestodb.io/docs/current/installation/cli.html) to download to `presto-cli-<PRESTO_VERSION>-executable.jar`,
-rename it to presto, make it executable with `chmod +x`.
+rename it to `presto`, make it executable with `chmod +x`.
 
 Run a single query similar to:
 
