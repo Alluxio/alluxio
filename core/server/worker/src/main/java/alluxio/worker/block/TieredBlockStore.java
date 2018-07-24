@@ -232,7 +232,7 @@ public class TieredBlockStore implements BlockStore {
         }
       }
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT,
-          initialBlockSize, FREE_SPACE_TIMEOUT_MS, blockId);
+          initialBlockSize, location, FREE_SPACE_TIMEOUT_MS, blockId);
     } else {
       RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
       while (retryPolicy.attempt()) {
@@ -251,7 +251,7 @@ public class TieredBlockStore implements BlockStore {
       // other types of exception to indicate this case.
       throw new WorkerOutOfSpaceException(
           ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED, initialBlockSize,
-          MAX_RETRIES, blockId);
+          location, MAX_RETRIES, blockId);
     }
   }
 
@@ -320,7 +320,7 @@ public class TieredBlockStore implements BlockStore {
           return;
         }
       }
-      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT,
+      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_REQUEST_SPACE_TIMEOUT,
           additionalBytes, FREE_SPACE_TIMEOUT_MS, blockId);
     } else {
       RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
@@ -338,7 +338,7 @@ public class TieredBlockStore implements BlockStore {
       // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
       // other types of exception to indicate this case.
       throw new WorkerOutOfSpaceException(
-          ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED, additionalBytes,
+          ExceptionMessage.NO_SPACE_FOR_BLOCK_REQUEST_SPACE_RETRIES_EXCEEDED, additionalBytes,
           MAX_RETRIES, blockId);
     }
   }
@@ -710,7 +710,8 @@ public class TieredBlockStore implements BlockStore {
       plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView(), mode);
       // Absent plan means failed to evict enough space.
       if (plan == null) {
-        throw new WorkerOutOfSpaceException(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE);
+        throw new WorkerOutOfSpaceException(
+            ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE, availableBytes, location.tierAlias());
       }
     }
 
