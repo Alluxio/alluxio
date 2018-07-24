@@ -428,7 +428,9 @@ public final class TieredBlockStoreTest {
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
+    mThrown.expectMessage(
+        ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(mTestDir1.getCapacityBytes(),
+            mTestDir1.toBlockStoreLocation().tierAlias()));
     mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
         mTestDir1.getCapacityBytes());
 
@@ -458,7 +460,8 @@ public final class TieredBlockStoreTest {
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
+    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
+        BLOCK_SIZE, mTestDir2.toBlockStoreLocation().tierAlias()));
     mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
 
     // Expect createBlockMeta to succeed after unlocking this block.
@@ -484,7 +487,8 @@ public final class TieredBlockStoreTest {
 
     // Expect an empty eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
+    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
+        mTestDir1.getCapacityBytes(), mTestDir1.toBlockStoreLocation().tierAlias()));
     mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
         mTestDir1.toBlockStoreLocation());
 
