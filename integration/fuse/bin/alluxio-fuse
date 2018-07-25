@@ -126,7 +126,18 @@ case $1 in
         ;;
         *)
           if [[ $mode_set = "true" ]]; then
-            mode=$i
+            if [[ "$i" != "ro" && "$i" != "rw" && "$i" != "direct_io" ]]; then
+              echo -e "Usage\n\t$0 mount mount_point [alluxio_path] [-o <ro/rw/direct_io>]\
+                \n\t alluxio_path is default to root\
+                \n\t -o is default to ro(readonly)" >&2
+              exit 1
+            fi
+            if [[ "$mode" == "" ]]; then
+              mode=$i
+            else
+              mode="$mode,$i"
+            fi
+            mode_set=false
             break
           fi
         ;;
@@ -137,16 +148,9 @@ case $1 in
       mode=rw
     fi
 
-    if [[ "$mode" != "ro" && "$mode" != "rw" ]]; then
-      echo -e "Usage\n\t$0 mount mount_point [alluxio_path] [-o <ro/rw>]\
-        \n\t alluxio_path is default to root\
-        \n\t -o is default to ro(readonly)" >&2
-      exit 1
-    fi
-
     old_ifs="$IFS"
     IFS=" "
-    args=(`echo $@ | awk 'BEGIN { ORS=" " }; {for(i=1;i<=NF;i++){ if($i != "-o" && $i != "ro" && $i != "rw" ) print $i}}'`)
+    args=(`echo $@ | awk 'BEGIN { ORS=" " }; {for(i=1;i<=NF;i++){ if($i != "-o" && $i != "ro" && $i != "rw" && $i != "direct_io") print $i}}'`)
     IFS="$old_ifs"
 
     if [[ ${#args[@]} -eq 2 ]]; then
@@ -157,7 +161,7 @@ case $1 in
       mount_fuse ${args[1]} ${args[2]} $mode
       exit $?
     fi
-    echo -e "Usage\n\t$0 mount mount_point [alluxio_path] [-o <ro/rw>]\
+    echo -e "Usage\n\t$0 mount mount_point [alluxio_path] [-o <ro/rw/direct_io>]\
       \n\t alluxio_path is default to root\
       \n\t -o is default to ro(readonly)" >&2
     exit 1
