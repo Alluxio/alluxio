@@ -41,7 +41,7 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
   private static final org.apache.thrift.protocol.TField OWNER_FIELD_DESC = new org.apache.thrift.protocol.TField("owner", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField OWNING_GROUP_FIELD_DESC = new org.apache.thrift.protocol.TField("owningGroup", org.apache.thrift.protocol.TType.STRING, (short)2);
   private static final org.apache.thrift.protocol.TField ENTRIES_FIELD_DESC = new org.apache.thrift.protocol.TField("entries", org.apache.thrift.protocol.TType.LIST, (short)3);
-  private static final org.apache.thrift.protocol.TField MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("mode", org.apache.thrift.protocol.TType.I32, (short)4);
+  private static final org.apache.thrift.protocol.TField MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("mode", org.apache.thrift.protocol.TType.I16, (short)4);
   private static final org.apache.thrift.protocol.TField IS_DEFAULT_FIELD_DESC = new org.apache.thrift.protocol.TField("isDefault", org.apache.thrift.protocol.TType.BOOL, (short)5);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -53,7 +53,7 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
   private String owner; // optional
   private String owningGroup; // optional
   private List<TAclEntry> entries; // optional
-  private int mode; // optional
+  private short mode; // optional
   private boolean isDefault; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -142,7 +142,7 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, TAclEntry.class))));
     tmpMap.put(_Fields.MODE, new org.apache.thrift.meta_data.FieldMetaData("mode", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I16)));
     tmpMap.put(_Fields.IS_DEFAULT, new org.apache.thrift.meta_data.FieldMetaData("isDefault", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -276,11 +276,11 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
     }
   }
 
-  public int getMode() {
+  public short getMode() {
     return this.mode;
   }
 
-  public TAcl setMode(int mode) {
+  public TAcl setMode(short mode) {
     this.mode = mode;
     setModeIsSet(true);
     return this;
@@ -352,7 +352,7 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
       if (value == null) {
         unsetMode();
       } else {
-        setMode((Integer)value);
+        setMode((Short)value);
       }
       break;
 
@@ -702,8 +702,8 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
             }
             break;
           case 4: // MODE
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.mode = iprot.readI32();
+            if (schemeField.type == org.apache.thrift.protocol.TType.I16) {
+              struct.mode = iprot.readI16();
               struct.setModeIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -762,7 +762,7 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
       }
       if (struct.isSetMode()) {
         oprot.writeFieldBegin(MODE_FIELD_DESC);
-        oprot.writeI32(struct.mode);
+        oprot.writeI16(struct.mode);
         oprot.writeFieldEnd();
       }
       if (struct.isSetIsDefault()) {
@@ -820,7 +820,7 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
         }
       }
       if (struct.isSetMode()) {
-        oprot.writeI32(struct.mode);
+        oprot.writeI16(struct.mode);
       }
       if (struct.isSetIsDefault()) {
         oprot.writeBool(struct.isDefault);
@@ -854,7 +854,7 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
         struct.setEntriesIsSet(true);
       }
       if (incoming.get(3)) {
-        struct.mode = iprot.readI32();
+        struct.mode = iprot.readI16();
         struct.setModeIsSet(true);
       }
       if (incoming.get(4)) {
