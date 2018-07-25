@@ -11,10 +11,6 @@
 
 package alluxio.network;
 
-import alluxio.DefaultSupplier;
-
-import io.netty.channel.epoll.Epoll;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
