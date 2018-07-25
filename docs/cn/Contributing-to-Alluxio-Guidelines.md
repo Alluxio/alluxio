@@ -11,7 +11,7 @@ priority: 2
 
 > 如果您是一名新的开源贡献者，请先浏览[开始贡献源码向导](Contributing-Getting-Started.html)以熟悉如何向Alluxio贡献源码。
 
-感谢您对Alluxio的兴趣！我们非常感谢您贡献任何的新功能或者修复代码错误。
+我们非常感谢您对Alluxio的关注与兴趣！特别感谢您对Alluxio开源社区作出的贡献！
 
 ## 提交代码
 
@@ -239,4 +239,4 @@ $ bin/alluxio protoGen
 {% endfor %}
 </table>
 
-此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`，`validateConf`和`validateEnv`命令的先决条件是你已经编译了Alluxio（见[构建Alluxio主分支](Building-Alluxio-From-Source.html)其介绍了如何手动构建Alluxio)。而`fs`，`loadufs`，`logLevel`, `runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。
+此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`，`validateConf`和`validateEnv`命令的先决条件是你已经编译了Alluxio（见[编译Alluxio源代码](Building-Alluxio-From-Source.html)其介绍了如何手动构建Alluxio)。而`fs`，`loadufs`，`logLevel`, `runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。

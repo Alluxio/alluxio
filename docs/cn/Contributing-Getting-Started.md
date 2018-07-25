@@ -219,14 +219,14 @@ $ git push origin awesome_feature
 
 ## 下一步
 
-新的开发者可以尝试一下这些事来进一步熟悉Alluxio：
+新开发者可以通过以下资料和教程来进一步熟悉并贡献Alluxio:
 
 1. 获取一些[Alluxio初学者tickets](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20Beginner%20AND%20assignee%20in%20(EMPTY))
 1. [本地运行Alluxio](Running-Alluxio-Locally.html)
 1. [集群上运行Alluxio](Running-Alluxio-on-a-Cluster.html)
 1. 阅读[配置设置](Configuration-Settings.html)和[命令行相关操作](Command-Line-Interface.html)
 1. 阅读[示范代码](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
-1. [从源码编译Alluxio](Building-Alluxio-Master-Branch.html)
-1. Fork Alluxio源代码库，为一两个文件添加单元测试或者javadoc，并提交一个pr。您也可以在我们的[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO)中解决问题。以下是未分配的[新贡献者任务列表](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))，每个新Contributor限制执行两个任务，然后尝试一些初级/中级任务。您可以在[google网上论坛Alluixo Users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)上讨论或询问问题。相关教程请参阅GitHub指南[fork代码库](https://help.github.com/articles/fork-a-repo)和[提交Pull Request](https://help.github.com/articles/using-pull-requests)
+1. [从源码编译Alluxio](Building-Alluxio-From-Source.html)
+1. Fork Alluxio源代码库，为一两个文件添加单元测试或者javadoc，并提交一个pr。您也可以在我们的[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO)中寻找待解决的问题。以下是未分配的[新贡献者任务列表](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))，我们不建议每个新开发者完成超过两个初学者任务，在尝试完初学者任务后，欢迎参与贡献初级/中级任务。您可以在[google网上论坛Alluixo Users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)上讨论或询问问题。相关教程请参阅GitHub指南[fork代码库](https://help.github.com/articles/fork-a-repo)和[提交Pull Request](https://help.github.com/articles/using-pull-requests)
 
 # 欢迎加入Alluxio社区！

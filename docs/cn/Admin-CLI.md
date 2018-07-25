@@ -38,7 +38,7 @@ Usage: alluxio fsadmin [generic options]
 
 ### backup(备份)
 
-`backup`命令创建ALUXIO元数据的备份
+`backup`命令创建Alluxio元数据的备份
 
 备份到默认备份文件夹（由`alluxio.master.backup.directory`）配置
 ```

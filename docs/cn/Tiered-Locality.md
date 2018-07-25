@@ -30,7 +30,7 @@ alluxio.locality.[tiername]=...
 alluxio.locality.script=/path/to/script
 ```
 
-该脚本需要可执行，并输出一个以逗号分隔`tierName=...`列表。以下是一个可供参考的示例脚本：
+该脚本需要是可执行的，并输出一个以逗号分隔`tierName=...`的键值对列表。以下是一个可供参考的示例脚本：
 
 ```bash
 #!/bin/bash
