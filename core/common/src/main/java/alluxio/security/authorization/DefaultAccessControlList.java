@@ -186,7 +186,7 @@ public class DefaultAccessControlList extends AccessControlList {
   public TAcl toThrift() {
     TAcl tAcl = super.toThrift();
     tAcl.setIsDefault(true);
-    tAcl.setIsEmpty(isEmpty());
+    tAcl.setIsDefaultEmpty(isEmpty());
     return tAcl;
   }
 
