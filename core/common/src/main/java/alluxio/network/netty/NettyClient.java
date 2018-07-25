@@ -83,7 +83,7 @@ public final class NettyClient {
     final long readIdleMs = Configuration.getMs(PropertyKey.NETWORK_NETTY_READ_IDLE_TIMEOUT_MS);
     boot.handler(new ChannelInitializer<Channel>() {
       @Override
-      public void initChannel(Channel ch) throws Exception {
+      public void initChannel(Channel ch) {
         ChannelPipeline pipeline = ch.pipeline();
 
         pipeline.addLast(RPCMessage.createFrameDecoder());
