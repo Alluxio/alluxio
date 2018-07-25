@@ -1452,7 +1452,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.WORKER_CONNECTION_TIMEOUT_MS)
           .setDefaultValue("0ms")
-          .setDescription("Timeout of connections between worker and client.")
+          .setDescription("Timeout of connections between worker and client. "
+              + "A value of 0 means never timeout.")
           .build();
   public static final PropertyKey WORKER_DATA_BIND_HOST =
       new Builder(Name.WORKER_DATA_BIND_HOST)
