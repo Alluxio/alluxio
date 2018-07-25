@@ -489,15 +489,16 @@ public class AccessControlList implements Serializable {
     } else {
       acl = new AccessControlList();
     }
+
+    acl.setOwningUser(tAcl.getOwner());
+    acl.setOwningGroup(tAcl.getOwningGroup());
+    acl.setMode(tAcl.getMode());
+
     if (tAcl.isSetEntries()) {
       for (TAclEntry tEntry : tAcl.getEntries()) {
         acl.setEntry(AclEntry.fromThrift(tEntry));
       }
     }
-
-    acl.setOwningUser(tAcl.getOwner());
-    acl.setOwningGroup(tAcl.getOwningGroup());
-    acl.setMode(tAcl.getMode());
 
     return acl;
   }

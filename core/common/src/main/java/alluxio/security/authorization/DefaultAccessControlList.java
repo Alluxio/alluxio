@@ -12,8 +12,8 @@
 package alluxio.security.authorization;
 
 import alluxio.collections.Pair;
-
 import alluxio.thrift.TAcl;
+
 import com.google.common.base.Objects;
 
 import java.io.IOException;
