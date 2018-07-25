@@ -1663,10 +1663,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.WORKER_NETWORK_NETTY_CHANNEL)
-          .setDescription("Netty channel type: NIO or EPOLL.")
+          .setDescription("Netty channel type: NIO or EPOLL. If EPOLL is not available, this will "
+              + "automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
-          .setDefaultSupplier(ChannelType.DEFAULT_SUPPLIER)
+          .setDefaultValue("EPOLL")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
       new Builder(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE)
