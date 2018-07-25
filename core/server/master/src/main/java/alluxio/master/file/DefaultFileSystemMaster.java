@@ -1012,7 +1012,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
         if (childComponents == null) {
-          String [] parentComponents = PathUtils.getPathComponents(currInodePath.getUri().getPath());
+          String [] parentComponents
+              = PathUtils.getPathComponents(currInodePath.getUri().getPath());
           childComponents = new String[parentComponents.length + 1];
           System.arraycopy(parentComponents, 0, childComponents, 0,  parentComponents.length);
         }
