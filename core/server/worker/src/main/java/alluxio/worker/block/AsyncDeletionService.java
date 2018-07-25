@@ -44,7 +44,7 @@ public class AsyncDeletionService {
   private final ExecutorService mRemoverPool;
 
   /**
-   * Constructor of AsyncDeletionService
+   * Constructor of AsyncDeletionService.
    * @param worker block worker
    * @param queue a blocking queue to store pending deletion blocks
    */
