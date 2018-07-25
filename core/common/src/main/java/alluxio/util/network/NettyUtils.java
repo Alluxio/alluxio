@@ -47,7 +47,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class NettyUtils {
   private static final Logger LOG = LoggerFactory.getLogger(NettyUtils.class);
 
-  public static final ChannelType CHANNEL_TYPE = getChannelType();
+  public static final ChannelType USER_CHANNEL_TYPE =
+      getChannelType(PropertyKey.USER_NETWORK_NETTY_CHANNEL);
+  public static final ChannelType WORKER_CHANNEL_TYPE =
+      getChannelType(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL);
 
   private NettyUtils() {}
 
@@ -151,7 +154,8 @@ public final class NettyUtils {
    * @return true if the domain socket is enabled on this client
    */
   public static boolean isDomainSocketSupported(WorkerNetAddress workerNetAddress) {
-    if (workerNetAddress.getDomainSocketPath().isEmpty() || CHANNEL_TYPE != ChannelType.EPOLL) {
+    if (workerNetAddress.getDomainSocketPath().isEmpty()
+        || USER_CHANNEL_TYPE != ChannelType.EPOLL) {
       return false;
     }
     if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
@@ -163,14 +167,14 @@ public final class NettyUtils {
 
   /**
    * Note: Packet streaming requires {@link io.netty.channel.epoll.EpollMode} to be set to
-   * LEVEL_TRIGGERED which is not supported in netty versions < 4.0.26.Final. Without shading
-   * netty in Alluxio, we cannot use epoll.
+   * LEVEL_TRIGGERED which is not supported in netty versions < 4.0.26.Final. Without shading netty
+   * in Alluxio, we cannot use epoll.
    *
-   * @return {@link ChannelType} to use
+   * @param key the property key for looking up the configured channel type
+   * @return the channel type to use
    */
-  private static ChannelType getChannelType() {
-    ChannelType configured =
-        Configuration.getEnum(PropertyKey.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
+  private static ChannelType getChannelType(PropertyKey key) {
+    ChannelType configured = Configuration.getEnum(key, ChannelType.class);
     if (configured == ChannelType.EPOLL) {
       if (!Epoll.isAvailable()) {
         LOG.info("EPOLL is not available, will use NIO");

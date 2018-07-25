@@ -30,6 +30,7 @@ import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.WebServer;
@@ -365,9 +366,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    * @return true if domain socket is enabled
    */
   private boolean isDomainSocketEnabled() {
-    return Configuration.getEnum(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.class)
-        == ChannelType.EPOLL && !Configuration
-        .get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS).isEmpty();
+    return NettyUtils.WORKER_CHANNEL_TYPE == ChannelType.EPOLL
+        && !Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS).isEmpty();
   }
 
   @Override
