@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  * Sends a keep-alive to the server whenever the channel has been idle for a period of time.
  */
 public class IdleReadWriteHandler extends ChannelDuplexHandler {
-  private final static Logger LOG = LoggerFactory.getLogger(IdleReadWriteHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(IdleReadWriteHandler.class);
 
   /**
    * Creates a new idle read write handler.
