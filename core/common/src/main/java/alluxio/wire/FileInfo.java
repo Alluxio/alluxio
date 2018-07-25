@@ -16,7 +16,6 @@ import static alluxio.util.StreamUtils.map;
 import alluxio.Constants;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
-import alluxio.thrift.TAcl;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
