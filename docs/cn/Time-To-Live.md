@@ -9,13 +9,13 @@ priority: 8
 * 内容列表
 {:toc}
 
-在Alluxio中的每个文件和目录上，使用了 `生存时间(TTL)` 设置。该特性可以有效地管理Alluxio缓存，特别是在严格的环境中保证
-数据访问模式。例如，如果只分析在最后一周获取的数据。TTL可用于显式地刷新旧数据以释放缓存以获取新的数据文件。
+在Alluxio中的每个文件和目录上，支持 `生存时间(TTL)` 设置。该特性可以有效地管理Alluxio缓存，特别是数据的访问模式有严格的规律的环境中。
+例如，如果只分析在最后一周获取的数据。TTL可用于显式地刷新旧数据以释放缓存以获取新的数据文件。
 
 ## 概述
 
 Alluxio具有与每个文件或目录相关联的TTL属性。这些属性通过日志持久化。保证集群重启后的一致性。
-当Alluxio运行时，活动主节点负责保存元数据在内存中。在内部，主进程运行一个后台线程定期检查文件是否已经到达它对应的TTL值。
+当Alluxio运行时，活跃的master节点负责保存元数据在内存中。在内部，master进程运行一个后台线程定期检查文件是否已经到达它对应的TTL值。
 
 注意，后台线程在一个可配置的时间段内运行，默认为1小时。这意味着TTL在下一次检查间隔前不会强制执行，TTL的强制执行可以达到1
 TTL间隔延迟。间隔长度由 `alluxio.master.ttl.checker.interval` 属性设置。
@@ -28,16 +28,13 @@ alluxio.master.ttl.checker.interval=10m
 
 查看[配置页](Configuration-Settings.html)获取有关Alluxio设置的更多配置
 
-当主节点强制执行TTL机制时，由客户端设置适当的TTL。
+虽然master节点负责执行TTL，但是TTL值的设置取决于客户端
 
 ## 接口
 
 有三种方法可以设置Alluxio的TTL。
-
 1. 通过Alluxio的shell命令行。
-
 1. 通过Alluxio Java文件系统API。
-
 1. 被动加载元数据或创建文件
 
 TTL API如下:
@@ -46,7 +43,7 @@ TTL API如下:
 SetTTL(path, duration, action)
 `path`          Alluxio命名空间中的路径
 `duration`      TTL操作生效之前的毫秒数，将覆盖任何之前的值
-`action`        持续时间过后要采取的行动。`FREE`将导致文件被逐出Alluxio存储，不管pin状态如何。
+`action`        生存时间过后要采取的行动。`FREE`将导致文件被逐出Alluxio存储，不管pin状态如何。
                 `DELETE`将导致文件从Alluxio命名空间中删除，并在存储中删除。
                 注意:`DELETE`是某些命令的默认值，将导致文件被永久删除。
 ```
@@ -78,14 +75,14 @@ alluxioFs.setAttribute(path);
 非常有用。它不是多次调用API，而是自动设置为文件发现。
 
 注意:被动TTL更方便，但也不太灵活。选项是客户端级别的，所以所有选项都是
-来自客户端的TTL请求，将具有相同的动作和持续时间。
+来自客户端的TTL请求，将具有相同的动作和生存时间。
 
 被动TTL使用以下配置选项:
 
-* `alluxio.user.file.load.ttl` - 针对从底层存储加载到Alluxio中的任何新文件的默认持续时间。默认情况下没有TTL。
+* `alluxio.user.file.load.ttl` - 针对从底层存储加载到Alluxio中的任何新文件的默认生存时间。默认情况下没有TTL。
 * `alluxio.user.file.load.ttl.action` - 任何ttl设置的默认操作，设置在从一个under store加载到Alluxio的文件上。
 默认情况下是 `DELETE`。
-* `alluxio.user.file.create.ttl` - 新创建的任何文件的默认的持续时间。默认情况下没有TTL。
+* `alluxio.user.file.create.ttl` - 新创建的任何文件的默认的生存时间。默认情况下没有TTL。
 * `alluxio.user.file.create.ttl.action` - 在一个新创建的文件上的任何ttl设置的默认操作。默认情况下是`DELETE`。
 
 有两对选项，一组用于  `load`，一组用于`create`。`load`指的是Alluxio从底层存储获取的文件。
@@ -98,4 +95,4 @@ alluxioFs.setAttribute(path);
 bin/alluxio runTests -Dalluxio.user.file.create.ttl=1m -Dalluxio.user.file.create.ttl.action=DELETE
 ```
 
-注意，如果您尝试使用这个示例，请确保将 `alluxio.master.ttl.checker.interval` 设置为较短持续时间，即1分钟。
+注意，如果您尝试使用这个示例，请确保将 `alluxio.master.ttl.checker.interval` 设置为较短时间，即1分钟。
