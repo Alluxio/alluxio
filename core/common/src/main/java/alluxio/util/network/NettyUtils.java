@@ -24,11 +24,14 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollChannelOption;
+import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,27 +79,47 @@ public final class NettyUtils {
   }
 
   /**
-   * Returns the correct {@link io.netty.channel.socket.ServerSocketChannel} class based on
-   * {@link ChannelType}.
+   * Returns the correct {@link io.netty.channel.socket.ServerSocketChannel} class for use by the
+   * worker.
    *
-   * @param type Selector for which form of low-level IO we should use
    * @param isDomainSocket whether this is a domain socket server
    * @return ServerSocketChannel matching the requirements
    */
-  public static Class<? extends ServerChannel> getChannelClass(ChannelType type,
-      boolean isDomainSocket) {
+  public static Class<? extends ServerChannel> getServerChannelClass(boolean isDomainSocket) {
     if (isDomainSocket) {
-      Preconditions.checkState(type == ChannelType.EPOLL,
+      Preconditions.checkState(WORKER_CHANNEL_TYPE == ChannelType.EPOLL,
           "Domain sockets are only supported with EPOLL channel type.");
       return EpollServerDomainSocketChannel.class;
     }
-    switch (type) {
+    switch (WORKER_CHANNEL_TYPE) {
       case NIO:
         return NioServerSocketChannel.class;
       case EPOLL:
         return EpollServerSocketChannel.class;
       default:
-        throw new IllegalArgumentException("Unknown io type: " + type);
+        throw new IllegalArgumentException("Unknown io type: " + WORKER_CHANNEL_TYPE);
+    }
+  }
+
+  /**
+   * Returns the correct {@link io.netty.channel.socket.SocketChannel} class for use by the client.
+   *
+   * @param isDomainSocket whether this is to connect to a domain socket server
+   * @return Channel matching the requirements
+   */
+  public static Class<? extends Channel> getClientChannelClass(boolean isDomainSocket) {
+    if (isDomainSocket) {
+      Preconditions.checkState(USER_CHANNEL_TYPE == ChannelType.EPOLL,
+          "Domain sockets are only supported with EPOLL channel type.");
+      return EpollDomainSocketChannel.class;
+    }
+    switch (USER_CHANNEL_TYPE) {
+      case NIO:
+        return NioSocketChannel.class;
+      case EPOLL:
+        return EpollSocketChannel.class;
+      default:
+        throw new IllegalArgumentException("Unknown io type: " + USER_CHANNEL_TYPE);
     }
   }
 
