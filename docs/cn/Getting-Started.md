@@ -51,7 +51,7 @@ $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 
 在开始使用Alluxio之前，我们需要配置它。大部分使用默认设置即可。
 
-在`${ALLUXIO_HOME}/conf`目录下，根据模板文件创建`conf/alluxio-env.sh`配置文件。
+在`${ALLUXIO_HOME}/conf`目录下，根据模板文件创建`conf/alluxio-site.properties`配置文件。
 
 ```bash
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
@@ -129,7 +129,7 @@ $ ./bin/alluxio fs
 $ ./bin/alluxio fs ls /
 ```
 
-可惜现在Alluxio里没有文件。我们可以拷贝文件到Alluxio。`copyFromLocal`命令可以拷贝本地文件到Alluxio中。
+不过现在Alluxio里没有文件。我们可以拷贝文件到Alluxio。`copyFromLocal`命令可以拷贝本地文件到Alluxio中。
 
 ```bash
 $ ./bin/alluxio fs copyFromLocal LICENSE /LICENSE
@@ -171,7 +171,7 @@ $ ./bin/alluxio fs persist /LICENSE
 persisted file /LICENSE with size 26847
 ```
 
-现在，如果我们再次检查UFS。文件出现了。
+如果我们现在再次检查UFS，文件就会出现。
 
 ```bash
 $ ls ./underFSStorage
@@ -286,9 +286,9 @@ sys	0m0.240s
 
 恭喜！你在本地安装了Alluxio并且通过Alluxio加速了数据访问！
 
-## 关闭Alluxio
+## 中止Alluxio
 
-你完成了本地安装和使用Alluxio，你可以使用如下命令关闭Alluxio：
+你完成了本地安装和使用Alluxio，你可以使用如下命令中止Alluxio：
 
 ```bash
 $ ./bin/alluxio-stop.sh local

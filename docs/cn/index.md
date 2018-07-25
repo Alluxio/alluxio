@@ -34,15 +34,15 @@ Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以�
 [Fedora发行版](https://fedoraproject.org/wiki/SIGs/bigdata/packaging)的一部分。
 到今天为止，Alluxio已经在超过100家公司的生产中进行了部署，并且在超过1000个节点的集群上运行着。
 
-[Github ](https://github.com/alluxio/alluxio/) |
-[ 版 本  ](http://alluxio.org/releases/) |
-[ 下 载  ](http://alluxio.org/download/) |
-[ 用户文档  ](Getting-Started.html) |
-[ 开发者文档  ](Contributing-to-Alluxio.html) |
-[ Meetup 小组  ](https://www.meetup.com/Alluxio/) |
-[ JIRA  ](https://alluxio.atlassian.net/browse/ALLUXIO) |
-[ 用户邮件列表  ](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
+[下 载](http://alluxio.org/download/) |
+[用户文档](Getting-Started.html) |
+[开发者文档](Contributing-to-Alluxio.html) |
+[Meetup 小组](https://www.meetup.com/Alluxio/) |
+[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO) |
+[用户邮件列表](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [ 视频 ](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA) |
+[Github ](https://github.com/alluxio/alluxio/) |
+[版 本](http://alluxio.org/releases/)
 
 <style>
 #current-features + ul li {height:210px;}
@@ -64,10 +64,6 @@ HDFS，MaprFS，Ceph，NFS，Alibaba OSS，Minio以及单节点本地文件系�
 
 * **[统一命名空间](Unified-and-Transparent-Namespace.html)** Alluxio通过挂载功能在不同的存储系统之间实
 现高效的数据管理。并且，透明命名在持久化这些对象到底层存储系统时可以保留这些对象的文件名和目录层次结构。
-
-* **[世系(Lineage)](Lineage-API.html)** 通过世系(Lineage)，Alluxio可以不受容错的限制实现高吞吐的写入，
-丢失的输出可以通过重新执行创建这一输出的任务来恢复。应用将输出写入内存，Alluxio以异步方式定期备份数据到底层
-文件系统。写入失败时，Alluxio启动任务重执行恢复丢失的文件。
 
 * **[网页UI](Web-Interface.html) & [命令行](Command-Line-Interface.html)** 用户可以通过网页UI浏览文件
 系统。在调试模式下，管理员可以查看每一个文件的详细信息，包括存放位置，检查点路径等等。用户也可以通

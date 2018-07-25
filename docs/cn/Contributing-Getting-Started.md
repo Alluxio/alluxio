@@ -1,8 +1,9 @@
 ---
 layout: global
-title: 开发者上手指南
-nickname: 开发者上手指南
+title: 开发者新手指南
+nickname: 开发者新手指南
 group: Resources
+priority: 2
 ---
 
 * 内容列表
@@ -18,7 +19,7 @@ group: Resources
 
 在向Alluxio贡献源码之前，还需要准备一些软件以及账户。
 
-> 在下面的[视频](#视频)部分观看我们的"Alluxio新贡献者"视频！
+> 在下面的[视频](#video)部分观看我们的"Alluxio新贡献者"视频！
 
 ### Java 8
 
@@ -32,14 +33,14 @@ $ java -version
 
 ### Maven
 
-Alluxio项目使用Maven来管理构建，如果你还未安装，可以先[在这里下载Maven](https://maven.apache.org/download.cgi)，并按照
+Alluxio项目使用Maven来管理编译流程，如果你还未安装，可以先[在这里下载Maven](https://maven.apache.org/download.cgi)，并按照
 [Maven官方文档](https://maven.apache.org/install.html)进行安装。
 
 ### Git
 
 Alluxio使用Git分布式版本控制系统来管理源码，因此需要安装Git。
 
-如果你还未安装`git`，请先进行[安装](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)。
+如果你还未安装`git`，请先进行[安装git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)。
 
 ### GitHub账户
 
@@ -93,7 +94,6 @@ $ git remote -v
 ## 配置Git邮箱
 
 在向Alluxio提交commit之前，你需要先确认你的Git邮箱设置正确，请参考该[邮箱设置指南](https://help.github.com/articles/setting-your-email-in-git/)。
-
 
 ## 编译Alluxio
 
@@ -213,19 +213,20 @@ $ git push origin awesome_feature
 
 祝贺！你成功地向Alluxio贡献了源码！非常感谢你加入到我们的社区中！！
 
-## 视频
+## 视频 {#video}
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/QsbM804rc6Y" frameborder="0" allowfullscreen></iframe>
 
 ## 下一步
 
-contributor可以通过做一些事来熟悉Alluxio：
+新的开发者可以尝试一下这些事来进一步熟悉Alluxio：
+
 1. 获取一些[Alluxio初学者tickets](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20Beginner%20AND%20assignee%20in%20(EMPTY))
-2. [本地运行Alluxio](Running-Alluxio-Locally.html)
-3. [集群上运行Alluxio](Running-Alluxio-on-a-Cluster.html)
-4. 阅读[配置设置](Configuration-Settings.html)和[命令行相关操作](Command-Line-Interface.html)
-5. 阅读[代码示例](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
-6. [从源码编译Alluxio](Building-Alluxio-Master-Branch.html)
-7. Fork Alluxio源代码库，为一两个文件添加单元测试或者javadoc，并提交一个pr。您也可以在我们的[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO)中解决问题。以下是未分配的[新贡献者任务列表](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))，每个新Contributor限制执行两个任务，然后尝试一些初级/中级任务。您可以在[google网上论坛Alluixo Users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)上讨论或询问问题。相关教程请参阅GitHub指南[fork代码库](https://help.github.com/articles/fork-a-repo)和[提交pr](https://help.github.com/articles/using-pull-requests)
+1. [本地运行Alluxio](Running-Alluxio-Locally.html)
+1. [集群上运行Alluxio](Running-Alluxio-on-a-Cluster.html)
+1. 阅读[配置设置](Configuration-Settings.html)和[命令行相关操作](Command-Line-Interface.html)
+1. 阅读[示范代码](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
+1. [从源码编译Alluxio](Building-Alluxio-Master-Branch.html)
+1. Fork Alluxio源代码库，为一两个文件添加单元测试或者javadoc，并提交一个pr。您也可以在我们的[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO)中解决问题。以下是未分配的[新贡献者任务列表](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))，每个新Contributor限制执行两个任务，然后尝试一些初级/中级任务。您可以在[google网上论坛Alluixo Users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)上讨论或询问问题。相关教程请参阅GitHub指南[fork代码库](https://help.github.com/articles/fork-a-repo)和[提交Pull Request](https://help.github.com/articles/using-pull-requests)
 
 # 欢迎加入Alluxio社区！
