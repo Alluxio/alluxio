@@ -19,22 +19,31 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Sends a keep-alive to the server whenever the channel has been idle for a period of time.
  */
-public class IdleWriteHandler extends ChannelDuplexHandler {
+public class IdleReadWriteHandler extends ChannelDuplexHandler {
+  private final static Logger LOG = LoggerFactory.getLogger(IdleReadWriteHandler.class);
+
   /**
-   * Creates a new idle write handler.
+   * Creates a new idle read write handler.
    */
-  public IdleWriteHandler() {}
+  public IdleReadWriteHandler() {}
 
   @Override
-  public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+  public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
     if (evt instanceof IdleStateEvent) {
-      if (((IdleStateEvent) evt).state() == IdleState.WRITER_IDLE) {
+      IdleState state = ((IdleStateEvent) evt).state();
+      if (state == IdleState.WRITER_IDLE) {
         Protocol.Heartbeat heartbeat = Protocol.Heartbeat.newBuilder().build();
         ctx.writeAndFlush(new RPCProtoMessage(new ProtoMessage(heartbeat)));
+      } else if (state == IdleState.READER_IDLE) {
+        LOG.info("Netty reader is idle more than 'alluxio.network.netty.read.idle.timeout',"
+            + "closing context.");
+        ctx.close();
       }
     }
   }

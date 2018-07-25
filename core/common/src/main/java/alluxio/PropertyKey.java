@@ -365,6 +365,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "should be the same on the clients and server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
+  public static final PropertyKey NETWORK_NETTY_READ_IDLE_TIMEOUT_MS =
+      new Builder(Name.NETWORK_NETTY_READ_IDLE_TIMEOUT_MS)
+          .setDefaultValue("2min")
+          .setDescription("When netty read handle has no incoming traffic for given time. "
+              + "We regard it as idle and close it. This will help release server side read lock.")
+          .build();
   /**
    * @deprecated since 1.8.0 and will be removed in 2.0.
    */
@@ -3094,6 +3100,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.host.resolution.timeout";
     public static final String NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
         "alluxio.network.netty.heartbeat.timeout";
+    public static final String NETWORK_NETTY_READ_IDLE_TIMEOUT_MS =
+        "alluxio.network.netty.read.idle.timeout";
     public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
         "alluxio.network.thrift.frame.size.bytes.max";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
