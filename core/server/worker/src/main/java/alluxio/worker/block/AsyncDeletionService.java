@@ -43,6 +43,11 @@ public class AsyncDeletionService {
   private final Set<Long> mToAvoidDuplicateBlock;
   private final ExecutorService mRemoverPool;
 
+  /**
+   * Constructor of AsyncDeletionService
+   * @param worker block worker
+   * @param queue a blocking queue to store pending deletion blocks
+   */
   public AsyncDeletionService(BlockWorker worker, BlockingQueue queue) {
     mBlockWorker = worker;
     mPendingRemovedBlocks = queue;
