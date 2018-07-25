@@ -124,6 +124,8 @@ struct TAcl {
   1: optional string owner
   2: optional string owningGroup
   3: optional list<TAclEntry> entries
+  4: optional i32 mode
+  5: optional bool isDefault
 }
 
 /**
