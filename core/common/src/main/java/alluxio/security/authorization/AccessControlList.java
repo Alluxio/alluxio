@@ -486,6 +486,7 @@ public class AccessControlList implements Serializable {
 
     if (tAcl.isIsDefault()) {
       acl = new DefaultAccessControlList();
+      ((DefaultAccessControlList) acl).setEmpty(tAcl.isIsEmpty());
     } else {
       acl = new AccessControlList();
     }
@@ -506,6 +507,7 @@ public class AccessControlList implements Serializable {
   /**
    * @return the thrift representation of this object
    */
+
   public TAcl toThrift() {
     TAcl tAcl = new TAcl();
     tAcl.setOwner(getOwningUser());

@@ -43,6 +43,7 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
   private static final org.apache.thrift.protocol.TField ENTRIES_FIELD_DESC = new org.apache.thrift.protocol.TField("entries", org.apache.thrift.protocol.TType.LIST, (short)3);
   private static final org.apache.thrift.protocol.TField MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("mode", org.apache.thrift.protocol.TType.I16, (short)4);
   private static final org.apache.thrift.protocol.TField IS_DEFAULT_FIELD_DESC = new org.apache.thrift.protocol.TField("isDefault", org.apache.thrift.protocol.TType.BOOL, (short)5);
+  private static final org.apache.thrift.protocol.TField IS_EMPTY_FIELD_DESC = new org.apache.thrift.protocol.TField("isEmpty", org.apache.thrift.protocol.TType.BOOL, (short)6);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -55,6 +56,7 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
   private List<TAclEntry> entries; // optional
   private short mode; // optional
   private boolean isDefault; // optional
+  private boolean isEmpty; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -62,7 +64,8 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
     OWNING_GROUP((short)2, "owningGroup"),
     ENTRIES((short)3, "entries"),
     MODE((short)4, "mode"),
-    IS_DEFAULT((short)5, "isDefault");
+    IS_DEFAULT((short)5, "isDefault"),
+    IS_EMPTY((short)6, "isEmpty");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -87,6 +90,8 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
           return MODE;
         case 5: // IS_DEFAULT
           return IS_DEFAULT;
+        case 6: // IS_EMPTY
+          return IS_EMPTY;
         default:
           return null;
       }
@@ -129,8 +134,9 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
   // isset id assignments
   private static final int __MODE_ISSET_ID = 0;
   private static final int __ISDEFAULT_ISSET_ID = 1;
+  private static final int __ISEMPTY_ISSET_ID = 2;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.OWNER,_Fields.OWNING_GROUP,_Fields.ENTRIES,_Fields.MODE,_Fields.IS_DEFAULT};
+  private static final _Fields optionals[] = {_Fields.OWNER,_Fields.OWNING_GROUP,_Fields.ENTRIES,_Fields.MODE,_Fields.IS_DEFAULT,_Fields.IS_EMPTY};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -144,6 +150,8 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
     tmpMap.put(_Fields.MODE, new org.apache.thrift.meta_data.FieldMetaData("mode", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I16)));
     tmpMap.put(_Fields.IS_DEFAULT, new org.apache.thrift.meta_data.FieldMetaData("isDefault", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.IS_EMPTY, new org.apache.thrift.meta_data.FieldMetaData("isEmpty", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(TAcl.class, metaDataMap);
@@ -172,6 +180,7 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
     }
     this.mode = other.mode;
     this.isDefault = other.isDefault;
+    this.isEmpty = other.isEmpty;
   }
 
   public TAcl deepCopy() {
@@ -187,6 +196,8 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
     this.mode = 0;
     setIsDefaultIsSet(false);
     this.isDefault = false;
+    setIsEmptyIsSet(false);
+    this.isEmpty = false;
   }
 
   public String getOwner() {
@@ -322,6 +333,29 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISDEFAULT_ISSET_ID, value);
   }
 
+  public boolean isIsEmpty() {
+    return this.isEmpty;
+  }
+
+  public TAcl setIsEmpty(boolean isEmpty) {
+    this.isEmpty = isEmpty;
+    setIsEmptyIsSet(true);
+    return this;
+  }
+
+  public void unsetIsEmpty() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ISEMPTY_ISSET_ID);
+  }
+
+  /** Returns true if field isEmpty is set (has been assigned a value) and false otherwise */
+  public boolean isSetIsEmpty() {
+    return EncodingUtils.testBit(__isset_bitfield, __ISEMPTY_ISSET_ID);
+  }
+
+  public void setIsEmptyIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISEMPTY_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case OWNER:
@@ -364,6 +398,14 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
       }
       break;
 
+    case IS_EMPTY:
+      if (value == null) {
+        unsetIsEmpty();
+      } else {
+        setIsEmpty((Boolean)value);
+      }
+      break;
+
     }
   }
 
@@ -383,6 +425,9 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
 
     case IS_DEFAULT:
       return isIsDefault();
+
+    case IS_EMPTY:
+      return isIsEmpty();
 
     }
     throw new IllegalStateException();
@@ -405,6 +450,8 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
       return isSetMode();
     case IS_DEFAULT:
       return isSetIsDefault();
+    case IS_EMPTY:
+      return isSetIsEmpty();
     }
     throw new IllegalStateException();
   }
@@ -467,6 +514,15 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
         return false;
     }
 
+    boolean this_present_isEmpty = true && this.isSetIsEmpty();
+    boolean that_present_isEmpty = true && that.isSetIsEmpty();
+    if (this_present_isEmpty || that_present_isEmpty) {
+      if (!(this_present_isEmpty && that_present_isEmpty))
+        return false;
+      if (this.isEmpty != that.isEmpty)
+        return false;
+    }
+
     return true;
   }
 
@@ -498,6 +554,11 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
     list.add(present_isDefault);
     if (present_isDefault)
       list.add(isDefault);
+
+    boolean present_isEmpty = true && (isSetIsEmpty());
+    list.add(present_isEmpty);
+    if (present_isEmpty)
+      list.add(isEmpty);
 
     return list.hashCode();
   }
@@ -556,6 +617,16 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
     }
     if (isSetIsDefault()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isDefault, other.isDefault);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetIsEmpty()).compareTo(other.isSetIsEmpty());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetIsEmpty()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isEmpty, other.isEmpty);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -619,6 +690,12 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
       if (!first) sb.append(", ");
       sb.append("isDefault:");
       sb.append(this.isDefault);
+      first = false;
+    }
+    if (isSetIsEmpty()) {
+      if (!first) sb.append(", ");
+      sb.append("isEmpty:");
+      sb.append(this.isEmpty);
       first = false;
     }
     sb.append(")");
@@ -717,6 +794,14 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 6: // IS_EMPTY
+            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+              struct.isEmpty = iprot.readBool();
+              struct.setIsEmptyIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -770,6 +855,11 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
         oprot.writeBool(struct.isDefault);
         oprot.writeFieldEnd();
       }
+      if (struct.isSetIsEmpty()) {
+        oprot.writeFieldBegin(IS_EMPTY_FIELD_DESC);
+        oprot.writeBool(struct.isEmpty);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -803,7 +893,10 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
       if (struct.isSetIsDefault()) {
         optionals.set(4);
       }
-      oprot.writeBitSet(optionals, 5);
+      if (struct.isSetIsEmpty()) {
+        optionals.set(5);
+      }
+      oprot.writeBitSet(optionals, 6);
       if (struct.isSetOwner()) {
         oprot.writeString(struct.owner);
       }
@@ -825,12 +918,15 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
       if (struct.isSetIsDefault()) {
         oprot.writeBool(struct.isDefault);
       }
+      if (struct.isSetIsEmpty()) {
+        oprot.writeBool(struct.isEmpty);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, TAcl struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(5);
+      BitSet incoming = iprot.readBitSet(6);
       if (incoming.get(0)) {
         struct.owner = iprot.readString();
         struct.setOwnerIsSet(true);
@@ -860,6 +956,10 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
       if (incoming.get(4)) {
         struct.isDefault = iprot.readBool();
         struct.setIsDefaultIsSet(true);
+      }
+      if (incoming.get(5)) {
+        struct.isEmpty = iprot.readBool();
+        struct.setIsEmptyIsSet(true);
       }
     }
   }

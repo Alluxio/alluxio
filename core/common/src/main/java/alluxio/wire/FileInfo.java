@@ -63,8 +63,8 @@ public final class FileInfo implements Serializable {
   private int mInAlluxioPercentage;
   private String mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
 
-  private AccessControlList mAcl = null;
-  private DefaultAccessControlList mDefaultAcl = null;
+  private AccessControlList mAcl = AccessControlList.EMPTY_ACL;
+  private DefaultAccessControlList mDefaultAcl = DefaultAccessControlList.EMPTY_DEFAULT_ACL;
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -551,15 +551,12 @@ public final class FileInfo implements Serializable {
       fileBlockInfos.add(fileBlockInfo.toThrift());
     }
 
-    TAcl mAclThrift = mAcl == null ? null : mAcl.toThrift();
-    TAcl mDefaultAclThrift = mDefaultAcl == null ? null : mDefaultAcl.toThrift();
-
     alluxio.thrift.FileInfo info =
         new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, fileBlockInfos, TtlAction.toThrift(mTtlAction), mMountId,
-        mInAlluxioPercentage, mUfsFingerprint, mAclThrift, mDefaultAclThrift);
+        mInAlluxioPercentage, mUfsFingerprint, mAcl.toThrift(), mDefaultAcl.toThrift());
 
     return info;
   }

@@ -182,9 +182,11 @@ public class DefaultAccessControlList extends AccessControlList {
   /**
    * @return the thrift representation of this object
    */
+  @Override
   public TAcl toThrift() {
     TAcl tAcl = super.toThrift();
     tAcl.setIsDefault(true);
+    tAcl.setIsEmpty(isEmpty());
     return tAcl;
   }
 
