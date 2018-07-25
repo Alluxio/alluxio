@@ -55,6 +55,10 @@ public class AsyncDeletionService {
     }
   }
 
+  /**
+   * Put blocks into async deletion service. This method will take care of the duplicate blocks.
+   * @param blocks blocks to be deleted
+   */
   public void pendingBlocksToBeDeleted(List<Long> blocks) {
     for (long id : blocks) {
       if (mToAvoidDuplicateBlock.contains(id)) {
@@ -70,6 +74,9 @@ public class AsyncDeletionService {
     }
   }
 
+  /**
+   * Shutdown async deletion service.
+   */
   public void shutDown() {
     mRemoverPool.shutdown();
   }

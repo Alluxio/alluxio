@@ -14,18 +14,14 @@ package alluxio.worker.block;
 import alluxio.Configuration;
 import alluxio.ProcessUtils;
 import alluxio.PropertyKey;
-import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.Command;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.Scope;
 import alluxio.wire.WorkerNetAddress;
@@ -35,16 +31,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
