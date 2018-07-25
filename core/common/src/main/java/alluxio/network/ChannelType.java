@@ -28,24 +28,4 @@ public enum ChannelType {
    */
   EPOLL,
   ;
-
-  public static final DefaultSupplier DEFAULT_SUPPLIER =
-      new DefaultSupplier(() -> defaultType(), "EPOLL if it is available, otherwise NIO");
-
-  /**
-   * Determines the default type to use based off the system.
-   * <p>
-   * On Linux-based systems, {@link #EPOLL} is the default type for more consistent performance,
-   * otherwise {@link #NIO}.
-   * </p>
-   *
-   * @return a {@link ChannelType} compatible with the host
-   */
-  private static ChannelType defaultType() {
-    if (Epoll.isAvailable()) {
-      return ChannelType.EPOLL;
-    } else {
-      return ChannelType.NIO;
-    }
-  }
 }

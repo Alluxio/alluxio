@@ -158,6 +158,7 @@ public final class NettyUtils {
         LOG.warn("EPOLL_MODE is not supported in netty with version < 4.0.26.Final, will use NIO");
         return ChannelType.NIO;
       }
+      LOG.info("EPOLL_MODE is available");
     }
     return configured;
   }
