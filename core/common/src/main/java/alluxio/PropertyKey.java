@@ -12,7 +12,6 @@
 package alluxio;
 
 import alluxio.exception.ExceptionMessage;
-import alluxio.network.ChannelType;
 import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.Scope;

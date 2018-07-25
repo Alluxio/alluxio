@@ -166,7 +166,7 @@ public final class NettyDataServer implements DataServer {
         .createEventLoop(type, workerThreadCount, dataServerEventLoopNamePrefix + "-worker-%d",
             true);
 
-    final Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(type,
+    final Class<? extends ServerChannel> socketChannelClass = NettyUtils.getChannelClass(type,
          mSocketAddress instanceof DomainSocketAddress);
     boot.group(bossGroup, workerGroup).channel(socketChannelClass);
     if (type == ChannelType.EPOLL) {
