@@ -24,9 +24,9 @@ Install AWS Vagrant plugin:
 
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/install-aws-vagrant-plugin.md %}
 
-**Install Alluxio**
+**Clone Alluxio**
 
-[Download Alluxio](https://alluxio.org/download) to your local machine, and unzip it:
+[Clone the Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine.
 
 **Install python library dependencies**
 
