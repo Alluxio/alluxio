@@ -89,7 +89,8 @@ public final class NettyClient {
         pipeline.addLast(RPCMessage.createFrameDecoder());
         pipeline.addLast(ENCODER);
         pipeline.addLast(DECODER);
-        pipeline.addLast(new IdleStateHandler(readIdleMs, heartbeatPeriodMs, 0, TimeUnit.MILLISECONDS));
+        pipeline.addLast(new IdleStateHandler(readIdleMs, heartbeatPeriodMs, 0,
+            TimeUnit.MILLISECONDS));
         pipeline.addLast(new IdleReadWriteHandler());
       }
     });
