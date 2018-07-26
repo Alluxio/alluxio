@@ -1423,8 +1423,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.worker.block.heartbeat.timeout.ms"})
-          .setDefaultValue("5min")
-          .setDescription("The timeout value of block workers' heartbeats.")
+          .setDefaultValue(String.format("${%s}", Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT))
+          .setDescription("The timeout value of block workers' heartbeats. If the worker can't "
+              + "connect to master before this interval expires, the worker will exit.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -1663,9 +1664,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)
           .setDescription("Retry period before workers give up on connecting to master")
           .setDefaultValue("1hour")
-          // Leaving this hidden for now until we sort out how it should interact with
-          // WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS.
-          .setIsHidden(true)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_CHANNEL =
