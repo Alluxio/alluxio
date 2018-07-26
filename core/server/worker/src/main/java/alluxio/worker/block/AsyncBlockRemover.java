@@ -28,34 +28,36 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Asychronous service to delete blocks.
+ * Asychronous block removal service.
  */
 @ThreadSafe
-public class AsyncDeletionService {
-  private static final Logger LOG = LoggerFactory.getLogger(AsyncDeletionService.class);
+public class AsyncBlockRemover {
+  private static final Logger LOG = LoggerFactory.getLogger(AsyncBlockRemover.class);
 
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
+  private static final int INVALID_BLOCK_ID = -1;
 
   private final BlockWorker mBlockWorker;
-  private final BlockingQueue<Long> mPendingRemovedBlocks;
-  private final Set<Long> mToAvoidDuplicateBlock;
+  /** This list is used for queueing blocks to be removed by BlockWorker. */
+  private final BlockingQueue<Long> mBlocksToRemove;
+  /** This set is used for recording blocks in BlockRemover. */
+  private final Set<Long> mRemovingBlocks;
   private final ExecutorService mRemoverPool;
 
   /**
-   * Constructor of AsyncDeletionService.
+   * Constructor of AsyncBlockRemover.
    * @param worker block worker
-   * @param queue a blocking queue to store pending deletion blocks
    */
-  public AsyncDeletionService(BlockWorker worker, BlockingQueue queue) {
+  public AsyncBlockRemover(BlockWorker worker) {
     mBlockWorker = worker;
-    mPendingRemovedBlocks = queue;
-    mToAvoidDuplicateBlock = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    mBlocksToRemove = new LinkedBlockingQueue<>();
+    mRemovingBlocks = Collections.newSetFromMap(new ConcurrentHashMap<>());
     mRemoverPool = Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE,
         ThreadFactoryUtils.build("block-removal-service-%d", true));
-    int i = 0;
-    while (++i <= DEFAULT_BLOCK_REMOVER_POOL_SIZE) {
+    for (int i = 0; i < DEFAULT_BLOCK_REMOVER_POOL_SIZE; i++) {
       mRemoverPool.execute(new BlockRemover());
     }
   }
@@ -64,17 +66,18 @@ public class AsyncDeletionService {
    * Put blocks into async deletion service. This method will take care of the duplicate blocks.
    * @param blocks blocks to be deleted
    */
-  public void pendingBlocksToBeDeleted(List<Long> blocks) {
+  public void addBlocksToDelete(List<Long> blocks) {
     for (long id : blocks) {
-      if (mToAvoidDuplicateBlock.contains(id)) {
-        LOG.debug("{} is pending. Current queue size is {}.", id, mPendingRemovedBlocks.size());
+      if (mRemovingBlocks.contains(id)) {
+        LOG.debug("{} is being removed. Current queue size is {}.", id, mBlocksToRemove.size());
         continue;
       }
       try {
-        mPendingRemovedBlocks.put(id);
-        mToAvoidDuplicateBlock.add(id);
+        mBlocksToRemove.put(id);
+        mRemovingBlocks.add(id);
       } catch (InterruptedException e) {
-        LOG.warn("AsyncDeletionService got interrupted while it was putting block {}.", id);
+        Thread.currentThread().interrupt();
+        LOG.warn("AsyncBlockRemover got interrupted while it was putting block {}.", id);
       }
     }
   }
@@ -94,12 +97,13 @@ public class AsyncDeletionService {
       mThreadName = Thread.currentThread().getName();
       long blockToBeRemoved;
       while (true) {
-        blockToBeRemoved = -1L;
+        blockToBeRemoved = INVALID_BLOCK_ID;
         try {
-          blockToBeRemoved = mPendingRemovedBlocks.take();
+          blockToBeRemoved = mBlocksToRemove.take();
           mBlockWorker.removeBlock(Sessions.MASTER_COMMAND_SESSION_ID, blockToBeRemoved);
-          LOG.info("Block {} is removed in thread {}.", blockToBeRemoved, mThreadName);
+          LOG.debug("Block {} is removed in thread {}.", blockToBeRemoved, mThreadName);
         } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
           LOG.warn("{} got interrupted while it was cleaning block {}.",
               mThreadName, blockToBeRemoved);
         } catch (IOException e) {
@@ -111,10 +115,11 @@ public class AsyncDeletionService {
         } catch (InvalidWorkerStateException e) {
           LOG.warn("{}: invalid block state for block {}, exception is {}.",
               mThreadName, blockToBeRemoved, e.getMessage());
+        } catch (Exception e) {
+          LOG.warn("Unexpected exception: {}.", e.getMessage());
         } finally {
-          if (blockToBeRemoved != -1L) {
-            mBlockWorker.unlockBlock(Sessions.MASTER_COMMAND_SESSION_ID, blockToBeRemoved);
-            mToAvoidDuplicateBlock.remove(blockToBeRemoved);
+          if (blockToBeRemoved != INVALID_BLOCK_ID) {
+            mRemovingBlocks.remove(blockToBeRemoved);
           }
         }
       }

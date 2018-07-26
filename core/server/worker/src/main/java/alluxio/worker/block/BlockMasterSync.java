@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -70,7 +69,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private final BlockMasterClient mMasterClient;
 
   /** An async service to remove block. */
-  private final AsyncDeletionService mAsyncDeletionService;
+  private final AsyncBlockRemover mAsyncBlockRemover;
 
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
@@ -90,7 +89,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mWorkerAddress = workerAddress;
     mMasterClient = masterClient;
     mHeartbeatTimeoutMs = (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
-    mAsyncDeletionService = new AsyncDeletionService(mBlockWorker, new LinkedBlockingQueue());
+    mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
 
     registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
@@ -153,7 +152,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
   @Override
   public void close() {
-    mAsyncDeletionService.shutDown();
+    mAsyncBlockRemover.shutDown();
   }
 
   /**
@@ -175,7 +174,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       // Master requests blocks to be removed from Alluxio managed space.
       case Free:
-        mAsyncDeletionService.pendingBlocksToBeDeleted(cmd.getData());
+        mAsyncBlockRemover.addBlocksToDelete(cmd.getData());
         break;
       // No action required
       case Nothing:
