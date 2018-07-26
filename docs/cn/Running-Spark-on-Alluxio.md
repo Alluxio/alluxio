@@ -137,9 +137,9 @@ $ hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
 当以容错模式运行Alluxio时，可以使用任何一个Alluxio master：
 
 ```scala
-> val s = sc.textFile("alluxio-ft://stanbyHost:19998/LICENSE")
+> val s = sc.textFile("alluxio://stanbyHost:19998/LICENSE")
 > val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio-ft://activeHost:19998/LICENSE2")
+> double.saveAsTextFile("alluxio://activeHost:19998/LICENSE2")
 ```
 
 ## 数据本地化
