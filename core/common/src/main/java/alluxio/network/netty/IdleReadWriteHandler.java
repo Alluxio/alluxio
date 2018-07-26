@@ -11,6 +11,7 @@
 
 package alluxio.network.netty;
 
+import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.proto.ProtoMessage;
@@ -41,8 +42,8 @@ public class IdleReadWriteHandler extends ChannelDuplexHandler {
         Protocol.Heartbeat heartbeat = Protocol.Heartbeat.newBuilder().build();
         ctx.writeAndFlush(new RPCProtoMessage(new ProtoMessage(heartbeat)));
       } else if (state == IdleState.READER_IDLE) {
-        LOG.info("Netty reader is idle more than 'alluxio.network.netty.read.idle.timeout',"
-            + "closing context.");
+        LOG.info("Netty reader is idle more than {}, closing context.",
+            PropertyKey.Name.NETWORK_NETTY_READ_IDLE_TIMEOUT_MS);
         ctx.close();
       }
     }
