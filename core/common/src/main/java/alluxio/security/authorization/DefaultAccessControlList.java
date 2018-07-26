@@ -12,6 +12,7 @@
 package alluxio.security.authorization;
 
 import alluxio.collections.Pair;
+import alluxio.thrift.TAcl;
 
 import com.google.common.base.Objects;
 
@@ -176,6 +177,17 @@ public class DefaultAccessControlList extends AccessControlList {
       entry.setDefault(true);
     }
     return aclEntryList;
+  }
+
+  /**
+   * @return the thrift representation of this object
+   */
+  @Override
+  public TAcl toThrift() {
+    TAcl tAcl = super.toThrift();
+    tAcl.setIsDefault(true);
+    tAcl.setIsDefaultEmpty(isEmpty());
+    return tAcl;
   }
 
   @Override

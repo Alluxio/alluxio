@@ -484,26 +484,22 @@ public class AccessControlList implements Serializable {
   public static AccessControlList fromThrift(TAcl tAcl) {
     AccessControlList acl;
 
-    if (tAcl.isSetEntries()) {
-      if (tAcl.getEntries().size() > 0) {
-        TAclEntry tEntry = tAcl.getEntries().get(0);
-        if (tEntry.isIsDefault()) {
-          acl = new DefaultAccessControlList();
-        } else {
-          acl = new AccessControlList();
-        }
-      } else {
-        acl = new DefaultAccessControlList();
-      }
-      for (TAclEntry tEntry : tAcl.getEntries()) {
-        acl.setEntry(AclEntry.fromThrift(tEntry));
-      }
-    } else {
+    if (tAcl.isIsDefault()) {
       acl = new DefaultAccessControlList();
+      ((DefaultAccessControlList) acl).setEmpty(tAcl.isIsDefaultEmpty());
+    } else {
+      acl = new AccessControlList();
     }
 
     acl.setOwningUser(tAcl.getOwner());
     acl.setOwningGroup(tAcl.getOwningGroup());
+    acl.setMode(tAcl.getMode());
+
+    if (tAcl.isSetEntries()) {
+      for (TAclEntry tEntry : tAcl.getEntries()) {
+        acl.setEntry(AclEntry.fromThrift(tEntry));
+      }
+    }
 
     return acl;
   }
@@ -515,9 +511,13 @@ public class AccessControlList implements Serializable {
     TAcl tAcl = new TAcl();
     tAcl.setOwner(getOwningUser());
     tAcl.setOwningGroup(getOwningGroup());
-    for (AclEntry entry : getEntries()) {
-      tAcl.addToEntries(entry.toThrift());
+    tAcl.setMode(mMode);
+    if (hasExtended()) {
+      for (AclEntry entry : mExtendedEntries.getEntries()) {
+        tAcl.addToEntries(entry.toThrift());
+      }
     }
+    tAcl.setIsDefault(false);
     return tAcl;
   }
 
