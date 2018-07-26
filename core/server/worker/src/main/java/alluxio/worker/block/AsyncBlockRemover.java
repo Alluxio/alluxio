@@ -63,7 +63,7 @@ public class AsyncBlockRemover {
   }
 
   /**
-   * Put blocks into async deletion service. This method will take care of the duplicate blocks.
+   * Put blocks into async block remover. This method will take care of the duplicate blocks.
    * @param blocks blocks to be deleted
    */
   public void addBlocksToDelete(List<Long> blocks) {
@@ -83,7 +83,7 @@ public class AsyncBlockRemover {
   }
 
   /**
-   * Shutdown async deletion service.
+   * Shutdown async block remover.
    */
   public void shutDown() {
     mRemoverPool.shutdown();
