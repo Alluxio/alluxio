@@ -94,6 +94,9 @@ you plan to run Alluxio Master on. Let's name it Alluxio Master node, and assume
 $ echo "alluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}" >> conf/alluxio-site.properties
 ```
 
+Server-side configuration checker helps discover configuration errors and warnings. 
+See the [Configuration checker docs](Configuration-Settings.md#server-configuration-checker) for more details.
+
 ### Configure for AWS
 
 Please ensure all the subsequent commands are run on all the Linux nodes.
