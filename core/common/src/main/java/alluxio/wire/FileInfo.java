@@ -16,6 +16,7 @@ import static alluxio.util.StreamUtils.map;
 import alluxio.Constants;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.thrift.TAcl;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -549,17 +550,15 @@ public final class FileInfo implements Serializable {
     for (FileBlockInfo fileBlockInfo : mFileBlockInfos) {
       fileBlockInfos.add(fileBlockInfo.toThrift());
     }
-
-    AccessControlList tAcl = mAcl == null ? new AccessControlList() : mAcl;
-    AccessControlList defaultAcl;
-    defaultAcl = mDefaultAcl == null ? new DefaultAccessControlList() : mDefaultAcl;
-
+    TAcl tAcl = mAcl.equals(AccessControlList.EMPTY_ACL) ? null : mAcl.toThrift();
+    TAcl tDefaultAcl = mDefaultAcl.equals(DefaultAccessControlList.EMPTY_DEFAULT_ACL)
+        ? null : mDefaultAcl.toThrift();
     alluxio.thrift.FileInfo info =
         new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, fileBlockInfos, TtlAction.toThrift(mTtlAction), mMountId,
-        mInAlluxioPercentage, mUfsFingerprint, tAcl.toThrift(), defaultAcl.toThrift());
+        mInAlluxioPercentage, mUfsFingerprint, tAcl, tDefaultAcl);
 
     return info;
   }
@@ -600,10 +599,11 @@ public final class FileInfo implements Serializable {
         .setUfsFingerprint(info.isSetUfsFingerprint() ? info.getUfsFingerprint()
             : Constants.INVALID_UFS_FINGERPRINT)
         .setAcl(info.isSetAcl()
-            ? (AccessControlList.fromThrift(info.getAcl())) : new AccessControlList())
+            ? (AccessControlList.fromThrift(info.getAcl()))
+            : AccessControlList.EMPTY_ACL)
         .setDefaultAcl(info.isSetDefaultAcl()
             ? ((DefaultAccessControlList) AccessControlList.fromThrift(info.getDefaultAcl()))
-            : new DefaultAccessControlList());
+            : DefaultAccessControlList.EMPTY_DEFAULT_ACL);
   }
 
   @Override
@@ -627,8 +627,8 @@ public final class FileInfo implements Serializable {
         && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
         && mUfsFingerprint.equals(that.mUfsFingerprint)
-        && mAcl.equals(that.mAcl)
-        && mDefaultAcl.equals(that.mDefaultAcl);
+        && Objects.equal(mAcl, that.mAcl)
+        && Objects.equal(mDefaultAcl, that.mDefaultAcl);
   }
 
   @Override

@@ -1009,13 +1009,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           ? DescendantType.ALL : DescendantType.NONE;
       // This is to generate a parsed child path components to be passed to lockChildPath
       String [] childComponents = null;
-      if (!((InodeDirectory) inode).getChildren().isEmpty()) {
-        String [] parentComponents = PathUtils.getPathComponents(currInodePath.getUri().getPath());
-        childComponents = new String[parentComponents.length + 1];
-        System.arraycopy(parentComponents, 0, childComponents, 0,  parentComponents.length);
-      }
 
       for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
+        if (childComponents == null) {
+          String [] parentComponents
+              = PathUtils.getPathComponents(currInodePath.getUri().getPath());
+          childComponents = new String[parentComponents.length + 1];
+          System.arraycopy(parentComponents, 0, childComponents, 0,  parentComponents.length);
+        }
         // TODO(david): Make extending InodePath more efficient
         childComponents[childComponents.length - 1] = child.getName();
 
