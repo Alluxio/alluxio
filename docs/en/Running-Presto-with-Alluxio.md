@@ -102,7 +102,7 @@ Presto's Hive integration uses the config [`hive.max-split-size`](https://terada
 We recommend you to download the tarball from
 Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can choose to compile this client jar from the source code
-by following Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
+by following the instructions [here](Building-Alluxio-From-Source.html#compute-framework-support).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 Distribute the Alluxio client jar to all worker nodes in Presto:
@@ -111,6 +111,8 @@ Distribute the Alluxio client jar to all worker nodes in Presto:
 (For different versions of Hadoop, put the appropriate folder), And restart the process of coordinator and worker.
 
 # Presto cli examples
+
+Configure Alluxio as the default filesystem of Hive by following the instructions [here](Running-Hive-with-Alluxio.html#2-use-alluxio-as-the-default-filesystem).
 
 Create a table in Hive and load a file in local path into Hive:
 
@@ -137,9 +139,34 @@ View Alluxio WebUI at `http://master_hostname:19999` and you can see the directo
 
 Alternatively, you can follow the [instructions](Running-Hive-with-Alluxio.html#create-new-tables-from-files-in-alluxio) to create the tables from existing files in Alluxio.
 
-Next, using a single query:
+Next, start your Hive metastore service. Hive metastore listens on port 9083 by default.
+
+```bash
+$ /<PATH_TO_HIVE>/bin/hive --service metastore
 ```
-/home/path/presto/presto-cli-0.191-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
+
+The following is an example of the Presto configuration `/<PATH_TO_PRESTO>/etc/catalog/hive.properties` :
+
+```properties
+connector.name=hive-hadoop2
+hive.metastore.uri=thrift://localhost:9083
+hive.config.resources=/<PATH_TO_HADOOP>/etc/hadoop/core-site.xml,/<PATH_TO_HADOOP>/etc/hadoop/hdfs-site.xml
+```
+
+Start your Presto server. Presto server runs on port 8080 by default:
+
+```bash
+$ /<PATH_TO_PRESTO>/bin/launcher run
+```
+
+Follow [Presto CLI guidence](https://prestodb.io/docs/current/installation/cli.html) to download the `presto-cli-<PRESTO_VERSION>-executable.jar`,
+rename it to `presto`, and make it executable with `chmod +x` 
+(sometimes the executable `presto` exists in `/<PATH_TO_PRESTO>/bin/presto` and you can use it directly).
+
+Run a single query similar to:
+
+```bash
+$ ./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
 ```
 
 And you can see the query results from console:

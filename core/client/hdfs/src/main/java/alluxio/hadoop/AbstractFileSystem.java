@@ -460,31 +460,22 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
-    boolean connectDetailsMatch = connectDetailsMatch(mUri, conf);
-
-    if (sInitialized && connectDetailsMatch) {
-      updateFileSystemAndContext();
-      return;
-    }
     synchronized (INIT_LOCK) {
-      // If someone has initialized the object since the last check, return
       if (sInitialized) {
-        if (connectDetailsMatch) {
-          updateFileSystemAndContext();
-          return;
-        } else {
+        if (!connectDetailsMatch(mUri, conf)) {
           LOG.warn(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
               .getMessage(mUri.getHost() + ":" + mUri.getPort(),
                   FileSystemContext.get().getMasterAddress()));
-          sInitialized = false;
+          initializeInternal(uri, conf);
         }
+      } else {
+        initializeInternal(uri, conf);
       }
-
-      initializeInternal(uri, conf);
+      // Must happen inside the lock so that the global filesystem context isn't changed by a
+      // concurrent call to initialize.
+      updateFileSystemAndContext();
       sInitialized = true;
     }
-
-    updateFileSystemAndContext();
   }
 
   /**
@@ -512,7 +503,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // These must be reset to pick up the change to the master address.
     // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
     LineageContext.INSTANCE.reset();
-    FileSystemContext.get().reset();
+    LOG.info("Initializing filesystem context with connect details {}",
+        Factory.getConnectDetails(Configuration.global()));
+    FileSystemContext.get().reset(Configuration.global());
 
     // Try to connect to master, if it fails, the provided uri is invalid.
     FileSystemMasterClient client = FileSystemContext.get().acquireMasterClient();

@@ -20,9 +20,9 @@ group: Resources
 
 > 在下面的[视频](#视频)部分观看我们的"Alluxio新贡献者"视频！
 
-### Java 7或者8
+### Java 8
 
-开发Alluxio需要Java 7或者8，如果你不确定你系统上的Java版本，可以运行以下命令确认：
+开发Alluxio需要Java 8，如果你不确定你系统上的Java版本，可以运行以下命令确认：
 
 ```bash
 $ java -version
@@ -115,7 +115,7 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dche
 
 这应该用不到一分钟。
 
-这里有更多[编译Alluxio的细节](Building-Alluxio-Master-Branch.html)。
+这里有更多[编译Alluxio的细节](Building-Alluxio-From-Source.html)。
 
 ## 领取一个New Contributor JIRA Ticket
 
@@ -148,7 +148,7 @@ $ git pull upstream master
 
 这将会获取到Alluxio项目中所有的更新，并合并到你的本地`master`分支里。
 
-现在，你可以新建一个分支来进行之前领取的**New Contributor**啦！运行以下命令创建一个名为**awesome_feature**的分支：
+现在，你可以新建一个分支来进行之前领取的**New Contributor**任务啦！运行以下命令创建一个名为**awesome_feature**的分支：
 
 ```bash
 $ git checkout -b awesome_feature
@@ -217,8 +217,15 @@ $ git push origin awesome_feature
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/QsbM804rc6Y" frameborder="0" allowfullscreen></iframe>
 
-## 挑战更高级的任务
+## 下一步
 
-在你完成两个**New Contributor**任务之后，就可以尝试完成一些[Beginner Alluxio tickets](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20Beginner%20AND%20assignee%20in%20(EMPTY))了。
+contributor可以通过做一些事来熟悉Alluxio：
+1. 获取一些[Alluxio初学者tickets](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20Beginner%20AND%20assignee%20in%20(EMPTY))
+2. [本地运行Alluxio](Running-Alluxio-Locally.html)
+3. [集群上运行Alluxio](Running-Alluxio-on-a-Cluster.html)
+4. 阅读[配置设置](Configuration-Settings.html)和[命令行相关操作](Command-Line-Interface.html)
+5. 阅读[代码示例](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
+6. [从源码编译Alluxio](Building-Alluxio-Master-Branch.html)
+7. Fork Alluxio源代码库，为一两个文件添加单元测试或者javadoc，并提交一个pr。您也可以在我们的[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO)中解决问题。以下是未分配的[新贡献者任务列表](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))，每个新Contributor限制执行两个任务，然后尝试一些初级/中级任务。您可以在[google网上论坛Alluixo Users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)上讨论或询问问题。相关教程请参阅GitHub指南[fork代码库](https://help.github.com/articles/fork-a-repo)和[提交pr](https://help.github.com/articles/using-pull-requests)
 
 # 欢迎加入Alluxio社区！

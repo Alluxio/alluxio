@@ -31,7 +31,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 
-import com.google.common.base.Function;
 import com.google.common.io.Files;
 import org.junit.Assert;
 import org.junit.Before;
@@ -126,17 +125,14 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
     // Trigger a worker heartbeat to delete the blocks.
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
-    CommonUtils.waitFor("files to be deleted", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        try {
-          // Trigger a worker heartbeat to report removed blocks.
-          HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-        } catch (InterruptedException e) {
-          // ignore the exception
-        }
-        return mBlockMaster.getUsedBytes() == 0;
+    CommonUtils.waitFor("files to be deleted", () -> {
+      try {
+        // Trigger a worker heartbeat to report removed blocks.
+        HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+      } catch (InterruptedException e) {
+        // ignore the exception
       }
+      return mBlockMaster.getUsedBytes() == 0;
     }, WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
   }
 

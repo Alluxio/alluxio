@@ -140,6 +140,8 @@ alluxio.underfs.s3a.signer.algorithm:
   'The signature algorithm which should be used to sign requests to the s3 service. This is optional, and if not set, the client will automatically determine it. For interacting with an S3 endpoint which only supports v2 signatures, set this to "S3SignerType".'
 alluxio.underfs.s3a.socket.timeout:
   'Length of the socket timeout when communicating with S3.'
+alluxio.web.file.info.enabled:
+  'Whether detailed file information are enabled for the web UI.'
 alluxio.web.resources:
   'Path to the web application resources.'
 alluxio.web.threads:

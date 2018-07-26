@@ -27,7 +27,6 @@ import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -100,22 +99,18 @@ public final class AlluxioFrameworkIntegrationTest {
       LOG.info("Launched Alluxio cluster, waiting for worker to register with master");
       try (final BlockMasterClient client =
           BlockMasterClient.Factory.create(MasterClientConfig.defaults())) {
-        CommonUtils.waitFor("Alluxio worker to register with master",
-            new Function<Void, Boolean>() {
-              @Override
-              public Boolean apply(Void input) {
-                try {
-                  try {
-                    return !client.getWorkerInfoList().isEmpty();
-                  } catch (UnavailableException e) {
-                    // block master isn't up yet, keep waiting
-                    return false;
-                  }
-                } catch (Exception e) {
-                  throw new RuntimeException(e);
-                }
-              }
-            }, WaitForOptions.defaults().setTimeoutMs(15 * Constants.MINUTE_MS));
+        CommonUtils.waitFor("Alluxio worker to register with master", () -> {
+          try {
+            try {
+              return !client.getWorkerInfoList().isEmpty();
+            } catch (UnavailableException e) {
+              // block master isn't up yet, keep waiting
+              return false;
+            }
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        }, WaitForOptions.defaults().setTimeoutMs(15 * Constants.MINUTE_MS));
       }
       LOG.info("Worker registered");
       basicAlluxioTests();

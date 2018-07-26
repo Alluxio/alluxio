@@ -25,7 +25,7 @@ com o Alluxio:
 4.  Ler um
     [Código Exemplo](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 
-5.  [Construir o Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
+5.  [Construir o Alluxio Master Branch](Building-Alluxio-From-Source.html)
 
 6.  Efetuar o `fork` de um repositório, adicionar unidades de testes ou `javadoc` para um ou dois arquivos, e submeter uma solicitação de recebimento (`pull request`). Você também é bem-vindo para endereçar incidentes  
     (`issues`) no [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO).

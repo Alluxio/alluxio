@@ -62,7 +62,8 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
 
   @Test
   public void copyToLocalLarge() throws Exception {
-    copyToLocalWithBytes(SIZE_BYTES);
+    // Divide by 2 to avoid issues with async eviction.
+    copyToLocalWithBytes(SIZE_BYTES / 2);
   }
 
   @Test

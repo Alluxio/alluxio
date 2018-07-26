@@ -1,7 +1,7 @@
 ---
 layout: global
 title: 在Minio上配置Alluxio
-nickname: Minio使用Alluxio
+nickname: Alluxio使用Minio
 group: Under Store
 priority: 0
 ---
@@ -14,7 +14,7 @@ Alluxio本地提供了s3a:// scheme(建议使用以获取更好的性能)。您�
 
 ## 初始步骤
 
-首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
+首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 ## 配置Minio
 

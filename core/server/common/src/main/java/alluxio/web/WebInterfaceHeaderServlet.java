@@ -47,8 +47,10 @@ public final class WebInterfaceHeaderServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    boolean fileInfoEnabled = Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED);
     String masterHostName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
     int masterWebPort = Configuration.getInt(PropertyKey.MASTER_WEB_PORT);
+    request.setAttribute("fileInfoEnabled", fileInfoEnabled);
     request.setAttribute("masterHost", masterHostName);
     request.setAttribute("masterPort", masterWebPort);
     getServletContext().getRequestDispatcher("/header.jsp").include(request, response);

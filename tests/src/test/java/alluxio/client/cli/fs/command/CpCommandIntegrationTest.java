@@ -419,11 +419,6 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   }
 
   @Test
-  public void copyToLocalLarge() throws Exception {
-    copyToLocalWithBytes(SIZE_BYTES);
-  }
-
-  @Test
   public void copyToLocal() throws Exception {
     copyToLocalWithBytes(10);
   }

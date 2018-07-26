@@ -24,13 +24,16 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.RenameOptions;
+import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.master.MasterClientConfig;
+import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.SetAclAction;
 
 import java.util.List;
 import java.util.Map;
@@ -182,6 +185,18 @@ public interface FileSystemMasterClient extends Client {
    * @throws NotFoundException if the path does not exist
    */
   void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options) throws AlluxioStatusException;
+
+  /**
+   * Sets the ACL for a path.
+   *
+   * @param path the file or directory path
+   * @param action the set action to perform
+   * @param entries the ACL entries to use
+   * @param options the options for setting ACL
+   * @throws NotFoundException if the path does not exist
+   */
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
+      throws AlluxioStatusException;
 
   /**
    * Sets the file or directory attributes.

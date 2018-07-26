@@ -357,6 +357,20 @@ public final class Journal {
      */
     alluxio.proto.journal.KeyValue.RenameStoreEntryOrBuilder getRenameStoreOrBuilder();
 
+    // optional .alluxio.proto.journal.SetAclEntry set_acl = 31;
+    /**
+     * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+     */
+    boolean hasSetAcl();
+    /**
+     * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+     */
+    alluxio.proto.journal.File.SetAclEntry getSetAcl();
+    /**
+     * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+     */
+    alluxio.proto.journal.File.SetAclEntryOrBuilder getSetAclOrBuilder();
+
     // optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;
     /**
      * <code>optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;</code>
@@ -396,7 +410,7 @@ public final class Journal {
    * 2.6.0 and adding this depedency would conflict with the version of protobuf used by Hadoop 2.x
    * and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
    *
-   * next available id: 31
+   * next available id: 32
    * </pre>
    */
   public static final class JournalEntry extends
@@ -740,7 +754,7 @@ public final class Journal {
             }
             case 218: {
               alluxio.proto.journal.File.SetAttributeEntry.Builder subBuilder = null;
-              if (((bitField0_ & 0x02000000) == 0x02000000)) {
+              if (((bitField0_ & 0x04000000) == 0x04000000)) {
                 subBuilder = setAttribute_.toBuilder();
               }
               setAttribute_ = input.readMessage(alluxio.proto.journal.File.SetAttributeEntry.PARSER, extensionRegistry);
@@ -748,7 +762,7 @@ public final class Journal {
                 subBuilder.mergeFrom(setAttribute_);
                 setAttribute_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x02000000;
+              bitField0_ |= 0x04000000;
               break;
             }
             case 226: {
@@ -779,7 +793,7 @@ public final class Journal {
             }
             case 242: {
               alluxio.proto.journal.File.UpdateUfsModeEntry.Builder subBuilder = null;
-              if (((bitField0_ & 0x04000000) == 0x04000000)) {
+              if (((bitField0_ & 0x08000000) == 0x08000000)) {
                 subBuilder = updateUfsMode_.toBuilder();
               }
               updateUfsMode_ = input.readMessage(alluxio.proto.journal.File.UpdateUfsModeEntry.PARSER, extensionRegistry);
@@ -787,7 +801,20 @@ public final class Journal {
                 subBuilder.mergeFrom(updateUfsMode_);
                 updateUfsMode_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x04000000;
+              bitField0_ |= 0x08000000;
+              break;
+            }
+            case 250: {
+              alluxio.proto.journal.File.SetAclEntry.Builder subBuilder = null;
+              if (((bitField0_ & 0x02000000) == 0x02000000)) {
+                subBuilder = setAcl_.toBuilder();
+              }
+              setAcl_ = input.readMessage(alluxio.proto.journal.File.SetAclEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(setAcl_);
+                setAcl_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x02000000;
               break;
             }
           }
@@ -1374,6 +1401,28 @@ public final class Journal {
       return renameStore_;
     }
 
+    // optional .alluxio.proto.journal.SetAclEntry set_acl = 31;
+    public static final int SET_ACL_FIELD_NUMBER = 31;
+    private alluxio.proto.journal.File.SetAclEntry setAcl_;
+    /**
+     * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+     */
+    public boolean hasSetAcl() {
+      return ((bitField0_ & 0x02000000) == 0x02000000);
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+     */
+    public alluxio.proto.journal.File.SetAclEntry getSetAcl() {
+      return setAcl_;
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+     */
+    public alluxio.proto.journal.File.SetAclEntryOrBuilder getSetAclOrBuilder() {
+      return setAcl_;
+    }
+
     // optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;
     public static final int SET_ATTRIBUTE_FIELD_NUMBER = 27;
     private alluxio.proto.journal.File.SetAttributeEntry setAttribute_;
@@ -1381,7 +1430,7 @@ public final class Journal {
      * <code>optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;</code>
      */
     public boolean hasSetAttribute() {
-      return ((bitField0_ & 0x02000000) == 0x02000000);
+      return ((bitField0_ & 0x04000000) == 0x04000000);
     }
     /**
      * <code>optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;</code>
@@ -1403,7 +1452,7 @@ public final class Journal {
      * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
      */
     public boolean hasUpdateUfsMode() {
-      return ((bitField0_ & 0x04000000) == 0x04000000);
+      return ((bitField0_ & 0x08000000) == 0x08000000);
     }
     /**
      * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
@@ -1444,6 +1493,7 @@ public final class Journal {
       reinitializeFile_ = alluxio.proto.journal.File.ReinitializeFileEntry.getDefaultInstance();
       rename_ = alluxio.proto.journal.File.RenameEntry.getDefaultInstance();
       renameStore_ = alluxio.proto.journal.KeyValue.RenameStoreEntry.getDefaultInstance();
+      setAcl_ = alluxio.proto.journal.File.SetAclEntry.getDefaultInstance();
       setAttribute_ = alluxio.proto.journal.File.SetAttributeEntry.getDefaultInstance();
       updateUfsMode_ = alluxio.proto.journal.File.UpdateUfsModeEntry.getDefaultInstance();
     }
@@ -1528,7 +1578,7 @@ public final class Journal {
       if (((bitField0_ & 0x00100000) == 0x00100000)) {
         output.writeMessage(26, mergeStore_);
       }
-      if (((bitField0_ & 0x02000000) == 0x02000000)) {
+      if (((bitField0_ & 0x04000000) == 0x04000000)) {
         output.writeMessage(27, setAttribute_);
       }
       if (((bitField0_ & 0x01000000) == 0x01000000)) {
@@ -1537,8 +1587,11 @@ public final class Journal {
       if (((bitField0_ & 0x00000200) == 0x00000200)) {
         output.writeMessage(29, deleteBlock_);
       }
-      if (((bitField0_ & 0x04000000) == 0x04000000)) {
+      if (((bitField0_ & 0x08000000) == 0x08000000)) {
         output.writeMessage(30, updateUfsMode_);
+      }
+      if (((bitField0_ & 0x02000000) == 0x02000000)) {
+        output.writeMessage(31, setAcl_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1641,7 +1694,7 @@ public final class Journal {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(26, mergeStore_);
       }
-      if (((bitField0_ & 0x02000000) == 0x02000000)) {
+      if (((bitField0_ & 0x04000000) == 0x04000000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(27, setAttribute_);
       }
@@ -1653,9 +1706,13 @@ public final class Journal {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(29, deleteBlock_);
       }
-      if (((bitField0_ & 0x04000000) == 0x04000000)) {
+      if (((bitField0_ & 0x08000000) == 0x08000000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(30, updateUfsMode_);
+      }
+      if (((bitField0_ & 0x02000000) == 0x02000000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(31, setAcl_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1746,7 +1803,7 @@ public final class Journal {
      * 2.6.0 and adding this depedency would conflict with the version of protobuf used by Hadoop 2.x
      * and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
      *
-     * next available id: 31
+     * next available id: 32
      * </pre>
      */
     public static final class Builder extends
@@ -1800,6 +1857,7 @@ public final class Journal {
           getReinitializeFileFieldBuilder();
           getRenameFieldBuilder();
           getRenameStoreFieldBuilder();
+          getSetAclFieldBuilder();
           getSetAttributeFieldBuilder();
           getUpdateUfsModeFieldBuilder();
         }
@@ -1956,18 +2014,24 @@ public final class Journal {
           renameStoreBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x01000000);
+        if (setAclBuilder_ == null) {
+          setAcl_ = alluxio.proto.journal.File.SetAclEntry.getDefaultInstance();
+        } else {
+          setAclBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x02000000);
         if (setAttributeBuilder_ == null) {
           setAttribute_ = alluxio.proto.journal.File.SetAttributeEntry.getDefaultInstance();
         } else {
           setAttributeBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x02000000);
+        bitField0_ = (bitField0_ & ~0x04000000);
         if (updateUfsModeBuilder_ == null) {
           updateUfsMode_ = alluxio.proto.journal.File.UpdateUfsModeEntry.getDefaultInstance();
         } else {
           updateUfsModeBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x04000000);
+        bitField0_ = (bitField0_ & ~0x08000000);
         return this;
       }
 
@@ -2195,13 +2259,21 @@ public final class Journal {
         if (((from_bitField0_ & 0x02000000) == 0x02000000)) {
           to_bitField0_ |= 0x02000000;
         }
+        if (setAclBuilder_ == null) {
+          result.setAcl_ = setAcl_;
+        } else {
+          result.setAcl_ = setAclBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x04000000) == 0x04000000)) {
+          to_bitField0_ |= 0x04000000;
+        }
         if (setAttributeBuilder_ == null) {
           result.setAttribute_ = setAttribute_;
         } else {
           result.setAttribute_ = setAttributeBuilder_.build();
         }
-        if (((from_bitField0_ & 0x04000000) == 0x04000000)) {
-          to_bitField0_ |= 0x04000000;
+        if (((from_bitField0_ & 0x08000000) == 0x08000000)) {
+          to_bitField0_ |= 0x08000000;
         }
         if (updateUfsModeBuilder_ == null) {
           result.updateUfsMode_ = updateUfsMode_;
@@ -2298,6 +2370,9 @@ public final class Journal {
         }
         if (other.hasRenameStore()) {
           mergeRenameStore(other.getRenameStore());
+        }
+        if (other.hasSetAcl()) {
+          mergeSetAcl(other.getSetAcl());
         }
         if (other.hasSetAttribute()) {
           mergeSetAttribute(other.getSetAttribute());
@@ -5173,6 +5248,123 @@ public final class Journal {
         return renameStoreBuilder_;
       }
 
+      // optional .alluxio.proto.journal.SetAclEntry set_acl = 31;
+      private alluxio.proto.journal.File.SetAclEntry setAcl_ = alluxio.proto.journal.File.SetAclEntry.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.SetAclEntry, alluxio.proto.journal.File.SetAclEntry.Builder, alluxio.proto.journal.File.SetAclEntryOrBuilder> setAclBuilder_;
+      /**
+       * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+       */
+      public boolean hasSetAcl() {
+        return ((bitField0_ & 0x02000000) == 0x02000000);
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+       */
+      public alluxio.proto.journal.File.SetAclEntry getSetAcl() {
+        if (setAclBuilder_ == null) {
+          return setAcl_;
+        } else {
+          return setAclBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+       */
+      public Builder setSetAcl(alluxio.proto.journal.File.SetAclEntry value) {
+        if (setAclBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          setAcl_ = value;
+          onChanged();
+        } else {
+          setAclBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x02000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+       */
+      public Builder setSetAcl(
+          alluxio.proto.journal.File.SetAclEntry.Builder builderForValue) {
+        if (setAclBuilder_ == null) {
+          setAcl_ = builderForValue.build();
+          onChanged();
+        } else {
+          setAclBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x02000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+       */
+      public Builder mergeSetAcl(alluxio.proto.journal.File.SetAclEntry value) {
+        if (setAclBuilder_ == null) {
+          if (((bitField0_ & 0x02000000) == 0x02000000) &&
+              setAcl_ != alluxio.proto.journal.File.SetAclEntry.getDefaultInstance()) {
+            setAcl_ =
+              alluxio.proto.journal.File.SetAclEntry.newBuilder(setAcl_).mergeFrom(value).buildPartial();
+          } else {
+            setAcl_ = value;
+          }
+          onChanged();
+        } else {
+          setAclBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x02000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+       */
+      public Builder clearSetAcl() {
+        if (setAclBuilder_ == null) {
+          setAcl_ = alluxio.proto.journal.File.SetAclEntry.getDefaultInstance();
+          onChanged();
+        } else {
+          setAclBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x02000000);
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+       */
+      public alluxio.proto.journal.File.SetAclEntry.Builder getSetAclBuilder() {
+        bitField0_ |= 0x02000000;
+        onChanged();
+        return getSetAclFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+       */
+      public alluxio.proto.journal.File.SetAclEntryOrBuilder getSetAclOrBuilder() {
+        if (setAclBuilder_ != null) {
+          return setAclBuilder_.getMessageOrBuilder();
+        } else {
+          return setAcl_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.SetAclEntry set_acl = 31;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.SetAclEntry, alluxio.proto.journal.File.SetAclEntry.Builder, alluxio.proto.journal.File.SetAclEntryOrBuilder> 
+          getSetAclFieldBuilder() {
+        if (setAclBuilder_ == null) {
+          setAclBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              alluxio.proto.journal.File.SetAclEntry, alluxio.proto.journal.File.SetAclEntry.Builder, alluxio.proto.journal.File.SetAclEntryOrBuilder>(
+                  setAcl_,
+                  getParentForChildren(),
+                  isClean());
+          setAcl_ = null;
+        }
+        return setAclBuilder_;
+      }
+
       // optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;
       private alluxio.proto.journal.File.SetAttributeEntry setAttribute_ = alluxio.proto.journal.File.SetAttributeEntry.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
@@ -5181,7 +5373,7 @@ public final class Journal {
        * <code>optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;</code>
        */
       public boolean hasSetAttribute() {
-        return ((bitField0_ & 0x02000000) == 0x02000000);
+        return ((bitField0_ & 0x04000000) == 0x04000000);
       }
       /**
        * <code>optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;</code>
@@ -5206,7 +5398,7 @@ public final class Journal {
         } else {
           setAttributeBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x02000000;
+        bitField0_ |= 0x04000000;
         return this;
       }
       /**
@@ -5220,7 +5412,7 @@ public final class Journal {
         } else {
           setAttributeBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x02000000;
+        bitField0_ |= 0x04000000;
         return this;
       }
       /**
@@ -5228,7 +5420,7 @@ public final class Journal {
        */
       public Builder mergeSetAttribute(alluxio.proto.journal.File.SetAttributeEntry value) {
         if (setAttributeBuilder_ == null) {
-          if (((bitField0_ & 0x02000000) == 0x02000000) &&
+          if (((bitField0_ & 0x04000000) == 0x04000000) &&
               setAttribute_ != alluxio.proto.journal.File.SetAttributeEntry.getDefaultInstance()) {
             setAttribute_ =
               alluxio.proto.journal.File.SetAttributeEntry.newBuilder(setAttribute_).mergeFrom(value).buildPartial();
@@ -5239,7 +5431,7 @@ public final class Journal {
         } else {
           setAttributeBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x02000000;
+        bitField0_ |= 0x04000000;
         return this;
       }
       /**
@@ -5252,14 +5444,14 @@ public final class Journal {
         } else {
           setAttributeBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x02000000);
+        bitField0_ = (bitField0_ & ~0x04000000);
         return this;
       }
       /**
        * <code>optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;</code>
        */
       public alluxio.proto.journal.File.SetAttributeEntry.Builder getSetAttributeBuilder() {
-        bitField0_ |= 0x02000000;
+        bitField0_ |= 0x04000000;
         onChanged();
         return getSetAttributeFieldBuilder().getBuilder();
       }
@@ -5298,7 +5490,7 @@ public final class Journal {
        * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
        */
       public boolean hasUpdateUfsMode() {
-        return ((bitField0_ & 0x04000000) == 0x04000000);
+        return ((bitField0_ & 0x08000000) == 0x08000000);
       }
       /**
        * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
@@ -5323,7 +5515,7 @@ public final class Journal {
         } else {
           updateUfsModeBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x04000000;
+        bitField0_ |= 0x08000000;
         return this;
       }
       /**
@@ -5337,7 +5529,7 @@ public final class Journal {
         } else {
           updateUfsModeBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x04000000;
+        bitField0_ |= 0x08000000;
         return this;
       }
       /**
@@ -5345,7 +5537,7 @@ public final class Journal {
        */
       public Builder mergeUpdateUfsMode(alluxio.proto.journal.File.UpdateUfsModeEntry value) {
         if (updateUfsModeBuilder_ == null) {
-          if (((bitField0_ & 0x04000000) == 0x04000000) &&
+          if (((bitField0_ & 0x08000000) == 0x08000000) &&
               updateUfsMode_ != alluxio.proto.journal.File.UpdateUfsModeEntry.getDefaultInstance()) {
             updateUfsMode_ =
               alluxio.proto.journal.File.UpdateUfsModeEntry.newBuilder(updateUfsMode_).mergeFrom(value).buildPartial();
@@ -5356,7 +5548,7 @@ public final class Journal {
         } else {
           updateUfsModeBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x04000000;
+        bitField0_ |= 0x08000000;
         return this;
       }
       /**
@@ -5369,14 +5561,14 @@ public final class Journal {
         } else {
           updateUfsModeBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x04000000);
+        bitField0_ = (bitField0_ & ~0x08000000);
         return this;
       }
       /**
        * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
        */
       public alluxio.proto.journal.File.UpdateUfsModeEntry.Builder getUpdateUfsModeBuilder() {
-        bitField0_ |= 0x04000000;
+        bitField0_ |= 0x08000000;
         onChanged();
         return getUpdateUfsModeFieldBuilder().getBuilder();
       }
@@ -5435,7 +5627,7 @@ public final class Journal {
       "\n\025journal/journal.proto\022\025alluxio.proto.j" +
       "ournal\032\023journal/block.proto\032\022journal/fil" +
       "e.proto\032\027journal/key_value.proto\032\025journa" +
-      "l/lineage.proto\"\256\016\n\014JournalEntry\022\027\n\017sequ" +
+      "l/lineage.proto\"\343\016\n\014JournalEntry\022\027\n\017sequ" +
       "ence_number\030\001 \001(\003\022B\n\017add_mount_point\030\002 \001" +
       "(\0132).alluxio.proto.journal.AddMountPoint" +
       "Entry\022N\n\025async_persist_request\030\020 \001(\0132/.a" +
@@ -5478,11 +5670,12 @@ public final class Journal {
       "ileEntry\0222\n\006rename\030\023 \001(\0132\".alluxio.proto" +
       ".journal.RenameEntry\022=\n\014rename_store\030\034 \001" +
       "(\0132\'.alluxio.proto.journal.RenameStoreEn" +
-      "try\022?\n\rset_attribute\030\033 \001(\0132(.alluxio.pro" +
-      "to.journal.SetAttributeEntry\022B\n\017update_u" +
-      "fs_mode\030\036 \001(\0132).alluxio.proto.journal.Up" +
-      "dateUfsModeEntryB\027\n\025alluxio.proto.journa",
-      "l"
+      "try\0223\n\007set_acl\030\037 \001(\0132\".alluxio.proto.jou" +
+      "rnal.SetAclEntry\022?\n\rset_attribute\030\033 \001(\0132" +
+      "(.alluxio.proto.journal.SetAttributeEntr" +
+      "y\022B\n\017update_ufs_mode\030\036 \001(\0132).alluxio.pro",
+      "to.journal.UpdateUfsModeEntryB\027\n\025alluxio" +
+      ".proto.journal"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -5494,7 +5687,7 @@ public final class Journal {
           internal_static_alluxio_proto_journal_JournalEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_JournalEntry_descriptor,
-              new java.lang.String[] { "SequenceNumber", "AddMountPoint", "AsyncPersistRequest", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "CompletePartition", "CompleteStore", "CreateStore", "DeleteBlock", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "DeleteStore", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "MergeStore", "PersistDirectory", "ReinitializeFile", "Rename", "RenameStore", "SetAttribute", "UpdateUfsMode", });
+              new java.lang.String[] { "SequenceNumber", "AddMountPoint", "AsyncPersistRequest", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "CompletePartition", "CompleteStore", "CreateStore", "DeleteBlock", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "DeleteStore", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "MergeStore", "PersistDirectory", "ReinitializeFile", "Rename", "RenameStore", "SetAcl", "SetAttribute", "UpdateUfsMode", });
           return null;
         }
       };

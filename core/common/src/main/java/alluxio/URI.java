@@ -173,6 +173,17 @@ public interface URI extends Comparable<URI>, Serializable {
     }
 
     /**
+     * @param baseUri the base URI
+     * @param newPath the new path component
+     * @param checkNormalization if true, will check if the path requires normalization
+     * @return a new URI based off a URI and a new path component
+     */
+    public static URI create(URI baseUri, String newPath, boolean checkNormalization) {
+      Preconditions.checkArgument(newPath != null, "Can not create a uri with a null newPath.");
+      return baseUri.createNewPath(newPath, checkNormalization);
+    }
+
+    /**
      * Returns a {@link Pair} of components of the given scheme. A given scheme may have have two
      * components if it has the ':' character to specify a sub-protocol of the scheme. If the
      * scheme does not have multiple components, the first component will be the empty string, and
@@ -182,7 +193,7 @@ public interface URI extends Comparable<URI>, Serializable {
      * @param scheme the scheme string
      * @return a {@link Pair} with the scheme components
      */
-    private static Pair<String, String> getSchemeComponents(String scheme) {
+    public static Pair<String, String> getSchemeComponents(String scheme) {
       if (scheme == null) {
         return new Pair<>(null, null);
       }
@@ -194,6 +205,13 @@ public interface URI extends Comparable<URI>, Serializable {
     }
 
   }
+
+  /**
+   * @param newPath the new path component
+   * @param checkNormalization if true, will check if the path requires normalization
+   * @return a new URI based off of this URI, but with a new path component
+   */
+  URI createNewPath(String newPath, boolean checkNormalization);
 
   /**
    * @return the authority of the {@link URI}, null if it does not have one
@@ -226,6 +244,11 @@ public interface URI extends Comparable<URI>, Serializable {
   String getScheme();
 
   /**
+   * @return the scheme specific part of the {@link URI}, null if there is no scheme
+   */
+  String getSchemeSpecificPart();
+
+  /**
    * Tells whether or not the {@link URI} is absolute.
    *
    * <p>
@@ -235,9 +258,4 @@ public interface URI extends Comparable<URI>, Serializable {
    * @return <tt>true</tt> if, and only if, this {@link URI} is absolute
    */
   boolean isAbsolute();
-
-  /**
-   * @return the {@link java.net.URI} representation of this {@link URI}
-   */
-  java.net.URI getBaseURI();
 }

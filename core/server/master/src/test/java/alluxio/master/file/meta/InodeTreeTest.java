@@ -36,8 +36,12 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -59,6 +63,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Unit tests for {@link InodeTree}.
@@ -67,7 +72,10 @@ public final class InodeTreeTest {
   private static final String TEST_PATH = "test";
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
+  private static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
+  private static final AlluxioURI NESTED_MULTIDIR_FILE_URI
+      = new AlluxioURI("/nested/test/dira/dirb/file");
   public static final String TEST_OWNER = "user1";
   public static final String TEST_GROUP = "group1";
   public static final Mode TEST_DIR_MODE = new Mode((short) 0755);
@@ -112,7 +120,7 @@ public final class InodeTreeTest {
 
     mRegistry.start(true);
 
-    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_DIR_MODE);
+    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_DIR_MODE, NoopJournalContext.INSTANCE);
   }
 
   @After
@@ -142,7 +150,7 @@ public final class InodeTreeTest {
   public void initializeRootTwice() throws Exception {
     Inode<?> root = getInodeByPath(mTree, new AlluxioURI("/"));
     // initializeRoot call does nothing
-    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_DIR_MODE);
+    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_DIR_MODE, NoopJournalContext.INSTANCE);
     assertEquals(TEST_OWNER, root.getOwner());
     Inode<?> newRoot = getInodeByPath(mTree, new AlluxioURI("/"));
     assertEquals(root, newRoot);
@@ -230,6 +238,66 @@ public final class InodeTreeTest {
     assertEquals("user1", nestedFile.getOwner());
     assertEquals("group1", nestedFile.getGroup());
     assertEquals(TEST_FILE_MODE.toShort(), nestedFile.getMode());
+  }
+
+  /**
+   * Tests the createPath method, specifically for ACLs and default ACLs.
+   */
+  @Test
+  public void createPathAclTest() throws Exception {
+    CreateDirectoryOptions dirOptions = CreateDirectoryOptions.defaults().setOwner(TEST_OWNER)
+        .setGroup(TEST_GROUP).setMode(TEST_DIR_MODE).setRecursive(true);
+    // create nested directory
+    InodeTree.CreatePathResult createResult = createPath(mTree, NESTED_URI, dirOptions);
+    List<Inode<?>> created = createResult.getCreated();
+    // 2 created directories
+    assertEquals(2, created.size());
+    assertEquals("nested", created.get(0).getName());
+    assertEquals("test", created.get(1).getName());
+    DefaultAccessControlList dAcl = new DefaultAccessControlList(created.get(1).mAcl);
+    dAcl.setEntry(AclEntry.fromCliString("default:user::r-x"));
+    created.get(1).setDefaultACL(dAcl);
+
+    // create nested directory
+    createResult = createPath(mTree, NESTED_DIR_URI, dirOptions);
+    created = createResult.getCreated();
+    // the new directory should have the same ACL as its parent
+    // 1 created directories
+    assertEquals(1, created.size());
+    assertEquals("dir", created.get(0).getName());
+    DefaultAccessControlList childDefaultAcl =  created.get(0).getDefaultACL();
+    AccessControlList childAcl = created.get(0).mAcl;
+    assertEquals(dAcl, childDefaultAcl);
+
+    assertEquals(childAcl.toStringEntries().stream().map(AclEntry::toDefault)
+        .collect(Collectors.toList()), dAcl.toStringEntries());
+    // create nested file
+    createResult = createPath(mTree, NESTED_FILE_URI, dirOptions);
+    created = createResult.getCreated();
+    // the new file should have the same ACL as its parent's default ACL
+    // 1 created file
+    assertEquals(1, created.size());
+    assertEquals("file", created.get(0).getName());
+    childAcl = created.get(0).mAcl;
+    assertEquals(childAcl.toStringEntries().stream().map(AclEntry::toDefault)
+        .collect(Collectors.toList()), dAcl.toStringEntries());
+
+    // create nested directory
+    createResult = createPath(mTree, NESTED_MULTIDIR_FILE_URI, dirOptions);
+    created = createResult.getCreated();
+    // 3 created directories
+    assertEquals(3, created.size());
+    assertEquals("dira", created.get(0).getName());
+    assertEquals("dirb", created.get(1).getName());
+    assertEquals("file", created.get(2).getName());
+
+    for (Inode<?> inode: created) {
+      childAcl = inode.mAcl;
+      // All the newly created directories and files should inherit the default ACL from parent
+      assertEquals(childAcl.toStringEntries().stream().map(AclEntry::toDefault)
+          .collect(Collectors.toList()), dAcl.toStringEntries());
+    }
+
   }
 
   /**

@@ -13,6 +13,8 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.exception.status.UnimplementedException;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
@@ -27,6 +29,7 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,15 +51,19 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   private static final String NAME_SEPARATOR = ":";
 
   private final UnderFileSystem mUnderFileSystem;
+  private final String mPath;
 
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
    * {@link UnderFileSystem} implementation.
    *
+   * @param path the UFS path
    * @param ufs the implementation which will handle all the calls
    */
   // TODO(adit): Remove this method. ALLUXIO-2643.
-  UnderFileSystemWithLogging(UnderFileSystem ufs) {
+  UnderFileSystemWithLogging(String path, UnderFileSystem ufs) {
+    Preconditions.checkNotNull(path, "path");
+    mPath = path;
     mUnderFileSystem = ufs;
   }
 
@@ -195,6 +202,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("Exists: path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public AccessControlList getAcl(String path) throws IOException, UnimplementedException {
+    return call(new UfsCallable<AccessControlList>() {
+      @Override
+      public AccessControlList call() throws IOException {
+        return mUnderFileSystem.getAcl(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetAcl: path=%s", path);
       }
     });
   }
@@ -502,6 +524,22 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public void setAcl(String path, AccessControlList acl) throws IOException {
+    call(new UfsCallable<Void>() {
+      @Override
+      public Void call() throws IOException {
+        mUnderFileSystem.setAcl(path, acl);
+        return null;
+      }
+
+      @Override
+      public String toString() {
+        return String.format("SetAcl: path=%s, ACL=%s", path, acl);
+      }
+    });
+  }
+
+  @Override
   public void setOwner(final String path, final String owner, final String group)
       throws IOException {
     call(new UfsCallable<Void>() {
@@ -595,12 +633,14 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       if (SecurityUtils.isAuthenticationEnabled() && AuthenticatedClientUser.get() != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
             AuthenticatedClientUser.get().getName(), WorkerMetrics.TAG_UFS,
+            MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
             mUnderFileSystem.getUnderFSType());
       }
     } catch (IOException e) {
       // fall through
     }
     return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
+        MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
         mUnderFileSystem.getUnderFSType());
   }
 

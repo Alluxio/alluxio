@@ -376,7 +376,6 @@ final class UfsJournalLogWriter implements JournalWriter {
     private final UfsJournalFile mCurrentLog;
 
     JournalOutputStream(UfsJournalFile currentLog, OutputStream stream) throws IOException {
-      Preconditions.checkState(mUfs.exists(currentLog.getLocation().getPath()));
       mOutputStream = wrapDataOutputStream(stream);
       mCurrentLog = currentLog;
     }

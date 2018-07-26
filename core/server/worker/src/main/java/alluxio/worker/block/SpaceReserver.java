@@ -120,8 +120,8 @@ public class SpaceReserver implements HeartbeatExecutor {
             mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, reservedSpace, tierAlias);
           } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
               | BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
-            LOG.warn("SpaceReserver failed to free tier {} to {} bytes used for high watermarks: "
-                + "{}", tierAlias, reservedSpace, e.getMessage());
+            LOG.warn("SpaceReserver failed to free {} bytes on tier {} for high watermarks: {}",
+                reservedSpace, tierAlias, e.getMessage());
           }
         }
       } else {
@@ -129,8 +129,8 @@ public class SpaceReserver implements HeartbeatExecutor {
           mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, reservedSpace, tierAlias);
         } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
             | BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
-          LOG.warn("SpaceReserver failed to free tier {} to {} bytes used: {}", tierAlias,
-              reservedSpace, e.getMessage());
+          LOG.warn("SpaceReserver failed to free {} bytes on tier {}: {}", reservedSpace,
+              tierAlias, e.getMessage());
         }
       }
     }

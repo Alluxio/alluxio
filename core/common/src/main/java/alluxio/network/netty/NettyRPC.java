@@ -60,6 +60,7 @@ public final class NettyRPC {
       CommonUtils.closeChannel(channel);
       throw new IOException(e);
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       CommonUtils.closeChannel(channel);
       throw new RuntimeException(e);
     } finally {

@@ -47,6 +47,15 @@ public final class AuthenticatedClientUser {
   }
 
   /**
+   * Sets {@link User} to the {@link ThreadLocal} variable.
+   *
+   * @param user the client user object
+   */
+  public static void set(User user) {
+    sUserThreadLocal.set(user);
+  }
+
+  /**
    * Gets the {@link User} from the {@link ThreadLocal} variable.
    *
    * @return the client user, null if the user is not present
@@ -56,6 +65,13 @@ public final class AuthenticatedClientUser {
     if (!SecurityUtils.isAuthenticationEnabled()) {
       throw new IOException(ExceptionMessage.AUTHENTICATION_IS_NOT_ENABLED.getMessage());
     }
+    return sUserThreadLocal.get();
+  }
+
+  /**
+   * @return the user or null if the user is not set
+   */
+  public static User getOrNull() {
     return sUserThreadLocal.get();
   }
 

@@ -18,7 +18,6 @@ import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
 
-import com.google.common.base.Throwables;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
@@ -64,7 +63,8 @@ public final class NettyDataServer implements DataServer {
     try {
       mChannelFuture = mBootstrap.bind(address).sync();
     } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
     }
   }
 

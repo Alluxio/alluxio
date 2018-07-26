@@ -45,6 +45,15 @@ public abstract class LockedInodePath implements Closeable {
     mLockMode = lockMode;
   }
 
+  LockedInodePath(AlluxioURI uri, InodeLockList lockList, String[] pathComponents,
+      InodeTree.LockMode lockMode) {
+    Preconditions.checkArgument(!lockList.isEmpty());
+    mUri = uri;
+    mPathComponents = pathComponents;
+    mLockList = lockList;
+    mLockMode = lockMode;
+  }
+
   /**
    * Creates a new instance of {@link LockedInodePath}, that is the descendant of an existing
    * lockedInodePath.
@@ -89,8 +98,7 @@ public abstract class LockedInodePath implements Closeable {
     if (!fullPathExists()) {
       return null;
     }
-    List<Inode<?>> inodeList = mLockList.getInodes();
-    return inodeList.get(inodeList.size() - 1);
+    return mLockList.get(mLockList.size() - 1);
   }
 
   /**
@@ -129,19 +137,20 @@ public abstract class LockedInodePath implements Closeable {
    */
   @Nullable
   public synchronized Inode getParentInodeOrNull() {
-    if (mPathComponents.length < 2 || mLockList.getInodes().size() < (mPathComponents.length - 1)) {
+    if (mPathComponents.length < 2 || mLockList.size() < (mPathComponents.length - 1)) {
       // The path is only the root, or the list of inodes is not long enough to contain the parent
       return null;
     }
-    return mLockList.getInodes().get(mPathComponents.length - 2);
+    return mLockList.get(mPathComponents.length - 2);
   }
 
   /**
    * @return the last existing inode on the inode path
    */
   public synchronized Inode getLastExistingInode() {
-    return mLockList.getInodes().get(mLockList.getInodes().size() - 1);
+    return mLockList.get(mLockList.size() - 1);
   }
+
   /**
    * @return a copy of the list of existing inodes, from the root
    */
@@ -150,10 +159,17 @@ public abstract class LockedInodePath implements Closeable {
   }
 
   /**
+   * @return number of inodes in this locked path
+   */
+  public synchronized int size() {
+    return mLockList.size();
+  }
+
+  /**
    * @return true if the entire path of inodes exists, false otherwise
    */
   public synchronized boolean fullPathExists() {
-    return mLockList.getInodes().size() == mPathComponents.length;
+    return mLockList.size() == mPathComponents.length;
   }
 
   /**
@@ -202,8 +218,8 @@ public abstract class LockedInodePath implements Closeable {
     if (ancestorIndex < 0) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
     }
-    ancestorIndex = Math.min(ancestorIndex, mLockList.getInodes().size() - 1);
-    return mLockList.getInodes().get(ancestorIndex);
+    ancestorIndex = Math.min(ancestorIndex, mLockList.size() - 1);
+    return mLockList.get(ancestorIndex);
   }
 
   /**
@@ -257,7 +273,7 @@ public abstract class LockedInodePath implements Closeable {
    * Unlocks the last inode that was locked.
    */
   public synchronized void unlockLast() {
-    if (mLockList.getInodes().isEmpty()) {
+    if (mLockList.isEmpty()) {
       return;
     }
     mLockList.unlockLast();

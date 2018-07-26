@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -99,7 +100,7 @@ public interface UnderFileSystem extends Closeable {
           // when creation is done.
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(factory.create(path, ufsConf));
+          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf));
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
@@ -256,6 +257,15 @@ public interface UnderFileSystem extends Closeable {
    * @return true if the path exists, false otherwise
    */
   boolean exists(String path) throws IOException;
+
+  /**
+   * Gets the access control list of a file or directory in under file system.
+   *
+   * @param path the path to the file or directory
+   * @return the access control list, or null if ACL is unsupported or disabled
+   * @throws IOException if ACL is supported and enabled but cannot be retrieved
+   */
+  AccessControlList getAcl(String path) throws IOException;
 
   /**
    * Gets the block size of a file in under file system, in bytes.
@@ -500,6 +510,15 @@ public interface UnderFileSystem extends Closeable {
    * @return the UFS {@link AlluxioURI} representing the Alluxio path
    */
   AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath);
+
+  /**
+   * Sets the access control list of a file or directory in under file system.
+   * if the ufs does not support acls, this is a noop.
+   *
+   * @param path the path to the file or directory
+   * @param acl the access control list
+   */
+  void setAcl(String path, AccessControlList acl) throws IOException;
 
   /**
    * Changes posix file mode.

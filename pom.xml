@@ -14,7 +14,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>1.8.0-SNAPSHOT</version>
+  <version>1.9.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -1243,58 +1243,16 @@
     </profile>
 
     <profile>
-      <id>hadoop-2.2</id>
+      <id>hadoop-2</id>
       <properties>
         <hadoop.version>2.2.0</hadoop.version>
       </properties>
     </profile>
 
     <profile>
-      <id>hadoop-2.3</id>
+      <id>hadoop-3</id>
       <properties>
-        <hadoop.version>2.3.0</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.4</id>
-      <properties>
-        <hadoop.version>2.4.1</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.5</id>
-      <properties>
-        <hadoop.version>2.5.2</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.6</id>
-      <properties>
-        <hadoop.version>2.6.5</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.7</id>
-      <properties>
-        <hadoop.version>2.7.5</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.8</id>
-      <properties>
-        <hadoop.version>2.8.3</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.9</id>
-      <properties>
-        <hadoop.version>2.9.0</hadoop.version>
+        <hadoop.version>3.0.0</hadoop.version>
       </properties>
     </profile>
 

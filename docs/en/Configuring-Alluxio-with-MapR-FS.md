@@ -14,7 +14,7 @@ as the under storage system.
 
 ## Compiling Alluxio with MapR Version
 
-Alluxio must be [compiled](Building-Alluxio-Master-Branch.html) with the correct MapR distribution
+Alluxio must be [compiled](Building-Alluxio-From-Source.html) with the correct MapR distribution
 to integrate with MapR-FS. Here are some values of `hadoop.version` for different MapR
 distributions:
 
