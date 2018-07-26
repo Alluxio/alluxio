@@ -180,6 +180,10 @@ struct GetMountTableTResponse {
   1: map<string, MountPointInfo> mountTable
 }
 
+struct GetPinnedFilePathsTResponse {
+  1: list<string> pinnedPaths
+}
+
 struct MountPointInfo {
   1: string ufsUri
   2: string ufsType
@@ -330,6 +334,12 @@ service FileSystemMasterClientService extends common.AlluxioService {
   * Returns a map from each Alluxio path to information of corresponding mount point
   */
   GetMountTableTResponse getMountTable()
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns the list of pinned file paths.
+   */
+  GetPinnedFilePathsTResponse getPinnedFilePaths()
     throws (1: exception.AlluxioTException e)
 
   /**

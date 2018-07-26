@@ -353,6 +353,11 @@ public interface FileSystemMaster extends Master {
   Set<Long> getPinIdList();
 
   /**
+   * @return the list of file paths which are pinned
+   */
+  List<String> getPinnedFilePaths();
+
+  /**
    * @return the ufs address for this master
    */
   String getUfsAddress();

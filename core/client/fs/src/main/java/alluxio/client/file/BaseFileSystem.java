@@ -352,6 +352,20 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public List<String> getPinnedFile() throws IOException, AlluxioException {
+    FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+    try {
+      return masterClient.getPinnedFile();
+    } catch (UnavailableException e) {
+      throw e;
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    } finally {
+      mFileSystemContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
   public FileInStream openFile(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
     return openFile(path, OpenFileOptions.defaults());

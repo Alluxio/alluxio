@@ -98,6 +98,11 @@ Synchronous eviction waits for a client to request more space than is currently 
 and then kicks off the eviction process to free up enough space to serve that request. This leads to many 
 small eviction attempts, which is less efficient but maximizes the utilization of available Alluxio space.
 
+In addition, if you wish files not be evicted, [`pin`](Command-Line-Interface.html#pin) command can be
+used. Once a file is pinned, any blocks belonging to the file will never be evicted from an Alluxio
+worker. Conversely, you can invoke [`unpin`](Command-Line-Interface.html#unpin) command to make its data
+blocks evicted from the various Alluxio workers containing the block.
+
 ### Evictors
 
 Alluxio uses evictors for deciding which blocks to evict, when space needs to be

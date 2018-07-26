@@ -2523,6 +2523,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
+  public List<String> getPinnedFilePaths() {
+    Set<String> pinnedFiles = new HashSet<>();
+    for (long pinId : getPinIdList()) {
+      try {
+        String pinFilePath = getPath(pinId).getPath();
+        pinnedFiles.add(pinFilePath);
+      } catch (FileDoesNotExistException e) {
+        e.printStackTrace();
+      }
+    }
+    return new ArrayList<>(pinnedFiles);
+  }
+
+  @Override
   public String getUfsAddress() {
     return Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
   }

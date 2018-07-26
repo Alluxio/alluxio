@@ -168,6 +168,12 @@ public interface FileSystemMasterClient extends Client {
   Map<String, MountPointInfo> getMountTable() throws AlluxioStatusException;
 
   /**
+   * Lists all pinned file paths.
+   * @return a list of pinned file paths
+   */
+  List<String> getPinnedFile() throws AlluxioStatusException;
+
+  /**
    * Renames a file or a directory.
    *
    * @param src the path to rename

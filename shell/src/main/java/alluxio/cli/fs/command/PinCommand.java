@@ -12,16 +12,16 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Pins the given file or folder (recursively pinning all children if a folder). Pinned files are
@@ -52,6 +52,19 @@ public final class PinCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
+    if (args.length == 0) {
+      List<String> pinnedFiles = mFileSystem.getPinnedFile();
+      if (pinnedFiles.size() > 0) {
+        System.out.println("The current pinned file paths are listed below: ");
+      } else {
+        System.out.println("There are no pinned file paths yet, please use 'pin <path>'.");
+      }
+      Collections.sort(pinnedFiles);
+      for (String pinnedFile : pinnedFiles) {
+        System.out.println(pinnedFile);
+      }
+      return 0;
+    }
     AlluxioURI path = new AlluxioURI(args[0]);
     runWildCardCmd(path, cl);
     return 0;
@@ -70,6 +83,9 @@ public final class PinCommand extends AbstractFileSystemCommand {
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+    if (cl.getArgs().length != 1 && cl.getArgs().length != 0) {
+      throw new InvalidArgumentException("Command pin takes 0 or 1 arguments, not " + cl
+          .getArgs().length);
+    }
   }
 }

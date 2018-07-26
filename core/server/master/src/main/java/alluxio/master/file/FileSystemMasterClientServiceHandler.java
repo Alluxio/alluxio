@@ -49,6 +49,7 @@ import alluxio.thrift.FreeTResponse;
 import alluxio.thrift.GetMountTableTResponse;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.GetNewBlockIdForFileTResponse;
+import alluxio.thrift.GetPinnedFilePathsTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.GetStatusTOptions;
@@ -246,6 +247,14 @@ public final class FileSystemMasterClientServiceHandler implements
       }
       return new GetMountTableTResponse(mountTableThrift);
     }, "GetMountTable", "");
+  }
+
+  @Override
+  public GetPinnedFilePathsTResponse getPinnedFilePaths() throws AlluxioTException {
+    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetPinnedFilePathsTResponse>) () -> {
+      List<String> pinnedFile = mFileSystemMaster.getPinnedFilePaths();
+      return new GetPinnedFilePathsTResponse(pinnedFile);
+    }, "GetPinnedFilePaths", "");
   }
 
   @Override

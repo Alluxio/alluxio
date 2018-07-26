@@ -295,6 +295,12 @@ public interface FileSystem {
   Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException;
 
   /**
+   * Lists all pinned file paths.
+   * @return a list of pinned file paths
+   */
+  List<String> getPinnedFile() throws IOException, AlluxioException;
+
+  /**
    * Convenience method for {@link #openFile(AlluxioURI, OpenFileOptions)} with default options.
    *
    * @param path the file to read from
