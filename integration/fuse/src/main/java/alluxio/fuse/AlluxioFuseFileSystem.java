@@ -122,7 +122,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
                   LOG.error("=== err while close old entry for path " + path + " :" + e.getMessage());
               }
               try {
-                  if (olde.getOut() != null) olde.getOut().close();
+                  if (olde.getOut() != null) olde.getOut().cancel();
               } catch (Exception e) {
                   LOG.error("=== err while close old entry for path " + path + " :" + e.getMessage());
               }
