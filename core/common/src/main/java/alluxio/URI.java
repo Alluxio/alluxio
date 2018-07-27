@@ -13,6 +13,7 @@ package alluxio;
 
 import alluxio.collections.Pair;
 
+import alluxio.master.MasterInquireClient;
 import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
@@ -124,8 +125,11 @@ public interface URI extends Comparable<URI>, Serializable {
       String schemePrefix = schemeComponents.getFirst();
       scheme = schemeComponents.getSecond();
 
-      if (scheme == null || schemePrefix.isEmpty()) {
-        // This is a standard URI.
+      String zkAuthorityPattern = "^zk@(.*)";
+
+      if (authority != null && authority.matches(zkAuthorityPattern)) {
+        return new ZookeeperURI(scheme, authority, path, query);
+      } else if (scheme == null || schemePrefix.isEmpty()) {
         return new StandardURI(scheme, authority, path, query);
       } else {
         return new MultiPartSchemeURI(schemePrefix, scheme, authority, path, query);

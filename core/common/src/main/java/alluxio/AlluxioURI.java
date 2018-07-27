@@ -389,6 +389,10 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
         || (mUri.getPath().isEmpty() && mUri.getAuthority() != null);
   }
 
+  public boolean isZookeeperURI() {
+    return mUri instanceof ZookeeperURI;
+  }
+
   /**
    * Append additional path elements to the end of an {@link AlluxioURI}.
    *
