@@ -261,11 +261,11 @@ int main(void) {
   alluxio::ExistsOptionsTest();
   alluxio::FreeOptionsTest();
   alluxio::ListStatusOptionsTest();
-  alluxio::MountOptionsTest();
-  alluxio::OpenFileOptionsTest();
-  alluxio::SetAttributeOptionsTest();
-  alluxio::GetStatusOptionsTest();
-  alluxio::GetWorkerOptionsTest();
+  //alluxio::MountOptionsTest();
+  //alluxio::OpenFileOptionsTest();
+  //alluxio::SetAttributeOptionsTest();
+  //alluxio::GetStatusOptionsTest();
+  //alluxio::GetWorkerOptionsTest();
   delete miniCluster;
   delete fileSystem;
   return 0;
