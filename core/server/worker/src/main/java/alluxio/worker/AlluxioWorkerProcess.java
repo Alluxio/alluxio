@@ -355,7 +355,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC));
+      return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC),
+          (int) Configuration.getMs(PropertyKey.WORKER_CONNECTION_TIMEOUT_MS));
     } catch (TTransportException e) {
       throw Throwables.propagate(e);
     }
