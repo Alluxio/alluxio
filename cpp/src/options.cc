@@ -12,30 +12,8 @@
 #include <options.h>
 
 using ::jnihelper::JniHelper;
-using ::alluxio::CreateDirectoryOptions;
-using ::alluxio::CreateFileOptions;
-using ::alluxio::DeleteOptions;
-using ::alluxio::ExistsOptions;
-using ::alluxio::SetAttributeOptions;
-using ::alluxio::FreeOptions;
-using ::alluxio::ListStatusOptions;
-using ::alluxio::MountOptions;
-using ::alluxio::OpenFileOptions;
-using ::alluxio::GetStatusOptions;
-using ::alluxio::WriteType;
-using ::alluxio::ReadType;
-using ::alluxio::TtlAction;
-using ::alluxio::Mode;
-using ::alluxio::LoadMetadataType;
-using ::alluxio::BlockLocationPolicy;
-using ::alluxio::FileWriteLocationPolicy;
-using ::alluxio::DeterministicHashPolicy;
-using ::alluxio::LocalFirstAvoidEvictionPolicy;
-using ::alluxio::LocalFirstPolicy;
-using ::alluxio::MostAvailableFirstPolicy;
-using ::alluxio::RoundRobinPolicy;
-using ::alluxio::SpecificHostPolicy;
 
+namespace alluxio {
 
 WriteType* CreateDirectoryOptions::getWriteType() {
   jobject jWriteType = JniHelper::CallObjectMethod(
@@ -856,4 +834,5 @@ GetStatusOptions* GetStatusOptions::setLoadMetadataType(
                    jLoadMetadataType));
   JniHelper::DeleteObjectRef(jLoadMetadataType);
   return opt;
+}
 }

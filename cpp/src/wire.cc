@@ -9,23 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include <wire.h>
+#include "wire.h"
 #include <algorithm>
 
 using ::jnihelper::JniHelper;
-using ::alluxio::Mode;
-using ::alluxio::Bits;
-using ::alluxio::WorkerNetAddress;
-using ::alluxio::BlockWorkerInfo;
-using ::alluxio::LocalFirstAvoidEvictionPolicy;
-using ::alluxio::LocalFirstPolicy;
-using ::alluxio::MostAvailableFirstPolicy;
-using ::alluxio::RoundRobinPolicy;
-using ::alluxio::CreateOptions;
-using ::alluxio::GetWorkerOptions;
-using ::alluxio::SpecificHostPolicy;
-using ::alluxio::DeterministicHashPolicy;
 
+namespace alluxio {
 
 Bits* Mode::getOwnerBits() {
   jobject jBits = JniHelper::CallObjectMethod(
@@ -370,4 +359,5 @@ WorkerNetAddress* DeterministicHashPolicy::getWorker(
     return NULL;
   }
   return NULL;
+}
 }

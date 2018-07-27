@@ -11,7 +11,7 @@
 #ifndef CPP_INCLUDE_OPTIONS_H_
 #define CPP_INCLUDE_OPTIONS_H_
 
-#include <wire.h>
+#include "wire.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
@@ -19,7 +19,6 @@
 #include <map>
 
 using ::jnihelper::JniHelper;
-using ::alluxio::JniObjectBase;
 
 namespace alluxio {
 

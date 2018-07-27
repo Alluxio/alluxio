@@ -12,41 +12,11 @@
 #include <string.h>
 #include <assert.h>
 
-#include <options.h>
+#include "options.h"
 #include "fileSystem.h"
 #include "localAlluxioCluster.h"
 
-using ::alluxio::CreateDirectoryOptions;
-using ::alluxio::CreateFileOptions;
-using ::alluxio::DeleteOptions;
-using ::alluxio::MountOptions;
-using ::alluxio::ExistsOptions;
-using ::alluxio::FreeOptions;
-using ::alluxio::ListStatusOptions;
-using ::alluxio::OpenFileOptions;
-using ::alluxio::SetAttributeOptions;
-using ::alluxio::GetStatusOptions;
-using ::alluxio::FileSystem;
-using ::alluxio::LocalAlluxioCluster;
-using ::alluxio::TtlAction;
-using ::alluxio::Mode;
-using ::alluxio::Bits;
-using ::alluxio::ReadType;
-using ::alluxio::WriteType;
-using ::alluxio::LoadMetadataType;
-using ::alluxio::CreateOptions;
-using ::alluxio::GetWorkerOptions;
-using ::alluxio::WorkerNetAddress;
-using ::alluxio::BlockWorkerInfo;
-using ::alluxio::FileWriteLocationPolicy;
-using ::alluxio::LocalFirstAvoidEvictionPolicy;
-using ::alluxio::LocalFirstPolicy;
-using ::alluxio::MostAvailableFirstPolicy;
-using ::alluxio::RoundRobinPolicy;
-using ::alluxio::SpecificHostPolicy;
-using ::alluxio::BlockLocationPolicy;
-using ::alluxio::DeterministicHashPolicy;
-
+namespace alluxio {
 
 void CreateDirectoryOptionsTest() {
   CreateDirectoryOptions* createDirectoryOptions;
@@ -246,7 +216,7 @@ void GetStatusOptionsTest() {
   assert(loadMetadataType->getValue() == 2);
 }
 
-void getWorkerOptionsTest() {
+void GetWorkerOptionsTest() {
   WorkerNetAddress* netAddress = new WorkerNetAddress("host1", 1, 1, 1, "1");
   WorkerNetAddress* netAddress2 = new WorkerNetAddress(
       "192.168.195.132", 2, 2, 2, "2");
@@ -277,23 +247,27 @@ void getWorkerOptionsTest() {
   address = newPolicy->getWorker(getWorkerOptions);
   assert(address->getHost().compare("host1") == 0);
 }
+}
 
 int main(void) {
-  FileSystem* fileSystem;
-  LocalAlluxioCluster* miniCluster = new LocalAlluxioCluster();
+  alluxio::FileSystem* fileSystem;
+  alluxio::LocalAlluxioCluster* miniCluster =
+      new alluxio::LocalAlluxioCluster();
   miniCluster->start();
   miniCluster->getClient(&fileSystem);
-  CreateDirectoryOptionsTest();
-  CreateFileOptionsTest();
-  DeleteOptionsTest();
-  ExistsOptionsTest();
-  FreeOptionsTest();
-  ListStatusOptionsTest();
-  MountOptionsTest();
-  OpenFileOptionsTest();
-  SetAttributeOptionsTest();
-  GetStatusOptionsTest();
-  getWorkerOptionsTest();
+  alluxio::CreateDirectoryOptionsTest();
+  alluxio::CreateFileOptionsTest();
+  alluxio::DeleteOptionsTest();
+  alluxio::ExistsOptionsTest();
+  alluxio::FreeOptionsTest();
+  alluxio::ListStatusOptionsTest();
+  alluxio::MountOptionsTest();
+  alluxio::OpenFileOptionsTest();
+  alluxio::SetAttributeOptionsTest();
+  alluxio::GetStatusOptionsTest();
+  alluxio::GetWorkerOptionsTest();
   delete miniCluster;
+  delete fileSystem;
   return 0;
 }
+
