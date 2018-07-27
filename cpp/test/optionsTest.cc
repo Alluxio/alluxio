@@ -255,7 +255,7 @@ int main(void) {
       new alluxio::LocalAlluxioCluster();
   miniCluster->start();
   miniCluster->getClient(&fileSystem);
-  //alluxio::CreateDirectoryOptionsTest();
+  alluxio::CreateDirectoryOptionsTest();
   //alluxio::CreateFileOptionsTest();
   alluxio::DeleteOptionsTest();
   alluxio::ExistsOptionsTest();
