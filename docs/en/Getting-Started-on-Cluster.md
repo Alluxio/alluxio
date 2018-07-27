@@ -187,14 +187,6 @@ $ bin/alluxio-start.sh worker SudoMount
 In a few seconds, Alluxio workers will register with the Alluxio master.
 You can visit http://ALLUXIO_WORKER_HOSTNAME:30000 to see the status of an Alluxio worker.
 
-You can run the following command to see if any configuration errors or warnings exists:
-
-```bash
-$ bin/alluxio fsadmin doctor
-```
-
-See the [Configuration checker docs](Configuration-Settings.md#server-configuration-checker) for more details.
-
 ## Use the Alluxio Shell
 
 Now that Alluxio is running, we can examine the Alluxio file system with the
