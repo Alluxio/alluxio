@@ -94,9 +94,6 @@ you plan to run Alluxio Master on. Let's name it Alluxio Master node, and assume
 $ echo "alluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}" >> conf/alluxio-site.properties
 ```
 
-Server-side configuration checker helps discover configuration errors and warnings. 
-See the [Configuration checker docs](Configuration-Settings.md#server-configuration-checker) for more details.
-
 ### Configure for AWS
 
 Please ensure all the subsequent commands are run on all the Linux nodes.
@@ -189,6 +186,14 @@ $ bin/alluxio-start.sh worker SudoMount
 
 In a few seconds, Alluxio workers will register with the Alluxio master.
 You can visit http://ALLUXIO_WORKER_HOSTNAME:30000 to see the status of an Alluxio worker.
+
+You can run the following command to see if any configuration errors or warnings exists:
+
+```bash
+$ bin/alluxio fsadmin doctor
+```
+
+See the [Configuration checker docs](Configuration-Settings.md#server-configuration-checker) for more details.
 
 ## Use the Alluxio Shell
 
