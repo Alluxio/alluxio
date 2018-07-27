@@ -255,12 +255,12 @@ int main(void) {
       new alluxio::LocalAlluxioCluster();
   miniCluster->start();
   miniCluster->getClient(&fileSystem);
-  alluxio::CreateDirectoryOptionsTest();
-  alluxio::CreateFileOptionsTest();
-  alluxio::DeleteOptionsTest();
-  alluxio::ExistsOptionsTest();
-  alluxio::FreeOptionsTest();
-  alluxio::ListStatusOptionsTest();
+  //alluxio::CreateDirectoryOptionsTest();
+  //alluxio::CreateFileOptionsTest();
+  //alluxio::DeleteOptionsTest();
+  //alluxio::ExistsOptionsTest();
+  //alluxio::FreeOptionsTest();
+  //alluxio::ListStatusOptionsTest();
   //alluxio::MountOptionsTest();
   //alluxio::OpenFileOptionsTest();
   //alluxio::SetAttributeOptionsTest();
