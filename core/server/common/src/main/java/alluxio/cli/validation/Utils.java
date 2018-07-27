@@ -159,8 +159,8 @@ public final class Utils {
       System.err.println("Failed to execute command.");
       return new ProcessExecutionResult(1, "", e.getMessage());
     } catch (InterruptedException e) {
-      System.err.println("Interrupted.");
       Thread.currentThread().interrupt();
+      System.err.println("Interrupted.");
       return new ProcessExecutionResult(1, "", e.getMessage());
     }
   }

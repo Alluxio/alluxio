@@ -97,7 +97,7 @@ public class AccessControlListTest {
 
   private boolean checkMode(AccessControlList acl, String user, List<String> groups,
       Mode.Bits mode) {
-    for (AclAction action : mode.toAclActions()) {
+    for (AclAction action : mode.toAclActionSet()) {
       if (!acl.checkPermission(user, groups, action)) {
         return false;
       }

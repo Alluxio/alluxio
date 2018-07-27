@@ -242,8 +242,7 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
-   * Waits for the number of live nodes in server configuration store reached the number of nodes in
-   * this cluster and gets meta master client.
+   * Waits for all nodes to be registered.
    *
    * @param timeoutMs maximum amount of time to wait, in milliseconds
    */
@@ -255,13 +254,19 @@ public final class MultiProcessCluster implements TestRule {
         MasterInfo masterInfo = metaMasterClient.getMasterInfo(null);
         int liveNodeNum = masterInfo.getMasterAddresses().size()
             + masterInfo.getWorkerAddresses().size();
-        return liveNodeNum == (mNumMasters + mNumWorkers);
+        if (liveNodeNum == (mNumMasters + mNumWorkers)) {
+          return true;
+        } else {
+          LOG.info("Master addresses: {}. Worker addresses: {}", masterInfo.getMasterAddresses(),
+              masterInfo.getWorkerAddresses());
+          return false;
+        }
       } catch (UnavailableException e) {
         return false;
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
   }
 
   /**
@@ -546,6 +551,7 @@ public final class MultiProcessCluster implements TestRule {
       public void evaluate() throws Throwable {
         try {
           start();
+          waitForAllNodesRegistered(5 * Constants.MINUTE_MS);
           base.evaluate();
         } finally {
           try {

@@ -12,18 +12,22 @@
 package alluxio.security.authorization;
 
 import alluxio.collections.Pair;
+import alluxio.thrift.TAcl;
 
 import com.google.common.base.Objects;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
  * Default Access control list for a directory.
  */
 public class DefaultAccessControlList extends AccessControlList {
+  private static final long serialVersionUID = 8649647787531425489L;
+
+  public static final DefaultAccessControlList EMPTY_DEFAULT_ACL = new DefaultAccessControlList();
+
   /**
    * a reference to the access ACL associated with the same inode so that we can fill the default
    * value for OWNING_USER, OWNING_GROUP and OTHER.
@@ -52,9 +56,7 @@ public class DefaultAccessControlList extends AccessControlList {
     mAccessAcl = acl;
     mOwningUser = acl.mOwningUser;
     mOwningGroup = acl.mOwningGroup;
-    mUserActions.put(OWNING_USER_KEY, new AclActions(acl.mUserActions.get(OWNING_USER_KEY)));
-    mGroupActions.put(OWNING_GROUP_KEY, new AclActions(acl.mGroupActions.get(OWNING_GROUP_KEY)));
-    mOtherActions = new AclActions(acl.mOtherActions);
+    mMode = acl.mMode;
   }
 
   /**
@@ -65,10 +67,12 @@ public class DefaultAccessControlList extends AccessControlList {
     AccessControlList acl = new AccessControlList();
     acl.mOwningUser = mOwningUser;
     acl.mOwningGroup = mOwningGroup;
-    acl.mUserActions = new HashMap<>(mUserActions);
-    acl.mGroupActions = new HashMap<>(mGroupActions);
-    acl.mOtherActions = new AclActions(mOtherActions);
-    acl.mMaskActions = new AclActions(mMaskActions);
+    acl.mMode = mMode;
+    if (mExtendedEntries == null) {
+      acl.mExtendedEntries = null;
+    } else {
+      acl.mExtendedEntries = new ExtendedACLEntries(mExtendedEntries);
+    }
     return acl;
   }
 
@@ -81,29 +85,13 @@ public class DefaultAccessControlList extends AccessControlList {
     DefaultAccessControlList dAcl = new DefaultAccessControlList(acl);
     dAcl.mOwningUser = mOwningUser;
     dAcl.mOwningGroup = mOwningGroup;
-    dAcl.mUserActions = new HashMap<>(mUserActions);
-    dAcl.mGroupActions = new HashMap<>(mGroupActions);
-    dAcl.mOtherActions = new AclActions(mOtherActions);
-    dAcl.mMaskActions = new AclActions(mMaskActions);
+    dAcl.mMode = mMode;
+    if (mExtendedEntries == null) {
+      dAcl.mExtendedEntries = null;
+    } else {
+      dAcl.mExtendedEntries = new ExtendedACLEntries(mExtendedEntries);
+    }
     return new Pair<>(acl, dAcl);
-  }
-
-  private void fillDefault() {
-    if (mAccessAcl == null) {
-      return;
-    }
-    setEmpty(false);
-    if (mUserActions.get(OWNING_USER_KEY) == null) {
-      mUserActions.put(OWNING_USER_KEY,
-          new AclActions(mAccessAcl.mUserActions.get(OWNING_USER_KEY)));
-    }
-    if (mGroupActions.get(OWNING_GROUP_KEY) == null) {
-      mGroupActions.put(OWNING_GROUP_KEY,
-          new AclActions(mAccessAcl.mGroupActions.get(OWNING_GROUP_KEY)));
-    }
-    if (mOtherActions == null) {
-      mOtherActions = new AclActions(mAccessAcl.mOtherActions);
-    }
   }
 
   /**
@@ -120,16 +108,31 @@ public class DefaultAccessControlList extends AccessControlList {
         super.removeEntry(entry);
         return;
       case OWNING_USER:
-        mUserActions.remove(entry.getSubject());
-        fillDefault();
+        Mode modeOwner = new Mode(mMode);
+        modeOwner.setOwnerBits(Mode.Bits.NONE);
+        if (mAccessAcl != null) {
+          // overwrite the owner actions from the access ACL.
+          modeOwner.setOwnerBits(new Mode(mAccessAcl.mMode).getOwnerBits());
+        }
+        mMode = modeOwner.toShort();
         return;
       case OWNING_GROUP:
-        mGroupActions.remove(entry.getSubject());
-        fillDefault();
+        Mode modeGroup = new Mode(mMode);
+        modeGroup.setGroupBits(Mode.Bits.NONE);
+        if (mAccessAcl != null) {
+          // overwrite the group actions from the access ACL.
+          modeGroup.setGroupBits(new Mode(mAccessAcl.mMode).getGroupBits());
+        }
+        mMode = modeGroup.toShort();
         return;
       case OTHER:
-        mOtherActions = null;
-        fillDefault();
+        Mode modeOther = new Mode(mMode);
+        modeOther.setOtherBits(Mode.Bits.NONE);
+        if (mAccessAcl != null) {
+          // overwrite the other actions from the access ACL.
+          modeOther.setOtherBits(new Mode(mAccessAcl.mMode).getOtherBits());
+        }
+        mMode = modeOther.toShort();
         return;
       default:
         throw new IllegalStateException("Unknown ACL entry type: " + entry.getType());
@@ -176,6 +179,17 @@ public class DefaultAccessControlList extends AccessControlList {
     return aclEntryList;
   }
 
+  /**
+   * @return the thrift representation of this object
+   */
+  @Override
+  public TAcl toThrift() {
+    TAcl tAcl = super.toThrift();
+    tAcl.setIsDefault(true);
+    tAcl.setIsDefaultEmpty(isEmpty());
+    return tAcl;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -185,18 +199,26 @@ public class DefaultAccessControlList extends AccessControlList {
       return false;
     }
     DefaultAccessControlList that = (DefaultAccessControlList) o;
+    // If the extended acl object is empty (does not have any extended entries), it is equivalent
+    // to a null object.
+    boolean extendedNull = (mExtendedEntries == null && that.mExtendedEntries == null);
+    boolean extendedNotNull1 =
+        mExtendedEntries != null && (mExtendedEntries.equals(that.mExtendedEntries) || (
+            !mExtendedEntries.hasExtended() && that.mExtendedEntries == null));
+    boolean extendedNotNull2 =
+        that.mExtendedEntries != null && (that.mExtendedEntries.equals(mExtendedEntries) || (
+            !that.mExtendedEntries.hasExtended() && mExtendedEntries == null));
+    boolean extendedEquals = extendedNull || extendedNotNull1 || extendedNotNull2;
+
     return mOwningUser.equals(that.mOwningUser)
         && mOwningGroup.equals(that.mOwningGroup)
-        && mUserActions.equals(that.mUserActions)
-        && mGroupActions.equals(that.mGroupActions)
-        && mMaskActions.equals(that.mMaskActions)
-        && mOtherActions.equals(that.mOtherActions)
+        && mMode == that.mMode
+        && extendedEquals
         && mEmpty == (that.mEmpty);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mOwningUser, mOwningGroup, mUserActions, mGroupActions, mMaskActions,
-        mOtherActions, mEmpty);
+    return Objects.hashCode(mOwningUser, mOwningGroup, mMode, mExtendedEntries, mEmpty);
   }
 }

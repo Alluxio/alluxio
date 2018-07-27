@@ -170,9 +170,9 @@ public MyClass {
 
   private static final Logger LOG = LoggerFactory.getLogger(MyClass.class);
 
-    public void someMethod() {
-      LOG.info("Hello world");
-    }
+  public void someMethod() {
+    LOG.info("Hello world");
+  }
 }
 ```
 
@@ -202,7 +202,7 @@ stack trace. Please avoid the slow strings construction on debug-level logging o
 LOG.debug("Failed to connec to {} due to exception", host + ":" + port, e); // wrong
 LOG.debug("Failed to connec to {} due to exception", mAddress, e); // OK
 if (LOG.isDebugEnabled()) {
-    LOG.debug("Failed to connec to address {} due to exception", host + ":" + port, e); // OK
+  LOG.debug("Failed to connec to address {} due to exception", host + ":" + port, e); // OK
 }
 ```
 * Trace level logging (i.e., `LOG.trace`) is not used in Alluxio.
@@ -260,7 +260,8 @@ to make sure your change will not break backwards compatibility. Next,
 If you have brew, you can do this by running
 
 ```bash
-$ brew install protobuf
+$ brew install protobuf@2.5
+$ brew link --force protobuf@2.5
 ```
 
 Then to regenerate the Java code, run

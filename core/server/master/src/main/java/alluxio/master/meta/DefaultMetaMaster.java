@@ -256,20 +256,15 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
           now.toEpochMilli());
       backupFilePath = PathUtils.concatPath(dir, backupFileName);
-      OutputStream ufsStream = ufs.create(backupFilePath);
       try {
-        mMasterContext.getBackupManager().backup(ufsStream);
-      } catch (Throwable t) {
-        try {
-          ufsStream.close();
-        } catch (Throwable t2) {
-          LOG.error("Failed to close backup stream to {}", backupFilePath, t2);
-          t.addSuppressed(t2);
+        try (OutputStream ufsStream = ufs.create(backupFilePath)) {
+          mMasterContext.getBackupManager().backup(ufsStream);
         }
+      } catch (Throwable t) {
         try {
           ufs.deleteFile(backupFilePath);
         } catch (Throwable t2) {
-          LOG.error("Failed to clean up partially-written backup at {}", backupFilePath, t2);
+          LOG.error("Failed to clean up failed backup at {}", backupFilePath, t2);
           t.addSuppressed(t2);
         }
         throw t;

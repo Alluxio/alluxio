@@ -91,11 +91,16 @@ public enum ExceptionMessage {
   BLOCK_NOT_FOUND_AT_LOCATION("blockId {0,number,#} not found at location: {1}"),
   MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted blockId {0,number,#}"),
   NO_BLOCK_ID_FOUND("blockId {0,number,#} not found"),
-  NO_EVICTION_PLAN_TO_FREE_SPACE("No eviction plan by evictor to free space"),
+  NO_EVICTION_PLAN_TO_FREE_SPACE(
+      "Failed to find an eviction plan to free {0,number,#} bytes space at location {1}"),
   NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT(
-      "Failed to allocate {0,number,#} bytes after {1}ms for blockId {2,number,#}"),
+      "Failed to allocate {0,number,#} bytes on {1} after {2}ms to create blockId {3,number,#}"),
   NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED(
-      "Failed to allocate {0,number,#} bytes after {1} attempts for blockId {2,number,#}"),
+      "Failed to allocate {0,number,#} bytes on {1} after {2} attempts for blockId {3,number,#}"),
+  NO_SPACE_FOR_BLOCK_REQUEST_SPACE_TIMEOUT(
+      "Failed to request {0,number,#} bytes after {1}ms to create blockId {2,number,#}"),
+  NO_SPACE_FOR_BLOCK_REQUEST_SPACE_RETRIES_EXCEEDED(
+      "Failed to request {0,number,#} bytes after {1} attempts for blockId {2,number,#}"),
   NO_SPACE_FOR_BLOCK_MOVE_TIMEOUT(
       "Failed to find space in {0} to move blockId {1,number,#} after {2}ms"),
   NO_SPACE_FOR_BLOCK_MOVE_RETRIES_EXCEEDED(
@@ -266,7 +271,6 @@ public enum ExceptionMessage {
 
   // ufs maintenance
   UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),
-  INVALID_UFS_MODE("{0} is not a valid ufs mode"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

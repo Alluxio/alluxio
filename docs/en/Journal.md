@@ -28,9 +28,12 @@ update to the journal requires a new object to be created, which is
 prohibitively slow for most serious use cases.
 
 **Configuration examples:**
+Use HDFS to store the journal:
 ```
 alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/dir/alluxio_journal
 ```
+
+Use the local file system to store the journal: 
 ```
 alluxio.master.journal.folder=/opt/alluxio/journal
 ```
@@ -73,7 +76,7 @@ To restore the Alluxio system from a journal backup, stop the system, format the
 journal, then restart the system, passing the URI of the backup with the `-i`
 (import) flag.
 
-```
+```bash
 $ bin/alluxio-stop.sh masters
 $ bin/alluxio formatMaster
 $ bin/alluxio-start.sh -i <backup_uri> masters

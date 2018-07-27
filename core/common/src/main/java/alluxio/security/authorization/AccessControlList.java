@@ -15,15 +15,25 @@ import alluxio.proto.journal.File;
 import alluxio.thrift.TAcl;
 import alluxio.thrift.TAclEntry;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -48,18 +58,25 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Also, the access control list contains owning user and owning group of a file or directory.
  */
 @NotThreadSafe
-public class AccessControlList {
-  /** Key representing owning user in {@link #mUserActions}. */
+@JsonSerialize(using = AccessControlList.AccessControlListSerializer.class)
+@JsonDeserialize(using = AccessControlList.AccessControlListDeserializer.class)
+public class AccessControlList implements Serializable {
+  private static final long serialVersionUID = 106023217076996L;
+
+  public static final AccessControlList EMPTY_ACL = new AccessControlList();
+
+  /** Keys representing owning user and group for proto ser/de. */
+  public static final String OWNER_FIELD = "owner";
+  public static final String OWNING_GROUP_FIELD = "owningGroup";
+  public static final String STRING_ENTRY_FIELD = "stringEntries";
+
   protected static final String OWNING_USER_KEY = "";
-  /** Key representing owning group in {@link #mGroupActions}. */
   protected static final String OWNING_GROUP_KEY = "";
 
   protected String mOwningUser;
   protected String mOwningGroup;
-  protected Map<String, AclActions> mUserActions;
-  protected Map<String, AclActions> mGroupActions;
-  protected AclActions mMaskActions;
-  protected AclActions mOtherActions;
+  protected short mMode;
+  protected ExtendedACLEntries mExtendedEntries;
 
   /**
    * Creates a new instance where owning user and owning group are initialized to empty strings,
@@ -75,12 +92,8 @@ public class AccessControlList {
    * Clears out all entries (does not modify the owner name and owning group).
    */
   public void clearEntries() {
-    mUserActions = new TreeMap<>();
-    mUserActions.put(OWNING_USER_KEY, new AclActions());
-    mGroupActions = new TreeMap<>();
-    mGroupActions.put(OWNING_GROUP_KEY, new AclActions());
-    mMaskActions = new AclActions();
-    mOtherActions = new AclActions();
+    mMode = 0;
+    mExtendedEntries = null;
   }
 
   /**
@@ -98,21 +111,22 @@ public class AccessControlList {
   }
 
   private AclActions getOwningUserActions() {
-    return mUserActions.get(OWNING_USER_KEY);
+    return Mode.extractOwnerBits(mMode).toAclActions();
   }
 
   private AclActions getOwningGroupActions() {
-    return mGroupActions.get(OWNING_GROUP_KEY);
+    return Mode.extractGroupBits(mMode).toAclActions();
+  }
+
+  private AclActions getOtherActions() {
+    return Mode.extractOtherBits(mMode).toAclActions();
   }
 
   /**
    * @return the permission mode defined in {@link Mode} for owning user, owning group, and other
    */
   public short getMode() {
-    Mode.Bits owner = getOwningUserActions().toModeBits();
-    Mode.Bits group = getOwningGroupActions().toModeBits();
-    Mode.Bits other = mOtherActions.toModeBits();
-    return new Mode(owner, group, other).toShort();
+    return mMode;
   }
 
   /**
@@ -123,47 +137,23 @@ public class AccessControlList {
    */
   public List<AclEntry> getEntries() {
     ImmutableList.Builder<AclEntry> builder = new ImmutableList.Builder<>();
-    for (Map.Entry<String, AclActions> kv : mUserActions.entrySet()) {
-      if (kv.getKey().equals(OWNING_USER_KEY)) {
-        builder.add(new AclEntry.Builder()
-            .setType(AclEntryType.OWNING_USER)
-            .setSubject(mOwningUser)
-            .setActions(getOwningUserActions())
-            .build());
-      } else {
-        builder.add(new AclEntry.Builder()
-            .setType(AclEntryType.NAMED_USER)
-            .setSubject(kv.getKey())
-            .setActions(kv.getValue())
-            .build());
-      }
-    }
-    for (Map.Entry<String, AclActions> kv : mGroupActions.entrySet()) {
-      if (kv.getKey().equals(OWNING_GROUP_KEY)) {
-        builder.add(new AclEntry.Builder()
-            .setType(AclEntryType.OWNING_GROUP)
-            .setSubject(mOwningGroup)
-            .setActions(getOwningGroupActions())
-            .build());
-      } else {
-        builder.add(new AclEntry.Builder()
-            .setType(AclEntryType.NAMED_GROUP)
-            .setSubject(kv.getKey())
-            .setActions(kv.getValue())
-            .build());
-      }
-    }
-    if (hasExtended()) {
-      // The mask is only relevant if the ACL contains extended entries.
-      builder.add(new AclEntry.Builder()
-          .setType(AclEntryType.MASK)
-          .setActions(mMaskActions)
-          .build());
-    }
+    builder.add(new AclEntry.Builder()
+        .setType(AclEntryType.OWNING_USER)
+        .setSubject(mOwningUser)
+        .setActions(getOwningUserActions())
+        .build());
+    builder.add(new AclEntry.Builder()
+        .setType(AclEntryType.OWNING_GROUP)
+        .setSubject(mOwningGroup)
+        .setActions(getOwningGroupActions())
+        .build());
     builder.add(new AclEntry.Builder()
         .setType(AclEntryType.OTHER)
-        .setActions(mOtherActions)
+        .setActions(getOtherActions())
         .build());
+    if (hasExtended()) {
+      builder.addAll(mExtendedEntries.getEntries());
+    }
     return builder.build();
   }
 
@@ -171,11 +161,7 @@ public class AccessControlList {
    * @return true if has extended ACL (named users, named groups)
    */
   public boolean hasExtended() {
-    if (mUserActions.size() > 1 || mGroupActions.size() > 1) {
-      // has more than the owning user and owning group
-      return true;
-    }
-    return false;
+    return mExtendedEntries != null && mExtendedEntries.hasExtended();
   }
 
   /**
@@ -185,19 +171,11 @@ public class AccessControlList {
    */
   public void removeEntry(AclEntry entry) throws IOException {
     switch (entry.getType()) {
-      case NAMED_USER:
-        mUserActions.remove(entry.getSubject());
-        return;
-      case NAMED_GROUP:
-        mGroupActions.remove(entry.getSubject());
-        return;
+      case NAMED_USER:  // fall through
+      case NAMED_GROUP: // fall through
       case MASK:
-        if (hasExtended()) {
-          // cannot remove the mask if it is extended.
-          throw new IOException(
-              "Deleting the mask for extended ACLs is not allowed. entry: " + entry);
-        } else {
-          mMaskActions = new AclActions();
+        if (mExtendedEntries != null) {
+          mExtendedEntries.removeEntry(entry);
         }
         return;
       case OWNING_USER:  // fall through
@@ -214,19 +192,7 @@ public class AccessControlList {
    * Removes all of the exnteded entries. The base entries are retained.
    */
   public void removeExtendedEntries() {
-    AclActions ownerActions = mUserActions.get(OWNING_USER_KEY);
-    AclActions owningGroupActions = mGroupActions.get(OWNING_GROUP_KEY);
-
-    // reset the user entries
-    mUserActions.clear();
-    mUserActions.put(OWNING_USER_KEY, ownerActions);
-
-    // reset the group entries
-    mGroupActions.clear();
-    mGroupActions.put(OWNING_GROUP_KEY, owningGroupActions);
-
-    // reset the mask
-    mMaskActions = new AclActions();
+    mExtendedEntries = null;
   }
 
   /**
@@ -257,9 +223,7 @@ public class AccessControlList {
    * @param mode the mode
    */
   public void setMode(short mode) {
-    getOwningUserActions().updateByModeBits(Mode.extractOwnerBits(mode));
-    getOwningGroupActions().updateByModeBits(Mode.extractGroupBits(mode));
-    mOtherActions.updateByModeBits(Mode.extractOtherBits(mode));
+    mMode = mode;
   }
 
   /**
@@ -272,23 +236,28 @@ public class AccessControlList {
   public void setEntry(AclEntry entry) {
     // TODO(cc): when setting non-mask entries, the mask should be dynamically updated too.
     switch (entry.getType()) {
-      case OWNING_USER:
-        setOwningUserEntry(entry);
+      case NAMED_USER:  // fall through
+      case NAMED_GROUP: // fall through
+      case MASK:
+        if (mExtendedEntries == null) {
+          mExtendedEntries = new ExtendedACLEntries();
+        }
+        mExtendedEntries.setEntry(entry);
         return;
-      case NAMED_USER:
-        setNamedUserEntry(entry);
+      case OWNING_USER:
+        Mode modeOwner = new Mode(mMode);
+        modeOwner.setOwnerBits(entry.getActions().toModeBits());
+        mMode = modeOwner.toShort();
         return;
       case OWNING_GROUP:
-        setOwningGroupEntry(entry);
-        return;
-      case NAMED_GROUP:
-        setNamedGroupEntry(entry);
-        return;
-      case MASK:
-        setMaskEntry(entry);
+        Mode modeGroup = new Mode(mMode);
+        modeGroup.setGroupBits(entry.getActions().toModeBits());
+        mMode = modeGroup.toShort();
         return;
       case OTHER:
-        setOtherEntry(entry);
+        Mode modeOther = new Mode(mMode);
+        modeOther.setOtherBits(entry.getActions().toModeBits());
+        mMode = modeOther.toShort();
         return;
       default:
         throw new IllegalStateException("Unknown ACL entry type: " + entry.getType());
@@ -342,8 +311,11 @@ public class AccessControlList {
     if (user.equals(mOwningUser)) {
       return new AclActions(getOwningUserActions());
     }
-    if (mUserActions.containsKey(user)) {
-      return new AclActions(mUserActions.get(user));
+    if (hasExtended()) {
+      AclActions actions = mExtendedEntries.getNamedUser(user);
+      if (actions != null) {
+        return new AclActions(actions);
+      }
     }
 
     boolean isGroupKnown = false;
@@ -352,17 +324,20 @@ public class AccessControlList {
       isGroupKnown = true;
       groupActions.merge(getOwningGroupActions());
     }
-    for (String group : groups) {
-      if (mGroupActions.containsKey(group)) {
-        isGroupKnown = true;
-        groupActions.merge(mGroupActions.get(group));
+    if (hasExtended()) {
+      for (String group : groups) {
+        AclActions actions = mExtendedEntries.getNamedGroup(group);
+        if (actions != null) {
+          isGroupKnown = true;
+          groupActions.merge(actions);
+        }
       }
     }
     if (isGroupKnown) {
       return groupActions;
     }
 
-    return new AclActions(mOtherActions);
+    return getOtherActions();
   }
 
   @Override
@@ -374,42 +349,27 @@ public class AccessControlList {
       return false;
     }
     AccessControlList that = (AccessControlList) o;
+
+    // If the extended acl object is empty (does not have any extended entries), it is equivalent
+    // to a null object.
+    boolean extendedNull = (mExtendedEntries == null && that.mExtendedEntries == null);
+    boolean extendedNotNull1 =
+        mExtendedEntries != null && (mExtendedEntries.equals(that.mExtendedEntries) || (
+            !mExtendedEntries.hasExtended() && that.mExtendedEntries == null));
+    boolean extendedNotNull2 =
+        that.mExtendedEntries != null && (that.mExtendedEntries.equals(mExtendedEntries) || (
+            !that.mExtendedEntries.hasExtended() && mExtendedEntries == null));
+    boolean extendedEquals = extendedNull || extendedNotNull1 || extendedNotNull2;
+
     return mOwningUser.equals(that.mOwningUser)
         && mOwningGroup.equals(that.mOwningGroup)
-        && mUserActions.equals(that.mUserActions)
-        && mGroupActions.equals(that.mGroupActions)
-        && mMaskActions.equals(that.mMaskActions)
-        && mOtherActions.equals(that.mOtherActions);
+        && mMode == that.mMode
+        && extendedEquals;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mOwningUser, mOwningGroup, mUserActions, mGroupActions, mMaskActions,
-        mOtherActions);
-  }
-
-  private void setOwningUserEntry(AclEntry entry) {
-    mUserActions.put(OWNING_USER_KEY, entry.getActions());
-  }
-
-  private void setNamedUserEntry(AclEntry entry) {
-    mUserActions.put(entry.getSubject(), entry.getActions());
-  }
-
-  private void setOwningGroupEntry(AclEntry entry) {
-    mGroupActions.put(OWNING_GROUP_KEY, entry.getActions());
-  }
-
-  private void setNamedGroupEntry(AclEntry entry) {
-    mGroupActions.put(entry.getSubject(), entry.getActions());
-  }
-
-  private void setMaskEntry(AclEntry entry) {
-    mMaskActions = entry.getActions();
-  }
-
-  private void setOtherEntry(AclEntry entry) {
-    mOtherActions = entry.getActions();
+    return Objects.hashCode(mOwningUser, mOwningGroup, mMode, mExtendedEntries);
   }
 
   /**
@@ -430,6 +390,9 @@ public class AccessControlList {
       return ret;
     }
 
+    // true if there are any extended entries (named user or named group)
+    boolean hasExtended = false;
+
     for (File.NamedAclActions namedActions : acl.getUserActionsList()) {
       String name = namedActions.getName();
       AclActions actions = AclActions.fromProtoBuf(namedActions.getActions());
@@ -438,6 +401,7 @@ public class AccessControlList {
         entry = new AclEntry.Builder().setType(AclEntryType.OWNING_USER)
             .setSubject(acl.getOwningUser()).setActions(actions).build();
       } else {
+        hasExtended = true;
         entry = new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
             .setSubject(name).setActions(actions).build();
       }
@@ -452,19 +416,23 @@ public class AccessControlList {
         entry = new AclEntry.Builder().setType(AclEntryType.OWNING_GROUP)
             .setSubject(acl.getOwningGroup()).setActions(actions).build();
       } else {
+        hasExtended = true;
         entry = new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP)
             .setSubject(name).setActions(actions).build();
       }
       ret.setEntry(entry);
     }
 
-    AclActions actions = AclActions.fromProtoBuf(acl.getMaskActions());
-    AclEntry entry = new AclEntry.Builder().setType(AclEntryType.MASK)
-        .setActions(actions).build();
-    ret.setEntry(entry);
+    if (hasExtended) {
+      // Only set the mask if there are any extended acl entries.
+      AclActions actions = AclActions.fromProtoBuf(acl.getMaskActions());
+      AclEntry entry = new AclEntry.Builder().setType(AclEntryType.MASK)
+          .setActions(actions).build();
+      ret.setEntry(entry);
+    }
 
-    actions = AclActions.fromProtoBuf(acl.getOtherActions());
-    entry = new AclEntry.Builder().setType(AclEntryType.OTHER)
+    AclActions actions = AclActions.fromProtoBuf(acl.getOtherActions());
+    AclEntry entry = new AclEntry.Builder().setType(AclEntryType.OTHER)
         .setActions(actions).build();
     ret.setEntry(entry);
 
@@ -479,22 +447,24 @@ public class AccessControlList {
     File.AccessControlList.Builder builder = File.AccessControlList.newBuilder();
     builder.setOwningUser(acl.mOwningUser);
     builder.setOwningGroup(acl.mOwningGroup);
-    builder.setMaskActions(AclActions.toProtoBuf(acl.mMaskActions));
-    builder.setOtherActions(AclActions.toProtoBuf(acl.mOtherActions));
-    for (Map.Entry<String, AclActions> kv : acl.mUserActions.entrySet()) {
-      File.NamedAclActions namedActions = File.NamedAclActions.newBuilder()
-          .setName(kv.getKey())
-          .setActions(AclActions.toProtoBuf(kv.getValue()))
-          .build();
-      builder.addUserActions(namedActions);
+
+    // base entries
+    builder.addUserActions(File.NamedAclActions.newBuilder()
+        .setName(OWNING_USER_KEY)
+        .setActions(AclActions.toProtoBuf(acl.getOwningUserActions()))
+        .build());
+    builder.addGroupActions(File.NamedAclActions.newBuilder()
+        .setName(OWNING_GROUP_KEY)
+        .setActions(AclActions.toProtoBuf(acl.getOwningGroupActions()))
+        .build());
+    builder.setOtherActions(AclActions.toProtoBuf(acl.getOtherActions()));
+
+    if (acl.mExtendedEntries != null) {
+      builder.addAllUserActions(acl.mExtendedEntries.getNamedUsersProto());
+      builder.addAllGroupActions(acl.mExtendedEntries.getNamedGroupsProto());
+      builder.setMaskActions(AclActions.toProtoBuf(acl.mExtendedEntries.getMask()));
     }
-    for (Map.Entry<String, AclActions> kv : acl.mGroupActions.entrySet()) {
-      File.NamedAclActions namedActions = File.NamedAclActions.newBuilder()
-          .setName(kv.getKey())
-          .setActions(AclActions.toProtoBuf(kv.getValue()))
-          .build();
-      builder.addGroupActions(namedActions);
-    }
+
     if (acl instanceof DefaultAccessControlList) {
       DefaultAccessControlList defaultAcl = (DefaultAccessControlList) acl;
       builder.setIsDefault(true);
@@ -514,26 +484,22 @@ public class AccessControlList {
   public static AccessControlList fromThrift(TAcl tAcl) {
     AccessControlList acl;
 
-    if (tAcl.isSetEntries()) {
-      if (tAcl.getEntries().size() > 0) {
-        TAclEntry tEntry = tAcl.getEntries().get(0);
-        if (tEntry.isIsDefault()) {
-          acl = new DefaultAccessControlList();
-        } else {
-          acl = new AccessControlList();
-        }
-      } else {
-        acl = new DefaultAccessControlList();
-      }
-      for (TAclEntry tEntry : tAcl.getEntries()) {
-        acl.setEntry(AclEntry.fromThrift(tEntry));
-      }
-    } else {
+    if (tAcl.isIsDefault()) {
       acl = new DefaultAccessControlList();
+      ((DefaultAccessControlList) acl).setEmpty(tAcl.isIsDefaultEmpty());
+    } else {
+      acl = new AccessControlList();
     }
 
     acl.setOwningUser(tAcl.getOwner());
     acl.setOwningGroup(tAcl.getOwningGroup());
+    acl.setMode(tAcl.getMode());
+
+    if (tAcl.isSetEntries()) {
+      for (TAclEntry tEntry : tAcl.getEntries()) {
+        acl.setEntry(AclEntry.fromThrift(tEntry));
+      }
+    }
 
     return acl;
   }
@@ -545,9 +511,13 @@ public class AccessControlList {
     TAcl tAcl = new TAcl();
     tAcl.setOwner(getOwningUser());
     tAcl.setOwningGroup(getOwningGroup());
-    for (AclEntry entry : getEntries()) {
-      tAcl.addToEntries(entry.toThrift());
+    tAcl.setMode(mMode);
+    if (hasExtended()) {
+      for (AclEntry entry : mExtendedEntries.getEntries()) {
+        tAcl.addToEntries(entry.toThrift());
+      }
     }
+    tAcl.setIsDefault(false);
     return tAcl;
   }
 
@@ -599,5 +569,72 @@ public class AccessControlList {
   public String toString() {
     List<String> entries = toStringEntries();
     return String.join(",", entries);
+  }
+
+  /**
+   * This is a custom json serializer for AccessControlList class.
+   */
+  public static class AccessControlListSerializer extends StdSerializer<AccessControlList> {
+    private static final long serialVersionUID = -8523910728069876504L;
+
+    /**
+     * Creates a AccessControlListSerializer.
+     */
+    public AccessControlListSerializer() {
+      super(AccessControlList.class);
+    }
+
+    /**
+     * Serialize an AccessControlList object.
+     * @param accessControlList the ACL object to be serialized
+     * @param jsonGenerator json generator
+     * @param serializerProvider default serializer
+     * @throws IOException
+     */
+    @Override
+    public void serialize(AccessControlList accessControlList, JsonGenerator jsonGenerator,
+        SerializerProvider serializerProvider) throws IOException {
+      jsonGenerator.writeStartObject();
+      jsonGenerator.writeStringField(OWNER_FIELD, accessControlList.getOwningUser());
+      jsonGenerator.writeStringField(OWNING_GROUP_FIELD, accessControlList.getOwningGroup());
+      jsonGenerator.writeObjectField(STRING_ENTRY_FIELD, accessControlList.toStringEntries());
+      jsonGenerator.writeEndObject();
+    }
+  }
+
+  /**
+   * This is a custom json deserializer for AccessControlList class.
+   */
+  public static class AccessControlListDeserializer extends StdDeserializer<AccessControlList> {
+    private static final long serialVersionUID = 5524283318028333563L;
+
+    /**
+     * Creates a AccessControlListDeserializer.
+     */
+    public AccessControlListDeserializer() {
+      super(AccessControlList.class);
+    }
+
+    /**
+     * Deserialize an AccessControlList object.
+     * @param jsonParser the json parser
+     * @param deserializationContext deserializationcontext
+     * @return
+     * @throws IOException
+     * @throws JsonProcessingException
+     */
+    @Override
+    public AccessControlList deserialize(JsonParser jsonParser,
+        DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+      JsonNode node = jsonParser.getCodec().readTree(jsonParser);
+      String owner = node.get(OWNER_FIELD).asText();
+      String owningGroup = node.get(OWNING_GROUP_FIELD).asText();
+      List<String> stringEntries = new ArrayList<>();
+      Iterator<JsonNode> nodeIterator = node.get(STRING_ENTRY_FIELD).elements();
+      while (nodeIterator.hasNext()) {
+        stringEntries.add(nodeIterator.next().asText());
+      }
+      return AccessControlList.fromStringEntries(owner, owningGroup, stringEntries);
+    }
   }
 }

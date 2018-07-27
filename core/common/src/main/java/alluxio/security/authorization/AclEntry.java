@@ -17,6 +17,7 @@ import alluxio.thrift.TAclEntry;
 
 import com.google.common.base.Objects;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,7 +25,8 @@ import java.util.stream.Collectors;
 /**
  * An entry in {@link AccessControlList}.
  */
-public final class AclEntry {
+public final class AclEntry implements Serializable {
+  private static final long serialVersionUID = -738692910777661243L;
 
   private static final String DEFAULT_KEYWORD = "default";
   private static final String DEFAULT_PREFIX = DEFAULT_KEYWORD + ":";
@@ -238,7 +240,7 @@ public final class AclEntry {
     builder.setSubject(subject);
 
     Mode.Bits bits = Mode.Bits.fromString(actions);
-    for (AclAction action : bits.toAclActions()) {
+    for (AclAction action : bits.toAclActionSet()) {
       builder.addAction(action);
     }
     return builder.build();
