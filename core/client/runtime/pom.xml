@@ -156,9 +156,8 @@
                 <filter>
                   <artifact>*:*</artifact>
                   <excludes>
-                    <!-- Enforce no unshaded protobuf and thrift classes in the output. -->
-                    <exclude>com/google/protobuf/*</exclude>
-                    <exclude>org/apache/thrift/*</exclude>
+                    <!-- Enforce no unshaded protobuf classes as the input of shading. See ALLUXIO-3278 -->
+                    <exclude>com/google/protobuf/**</exclude>
                     <exclude>LICENSE</exclude>
                     <exclude>META-INF/LICENSE</exclude>
                     <exclude>META-INF/*.SF</exclude>
