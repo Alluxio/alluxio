@@ -134,12 +134,12 @@ void MountOptionsTest() {
 void OpenFileOptionsTest() {
   OpenFileOptions* openFileOptions = OpenFileOptions::getDefaultOptions();
   FileWriteLocationPolicy* policy = NULL;
-  policy = SpecificHostPolicy::getPolicy("host1");
+  policy = LocalFirstPolicy::getPolicy();
   openFileOptions->setLocationPolicy(policy);
   FileWriteLocationPolicy* newPolicy = openFileOptions->getLocationPolicy();
   std::string policyClass = openFileOptions->getLocationPolicyClass();
   assert(policyClass.compare(
-      "alluxio.client.file.policy.SpecificHostPolicy") == 0);
+      "alluxio.client.file.policy.LocalFirstPolicy") == 0);
   openFileOptions->setLocationPolicyClass(
       "alluxio.client.file.policy.RoundRobinPolicy");
   policyClass = openFileOptions->getLocationPolicyClass();
@@ -264,7 +264,7 @@ int main(void) {
   alluxio::FreeOptionsTest();
   alluxio::ListStatusOptionsTest();
   alluxio::MountOptionsTest();
-  //alluxio::OpenFileOptionsTest();
+  alluxio::OpenFileOptionsTest();
   alluxio::SetAttributeOptionsTest();
   alluxio::GetStatusOptionsTest();
   //alluxio::GetWorkerOptionsTest();
