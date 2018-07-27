@@ -106,7 +106,7 @@ by following the instructions [here](Building-Alluxio-From-Source.html#compute-f
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 Distribute the Alluxio client jar to all worker nodes in Presto:
-- You must put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH_PRESTO}}` into Presto cluster's worker directory
+- You must put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into Presto cluster's worker directory
 `$PRESTO_HOME/plugin/hive-hadoop2/`
 (For different versions of Hadoop, put the appropriate folder), And restart the process of coordinator and worker.
 
