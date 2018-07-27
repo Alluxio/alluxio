@@ -69,12 +69,12 @@ void CreateFileOptionsTest() {
   Mode* newMode = createFileOptions->getMode();
   assert(newMode->getOtherBits()->toString().compare("rwx") == 0);
   FileWriteLocationPolicy* policy = NULL;
-  policy = SpecificHostPolicy::getPolicy("host1");
+  policy = RoundRobinPolicy::getPolicy();
   createFileOptions->setLocationPolicy(policy);
   FileWriteLocationPolicy* newPolicy = createFileOptions->getLocationPolicy();
   std::string policyClass = createFileOptions->getLocationPolicyClass();
   assert(policyClass.compare(
-      "alluxio.client.file.policy.SpecificHostPolicy") == 0);
+      "alluxio.client.file.policy.RoundRobinPolicy") == 0);
 }
 
 void DeleteOptionsTest() {
@@ -258,7 +258,7 @@ int main(void) {
   miniCluster->start();
   miniCluster->getClient(&fileSystem);
   alluxio::CreateDirectoryOptionsTest();
-  //alluxio::CreateFileOptionsTest();
+  alluxio::CreateFileOptionsTest();
   alluxio::DeleteOptionsTest();
   alluxio::ExistsOptionsTest();
   alluxio::FreeOptionsTest();
