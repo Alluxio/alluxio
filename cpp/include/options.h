@@ -18,7 +18,6 @@
 #include <string>
 #include <map>
 
-using ::jnihelper::JniHelper;
 
 namespace alluxio {
 
