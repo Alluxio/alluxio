@@ -1581,7 +1581,7 @@ public final class FileSystemMasterTest {
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    // TTL is set to 1, the file should have been deleted during last TTL check.
+    // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }
@@ -1746,12 +1746,12 @@ public final class FileSystemMasterTest {
 
     // Both pinned flag and ttl value.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeOptions.defaults().setPinned(false).setTtl(0));
+        SetAttributeOptions.defaults().setPinned(false).setTtl(1));
     fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS);
     assertFalse(fileInfo.isPinned());
     assertEquals(1, fileInfo.getTtl());
 
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(0));
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(1));
   }
 
   /**
