@@ -1,6 +1,6 @@
 ---
 layout: global
-title: 在Minio上配置Alluxio
+title: Alluxio使用Minio
 nickname: Alluxio使用Minio
 group: Under Store
 priority: 0

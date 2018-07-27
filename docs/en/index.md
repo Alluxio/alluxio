@@ -83,12 +83,6 @@ data management across different storage systems through the mount feature. Furt
 transparent naming ensures that file names and directory hierarchy for objects created in Alluxio
 is preserved when persisting these objects to the underlying storage system.
 
-* **[Lineage](Lineage-API.html)** Alluxio can achieve high throughput writes without compromising
-fault-tolerance by using lineage, where lost output is recovered by re-executing the jobs that
-created the output. With lineage, applications write output into memory, and Alluxio periodically
-checkpoints the output into the under file system in an asynchronous fashion. In case of failures,
-Alluxio launches job recomputation to restore the lost files.
-
 * **[Web UI](Web-Interface.html) & [Command Line](Command-Line-Interface.html)** Users can browse
 the file system easily through the web UI. Under debug mode, administrators can view detailed
 information of each file, including locations, checkpoint path, etc. Users can also use
@@ -110,5 +104,5 @@ source code, check out the
 questions, please feel free to ask at our
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users). For users
 can not access Google Group, please use its
-[mirror](http://alluxio-users.85194.x6.nabble.com/) (notes: the mirror does not have infomation
+[mirror](http://alluxio-users.85194.x6.nabble.com/) (notes: the mirror does not have information
 before May 2016).
