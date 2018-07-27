@@ -10,20 +10,22 @@ priority: 0
 {:toc}
 
 Alluxio维护日志，以支持元数据操作的持久性。当请求修改Alluxio状态时，例如创建或重命名文件在返回之前，
-Alluxio将为操作写一个日志条目对客户的成功回应。日记条目是写向持久存储，如磁盘或HDFS，所以即使是Alluxio主进程被终止，
+Alluxio将为操作写一个日志条目对客户的成功回应。日记条目是写向持久存储，如磁盘或HDFS，所以即使是Alluxio master进程被终止，
 状态将在重新启动时恢复。
 
 # 配置
 
-要为日志设置的最重要的配置值是“alluxio.master.journal.folder”。这必须设置为所有主服务器都可以使用的共享文件系统。
+要为日志设置的最重要的配置值是`alluxio.master.journal.folder`。这必须设置为所有主服务器都可以使用的共享文件系统。
 在单主节店模式下，直接使用本地文件系统路径是可行的。对于分布在不同机器上的多个主目录，共享文件夹应该位于支持flush的分布式系统中，
 比如HDFS或NFS。不建议将日志放在对象存储中。对于对象存储，对日志的每一次更新都需要创建一个新对象，
 这对于大多数紧急的用例来说是非常缓慢的。
 
 **配置示例:**
+使用HDFS来存储日志：
 ```
 alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/dir/alluxio_journal
 ```
+使用本地文件系统来存储日志：
 ```
 alluxio.master.journal.folder=/opt/alluxio/journal
 ```
@@ -61,7 +63,7 @@ alluxio.master.backup.directory=/alluxio/backups
 要从日志备份中恢复典故系统，请停止系统，格式化，
 然后重新启动系统，使用 `-i`(import) 标志传递备份的URI。
 
-```
+```bash
 $ bin/alluxio-stop.sh masters
 $ bin/alluxio formatMaster
 $ bin/alluxio-start.sh -i <backup_uri> masters

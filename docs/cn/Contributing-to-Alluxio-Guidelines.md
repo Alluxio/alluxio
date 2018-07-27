@@ -1,16 +1,17 @@
 ---
 layout: global
-title: 开发者指导
-nickname: 开发者指导
+title: 开发者代码规范
+nickname: 开发者代码规范
 group: Resources
+priority: 2
 ---
 
 * 内容列表
 {:toc}
 
-> 如果你是一个新开源贡献者，请先浏览[开始贡献源码向导](Contributing-Getting-Started.html)以熟悉如何向Alluxio贡献源码。
+> 如果您是一名新的开源贡献者，请先浏览[开始贡献源码向导](Contributing-Getting-Started.html)以熟悉如何向Alluxio贡献源码。
 
-感谢您对Alluxio的兴趣！我们非常感谢任何的新特性或者修复的贡献。
+我们非常感谢您对Alluxio的关注与兴趣！特别感谢您对Alluxio开源社区作出的贡献！
 
 ## 提交代码
 
@@ -91,7 +92,7 @@ $ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/a
 - 要以交互的方式快速运行某些API测试，你可能需要使用Scala shell，这在
 [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding)有讨论。
 
-- 如果libfuse库丢失，其测试将被忽略。要运行这些测试，请安装[this page](Mounting-Alluxio-FS-with-FUSE.html#requirements)中所提到的正确的库。
+- 如果libfuse库丢失，其测试将被忽略。要运行这些测试，请安装[FUSE](Mounting-Alluxio-FS-with-FUSE.html#requirements)中所提到的正确的库。
 
 ### 系统设置
 
@@ -106,9 +107,9 @@ $ sudo launchctl limit maxproc 32768 32768
 
 同时推荐从Spotlight indexing导出本地Alluxio。否则，你的Mac在单元测试时将会一直挂起来尝试重新定位文件系统。去`System Preferences > Spotlight > Privacy`，点击`+`键，浏览你本地Alluxio的目录，点击`Choose`将其添加到导出列表。
 
-## 编码风格
+## 代码风格
 
--   请遵循已有代码的风格。具体地，我们使用[Google Java style](https://google.github.io/styleguide/javaguide.html)风格，但有以下不同：
+-   请遵循已有代码的风格。具体来说我们使用[Google Java style](https://google.github.io/styleguide/javaguide.html)风格，但有以下不同：
     -  每行最多**100**个字符
     -  第三方导入被整理到一起以使得IDE格式化起来更简单
     -  类成员变量要使用`m`前缀，例如`private WorkerClient mWorkerClient;`
@@ -141,9 +142,9 @@ public MyClass {
 
   private static final Logger LOG = LoggerFactory.getLogger(MyClass.class);
 
-    public void someMethod() {
-      LOG.info("Hello world");
-    }
+  public void someMethod() {
+    LOG.info("Hello world");
+  }
 }
 ```
 
@@ -166,10 +167,10 @@ LOG.info("Master started.");
 LOG.debug("Failed to connec to {} due to exception", host + ":" + port, e); // wrong
 LOG.debug("Failed to connec to {} due to exception", mAddress, e); // OK
 if (LOG.isDebugEnabled()) {
-    LOG.debug("Failed to connec to address {} due to exception", host + ":" + port, e); // OK
+  LOG.debug("Failed to connec to address {} due to exception", host + ":" + port, e); // OK
 }
 ```
-* 跟踪级别日志在Alluxio中不使用。
+* 跟踪级别日志（`LOG.trace`）在Alluxio中不使用。
 
 ## FindBugs
 
@@ -198,21 +199,30 @@ if (LOG.isDebugEnabled()) {
 
 Alluxio使用Thrift来完成客户端与服务端的RPC通信。`.thrift`文件定义在`common/src/thrift/`目录下，其一方面用于自动生成客户端调用RPC的Java代码，另一方面用于实现服务端的RPC。要想更改一个Thrift定义，你首先必须要[安装Thrift的编译器](https://thrift.apache.org/docs/install/)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
 
-{% include Developer-Tips/install-thrift.md %}
+```bash
+$ brew install thrift
+```
 
 然后重新生成Java代码，运行
 
-{% include Developer-Tips/thriftGen.md %}
+```bash
+$ bin/alluxio thriftGen
+```
 
 ## 更改Protocol Buffer消息
 
 Alluxio使用Protocol Buffer来读写日志消息。`.proto`文件被定义在`servers/src/proto/journal/`目录下，其用于为Protocol Buffer消息自动生成Java定义。要需要修改这些消息，首先要[读取更新的消息类型](https://developers.google.com/protocol-buffers/docs/proto#updating)从而保证你的修改不会破坏向后兼容性。然后就是[安装protoc](https://github.com/google/protobuf#protocol-buffers---googles-data-interchange-format)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
 
-{% include Developer-Tips/install-protobuf.md %}
+```bash
+$ brew install protobuf@2.5
+$ brew link --force protobuf@2.5
+```
 
 然后重新生成Java代码，运行
 
-{% include Developer-Tips/protoGen.md %}
+```bash
+$ bin/alluxio protoGen
+```
 
 ## bin/alluxio目录下的命令列表
 
@@ -229,4 +239,4 @@ Alluxio使用Protocol Buffer来读写日志消息。`.proto`文件被定义在`s
 {% endfor %}
 </table>
 
-此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`，`validateConf`和`validateEnv`命令的先决条件是你已经构建了Alluxio（见[构建Alluxio主分支](Building-Alluxio-From-Source.html)其介绍了如何手动构建Alluxio)。而`fs`，`loadufs`，`logLevel`, `runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。
+此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`，`validateConf`和`validateEnv`命令的先决条件是你已经编译了Alluxio（见[编译Alluxio源代码](Building-Alluxio-From-Source.html)其介绍了如何手动构建Alluxio)。而`fs`，`loadufs`，`logLevel`, `runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。
