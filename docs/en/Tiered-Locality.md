@@ -13,8 +13,7 @@ priority: 1
 
 In Alluxio, each entity (masters, workers, clients) has a *Tiered Identity*. A tiered
 identity is an address tuple such as `(node=..., rack=...)`. Each pair in the tuple is called
-a *locality tier*. The locality tiers are ordered from most specific to least specific, so if
-two entities have the same node name, they are assumed to also have the same rack name. Alluxio
+a *locality tier*. The locality tiers are ordered from most specific to least specific. Alluxio
 uses tiered identities to optimize for locality. For example, when the client wants to read a
 file from the UFS, it will prefer to read through an Alluxio worker on the same node.
 If there is no local worker in the first tier (node), the next tier (rack) will be checked
