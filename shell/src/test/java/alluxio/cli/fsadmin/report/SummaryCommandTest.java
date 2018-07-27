@@ -23,7 +23,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+// import org.mockito.Mockito;
+import static org.mockito.Mockito.mock
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,7 +45,7 @@ public class SummaryCommandTest {
   public void prepareDependencies() throws IOException {
     // Generate random values for MasterInfo and BlockMasterInfo
     // Prepare mock meta master client
-    mMetaMasterClient = Mockito.mock(MetaMasterClient.class);
+    mMetaMasterClient = mock(MetaMasterClient.class);
     MasterInfo masterInfo = new MasterInfo()
         .setLeaderMasterAddress("testAddress")
         .setWebPort(1231)
@@ -58,7 +59,7 @@ public class SummaryCommandTest {
     Mockito.when(mMetaMasterClient.getMasterInfo(Mockito.any())).thenReturn(masterInfo);
 
     // Prepare mock block master client
-    mBlockMasterClient = Mockito.mock(BlockMasterClient.class);
+    mBlockMasterClient = mock(BlockMasterClient.class);
     Map<String, Long> capacityBytesOnTiers = new HashMap<>();
     Map<String, Long> usedBytesOnTiers = new HashMap<>();
     capacityBytesOnTiers.put("MEM", 1341353L);
