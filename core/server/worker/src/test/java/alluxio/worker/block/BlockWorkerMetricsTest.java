@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.StorageTierAssoc;
@@ -24,7 +25,6 @@ import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 /**
  * Unit tests for {@link DefaultBlockWorker.Metrics}.
@@ -39,8 +39,8 @@ public final class BlockWorkerMetricsTest {
   @Before
   public void before() throws Exception {
     MetricsSystem.clearAllMetrics();
-    mBlockWorker = Mockito.mock(BlockWorker.class);
-    mBlockStoreMeta = Mockito.mock(BlockStoreMeta.class);
+    mBlockWorker = mock(BlockWorker.class);
+    mBlockStoreMeta = mock(BlockStoreMeta.class);
     Mockito.when(mBlockWorker.getStoreMeta()).thenReturn(mBlockStoreMeta);
     StorageTierAssoc assoc = new WorkerStorageTierAssoc(Lists.newArrayList(MEM, HDD));
     when(mBlockStoreMeta.getStorageTierAssoc()).thenReturn(assoc);
