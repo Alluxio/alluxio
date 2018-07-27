@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 // import org.mockito.Mockito;
 import static org.mockito.Mockito.mock
+import static org.mockito.Mockito.when
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -56,7 +57,7 @@ public class SummaryCommandTest {
         .setSafeMode(false)
         .setZookeeperAddresses(Arrays.asList("[zookeeper_hostname1]:2181",
             "[zookeeper_hostname2]:2181", "[zookeeper_hostname3]:2181"));
-    Mockito.when(mMetaMasterClient.getMasterInfo(Mockito.any())).thenReturn(masterInfo);
+            when(mMetaMasterClient.getMasterInfo(Mockito.any())).thenReturn(masterInfo);
 
     // Prepare mock block master client
     mBlockMasterClient = mock(BlockMasterClient.class);
@@ -76,7 +77,7 @@ public class SummaryCommandTest {
         .setUsedBytes(62434L)
         .setUsedBytesOnTiers(usedBytesOnTiers)
         .setFreeBytes(1278919L);
-    Mockito.when(mBlockMasterClient.getBlockMasterInfo(Mockito.any()))
+        when(mBlockMasterClient.getBlockMasterInfo(Mockito.any()))
         .thenReturn(blockMasterInfo);
 
     // Prepare print stream
