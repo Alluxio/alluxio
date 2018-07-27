@@ -64,6 +64,7 @@ public final class AlluxioFuse {
     // cache and go directly to alluxio. This avoids extra memory copies
     // in the write path.
     //fuseOpts.add("-odirect_io");
+    fuseOpts.add("-osync_read");
 
     try {
       fs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
