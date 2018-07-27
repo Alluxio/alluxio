@@ -216,6 +216,8 @@ void GetStatusOptionsTest() {
   assert(loadMetadataType->getValue() == 2);
 }
 
+// This test is only suitable for my local environment
+/*
 void GetWorkerOptionsTest() {
   WorkerNetAddress* netAddress = new WorkerNetAddress("host1", 1, 1, 1, "1");
   WorkerNetAddress* netAddress2 = new WorkerNetAddress(
@@ -246,7 +248,7 @@ void GetWorkerOptionsTest() {
   newPolicy = MostAvailableFirstPolicy::getPolicy();
   address = newPolicy->getWorker(getWorkerOptions);
   assert(address->getHost().compare("host1") == 0);
-}
+}*/
 }
 
 int main(void) {
@@ -261,9 +263,9 @@ int main(void) {
   alluxio::ExistsOptionsTest();
   alluxio::FreeOptionsTest();
   alluxio::ListStatusOptionsTest();
-  //alluxio::MountOptionsTest();
+  alluxio::MountOptionsTest();
   //alluxio::OpenFileOptionsTest();
-  //alluxio::SetAttributeOptionsTest();
+  alluxio::SetAttributeOptionsTest();
   alluxio::GetStatusOptionsTest();
   //alluxio::GetWorkerOptionsTest();
   delete miniCluster;
