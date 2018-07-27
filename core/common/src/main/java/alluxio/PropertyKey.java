@@ -12,7 +12,6 @@
 package alluxio;
 
 import alluxio.exception.ExceptionMessage;
-import alluxio.network.ChannelType;
 import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.Scope;
@@ -1661,10 +1660,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.WORKER_NETWORK_NETTY_CHANNEL)
-          .setDescription("Netty channel type: NIO or EPOLL.")
+          .setDescription("Netty channel type: NIO or EPOLL. If EPOLL is not available, this will "
+              + "automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
-          .setDefaultSupplier(ChannelType.DEFAULT_SUPPLIER)
+          .setDefaultValue("EPOLL")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
       new Builder(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE)
@@ -2518,10 +2518,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
-          .setDescription("Type of netty channels.")
+          .setDescription("Type of netty channels. If EPOLL is not available, this will "
+              + "automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setDefaultSupplier(ChannelType.DEFAULT_SUPPLIER)
+          .setDefaultValue("EPOLL")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_TIMEOUT_MS)
