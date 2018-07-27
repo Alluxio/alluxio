@@ -156,6 +156,9 @@
                 <filter>
                   <artifact>*:*</artifact>
                   <excludes>
+                    <!-- Enforce no unshaded protobuf and thrift classes in the output. -->
+                    <exclude>com/google/protobuf/*</exclude>
+                    <exclude>org/apache/thrift/*</exclude>
                     <exclude>LICENSE</exclude>
                     <exclude>META-INF/LICENSE</exclude>
                     <exclude>META-INF/*.SF</exclude>
