@@ -95,8 +95,7 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
       files[i] = new AlluxioURI("/file" + i);
       mFileSystem.createFile(files[i],
           CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)).close();
-      // After ALLUXIO-3240, TTL default is 0, so here we plus 1 to avoid 0.
-      ttls[i] = 1 + random.nextInt(2 * TTL_INTERVAL_MS);
+      ttls[i] = random.nextInt(2 * TTL_INTERVAL_MS);
     }
 
     assertErrorsSizeEquals(concurrentSetTtl(files, ttls), 0);
