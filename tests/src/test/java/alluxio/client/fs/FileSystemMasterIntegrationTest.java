@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assume.assumeTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
@@ -60,6 +61,7 @@ import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -1206,6 +1208,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
    */
   @Test(expected = IOException.class)
   public void createDirectoryInNestedDirectoriesWithoutExecutePermission() throws Exception {
+    // Assume the user is not root. This test doesn't work as root because root *is* allowed to
+    // create subdirectories even without execute permission on the parent directory.
+    assumeTrue(ShellUtils.execCommand("id", "-u").trim() != "0");
     String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String parentPath = Paths.get(ufs, "d1").toString();
     FileUtils.createDir(parentPath);
