@@ -12,6 +12,7 @@
 package alluxio.underfs.gcs;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
