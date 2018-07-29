@@ -22,7 +22,7 @@ import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
-import static org.mockito.Mockito;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 
