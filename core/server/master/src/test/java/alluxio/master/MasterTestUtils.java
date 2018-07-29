@@ -14,7 +14,7 @@ package alluxio.master;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 
-import org.mockito.Mockito;
+import static org.mockito.Mockito.mock;
 
 /**
  * Util methods to help with master testing.
@@ -34,7 +34,7 @@ public final class MasterTestUtils {
    */
   public static MasterContext testMasterContext(JournalSystem journalSystem) {
     return new MasterContext(journalSystem, new TestSafeModeManager(),
-        Mockito.mock(BackupManager.class), -1, -1);
+        mock(BackupManager.class), -1, -1);
   }
 
   private MasterTestUtils() {} // Not intended for instatiation.
