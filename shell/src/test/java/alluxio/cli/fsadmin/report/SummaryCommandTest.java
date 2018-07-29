@@ -23,7 +23,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,7 +46,7 @@ public class SummaryCommandTest {
   public void prepareDependencies() throws IOException {
     // Generate random values for MasterInfo and BlockMasterInfo
     // Prepare mock meta master client
-    mMetaMasterClient = Mockito.mock(MetaMasterClient.class);
+    mMetaMasterClient = mock(MetaMasterClient.class);
     MasterInfo masterInfo = new MasterInfo()
         .setLeaderMasterAddress("testAddress")
         .setWebPort(1231)
@@ -55,10 +57,10 @@ public class SummaryCommandTest {
         .setSafeMode(false)
         .setZookeeperAddresses(Arrays.asList("[zookeeper_hostname1]:2181",
             "[zookeeper_hostname2]:2181", "[zookeeper_hostname3]:2181"));
-    Mockito.when(mMetaMasterClient.getMasterInfo(Mockito.any())).thenReturn(masterInfo);
+    when(mMetaMasterClient.getMasterInfo(any())).thenReturn(masterInfo);
 
     // Prepare mock block master client
-    mBlockMasterClient = Mockito.mock(BlockMasterClient.class);
+    mBlockMasterClient = mock(BlockMasterClient.class);
     Map<String, Long> capacityBytesOnTiers = new HashMap<>();
     Map<String, Long> usedBytesOnTiers = new HashMap<>();
     capacityBytesOnTiers.put("MEM", 1341353L);
@@ -75,7 +77,7 @@ public class SummaryCommandTest {
         .setUsedBytes(62434L)
         .setUsedBytesOnTiers(usedBytesOnTiers)
         .setFreeBytes(1278919L);
-    Mockito.when(mBlockMasterClient.getBlockMasterInfo(Mockito.any()))
+    when(mBlockMasterClient.getBlockMasterInfo(any()))
         .thenReturn(blockMasterInfo);
 
     // Prepare print stream
