@@ -27,7 +27,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
+import org.mockito.Mockito.verify;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -90,9 +90,9 @@ public class SpaceReserverTest {
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
     // 400 * 0.2 = 80
-    Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "MEM");
+    verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "MEM");
     // 400 * 0.2 + 1000 * 0.3 = 380
-    Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 380L, "HDD");
+    verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 380L, "HDD");
   }
 
   @Test
@@ -141,11 +141,11 @@ public class SpaceReserverTest {
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
     // 1000 * 0.4 + 200 * 0.3 + 100 * 0.2 = 480
-    Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 480L, "HDD");
+    verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 480L, "HDD");
     // 200 * 0.3 + 100 * 0.2 = 80
-    Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "SSD");
+    verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "SSD");
     // 100 * 0.2 = 20
-    Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
+    verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
   }
 
   @Test
@@ -194,12 +194,12 @@ public class SpaceReserverTest {
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
     // 1000 * 0.4 + 200 * 0.3 + 100 * 0.2 = 480
-    Mockito.verify(blockWorker, Mockito.times(0)).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID,
+    verify(blockWorker, Mockito.times(0)).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID,
         480L, "HDD");
     // 200 * 0.3 + 100 * 0.2 = 80
-    Mockito.verify(blockWorker, Mockito.times(0)).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID,
+    verify(blockWorker, Mockito.times(0)).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID,
         80L, "SSD");
     // 100 * 0.2 = 20
-    Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
+    verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
   }
 }
