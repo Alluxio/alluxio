@@ -44,7 +44,7 @@ public final class GetStatusOptions {
 
   private GetStatusOptions() {
     mCommonOptions = CommonOptions.defaults()
-        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_LOAD_TTL))
+        .setTtl(Configuration.getMs(PropertyKey.USER_FILE_LOAD_TTL))
         .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_LOAD_TTL_ACTION,
             TtlAction.class));
     mLoadMetadataType =
