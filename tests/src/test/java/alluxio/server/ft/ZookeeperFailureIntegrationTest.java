@@ -19,6 +19,7 @@ import alluxio.PropertyKey;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
+import alluxio.multi.process.PortCoordination;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.security.authentication.TransportProvider.Factory;
@@ -31,6 +32,7 @@ import alluxio.util.CommonUtils;
 import com.google.common.collect.ImmutableMap;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -53,13 +55,14 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
       PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2500")
   );
 
-  @Rule
-  public MultiProcessCluster mCluster = MultiProcessCluster.newBuilder()
-      .setClusterName("ZookeeperFailure")
-      .setDeployMode(DeployMode.ZOOKEEPER_HA)
-      .setNumMasters(1)
-      .setNumWorkers(1)
-      .build();
+  public MultiProcessCluster mCluster;
+
+  @After
+  public void after() throws Exception {
+    if (mCluster != null) {
+      mCluster.destroy();
+    }
+  }
 
   /*
    * This test starts alluxio in HA mode, kills Zookeeper, waits for Alluxio to fail, then restarts
@@ -67,6 +70,13 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void zkFailure() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.sZookeeperFailure)
+        .setClusterName("ZookeeperFailure")
+        .setDeployMode(DeployMode.ZOOKEEPER_HA)
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .build();
+
     AlluxioOperationThread thread =
         new AlluxioOperationThread(mCluster.getFileSystemClient());
     thread.start();
