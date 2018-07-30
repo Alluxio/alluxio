@@ -63,7 +63,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     super(id, true);
     mMountPoint = false;
     mDirectChildrenLoaded = false;
-    mDefaultAcl = new DefaultAccessControlList();
+    mDefaultAcl = new DefaultAccessControlList(mAcl);
   }
 
   @Override
