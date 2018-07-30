@@ -20,7 +20,7 @@ There are performance implications of using the HTTP proxy. In particular, using
 an extra hop. For optimal performance, it is recommended to run the proxy server and an Alluxio
 worker on each compute node. It is also recommended to put all the proxy servers behind a load balancer.
 
-# Features support
+## Features support
 The following table describes the support status for current Amazon S3 functional features:
 
 <table class="table table-striped">
@@ -33,17 +33,17 @@ The following table describes the support status for current Amazon S3 functiona
 {% endfor %}
 </table>
 
-# Language support
+## Language support
 Alluxio S3 client supports various programming languages, such as C++, Java, Python, Golang, Ruby and etc.
 In this documentation, we use curl REST calls and python S3 client as usage examples.
 
-# Example Usage
+## Example Usage
 
-## REST API
+### REST API
 For example, you can run the following RESTFul API calls to an Alluxio cluster running on localhost.
 The Alluxio proxy is listening at port 39999 by default.
 
-### Create a bucket
+#### Create a bucket
 
 ```bash
 # curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket
@@ -53,7 +53,7 @@ Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
-### Get the bucket (listing objects)
+#### Get the bucket (listing objects)
 
 ```bash
 # curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
@@ -66,7 +66,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 <ListBucketResult xmlns=""><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken/><KeyCount>0</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated></ListBucketResult>
 ```
 
-### Put an object
+#### Put an object
 Assume there is an existing file on local file system called `LICENSE`.
 
 ```bash
@@ -81,7 +81,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 ```
 
-### Get the object:
+#### Get the object:
 
 ```bash
 # curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject
@@ -95,7 +95,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 .................. Content of the test file ...................
 ```
 
-### Listing a bucket with one object
+#### Listing a bucket with one object
 
 ```bash
 # curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
@@ -108,7 +108,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 <ListBucketResult xmlns=""><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken/><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>testobject</Key><LastModified>2017-08-29T15:36:03.613Z</LastModified><ETag></ETag><Size>26847</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
 ```
 
-### Listing a bucket with multiple objects
+#### Listing a bucket with multiple objects
 You can upload more files and use the `max-keys` and `continuation-token` as the GET bucket request param. For example:
 
 ```bash
@@ -140,7 +140,7 @@ You can also verify those objects are represented as Alluxio files, under `/test
 ./bin/alluxio fs ls -R /testbucket
 ```
 
-### Delete objects
+#### Delete objects
 
 ```bash
 # curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key1
@@ -155,7 +155,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 # curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject
 ```
 
-### Initiate a multipart upload
+#### Initiate a multipart upload
 
 ```bash
 # curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploads
@@ -172,7 +172,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 </InitiateMultipartUploadResult>
 ```
 
-### Upload part
+#### Upload part
 
 ```bash
 # curl -i -X PUT 'http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=2'
@@ -182,7 +182,7 @@ ETag: "b54357faf0632cce46e942fa68356b38"
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
-### List parts
+#### List parts
 
 ```bash
 # curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
@@ -207,7 +207,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 </ListPartsResult>
 ```
 
-### Complete a multipart upload
+#### Complete a multipart upload
 
 ```bash
 # curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
@@ -231,7 +231,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 </CompleteMultipartUploadResult>
 ```
 
-### Abort a multipart upload
+#### Abort a multipart upload
 
 ```bash
 # curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
@@ -241,7 +241,7 @@ Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
-### Delete an empty bucket
+#### Delete an empty bucket
 
 ```bash
 # curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket
@@ -249,9 +249,9 @@ HTTP/1.1 204 No Content
 Date: Tue, 29 Aug 2017 22:45:19 GMT
 ```
 
-## Python S3 Client
+### Python S3 Client
 
-### Create a connection:
+#### Create a connection:
 
 ```python
 import boto
@@ -268,14 +268,14 @@ conn = boto.connect_s3(
 )
 ```
 
-### Create a bucket
+#### Create a bucket
 
 ```python
 bucketName = 'bucket-for-testing'
 bucket = conn.create_bucket(bucketName)
 ```
 
-### PUT a small object
+#### PUT a small object
 
 ```python
 smallObjectKey = 'small.txt'
@@ -285,13 +285,13 @@ key = bucket.new_key(smallObjectKey)
 key.set_contents_from_string(smallObjectContent)
 ```
 
-### Get the small object
+#### Get the small object
 
 ```python
 assert smallObjectContent == key.get_contents_as_string()
 ```
 
-### Upload a large object
+#### Upload a large object
 Create a 8MB file on local file system.
 
 ```bash
@@ -311,26 +311,26 @@ with open(largeObjectFile, 'rb') as f:
     largeObject = f.read()
 ```
 
-### Get the large object
+#### Get the large object
 
 ```python
 assert largeObject == key.get_contents_as_string()
 ```
 
-### Delete the objects
+#### Delete the objects
 
 ```python
 bucket.delete_key(smallObjectKey)
 bucket.delete_key(largeObjectKey)
 ```
 
-### Initiate a multipart upload
+#### Initiate a multipart upload
 
 ```python
 mp = bucket.initiate_multipart_upload(largeObjectFile)
 ```
 
-### Upload parts
+#### Upload parts
 
 ```python
 import math, os
@@ -349,19 +349,19 @@ for i in range(chunkCount):
         mp.upload_part_from_file(fp, part_num=i + 1)
 ```
 
-### Complete the multipart upload
+#### Complete the multipart upload
 
 ```python
 mp.complete_upload()
 ```
 
-### Abort the multipart upload
+#### Abort the multipart upload
 
 ```python
 mp.cancel_upload()
 ```
 
-### Delete the bucket
+#### Delete the bucket
 
 ```python
 conn.delete_bucket(bucketName)
