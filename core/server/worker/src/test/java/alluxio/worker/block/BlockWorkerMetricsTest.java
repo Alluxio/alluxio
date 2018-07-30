@@ -41,7 +41,7 @@ public final class BlockWorkerMetricsTest {
     MetricsSystem.clearAllMetrics();
     mBlockWorker = mock(BlockWorker.class);
     mBlockStoreMeta = mock(BlockStoreMeta.class);
-    Mockito.when(mBlockWorker.getStoreMeta()).thenReturn(mBlockStoreMeta);
+    when(mBlockWorker.getStoreMeta()).thenReturn(mBlockStoreMeta);
     StorageTierAssoc assoc = new WorkerStorageTierAssoc(Lists.newArrayList(MEM, HDD));
     when(mBlockStoreMeta.getStorageTierAssoc()).thenReturn(assoc);
     Metrics.registerGauges(mBlockWorker);
