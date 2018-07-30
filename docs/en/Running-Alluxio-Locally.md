@@ -51,7 +51,7 @@ $ ./bin/alluxio-start.sh local
 > in order to setup RAMFS. If you do not want to type in the password every time, or you do
 > not even have sudo privileges, please read the alternative approaches in [FAQ](#faq).
 
-### Verify Alluxio is running
+## Verify Alluxio is running
 
 To verify that Alluxio is running, you can visit
 **[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder.
