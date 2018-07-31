@@ -471,10 +471,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     synchronized (INIT_LOCK) {
       if (sInitialized) {
-        if (!connectDetailsMatch(alluxioURI, conf)) {
+        if (!connectDetailsMatch(conf)) {
           LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_CONFIGURATION
               .getMessage(alluxioURI.getAuthority(),
-                  FileSystemContext.get().getMasterAddress()));
+                  FileSystemContext.get().getMasterInquireClient().getConnectDetails()));
           initializeInternal(conf);
         }
       } else {
@@ -517,24 +517,28 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
-   * Sets connection configuration from URI to Alluxio configuration.
+   * Sets connection configuration from URI.
    *
    * @param uri the Alluxio URI to get connection configuration from
    */
   private void setAlluxioConfigurationFromURI(AlluxioURI uri) {
-    // Source == URI is to distinguish those Zookeeper configuration set in the configuration files.
+    // Source == Runtime : Zookeeper configuration set in the configuration files.
+    // Source == URI : Zookeeper configuration set in the Alluxio URI.
+    // Clean the Zookeeper configuration from the previous Alluxio URI
     if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
         && Configuration.getSource(PropertyKey.ZOOKEEPER_ENABLED) == Source.URI) {
       Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, false, Source.URI);
       Configuration.unset(PropertyKey.ZOOKEEPER_ADDRESS);
     }
+    // For backward compatible
+    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
+
     if (uri.isZookeeperURI()) {
       Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, true, Source.URI);
       Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, uri.getAuthority(), Source.URI);
     }
     if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
-      Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
       Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost(), Source.URI);
       Configuration.set(PropertyKey.MASTER_RPC_PORT, uri.getPort(), Source.URI);
     }
@@ -544,11 +548,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * Checks whether the connect details from the uri + hadoop conf + global Alluxio conf are the
    * same as the connect details currently being used by {@link FileSystemContext}.
    *
-   * @param uri the uri
    * @param conf the hadoop conf
    * @return whether the details match
    */
-  private boolean connectDetailsMatch(AlluxioURI uri, org.apache.hadoop.conf.Configuration conf) {
+  private boolean connectDetailsMatch(org.apache.hadoop.conf.Configuration conf) {
     // Create the master inquire client that we would have after merging the hadoop conf into
     // Alluxio Configuration.
     AlluxioConfiguration alluxioConf = new InstancedConfiguration(Configuration.global());

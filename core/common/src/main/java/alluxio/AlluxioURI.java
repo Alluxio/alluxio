@@ -39,6 +39,8 @@ import javax.annotation.concurrent.ThreadSafe;
  *     * scheme:part2://host:123/path
  *     * scheme:part2:part3//host:123/path
  *     * scheme:part2:part3://host:123/path
+ *   * Alluxio on Zookeeper URI
+ *     * alluxio://zk@zkHost:123/path
  *
  * Does not support fragment in the URI.
  */

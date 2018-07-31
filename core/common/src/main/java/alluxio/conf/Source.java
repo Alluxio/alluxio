@@ -54,8 +54,8 @@ public class Source implements Comparable<Source> {
      */
     RUNTIME,
     /**
-     * The property value is set by Alluxio URI (e.g. Zookeeper configuration set in Alluxio
-     * on Zookeeper URI). This source has the highest priority.
+     * The property value is set by HDFS API side Alluxio URI (e.g. Zookeeper configuration
+     * set in Alluxio on Zookeeper URI). This source has the highest priority.
      */
     URI
   }
