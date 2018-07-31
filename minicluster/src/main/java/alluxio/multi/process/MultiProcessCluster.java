@@ -132,7 +132,7 @@ public final class MultiProcessCluster {
     mDeployMode = mode;
     mMasters = new ArrayList<>();
     mWorkers = new ArrayList<>();
-    mPorts = ports;
+    mPorts = new ArrayList<>(ports);
     mCloser = Closer.create();
     mState = State.NOT_STARTED;
     mSuccess = false;

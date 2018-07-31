@@ -26,6 +26,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Using the same ports every time improves build stability when using Docker.
  */
 public class PortCoordination {
+  // Start at 11000 to stay within the non-ephemeral port range and hopefully dodge most other
+  // processes.
+  private static final AtomicInteger NEXT_PORT = new AtomicInteger(11000);
+  private static final Set<Integer> SKIP_PORTS = new HashSet(Arrays.asList(
+      // add ports here to avoid conflicting with other processes on those ports.
+  ));
+
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_WORKERS = allocate(1, 2);
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_NODES = allocate(2, 2);
   public static final List<ReservedPort> CONFIG_CHECKER_UNSET_VS_SET = allocate(2, 0);
@@ -41,14 +48,6 @@ public class PortCoordination {
   public static final List<ReservedPort> BACKUP_RESTORE_SINGLE = allocate(1, 1);
 
   public static final List<ReservedPort> ZOOKEEPER_FAILURE = allocate(1, 1);
-
-  // Start at 11000 to stay within the non-ephemeral port range and hopefully dodge most other
-  // processes.
-  private static final AtomicInteger NEXT_PORT = new AtomicInteger(11000);
-
-  private static final Set<Integer> SKIP_PORTS = new HashSet(Arrays.asList(
-      // add ports here to avoid conflicting with other processes on those ports.
-  ));
 
   private static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
     int needed = 2 * numMasters + 3 * numWorkers;
