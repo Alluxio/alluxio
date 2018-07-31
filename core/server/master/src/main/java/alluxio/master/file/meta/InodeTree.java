@@ -84,12 +84,13 @@ public class InodeTree implements JournalEntryIterable {
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
 
-  private static final IndexDefinition<Inode<?>> ID_INDEX = new IndexDefinition<Inode<?>>(true) {
-    @Override
-    public Object getFieldValue(Inode<?> o) {
-      return o.getId();
-    }
-  };
+  private static final IndexDefinition<Inode<?>, Long> ID_INDEX =
+      new IndexDefinition<Inode<?>, Long>(true) {
+        @Override
+        public Long getFieldValue(Inode<?> o) {
+          return o.getId();
+        }
+      };
 
   /**
    * The type of lock to lock inode paths with.
@@ -115,7 +116,7 @@ public class InodeTree implements JournalEntryIterable {
   private final MountTable mMountTable;
 
   /** Use UniqueFieldIndex directly for ID index rather than using IndexedSet. */
-  private final FieldIndex<Inode<?>> mInodes = new UniqueFieldIndex<>(ID_INDEX);
+  private final FieldIndex<Inode<?>, Long> mInodes = new UniqueFieldIndex<>(ID_INDEX);
   /** A set of inode ids representing pinned inode files. */
   private final Set<Long> mPinnedInodeFileIds = new ConcurrentHashSet<>(64, 0.90f, 64);
 
