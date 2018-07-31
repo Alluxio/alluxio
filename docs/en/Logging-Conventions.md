@@ -15,13 +15,13 @@ properties file to best suit deployment needs.
 Alluxio's logging behavior can be fully configured through the `log4j.properties` file found in the
 `conf` folder.
 
-# Alluxio Logs
+## Alluxio Logs
 
 By default, Alluxio logs to files in the `logs` directory which can be modified by setting the
 `alluxio.logs.dir` system property. Each Alluxio process (Master, Worker, Clients, FUSE, Proxy)
 logs to a different file.
 
-# Enable Remote Logging
+## Enable Remote Logging
 
 By default, Alluxio processes log to local files. In certain environments, it is more reliable to
 log to a central machine. Alluxio supports using Log4J's
@@ -93,7 +93,7 @@ This is an example of using remote logging with Alluxio, users are encouraged to
 appenders and configuration options provided by Log4J or 3rd parties to create a logging solution
 best suited for their use case.
 
-# Change Alluxio Server-side Logging Level at Runtime
+## Change Alluxio Server-side Logging Level at Runtime
 
 Alluxio shell comes with a `logLevel` command that allows you to get or change the log level of a particular class on specific
 instances.
@@ -113,7 +113,7 @@ And the following command gets all workers' log level on class `alluxio.heartbea
 alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
 ```
 
-# Change Client-side Logging Level
+## Change Client-side Logging Level
 
 Often it's useful to change the logLevel of the Alluxio client running in the compute framework (e.g. Spark, Presto) process, and save it to a file for debugging. To achieve this, you can pass the following Java options to the compute
 framework process.
