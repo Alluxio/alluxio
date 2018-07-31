@@ -57,9 +57,9 @@ public class PortCoordination {
     return ports;
   }
 
-  // This is intended for usage in a Docker environment where there won't be random processes using
-  // these ports. If we find a process using one of these ports, we can remove the port from here
-  // and replace it with a new one.
+  /**
+   * A port that has been reserved for the purposes of a single test.
+   */
   public static class ReservedPort {
     private int mPort;
 
@@ -71,6 +71,9 @@ public class PortCoordination {
       mPort = port;
     }
 
+    /**
+     * @return the port number
+     */
     public int getPort() {
       return mPort;
     }
