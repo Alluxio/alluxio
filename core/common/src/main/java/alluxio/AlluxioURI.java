@@ -147,9 +147,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * /a/b/                              = 3
    * a/b                                = 2
    * a\b                                = 2
-   * alluxio://localhost:19998/          = 0
-   * alluxio://localhost:19998/a         = 1
-   * alluxio://localhost:19998/a/b.txt   = 2
+   * alluxio://localhost:19998/         = 0
+   * alluxio://localhost:19998/a        = 1
+   * alluxio://localhost:19998/a/b.txt  = 2
    * C:\a                               = 1
    * C:                                 = 0
    * </pre>
@@ -389,6 +389,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
         || (mUri.getPath().isEmpty() && mUri.getAuthority() != null);
   }
 
+  /**
+   * @return whether or not the {@link AlluxioURI} is a Alluxio on Zookeeper URI
+   */
   public boolean isZookeeperURI() {
     return mUri instanceof ZookeeperURI;
   }
@@ -471,6 +474,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     if (mUri.getAuthority() != null) {
       if (mUri.getScheme() == null) {
         sb.append("//");
+      } else if (mUri instanceof ZookeeperURI) {
+        sb.append("zk@");
       }
       sb.append(mUri.getAuthority());
     }

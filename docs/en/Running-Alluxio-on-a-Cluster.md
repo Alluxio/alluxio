@@ -191,20 +191,19 @@ ZooKeeper for the current leader master.
 
 ##### HDFS API
 
-When communicating with Alluxio in HA mode using the HDFS API, ensure the client side zookeeper
-configuration is properly set. Use `alluxio://` for the scheme but the host and port may be omitted.
+When communicating with Alluxio in HA mode using the HDFS API, users can either 
+set the Zookeeper configuration in framework-specific configuration files 
+(e.g. core-site.xml for Hadoop MapReduce) or use the Alluxio on Zookeeper URI directly.
+
+If the client side Zookeeper configuration is properly set, users can use 'alluxio:///path' to connect to the cluster. 
 Any host provided in the URL is ignored; `alluxio.zookeeper.address` is used instead for finding the
 Alluxio leader master.
-
+                                                                   
 ```
 hadoop fs -ls alluxio:///directory
 ```
 
-##### Alluxio on Zookeeper URI
-
-Set `alluxio.zookeeper.enable` and `alluxio.zookeeper.address` is always favored when client applications
-want to connect to Alluxio cluster in fault tolerant mode, but we also provide a convenient way to 
-connect to the cluster using Alluxio on Zookeeper URI.
+Alternatively, users can use the Alluxio on Zookeeper URI to connect to Alluxio cluster directly.
 
 Use `alluxio://zk@` to tell Alluxio the following addresses are Zookeeper addresses.
 
@@ -224,6 +223,9 @@ Some applications (e.g., Spark), you need to use semicolons to separate Zookeepe
 ```
 
 Alluxio will help you set Zookeeper properties and find Alluxio leader master.
+
+If both zookeeper configuration is set and Alluxio on Zookeeper URI is provided, the Zookeeper addresses 
+in the URI will be used for finding the Alluxio leader master.
 
 #### Automatic Fail Over
 

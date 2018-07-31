@@ -13,7 +13,6 @@ package alluxio;
 
 import alluxio.collections.Pair;
 
-import alluxio.master.MasterInquireClient;
 import com.google.common.base.Preconditions;
 
 import java.io.Serializable;

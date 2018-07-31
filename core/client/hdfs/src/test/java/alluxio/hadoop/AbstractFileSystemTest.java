@@ -14,8 +14,6 @@ package alluxio.hadoop;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -28,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
@@ -124,13 +123,7 @@ public class AbstractFileSystemTest {
 
   @After
   public void after() {
-    HadoopClientTestUtils.resetClient();
-    // Zookeeper configuration may be set through Alluxio on Zookeeper URI
-    // and should be unset after each test.
-    alluxio.Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, false);
-    if (alluxio.Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
-      alluxio.Configuration.unset(PropertyKey.ZOOKEEPER_ADDRESS);
-    }
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test
@@ -219,9 +212,8 @@ public class AbstractFileSystemTest {
     URI uri = URI.create(Constants.HEADER + "zk@zkHost:2181/tmp/path.txt");
     org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
-    Configuration fsConf = fs.getConf();
-    assertTrue(fsConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.toString(), false));
-    assertEquals("zkHost:2181", fsConf.get(PropertyKey.ZOOKEEPER_ADDRESS.toString()));
+    assertTrue(alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    assertEquals("zkHost:2181", alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
     assertTrue(fs instanceof FileSystem);
   }
 
@@ -231,23 +223,9 @@ public class AbstractFileSystemTest {
     URI uri = URI.create(Constants.HEADER + "zk@host1:port1,host2:port2,host3:port3/tmp/path.txt");
     org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
-    Configuration fsConf = fs.getConf();
-    assertTrue(fsConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.toString(), false));
+    assertTrue(alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("host1:port1,host2:port2,host3:port3",
-        fsConf.get(PropertyKey.ZOOKEEPER_ADDRESS.toString()));
-    assertTrue(fs instanceof FileSystem);
-  }
-
-  @Test
-  public void hadoopShouldLoadFileSystemWithMultipleZkUriUsingSemicolons() throws Exception {
-    org.apache.hadoop.conf.Configuration conf = getConf();
-    URI uri = URI.create(Constants.HEADER + "zk@host1:port1;host2:port2;host3:port3/tmp/path.txt");
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-
-    Configuration fsConf = fs.getConf();
-    assertTrue(fsConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.toString(), false));
-    assertEquals("host1:port1,host2:port2,host3:port3",
-        fsConf.get(PropertyKey.ZOOKEEPER_ADDRESS.toString()));
+        alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
     assertTrue(fs instanceof FileSystem);
   }
 
@@ -259,83 +237,48 @@ public class AbstractFileSystemTest {
   public void resetContext() throws Exception {
     // Change to otherhost:410
     URI uri = URI.create(Constants.HEADER + "otherhost:410/");
-    org.apache.hadoop.fs.FileSystem fileSystem =
-        org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
 
     verify(mMockFileSystemContext).reset(alluxio.Configuration.global());
   }
 
   @Test
-  public void resetContextUsingSingleZkUri() throws Exception {
+  public void resetContextUsingZookeeperUris() throws Exception {
     // Change to signle zookeeper uri
     URI uri = URI.create(Constants.HEADER + "zk@zkHost:2181/");
-    org.apache.hadoop.fs.FileSystem fs =
-        org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-    Configuration fsConf = fs.getConf();
-    assertTrue(fsConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.toString(), false));
-    assertEquals("zkHost:2181", fsConf.get(PropertyKey.ZOOKEEPER_ADDRESS.toString()));
-    verify(mMockFileSystemContext).reset(alluxio.Configuration.global());
-  }
+    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
 
-  @Test
-  public void resetContextUsingMultipleZkUri() throws Exception {
-    URI uri = URI.create(Constants.HEADER + "zk@host1:port1,host2:port2,host3:port3/tmp/path.txt");
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-    Configuration fsConf = fs.getConf();
-    assertTrue(fsConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.toString(), false));
+    assertTrue(alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    assertEquals("zkHost:2181", alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
+
+    uri = URI.create(Constants.HEADER + "zk@host1:port1,host2:port2,host3:port3/tmp/path.txt");
+    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+
+    assertTrue(alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("host1:port1,host2:port2,host3:port3",
-        fsConf.get(PropertyKey.ZOOKEEPER_ADDRESS.toString()));
-    verify(mMockFileSystemContext).reset(alluxio.Configuration.global());
-  }
+        alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
 
-  @Test
-  public void resetContextUsingMultipleZkUriWithSemicolons() throws Exception {
-    URI uri = URI.create(Constants.HEADER + "zk@host1:port1;host2:port2;host3:port3/tmp/path.txt");
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-    Configuration fsConf = fs.getConf();
-    assertTrue(fsConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.toString(), false));
+    uri = URI.create(Constants.HEADER + "zk@host1:port1;host2:port2;host3:port3/tmp/path.txt");
+    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+    assertTrue(alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("host1:port1,host2:port2,host3:port3",
-        fsConf.get(PropertyKey.ZOOKEEPER_ADDRESS.toString()));
-    verify(mMockFileSystemContext).reset(alluxio.Configuration.global());
-  }
+        alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
 
-  @Test
-  public void resetContextFromSingleZkUriToAnotherSingleZkUri() throws Exception {
-    URI uri = URI.create(Constants.HEADER + "zk@host:port/tmp/path.txt");
-    Configuration fsConf = org.apache.hadoop.fs.FileSystem.get(uri, getConf()).getConf();
-    assertEquals("host:port", fsConf.get(PropertyKey.ZOOKEEPER_ADDRESS.toString()));
-
-    URI otherUri = URI.create(Constants.HEADER + "zk@otherHost:otherPort/tmp/path.txt");
-    Configuration otherFsConf = org.apache.hadoop.fs.FileSystem.get(otherUri, getConf()).getConf();
-    assertEquals("otherHost:otherPort", otherFsConf.get(PropertyKey.ZOOKEEPER_ADDRESS.toString()));
-    verify(mMockFileSystemContext, times(2)).reset(alluxio.Configuration.global());
-  }
-
-  @Test
-  public void resetContextFromSingleZkUriToMultipleZkUri() throws Exception {
-    URI uri = URI.create(Constants.HEADER + "zk@host:port/tmp/path.txt");
-    Configuration fsConf = org.apache.hadoop.fs.FileSystem.get(uri, getConf()).getConf();
-    assertEquals("host:port", fsConf.get(PropertyKey.ZOOKEEPER_ADDRESS.toString()));
-
-    URI otherUri = URI.create(Constants.HEADER
-        + "zk@host1:port1,host2:port2,host3:port3/tmp/path.txt");
-    Configuration otherFsConf = org.apache.hadoop.fs.FileSystem.get(otherUri, getConf()).getConf();
-    assertEquals("host1:port1,host2:port2,host3:port3",
-        otherFsConf.get(PropertyKey.ZOOKEEPER_ADDRESS.toString()));
-    verify(mMockFileSystemContext, times(2)).reset(alluxio.Configuration.global());
+    verify(mMockFileSystemContext, times(3)).reset(alluxio.Configuration.global());
   }
 
   @Test
   public void resetContextFromZkUriToNonZkUri() throws Exception {
+    org.apache.hadoop.conf.Configuration conf = getConf();
     URI uri = URI.create(Constants.HEADER + "zk@zkHost:zkPort/tmp/path.txt");
-    Configuration fsConf = org.apache.hadoop.fs.FileSystem.get(uri, getConf()).getConf();
-    assertTrue(fsConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.toString(), false));
-    assertEquals("zkHost:zkPort", fsConf.get(PropertyKey.ZOOKEEPER_ADDRESS.toString()));
+    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    assertTrue(alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    assertEquals("zkHost:zkPort", alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
 
-    URI otherUri = URI.create(Constants.HEADER + "alluxioHost:alluxioPort/tmp/path.txt");
-    Configuration otherFsConf = org.apache.hadoop.fs.FileSystem.get(otherUri, getConf()).getConf();
-    assertFalse(otherFsConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.toString(), false));
-    assertNull(otherFsConf.get(PropertyKey.ZOOKEEPER_ADDRESS.toString()));
+    URI otherUri = URI.create(Constants.HEADER + "alluxioHost:19998/tmp/path.txt");
+    org.apache.hadoop.fs.FileSystem otherFs = org.apache.hadoop.fs.FileSystem.get(otherUri, conf);
+    assertEquals("alluxioHost", alluxio.Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    assertEquals("19998", alluxio.Configuration.get(PropertyKey.MASTER_RPC_PORT));
     verify(mMockFileSystemContext, times(2)).reset(alluxio.Configuration.global());
   }
 
@@ -588,57 +531,6 @@ public class AbstractFileSystemTest {
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
     verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
-  }
-
-  @Test
-  public void isZookeeperUri() {
-    URI uri = URI.create("alluxio://zk@host:port/path");
-    assertTrue(AbstractFileSystem.isZookeeperUri(uri));
-
-    uri = URI.create("alluxio://zk@host1:port1,host2:port2/path");
-    assertTrue(AbstractFileSystem.isZookeeperUri(uri));
-
-    uri = URI.create("alluxio://zk@host1:port1;host2:port2/path");
-    assertTrue(AbstractFileSystem.isZookeeperUri(uri));
-
-    uri = URI.create("alluxio://randomStringzk@host:port/path");
-    assertFalse(AbstractFileSystem.isZookeeperUri(uri));
-
-    uri = URI.create("alluxio://host:port/zk@");
-    assertFalse(AbstractFileSystem.isZookeeperUri(uri));
-
-    uri = URI.create("alluxio://host:port/path");
-    assertFalse(AbstractFileSystem.isZookeeperUri(uri));
-  }
-
-  @Test
-  public void getZookeeperAddresses() {
-    URI uri = URI.create("alluxio://zk@host:port");
-    assertEquals("host:port", AbstractFileSystem.getZookeeperAddresses(uri));
-
-    uri = URI.create("alluxio://zk@host1:port1,host2:port2");
-    assertEquals("host1:port1,host2:port2", AbstractFileSystem.getZookeeperAddresses(uri));
-
-    uri = URI.create("alluxio://zk@host:port/path");
-    assertEquals("host:port", AbstractFileSystem.getZookeeperAddresses(uri));
-
-    uri = URI.create("alluxio://zk@host1:port1,host2:port2/path");
-    assertEquals("host1:port1,host2:port2", AbstractFileSystem.getZookeeperAddresses(uri));
-
-    uri = URI.create("alluxio://zk@host1:port1;host2:port2/path");
-    assertEquals("host1:port1,host2:port2", AbstractFileSystem.getZookeeperAddresses(uri));
-
-    uri = URI.create("alluxio://zk@/path");
-    assertEquals(null, AbstractFileSystem.getZookeeperAddresses(uri));
-
-    uri = URI.create("alluxio://host:port/path");
-    assertEquals(null, AbstractFileSystem.getZookeeperAddresses(uri));
-
-    uri = URI.create("alluxio-zk://host:port/path");
-    assertEquals(null, AbstractFileSystem.getZookeeperAddresses(uri));
-
-    uri = URI.create("alluxio://randomStringzk@host:port/path");
-    assertEquals(null, AbstractFileSystem.getZookeeperAddresses(uri));
   }
 
   void verifyBlockLocations(List<WorkerNetAddress> blockWorkers, List<String> ufsLocations,

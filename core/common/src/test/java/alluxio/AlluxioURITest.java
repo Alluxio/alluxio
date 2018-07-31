@@ -23,8 +23,6 @@ import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Unit tests for {@link AlluxioURI}.
@@ -104,6 +102,36 @@ public class AlluxioURITest {
     assertEquals("scheme:part2://localhost:8000/xy z/a b c/d", uri.join(new AlluxioURI("/d"))
         .toString());
     assertEquals("scheme:part2://localhost:8000/xy z/a b c", uri.toString());
+  }
+
+  @Test
+  public void basicZookeeperUri() {
+    AlluxioURI uri =
+        new AlluxioURI("alluxio://zk@host1:port1,host2:port2,host3:port3/xy z/a b c");
+    assertEquals(uri,
+        new AlluxioURI("alluxio://zk@host1:port1,host2:port2,host3:port3/xy z/a b c"));
+    assertEquals("alluxio", uri.getScheme());
+    assertEquals("host1:port1,host2:port2,host3:port3", uri.getAuthority());
+    assertEquals(null, uri.getHost());
+    assertEquals(-1, uri.getPort());
+    assertEquals(2, uri.getDepth());
+    assertEquals("a b c", uri.getName());
+    assertEquals("alluxio://zk@host1:port1,host2:port2,host3:port3/xy z",
+        uri.getParent().toString());
+    assertEquals("alluxio://zk@host1:port1,host2:port2,host3:port3/",
+        uri.getParent().getParent().toString());
+    assertEquals("/xy z/a b c", uri.getPath());
+    assertTrue(uri.hasAuthority());
+    assertTrue(uri.hasScheme());
+    assertTrue(uri.isAbsolute());
+    assertTrue(uri.isPathAbsolute());
+    assertEquals("alluxio://zk@host1:port1,host2:port2,host3:port3/xy z/a b c/d",
+        uri.join("/d").toString());
+    assertEquals("alluxio://zk@host1:port1,host2:port2,host3:port3/xy z/a b c/d",
+        uri.join(new AlluxioURI("/d"))
+        .toString());
+    assertEquals("alluxio://zk@host1:port1,host2:port2,host3:port3/xy z/a b c",
+        uri.toString());
   }
 
   /**

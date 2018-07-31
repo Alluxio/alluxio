@@ -208,7 +208,8 @@ public enum ExceptionMessage {
   UNKNOWN_LINEAGE_FILE_STATE("Unknown LineageFileState: {0}"),
 
   // client
-  DIFFERENT_CONNECTION_CONFIGURATION("Connection configuration {0} is different from that in file system context {1}"),
+  DIFFERENT_CONNECTION_CONFIGURATION(
+      "Connection configuration {0} is different from that in file system context {1}"),
   INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
 
   // configuration

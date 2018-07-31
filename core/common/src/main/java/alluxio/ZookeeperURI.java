@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 @ThreadSafe
 public final class ZookeeperURI extends StandardURI {
   private static final long serialVersionUID = -3549197285125519688L;
+  private static final Pattern ZOOKEEPER_PATTERN = Pattern.compile("^zk@(.*)");
 
   private final String mZookeeperAddress;
 
@@ -32,10 +33,22 @@ public final class ZookeeperURI extends StandardURI {
    * @param path the path component of the URI
    * @param query the query component of the URI
    */
-  public ZookeeperURI(String scheme, String authority, String path,
-      String query) {
+  public ZookeeperURI(String scheme, String authority, String path, String query) {
     super(scheme, authority, path, query);
     mZookeeperAddress = getZookeeperAddress(authority);
+  }
+
+  /**
+   * @param scheme the scheme string of the URI
+   * @param authority the authority string of the URI
+   * @param zookeeperAddress the zookeeper address of the URI
+   * @param path the path component of the URI
+   * @param query the query component of the URI
+   */
+  public ZookeeperURI(String scheme, String authority, String zookeeperAddress, String path,
+      String query) {
+    super(scheme, authority, path, query);
+    mZookeeperAddress = zookeeperAddress;
   }
 
   /**
@@ -44,17 +57,18 @@ public final class ZookeeperURI extends StandardURI {
    * @param baseUri the base uri
    * @param newPath the new path component
    */
-  protected ZookeeperURI(URI baseUri, String newPath) {
+  protected ZookeeperURI(URI baseUri, String zookeeperAddress, String newPath) {
     super(baseUri, newPath);
-    mZookeeperAddress = baseUri.getAuthority();
+    mZookeeperAddress = zookeeperAddress;
   }
 
   @Override
   public URI createNewPath(String newPath, boolean checkNormalization) {
     if (checkNormalization && URIUtils.needsNormalization(newPath)) {
-      return new ZookeeperURI(mScheme, mAuthority, newPath, mQuery);
+      String zookeeperAddress = getZookeeperAddress(mAuthority);
+      return new ZookeeperURI(mScheme, mAuthority, zookeeperAddress, newPath, mQuery);
     }
-    return new ZookeeperURI(this, newPath);
+    return new ZookeeperURI(this, mZookeeperAddress, newPath);
   }
 
   @Override
@@ -67,10 +81,9 @@ public final class ZookeeperURI extends StandardURI {
    * @return the Zookeeper addresses of the authority
    */
   private String getZookeeperAddress(String authority) {
-    Pattern pattern = Pattern.compile("^zk@(.*)");
-    Matcher matcher = pattern.matcher(authority);
+    Matcher matcher = ZOOKEEPER_PATTERN.matcher(authority);
     if (matcher.find()) {
-      return matcher.group(1);
+      return matcher.group(1).replaceAll(";", ",");
     } else {
       throw new IllegalArgumentException("Alluxio on Zookeeper URI should be of format"
           + "alluxio://zk@host:port/path");
