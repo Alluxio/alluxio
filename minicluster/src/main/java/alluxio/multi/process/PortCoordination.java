@@ -50,10 +50,15 @@ public class PortCoordination {
   public static final List<ReservedPort> ZOOKEEPER_FAILURE = allocate(1, 1);
 
   private static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
-    int needed = 2 * numMasters + 3 * numWorkers;
+    int needed = numMasters * MultiProcessCluster.PORTS_PER_MASTER
+        + numWorkers * MultiProcessCluster.PORTS_PER_WORKER;
     Builder<ReservedPort> ports = ImmutableList.builder();
     for (int i = 0; i < needed; i++) {
-      ports.add(new ReservedPort());
+      int port = NEXT_PORT.getAndIncrement();
+      while (SKIP_PORTS.contains(port)) {
+        port = NEXT_PORT.getAndIncrement();
+      }
+      ports.add(new ReservedPort(port));
     }
     return ports.build();
   }
@@ -62,13 +67,9 @@ public class PortCoordination {
    * A port that has been reserved for the purposes of a single test.
    */
   public static class ReservedPort {
-    private int mPort;
+    private final int mPort;
 
-    private ReservedPort() {
-      int port = NEXT_PORT.getAndIncrement();
-      while (SKIP_PORTS.contains(port)) {
-        port = NEXT_PORT.getAndIncrement();
-      }
+    private ReservedPort(int port) {
       mPort = port;
     }
 

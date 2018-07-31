@@ -81,6 +81,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MultiProcessCluster {
   public static final String ALLUXIO_USE_FIXED_TEST_PORTS = "ALLUXIO_USE_FIXED_TEST_PORTS";
+  public static final int PORTS_PER_MASTER = 2;
+  public static final int PORTS_PER_WORKER = 3;
 
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
@@ -117,7 +119,8 @@ public final class MultiProcessCluster {
       Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,
       String clusterName, DeployMode mode, List<PortCoordination.ReservedPort> ports) {
     if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) != null) {
-      Preconditions.checkState(ports.size() == numMasters * 2 + numWorkers * 3,
+      Preconditions.checkState(
+          ports.size() == numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
           "Require 2 ports per master and 3 ports per worker, but there are %s masters, "
               + "%s workers, and %s ports",
           numMasters, numWorkers, ports.size());
