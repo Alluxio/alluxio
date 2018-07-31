@@ -76,6 +76,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();
+    mCluster.start();
 
     AlluxioOperationThread thread =
         new AlluxioOperationThread(mCluster.getFileSystemClient());
