@@ -59,7 +59,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
     PropertyKey key = PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS;
     Map<Integer, Map<PropertyKey, String>> masterProperties
         = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, key);
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.sConfigCheckerMultiMastersTest)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_MASTERS)
         .setClusterName("ConfigCheckerMultiMastersTest")
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(0)
@@ -79,7 +79,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
     PropertyKey key = PropertyKey.WORKER_FREE_SPACE_TIMEOUT;
     Map<Integer, Map<PropertyKey, String>> workerProperties
         = generatePropertyWithDifferentValues(TEST_NUM_WORKERS, key);
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.sConfigCheckerMultiWorkersTest)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_WORKERS)
         .setClusterName("ConfigCheckerMultiWorkersTest")
         .setNumMasters(1)
         .setNumWorkers(TEST_NUM_WORKERS)
@@ -106,7 +106,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .filter(entry -> (entry.getKey() >= TEST_NUM_MASTERS))
         .collect(Collectors.toMap(entry -> entry.getKey() - TEST_NUM_MASTERS, Map.Entry::getValue));
 
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.sConfigCheckerMultiNodesTest)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_NODES)
         .setClusterName("ConfigCheckerMultiNodesTest")
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(TEST_NUM_WORKERS)
@@ -127,7 +127,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
     Map<Integer, Map<PropertyKey, String>> masterProperties = ImmutableMap.of(
         1, ImmutableMap.of(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION, "option"));
 
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.sConfigCheckerUnsetVsSet)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_UNSET_VS_SET)
         .setClusterName("ConfigCheckerUnsetVsSet")
         .setNumMasters(2)
         .setNumWorkers(0)

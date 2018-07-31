@@ -64,7 +64,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   // This test needs to stop and start master many times, so it can take up to a minute to complete.
   @Test
   public void backupRestoreZk() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.sBackupRestoreZk)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_ZK)
         .setClusterName("backupRestoreZk")
         .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setNumMasters(3)
@@ -75,7 +75,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void backupRestoreSingleMaster() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.sBackupRestoreSingle)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_SINGLE)
         .setClusterName("backupRestoreSingle")
         .setNumMasters(1).build();
     backupRestoreTest(false);

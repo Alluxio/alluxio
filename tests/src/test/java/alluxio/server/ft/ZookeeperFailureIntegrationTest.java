@@ -70,7 +70,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void zkFailure() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.sZookeeperFailure)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_FAILURE)
         .setClusterName("ZookeeperFailure")
         .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setNumMasters(1)

@@ -103,7 +103,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   @Test
   public void singleMasterJournalStopIntegration() throws Exception {
     MultiProcessCluster cluster =
-        MultiProcessCluster.newBuilder(PortCoordination.sSingleMasterJournalStopIntegration)
+        MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_STOP_SINGLE_MASTER)
             .setClusterName("singleMasterJournalStopIntegration")
             .setNumWorkers(0)
             .setNumMasters(1)
@@ -132,7 +132,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   @Test
   public void multiMasterJournalStopIntegration() throws Exception {
     MultiProcessCluster cluster =
-        MultiProcessCluster.newBuilder(PortCoordination.sMultiMasterJournalStopIntegration)
+        MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_STOP_MULTI_MASTER)
             .setClusterName("multiMasterJournalStopIntegration")
             .setNumWorkers(0)
             .setNumMasters(TEST_NUM_MASTERS)

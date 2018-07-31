@@ -11,7 +11,9 @@
 
 package alluxio.multi.process;
 
-import java.util.ArrayList;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -24,25 +26,25 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Using the same ports every time improves build stability when using Docker.
  */
 public class PortCoordination {
-  public static List<ReservedPort> sConfigCheckerMultiWorkersTest = allocate(1, 2);
-  public static List<ReservedPort> sConfigCheckerMultiNodesTest = allocate(2, 2);
-  public static List<ReservedPort> sConfigCheckerUnsetVsSet = allocate(2, 0);
-  public static List<ReservedPort> sConfigCheckerMultiMastersTest = allocate(2, 0);
+  public static final List<ReservedPort> CONFIG_CHECKER_MULTI_WORKERS = allocate(1, 2);
+  public static final List<ReservedPort> CONFIG_CHECKER_MULTI_NODES = allocate(2, 2);
+  public static final List<ReservedPort> CONFIG_CHECKER_UNSET_VS_SET = allocate(2, 0);
+  public static final List<ReservedPort> CONFIG_CHECKER_MULTI_MASTERS = allocate(2, 0);
 
-  public static List<ReservedPort> sMultiProcessSimpleCluster = allocate(1, 1);
-  public static List<ReservedPort> sMultiProcessZookeeper = allocate(3, 2);
+  public static final List<ReservedPort> MULTI_PROCESS_SIMPLE_CLUSTER = allocate(1, 1);
+  public static final List<ReservedPort> MULTI_PROCESS_ZOOKEEPER = allocate(3, 2);
 
-  public static List<ReservedPort> sSingleMasterJournalStopIntegration = allocate(1, 0);
-  public static List<ReservedPort> sMultiMasterJournalStopIntegration = allocate(3, 0);
+  public static final List<ReservedPort> JOURNAL_STOP_SINGLE_MASTER = allocate(1, 0);
+  public static final List<ReservedPort> JOURNAL_STOP_MULTI_MASTER = allocate(3, 0);
 
-  public static List<ReservedPort> sBackupRestoreZk = allocate(3, 1);
-  public static List<ReservedPort> sBackupRestoreSingle = allocate(1, 1);
+  public static final List<ReservedPort> BACKUP_RESTORE_ZK = allocate(3, 1);
+  public static final List<ReservedPort> BACKUP_RESTORE_SINGLE = allocate(1, 1);
 
-  public static List<ReservedPort> sZookeeperFailure = allocate(1, 1);
+  public static final List<ReservedPort> ZOOKEEPER_FAILURE = allocate(1, 1);
 
   // Start at 11000 to stay within the non-ephemeral port range and hopefully dodge most other
   // processes.
-  private static AtomicInteger sNextPort = new AtomicInteger(11000);
+  private static final AtomicInteger NEXT_PORT = new AtomicInteger(11000);
 
   private static final Set<Integer> SKIP_PORTS = new HashSet(Arrays.asList(
       // add ports here to avoid conflicting with other processes on those ports.
@@ -50,11 +52,11 @@ public class PortCoordination {
 
   private static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
     int needed = 2 * numMasters + 3 * numWorkers;
-    List<ReservedPort> ports = new ArrayList();
+    Builder<ReservedPort> ports = ImmutableList.builder();
     for (int i = 0; i < needed; i++) {
       ports.add(new ReservedPort());
     }
-    return ports;
+    return ports.build();
   }
 
   /**
@@ -64,9 +66,9 @@ public class PortCoordination {
     private int mPort;
 
     private ReservedPort() {
-      int port = sNextPort.getAndIncrement();
+      int port = NEXT_PORT.getAndIncrement();
       while (SKIP_PORTS.contains(port)) {
-        port = sNextPort.getAndIncrement();
+        port = NEXT_PORT.getAndIncrement();
       }
       mPort = port;
     }
