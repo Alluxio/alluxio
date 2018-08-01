@@ -43,18 +43,18 @@ public class RenameOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public RenameOptions setCommonOptions(CommonOptions options) {
+  public <T extends RenameOptions> T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param operationTimeMs the operation time to use
    * @return the updated options object
    */
-  public RenameOptions setOperationTimeMs(long operationTimeMs) {
+  public <T extends RenameOptions> T setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
-    return this;
+    return (T) this;
   }
 
   @Override

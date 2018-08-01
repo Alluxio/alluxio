@@ -35,9 +35,9 @@ public class CheckConsistencyOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public CheckConsistencyOptions setCommonOptions(CommonOptions options) {
+  public <T extends CheckConsistencyOptions> T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
-    return this;
+    return (T) this;
   }
 
   @Override

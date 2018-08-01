@@ -51,27 +51,27 @@ public class CompleteFileOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public CompleteFileOptions setCommonOptions(CommonOptions options) {
+  public <T extends CompleteFileOptions> T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param ufsLength the UFS file length to use
    * @return the updated options object
    */
-  public CompleteFileOptions setUfsLength(long ufsLength) {
+  public <T extends CompleteFileOptions> T setUfsLength(long ufsLength) {
     mUfsLength = ufsLength;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param operationTimeMs the operation time to use
    * @return the updated options object
    */
-  public CompleteFileOptions setOperationTimeMs(long operationTimeMs) {
+  public <T extends CompleteFileOptions> T setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
-    return this;
+    return (T) this;
   }
 
   @Override

@@ -34,13 +34,6 @@ public class SetAttributeOptions {
   protected long mOperationTimeMs;
   protected String mUfsFingerprint;
 
-  /**
-   * @return the default {@link SetAttributeOptions}
-   */
-  public static SetAttributeOptions defaults() {
-    return new SetAttributeOptions();
-  }
-
   protected SetAttributeOptions() {}
 
   /**
@@ -124,45 +117,45 @@ public class SetAttributeOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public SetAttributeOptions setCommonOptions(CommonOptions options) {
+  public <T extends SetAttributeOptions> T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param pinned the pinned flag value to use
    * @return the updated options object
    */
-  public SetAttributeOptions setPinned(boolean pinned) {
+  public <T extends SetAttributeOptions> T setPinned(boolean pinned) {
     mPinned = pinned;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param ttl the time-to-live (in seconds) to use
    * @return the updated options object
    */
-  public SetAttributeOptions setTtl(long ttl) {
+  public <T extends SetAttributeOptions> T setTtl(long ttl) {
     mTtl = ttl;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param ttlAction the {@link TtlAction} to use
    * @return the updated options object
    */
-  public SetAttributeOptions setTtlAction(TtlAction ttlAction) {
+  public <T extends SetAttributeOptions> T setTtlAction(TtlAction ttlAction) {
     mTtlAction = ttlAction;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param persisted the persisted flag value to use
    * @return the updated options object
    */
-  public SetAttributeOptions setPersisted(boolean persisted) {
+  public <T extends SetAttributeOptions> T setPersisted(boolean persisted) {
     mPersisted = persisted;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -170,12 +163,12 @@ public class SetAttributeOptions {
    * @return the updated options object
    * @throws IllegalArgumentException if the owner is set to empty
    */
-  public SetAttributeOptions setOwner(String owner) {
+  public <T extends SetAttributeOptions> T setOwner(String owner) {
     if (owner != null && owner.isEmpty()) {
       throw new IllegalArgumentException("It is not allowed to set owner to empty.");
     }
     mOwner = owner;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -183,48 +176,48 @@ public class SetAttributeOptions {
    * @return the updated options object
    * @throws IllegalArgumentException if the group is set to empty
    */
-  public SetAttributeOptions setGroup(String group) {
+  public <T extends SetAttributeOptions> T setGroup(String group) {
     if (group != null && group.isEmpty()) {
       throw new IllegalArgumentException("It is not allowed to set group to empty");
     }
     mGroup = group;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param mode the mode bits to use
    * @return the updated options object
    */
-  public SetAttributeOptions setMode(short mode) {
+  public <T extends SetAttributeOptions> T setMode(short mode) {
     mMode = mode;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param recursive whether owner / group / mode should be updated recursively
    * @return the updated options object
    */
-  public SetAttributeOptions setRecursive(boolean recursive) {
+  public <T extends SetAttributeOptions> T setRecursive(boolean recursive) {
     mRecursive = recursive;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param operationTimeMs the operation time to use
    * @return the updated options object
    */
-  public SetAttributeOptions setOperationTimeMs(long operationTimeMs) {
+  public <T extends SetAttributeOptions> T setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param ufsFingerprint the ufs fingerprint
    * @return the updated options object
    */
-  public SetAttributeOptions setUfsFingerprint(String ufsFingerprint) {
+  public <T extends SetAttributeOptions> T setUfsFingerprint(String ufsFingerprint) {
     mUfsFingerprint = ufsFingerprint;
-    return this;
+    return (T) this;
   }
 
   @Override

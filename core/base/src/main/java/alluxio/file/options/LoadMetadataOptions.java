@@ -64,9 +64,9 @@ public class LoadMetadataOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public LoadMetadataOptions setCommonOptions(CommonOptions options) {
+  public <T extends LoadMetadataOptions> T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -76,18 +76,18 @@ public class LoadMetadataOptions {
    *        should be created if they do not already exist
    * @return the updated options object
    */
-  public LoadMetadataOptions setCreateAncestors(boolean createAncestors) {
+  public <T extends LoadMetadataOptions> T setCreateAncestors(boolean createAncestors) {
     mCreateAncestors = createAncestors;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param loadDescendantType the type of descendants to load
    * @return the updated object
    */
-  public LoadMetadataOptions setLoadDescendantType(DescendantType loadDescendantType) {
+  public <T extends LoadMetadataOptions> T setLoadDescendantType(DescendantType loadDescendantType) {
     mLoadDescendantType = loadDescendantType;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -96,9 +96,9 @@ public class LoadMetadataOptions {
    * @param status UFS status of path
    * @return the updated object
    */
-  public LoadMetadataOptions setUfsStatus(UfsStatus status) {
+  public <T extends LoadMetadataOptions> T setUfsStatus(UfsStatus status) {
     mUfsStatus = status;
-    return this;
+    return (T) this;
   }
 
   @Override

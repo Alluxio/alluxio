@@ -60,18 +60,18 @@ public class CreateFileOptions extends CreatePathOptions<CreateFileOptions> {
    * @param blockSizeBytes the block size to use
    * @return the updated options object
    */
-  public CreateFileOptions setBlockSizeBytes(long blockSizeBytes) {
+  public <T extends CreateFileOptions> T setBlockSizeBytes(long blockSizeBytes) {
     mBlockSizeBytes = blockSizeBytes;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param cacheable true if the file is cacheable, false otherwise
    * @return the updated options object
    */
-  public CreateFileOptions setCacheable(boolean cacheable) {
+  public <T extends CreateFileOptions> T setCacheable(boolean cacheable) {
     mCacheable = cacheable;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -79,18 +79,18 @@ public class CreateFileOptions extends CreatePathOptions<CreateFileOptions> {
    *        created file should be kept around before it is automatically deleted
    * @return the updated options object
    */
-  public CreateFileOptions setTtl(long ttl) {
+  public <T extends CreateFileOptions> T setTtl(long ttl) {
     mTtl = ttl;
-    return getThis();
+    return (T) getThis();
   }
 
   /**
    * @param ttlAction the {@link TtlAction}; It informs the action to take when Ttl is expired;
    * @return the updated options object
    */
-  public CreateFileOptions setTtlAction(TtlAction ttlAction) {
+  public <T extends CreateFileOptions> T setTtlAction(TtlAction ttlAction) {
     mTtlAction = ttlAction;
-    return getThis();
+    return (T) getThis();
   }
 
   @Override

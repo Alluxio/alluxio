@@ -61,9 +61,9 @@ public class DeleteOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public DeleteOptions setCommonOptions(CommonOptions options) {
+  public <T extends DeleteOptions> T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -71,9 +71,9 @@ public class DeleteOptions {
    *        the flag specifies whether the directory content should be recursively deleted as well
    * @return the updated options object
    */
-  public DeleteOptions setRecursive(boolean recursive) {
+  public <T extends DeleteOptions> T setRecursive(boolean recursive) {
     mRecursive = recursive;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -81,18 +81,18 @@ public class DeleteOptions {
    *        deleted in Alluxio only, or in UFS as well
    * @return the updated options object
    */
-  public DeleteOptions setAlluxioOnly(boolean alluxioOnly) {
+  public <T extends DeleteOptions> T setAlluxioOnly(boolean alluxioOnly) {
     mAlluxioOnly = alluxioOnly;
-    return this;
+    return (T) this;
   }
 
   /**
    * @param unchecked whether to skip UFS sync check
    * @return the updated options object
    */
-  public DeleteOptions setUnchecked(boolean unchecked) {
+  public <T extends DeleteOptions> T setUnchecked(boolean unchecked) {
     mUnchecked = unchecked;
-    return this;
+    return (T) this;
   }
 
   @Override

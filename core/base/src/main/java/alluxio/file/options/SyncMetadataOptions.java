@@ -35,9 +35,9 @@ public class SyncMetadataOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public SyncMetadataOptions setCommonOptions(CommonOptions options) {
+  public <T extends SyncMetadataOptions> T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
-    return this;
+    return (T) this;
   }
 
   @Override

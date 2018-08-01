@@ -53,9 +53,9 @@ public class FreeOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public FreeOptions setCommonOptions(CommonOptions options) {
+  public <T extends FreeOptions> T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -65,9 +65,9 @@ public class FreeOptions {
    *         whether this object should still be freed
    * @return the updated options object
    */
-  public FreeOptions setForced(boolean forced) {
+  public <T extends FreeOptions> T setForced(boolean forced) {
     mForced = forced;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -77,9 +77,9 @@ public class FreeOptions {
    *        the flag specifies whether the directory content should be recursively freed as well
    * @return the updated options object
    */
-  public FreeOptions setRecursive(boolean recursive) {
+  public <T extends FreeOptions> T setRecursive(boolean recursive) {
     mRecursive = recursive;
-    return this;
+    return (T) this;
   }
 
   @Override

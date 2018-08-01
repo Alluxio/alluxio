@@ -50,9 +50,9 @@ public class MountOptions {
    *                 allowed under the mount point.
    * @return the updated options object
    */
-  public MountOptions setReadOnly(boolean readOnly) {
+  public <T extends MountOptions> T setReadOnly(boolean readOnly) {
     mReadOnly = readOnly;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -66,9 +66,9 @@ public class MountOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public MountOptions setCommonOptions(CommonOptions options) {
+  public <T extends MountOptions> T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -76,10 +76,10 @@ public class MountOptions {
    *                   entries of the input map will be added to the internal map.
    * @return the updated options object
    */
-  public MountOptions setProperties(Map<String, String> properties) {
+  public <T extends MountOptions> T setProperties(Map<String, String> properties) {
     mProperties.clear();
     mProperties.putAll(properties);
-    return this;
+    return (T) this;
   }
 
   /**
@@ -94,9 +94,9 @@ public class MountOptions {
    *               users.
    * @return the updated option object
    */
-  public MountOptions setShared(boolean shared) {
+  public <T extends MountOptions> T setShared(boolean shared) {
     mShared = shared;
-    return this;
+    return (T) this;
   }
 
   @Override

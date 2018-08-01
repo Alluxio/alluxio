@@ -39,9 +39,9 @@ public class CommonOptions implements Serializable {
    * @param syncIntervalMs the sync interval, in milliseconds
    * @return the updated options object
    */
-  public CommonOptions setSyncIntervalMs(long syncIntervalMs) {
+  public <T extends CommonOptions> T setSyncIntervalMs(long syncIntervalMs) {
     mSyncIntervalMs = syncIntervalMs;
-    return this;
+    return (T) this;
   }
 
   @Override

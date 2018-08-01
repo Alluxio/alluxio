@@ -54,9 +54,9 @@ public class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOpt
    *        should be thrown if the object being made already exists.
    * @return the updated options object
    */
-  public CreateDirectoryOptions setAllowExists(boolean allowExists) {
+  public <T extends CreateDirectoryOptions> T setAllowExists(boolean allowExists) {
     mAllowExists = allowExists;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -64,18 +64,18 @@ public class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOpt
    *        created directory should be kept around before it is automatically deleted
    * @return the updated options object
    */
-  public CreateDirectoryOptions setTtl(long ttl) {
+  public <T extends CreateDirectoryOptions> T setTtl(long ttl) {
     mTtl = ttl;
-    return getThis();
+    return (T) getThis();
   }
 
   /**
    * @param ttlAction the {@link TtlAction}; It informs the action to take when Ttl is expired;
    * @return the updated options object
    */
-  public CreateDirectoryOptions setTtlAction(TtlAction ttlAction) {
+  public <T extends CreateDirectoryOptions> T setTtlAction(TtlAction ttlAction) {
     mTtlAction = ttlAction;
-    return getThis();
+    return (T) getThis();
   }
 
   @Override

@@ -46,9 +46,9 @@ public class ListStatusOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public ListStatusOptions setCommonOptions(CommonOptions options) {
+  public <T extends ListStatusOptions> T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
-    return this;
+    return (T) this;
   }
 
   /**
@@ -57,9 +57,9 @@ public class ListStatusOptions {
    * @param loadMetadataType the load metadata type
    * @return the updated options
    */
-  public ListStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
+  public <T extends ListStatusOptions> T setLoadMetadataType(LoadMetadataType loadMetadataType) {
     mLoadMetadataType = loadMetadataType;
-    return this;
+    return (T) this;
   }
 
   @Override
