@@ -30,6 +30,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.lineage.LineageContext;
+import alluxio.collections.Pair;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -67,6 +68,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -89,6 +92,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
   /** Lock for initializing the contexts, currently only one set of contexts is supported. */
   private static final Object INIT_LOCK = new Object();
+  /** Cache of FileSystem Contexts keyed on subjects. */
+  private static final Map<Subject, Pair<FileSystemContext, AtomicInteger>> CACHED_CONTEXTS =
+      new ConcurrentHashMap<>();
 
   /** Flag for if the contexts have been initialized. */
   @GuardedBy("INIT_LOCK")
@@ -144,8 +150,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // org.apache.hadoop.fs.FileSystem.close may check the existence of certain temp files before
     // closing
     super.close();
-    if (mContext != null && mContext != FileSystemContext.get()) {
-      mContext.close();
+    Pair<FileSystemContext, AtomicInteger> contextAndRefCount =
+        CACHED_CONTEXTS.get(mContext.getParentSubject());
+    if (contextAndRefCount.getSecond().decrementAndGet() == 0) {
+      contextAndRefCount.getFirst().close();
     }
   }
 
@@ -536,19 +544,22 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
-   * Sets the file system and context.
+   * Sets the file system and context. Contexts with the same subject are shared among file systems
+   * to reduce resource usage such as the metrics heartbeat.
    */
   private void updateFileSystemAndContext() {
     Subject subject = getHadoopSubject();
     if (subject != null) {
       LOG.debug("Using Hadoop subject: {}", subject);
-      mContext = FileSystemContext.create(subject);
-      mFileSystem = FileSystem.Factory.get(mContext);
     } else {
-      LOG.debug("No Hadoop subject. Using default FS Context.");
-      mContext = FileSystemContext.get();
-      mFileSystem = FileSystem.Factory.get();
+      LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
     }
+    Pair<FileSystemContext, AtomicInteger> contextAndRefCount =
+        CACHED_CONTEXTS.computeIfAbsent(subject, sub -> new Pair<>(FileSystemContext.create(sub),
+            new AtomicInteger(0)));
+    contextAndRefCount.getSecond().incrementAndGet();
+    mContext = contextAndRefCount.getFirst();
+    mFileSystem = FileSystem.Factory.get(mContext);
   }
 
   /**
