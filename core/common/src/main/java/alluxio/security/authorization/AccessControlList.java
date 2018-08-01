@@ -249,6 +249,7 @@ public class AccessControlList implements Serializable {
           mExtendedEntries = new ExtendedACLEntries();
         }
         mExtendedEntries.setEntry(entry);
+        updateMask();
         return;
       case MASK:
         if (mExtendedEntries == null) {
@@ -260,11 +261,13 @@ public class AccessControlList implements Serializable {
         Mode modeOwner = new Mode(mMode);
         modeOwner.setOwnerBits(entry.getActions().toModeBits());
         mMode = modeOwner.toShort();
+
         return;
       case OWNING_GROUP:
         Mode modeGroup = new Mode(mMode);
         modeGroup.setGroupBits(entry.getActions().toModeBits());
         mMode = modeGroup.toShort();
+        updateMask();
         return;
       case OTHER:
         Mode modeOther = new Mode(mMode);
@@ -308,11 +311,11 @@ public class AccessControlList implements Serializable {
    * for other actions, checkPermission(user, groups, action) is false.
    *
    * 1. If the user is the owner, then return the permission in the owner entry;
-   * 2. Else if the user matches the name of one of the named user entries, then return the
-   *    permission in this entry;
+   * 2. Else if the user matches the name of one of the named user entries, then return the AND
+   *    result of the permission in this entry and the mask ;
    * 3. Else if at least one of the groups is the owning group or matches the name of one of the
    *    named group entries, then for the named group entries that match a member of groups, merge
-   *    the permissions in these entries and return the merged permission;
+   *    the permissions in these entries and return the merged permission ANDed with the mask;
    * 4. Otherwise, return the permission in the other entry.
    *
    * @param user the user
@@ -326,7 +329,9 @@ public class AccessControlList implements Serializable {
     if (hasExtended()) {
       AclActions actions = mExtendedEntries.getNamedUser(user);
       if (actions != null) {
-        return new AclActions(actions);
+        AclActions result = new AclActions(actions);
+        result.mask(mExtendedEntries.mMaskActions);
+        return result;
       }
     }
 
@@ -346,6 +351,7 @@ public class AccessControlList implements Serializable {
       }
     }
     if (isGroupKnown) {
+      groupActions.mask(mExtendedEntries.mMaskActions);
       return groupActions;
     }
 

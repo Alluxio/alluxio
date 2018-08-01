@@ -122,6 +122,10 @@ public final class AclActions implements Serializable {
     mActions.or(actions.mActions);
   }
 
+  public void mask(AclActions actions)  {
+    mActions.and(actions.mActions);
+  }
+
   /**
    * @param action the action to be checked
    * @return whether the action is contained in the permitted actions

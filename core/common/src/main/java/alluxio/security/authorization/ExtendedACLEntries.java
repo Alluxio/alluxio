@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -209,11 +210,14 @@ public class ExtendedACLEntries {
 
   public void updateMask(AclActions groupActions) {
     AclActions result = new AclActions(groupActions);
-    Set<Map.Entry<String, AclActions>> kvSet = mNamedUserActions.entrySet();
+    Set<Map.Entry<String, AclActions>> kvSet = new HashSet<>();
+    kvSet.addAll(mNamedUserActions.entrySet());
     kvSet.addAll(mNamedGroupActions.entrySet());
 
     for (Map.Entry<String, AclActions> kv : kvSet) {
       AclActions userAction = kv.getValue();
+      result.merge(userAction);
+
       for (AclAction action : AclAction.values()) {
         if (result.contains(action) || userAction.contains(action)) {
           result.add(action);
