@@ -20,6 +20,7 @@ import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.interfaces.Scoped;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -29,6 +30,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -42,6 +45,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public abstract class Inode<T> implements JournalEntryRepresentable {
   private static final Logger LOG = LoggerFactory.getLogger(Inode.class);
+  // Journaled state
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected final boolean mDirectory;
@@ -56,6 +60,9 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
 
+  // Non-journaled state
+  // Boolean indicating whether the inode is in the process of being persisted
+  private AtomicBoolean mPersisting;
   private final ReentrantReadWriteLock mLock;
 
   protected Inode(long id, boolean isDirectory) {
@@ -72,6 +79,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mPinned = false;
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
+    mPersisting = new AtomicBoolean(false);
     mLock = new ReentrantReadWriteLock();
   }
 
@@ -139,20 +147,16 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * Compare-and-swaps the persistence state.
+   * Compare-and-swaps the persisting flag.
    *
-   * @param oldState the old {@link PersistenceState}
-   * @param newState the new {@link PersistenceState} to set
-   * @return true if the old state matches and the new state was set
+   * @return true if the compare-and-swap succeeds. False return indicates that someone else
+   *         already successfully called acquirePersisting()
    */
-  public boolean compareAndSwap(PersistenceState oldState, PersistenceState newState) {
-    synchronized (this) {
-      if (mPersistenceState == oldState) {
-        mPersistenceState = newState;
-        return true;
-      }
-      return false;
+  public Optional<Scoped> acquirePersisting() {
+    if (mPersisting.compareAndSet(false, true)) {
+      return Optional.of(() -> mPersisting.set(false));
     }
+    return Optional.empty();
   }
 
   /**

@@ -351,6 +351,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   /** This caches paths which have been synced with UFS. */
   private final UfsSyncPathCache mUfsSyncPathCache;
+  private final PersistentFsMasterState mState;
 
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
@@ -401,11 +402,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
 
+    mState = new PersistentFsMasterState();
     mBlockMaster = blockMaster;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager);
-    mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
+    mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable, mState);
 
     // TODO(gene): Handle default config value for whitelist.
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST, ","));
@@ -473,13 +475,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw new RuntimeException(e);
       }
     } else if (entry.hasPersistDirectory()) {
-      PersistDirectoryEntry typedEntry = entry.getPersistDirectory();
-      try (LockedInodePath inodePath = mInodeTree
-          .lockFullInodePath(typedEntry.getId(), InodeTree.LockMode.WRITE)) {
-        inodePath.getInode().setPersistenceState(PersistenceState.PERSISTED);
-      } catch (FileDoesNotExistException e) {
-        throw new RuntimeException(e);
-      }
+      mState.apply(entry);
     } else if (entry.hasCompleteFile()) {
       try {
         completeFileFromEntry(entry.getCompleteFile());
@@ -2365,16 +2361,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /**
    * Propagates the persisted status to all parents of the given inode in the same mount partition.
    *
+   * @param rpcContext the rpc context
    * @param inodePath the inode to start the propagation at
-   * @param replayed whether the invocation is a result of replaying the journal
    * @return list of inodes which were marked as persisted
    * @throws FileDoesNotExistException if a non-existent file is encountered
    */
-  private List<Inode<?>> propagatePersistedInternal(LockedInodePath inodePath, boolean replayed)
+  private void propagatePersistedInternal(RpcContext rpcContext, LockedInodePath inodePath)
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
     if (!inode.isPersisted()) {
-      return Collections.emptyList();
+      return;
     }
 
     List<Inode<?>> inodes = inodePath.getInodeList();
@@ -2384,39 +2380,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     inodes = inodes.subList(1, inodes.size());
 
     List<Inode<?>> persistedInodes = new ArrayList<>();
-    for (Inode<?> handle : inodes) {
+    for (Inode<?> ancestor : inodes) {
       // the path is already locked.
-      AlluxioURI path = mInodeTree.getPath(handle);
+      AlluxioURI path = mInodeTree.getPath(ancestor);
       if (mMountTable.isMountPoint(path)) {
         // Stop propagating the persisted status at mount points.
         break;
       }
-      if (handle.isPersisted()) {
+      if (ancestor.isPersisted()) {
         // Stop if a persisted directory is encountered.
         break;
       }
-      handle.setPersistenceState(PersistenceState.PERSISTED);
-      if (!replayed) {
-        persistedInodes.add(handle);
-      }
-    }
-    return persistedInodes;
-  }
-
-  /**
-   * Journals the list of persisted inodes returned from
-   * {@link #propagatePersistedInternal(LockedInodePath, boolean)}. This does not flush the journal.
-   *
-   * @param persistedInodes the list of persisted inodes to journal
-   * @param journalContext the journal context
-   */
-  private void journalPersistedInodes(List<Inode<?>> persistedInodes,
-      JournalContext journalContext) {
-    for (Inode<?> inode : persistedInodes) {
-      PersistDirectoryEntry persistDirectory =
-          PersistDirectoryEntry.newBuilder().setId(inode.getId()).build();
-      journalContext
-          .append(JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
+      mState.applyAndJournal(rpcContext,
+          JournalEntry.newBuilder().setPersistDirectory(PersistDirectoryEntry.newBuilder()
+              .setId(ancestor.getId()))
+              .build());
     }
   }
 
@@ -2493,7 +2471,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
             SetAttributeOptions setAttributeOptions =
                 SetAttributeOptions.defaults().setRecursive(false).setPinned(false);
-            setAttributeInternal(descedant, false, opTimeMs, setAttributeOptions);
+            setAttributeInternal(rpcContext, descedant, false, opTimeMs, setAttributeOptions);
             journalSetAttribute(descedant, opTimeMs, setAttributeOptions,
                 rpcContext.getJournalContext());
           }
@@ -3382,15 +3360,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           mPermissionChecker.checkSetAttributePermission(childPath, rootRequired, ownerRequired);
         }
         for (LockedInodePath childPath : descendants.getInodePathList()) {
-          List<Inode<?>> persistedInodes =
-              setAttributeInternal(childPath, false, opTimeMs, options);
-          journalPersistedInodes(persistedInodes, rpcContext.getJournalContext());
+          setAttributeInternal(rpcContext, childPath, false, opTimeMs, options);
           journalSetAttribute(childPath, opTimeMs, options, rpcContext.getJournalContext());
         }
       }
     }
-    List<Inode<?>> persistedInodes = setAttributeInternal(inodePath, false, opTimeMs, options);
-    journalPersistedInodes(persistedInodes, rpcContext.getJournalContext());
+    setAttributeInternal(rpcContext, inodePath, false, opTimeMs, options);
     journalSetAttribute(inodePath, opTimeMs, options, rpcContext.getJournalContext());
   }
 
@@ -3645,7 +3620,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   .setUfsFingerprint(ufsFingerprint);
           long opTimeMs = System.currentTimeMillis();
           // use replayed, since updating UFS is not desired.
-          setAttributeInternal(inodePath, true, opTimeMs, options);
+          setAttributeInternal(rpcContext, inodePath, true, opTimeMs, options);
           journalSetAttribute(inodePath, opTimeMs, options, rpcContext.getJournalContext());
         }
       }
@@ -3745,15 +3720,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the operation time (in milliseconds)
    * @param options the method options
-   * @return list of inodes which were marked as persisted
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if failed to set permission
    */
-  private List<Inode<?>> setAttributeInternal(LockedInodePath inodePath, boolean replayed,
-      long opTimeMs, SetAttributeOptions options)
+  private void setAttributeInternal(RpcContext rpcContext, LockedInodePath inodePath,
+      boolean replayed, long opTimeMs, SetAttributeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    List<Inode<?>> persistedInodes = Collections.emptyList();
     Inode<?> inode = inodePath.getInode();
     if (options.getPinned() != null) {
       mInodeTree.setPinned(inodePath, options.getPinned(), opTimeMs);
@@ -3781,7 +3754,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           .checkArgument(options.getPersisted(), PreconditionMessage.ERR_SET_STATE_UNPERSIST);
       if (!file.isPersisted()) {
         file.setPersistenceState(PersistenceState.PERSISTED);
-        persistedInodes = propagatePersistedInternal(inodePath, false);
+        propagatePersistedInternal(rpcContext, inodePath);
         file.setLastModificationTimeMs(opTimeMs);
         Metrics.FILES_PERSISTED.inc();
       }
@@ -3854,7 +3827,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (modeChanged) {
       inode.setMode(options.getMode());
     }
-    return persistedInodes;
   }
 
   /**
@@ -3890,7 +3862,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      setAttributeInternal(inodePath, true, entry.getOpTimeMs(), options);
+      setAttributeInternal(RpcContext.NOOP, inodePath, true, entry.getOpTimeMs(), options);
       // Intentionally not journaling the persisted inodes from setAttributeInternal
     }
   }
