@@ -214,11 +214,19 @@ public class ExtendedACLEntries {
    */
   public void updateMask(AclActions groupActions) {
     AclActions result = new AclActions(groupActions);
-    Set<Map.Entry<String, AclActions>> kvSet = new HashSet<>();
-    kvSet.addAll(mNamedUserActions.entrySet());
-    kvSet.addAll(mNamedGroupActions.entrySet());
 
-    for (Map.Entry<String, AclActions> kv : kvSet) {
+    for (Map.Entry<String, AclActions> kv : mNamedUserActions.entrySet()) {
+      AclActions userAction = kv.getValue();
+      result.merge(userAction);
+
+      for (AclAction action : AclAction.values()) {
+        if (result.contains(action) || userAction.contains(action)) {
+          result.add(action);
+        }
+      }
+    }
+
+    for (Map.Entry<String, AclActions> kv : mNamedGroupActions.entrySet()) {
       AclActions userAction = kv.getValue();
       result.merge(userAction);
 
