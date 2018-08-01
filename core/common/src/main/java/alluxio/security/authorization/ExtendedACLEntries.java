@@ -208,6 +208,10 @@ public class ExtendedACLEntries {
     return actions;
   }
 
+  /**
+   * Update the mask to be the union of owning group entry, named user entry and named group entry.
+   * @param groupActions the group entry to be integrated into the mask
+   */
   public void updateMask(AclActions groupActions) {
     AclActions result = new AclActions(groupActions);
     Set<Map.Entry<String, AclActions>> kvSet = new HashSet<>();
@@ -246,6 +250,4 @@ public class ExtendedACLEntries {
   public int hashCode() {
     return Objects.hashCode(mNamedUserActions, mNamedGroupActions, mMaskActions);
   }
-
-
 }

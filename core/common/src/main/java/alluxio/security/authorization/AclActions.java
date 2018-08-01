@@ -114,7 +114,7 @@ public final class AclActions implements Serializable {
   }
 
   /**
-   * Merges the actions.
+   * Merges the actions. (Or operation)
    *
    * @param actions the actions to be merged from
    */
@@ -122,6 +122,10 @@ public final class AclActions implements Serializable {
     mActions.or(actions.mActions);
   }
 
+  /**
+   * Mask the actions. (And operation)
+   * @param actions the acl mask
+   */
   public void mask(AclActions actions)  {
     mActions.and(actions.mActions);
   }

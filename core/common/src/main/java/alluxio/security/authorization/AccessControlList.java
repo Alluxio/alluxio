@@ -226,6 +226,9 @@ public class AccessControlList implements Serializable {
     mMode = mode;
   }
 
+  /**
+   * Update the mask to be the union of owning group entry, named user entry and named group entry.
+   */
   public void updateMask() {
     if (hasExtended()) {
       AclActions actions = getOwningGroupActions();
