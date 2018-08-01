@@ -104,12 +104,12 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * The first index of the indexed set. This index is used to guarantee uniqueness of objects,
    * support iterator and provide quick lookup.
    */
-  private final FieldIndex<T> mPrimaryIndex;
+  private final FieldIndex<T, ?> mPrimaryIndex;
   /**
    * Map from index definition to the index. An index is a map from index value to one or a set of
    * objects with that index value.
    */
-  private final Map<IndexDefinition<T>, FieldIndex<T>> mIndices;
+  private final Map<IndexDefinition<T, ?>, FieldIndex<T, ?>> mIndices;
 
   /**
    * Constructs a new {@link IndexedSet} instance with at least one field as the index.
@@ -120,17 +120,17 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @param otherIndexDefinitions other index definitions to index the set
    */
   @SafeVarargs
-  public IndexedSet(IndexDefinition<T> primaryIndexDefinition,
-      IndexDefinition<T>... otherIndexDefinitions) {
-    Iterable<IndexDefinition<T>> indexDefinitions =
+  public IndexedSet(IndexDefinition<T, ?> primaryIndexDefinition,
+      IndexDefinition<T, ?>... otherIndexDefinitions) {
+    Iterable<IndexDefinition<T, ?>> indexDefinitions =
         Iterables.concat(Collections.singletonList(primaryIndexDefinition),
             Arrays.asList(otherIndexDefinitions));
 
     // initialization
-    Map<IndexDefinition<T>, FieldIndex<T>> indices = new HashMap<>();
+    Map<IndexDefinition<T, ?>, FieldIndex<T, ?>> indices = new HashMap<>();
 
-    for (IndexDefinition<T> indexDefinition : indexDefinitions) {
-      FieldIndex<T> index;
+    for (IndexDefinition<T, ?> indexDefinition : indexDefinitions) {
+      FieldIndex<T, ?> index;
       if (indexDefinition.isUnique()) {
         index = new UniqueFieldIndex<>(indexDefinition);
       } else {
@@ -177,7 +177,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
         return false;
       }
 
-      for (FieldIndex<T> fieldIndex : mIndices.values()) {
+      for (FieldIndex<T, ?> fieldIndex : mIndices.values()) {
         fieldIndex.add(object);
       }
     }
@@ -241,10 +241,11 @@ public class IndexedSet<T> extends AbstractSet<T> {
    *
    * @param indexDefinition the field index definition
    * @param value the field value
+   * @param <V> the field type
    * @return true if there is one such object, otherwise false
    */
-  public boolean contains(IndexDefinition<T> indexDefinition, Object value) {
-    FieldIndex<T> index = mIndices.get(indexDefinition);
+  public <V> boolean contains(IndexDefinition<T, V> indexDefinition, V value) {
+    FieldIndex<T, V> index = (FieldIndex<T, V>) mIndices.get(indexDefinition);
     if (index == null) {
       throw new IllegalStateException("the given index isn't defined for this IndexedSet");
     }
@@ -257,10 +258,11 @@ public class IndexedSet<T> extends AbstractSet<T> {
    *
    * @param indexDefinition the field index definition
    * @param value the field value to be satisfied
+   * @param <V> the field type
    * @return the set of objects or an empty set if no such object exists
    */
-  public Set<T> getByField(IndexDefinition<T> indexDefinition, Object value) {
-    FieldIndex<T> index = mIndices.get(indexDefinition);
+  public <V> Set<T> getByField(IndexDefinition<T, V> indexDefinition, V value) {
+    FieldIndex<T, V> index = (FieldIndex<T, V>) mIndices.get(indexDefinition);
     if (index == null) {
       throw new IllegalStateException("the given index isn't defined for this IndexedSet");
     }
@@ -272,10 +274,11 @@ public class IndexedSet<T> extends AbstractSet<T> {
    *
    * @param indexDefinition the field index definition
    * @param value the field value
+   * @param <V> the field type
    * @return the object or null if there is no such object
    */
-  public T getFirstByField(IndexDefinition<T> indexDefinition, Object value) {
-    FieldIndex<T> index = mIndices.get(indexDefinition);
+  public <V> T getFirstByField(IndexDefinition<T, V> indexDefinition, V value) {
+    FieldIndex<T, V> index = (FieldIndex<T, V>) mIndices.get(indexDefinition);
     if (index == null) {
       throw new IllegalStateException("the given index isn't defined for this IndexedSet");
     }
@@ -316,7 +319,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @param object the object to be removed
    */
   private void removeFromIndices(T object) {
-    for (FieldIndex<T> fieldValue : mIndices.values()) {
+    for (FieldIndex<T, ?> fieldValue : mIndices.values()) {
       fieldValue.remove(object);
     }
   }
@@ -326,9 +329,10 @@ public class IndexedSet<T> extends AbstractSet<T> {
    *
    * @param indexDefinition the field index
    * @param value the field value
+   * @param <V> the field type
    * @return the number of objects removed
    */
-  public int removeByField(IndexDefinition<T> indexDefinition, Object value) {
+  public <V> int removeByField(IndexDefinition<T, V> indexDefinition, V value) {
     Set<T> toRemove = getByField(indexDefinition, value);
 
     int removed = 0;

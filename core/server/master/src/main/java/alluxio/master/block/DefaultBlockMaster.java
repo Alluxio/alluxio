@@ -113,18 +113,18 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   private static final long CONTAINER_ID_RESERVATION_SIZE = 1000;
 
   // Worker metadata management.
-  private static final IndexDefinition<MasterWorkerInfo> ID_INDEX =
-      new IndexDefinition<MasterWorkerInfo>(true) {
+  private static final IndexDefinition<MasterWorkerInfo, Long> ID_INDEX =
+      new IndexDefinition<MasterWorkerInfo, Long>(true) {
         @Override
-        public Object getFieldValue(MasterWorkerInfo o) {
+        public Long getFieldValue(MasterWorkerInfo o) {
           return o.getId();
         }
       };
 
-  private static final IndexDefinition<MasterWorkerInfo> ADDRESS_INDEX =
-      new IndexDefinition<MasterWorkerInfo>(true) {
+  private static final IndexDefinition<MasterWorkerInfo, WorkerNetAddress> ADDRESS_INDEX =
+      new IndexDefinition<MasterWorkerInfo, WorkerNetAddress>(true) {
         @Override
-        public Object getFieldValue(MasterWorkerInfo o) {
+        public WorkerNetAddress getFieldValue(MasterWorkerInfo o) {
           return o.getWorkerAddress();
         }
       };
