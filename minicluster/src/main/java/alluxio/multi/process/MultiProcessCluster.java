@@ -121,9 +121,9 @@ public final class MultiProcessCluster {
     if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) != null) {
       Preconditions.checkState(
           ports.size() == numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
-          "Require 2 ports per master and 3 ports per worker, but there are %s masters, "
+          "We require %s ports per master and %s ports per worker, but there are %s masters, "
               + "%s workers, and %s ports",
-          numMasters, numWorkers, ports.size());
+          PORTS_PER_MASTER, PORTS_PER_WORKER, numMasters, numWorkers, ports.size());
     }
     mProperties = properties;
     mMasterProperties = masterProperties;
