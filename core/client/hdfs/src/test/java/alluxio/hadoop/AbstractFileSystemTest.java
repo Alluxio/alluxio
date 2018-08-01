@@ -399,6 +399,31 @@ public class AbstractFileSystemTest {
   }
 
   @Test
+  public void contextCachingHadoopCache() throws Exception {
+    final org.apache.hadoop.conf.Configuration conf = getConf();
+    URI uri = URI.create(Constants.HEADER + "host:1");
+    org.apache.hadoop.fs.FileSystem fs1 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    org.apache.hadoop.fs.FileSystem fs2 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    fs1.close();
+    verify(mMockFileSystemContextCustomized, times(1)).close();
+    fs2.close();
+    verify(mMockFileSystemContextCustomized, times(1)).close();
+  }
+
+  @Test
+  public void contextCachingDisableHadoopCache() throws Exception {
+    final org.apache.hadoop.conf.Configuration conf = getConf();
+    conf.set("fs.alluxio.impl.disable.cache", "true");
+    URI uri = URI.create(Constants.HEADER + "host:1");
+    org.apache.hadoop.fs.FileSystem fs1 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    org.apache.hadoop.fs.FileSystem fs2 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    fs1.close();
+    verify(mMockFileSystemContextCustomized, times(0)).close();
+    fs2.close();
+    verify(mMockFileSystemContextCustomized, times(1)).close();
+  }
+
+  @Test
   public void getBlockLocationsOnlyInAlluxio() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);

@@ -64,11 +64,11 @@ import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
@@ -92,9 +92,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
   /** Lock for initializing the contexts, currently only one set of contexts is supported. */
   private static final Object INIT_LOCK = new Object();
+  /** Lock for cached contexts. */
+  private static final Object CACHED_CONTEXTS_LOCK = new Object();
   /** Cache of FileSystem Contexts keyed on subjects. */
   private static final Map<Subject, Pair<FileSystemContext, AtomicInteger>> CACHED_CONTEXTS =
-      new ConcurrentHashMap<>();
+      new HashMap<>();
 
   /** Flag for if the contexts have been initialized. */
   @GuardedBy("INIT_LOCK")
@@ -150,10 +152,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // org.apache.hadoop.fs.FileSystem.close may check the existence of certain temp files before
     // closing
     super.close();
-    Pair<FileSystemContext, AtomicInteger> contextAndRefCount =
-        CACHED_CONTEXTS.get(mContext.getParentSubject());
-    if (contextAndRefCount.getSecond().decrementAndGet() == 0) {
-      contextAndRefCount.getFirst().close();
+    synchronized (CACHED_CONTEXTS_LOCK) {
+      Pair<FileSystemContext, AtomicInteger> contextAndRefCount =
+          CACHED_CONTEXTS.get(mContext.getParentSubject());
+      if (contextAndRefCount == null) {
+        LOG.warn("Failed to find context to close, have you called close multiple times?");
+        return;
+      }
+      if (contextAndRefCount.getSecond().decrementAndGet() == 0) {
+        contextAndRefCount.getFirst().close();
+      }
     }
   }
 
@@ -554,12 +562,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     } else {
       LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
     }
-    Pair<FileSystemContext, AtomicInteger> contextAndRefCount =
-        CACHED_CONTEXTS.computeIfAbsent(subject, sub -> new Pair<>(FileSystemContext.create(sub),
-            new AtomicInteger(0)));
-    contextAndRefCount.getSecond().incrementAndGet();
-    mContext = contextAndRefCount.getFirst();
-    mFileSystem = FileSystem.Factory.get(mContext);
+    synchronized (CACHED_CONTEXTS_LOCK) {
+      Pair<FileSystemContext, AtomicInteger> contextAndRefCount =
+          CACHED_CONTEXTS.computeIfAbsent(subject, sub -> new Pair<>(FileSystemContext.create(sub),
+              new AtomicInteger(0)));
+      contextAndRefCount.getSecond().incrementAndGet();
+      mContext = contextAndRefCount.getFirst();
+      mFileSystem = FileSystem.Factory.get(mContext);
+    }
   }
 
   /**
