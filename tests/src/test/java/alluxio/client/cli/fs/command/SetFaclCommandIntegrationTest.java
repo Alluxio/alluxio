@@ -60,7 +60,7 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
 
     List<String> stringEntries = new ArrayList<>(FACL_STRING_ENTRIES);
     stringEntries.add("user:testuser:rwx");
-    stringEntries.add("mask::---");
+    stringEntries.add("mask::rwx");
     expected += getFaclResultStr(testOwner, testOwner, "/testRoot/testFileA", stringEntries);
 
     Assert.assertEquals(expected, mOutput.toString());
@@ -95,7 +95,7 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
     List<String> stringEntries = new ArrayList<>(DIR_FACL_STRING_ENTRIES);
     stringEntries.addAll(DEFAULT_FACL_STRING_ENTRIES);
     stringEntries.add("default:user:testuser:rwx");
-    stringEntries.add("default:mask::---");
+    stringEntries.add("default:mask::rwx");
     String expected = getFaclResultStr(testOwner, testOwner, "/testRoot/testDir", stringEntries);
 
     Assert.assertEquals(expected, mOutput.toString());
@@ -106,10 +106,10 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
     mFsShell.run("getfacl", "/testRoot/testDir/testDir2");
     stringEntries = new ArrayList<>(DIR_FACL_STRING_ENTRIES);
     stringEntries.add("user:testuser:rwx");
-    stringEntries.add("mask::---");
+    stringEntries.add("mask::rwx");
     stringEntries.addAll(DEFAULT_FACL_STRING_ENTRIES);
     stringEntries.add("default:user:testuser:rwx");
-    stringEntries.add("default:mask::---");
+    stringEntries.add("default:mask::rwx");
     expected += getFaclResultStr(testOwner, testOwner,
         "/testRoot/testDir/testDir2", stringEntries);
 
@@ -118,7 +118,7 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
     mFsShell.run("getfacl", "/testRoot/testDir/testDir2/testFileD");
     stringEntries = new ArrayList<>(DIR_FACL_STRING_ENTRIES);
     stringEntries.add("user:testuser:rwx");
-    stringEntries.add("mask::---");
+    stringEntries.add("mask::rwx");
     expected += getFaclResultStr(testOwner, testOwner,
         "/testRoot/testDir/testDir2/testFileD", stringEntries);
     Assert.assertEquals(expected, mOutput.toString());
