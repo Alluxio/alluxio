@@ -354,7 +354,9 @@ public class AccessControlList implements Serializable {
       }
     }
     if (isGroupKnown) {
-      groupActions.mask(mExtendedEntries.mMaskActions);
+      if (hasExtended()) {
+        groupActions.mask(mExtendedEntries.mMaskActions);
+      }
       return groupActions;
     }
 
