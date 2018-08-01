@@ -18,6 +18,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.WriteType;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.util.ModeUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
@@ -54,7 +55,7 @@ public final class CreateDirectoryOptions {
     mCommonOptions = CommonOptions.defaults();
     mRecursive = false;
     mAllowExists = false;
-    mMode = Mode.defaults().applyDirectoryUMask();
+    mMode = ModeUtils.applyDirectoryUMask(mMode);
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mWriteType =

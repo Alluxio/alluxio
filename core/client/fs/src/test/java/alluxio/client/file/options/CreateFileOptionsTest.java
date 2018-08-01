@@ -20,6 +20,7 @@ import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.test.util.CommonUtils;
 import alluxio.thrift.CreateFileTOptions;
+import alluxio.util.ModeUtils;
 import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
@@ -48,7 +49,7 @@ public final class CreateFileOptionsTest {
     Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
     Assert.assertEquals(mDefaultWriteTier, options.getWriteTier());
     Assert.assertEquals(mDefaultWriteType, options.getWriteType());
-    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
+    Assert.assertEquals(ModeUtils.applyFileUMask(Mode.defaults()), options.getMode());
   }
 
   /**

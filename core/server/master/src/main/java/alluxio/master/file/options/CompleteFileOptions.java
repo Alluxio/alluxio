@@ -12,9 +12,6 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.CompleteFileTOptions;
-import alluxio.file.options.CommonOptions;
-
-import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -22,11 +19,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for completing a file.
  */
 @NotThreadSafe
-public final class CompleteFileOptions {
-  private CommonOptions mCommonOptions;
-  private long mUfsLength;
-  private long mOperationTimeMs;
-
+public final class CompleteFileOptions extends alluxio.file.options.CompleteFileOptions{
   /**
    * @return the default {@link CompleteFileOptions}
    */
@@ -39,95 +32,19 @@ public final class CompleteFileOptions {
    *
    * @param options Thrift options
    */
-  public CompleteFileOptions(CompleteFileTOptions options) {
-    this();
-    if (options != null) {
-      if (options.isSetCommonOptions()) {
+//  public CompleteFileOptions(CompleteFileTOptions options) {
+//    this();
+//    if (options != null) {
+//      if (options.isSetCommonOptions()) {
 //        mCommonOptions = new CommonOptions(options.getCommonOptions());
-      }
-      mUfsLength = options.getUfsLength();
-    }
-  }
+//      }
+//      mUfsLength = options.getUfsLength();
+//    }
+//  }
 
   private CompleteFileOptions() {
-//    mCommonOptions = CommonOptions.defaults();
+    mCommonOptions = CommonOptions.defaults();
     mUfsLength = 0;
     mOperationTimeMs = System.currentTimeMillis();
-  }
-
-  /**
-   * @return the common options
-   */
-  public CommonOptions getCommonOptions() {
-    return mCommonOptions;
-  }
-
-  /**
-   * @return the UFS file length
-   */
-  public long getUfsLength() {
-    return mUfsLength;
-  }
-
-  /**
-   * @return the operation time
-   */
-  public long getOperationTimeMs() {
-    return mOperationTimeMs;
-  }
-
-  /**
-   * @param options the common options
-   * @return the updated options object
-   */
-  public CompleteFileOptions setCommonOptions(CommonOptions options) {
-    mCommonOptions = options;
-    return this;
-  }
-
-  /**
-   * @param ufsLength the UFS file length to use
-   * @return the updated options object
-   */
-  public CompleteFileOptions setUfsLength(long ufsLength) {
-    mUfsLength = ufsLength;
-    return this;
-  }
-
-  /**
-   * @param operationTimeMs the operation time to use
-   * @return the updated options object
-   */
-  public CompleteFileOptions setOperationTimeMs(long operationTimeMs) {
-    mOperationTimeMs = operationTimeMs;
-    return this;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof CompleteFileOptions)) {
-      return false;
-    }
-    CompleteFileOptions that = (CompleteFileOptions) o;
-    return Objects.equal(mUfsLength, that.mUfsLength)
-        && Objects.equal(mCommonOptions, that.mCommonOptions)
-        && mOperationTimeMs == that.mOperationTimeMs;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(mUfsLength, mOperationTimeMs, mCommonOptions);
-  }
-
-  @Override
-  public String toString() {
-    return Objects.toStringHelper(this)
-        .add("commonOptions", mCommonOptions)
-        .add("ufsLength", mUfsLength)
-        .add("operationTimeMs", mOperationTimeMs)
-        .toString();
   }
 }

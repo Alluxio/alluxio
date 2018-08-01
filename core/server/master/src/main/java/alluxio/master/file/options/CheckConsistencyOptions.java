@@ -11,20 +11,13 @@
 
 package alluxio.master.file.options;
 
-import alluxio.thrift.CheckConsistencyTOptions;
-import alluxio.file.options.CommonOptions;
-
-import com.google.common.base.Objects;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for checking the consistency of a path.
  */
 @NotThreadSafe
-public final class CheckConsistencyOptions {
-  private CommonOptions mCommonOptions;
-
+public final class CheckConsistencyOptions extends alluxio.file.options.CheckConsistencyOptions {
   /**
    * @return the default {@link CheckConsistencyOptions}
    */
@@ -33,7 +26,7 @@ public final class CheckConsistencyOptions {
   }
 
   private CheckConsistencyOptions() {
-//    mCommonOptions = CommonOptions.defaults();
+    mCommonOptions = CommonOptions.defaults();
   }
 
   /**
@@ -42,52 +35,12 @@ public final class CheckConsistencyOptions {
    *
    * @param options the {@link alluxio.thrift.CheckConsistencyTOptions} to use
    */
-  public CheckConsistencyOptions(CheckConsistencyTOptions options) {
-    this();
-    if (options != null) {
-      if (options.isSetCommonOptions()) {
+//  public CheckConsistencyOptions(CheckConsistencyTOptions options) {
+//    this();
+//    if (options != null) {
+//      if (options.isSetCommonOptions()) {
 //        mCommonOptions = new CommonOptions(options.getCommonOptions());
-      }
-    }
-  }
-
-  /**
-   * @return the common options
-   */
-  public CommonOptions getCommonOptions() {
-    return mCommonOptions;
-  }
-
-  /**
-   * @param options the common options
-   * @return the updated options object
-   */
-  public CheckConsistencyOptions setCommonOptions(CommonOptions options) {
-    mCommonOptions = options;
-    return this;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof CheckConsistencyOptions)) {
-      return false;
-    }
-    CheckConsistencyOptions that = (CheckConsistencyOptions) o;
-    return Objects.equal(mCommonOptions, that.mCommonOptions);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(mCommonOptions);
-  }
-
-  @Override
-  public String toString() {
-    return Objects.toStringHelper(this)
-        .add("commonOptions", mCommonOptions)
-        .toString();
-  }
+//      }
+//    }
+//  }
 }

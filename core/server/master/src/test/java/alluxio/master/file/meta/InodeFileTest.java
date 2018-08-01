@@ -22,6 +22,7 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.Mode;
+import alluxio.util.ModeUtils;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -175,7 +176,7 @@ public final class InodeFileTest extends AbstractInodeTest {
     InodeFile inode1 = createInodeFile(1);
     assertEquals(TEST_OWNER, inode1.getOwner());
     assertEquals(TEST_GROUP, inode1.getGroup());
-    assertEquals(Mode.defaults().applyFileUMask().toShort(), inode1.getMode());
+    assertEquals(ModeUtils.applyFileUMask(Mode.defaults()).toShort(), inode1.getMode());
   }
 
   /**

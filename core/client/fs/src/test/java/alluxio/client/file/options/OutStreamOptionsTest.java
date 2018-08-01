@@ -29,6 +29,7 @@ import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
+import alluxio.util.ModeUtils;
 import alluxio.wire.TtlAction;
 
 import com.google.common.collect.ImmutableMap;
@@ -84,7 +85,7 @@ public class OutStreamOptionsTest {
     assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
     assertEquals("test_user", options.getOwner());
     assertEquals("test_group", options.getGroup());
-    assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
+    assertEquals(ModeUtils.applyFileUMask(Mode.defaults()), options.getMode());
     assertEquals(Constants.NO_TTL, options.getTtl());
     assertEquals(TtlAction.DELETE, options.getTtlAction());
     assertEquals(ufsType, options.getUnderStorageType());

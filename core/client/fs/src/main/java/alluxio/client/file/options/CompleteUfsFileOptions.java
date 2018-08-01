@@ -14,6 +14,7 @@ package alluxio.client.file.options;
 import alluxio.Constants;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CompleteUfsFileTOptions;
+import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
 
 import com.google.common.base.Objects;
@@ -43,7 +44,7 @@ public final class CompleteUfsFileOptions {
   private CompleteUfsFileOptions() {
     mOwner = SecurityUtils.getOwnerFromLoginModule();
     mGroup = SecurityUtils.getGroupFromLoginModule();
-    mMode = Mode.defaults().applyFileUMask();
+    mMode = ModeUtils.applyFileUMask(Mode.defaults());
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.
   }

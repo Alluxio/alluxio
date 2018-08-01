@@ -22,6 +22,7 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateFileTOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.ModeUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
@@ -69,7 +70,7 @@ public final class CreateFileOptions {
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
-    mMode = Mode.defaults().applyFileUMask();
+    mMode = ModeUtils.applyFileUMask(Mode.defaults());
   }
 
   /**
