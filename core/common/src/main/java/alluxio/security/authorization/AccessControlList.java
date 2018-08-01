@@ -226,6 +226,13 @@ public class AccessControlList implements Serializable {
     mMode = mode;
   }
 
+  public void updateMask() {
+    if (hasExtended()) {
+      AclActions actions = getOwningGroupActions();
+      mExtendedEntries.updateMask(actions);
+    }
+  }
+
   /**
    * Sets an entry into the access control list.
    * If an entry with the same type and subject already exists, overwrites the existing entry;
@@ -237,7 +244,12 @@ public class AccessControlList implements Serializable {
     // TODO(cc): when setting non-mask entries, the mask should be dynamically updated too.
     switch (entry.getType()) {
       case NAMED_USER:  // fall through
-      case NAMED_GROUP: // fall through
+      case NAMED_GROUP:
+        if (mExtendedEntries == null) {
+          mExtendedEntries = new ExtendedACLEntries();
+        }
+        mExtendedEntries.setEntry(entry);
+        return;
       case MASK:
         if (mExtendedEntries == null) {
           mExtendedEntries = new ExtendedACLEntries();

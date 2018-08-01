@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -206,6 +207,23 @@ public class ExtendedACLEntries {
     return actions;
   }
 
+  public void updateMask(AclActions groupActions) {
+    AclActions result = new AclActions(groupActions);
+    Set<Map.Entry<String, AclActions>> kvSet = mNamedUserActions.entrySet();
+    kvSet.addAll(mNamedGroupActions.entrySet());
+
+    for (Map.Entry<String, AclActions> kv : kvSet) {
+      AclActions userAction = kv.getValue();
+      for (AclAction action : AclAction.values()) {
+        if (result.contains(action) || userAction.contains(action)) {
+          result.add(action);
+        }
+      }
+    }
+
+    mMaskActions = result;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -224,4 +242,6 @@ public class ExtendedACLEntries {
   public int hashCode() {
     return Objects.hashCode(mNamedUserActions, mNamedGroupActions, mMaskActions);
   }
+
+
 }
