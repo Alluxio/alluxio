@@ -13,35 +13,31 @@ package alluxio.file.options;
 
 import com.google.common.base.Objects;
 
-import java.io.Serializable;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Common method options.
+ * Method options for the worker to master heartbeat.
  */
 @NotThreadSafe
-public class CommonOptions implements Serializable {
-  private static final long serialVersionUID = -1491370184123698287L;
+public class WorkerHeartbeatOptions {
+  protected List<String> mPersistedUfsFingerprintList;
 
-  protected long mSyncIntervalMs;
-
-  protected CommonOptions() {}
+  protected WorkerHeartbeatOptions() {}
 
   /**
-   * @return the sync interval, in milliseconds
+   * @return list of ufs fingerprints, of the persisted files
    */
-  public long getSyncIntervalMs() {
-    return mSyncIntervalMs;
+  public List<String> getPersistedUfsFingerprintList() {
+    return mPersistedUfsFingerprintList;
   }
 
   /**
-   * @param syncIntervalMs the sync interval, in milliseconds
-   * @return the updated options object
+   * @param persistedUfsFingerprintList the list of ufs fingerprints, of persisted files
    */
-  public CommonOptions setSyncIntervalMs(long syncIntervalMs) {
-    mSyncIntervalMs = syncIntervalMs;
-    return this;
+  public void setPersistedUfsFingerprintList(List<String> persistedUfsFingerprintList) {
+    mPersistedUfsFingerprintList = persistedUfsFingerprintList;
   }
 
   @Override
@@ -49,22 +45,22 @@ public class CommonOptions implements Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof CommonOptions)) {
+    if (!(o instanceof WorkerHeartbeatOptions)) {
       return false;
     }
-    CommonOptions that = (CommonOptions) o;
-    return Objects.equal(mSyncIntervalMs, that.mSyncIntervalMs);
+    WorkerHeartbeatOptions that = (WorkerHeartbeatOptions) o;
+    return Objects.equal(mPersistedUfsFingerprintList, that.mPersistedUfsFingerprintList);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mSyncIntervalMs);
+    return Objects.hashCode(mPersistedUfsFingerprintList);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("syncIntervalMs", mSyncIntervalMs)
+        .add("persistedUfsFingerprintList", mPersistedUfsFingerprintList)
         .toString();
   }
 }

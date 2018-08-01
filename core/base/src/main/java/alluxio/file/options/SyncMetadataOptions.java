@@ -13,34 +13,30 @@ package alluxio.file.options;
 
 import com.google.common.base.Objects;
 
-import java.io.Serializable;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Common method options.
+ * Method options for syncing the metadata of a path.
  */
 @NotThreadSafe
-public class CommonOptions implements Serializable {
-  private static final long serialVersionUID = -1491370184123698287L;
+public class SyncMetadataOptions {
+  protected CommonOptions mCommonOptions;
 
-  protected long mSyncIntervalMs;
-
-  protected CommonOptions() {}
+  protected SyncMetadataOptions() {}
 
   /**
-   * @return the sync interval, in milliseconds
+   * @return the common options
    */
-  public long getSyncIntervalMs() {
-    return mSyncIntervalMs;
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
-   * @param syncIntervalMs the sync interval, in milliseconds
+   * @param options the common options
    * @return the updated options object
    */
-  public CommonOptions setSyncIntervalMs(long syncIntervalMs) {
-    mSyncIntervalMs = syncIntervalMs;
+  public SyncMetadataOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
     return this;
   }
 
@@ -49,22 +45,22 @@ public class CommonOptions implements Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof CommonOptions)) {
+    if (!(o instanceof SyncMetadataOptions)) {
       return false;
     }
-    CommonOptions that = (CommonOptions) o;
-    return Objects.equal(mSyncIntervalMs, that.mSyncIntervalMs);
+    SyncMetadataOptions that = (SyncMetadataOptions) o;
+    return Objects.equal(mCommonOptions, that.mCommonOptions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mSyncIntervalMs);
+    return Objects.hashCode(mCommonOptions);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("syncIntervalMs", mSyncIntervalMs)
+        .add("commonOptions", mCommonOptions)
         .toString();
   }
 }

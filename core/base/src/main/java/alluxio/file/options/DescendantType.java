@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.options;
+package alluxio.file.options;
 
 /**
  * Type of descendant level processing for filesystem inodes.

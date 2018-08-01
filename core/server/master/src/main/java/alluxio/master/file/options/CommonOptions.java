@@ -25,6 +25,18 @@ public final class CommonOptions extends alluxio.file.options.CommonOptions {
     return new CommonOptions();
   }
 
+  /**
+   * Copies from {@link CommonOptions}.
+   *
+   * @param options the other option
+   */
+  public CommonOptions(CommonOptions options) {
+    this();
+    if (options != null) {
+      mSyncIntervalMs = options.mSyncIntervalMs;
+    }
+  }
+
   private CommonOptions() {
     super();
   }
