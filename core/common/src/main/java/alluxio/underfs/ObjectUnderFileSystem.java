@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -88,23 +90,35 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Information about a single object in object UFS.
    */
   protected class ObjectStatus {
+    private static final String INVALID_CONTENT_HASH = "";
     private static final long INVALID_CONTENT_LENGTH = -1L;
     private static final long INVALID_MODIFIED_TIME = -1L;
 
+    private final String mContentHash;
     private final long mContentLength;
     private final long mLastModifiedTimeMs;
     private final String mName;
 
-    public ObjectStatus(String name, long contentLength, long lastModifiedTimeMs) {
+    public ObjectStatus(String name, String contentHash, long contentLength,
+        long lastModifiedTimeMs) {
+      mContentHash = contentHash;
       mContentLength = contentLength;
       mLastModifiedTimeMs = lastModifiedTimeMs;
       mName = name;
     }
 
     public ObjectStatus(String name) {
+      mContentHash = INVALID_CONTENT_HASH;
       mContentLength = INVALID_CONTENT_LENGTH;
       mLastModifiedTimeMs = INVALID_MODIFIED_TIME;
       mName = name;
+    }
+
+    /**
+     * @return the hash of the content
+     */
+    public String getContentHash() {
+      return mContentHash;
     }
 
     /**
@@ -327,10 +341,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         try {
           result.addAll(list.get());
         } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
           // If operation was interrupted do not add to successfully deleted list
           LOG.warn("Interrupted while waiting for the result of batch delete. UFS and Alluxio "
               + "state may be inconsistent. Error: {}", e.getMessage());
-          Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
           // If operation failed to execute do not add to successfully deleted list
           LOG.warn("A batch delete failed. UFS and Alluxio state may be inconsistent. Error: {}",
@@ -431,12 +445,28 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
     if (details != null) {
       ObjectPermissions permissions = getPermissions();
-      return new UfsFileStatus(path, details.getContentLength(), details.getLastModifiedTimeMs(),
-          permissions.getOwner(), permissions.getGroup(), permissions.getMode());
+      return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
+          details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
     } else {
       LOG.warn("Error fetching file status, assuming file {} does not exist", path);
       throw new FileNotFoundException(path);
     }
+  }
+
+  @Override
+  public UfsStatus getStatus(String path) throws IOException {
+    if (isRoot(path)) {
+      return getDirectoryStatus(path);
+    }
+    ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
+    if (details != null) {
+      ObjectPermissions permissions = getPermissions();
+      return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
+          details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
+    }
+    return getDirectoryStatus(path);
   }
 
   @Override
@@ -508,7 +538,21 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    return openObject(stripPrefixIfPresent(path), options);
+    IOException thrownException = null;
+    RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS),
+        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS),
+        Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM));
+    while (retryPolicy.attempt()) {
+      try {
+        return openObject(stripPrefixIfPresent(path), options);
+      } catch (IOException e) {
+        LOG.warn("{} attempt to open {} failed with exception : {}", retryPolicy.getAttemptCount(),
+            path, e.getMessage());
+        thrownException = e;
+      }
+    }
+    throw thrownException;
   }
 
   @Override
@@ -530,8 +574,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
     // Rename each child in the src folder to destination/child
     for (UfsStatus child : children) {
-      String childSrcPath = PathUtils.concatPath(src, child);
-      String childDstPath = PathUtils.concatPath(dst, child);
+      String childSrcPath = PathUtils.concatPath(src, child.getName());
+      String childDstPath = PathUtils.concatPath(dst, child.getName());
       boolean success;
       if (child.isDirectory()) {
         // Recursive call
@@ -540,7 +584,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         success = renameFile(childSrcPath, childDstPath);
       }
       if (!success) {
-        LOG.error("Failed to rename path {}, aborting rename.", child);
+        LOG.error("Failed to rename path {} to {}, aborting rename.", childSrcPath, childDstPath);
         return false;
       }
     }
@@ -570,7 +614,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Create a zero-byte object used to encode a directory.
+   * Creates a zero-byte object used to encode a directory.
    *
    * @param key the key to create
    * @return true if the operation was successful
@@ -819,8 +863,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         } else {
           // Child is a file
           children.put(child,
-              new UfsFileStatus(child, status.getContentLength(), status.getLastModifiedTimeMs(),
-                  permissions.getOwner(), permissions.getGroup(), permissions.getMode()));
+              new UfsFileStatus(child, status.getContentHash(), status.getContentLength(),
+                  status.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+                  permissions.getMode()));
         }
       }
       // Handle case (2)

@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.meta.MetaMaster;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -47,14 +48,14 @@ public final class MasterWebServer extends WebServer {
     super(serviceName, address);
     Preconditions.checkNotNull(masterProcess, "Alluxio master cannot be null");
 
-    mWebAppContext
-        .addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterProcess)), "/home");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterProcess)),
+        "/home");
     mWebAppContext.addServlet(new ServletHolder(
         new WebInterfaceWorkersServlet(masterProcess.getMaster(BlockMaster.class))),
         "/workers");
-    mWebAppContext.addServlet(new ServletHolder(
-            new WebInterfaceConfigurationServlet(masterProcess.getMaster(FileSystemMaster.class))),
-        "/configuration");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceConfigurationServlet(
+        masterProcess.getMaster(FileSystemMaster.class),
+        masterProcess.getMaster(MetaMaster.class))), "/configuration");
     mWebAppContext
         .addServlet(new ServletHolder(new WebInterfaceBrowseServlet(masterProcess)), "/browse");
     mWebAppContext

@@ -41,9 +41,10 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   private static final org.apache.thrift.protocol.TField BLOCK_SIZE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSizeBytes", org.apache.thrift.protocol.TType.I64, (short)1);
   private static final org.apache.thrift.protocol.TField PERSISTED_FIELD_DESC = new org.apache.thrift.protocol.TField("persisted", org.apache.thrift.protocol.TType.BOOL, (short)2);
   private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)3);
-  private static final org.apache.thrift.protocol.TField TTL_FIELD_DESC = new org.apache.thrift.protocol.TField("ttl", org.apache.thrift.protocol.TType.I64, (short)4);
+  private static final org.apache.thrift.protocol.TField TTL_NOT_USED_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlNotUsed", org.apache.thrift.protocol.TType.I64, (short)4);
   private static final org.apache.thrift.protocol.TField MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("mode", org.apache.thrift.protocol.TType.I16, (short)5);
-  private static final org.apache.thrift.protocol.TField TTL_ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlAction", org.apache.thrift.protocol.TType.I32, (short)6);
+  private static final org.apache.thrift.protocol.TField TTL_ACTION_NOT_USED_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlActionNotUsed", org.apache.thrift.protocol.TType.I32, (short)6);
+  private static final org.apache.thrift.protocol.TField COMMON_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("commonOptions", org.apache.thrift.protocol.TType.STRUCT, (short)7);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -54,22 +55,24 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   private long blockSizeBytes; // optional
   private boolean persisted; // optional
   private boolean recursive; // optional
-  private long ttl; // optional
+  private long ttlNotUsed; // optional
   private short mode; // optional
-  private alluxio.thrift.TTtlAction ttlAction; // optional
+  private alluxio.thrift.TTtlAction ttlActionNotUsed; // optional
+  private FileSystemMasterCommonTOptions commonOptions; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     BLOCK_SIZE_BYTES((short)1, "blockSizeBytes"),
     PERSISTED((short)2, "persisted"),
     RECURSIVE((short)3, "recursive"),
-    TTL((short)4, "ttl"),
+    TTL_NOT_USED((short)4, "ttlNotUsed"),
     MODE((short)5, "mode"),
     /**
      * 
      * @see alluxio.thrift.TTtlAction
      */
-    TTL_ACTION((short)6, "ttlAction");
+    TTL_ACTION_NOT_USED((short)6, "ttlActionNotUsed"),
+    COMMON_OPTIONS((short)7, "commonOptions");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -90,12 +93,14 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
           return PERSISTED;
         case 3: // RECURSIVE
           return RECURSIVE;
-        case 4: // TTL
-          return TTL;
+        case 4: // TTL_NOT_USED
+          return TTL_NOT_USED;
         case 5: // MODE
           return MODE;
-        case 6: // TTL_ACTION
-          return TTL_ACTION;
+        case 6: // TTL_ACTION_NOT_USED
+          return TTL_ACTION_NOT_USED;
+        case 7: // COMMON_OPTIONS
+          return COMMON_OPTIONS;
         default:
           return null;
       }
@@ -139,10 +144,10 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   private static final int __BLOCKSIZEBYTES_ISSET_ID = 0;
   private static final int __PERSISTED_ISSET_ID = 1;
   private static final int __RECURSIVE_ISSET_ID = 2;
-  private static final int __TTL_ISSET_ID = 3;
+  private static final int __TTLNOTUSED_ISSET_ID = 3;
   private static final int __MODE_ISSET_ID = 4;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.BLOCK_SIZE_BYTES,_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.TTL,_Fields.MODE,_Fields.TTL_ACTION};
+  private static final _Fields optionals[] = {_Fields.BLOCK_SIZE_BYTES,_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.TTL_NOT_USED,_Fields.MODE,_Fields.TTL_ACTION_NOT_USED,_Fields.COMMON_OPTIONS};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -152,12 +157,14 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.TTL, new org.apache.thrift.meta_data.FieldMetaData("ttl", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.TTL_NOT_USED, new org.apache.thrift.meta_data.FieldMetaData("ttlNotUsed", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.MODE, new org.apache.thrift.meta_data.FieldMetaData("mode", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I16)));
-    tmpMap.put(_Fields.TTL_ACTION, new org.apache.thrift.meta_data.FieldMetaData("ttlAction", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.TTL_ACTION_NOT_USED, new org.apache.thrift.meta_data.FieldMetaData("ttlActionNotUsed", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, alluxio.thrift.TTtlAction.class)));
+    tmpMap.put(_Fields.COMMON_OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("commonOptions", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemMasterCommonTOptions.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(CreateFileTOptions.class, metaDataMap);
   }
@@ -173,10 +180,13 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     this.blockSizeBytes = other.blockSizeBytes;
     this.persisted = other.persisted;
     this.recursive = other.recursive;
-    this.ttl = other.ttl;
+    this.ttlNotUsed = other.ttlNotUsed;
     this.mode = other.mode;
-    if (other.isSetTtlAction()) {
-      this.ttlAction = other.ttlAction;
+    if (other.isSetTtlActionNotUsed()) {
+      this.ttlActionNotUsed = other.ttlActionNotUsed;
+    }
+    if (other.isSetCommonOptions()) {
+      this.commonOptions = new FileSystemMasterCommonTOptions(other.commonOptions);
     }
   }
 
@@ -192,11 +202,12 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     this.persisted = false;
     setRecursiveIsSet(false);
     this.recursive = false;
-    setTtlIsSet(false);
-    this.ttl = 0;
+    setTtlNotUsedIsSet(false);
+    this.ttlNotUsed = 0;
     setModeIsSet(false);
     this.mode = 0;
-    this.ttlAction = null;
+    this.ttlActionNotUsed = null;
+    this.commonOptions = null;
   }
 
   public long getBlockSizeBytes() {
@@ -268,27 +279,27 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RECURSIVE_ISSET_ID, value);
   }
 
-  public long getTtl() {
-    return this.ttl;
+  public long getTtlNotUsed() {
+    return this.ttlNotUsed;
   }
 
-  public CreateFileTOptions setTtl(long ttl) {
-    this.ttl = ttl;
-    setTtlIsSet(true);
+  public CreateFileTOptions setTtlNotUsed(long ttlNotUsed) {
+    this.ttlNotUsed = ttlNotUsed;
+    setTtlNotUsedIsSet(true);
     return this;
   }
 
-  public void unsetTtl() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TTL_ISSET_ID);
+  public void unsetTtlNotUsed() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TTLNOTUSED_ISSET_ID);
   }
 
-  /** Returns true if field ttl is set (has been assigned a value) and false otherwise */
-  public boolean isSetTtl() {
-    return EncodingUtils.testBit(__isset_bitfield, __TTL_ISSET_ID);
+  /** Returns true if field ttlNotUsed is set (has been assigned a value) and false otherwise */
+  public boolean isSetTtlNotUsed() {
+    return EncodingUtils.testBit(__isset_bitfield, __TTLNOTUSED_ISSET_ID);
   }
 
-  public void setTtlIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TTL_ISSET_ID, value);
+  public void setTtlNotUsedIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TTLNOTUSED_ISSET_ID, value);
   }
 
   public short getMode() {
@@ -318,31 +329,55 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
    * 
    * @see alluxio.thrift.TTtlAction
    */
-  public alluxio.thrift.TTtlAction getTtlAction() {
-    return this.ttlAction;
+  public alluxio.thrift.TTtlAction getTtlActionNotUsed() {
+    return this.ttlActionNotUsed;
   }
 
   /**
    * 
    * @see alluxio.thrift.TTtlAction
    */
-  public CreateFileTOptions setTtlAction(alluxio.thrift.TTtlAction ttlAction) {
-    this.ttlAction = ttlAction;
+  public CreateFileTOptions setTtlActionNotUsed(alluxio.thrift.TTtlAction ttlActionNotUsed) {
+    this.ttlActionNotUsed = ttlActionNotUsed;
     return this;
   }
 
-  public void unsetTtlAction() {
-    this.ttlAction = null;
+  public void unsetTtlActionNotUsed() {
+    this.ttlActionNotUsed = null;
   }
 
-  /** Returns true if field ttlAction is set (has been assigned a value) and false otherwise */
-  public boolean isSetTtlAction() {
-    return this.ttlAction != null;
+  /** Returns true if field ttlActionNotUsed is set (has been assigned a value) and false otherwise */
+  public boolean isSetTtlActionNotUsed() {
+    return this.ttlActionNotUsed != null;
   }
 
-  public void setTtlActionIsSet(boolean value) {
+  public void setTtlActionNotUsedIsSet(boolean value) {
     if (!value) {
-      this.ttlAction = null;
+      this.ttlActionNotUsed = null;
+    }
+  }
+
+  public FileSystemMasterCommonTOptions getCommonOptions() {
+    return this.commonOptions;
+  }
+
+  public CreateFileTOptions setCommonOptions(FileSystemMasterCommonTOptions commonOptions) {
+    this.commonOptions = commonOptions;
+    return this;
+  }
+
+  public void unsetCommonOptions() {
+    this.commonOptions = null;
+  }
+
+  /** Returns true if field commonOptions is set (has been assigned a value) and false otherwise */
+  public boolean isSetCommonOptions() {
+    return this.commonOptions != null;
+  }
+
+  public void setCommonOptionsIsSet(boolean value) {
+    if (!value) {
+      this.commonOptions = null;
     }
   }
 
@@ -372,11 +407,11 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       }
       break;
 
-    case TTL:
+    case TTL_NOT_USED:
       if (value == null) {
-        unsetTtl();
+        unsetTtlNotUsed();
       } else {
-        setTtl((Long)value);
+        setTtlNotUsed((Long)value);
       }
       break;
 
@@ -388,11 +423,19 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       }
       break;
 
-    case TTL_ACTION:
+    case TTL_ACTION_NOT_USED:
       if (value == null) {
-        unsetTtlAction();
+        unsetTtlActionNotUsed();
       } else {
-        setTtlAction((alluxio.thrift.TTtlAction)value);
+        setTtlActionNotUsed((alluxio.thrift.TTtlAction)value);
+      }
+      break;
+
+    case COMMON_OPTIONS:
+      if (value == null) {
+        unsetCommonOptions();
+      } else {
+        setCommonOptions((FileSystemMasterCommonTOptions)value);
       }
       break;
 
@@ -410,14 +453,17 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     case RECURSIVE:
       return isRecursive();
 
-    case TTL:
-      return getTtl();
+    case TTL_NOT_USED:
+      return getTtlNotUsed();
 
     case MODE:
       return getMode();
 
-    case TTL_ACTION:
-      return getTtlAction();
+    case TTL_ACTION_NOT_USED:
+      return getTtlActionNotUsed();
+
+    case COMMON_OPTIONS:
+      return getCommonOptions();
 
     }
     throw new IllegalStateException();
@@ -436,12 +482,14 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       return isSetPersisted();
     case RECURSIVE:
       return isSetRecursive();
-    case TTL:
-      return isSetTtl();
+    case TTL_NOT_USED:
+      return isSetTtlNotUsed();
     case MODE:
       return isSetMode();
-    case TTL_ACTION:
-      return isSetTtlAction();
+    case TTL_ACTION_NOT_USED:
+      return isSetTtlActionNotUsed();
+    case COMMON_OPTIONS:
+      return isSetCommonOptions();
     }
     throw new IllegalStateException();
   }
@@ -486,12 +534,12 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         return false;
     }
 
-    boolean this_present_ttl = true && this.isSetTtl();
-    boolean that_present_ttl = true && that.isSetTtl();
-    if (this_present_ttl || that_present_ttl) {
-      if (!(this_present_ttl && that_present_ttl))
+    boolean this_present_ttlNotUsed = true && this.isSetTtlNotUsed();
+    boolean that_present_ttlNotUsed = true && that.isSetTtlNotUsed();
+    if (this_present_ttlNotUsed || that_present_ttlNotUsed) {
+      if (!(this_present_ttlNotUsed && that_present_ttlNotUsed))
         return false;
-      if (this.ttl != that.ttl)
+      if (this.ttlNotUsed != that.ttlNotUsed)
         return false;
     }
 
@@ -504,12 +552,21 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         return false;
     }
 
-    boolean this_present_ttlAction = true && this.isSetTtlAction();
-    boolean that_present_ttlAction = true && that.isSetTtlAction();
-    if (this_present_ttlAction || that_present_ttlAction) {
-      if (!(this_present_ttlAction && that_present_ttlAction))
+    boolean this_present_ttlActionNotUsed = true && this.isSetTtlActionNotUsed();
+    boolean that_present_ttlActionNotUsed = true && that.isSetTtlActionNotUsed();
+    if (this_present_ttlActionNotUsed || that_present_ttlActionNotUsed) {
+      if (!(this_present_ttlActionNotUsed && that_present_ttlActionNotUsed))
         return false;
-      if (!this.ttlAction.equals(that.ttlAction))
+      if (!this.ttlActionNotUsed.equals(that.ttlActionNotUsed))
+        return false;
+    }
+
+    boolean this_present_commonOptions = true && this.isSetCommonOptions();
+    boolean that_present_commonOptions = true && that.isSetCommonOptions();
+    if (this_present_commonOptions || that_present_commonOptions) {
+      if (!(this_present_commonOptions && that_present_commonOptions))
+        return false;
+      if (!this.commonOptions.equals(that.commonOptions))
         return false;
     }
 
@@ -535,20 +592,25 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     if (present_recursive)
       list.add(recursive);
 
-    boolean present_ttl = true && (isSetTtl());
-    list.add(present_ttl);
-    if (present_ttl)
-      list.add(ttl);
+    boolean present_ttlNotUsed = true && (isSetTtlNotUsed());
+    list.add(present_ttlNotUsed);
+    if (present_ttlNotUsed)
+      list.add(ttlNotUsed);
 
     boolean present_mode = true && (isSetMode());
     list.add(present_mode);
     if (present_mode)
       list.add(mode);
 
-    boolean present_ttlAction = true && (isSetTtlAction());
-    list.add(present_ttlAction);
-    if (present_ttlAction)
-      list.add(ttlAction.getValue());
+    boolean present_ttlActionNotUsed = true && (isSetTtlActionNotUsed());
+    list.add(present_ttlActionNotUsed);
+    if (present_ttlActionNotUsed)
+      list.add(ttlActionNotUsed.getValue());
+
+    boolean present_commonOptions = true && (isSetCommonOptions());
+    list.add(present_commonOptions);
+    if (present_commonOptions)
+      list.add(commonOptions);
 
     return list.hashCode();
   }
@@ -591,12 +653,12 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetTtl()).compareTo(other.isSetTtl());
+    lastComparison = Boolean.valueOf(isSetTtlNotUsed()).compareTo(other.isSetTtlNotUsed());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetTtl()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ttl, other.ttl);
+    if (isSetTtlNotUsed()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ttlNotUsed, other.ttlNotUsed);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -611,12 +673,22 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetTtlAction()).compareTo(other.isSetTtlAction());
+    lastComparison = Boolean.valueOf(isSetTtlActionNotUsed()).compareTo(other.isSetTtlActionNotUsed());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetTtlAction()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ttlAction, other.ttlAction);
+    if (isSetTtlActionNotUsed()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ttlActionNotUsed, other.ttlActionNotUsed);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetCommonOptions()).compareTo(other.isSetCommonOptions());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCommonOptions()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.commonOptions, other.commonOptions);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -658,10 +730,10 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       sb.append(this.recursive);
       first = false;
     }
-    if (isSetTtl()) {
+    if (isSetTtlNotUsed()) {
       if (!first) sb.append(", ");
-      sb.append("ttl:");
-      sb.append(this.ttl);
+      sb.append("ttlNotUsed:");
+      sb.append(this.ttlNotUsed);
       first = false;
     }
     if (isSetMode()) {
@@ -670,13 +742,23 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       sb.append(this.mode);
       first = false;
     }
-    if (isSetTtlAction()) {
+    if (isSetTtlActionNotUsed()) {
       if (!first) sb.append(", ");
-      sb.append("ttlAction:");
-      if (this.ttlAction == null) {
+      sb.append("ttlActionNotUsed:");
+      if (this.ttlActionNotUsed == null) {
         sb.append("null");
       } else {
-        sb.append(this.ttlAction);
+        sb.append(this.ttlActionNotUsed);
+      }
+      first = false;
+    }
+    if (isSetCommonOptions()) {
+      if (!first) sb.append(", ");
+      sb.append("commonOptions:");
+      if (this.commonOptions == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.commonOptions);
       }
       first = false;
     }
@@ -687,6 +769,9 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (commonOptions != null) {
+      commonOptions.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -749,10 +834,10 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // TTL
+          case 4: // TTL_NOT_USED
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.ttl = iprot.readI64();
-              struct.setTtlIsSet(true);
+              struct.ttlNotUsed = iprot.readI64();
+              struct.setTtlNotUsedIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -765,10 +850,19 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 6: // TTL_ACTION
+          case 6: // TTL_ACTION_NOT_USED
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.ttlAction = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
-              struct.setTtlActionIsSet(true);
+              struct.ttlActionNotUsed = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
+              struct.setTtlActionNotUsedIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 7: // COMMON_OPTIONS
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.commonOptions = new FileSystemMasterCommonTOptions();
+              struct.commonOptions.read(iprot);
+              struct.setCommonOptionsIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -803,9 +897,9 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         oprot.writeBool(struct.recursive);
         oprot.writeFieldEnd();
       }
-      if (struct.isSetTtl()) {
-        oprot.writeFieldBegin(TTL_FIELD_DESC);
-        oprot.writeI64(struct.ttl);
+      if (struct.isSetTtlNotUsed()) {
+        oprot.writeFieldBegin(TTL_NOT_USED_FIELD_DESC);
+        oprot.writeI64(struct.ttlNotUsed);
         oprot.writeFieldEnd();
       }
       if (struct.isSetMode()) {
@@ -813,10 +907,17 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         oprot.writeI16(struct.mode);
         oprot.writeFieldEnd();
       }
-      if (struct.ttlAction != null) {
-        if (struct.isSetTtlAction()) {
-          oprot.writeFieldBegin(TTL_ACTION_FIELD_DESC);
-          oprot.writeI32(struct.ttlAction.getValue());
+      if (struct.ttlActionNotUsed != null) {
+        if (struct.isSetTtlActionNotUsed()) {
+          oprot.writeFieldBegin(TTL_ACTION_NOT_USED_FIELD_DESC);
+          oprot.writeI32(struct.ttlActionNotUsed.getValue());
+          oprot.writeFieldEnd();
+        }
+      }
+      if (struct.commonOptions != null) {
+        if (struct.isSetCommonOptions()) {
+          oprot.writeFieldBegin(COMMON_OPTIONS_FIELD_DESC);
+          struct.commonOptions.write(oprot);
           oprot.writeFieldEnd();
         }
       }
@@ -847,16 +948,19 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       if (struct.isSetRecursive()) {
         optionals.set(2);
       }
-      if (struct.isSetTtl()) {
+      if (struct.isSetTtlNotUsed()) {
         optionals.set(3);
       }
       if (struct.isSetMode()) {
         optionals.set(4);
       }
-      if (struct.isSetTtlAction()) {
+      if (struct.isSetTtlActionNotUsed()) {
         optionals.set(5);
       }
-      oprot.writeBitSet(optionals, 6);
+      if (struct.isSetCommonOptions()) {
+        optionals.set(6);
+      }
+      oprot.writeBitSet(optionals, 7);
       if (struct.isSetBlockSizeBytes()) {
         oprot.writeI64(struct.blockSizeBytes);
       }
@@ -866,21 +970,24 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       if (struct.isSetRecursive()) {
         oprot.writeBool(struct.recursive);
       }
-      if (struct.isSetTtl()) {
-        oprot.writeI64(struct.ttl);
+      if (struct.isSetTtlNotUsed()) {
+        oprot.writeI64(struct.ttlNotUsed);
       }
       if (struct.isSetMode()) {
         oprot.writeI16(struct.mode);
       }
-      if (struct.isSetTtlAction()) {
-        oprot.writeI32(struct.ttlAction.getValue());
+      if (struct.isSetTtlActionNotUsed()) {
+        oprot.writeI32(struct.ttlActionNotUsed.getValue());
+      }
+      if (struct.isSetCommonOptions()) {
+        struct.commonOptions.write(oprot);
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, CreateFileTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(6);
+      BitSet incoming = iprot.readBitSet(7);
       if (incoming.get(0)) {
         struct.blockSizeBytes = iprot.readI64();
         struct.setBlockSizeBytesIsSet(true);
@@ -894,16 +1001,21 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         struct.setRecursiveIsSet(true);
       }
       if (incoming.get(3)) {
-        struct.ttl = iprot.readI64();
-        struct.setTtlIsSet(true);
+        struct.ttlNotUsed = iprot.readI64();
+        struct.setTtlNotUsedIsSet(true);
       }
       if (incoming.get(4)) {
         struct.mode = iprot.readI16();
         struct.setModeIsSet(true);
       }
       if (incoming.get(5)) {
-        struct.ttlAction = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
-        struct.setTtlActionIsSet(true);
+        struct.ttlActionNotUsed = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
+        struct.setTtlActionNotUsedIsSet(true);
+      }
+      if (incoming.get(6)) {
+        struct.commonOptions = new FileSystemMasterCommonTOptions();
+        struct.commonOptions.read(iprot);
+        struct.setCommonOptionsIsSet(true);
       }
     }
   }

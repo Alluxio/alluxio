@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>1.7.0-SNAPSHOT</version>
+    <version>1.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-hdfs</artifactId>
   <name>Alluxio Under File System - HDFS</name>
@@ -27,16 +27,12 @@
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+    <ufs.hadoop.version>${hadoop.version}</ufs.hadoop.version>
   </properties>
 
   <dependencies>
     <!-- External dependencies -->
     <!-- Hadoop dependencies are included in individual profiles -->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
@@ -68,9 +64,24 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-core</artifactId>
-          <version>${hadoop.version}</version>
+          <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.igormaznitsa</groupId>
+            <artifactId>jcp</artifactId>
+            <configuration>
+              <globalVars>
+                <property>
+                  <name>HADOOP1</name>
+                </property>
+              </globalVars>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
 
     <!-- Profile to build this UFS module connecting to hdfs 2, this is the default profile -->
@@ -83,13 +94,29 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-common</artifactId>
-          <version>${hadoop.version}</version>
+          <version>${ufs.hadoop.version}</version>
         </dependency>
-
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs</artifactId>
-          <version>${hadoop.version}</version>
+          <version>${ufs.hadoop.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- Profile to build this UFS module connecting to hdfs 3 -->
+    <profile>
+      <id>hadoop-3</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${ufs.hadoop.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs-client</artifactId>
+          <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
     </profile>
@@ -113,6 +140,21 @@
         </plugins>
       </build>
     </profile>
+
+    <profile>
+      <id>hdfsAcl</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <excludes combine.self="override" />
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <build>
@@ -121,6 +163,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
+          <excludes>
+            <exclude>**/SupportedHdfsAclProvider.java</exclude>
+          </excludes>
           <testExcludes>
             <!-- Skip UFS contract tests unless -DtestHdfsBaseDir="hdfs://ip:port/alluxio_test" is specified -->
             <exclude>**/HdfsUnderFileSystemContractTest.java</exclude>
@@ -132,8 +177,28 @@
         <artifactId>maven-shade-plugin</artifactId>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>com.igormaznitsa</groupId>
+        <artifactId>jcp</artifactId>
+        <executions>
+          <execution>
+            <id>preprocessSources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>preprocess</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>clearGeneratedFolders</id>
+            <goals>
+              <goal>clear</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

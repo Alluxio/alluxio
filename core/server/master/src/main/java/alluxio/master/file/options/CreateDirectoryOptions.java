@@ -11,12 +11,11 @@
 
 package alluxio.master.file.options;
 
-import alluxio.Constants;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.underfs.UfsStatus;
 import alluxio.util.SecurityUtils;
-import alluxio.wire.ThriftUtils;
-import alluxio.wire.TtlAction;
+import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -28,8 +27,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOptions> {
   private boolean mAllowExists;
-  private long mTtl;
-  private TtlAction mTtlAction;
+  private UfsStatus mUfsStatus;
+
   /**
    * @return the default {@link CreateDirectoryOptions}
    */
@@ -45,29 +44,31 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
    * @param options the {@link CreateDirectoryTOptions} to use
    */
   public CreateDirectoryOptions(CreateDirectoryTOptions options) {
-    super();
-    mAllowExists = options.isAllowExists();
-    mPersisted = options.isPersisted();
-    mRecursive = options.isRecursive();
-    mTtl = options.getTtl();
-    mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
-    if (SecurityUtils.isAuthenticationEnabled()) {
-      mOwner = SecurityUtils.getOwnerFromThriftClient();
-      mGroup = SecurityUtils.getGroupFromThriftClient();
-    }
-    if (options.isSetMode()) {
-      mMode = new Mode(options.getMode());
-    } else {
-      mMode.applyDirectoryUMask();
+    this();
+    if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
+      mAllowExists = options.isAllowExists();
+      mPersisted = options.isPersisted();
+      mRecursive = options.isRecursive();
+      if (SecurityUtils.isAuthenticationEnabled()) {
+        mOwner = SecurityUtils.getOwnerFromThriftClient();
+        mGroup = SecurityUtils.getGroupFromThriftClient();
+      }
+      if (options.isSetMode()) {
+        mMode = new Mode(options.getMode());
+      } else {
+        mMode.applyDirectoryUMask();
+      }
     }
   }
 
   private CreateDirectoryOptions() {
     super();
     mAllowExists = false;
-    mTtl = Constants.NO_TTL;
-    mTtlAction = TtlAction.DELETE;
     mMode.applyDirectoryUMask();
+    mUfsStatus = null;
   }
 
   /**
@@ -79,18 +80,10 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
   }
 
   /**
-   * @return the TTL (time to live) value; it identifies duration (in seconds) the created directory
-   *         should be kept around before it is automatically deleted or free
+   * @return the {@link UfsStatus}
    */
-  public long getTtl() {
-    return mTtl;
-  }
-
-  /**
-   * @return the {@link TtlAction}
-   */
-  public TtlAction getTtlAction() {
-    return mTtlAction;
+  public UfsStatus getUfsStatus() {
+    return mUfsStatus;
   }
 
   /**
@@ -104,21 +97,11 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
   }
 
   /**
-   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-   *        created directory should be kept around before it is automatically deleted
+   * @param ufsStatus the {@link UfsStatus}; It sets the optional ufsStatus as an optimization
    * @return the updated options object
    */
-  public CreateDirectoryOptions setTtl(long ttl) {
-    mTtl = ttl;
-    return getThis();
-  }
-
-  /**
-   * @param ttlAction the {@link TtlAction}; It informs the action to take when Ttl is expired;
-   * @return the updated options object
-   */
-  public CreateDirectoryOptions setTtlAction(TtlAction ttlAction) {
-    mTtlAction = ttlAction;
+  public CreateDirectoryOptions setUfsStatus(UfsStatus ufsStatus) {
+    mUfsStatus = ufsStatus;
     return getThis();
   }
 
@@ -139,19 +122,18 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
       return false;
     }
     CreateDirectoryOptions that = (CreateDirectoryOptions) o;
-    return Objects.equal(mAllowExists, that.mAllowExists) && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlAction, that.mTtlAction);
+    return Objects.equal(mAllowExists, that.mAllowExists)
+        && Objects.equal(mUfsStatus, that.mUfsStatus);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mAllowExists, mTtl, mTtlAction);
+    return super.hashCode() + Objects.hashCode(mAllowExists, mUfsStatus);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
-        .add("allowExists", mAllowExists).add("ttl", mTtl)
-        .add("ttlAction", mTtlAction).toString();
+    return toStringHelper().add("allowExists", mAllowExists)
+        .add("ufsStatus", mUfsStatus).toString();
   }
 }

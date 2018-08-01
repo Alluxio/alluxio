@@ -15,7 +15,7 @@ storage system.
 ## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-Master-Branch.html), or
+[compile Alluxio](Building-Alluxio-From-Source.html), or
 [download the binaries locally](Running-Alluxio-Locally.html).
 
 ## Configuring Alluxio
@@ -29,7 +29,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Assuming the GlusterFS bricks are co-located with Alluxio nodes, the GlusterFS volume is mounted at
-`/mnt/gluster`, the following environment variable assignment needs to be added to
+`/mnt/gluster`, the following configuration parameters need to be added to
 `conf/alluxio-site.properties`:
 
 {% include Configuring-Alluxio-with-GlusterFS/underfs-address.md %}

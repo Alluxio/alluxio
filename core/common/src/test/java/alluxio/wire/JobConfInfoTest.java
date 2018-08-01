@@ -13,7 +13,7 @@ package alluxio.wire;
 
 import alluxio.util.CommonUtils;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,7 +39,7 @@ public class JobConfInfoTest {
   @Test
   public void thrift() {
     JobConfInfo jobConfInfo = createRandom();
-    JobConfInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(jobConfInfo));
+    JobConfInfo other = JobConfInfo.fromThrift(jobConfInfo.toThrift());
     checkEquality(jobConfInfo, other);
   }
 

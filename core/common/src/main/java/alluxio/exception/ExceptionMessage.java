@@ -33,6 +33,7 @@ public enum ExceptionMessage {
   PATH_INVALID("Path {0} is invalid"),
 
   // general block
+  BLOCK_UNAVAILABLE("Block {0} is unavailable in both Alluxio and UFS."),
   CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
   NO_LOCAL_WORKER("Local address {0} requested but there is no local worker"),
   NO_SPACE_FOR_BLOCK_ON_WORKER("There is no worker with enough space for a new block of size {0}"),
@@ -64,6 +65,9 @@ public enum ExceptionMessage {
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
 
+  // meta master
+  NO_MASTER_FOUND("No master with masterId {0,number,#} is found"),
+
   // netty
   BLOCK_WRITE_ERROR(
       "Error writing blockId: {0,number,#}, sessionId: {1,number,#}, address: {2}, message: {3}"),
@@ -87,11 +91,20 @@ public enum ExceptionMessage {
   BLOCK_NOT_FOUND_AT_LOCATION("blockId {0,number,#} not found at location: {1}"),
   MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted blockId {0,number,#}"),
   NO_BLOCK_ID_FOUND("blockId {0,number,#} not found"),
-  NO_EVICTION_PLAN_TO_FREE_SPACE("No eviction plan by evictor to free space"),
-  NO_SPACE_FOR_BLOCK_ALLOCATION(
-      "Failed to allocate {0,number,#} bytes after {1} retries for blockId {2,number,#}"),
-  NO_SPACE_FOR_BLOCK_MOVE(
-      "Failed to find space in {0} to move blockId {1,number,#} after {2} retries"),
+  NO_EVICTION_PLAN_TO_FREE_SPACE(
+      "Failed to find an eviction plan to free {0,number,#} bytes space at location {1}"),
+  NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT(
+      "Failed to allocate {0,number,#} bytes on {1} after {2}ms to create blockId {3,number,#}"),
+  NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED(
+      "Failed to allocate {0,number,#} bytes on {1} after {2} attempts for blockId {3,number,#}"),
+  NO_SPACE_FOR_BLOCK_REQUEST_SPACE_TIMEOUT(
+      "Failed to request {0,number,#} bytes after {1}ms to create blockId {2,number,#}"),
+  NO_SPACE_FOR_BLOCK_REQUEST_SPACE_RETRIES_EXCEEDED(
+      "Failed to request {0,number,#} bytes after {1} attempts for blockId {2,number,#}"),
+  NO_SPACE_FOR_BLOCK_MOVE_TIMEOUT(
+      "Failed to find space in {0} to move blockId {1,number,#} after {2}ms"),
+  NO_SPACE_FOR_BLOCK_MOVE_RETRIES_EXCEEDED(
+      "Failed to find space in {0} to move blockId {1,number,#} after {2} attempts"),
   REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted blockId {0,number,#}"),
   TEMP_BLOCK_ID_COMMITTED(
       "Temp blockId {0,number,#} is not available, because it is already committed"),
@@ -113,7 +126,13 @@ public enum ExceptionMessage {
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
+  DELETE_FAILED_DIR_CHILDREN(
+      "Cannot delete directory {0}. Failed to delete children: {1}"),
+  DELETE_FAILED_DIR_NONEMPTY("Directory not empty"),
   DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
+  DELETE_FAILED_UFS_DIR("UFS delete dir failed"),
+  DELETE_FAILED_UFS_FILE("UFS delete file failed"),
+  DELETE_FAILED_UFS_NOT_IN_SYNC("UFS dir not in sync. Sync UFS, or delete with unchecked flag."),
   DELETE_FAILED_DIRECTORY_NOT_IN_SYNC(
       "Cannot delete {0} because the UFS has contents not loaded into Alluxio. Sync Alluxio with "
           + "UFS or run delete with unchecked flag to forcibly delete"),
@@ -151,6 +170,9 @@ public enum ExceptionMessage {
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
 
+  // safe mode
+  MASTER_IN_SAFEMODE("Alluxio master is in safe mode. Please try again later."),
+
   // file system master ufs
   FAILED_UFS_CREATE("Failed to create {0} in the under file system"),
   FAILED_UFS_RENAME("Failed to rename {0} to {1} in the under file system"),
@@ -165,6 +187,8 @@ public enum ExceptionMessage {
   INVALID_ARGS_NULL("Null args for command {0}"),
   INVALID_ARGS_NUM("Command {0} takes {1} arguments, not {2}"),
   INVALID_ARGS_NUM_INSUFFICIENT("Command {0} requires at least {1} arguments ({2} provided)"),
+  INVALID_ARGS_NUM_TOO_MANY("Command {0} requires at most {1} arguments ({2} provided)"),
+  INVALID_ARGS_SORT_FIELD("Invalid sort option ‘{0}’ for --sort"),
 
   // extension shell
   INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),
@@ -203,8 +227,15 @@ public enum ExceptionMessage {
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
+  ACL_BASE_REQUIRED(
+      "Replacing ACL entries must include the base entries for 'user', 'group', and 'other'. "
+          + "missing: {0}"),
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
+  IMPERSONATION_NOT_CONFIGURED(
+      "User {0} is not configured for any impersonation. impersonationUser: {1}"),
+  IMPERSONATION_GROUPS_FAILED("Failed to get groups for impersonationUser {0}. user: {1}"),
+  IMPERSONATION_DENIED("User {0} is not configured to impersonate {1}"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   INVALID_MODE("Invalid mode {0}"),
   INVALID_MODE_SEGMENT("Invalid mode {0} - contains invalid segment {1}"),
@@ -227,7 +258,7 @@ public enum ExceptionMessage {
   MOUNT_POINT_PREFIX_OF_ANOTHER("Mount point {0} is a prefix of {1}"),
   MOUNT_PATH_SHADOWS_DEFAULT_UFS(
       "Mount path {0} shadows an existing path in the default underlying filesystem"),
-  MOUNT_READONLY("A write operation on {0} is under a readonly mount point {1}"),
+  MOUNT_READONLY("A write operation on {0} under a readonly mount point {1} is not allowed"),
   UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
 
   // key-value
@@ -237,6 +268,9 @@ public enum ExceptionMessage {
 
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),
+
+  // ufs maintenance
+  UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

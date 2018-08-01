@@ -13,6 +13,7 @@ package alluxio.master.lineage.meta;
 
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.wire.FileInfo;
@@ -39,7 +40,7 @@ public final class LineageStateUtils {
    * @throws AccessControlException if permission denied
    */
   public static boolean isCompleted(Lineage lineage, FileSystemMasterView fileSystemMasterView)
-      throws FileDoesNotExistException, AccessControlException {
+      throws FileDoesNotExistException, AccessControlException, UnavailableException {
     for (long outputFile : lineage.getOutputFiles()) {
       FileInfo fileInfo = fileSystemMasterView.getFileInfo(outputFile);
       if (!fileInfo.isCompleted()) {

@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 3
 ---
 
+* 内容列表
+{:toc}
+
 Alluxio可以运行在一个Docker容器中，本指南介绍如何使用Alluxio Github仓库提供的Dockerfile来将Alluxio运行在Docker之中。
 
 # 基础教程
@@ -14,7 +17,7 @@ Alluxio可以运行在一个Docker容器中，本指南介绍如何使用Alluxio
 
 # 前期准备
 
-一台Linux主机。在该指南中，我们将使用一台全新的运行着Amazon Linux的EC2主机。主机容量不需要太大，这里我们使用t2.small。
+一台Linux主机。在该指南中，我们将使用一台全新的运行着Amazon Linux的EC2主机。主机容量不需要太大，这里我们使用t2.small。当为实例设置网络安全时，允许端口19998-19999和29998-30000通信。
 
 # 启动一个独立模式集群
 
@@ -78,12 +81,16 @@ docker run -d --net=host alluxio master
 ### 运行Alluxio master
 
 ```bash
+$ # This gets the public ip of the current EC2 instance
+$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 $ docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
+             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio master
 ```
 详细说明:
+- `-e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP}`: 指定 Alluxio master 的监听 IP 地址.
 - `-v $PWD/underStorage:/underStorage`:和Docker容器共享底层存储层文件夹。
 - `-e ALLUXIO_UNDERFS_ADDRESS=/underStorage`:通知worker应用 /underStorage为底层文件存储层。
 
@@ -91,8 +98,6 @@ $ docker run -d --net=host \
 ## 运行Alluxio worker
 
 ```bash
-$ # This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 $ # Launch an Alluxio worker container and save the container ID for later
 $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
              -v /mnt/ramdisk:/opt/ramdisk \
@@ -173,8 +178,6 @@ $ docker run -d --net=host --shm-size=1G \
 ```bash
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
-$ touch /tmp/domain/d
-$ chmod a+w /tmp/domain/d
 ```
 
 当通过worker和客户端的docker容器启动它们时，通过`-v /tmp/domain:/opt/domain`共享域套接字文件夹。同时在启动容器时，通过添加`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d`
@@ -192,3 +195,38 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio worker)
 ```
+
+默认情况下，如果Alluxio客户端和工作节点的主机名相匹配，那么它们之间的短路操作是允许的。但如果客户端依靠虚拟网络作为容器的一部分来运行那就不一定允许。
+在这种情况下，当你启动工作节点的时候，设置以下属性来使用文件系统校验：`ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain`和`ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true`。
+短路写操作就启用了，只要工作节点的UUID位于客户端文件系统上。
+
+# FUSE
+为了使用FUSE,你需要在FUSE激活状态下创建一个docker镜像。
+
+```bash
+docker build -f Dockerfile.fuse -t alluxio-fuse .
+```
+
+运行支持FUSE的docker镜像还需要一对额外的参数。
+例如：
+
+```bash
+docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master --cap-add SYS_ADMIN --device /dev/fuse alluxio-fuse [master|worker|proxy]
+```
+
+注意：在docker上运行FUSE需要增加[SYS_ADMIN capability](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+到容器中。这消除了容器的独立性，应该谨慎使用。
+
+重要的是，为了使应用访问装有FUSE的Alluxio存储数据，必须在同一个容器中运行Alluxio。你可以很容易地扩展docker镜像来包含运行在Alluxio之上的应用。例如，为了在一个docker容器中用Alluxio运行TensorFlow,只需要修改Dockerfile.fuse并且用
+
+```bash
+FROM tensorflow/tensorflow:1.3.0
+```
+
+来代替
+
+```bash
+FROM ubuntu:16.04
+```
+
+然后你可以用和创建支持FUSE的镜像一样的命令来创建镜像并且运行它。https://hub.docker.com/r/alluxio/alluxio-tensorflow/有一个预先创建好的带有TersorFlow的docker镜像。

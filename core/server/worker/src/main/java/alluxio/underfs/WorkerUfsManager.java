@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
+import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -49,7 +50,7 @@ public final class WorkerUfsManager extends AbstractUfsManager {
    * ufs info.
    */
   @Override
-  public UfsInfo get(long mountId) throws NotFoundException, UnavailableException {
+  public UfsClient get(long mountId) throws NotFoundException, UnavailableException {
     try {
       return super.get(mountId);
     } catch (NotFoundException e) {
@@ -68,15 +69,16 @@ public final class WorkerUfsManager extends AbstractUfsManager {
         UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().isReadOnly())
             .setShared(info.getProperties().isShared())
             .setUserSpecifiedConf(info.getProperties().getProperties()));
-    UfsInfo ufsInfo = super.get(mountId);
-    try {
-      ufsInfo.getUfs().connectFromWorker(
+    UfsClient ufsClient = super.get(mountId);
+    try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
     } catch (IOException e) {
       removeMount(mountId);
       throw new UnavailableException(
           String.format("Failed to connect to UFS %s with id %d", info.getUri(), mountId), e);
     }
-    return ufsInfo;
+    return ufsClient;
   }
 }

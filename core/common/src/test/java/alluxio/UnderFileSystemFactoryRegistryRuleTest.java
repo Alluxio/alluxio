@@ -11,12 +11,14 @@
 
 package alluxio;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.junit.runners.model.Statement;
 
 /**
@@ -37,8 +39,8 @@ public class UnderFileSystemFactoryRegistryRuleTest {
 
   @Test
   public void testUnderFileSystemFactoryRegistryRule() throws Throwable {
-    mUnderFileSystemFactory = Mockito.mock(UnderFileSystemFactory.class);
-    Mockito.when(mUnderFileSystemFactory.supportsPath(UFS_PATH)).thenReturn(true);
+    mUnderFileSystemFactory = mock(UnderFileSystemFactory.class);
+    when(mUnderFileSystemFactory.supportsPath(UFS_PATH, null)).thenReturn(true);
     // check before
     Assert.assertEquals(null, UnderFileSystemFactoryRegistry.find(UFS_PATH));
     new UnderFileSystemFactoryRegistryRule(mUnderFileSystemFactory)

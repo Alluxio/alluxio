@@ -6,6 +6,9 @@ group: Clients
 priority: 6
 ---
 
+* 内容列表
+{:toc}
+
 Alluxio支持RESTful API，它和Amazon的基本操作是兼容的[S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html)。
 
 [REST API 手册](http://www.alluxio.org/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)会在Alluxio构建时生成并且可以通过`${ALLUXIO_HOME}/core/server/proxy/target/miredot/index.html`获得。
@@ -317,7 +320,7 @@ bucket.delete_key(largeObjectKey)
 ### 初始化multipart upload
 
 ```python
-mp = b.initiate_multipart_upload(largeObjectFile)
+mp = bucket.initiate_multipart_upload(largeObjectFile)
 ```
 
 ### 上传分块 
@@ -332,10 +335,10 @@ sourceSize = os.stat(largeObjectFile).st_size
 chunkSize = 1048576
 chunkCount = int(math.ceil(sourceSize / float(chunkSize)))
 
-for i in range(chunk_count):
-    offset = chunk_size * i
-    bytes = min(chunk_size, source_size - offset)
-    with FileChunkIO(source_path, 'r', offset=offset, bytes=bytes) as fp:
+for i in range(chunkCount):
+    offset = chunkSize * i
+    bytes = min(chunkSize, sourceSize - offset)
+    with FileChunkIO(largeObjectFile, 'r', offset=offset, bytes=bytes) as fp:
         mp.upload_part_from_file(fp, part_num=i + 1)
 ```
 

@@ -20,6 +20,8 @@ import alluxio.master.block.BlockId;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
@@ -87,6 +89,8 @@ public final class InodeFile extends Inode<InodeFile> {
     ret.setMode(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(false);
+    ret.setUfsFingerprint(getUfsFingerprint());
+    ret.setAcl(mAcl);
     return ret;
   }
 
@@ -98,6 +102,16 @@ public final class InodeFile extends Inode<InodeFile> {
     mLength = 0;
     mCompleted = false;
     mCacheable = false;
+  }
+
+  @Override
+  public DefaultAccessControlList getDefaultACL() throws UnsupportedOperationException {
+    throw new UnsupportedOperationException("getDefaultACL: File does not have default ACL");
+  }
+
+  @Override
+  public void setDefaultACL(DefaultAccessControlList acl) throws UnsupportedOperationException {
+    throw new UnsupportedOperationException("setDefaultACL: File does not have default ACL");
   }
 
   /**
@@ -262,7 +276,8 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the {@link InodeFile} representation
    */
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
-    return new InodeFile(BlockId.getContainerId(entry.getId()))
+    // If journal entry has no mode set, set default mode for backwards-compatibility.
+    InodeFile ret = new InodeFile(BlockId.getContainerId(entry.getId()))
         .setName(entry.getName())
         .setBlockIds(entry.getBlocksList())
         .setBlockSizeBytes(entry.getBlockSizeBytes())
@@ -276,9 +291,20 @@ public final class InodeFile extends Inode<InodeFile> {
         .setPinned(entry.getPinned())
         .setTtl(entry.getTtl())
         .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
-        .setOwner(entry.getOwner())
-        .setGroup(entry.getGroup())
-        .setMode((short) entry.getMode());
+        .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
+            Constants.INVALID_UFS_FINGERPRINT);
+    if (entry.hasAcl()) {
+      ret.mAcl = AccessControlList.fromProtoBuf(entry.getAcl());
+    } else {
+      // Backward compatibility.
+      AccessControlList acl = new AccessControlList();
+      acl.setOwningUser(entry.getOwner());
+      acl.setOwningGroup(entry.getGroup());
+      short mode = entry.hasMode() ? (short) entry.getMode() : Constants.DEFAULT_FILE_SYSTEM_MODE;
+      acl.setMode(mode);
+      ret.mAcl = acl;
+    }
+    return ret;
   }
 
   /**
@@ -303,6 +329,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setOwner(options.getOwner())
         .setGroup(options.getGroup())
         .setMode(options.getMode().toShort())
+        .setAcl(options.getAcl())
         .setPersistenceState(options.isPersisted() ? PersistenceState.PERSISTED
             : PersistenceState.NOT_PERSISTED);
 
@@ -316,19 +343,18 @@ public final class InodeFile extends Inode<InodeFile> {
         .setCacheable(isCacheable())
         .setCompleted(isCompleted())
         .setCreationTimeMs(getCreationTimeMs())
-        .setGroup(getGroup())
         .setId(getId())
         .setLastModificationTimeMs(getLastModificationTimeMs())
         .setLength(getLength())
-        .setMode(getMode())
         .setName(getName())
-        .setOwner(getOwner())
         .setParentId(getParentId())
         .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
         .setTtl(getTtl())
-        .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction())).build();
+        .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
+        .setUfsFingerprint(getUfsFingerprint())
+        .setAcl(AccessControlList.toProtoBuf(mAcl))
+        .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
-
 }

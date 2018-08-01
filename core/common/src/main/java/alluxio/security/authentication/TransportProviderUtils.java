@@ -11,27 +11,67 @@
 
 package alluxio.security.authentication;
 
-import org.apache.thrift.transport.TSocket;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.security.User;
 
-import java.net.InetSocketAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Set;
+
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * This class provides util methods for {@link TransportProvider}s.
  */
 @ThreadSafe
 public final class TransportProviderUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(TransportProviderUtils.class);
 
   /**
-   * Creates a new Thrift socket that will connect to the given address.
-   *
-   * @param address The given address to connect
-   * @param timeoutMs the timeout in milliseconds
-   * @return An unconnected socket
+   * @param subject the subject to use (can be null)
+   * @return the configured impersonation user, or null if impersonation is not used
    */
-  public static TSocket createThriftSocket(InetSocketAddress address, int timeoutMs) {
-    return new TSocket(address.getHostName(), address.getPort(), timeoutMs);
+  @Nullable
+  public static String getImpersonationUser(Subject subject) {
+    // The user of the hdfs client
+    String hdfsUser = null;
+
+    if (subject != null) {
+      // The HDFS client uses the subject to pass in the user
+      Set<User> user = subject.getPrincipals(User.class);
+      LOG.debug("Impersonation: subject: {}", subject);
+      if (user != null && !user.isEmpty()) {
+        hdfsUser = user.iterator().next().getName();
+      }
+    }
+
+    // Determine the impersonation user
+    String impersonationUser = null;
+    if (Configuration.isSet(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)) {
+      impersonationUser = Configuration.get(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME);
+      LOG.debug("Impersonation: configured: {}", impersonationUser);
+      if (Constants.IMPERSONATION_HDFS_USER.equals(impersonationUser)) {
+        // Impersonate as the hdfs client user
+        impersonationUser = hdfsUser;
+      } else {
+        // do not use impersonation, for any value that is not _HDFS_USER_
+        if (impersonationUser != null && !impersonationUser.isEmpty()
+            && !Constants.IMPERSONATION_NONE.equals(impersonationUser)) {
+          LOG.warn("Impersonation ignored. Invalid configuration: {}", impersonationUser);
+        }
+        impersonationUser = null;
+      }
+      if (impersonationUser != null && impersonationUser.isEmpty()) {
+        impersonationUser = null;
+      }
+    }
+    LOG.debug("Impersonation: hdfsUser: {} impersonationUser: {}", hdfsUser, impersonationUser);
+    return impersonationUser;
   }
 
   private TransportProviderUtils() {} // prevent instantiation

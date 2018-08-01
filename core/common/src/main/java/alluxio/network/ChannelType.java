@@ -11,8 +11,6 @@
 
 package alluxio.network;
 
-import io.netty.channel.epoll.Epoll;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -26,21 +24,4 @@ public enum ChannelType {
    */
   EPOLL,
   ;
-
-  /**
-   * Determines the default type to use based off the system.
-   * <p>
-   * On Linux-based systems, {@link #EPOLL} is the default type for more consistent performance,
-   * otherwise {@link #NIO}.
-   * </p>
-   *
-   * @return a {@link ChannelType} compatible with the host
-   */
-  public static ChannelType defaultType() {
-    if (Epoll.isAvailable()) {
-      return ChannelType.EPOLL;
-    } else {
-      return ChannelType.NIO;
-    }
-  }
 }

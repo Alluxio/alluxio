@@ -14,7 +14,7 @@ package alluxio.client.file.options;
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.SetAttributeTOptions;
-import alluxio.wire.ThriftUtils;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -31,6 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
 public final class SetAttributeOptions {
+  private CommonOptions mCommonOptions;
   private Boolean mPinned;
   private Long mTtl;
   private TtlAction mTtlAction;
@@ -49,6 +50,7 @@ public final class SetAttributeOptions {
   }
 
   private SetAttributeOptions() {
+    mCommonOptions = CommonOptions.defaults();
     mPinned = null;
     mTtl = null;
     mTtlAction = TtlAction.DELETE;
@@ -57,6 +59,13 @@ public final class SetAttributeOptions {
     mGroup = null;
     mMode = null;
     mRecursive = false;
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -118,6 +127,15 @@ public final class SetAttributeOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public SetAttributeOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -219,7 +237,7 @@ public final class SetAttributeOptions {
     }
     if (mTtl != null) {
       options.setTtl(mTtl);
-      options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
+      options.setTtlAction(TtlAction.toThrift(mTtlAction));
     }
 
     if (mPersisted != null) {
@@ -235,6 +253,7 @@ public final class SetAttributeOptions {
       options.setMode(mMode.toShort());
     }
     options.setRecursive(mRecursive);
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 
@@ -248,6 +267,7 @@ public final class SetAttributeOptions {
     }
     SetAttributeOptions that = (SetAttributeOptions) o;
     return Objects.equal(mPinned, that.mPinned)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mPersisted, that.mPersisted)
@@ -260,12 +280,13 @@ public final class SetAttributeOptions {
   @Override
   public int hashCode() {
     return Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner,
-        mGroup, mMode, mRecursive);
+        mGroup, mMode, mRecursive, mCommonOptions);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("pinned", mPinned)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)

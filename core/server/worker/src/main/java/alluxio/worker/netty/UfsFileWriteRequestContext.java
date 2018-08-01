@@ -12,7 +12,9 @@
 package alluxio.worker.netty;
 
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 
 import java.io.OutputStream;
 
@@ -24,11 +26,20 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class UfsFileWriteRequestContext extends WriteRequestContext<UfsFileWriteRequest> {
-  private UnderFileSystem mUnderFileSystem;
+  private CloseableResource<UnderFileSystem> mUfsResource;
+  private CreateOptions mCreateOptions;
   private OutputStream mOutputStream;
 
   UfsFileWriteRequestContext(Protocol.WriteRequest request) {
     super(new UfsFileWriteRequest(request));
+  }
+
+  /**
+   * @return the create options
+   */
+  @Nullable
+  public CreateOptions getCreateOptions() {
+    return mCreateOptions;
   }
 
   /**
@@ -43,8 +54,15 @@ public final class UfsFileWriteRequestContext extends WriteRequestContext<UfsFil
    * @return the handler of the UFS
    */
   @Nullable
-  public UnderFileSystem getUnderFileSystem() {
-    return mUnderFileSystem;
+  public CloseableResource<UnderFileSystem> getUfsResource() {
+    return mUfsResource;
+  }
+
+  /**
+   * @param createOptions the create options to set
+   */
+  public void setCreateOptions(CreateOptions createOptions) {
+    mCreateOptions = createOptions;
   }
 
   /**
@@ -55,9 +73,9 @@ public final class UfsFileWriteRequestContext extends WriteRequestContext<UfsFil
   }
 
   /**
-   * @param underFileSystem UFS to set
+   * @param ufsResource UFS to set
    */
-  public void setUnderFileSystem(UnderFileSystem underFileSystem) {
-    mUnderFileSystem = underFileSystem;
+  public void setUfsResource(CloseableResource<UnderFileSystem> ufsResource) {
+    mUfsResource = ufsResource;
   }
 }

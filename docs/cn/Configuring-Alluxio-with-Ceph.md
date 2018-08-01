@@ -16,7 +16,7 @@ priority: 1
 
 ## 初始步骤
 
-首先，在你的机器上必须安装Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
+首先，在你的机器上必须安装Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 ## 配置Alluxio
 
@@ -49,8 +49,6 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 `<swift-use-public>`可能的值为`true`，`false`。如果使用本地的Ceph RGW认证，指定`<swift-auth-model>`为`swiftauth`。指定
 `<swift-auth-url>`为`http://<rgw-hostname>:8090/auth/1.0`
-
-或者，你也可以在`conf/alluxio-env.sh`文件中设置这些配置，更多的参数配置细节可以查阅[Configuration Settings](Configuration-Settings.html#environment-variables)
 
 ## 使用Ceph本地运行Alluxio
 

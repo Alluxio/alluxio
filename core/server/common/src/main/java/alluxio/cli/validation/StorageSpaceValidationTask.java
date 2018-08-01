@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Task for validating whether worker tiered storage has enough space.
  */
-public final class StorageSpaceValidationTask implements ValidationTask {
+public final class StorageSpaceValidationTask extends AbstractValidationTask {
 
   /**
    * Creates a new instance of {@link StorageSpaceValidationTask}
@@ -38,7 +38,7 @@ public final class StorageSpaceValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate() {
+  public TaskResult validate(Map<String, String> optionsMap) {
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     boolean success = true;
 
@@ -56,7 +56,7 @@ public final class StorageSpaceValidationTask implements ValidationTask {
       String rawDirQuota = Configuration.get(tierDirCapacityConf);
       if (rawDirQuota.isEmpty()) {
         System.err.format("Tier %d: Quota cannot be empty.%n", level);
-        return false;
+        return TaskResult.FAILED;
       }
 
       String[] dirQuotas = rawDirQuota.split(",");
@@ -65,15 +65,24 @@ public final class StorageSpaceValidationTask implements ValidationTask {
         Map<String, MountedStorage> storageMap = new HashMap<>();
         File file = new File(dirPaths[0]);
         if (dirPaths.length == 1 && alias.equals("MEM") && !file.exists()) {
-          // skip checking if RAM disk is not mounted
           System.out.format("RAM disk is not mounted at %s, skip validation.%n", dirPaths[0]);
           continue;
         }
 
+        boolean hasRamfsLocation = false;
         for (int i = 0; i < dirPaths.length; i++) {
           int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
+          if (Utils.isMountingPoint(dirPaths[i], new String[] {"ramfs"})) {
+            System.out.format("ramfs mounted at %s does not report space information,"
+                + " skip validation.%n", dirPaths[i]);
+            hasRamfsLocation = true;
+            break;
+          }
           long quota = FormatUtils.parseSpaceSize(dirQuotas[index]);
           success &= addDirectoryInfo(dirPaths[i], quota, storageMap);
+        }
+        if (hasRamfsLocation) {
+          continue;
         }
 
         for (Map.Entry<String, MountedStorage> storageEntry : storageMap.entrySet()) {
@@ -109,7 +118,7 @@ public final class StorageSpaceValidationTask implements ValidationTask {
       }
     }
 
-    return success;
+    return success ? TaskResult.OK : TaskResult.WARNING;
   }
 
   private boolean addDirectoryInfo(String path, long quota, Map<String, MountedStorage> storageMap)

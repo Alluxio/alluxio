@@ -6,8 +6,11 @@ group: Deploying Alluxio
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio can be run in a Docker container. This guide demonstrates how to run Alluxio
-in Docker using the Dockerfile that comes in the Alluxio Github repository.
+in Docker using the Dockerfile provided in the distribution.
 
 # Basic Tutorial
 
@@ -17,6 +20,8 @@ This tutorial walks through a basic dockerized Alluxio setup on a single node.
 
 A Linux machine. For the purposes of this guide, we will use a fresh EC2 machine running
 Amazon Linux. The machine size doesn't need to be large; we will use t2.small.
+When setting up the network security for the instance, allow traffic on ports 19998-19999
+and 29998-30000.
 
 ## Launch a standalone cluster
 
@@ -25,7 +30,7 @@ All steps below should be executed from your Linux machine.
 ### Install Docker
 
 ```bash
-$ sudo yum install -y docker git
+$ sudo yum install -y docker
 $ sudo service docker start
 $ # Add the current user to the docker group
 $ sudo usermod -a -G docker $(id -u -n)
@@ -33,17 +38,20 @@ $ # Log out and log back in again to pick up the group changes
 $ exit
 ```
 
-### Clone the Alluxio repo
+### Download and unpack Alluxio
 
+1. [Download](https://www.alluxio.org/download) Alluxio and copy it to the linux machine.
+1. Unpack the Alluxio tarball to a directory.
 ```bash
-$ git clone https://github.com/Alluxio/alluxio.git
+$ tar xvfz alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-<hadoop distribution>.tar.gz
 ```
 
 ### Build the Alluxio Docker image
 
 ```bash
-$ cd alluxio/integration/docker
-$ docker build -t alluxio .
+$ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-<hadoop distribution>/integration/docker
+$ mv ../../../alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-<hadoop distribution>.tar.gz .
+$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-<hadoop distribution>.tar.gz .
 ```
 
 ### Set up under storage
@@ -53,7 +61,7 @@ Create an under storage folder on the host.
 $ mkdir underStorage
 ```
 
-### Set up ramdisk to enable short-circuit reads
+### Set up ramdisk to enable short-circuit IO
 
 From the host machine:
 
@@ -72,20 +80,22 @@ $ sudo service docker restart
 ### Run the Alluxio master
 
 ```bash
+$ # This gets the public ip of the current EC2 instance
+$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 $ docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
+             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio master
 ```
 Details:
+- `-e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP}`: Tell the master what address to use.
 - `-v $PWD/underStorage:/underStorage`: Share the underStorage folder with the Docker container.
 - `-e ALLUXIO_UNDERFS_ADDRESS=/underStorage`: Tell the worker to use /underStorage as the under file storage.
 
 ### Run the Alluxio worker
 
 ```bash
-$ # This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 $ # Launch an Alluxio worker container and save the container ID for later
 $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
              -v /mnt/ramdisk:/opt/ramdisk \
@@ -114,7 +124,7 @@ $ docker exec -it ${ALLUXIO_WORKER_CONTAINER_ID} /bin/sh
 
 Now run Alluxio tests.
 ```bash
-$ cd opt/alluxio
+$ cd /opt/alluxio
 $ bin/alluxio runTests
 ```
 
@@ -143,8 +153,8 @@ when the image starts.
 # Memory tier: ramdisk vs Docker tmpfs
 
 The tutorial used a ramdisk to enable short-circuit reads. Another option is to use the tmpfs that
-comes with Docker containers. This makes setup easier and improves isolation, but comes at the cost 
-of not being able to perform memory-speed short-circuit reads from local clients. Local clients will 
+comes with Docker containers. This makes setup easier and improves isolation, but comes at the cost
+of not being able to perform memory-speed short-circuit reads from local clients. Local clients will
 instead need to go over the network to get data from Alluxio workers.
 
 ## Using the Docker tmpfs
@@ -182,8 +192,6 @@ From the host machine, create a directory for the shared domain socket.
 ```bash
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
-$ touch /tmp/domain/d
-$ chmod a+w /tmp/domain/d
 ```
 
 When starting workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`
@@ -203,4 +211,43 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
              -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio worker)
+```
+
+By default, short-circuit operations between the Alluxio client and worker are enabled if the client
+hostname matches the worker hostname. This may not be true if the client is running as part of a container
+with virtual networking. In such a scenario, when starting the workers, set the following properties to
+use filesystem inspection instead: `ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain`
+and `ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true`. Short-circuit writes are then enabled if
+the worker UUID is located on the client filesystem.
+
+# FUSE
+
+To use FUSE, you need to build a docker image with FUSE enabled:
+
+```bash
+docker build -f Dockerfile.fuse -t alluxio-fuse .
+```
+
+There are a couple extra arguments required to run the docker image with FUSE support,
+for example:
+
+```bash
+docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master --cap-add SYS_ADMIN --device /dev/fuse  alluxio-fuse [master|worker|proxy]
+```
+
+Note: running FUSE in docker requires adding [SYS_ADMIN capability](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+ to the container. This removes isolation of the container and should be used with caution.
+
+Importantly, in order for the application to access data from Alluxio storage mounted with FUSE, it must run in the same
+ container as Alluxio. You can easily extend the docker image to include applications to run on top of Alluxio. For example,
+ to run TensorFlow with Alluxio inside a docker container, just edit Dockerfile.fuse and replace
+
+```bash
+FROM ubuntu:16.04
+```
+
+with
+
+```bash
+FROM tensorflow/tensorflow:1.3.0
 ```

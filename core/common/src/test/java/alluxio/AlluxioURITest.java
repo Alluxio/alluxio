@@ -13,6 +13,7 @@ package alluxio;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -167,6 +168,30 @@ public class AlluxioURITest {
   }
 
   /**
+   * Tests the {@link AlluxioURI#AlluxioURI(String)} constructor for URI with spaces.
+   */
+  @Test
+  public void pathWithWhiteSpaces() {
+    String[] paths = new String[]{
+        "/ ",
+        "/  ",
+        "/ path",
+        "/path ",
+        "/pa th",
+        "/ pa th ",
+        "/pa/ th",
+        "/pa / th",
+        "/ pa / th ",
+    };
+    for (String path : paths) {
+      AlluxioURI uri = new AlluxioURI(path);
+      assertEquals(path, uri.getPath());
+      assertEquals(path, uri.toString());
+      assertTrue(uri.isPathAbsolute());
+    }
+  }
+
+  /**
    * Tests the {@link AlluxioURI#AlluxioURI(String, String, String)} constructor to build a URI
    * from its different components.
    */
@@ -222,7 +247,7 @@ public class AlluxioURITest {
    */
   @Test
   public void constructFromParentAndChildTests() {
-    testParentChild(".", ".", ".");
+    testParentChild("", ".", ".");
     testParentChild("/", "/", ".");
     testParentChild("/", ".", "/");
     testParentChild("hdfs://localhost:8080/a/b/d.txt", "hdfs://localhost:8080/a/b/c.txt",
@@ -417,6 +442,7 @@ public class AlluxioURITest {
    */
   @Test
   public void getHostTests() {
+    assertEquals(null, new AlluxioURI(".").getHost());
     assertEquals(null, new AlluxioURI("/").getHost());
     assertEquals(null, new AlluxioURI("file", "", "/a/b.txt").getHost());
     assertEquals(null, new AlluxioURI("file", null, "/a/b.txt").getHost());
@@ -431,6 +457,7 @@ public class AlluxioURITest {
    */
   @Test
   public void getNameTests() {
+    assertEquals(".", new AlluxioURI(".").getName());
     assertEquals("", new AlluxioURI("/").getName());
     assertEquals("", new AlluxioURI("alluxio://localhost/").getName());
     assertEquals("", new AlluxioURI("alluxio:/").getName());
@@ -462,6 +489,7 @@ public class AlluxioURITest {
    */
   @Test
   public void getPathTests() {
+    assertEquals(".", new AlluxioURI(".").getPath());
     assertEquals("/", new AlluxioURI("/").getPath());
     assertEquals("/", new AlluxioURI("alluxio:/").getPath());
     assertEquals("/", new AlluxioURI("alluxio://localhost:80/").getPath());
@@ -478,6 +506,7 @@ public class AlluxioURITest {
    */
   @Test
   public void getPortTests() {
+    assertEquals(-1, new AlluxioURI(".").getPort());
     assertEquals(-1, new AlluxioURI("/").getPort());
     assertEquals(-1, new AlluxioURI("alluxio:/").getPort());
     assertEquals(-1, new AlluxioURI("alluxio://127.0.0.1/").getPort());
@@ -491,6 +520,7 @@ public class AlluxioURITest {
    */
   @Test
   public void getSchemeTests() {
+    assertEquals(null, new AlluxioURI(".").getScheme());
     assertEquals(null, new AlluxioURI("/").getScheme());
     assertEquals("file", new AlluxioURI("file:/").getScheme());
     assertEquals("file", new AlluxioURI("file://localhost/").getScheme());
@@ -509,6 +539,7 @@ public class AlluxioURITest {
    */
   @Test
   public void hasAuthorityTests() {
+    assertFalse(new AlluxioURI(".").hasAuthority());
     assertFalse(new AlluxioURI("/").hasAuthority());
     assertFalse(new AlluxioURI("file:/").hasAuthority());
     assertFalse(new AlluxioURI("file:///test").hasAuthority());
@@ -594,6 +625,7 @@ public class AlluxioURITest {
         new AlluxioURI("alluxio:/a/c.txt").join(new AlluxioURI("/../b.txt")));
     assertEquals(new AlluxioURI("C:\\\\a\\b"),
         new AlluxioURI("C:\\\\a").join(new AlluxioURI("\\b")));
+    assertEquals(new AlluxioURI("/a/b"), new AlluxioURI("/a").joinUnsafe("///b///"));
 
     final String pathWithSpecialChar = "����,��b����$o����[| =B����";
     assertEquals(new AlluxioURI("/" + pathWithSpecialChar),
@@ -602,6 +634,32 @@ public class AlluxioURITest {
     final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
     assertEquals(new AlluxioURI("/" + pathWithSpecialCharAndColon),
         new AlluxioURI("/").join(pathWithSpecialCharAndColon));
+  }
+
+  @Test
+  public void joinUnsafe() {
+    assertEquals(new AlluxioURI("/a"), new AlluxioURI("/").joinUnsafe("a"));
+    assertEquals(new AlluxioURI("/a/b"), new AlluxioURI("/a").joinUnsafe("b"));
+    assertEquals(new AlluxioURI("a/b"), new AlluxioURI("a").joinUnsafe("b"));
+    assertEquals(new AlluxioURI("a/b.txt"), new AlluxioURI("a").joinUnsafe("/b.txt"));
+    assertEquals(new AlluxioURI("alluxio:/a/b.txt"),
+        new AlluxioURI("alluxio:/a").joinUnsafe("/b.txt"));
+    assertEquals(new AlluxioURI("C:\\\\a\\b"), new AlluxioURI("C:\\\\a").joinUnsafe("\\b"));
+    assertEquals(new AlluxioURI("/a/b"), new AlluxioURI("/a").joinUnsafe("///b///"));
+
+    final String pathWithSpecialChar = "����,��b����$o����[| =B����";
+    assertEquals(new AlluxioURI("/" + pathWithSpecialChar),
+        new AlluxioURI("/").joinUnsafe(pathWithSpecialChar));
+
+    final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
+    assertEquals(new AlluxioURI("/" + pathWithSpecialCharAndColon),
+        new AlluxioURI("/").joinUnsafe(pathWithSpecialCharAndColon));
+
+    // The following joins are not "safe", because the new path component requires normalization.
+    assertNotEquals(new AlluxioURI("/a/c"), new AlluxioURI("/a").joinUnsafe("b/../c"));
+    assertNotEquals(new AlluxioURI("a/b.txt"), new AlluxioURI("a").joinUnsafe("/c/../b.txt"));
+    assertNotEquals(new AlluxioURI("alluxio:/a/b.txt"),
+        new AlluxioURI("alluxio:/a/c.txt").joinUnsafe("/../b.txt"));
   }
 
   /**
@@ -644,7 +702,7 @@ public class AlluxioURITest {
       assertEquals(uri, turi.toString());
     }
 
-    assertEquals("", new AlluxioURI(".").toString());
+    assertEquals(".", new AlluxioURI(".").toString());
     assertEquals("file:///a", new AlluxioURI("file:///a").toString());
     assertEquals("file:///a", new AlluxioURI("file", null, "/a").toString());
   }
@@ -759,8 +817,21 @@ public class AlluxioURITest {
 
     assertEquals("",       new AlluxioURI("").getLeadingPath(0));
     assertEquals(null,     new AlluxioURI("").getLeadingPath(1));
-    assertEquals("",       new AlluxioURI(".").getLeadingPath(0));
+    assertEquals(".",       new AlluxioURI(".").getLeadingPath(0));
     assertEquals(null,     new AlluxioURI(".").getLeadingPath(1));
     assertEquals("a/b",    new AlluxioURI("a/b/c").getLeadingPath(1));
+  }
+
+  /**
+   * Tests the {@link alluxio.AlluxioURI#getRootPath()} method.
+   */
+  @Test
+  public void getRootPath() {
+    assertEquals("s3a://s3-bucket-name/",
+        new AlluxioURI("s3a://s3-bucket-name/").getRootPath());
+    assertEquals("s3a://s3-bucket-name/",
+        new AlluxioURI("s3a://s3-bucket-name/folder").getRootPath());
+    assertEquals("/",
+        new AlluxioURI("/tmp/folder").getRootPath());
   }
 }

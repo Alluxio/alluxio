@@ -39,7 +39,7 @@ public final class KeyValueStoreIterator implements KeyValueIterator {
    */
   public KeyValueStoreIterator(List<PartitionInfo> partitions)
       throws IOException, AlluxioException {
-    mPartitions = Preconditions.checkNotNull(partitions);
+    mPartitions = Preconditions.checkNotNull(partitions, "partitions");
     if (mPartitions.size() > 0) {
       mPartitionIndex = 0;
       long blockId = mPartitions.get(0).getBlockId();

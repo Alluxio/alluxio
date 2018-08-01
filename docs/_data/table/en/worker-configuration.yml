@@ -16,6 +16,8 @@ alluxio.worker.data.bind.host:
   'The hostname that the Alluxio worker''s data server runs on. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
 alluxio.worker.data.folder:
   'A relative path within each storage directory used as the data folder for Alluxio worker to put data for tiered store.'
+alluxio.worker.data.folder.permissions:
+  'The permission set for the worker data folder. If short circuit is used this folder should be accessible by all users (rwxrwxrwx).'
 alluxio.worker.data.folder.tmp:
   'A relative path in alluxio.worker.data.folder used to store the temporary data for uncommitted files.'
 alluxio.worker.data.hostname:
@@ -25,7 +27,9 @@ alluxio.worker.data.port:
 alluxio.worker.data.server.class:
   'Selects the networking stack to run the worker with. Valid options are: `alluxio.worker.netty.NettyDataServer`.'
 alluxio.worker.data.server.domain.socket.address:
-  'The path to the domain socket. Short-circuit reads make use of a UNIX domain socket when this is set (non-empty). This is a special path in the file system that allows the client and the AlluxioWorker to communicate. You will need to set a path to this socket. The AlluxioWorker needs to be able to create this path.'
+  'The path to the domain socket. Short-circuit reads make use of a UNIX domain socket when this is set (non-empty). This is a special path in the file system that allows the client and the AlluxioWorker to communicate. You will need to set a path to this socket. The AlluxioWorker needs to be able to create the path. If alluxio.worker.data.server.domain.socket.as.uuid is set, the path should be the home directory for the domain socket. The full path for the domain socket with be <path>/<uuid>.'
+alluxio.worker.data.server.domain.socket.as.uuid:
+  'If true, the property alluxio.worker.data.server.domain.socket.addressis the path to the home directory for the domain socket and a unique identifier is used as the domain socket name. In addition, clients ignore alluxio.user.hostname while detecting a local worker for short circuit ops. If false, the property is the absolute path to the UNIX domain socket.'
 alluxio.worker.data.tmp.subdir.max:
   'The maximum number of sub-directories allowed to be created in alluxio.worker.data.tmp.folder.'
 alluxio.worker.evictor.class:
@@ -44,12 +48,18 @@ alluxio.worker.file.persist.rate.limit.enabled:
   'Whether to enable rate limiting when performing asynchronous persistence.'
 alluxio.worker.filesystem.heartbeat.interval:
   'The heartbeat interval between the worker and file system master.'
+alluxio.worker.free.space.timeout:
+  'The duration for which a worker will wait for eviction to make space available for a client write request.'
 alluxio.worker.hostname:
   'The hostname of Alluxio worker.'
+alluxio.worker.jvm.monitor.enabled:
+  'Whether to enable start JVM monitor thread on worker.'
 alluxio.worker.keytab.file:
   'Kerberos keytab file for Alluxio worker.'
 alluxio.worker.memory.size:
   'Memory capacity of each worker node.'
+alluxio.worker.network.netty.async.cache.manager.threads.max:
+  'The maximum number of threads used to cache blocks asynchronously in the netty data server.'
 alluxio.worker.network.netty.backlog:
   'Netty socket option for SO_BACKLOG: the number of connections queued.'
 alluxio.worker.network.netty.block.reader.threads.max:
@@ -140,6 +150,12 @@ alluxio.worker.tieredstore.retry:
   'The number of retries that the worker uses to process blocks.'
 alluxio.worker.ufs.block.open.timeout:
   'Timeout to open a block from UFS.'
+alluxio.worker.ufs.instream.cache.enabled:
+  'Enable caching for seekable under storage input stream, so that subsequent seek operations on the same file will reuse the cached input stream. This will improve position read performance as the open operations of some under file system would be expensive. The cached input stream would be stale, when the UFS file is modified without notifying alluxio. '
+alluxio.worker.ufs.instream.cache.expiration.time:
+  'Cached UFS instream expiration time.'
+alluxio.worker.ufs.instream.cache.max.size:
+  'The max entries in the UFS instream cache.'
 alluxio.worker.web.bind.host:
   'The hostname Alluxio worker''s web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
 alluxio.worker.web.hostname:

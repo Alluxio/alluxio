@@ -16,22 +16,28 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.cli.Format;
+import alluxio.client.MetaMasterClient;
+import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.ZkMasterInquireClient;
 import alluxio.network.PortUtils;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.MasterInfo;
 import alluxio.zookeeper.RestartableTestingServer;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.apache.commons.io.Charsets;
@@ -46,6 +52,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,7 +60,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeoutException;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -74,18 +83,21 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MultiProcessCluster implements TestRule {
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
-  private static final File ARTIFACTS_DIR = new File("./target/artifacts");
-  private static final File TESTS_LOG = new File("./target/logs/tests.log");
+  private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
+  private static final File TESTS_LOG = new File(Constants.TESTS_LOG);
 
   private final Map<PropertyKey, String> mProperties;
+  private final Map<Integer, Map<PropertyKey, String>> mMasterProperties;
+  private final Map<Integer, Map<PropertyKey, String>> mWorkerProperties;
   private final int mNumMasters;
   private final int mNumWorkers;
   private final String mClusterName;
-  private final DeployMode mDeployMode;
   /** Closer for closing all resources that must be closed when the cluster is destroyed. */
   private final Closer mCloser;
   private final List<Master> mMasters;
   private final List<Worker> mWorkers;
+
+  private DeployMode mDeployMode;
 
   /** Base directory for storing configuration and logs. */
   private File mWorkDir;
@@ -99,13 +111,17 @@ public final class MultiProcessCluster implements TestRule {
    */
   private boolean mSuccess;
 
-  private MultiProcessCluster(Map<PropertyKey, String> properties, int numMasters, int numWorkers,
-      String clusterName, DeployMode mode) {
+  private MultiProcessCluster(Map<PropertyKey, String> properties,
+      Map<Integer, Map<PropertyKey, String>> masterProperties,
+      Map<Integer, Map<PropertyKey, String>> workerProperties,
+      int numMasters, int numWorkers, String clusterName, DeployMode mode) {
     mProperties = properties;
+    mMasterProperties = masterProperties;
+    mWorkerProperties = workerProperties;
     mNumMasters = numMasters;
     mNumWorkers = numWorkers;
     // Add a unique number so that different runs of the same test use different cluster names.
-    mClusterName = clusterName + ThreadLocalRandom.current().nextLong();
+    mClusterName = clusterName + "-" + Math.abs(ThreadLocalRandom.current().nextInt());
     mDeployMode = mode;
     mMasters = new ArrayList<>();
     mWorkers = new ArrayList<>();
@@ -120,9 +136,11 @@ public final class MultiProcessCluster implements TestRule {
   public synchronized void start() throws Exception {
     Preconditions.checkState(mState != State.STARTED, "Cannot start while already started");
     Preconditions.checkState(mState != State.DESTROYED, "Cannot start a destroyed cluster");
+    mWorkDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
     mState = State.STARTED;
 
     mMasterAddresses = generateMasterAddresses(mNumMasters);
+    LOG.info("Master addresses: {}", mMasterAddresses);
     switch (mDeployMode) {
       case NON_HA:
         MasterNetAddress masterAddress = mMasterAddresses.get(0);
@@ -140,16 +158,21 @@ public final class MultiProcessCluster implements TestRule {
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
     }
 
-    mWorkDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
     for (Entry<PropertyKey, String> entry : ConfigurationTestUtils.testConfigurationDefaults(
         NetworkAddressUtils.getLocalHostName(), mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
-      if (!mProperties.containsKey(entry.getKey())) {
-        mProperties.put(entry.getKey(), entry.getValue());
+      if (mProperties.containsKey(entry.getKey())) {
+        continue;
       }
+      // Keep the default RPC timeout.
+      if (entry.getKey().equals(PropertyKey.USER_RPC_RETRY_MAX_DURATION)) {
+        continue;
+      }
+      mProperties.put(entry.getKey(), entry.getValue());
     }
-
-    new File(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
+    mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+        PathUtils.concatPath(mWorkDir, "underFSStorage"));
+    new File(mProperties.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
     formatJournal();
     writeConf();
 
@@ -170,41 +193,80 @@ public final class MultiProcessCluster implements TestRule {
    * If no master is currently primary, this method blocks until a primary has been elected, then
    * kills it.
    *
+   * @param timeoutMs maximum amount of time to wait, in milliseconds
    * @return the ID of the killed master
    */
-  public synchronized int waitForAndKillPrimaryMaster() {
+  public synchronized int waitForAndKillPrimaryMaster(int timeoutMs)
+      throws TimeoutException, InterruptedException {
+    int index = getPrimaryMasterIndex(timeoutMs);
+    mMasters.get(index).close();
+    return index;
+  }
+
+  /**
+   * Gets the index of the primary master.
+   *
+   * @param timeoutMs maximum amount of time to wait, in milliseconds
+   * @return the index of the primary master
+   */
+  public synchronized int getPrimaryMasterIndex(int timeoutMs)
+      throws TimeoutException, InterruptedException {
     final FileSystem fs = getFileSystemClient();
     final MasterInquireClient inquireClient = getMasterInquireClient();
-    CommonUtils.waitFor("a primary master to be serving", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        try {
-          // Make sure the leader is serving.
-          fs.getStatus(new AlluxioURI("/"));
-          return true;
-        } catch (UnavailableException e) {
-          return false;
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
+    CommonUtils.waitFor("a primary master to be serving", () -> {
+      try {
+        // Make sure the leader is serving.
+        fs.getStatus(new AlluxioURI("/"));
+        return true;
+      } catch (UnavailableException e) {
+        return false;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
-    });
+    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     int primaryRpcPort;
     try {
       primaryRpcPort = inquireClient.getPrimaryRpcAddress().getPort();
     } catch (UnavailableException e) {
       throw new RuntimeException(e);
     }
-    // Destroy the master whose RPC port matches the primary RPC port.
+    // Returns the master whose RPC port matches the primary RPC port.
     for (int i = 0; i < mMasterAddresses.size(); i++) {
       if (mMasterAddresses.get(i).getRpcPort() == primaryRpcPort) {
-        mMasters.get(i).close();
         return i;
       }
     }
     throw new RuntimeException(
         String.format("No master found with RPC port %d. Master addresses: %s", primaryRpcPort,
             mMasterAddresses));
+  }
+
+  /**
+   * Waits for all nodes to be registered.
+   *
+   * @param timeoutMs maximum amount of time to wait, in milliseconds
+   */
+  public synchronized void waitForAllNodesRegistered(int timeoutMs)
+      throws TimeoutException, InterruptedException {
+    MetaMasterClient metaMasterClient = getMetaMasterClient();
+    CommonUtils.waitFor("all nodes registered", () -> {
+      try {
+        MasterInfo masterInfo = metaMasterClient.getMasterInfo(null);
+        int liveNodeNum = masterInfo.getMasterAddresses().size()
+            + masterInfo.getWorkerAddresses().size();
+        if (liveNodeNum == (mNumMasters + mNumWorkers)) {
+          return true;
+        } else {
+          LOG.info("Master addresses: {}. Worker addresses: {}", masterInfo.getMasterAddresses(),
+              masterInfo.getWorkerAddresses());
+          return false;
+        }
+      } catch (UnavailableException e) {
+        return false;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
   }
 
   /**
@@ -215,6 +277,16 @@ public final class MultiProcessCluster implements TestRule {
         "must be in the started state to get an fs client, but state was %s", mState);
     MasterInquireClient inquireClient = getMasterInquireClient();
     return Factory.get(mCloser.register(FileSystemContext.create(null, inquireClient)));
+  }
+
+  /**
+   * @return a meta master client
+   */
+  public synchronized MetaMasterClient getMetaMasterClient() {
+    Preconditions.checkState(mState == State.STARTED,
+        "must be in the started state to get a meta master client, but state was %s", mState);
+    return new RetryHandlingMetaMasterClient(new MasterClientConfig()
+        .withMasterInquireClient(getMasterInquireClient()));
   }
 
   /**
@@ -232,15 +304,14 @@ public final class MultiProcessCluster implements TestRule {
     Preconditions.checkState(mState == State.STARTED,
         "cluster must be started before you can save its work directory");
     ARTIFACTS_DIR.mkdirs();
-    File targetDir = new File(".", mWorkDir.getName());
-    File tarball = new File(targetDir.getPath() + ".tar.gz");
-    // Copy the work directory to "."
-    FileUtils.copyDirectory(mWorkDir, targetDir);
+
+    File tarball = new File(mWorkDir.getParentFile(), mWorkDir.getName() + ".tar.gz");
     // Tar up the work directory.
     ProcessBuilder pb =
-        new ProcessBuilder("tar", "-czf", tarball.getPath(), targetDir.getPath());
-    pb.redirectOutput(TESTS_LOG);
-    pb.redirectError(TESTS_LOG);
+        new ProcessBuilder("tar", "-czf", tarball.getName(), mWorkDir.getName());
+    pb.directory(mWorkDir.getParentFile());
+    pb.redirectOutput(Redirect.appendTo(TESTS_LOG));
+    pb.redirectError(Redirect.appendTo(TESTS_LOG));
     Process p = pb.start();
     try {
       p.waitFor();
@@ -248,8 +319,6 @@ public final class MultiProcessCluster implements TestRule {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
-    // Delete copied work directory.
-    FileUtils.deleteDirectory(targetDir);
     // Move tarball to artifacts directory.
     File finalTarball = new File(ARTIFACTS_DIR, tarball.getName());
     FileUtils.moveFile(tarball, finalTarball);
@@ -260,12 +329,22 @@ public final class MultiProcessCluster implements TestRule {
    * Destroys the cluster. It may not be re-started after being destroyed.
    */
   public synchronized void destroy() throws IOException {
+    if (mState == State.DESTROYED) {
+      return;
+    }
     if (!mSuccess) {
       saveWorkdir();
     }
     mCloser.close();
     LOG.info("Destroyed cluster {}", mClusterName);
     mState = State.DESTROYED;
+  }
+
+  /**
+   * Starts all masters.
+   */
+  public synchronized void startMasters() {
+    mMasters.forEach(master -> master.start());
   }
 
   /**
@@ -291,10 +370,37 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
+   * Stops all masters.
+   */
+  public synchronized void stopMasters() {
+    mMasters.forEach(master -> master.close());
+  }
+
+  /**
    * @param i the index of the master to stop
    */
   public synchronized void stopMaster(int i) throws IOException {
     mMasters.get(i).close();
+  }
+
+  /**
+   * Updates master configuration for all masters. This will take effect on a master the next time
+   * the master is started.
+   *
+   * @param key the key to update
+   * @param value the value to set, or null to unset the key
+   */
+  public synchronized void updateMasterConf(PropertyKey key, @Nullable String value) {
+    mMasters.forEach(master -> master.updateConf(key, value));
+  }
+
+  /**
+   * Updates the cluster's deploy mode.
+   *
+   * @param mode the mode to set
+   */
+  public synchronized void updateDeployMode(DeployMode mode) {
+    mDeployMode = mode;
   }
 
   /**
@@ -335,7 +441,7 @@ public final class MultiProcessCluster implements TestRule {
     Preconditions.checkState(mState == State.STARTED,
         "Must be in a started state to create masters");
     MasterNetAddress address = mMasterAddresses.get(i);
-    File confDir = new File(mWorkDir, "conf");
+    File confDir = new File(mWorkDir, "conf-master" + i);
     File logsDir = new File(mWorkDir, "logs-master" + i);
     logsDir.mkdirs();
     Map<PropertyKey, String> conf = new HashMap<>();
@@ -358,7 +464,7 @@ public final class MultiProcessCluster implements TestRule {
   private synchronized Worker createWorker(int i) throws IOException {
     Preconditions.checkState(mState == State.STARTED,
         "Must be in a started state to create workers");
-    File confDir = new File(mWorkDir, "conf");
+    File confDir = new File(mWorkDir, "conf-worker" + i);
     File logsDir = new File(mWorkDir, "logs-worker" + i);
     File ramdisk = new File(mWorkDir, "ramdisk" + i);
     logsDir.mkdirs();
@@ -384,14 +490,22 @@ public final class MultiProcessCluster implements TestRule {
     return worker;
   }
 
-  private void formatJournal() throws Exception {
+  /**
+   * Formats the cluster journal.
+   */
+  public synchronized void formatJournal() throws IOException {
     try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER,
         mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER)).toResource()) {
       Format.format(Format.Mode.MASTER);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
-  private MasterInquireClient getMasterInquireClient() {
+  /**
+   * @return a client for determining the serving master
+   */
+  public synchronized MasterInquireClient getMasterInquireClient() {
     switch (mDeployMode) {
       case NON_HA:
         Preconditions.checkState(mMasters.size() == 1,
@@ -408,18 +522,16 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
-   * Writes the contents of {@link #mProperties} to the configuration file.
+   * Writes the contents of properties to the configuration file.
    */
   private void writeConf() throws IOException {
-    File confDir = new File(mWorkDir, "conf");
-    confDir.mkdirs();
-    StringBuilder sb = new StringBuilder();
-    for (Entry<PropertyKey, String> entry : mProperties.entrySet()) {
-      sb.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
+    for (int i = 0; i < mNumMasters; i++) {
+      File confDir = new File(mWorkDir, "conf-master" + i);
+      writeConfToFile(confDir, mMasterProperties.getOrDefault(i, new HashMap<>()));
     }
-    try (
-        FileOutputStream fos = new FileOutputStream(new File(confDir, "alluxio-site.properties"))) {
-      fos.write(sb.toString().getBytes(Charsets.UTF_8));
+    for (int i = 0; i < mNumWorkers; i++) {
+      File confDir = new File(mWorkDir, "conf-worker" + i);
+      writeConfToFile(confDir, mWorkerProperties.getOrDefault(i, new HashMap<>()));
     }
   }
 
@@ -439,12 +551,43 @@ public final class MultiProcessCluster implements TestRule {
       public void evaluate() throws Throwable {
         try {
           start();
+          waitForAllNodesRegistered(5 * Constants.MINUTE_MS);
           base.evaluate();
         } finally {
-          destroy();
+          try {
+            destroy();
+          } catch (Throwable t) {
+            LOG.error("Failed to destroy cluster", t);
+          }
         }
       }
     };
+  }
+
+  /**
+   * Creates the conf directory and file.
+   * Writes the properties to the generated file.
+   *
+   * @param dir the conf directory to create
+   * @param properties the specific properties of the current node
+   */
+  private void writeConfToFile(File dir, Map<PropertyKey, String> properties) throws IOException {
+    // Generates the full set of properties to write
+    Map<PropertyKey, String> map = new HashMap<>(mProperties);
+    for (Map.Entry<PropertyKey, String> entry : properties.entrySet()) {
+      map.put(entry.getKey(), entry.getValue());
+    }
+
+    StringBuilder sb = new StringBuilder();
+    for (Entry<PropertyKey, String> entry : map.entrySet()) {
+      sb.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
+    }
+
+    dir.mkdirs();
+    try (FileOutputStream fos
+        = new FileOutputStream(new File(dir, "alluxio-site.properties"))) {
+      fos.write(sb.toString().getBytes(Charsets.UTF_8));
+    }
   }
 
   private static List<MasterNetAddress> generateMasterAddresses(int numMasters) throws IOException {
@@ -472,6 +615,8 @@ public final class MultiProcessCluster implements TestRule {
    */
   public static final class Builder {
     private Map<PropertyKey, String> mProperties = new HashMap<>();
+    private Map<Integer, Map<PropertyKey, String>> mMasterProperties = new HashMap<>();
+    private Map<Integer, Map<PropertyKey, String>> mWorkerProperties = new HashMap<>();
     private int mNumMasters = 1;
     private int mNumWorkers = 1;
     private String mClusterName = "AlluxioMiniCluster";
@@ -499,6 +644,32 @@ public final class MultiProcessCluster implements TestRule {
       for (Entry<PropertyKey, String> entry : properties.entrySet()) {
         addProperty(entry.getKey(), entry.getValue());
       }
+      return this;
+    }
+
+    /**
+     * Sets master specific properties.
+     * The keys of the properties are the indexes of masters
+     * which are numbers between 0 to the number of masters (exclusive).
+     *
+     * @param properties the master properties to set
+     * @return the builder
+     */
+    public Builder setMasterProperties(Map<Integer, Map<PropertyKey, String>> properties) {
+      mMasterProperties = properties;
+      return this;
+    }
+
+    /**
+     * Sets worker specific properties.
+     * The keys of the properties are the indexes of workers
+     * which are numbers between 0 to the number of workers (exclusive).
+     *
+     * @param properties the worker properties to set
+     * @return the builder
+     */
+    public Builder setWorkerProperties(Map<Integer, Map<PropertyKey, String>> properties) {
+      mWorkerProperties = properties;
       return this;
     }
 
@@ -542,8 +713,16 @@ public final class MultiProcessCluster implements TestRule {
      * @return a constructed {@link MultiProcessCluster}
      */
     public MultiProcessCluster build() {
-      return new MultiProcessCluster(mProperties, mNumMasters, mNumWorkers, mClusterName,
-          mDeployMode);
+      Preconditions.checkState(mMasterProperties.keySet()
+              .stream().filter(key -> (key >= mNumMasters || key < 0)).count() == 0,
+          "The master indexes in master properties should be bigger or equal to zero "
+              + "and small than %s", mNumMasters);
+      Preconditions.checkState(mWorkerProperties.keySet()
+              .stream().filter(key ->  (key >= mNumWorkers || key < 0)).count() == 0,
+          "The worker indexes in worker properties should be bigger or equal to zero "
+              + "and small than %s", mNumWorkers);
+      return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
+          mNumMasters, mNumWorkers, mClusterName, mDeployMode);
     }
   }
 

@@ -11,11 +11,10 @@
 
 package alluxio.collections;
 
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
-
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -28,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class UniqueFieldIndex<T> implements FieldIndex<T> {
   private final IndexDefinition<T> mIndexDefinition;
-  private final ConcurrentHashMapV8<Object, T> mIndexMap;
+  private final ConcurrentHashMap<Object, T> mIndexMap;
 
   /**
    * Constructs a new {@link UniqueFieldIndex} instance.
@@ -36,7 +35,7 @@ public class UniqueFieldIndex<T> implements FieldIndex<T> {
    * @param indexDefinition definition of index
    */
   public UniqueFieldIndex(IndexDefinition<T> indexDefinition) {
-    mIndexMap = new ConcurrentHashMapV8<>(8, 0.95f, 8);
+    mIndexMap = new ConcurrentHashMap<>(8, 0.95f, 8);
     mIndexDefinition = indexDefinition;
   }
 

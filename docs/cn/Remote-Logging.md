@@ -1,6 +1,6 @@
 ---
 layout: global
-title:远程记录日志
+title: 远程记录日志
 group: Features
 priority: 5
 ---
@@ -22,7 +22,7 @@ Alluxio对于日志服务器在何处运行并没有要求，只要其它Alluxio
 
 ### 用环境变量使远程登陆可用
 假设日志服务器的hostname是 `AlluxioLogServer`, 端口是 `45010`.
-在 ./conf/alluxio-env.sh, 加入如下命令:
+在`conf/alluxio-env.sh`, 加入如下命令:
 
 ```bash
 ALLUXIO_LOGSERVER_HOSTNAME=AlluxioLogServer
@@ -42,7 +42,7 @@ $ ./bin/alluxio-start.sh logserver
 ### 启动Alluxio
 在Alluxio master上, 运行下列命令
 ```bash
-$ ./bin/alluxio-start.sh all
+$ ./bin/alluxio-start.sh all SudoMount
 ```
 
 ## 验证日志服务器已经启动

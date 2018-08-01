@@ -67,7 +67,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
     mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults());
 
-    mStoreUri = Preconditions.checkNotNull(uri);
+    mStoreUri = Preconditions.checkNotNull(uri, "uri");
     mMasterClient.createStore(mStoreUri);
     mPartitionIndex = 0;
     mClosed = false;

@@ -22,6 +22,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -65,6 +66,11 @@ public final class LocalFileBlockWriter implements BlockWriter {
   @Override
   public long getPosition() {
     return mPosition;
+  }
+
+  @Override
+  public WritableByteChannel getChannel() {
+    return mLocalFileChannel;
   }
 
   @Override

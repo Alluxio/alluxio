@@ -25,7 +25,6 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
 
-import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.FileRegion;
@@ -41,6 +40,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.Random;
+import java.util.concurrent.TimeoutException;
 
 public abstract class ReadHandlerTest {
   protected static final long PACKET_SIZE =
@@ -191,7 +191,8 @@ public abstract class ReadHandlerTest {
   /**
    * Checks all the read responses.
    */
-  protected void checkAllReadResponses(EmbeddedChannel channel, long checksumExpected) {
+  protected void checkAllReadResponses(EmbeddedChannel channel, long checksumExpected)
+      throws Exception {
     boolean eof = false;
     long checksumActual = 0;
     while (!eof) {
@@ -270,13 +271,10 @@ public abstract class ReadHandlerTest {
    *
    * @return the read response
    */
-  protected Object waitForOneResponse(final EmbeddedChannel channel) {
-    return CommonUtils.waitForResult("response from the channel", new Function<Void, Object>() {
-      @Override
-      public Object apply(Void v) {
-        return channel.readOutbound();
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
+  protected Object waitForOneResponse(final EmbeddedChannel channel)
+      throws TimeoutException, InterruptedException {
+    return CommonUtils.waitForResult("response from the channel", () -> channel.readOutbound(),
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 
   /**

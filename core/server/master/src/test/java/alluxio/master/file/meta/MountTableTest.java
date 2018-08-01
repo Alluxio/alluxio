@@ -11,6 +11,10 @@
 
 package alluxio.master.file.meta;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.anyLong;
+
 import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
@@ -19,7 +23,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsManager.UfsInfo;
+import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
@@ -29,7 +33,6 @@ import com.google.common.base.Suppliers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,9 +48,10 @@ public final class MountTableTest {
 
   @Before
   public void before() throws Exception {
-    UfsManager ufsManager = Mockito.mock(UfsManager.class);
-    UfsInfo ufsInfo = new UfsInfo(Suppliers.ofInstance(mTestUfs), AlluxioURI.EMPTY_URI);
-    Mockito.when(ufsManager.get(Mockito.anyLong())).thenReturn(ufsInfo);
+    UfsManager ufsManager = mock(UfsManager.class);
+    UfsClient ufsClient =
+        new UfsManager.UfsClient(Suppliers.ofInstance(mTestUfs), AlluxioURI.EMPTY_URI);
+    when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mMountTable = new MountTable(ufsManager);
   }
 
@@ -70,13 +74,24 @@ public final class MountTableTest {
     }
 
     try {
-      mMountTable.add(new AlluxioURI("/mnt/bar/baz"), new AlluxioURI("/baz"), 4L,
-          mDefaultOptions);
+      mMountTable.add(new AlluxioURI("/mnt/bar/baz"), new AlluxioURI("/baz"), 4L, mDefaultOptions);
     } catch (InvalidPathException e) {
       // Exception expected
       Assert.assertEquals(
           ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage("/mnt/bar", "/mnt/bar/baz"),
           e.getMessage());
+    }
+
+    try {
+      mMountTable.add(new AlluxioURI("/test1"), new AlluxioURI("hdfs://localhost"), 4L,
+          mDefaultOptions);
+      mMountTable.add(new AlluxioURI("/test2"), new AlluxioURI("hdfs://localhost"), 4L,
+          mDefaultOptions);
+      Assert.fail("mount fails");
+    } catch (InvalidPathException e) {
+      // Exception expected
+      Assert.assertEquals(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+          .getMessage("hdfs://localhost", "hdfs://localhost"), e.getMessage());
     }
 
     // Test resolve()
@@ -125,6 +140,18 @@ public final class MountTableTest {
     Assert.assertTrue(mMountTable.delete(new AlluxioURI("/mnt/foo")));
     Assert.assertFalse(mMountTable.delete(new AlluxioURI("/mnt/foo")));
     Assert.assertFalse(mMountTable.delete(new AlluxioURI("/")));
+
+    try {
+      mMountTable.add(new AlluxioURI("alluxio://localhost"), new AlluxioURI("s3a://localhost"), 4L,
+          mDefaultOptions);
+      mMountTable.add(new AlluxioURI("alluxio://localhost/t2"), new AlluxioURI("s3a://localhost"),
+          4L, mDefaultOptions);
+      Assert.fail("mount fails");
+    } catch (InvalidPathException e) {
+      // Exception expected
+      Assert.assertEquals(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+          .getMessage("s3a://localhost", "s3a://localhost"), e.getMessage());
+    }
   }
 
   /**

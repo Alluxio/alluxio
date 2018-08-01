@@ -11,7 +11,7 @@
 
 package alluxio.underfs.options;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,6 +51,6 @@ public final class FileLocationOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(FileLocationOptions.class);
+    CommonUtils.testEquals(FileLocationOptions.class);
   }
 }

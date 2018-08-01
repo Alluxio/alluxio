@@ -24,9 +24,7 @@ Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及撤销集
 
 **安装Alluxio**
 
-下载Alluxio到本地，并解压：
-
-{% include Common-Commands/download-alluxio.md %}
+下载[Alluxio](https://alluxio.org/download)到你本地的机器上并解压(unzip)。
 
 **安装python库依赖**
 

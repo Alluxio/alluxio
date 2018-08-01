@@ -12,6 +12,7 @@
 package alluxio.worker.netty;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 import io.netty.buffer.ByteBuf;
 
 import java.util.LinkedList;
@@ -76,6 +77,7 @@ public class WriteRequestContext<T extends WriteRequest> {
   protected volatile long mPosToWrite;
 
   private Counter mCounter;
+  private Meter mMeter;
 
   /** This is set when EOF or CANCEL is received. This is only for sanity check. */
   private volatile boolean mDone;
@@ -147,6 +149,14 @@ public class WriteRequestContext<T extends WriteRequest> {
   }
 
   /**
+   * @return metrics meter associated with this request
+   */
+  @Nullable
+  public Meter getMeter() {
+    return mMeter;
+  }
+
+  /**
    * @return true when the EOF or CANCEL is received, false otherwise
    */
   public boolean isDoneUnsafe() {
@@ -197,5 +207,12 @@ public class WriteRequestContext<T extends WriteRequest> {
    */
   public void setCounter(Counter counter) {
     mCounter = counter;
+  }
+
+  /**
+   * @param meter meter to set
+   */
+  public void setMeter(Meter meter) {
+    mMeter = meter;
   }
 }

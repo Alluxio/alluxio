@@ -20,6 +20,7 @@ function printUsage {
   echo -e "  formatWorker  \t Format Alluxio worker storage"
   echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
   echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
+  echo -e "  fsadmin       \t Command line tool for use by Alluxio filesystem admins."
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
   echo -e "  logLevel      \t Set or get log level of Alluxio servers."
@@ -122,7 +123,8 @@ function killAll {
   count=0
   for pid in $(ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'); do
     kill -15 ${pid} > /dev/null 2>&1
-    local cnt=30
+    local maxWait=120
+    local cnt=${maxWait}
     while kill -0 ${pid} > /dev/null 2>&1; do
       if [[ ${cnt} -gt 1 ]]; then
         # still not dead, wait
@@ -130,7 +132,7 @@ function killAll {
         sleep 1
       else
         # waited long enough, kill the process
-        echo "Process did not complete after 30 seconds, killing."
+        echo "Process did not complete after "${maxWait}" seconds, killing."
         kill -9 ${pid} 2> /dev/null
       fi
     done
@@ -145,9 +147,15 @@ function copyDir {
     exit 1
   fi
 
+  ABS_PATH_COMMAND="readlink -f"
+  if [[ $(uname -s) = "Darwin" ]]
+  then
+    ABS_PATH_COMMAND="realpath"
+  fi
+
   WORKERS=$(cat ${ALLUXIO_CONF_DIR}/workers | grep -v '^#')
 
-  DIR=$(readlink -f "$1")
+  DIR=$(${ABS_PATH_COMMAND} $1)
   DIR=$(echo ${DIR}|sed 's@/$@@')
   DEST=$(dirname ${DIR})
 
@@ -167,13 +175,26 @@ function runJavaClass {
       case "${arg}" in
           -debug)
               ALLUXIO_USER_JAVA_OPTS+=" ${ALLUXIO_USER_DEBUG_JAVA_OPTS}" ;;
-          -D*)
+          -D* | -X* | -agentlib*)
               ALLUXIO_SHELL_JAVA_OPTS+=" ${arg}" ;;
           *)
               CLASS_ARGS+=("${arg}")
       esac
   done
   "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} "${CLASS_ARGS[@]}"
+}
+
+function formatJournal {
+  echo "Formatting Alluxio Master @ $(hostname -f)"
+  CLASS="alluxio.cli.Format"
+  CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+  PARAMETER="master"
+  ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+  runJavaClass "$@"
+}
+
+function formatMasters {
+  formatJournal "$@"
 }
 
 function main {
@@ -237,12 +258,7 @@ function main {
 
     ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio formatWorker
 
-    echo "Formatting Alluxio Master @ $(hostname -f)"
-    CLASS="alluxio.cli.Format"
-    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
-    PARAMETER="master"
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
-    runJavaClass "$@"
+    formatMasters
   ;;
   "formatWorker")
     echo "Formatting Alluxio Worker @ $(hostname -f)"
@@ -252,16 +268,23 @@ function main {
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
+  "formatJournal")
+    formatJournal
+  ;;
   "formatMaster")
-    echo "Formatting Alluxio Master @ $(hostname -f)"
-    CLASS="alluxio.cli.Format"
-    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
-    PARAMETER="master"
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
-    runJavaClass "$@"
+    echo "formatMaster is deprecated - use formatMasters instead"
+    formatJournal
+  ;;
+  "formatMasters")
+    formatMasters
   ;;
   "fs")
     CLASS="alluxio.cli.fs.FileSystemShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "fsadmin")
+    CLASS="alluxio.cli.fsadmin.FileSystemAdminShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
@@ -357,6 +380,11 @@ function main {
     done
   ;;
   "protoGen")
+    proto_version="$(protoc --version)"
+    if ! [[ ${proto_version} == *2.5.0* ]]; then
+      echo "protoGen requires protoc version 2.5.0, but <protoc --version> returns <${proto_version}>"
+      exit 1
+    fi
     rm -rf ${BIN}/../core/protobuf/src/main/java/alluxio/proto
     for src_file in $(find ${BIN}/../core/protobuf/src/proto -name '*.proto' -type f); do
       protoc --java_out=${BIN}/../core/protobuf/src/main/java --proto_path=${BIN}/../core/protobuf/src/proto ${src_file}

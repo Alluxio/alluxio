@@ -112,7 +112,7 @@ public class GetMasterInfoTOptions implements org.apache.thrift.TBase<GetMasterI
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.FILTER, new org.apache.thrift.meta_data.FieldMetaData("filter", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
-            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.ENUM            , "MasterInfoField"))));
+            new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, MasterInfoField.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(GetMasterInfoTOptions.class, metaDataMap);
   }
@@ -351,13 +351,13 @@ public class GetMasterInfoTOptions implements org.apache.thrift.TBase<GetMasterI
           case 1: // FILTER
             if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
               {
-                org.apache.thrift.protocol.TSet _set0 = iprot.readSetBegin();
-                struct.filter = new HashSet<MasterInfoField>(2*_set0.size);
-                MasterInfoField _elem1;
-                for (int _i2 = 0; _i2 < _set0.size; ++_i2)
+                org.apache.thrift.protocol.TSet _set32 = iprot.readSetBegin();
+                struct.filter = new HashSet<MasterInfoField>(2*_set32.size);
+                MasterInfoField _elem33;
+                for (int _i34 = 0; _i34 < _set32.size; ++_i34)
                 {
-                  _elem1 = alluxio.thrift.MasterInfoField.findByValue(iprot.readI32());
-                  struct.filter.add(_elem1);
+                  _elem33 = alluxio.thrift.MasterInfoField.findByValue(iprot.readI32());
+                  struct.filter.add(_elem33);
                 }
                 iprot.readSetEnd();
               }
@@ -385,9 +385,9 @@ public class GetMasterInfoTOptions implements org.apache.thrift.TBase<GetMasterI
         oprot.writeFieldBegin(FILTER_FIELD_DESC);
         {
           oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, struct.filter.size()));
-          for (MasterInfoField _iter3 : struct.filter)
+          for (MasterInfoField _iter35 : struct.filter)
           {
-            oprot.writeI32(_iter3.getValue());
+            oprot.writeI32(_iter35.getValue());
           }
           oprot.writeSetEnd();
         }
@@ -418,9 +418,9 @@ public class GetMasterInfoTOptions implements org.apache.thrift.TBase<GetMasterI
       if (struct.isSetFilter()) {
         {
           oprot.writeI32(struct.filter.size());
-          for (MasterInfoField _iter4 : struct.filter)
+          for (MasterInfoField _iter36 : struct.filter)
           {
-            oprot.writeI32(_iter4.getValue());
+            oprot.writeI32(_iter36.getValue());
           }
         }
       }
@@ -432,13 +432,13 @@ public class GetMasterInfoTOptions implements org.apache.thrift.TBase<GetMasterI
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TSet _set5 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, iprot.readI32());
-          struct.filter = new HashSet<MasterInfoField>(2*_set5.size);
-          MasterInfoField _elem6;
-          for (int _i7 = 0; _i7 < _set5.size; ++_i7)
+          org.apache.thrift.protocol.TSet _set37 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, iprot.readI32());
+          struct.filter = new HashSet<MasterInfoField>(2*_set37.size);
+          MasterInfoField _elem38;
+          for (int _i39 = 0; _i39 < _set37.size; ++_i39)
           {
-            _elem6 = alluxio.thrift.MasterInfoField.findByValue(iprot.readI32());
-            struct.filter.add(_elem6);
+            _elem38 = alluxio.thrift.MasterInfoField.findByValue(iprot.readI32());
+            struct.filter.add(_elem38);
           }
         }
         struct.setFilterIsSet(true);

@@ -11,7 +11,7 @@
 
 package alluxio.wire;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,7 +38,7 @@ public final class BlockInfoTest {
   @Test
   public void thrift() {
     BlockInfo blockInfo = createRandom();
-    BlockInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(blockInfo));
+    BlockInfo other = BlockInfo.fromThrift(blockInfo.toThrift());
     checkEquality(blockInfo, other);
   }
 

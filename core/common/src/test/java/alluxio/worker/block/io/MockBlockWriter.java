@@ -56,7 +56,8 @@ public final class MockBlockWriter implements BlockWriter {
     return bytesWritten;
   }
 
-  private GatheringByteChannel getChannel() {
+  @Override
+  public GatheringByteChannel getChannel() {
     return new GatheringByteChannel() {
       WritableByteChannel mChannel = Channels.newChannel(mOutputStream);
 

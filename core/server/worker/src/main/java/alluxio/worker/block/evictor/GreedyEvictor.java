@@ -50,6 +50,12 @@ public final class GreedyEvictor implements Evictor {
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
       BlockMetadataManagerView view) {
+    return freeSpaceWithView(availableBytes, location, view, Mode.GUARANTEED);
+  }
+
+  @Override
+  public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
+      BlockMetadataManagerView view, Mode mode) {
     Preconditions.checkNotNull(location, "location");
     Preconditions.checkNotNull(view, "view");
 

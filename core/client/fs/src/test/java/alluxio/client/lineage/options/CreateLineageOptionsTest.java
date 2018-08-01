@@ -11,7 +11,7 @@
 
 package alluxio.client.lineage.options;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,6 +32,6 @@ public final class CreateLineageOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateLineageOptions.class);
+    CommonUtils.testEquals(CreateLineageOptions.class);
   }
 }

@@ -13,7 +13,7 @@ package alluxio.wire;
 
 import alluxio.util.CommonUtils;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -34,7 +34,7 @@ public class LineageInfoTest {
   @Test
   public void thrift() {
     LineageInfo lineageInfo = createRandom();
-    LineageInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(lineageInfo));
+    LineageInfo other = LineageInfo.fromThrift(lineageInfo.toThrift());
     checkEquality(lineageInfo, other);
   }
 

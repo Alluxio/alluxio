@@ -41,6 +41,7 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
   private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)1);
   private static final org.apache.thrift.protocol.TField ALLUXIO_ONLY_FIELD_DESC = new org.apache.thrift.protocol.TField("alluxioOnly", org.apache.thrift.protocol.TType.BOOL, (short)2);
   private static final org.apache.thrift.protocol.TField UNCHECKED_FIELD_DESC = new org.apache.thrift.protocol.TField("unchecked", org.apache.thrift.protocol.TType.BOOL, (short)3);
+  private static final org.apache.thrift.protocol.TField COMMON_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("commonOptions", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -51,12 +52,14 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
   private boolean recursive; // optional
   private boolean alluxioOnly; // optional
   private boolean unchecked; // optional
+  private FileSystemMasterCommonTOptions commonOptions; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     RECURSIVE((short)1, "recursive"),
     ALLUXIO_ONLY((short)2, "alluxioOnly"),
-    UNCHECKED((short)3, "unchecked");
+    UNCHECKED((short)3, "unchecked"),
+    COMMON_OPTIONS((short)4, "commonOptions");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -77,6 +80,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
           return ALLUXIO_ONLY;
         case 3: // UNCHECKED
           return UNCHECKED;
+        case 4: // COMMON_OPTIONS
+          return COMMON_OPTIONS;
         default:
           return null;
       }
@@ -121,7 +126,7 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
   private static final int __ALLUXIOONLY_ISSET_ID = 1;
   private static final int __UNCHECKED_ISSET_ID = 2;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.RECURSIVE,_Fields.ALLUXIO_ONLY,_Fields.UNCHECKED};
+  private static final _Fields optionals[] = {_Fields.RECURSIVE,_Fields.ALLUXIO_ONLY,_Fields.UNCHECKED,_Fields.COMMON_OPTIONS};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -131,6 +136,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.UNCHECKED, new org.apache.thrift.meta_data.FieldMetaData("unchecked", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.COMMON_OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("commonOptions", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemMasterCommonTOptions.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(DeleteTOptions.class, metaDataMap);
   }
@@ -146,6 +153,9 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     this.recursive = other.recursive;
     this.alluxioOnly = other.alluxioOnly;
     this.unchecked = other.unchecked;
+    if (other.isSetCommonOptions()) {
+      this.commonOptions = new FileSystemMasterCommonTOptions(other.commonOptions);
+    }
   }
 
   public DeleteTOptions deepCopy() {
@@ -160,6 +170,7 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     this.alluxioOnly = false;
     setUncheckedIsSet(false);
     this.unchecked = false;
+    this.commonOptions = null;
   }
 
   public boolean isRecursive() {
@@ -231,6 +242,30 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __UNCHECKED_ISSET_ID, value);
   }
 
+  public FileSystemMasterCommonTOptions getCommonOptions() {
+    return this.commonOptions;
+  }
+
+  public DeleteTOptions setCommonOptions(FileSystemMasterCommonTOptions commonOptions) {
+    this.commonOptions = commonOptions;
+    return this;
+  }
+
+  public void unsetCommonOptions() {
+    this.commonOptions = null;
+  }
+
+  /** Returns true if field commonOptions is set (has been assigned a value) and false otherwise */
+  public boolean isSetCommonOptions() {
+    return this.commonOptions != null;
+  }
+
+  public void setCommonOptionsIsSet(boolean value) {
+    if (!value) {
+      this.commonOptions = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case RECURSIVE:
@@ -257,6 +292,14 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       }
       break;
 
+    case COMMON_OPTIONS:
+      if (value == null) {
+        unsetCommonOptions();
+      } else {
+        setCommonOptions((FileSystemMasterCommonTOptions)value);
+      }
+      break;
+
     }
   }
 
@@ -270,6 +313,9 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
 
     case UNCHECKED:
       return isUnchecked();
+
+    case COMMON_OPTIONS:
+      return getCommonOptions();
 
     }
     throw new IllegalStateException();
@@ -288,6 +334,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       return isSetAlluxioOnly();
     case UNCHECKED:
       return isSetUnchecked();
+    case COMMON_OPTIONS:
+      return isSetCommonOptions();
     }
     throw new IllegalStateException();
   }
@@ -332,6 +380,15 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         return false;
     }
 
+    boolean this_present_commonOptions = true && this.isSetCommonOptions();
+    boolean that_present_commonOptions = true && that.isSetCommonOptions();
+    if (this_present_commonOptions || that_present_commonOptions) {
+      if (!(this_present_commonOptions && that_present_commonOptions))
+        return false;
+      if (!this.commonOptions.equals(that.commonOptions))
+        return false;
+    }
+
     return true;
   }
 
@@ -353,6 +410,11 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     list.add(present_unchecked);
     if (present_unchecked)
       list.add(unchecked);
+
+    boolean present_commonOptions = true && (isSetCommonOptions());
+    list.add(present_commonOptions);
+    if (present_commonOptions)
+      list.add(commonOptions);
 
     return list.hashCode();
   }
@@ -395,6 +457,16 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetCommonOptions()).compareTo(other.isSetCommonOptions());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCommonOptions()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.commonOptions, other.commonOptions);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -432,6 +504,16 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       sb.append(this.unchecked);
       first = false;
     }
+    if (isSetCommonOptions()) {
+      if (!first) sb.append(", ");
+      sb.append("commonOptions:");
+      if (this.commonOptions == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.commonOptions);
+      }
+      first = false;
+    }
     sb.append(")");
     return sb.toString();
   }
@@ -439,6 +521,9 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (commonOptions != null) {
+      commonOptions.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -501,6 +586,15 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 4: // COMMON_OPTIONS
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.commonOptions = new FileSystemMasterCommonTOptions();
+              struct.commonOptions.read(iprot);
+              struct.setCommonOptionsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -531,6 +625,13 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         oprot.writeBool(struct.unchecked);
         oprot.writeFieldEnd();
       }
+      if (struct.commonOptions != null) {
+        if (struct.isSetCommonOptions()) {
+          oprot.writeFieldBegin(COMMON_OPTIONS_FIELD_DESC);
+          struct.commonOptions.write(oprot);
+          oprot.writeFieldEnd();
+        }
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -558,7 +659,10 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       if (struct.isSetUnchecked()) {
         optionals.set(2);
       }
-      oprot.writeBitSet(optionals, 3);
+      if (struct.isSetCommonOptions()) {
+        optionals.set(3);
+      }
+      oprot.writeBitSet(optionals, 4);
       if (struct.isSetRecursive()) {
         oprot.writeBool(struct.recursive);
       }
@@ -568,12 +672,15 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       if (struct.isSetUnchecked()) {
         oprot.writeBool(struct.unchecked);
       }
+      if (struct.isSetCommonOptions()) {
+        struct.commonOptions.write(oprot);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, DeleteTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(4);
       if (incoming.get(0)) {
         struct.recursive = iprot.readBool();
         struct.setRecursiveIsSet(true);
@@ -585,6 +692,11 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       if (incoming.get(2)) {
         struct.unchecked = iprot.readBool();
         struct.setUncheckedIsSet(true);
+      }
+      if (incoming.get(3)) {
+        struct.commonOptions = new FileSystemMasterCommonTOptions();
+        struct.commonOptions.read(iprot);
+        struct.setCommonOptionsIsSet(true);
       }
     }
   }

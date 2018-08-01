@@ -39,6 +39,7 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("GetStatusTOptions");
 
   private static final org.apache.thrift.protocol.TField LOAD_METADATA_TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("loadMetadataType", org.apache.thrift.protocol.TType.I32, (short)1);
+  private static final org.apache.thrift.protocol.TField COMMON_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("commonOptions", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,6 +48,7 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
   }
 
   private LoadMetadataTType loadMetadataType; // optional
+  private FileSystemMasterCommonTOptions commonOptions; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -54,7 +56,8 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
      * 
      * @see LoadMetadataTType
      */
-    LOAD_METADATA_TYPE((short)1, "loadMetadataType");
+    LOAD_METADATA_TYPE((short)1, "loadMetadataType"),
+    COMMON_OPTIONS((short)2, "commonOptions");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -71,6 +74,8 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
       switch(fieldId) {
         case 1: // LOAD_METADATA_TYPE
           return LOAD_METADATA_TYPE;
+        case 2: // COMMON_OPTIONS
+          return COMMON_OPTIONS;
         default:
           return null;
       }
@@ -111,12 +116,14 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
   }
 
   // isset id assignments
-  private static final _Fields optionals[] = {_Fields.LOAD_METADATA_TYPE};
+  private static final _Fields optionals[] = {_Fields.LOAD_METADATA_TYPE,_Fields.COMMON_OPTIONS};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.LOAD_METADATA_TYPE, new org.apache.thrift.meta_data.FieldMetaData("loadMetadataType", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, LoadMetadataTType.class)));
+    tmpMap.put(_Fields.COMMON_OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("commonOptions", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemMasterCommonTOptions.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(GetStatusTOptions.class, metaDataMap);
   }
@@ -131,6 +138,9 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
     if (other.isSetLoadMetadataType()) {
       this.loadMetadataType = other.loadMetadataType;
     }
+    if (other.isSetCommonOptions()) {
+      this.commonOptions = new FileSystemMasterCommonTOptions(other.commonOptions);
+    }
   }
 
   public GetStatusTOptions deepCopy() {
@@ -140,6 +150,7 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
   @Override
   public void clear() {
     this.loadMetadataType = null;
+    this.commonOptions = null;
   }
 
   /**
@@ -174,6 +185,30 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
     }
   }
 
+  public FileSystemMasterCommonTOptions getCommonOptions() {
+    return this.commonOptions;
+  }
+
+  public GetStatusTOptions setCommonOptions(FileSystemMasterCommonTOptions commonOptions) {
+    this.commonOptions = commonOptions;
+    return this;
+  }
+
+  public void unsetCommonOptions() {
+    this.commonOptions = null;
+  }
+
+  /** Returns true if field commonOptions is set (has been assigned a value) and false otherwise */
+  public boolean isSetCommonOptions() {
+    return this.commonOptions != null;
+  }
+
+  public void setCommonOptionsIsSet(boolean value) {
+    if (!value) {
+      this.commonOptions = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case LOAD_METADATA_TYPE:
@@ -184,6 +219,14 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
       }
       break;
 
+    case COMMON_OPTIONS:
+      if (value == null) {
+        unsetCommonOptions();
+      } else {
+        setCommonOptions((FileSystemMasterCommonTOptions)value);
+      }
+      break;
+
     }
   }
 
@@ -191,6 +234,9 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
     switch (field) {
     case LOAD_METADATA_TYPE:
       return getLoadMetadataType();
+
+    case COMMON_OPTIONS:
+      return getCommonOptions();
 
     }
     throw new IllegalStateException();
@@ -205,6 +251,8 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
     switch (field) {
     case LOAD_METADATA_TYPE:
       return isSetLoadMetadataType();
+    case COMMON_OPTIONS:
+      return isSetCommonOptions();
     }
     throw new IllegalStateException();
   }
@@ -231,6 +279,15 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
         return false;
     }
 
+    boolean this_present_commonOptions = true && this.isSetCommonOptions();
+    boolean that_present_commonOptions = true && that.isSetCommonOptions();
+    if (this_present_commonOptions || that_present_commonOptions) {
+      if (!(this_present_commonOptions && that_present_commonOptions))
+        return false;
+      if (!this.commonOptions.equals(that.commonOptions))
+        return false;
+    }
+
     return true;
   }
 
@@ -242,6 +299,11 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
     list.add(present_loadMetadataType);
     if (present_loadMetadataType)
       list.add(loadMetadataType.getValue());
+
+    boolean present_commonOptions = true && (isSetCommonOptions());
+    list.add(present_commonOptions);
+    if (present_commonOptions)
+      list.add(commonOptions);
 
     return list.hashCode();
   }
@@ -260,6 +322,16 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
     }
     if (isSetLoadMetadataType()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.loadMetadataType, other.loadMetadataType);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetCommonOptions()).compareTo(other.isSetCommonOptions());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCommonOptions()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.commonOptions, other.commonOptions);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -293,6 +365,16 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
       }
       first = false;
     }
+    if (isSetCommonOptions()) {
+      if (!first) sb.append(", ");
+      sb.append("commonOptions:");
+      if (this.commonOptions == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.commonOptions);
+      }
+      first = false;
+    }
     sb.append(")");
     return sb.toString();
   }
@@ -300,6 +382,9 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (commonOptions != null) {
+      commonOptions.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -344,6 +429,15 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 2: // COMMON_OPTIONS
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.commonOptions = new FileSystemMasterCommonTOptions();
+              struct.commonOptions.read(iprot);
+              struct.setCommonOptionsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -363,6 +457,13 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
         if (struct.isSetLoadMetadataType()) {
           oprot.writeFieldBegin(LOAD_METADATA_TYPE_FIELD_DESC);
           oprot.writeI32(struct.loadMetadataType.getValue());
+          oprot.writeFieldEnd();
+        }
+      }
+      if (struct.commonOptions != null) {
+        if (struct.isSetCommonOptions()) {
+          oprot.writeFieldBegin(COMMON_OPTIONS_FIELD_DESC);
+          struct.commonOptions.write(oprot);
           oprot.writeFieldEnd();
         }
       }
@@ -387,19 +488,30 @@ public class GetStatusTOptions implements org.apache.thrift.TBase<GetStatusTOpti
       if (struct.isSetLoadMetadataType()) {
         optionals.set(0);
       }
-      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetCommonOptions()) {
+        optionals.set(1);
+      }
+      oprot.writeBitSet(optionals, 2);
       if (struct.isSetLoadMetadataType()) {
         oprot.writeI32(struct.loadMetadataType.getValue());
+      }
+      if (struct.isSetCommonOptions()) {
+        struct.commonOptions.write(oprot);
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, GetStatusTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(1);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
         struct.loadMetadataType = alluxio.thrift.LoadMetadataTType.findByValue(iprot.readI32());
         struct.setLoadMetadataTypeIsSet(true);
+      }
+      if (incoming.get(1)) {
+        struct.commonOptions = new FileSystemMasterCommonTOptions();
+        struct.commonOptions.read(iprot);
+        struct.setCommonOptionsIsSet(true);
       }
     }
   }

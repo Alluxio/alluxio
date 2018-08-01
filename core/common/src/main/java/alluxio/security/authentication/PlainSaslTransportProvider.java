@@ -12,8 +12,10 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
 
@@ -41,23 +43,15 @@ public final class PlainSaslTransportProvider implements TransportProvider {
     Security.addProvider(new PlainSaslServerProvider());
   }
 
-  /** Timeout for socket in ms. */
-  private int mSocketTimeoutMs;
-
   /**
    * Constructor for transport provider with {@link AuthType#SIMPLE} or {@link AuthType#CUSTOM}.
    */
-  public PlainSaslTransportProvider() {
-    mSocketTimeoutMs =
-        (int) Configuration.getMs(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
-  }
+  public PlainSaslTransportProvider() {}
 
   @Override
   public TTransport getClientTransport(InetSocketAddress serverAddress)
       throws UnauthenticatedException {
-    String username = LoginUser.get().getName();
-    String password = "noPassword";
-    return getClientTransport(username, password, serverAddress);
+    return getClientTransport(null, serverAddress);
   }
 
   @Override
@@ -75,7 +69,21 @@ public final class PlainSaslTransportProvider implements TransportProvider {
     if (username == null || username.isEmpty()) {
       username = LoginUser.get().getName();
     }
-    return getClientTransport(username, password, serverAddress);
+
+    // Determine the impersonation user
+    String impersonationUser = TransportProviderUtils.getImpersonationUser(subject);
+
+    if (impersonationUser != null && Configuration
+        .isSet(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)
+        && Constants.IMPERSONATION_HDFS_USER
+        .equals(Configuration.get(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME))) {
+      // If impersonation is configured to use the HDFS user, the connection user should
+      // be not be the HDFS user, but the LoginUser.
+      // If the HDFS user is really supposed to be the connection user, that can be achieved by
+      // not enabling impersonation for the client.
+      username = LoginUser.get().getName();
+    }
+    return getClientTransport(username, password, impersonationUser, serverAddress);
   }
 
   // TODO(binfan): make this private and use whitebox to access this method in test
@@ -84,17 +92,17 @@ public final class PlainSaslTransportProvider implements TransportProvider {
    *
    * @param username User Name of PlainClient
    * @param password Password of PlainClient
-   * @param serverAddress Address of the server
+   * @param impersonationUser impersonation user (not used if null)
+   * @param serverAddress address of the server
    * @return Wrapped transport with PLAIN mechanism
    */
-  public TTransport getClientTransport(String username, String password,
+  public TTransport getClientTransport(String username, String password, String impersonationUser,
       InetSocketAddress serverAddress) throws UnauthenticatedException {
-    TTransport wrappedTransport =
-        TransportProviderUtils.createThriftSocket(serverAddress, mSocketTimeoutMs);
+    TTransport baseTransport = ThriftUtils.createThriftSocket(serverAddress);
     try {
-      return new TSaslClientTransport(PlainSaslServerProvider.MECHANISM, null, null, null,
-          new HashMap<String, String>(), new PlainSaslClientCallbackHandler(username, password),
-          wrappedTransport);
+      return new TSaslClientTransport(PlainSaslServerProvider.MECHANISM, impersonationUser, null,
+          null, new HashMap<String, String>(),
+          new PlainSaslClientCallbackHandler(username, password), baseTransport);
     } catch (SaslException e) {
       throw new UnauthenticatedException(e.getMessage(), e);
     }

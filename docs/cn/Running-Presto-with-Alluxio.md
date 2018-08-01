@@ -13,13 +13,7 @@ priority: 2
 开始之前你需要安装好[Java](Java-Setup.html)，Java 版本要求在1.8以上，同时使用[本地模式](Running-Alluxio-Locally.html)
 或[集群模式](Running-Alluxio-on-a-Cluster.html)构建好Alluxio。
 
-Alluxio客户端需要和Presto的具体配置文件一起编译。在顶层目录'alluxio'下使用下面的命令编译整个项目
-
-```bash
-mvn clean package -Ppresto -DskipTests
-```
-
-接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(此文档使用0.170版本)。并且请使用
+接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(此文档使用0.191版本)。并且请使用
 [Hive On Alluxio](Running-Hive-with-Alluxio.html)完成Hive初始化。
 
 # 配置
@@ -84,7 +78,11 @@ alluxio.zookeeper.address=[zookeeper_hostname]:2181
 -Xbootclasspath/p:<path-to-alluxio-site-properties>
 ```
 
-此外，我们建议提高`alluxio.user.network.netty.timeout.ms`的值（比如10分钟），来防止读远程worker中的大文件时的超时问题。
+此外，我们建议提高`alluxio.user.network.netty.timeout`的值（比如10分钟），来防止读远程worker中的大文件时的超时问题。
+
+#### 使能 `hive.force-local-scheduling`
+
+推荐您组合使用Presto和Alluxio，这样Presto工作节点能够从本地获取数据。Presto中一个重要的需要使能的选项是`hive.force-local-scheduling`,使能该选项能使得数据分片被调度到恰好处理该分片的Alluxio工作节点上。默认情况下，Presto中`hive.force-local-scheduling`设置为false，并且Presto也不会尝试将工作调度到Alluxio节点上。
 
 #### 提高`hive.max-split-size`值
 
@@ -92,13 +90,11 @@ Presto的Hive集成里使用了配置[`hive.max-split-size`](https://teradata.gi
 
 # 分发Alluxio客户端jar包
 
+推荐您从[http://www.alluxio.org/download](http://www.alluxio.org/download)下载压缩包。另外，高阶用户可以按照指导[here](Building-Alluxio-From-Source.html#compute-framework-support)从源码编译这个客户端jar包。在路径`{{site.ALLUXIO_CLIENT_JAR_PATH}}`下可以找到Alluxio客户端jar包。
+
 将Alluxio客户端Jar包分发到Presto所有节点中：
-- 因为Presto使用的guava版本是18.0，而Alluxio使用的是14.0，所以需要将Alluxio client端的pom.xml中guava版本修改为18.0并重新编译Alluxio客户端。
-
-- 你必须将Alluxio客户端jar包 `{{site.ALLUXIO_CLIENT_JAR_PATH}}`放置在所有Presto节点的`$PRESTO_HOME/plugin/hive-hadoop2/`
+- 你必须将Alluxio客户端jar包 `{{site.ALLUXIO_CLIENT_JAR_PATH_PRESTO}}`放置在所有Presto节点的`$PRESTO_HOME/plugin/hive-hadoop2/`
 目录中（针对不同hadoop版本，放到相应的文件夹下），并且重启所有coordinator和worker。
-
-另外，高级用户可以选择从源代码编译这个客户端jar。根据[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)的指导，并在这份指导的其余部分使用`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`里生成的jar。
 
 # Presto命令行示例
 
@@ -130,7 +126,7 @@ OVERWRITE INTO TABLE u_user;
 之后，在presto client执行如下查询：
 
 ```
-/home/path/presto/presto-cli-0.170-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
+/home/path/presto/presto-cli-0.191-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
 ```
 
 你可以在命令行中看到相应查询结果：

@@ -11,9 +11,13 @@
 
 package alluxio.master.block;
 
+import static alluxio.wire.WorkerNetAddress.fromThrift;
+
 import alluxio.Constants;
 import alluxio.RpcUtils;
-import alluxio.exception.AlluxioException;
+import alluxio.RpcUtils.RpcCallable;
+import alluxio.RpcUtils.RpcCallableThrowsIOException;
+import alluxio.metrics.Metric;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockHeartbeatTResponse;
@@ -27,9 +31,9 @@ import alluxio.thrift.GetWorkerIdTResponse;
 import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.thrift.RegisterWorkerTResponse;
 import alluxio.thrift.WorkerNetAddress;
-import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
+import jersey.repackaged.com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,38 +71,37 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlockIds,
       final Map<String, List<Long>> addedBlocksOnTiers, BlockHeartbeatTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<BlockHeartbeatTResponse>() {
-      @Override
-      public BlockHeartbeatTResponse call() throws AlluxioException {
-        return new BlockHeartbeatTResponse(mBlockMaster
-            .workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers));
-      }
-    });
+    return RpcUtils.call(
+        LOG,
+        (RpcCallable<BlockHeartbeatTResponse>) () -> {
+          List<Metric> metrics = Lists.newArrayList();
+          for (alluxio.thrift.Metric metric : options.getMetrics()) {
+            metrics.add(Metric.from(metric));
+          }
+          return new BlockHeartbeatTResponse(mBlockMaster.workerHeartbeat(workerId,
+              usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers, metrics));
+        }, "BlockHeartbeat",
+        "workerId=%s, usedBytesOnTiers=%s, removedBlockIds=%s, addedBlocksOnTiers=%s, options=%s",
+        workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers, options);
   }
 
   @Override
   public CommitBlockTResponse commitBlock(final long workerId, final long usedBytesOnTier,
       final String tierAlias, final long blockId, final long length, CommitBlockTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<CommitBlockTResponse>() {
-      @Override
-      public CommitBlockTResponse call() throws AlluxioException {
-        mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
-        return new CommitBlockTResponse();
-      }
-    });
+    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<CommitBlockTResponse>) () -> {
+      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
+      return new CommitBlockTResponse();
+    }, "CommitBlock", "workerId=%s, usedBytesOnTier=%s, tierAlias=%s, blockId=%s, length=%s, "
+        + "options=%s", workerId, usedBytesOnTier, tierAlias, blockId, length, options);
   }
 
   @Override
   public GetWorkerIdTResponse getWorkerId(final WorkerNetAddress workerNetAddress,
       GetWorkerIdTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetWorkerIdTResponse>() {
-      @Override
-      public GetWorkerIdTResponse call() throws AlluxioException {
-        return new GetWorkerIdTResponse(
-            mBlockMaster.getWorkerId(ThriftUtils.fromThrift((workerNetAddress))));
-      }
-    });
+    return RpcUtils.call(LOG, (RpcCallable<GetWorkerIdTResponse>) () -> new GetWorkerIdTResponse(
+        mBlockMaster.getWorkerId(fromThrift(workerNetAddress))), "GetWorkerId",
+        "workerNetAddress=%s, options=%s", workerNetAddress, options);
   }
 
   @Override
@@ -106,14 +109,12 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
       final List<String> storageTiers, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Map<String, List<Long>> currentBlocksOnTiers,
       RegisterWorkerTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<RegisterWorkerTResponse>() {
-      @Override
-      public RegisterWorkerTResponse call() throws AlluxioException {
-        mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-            currentBlocksOnTiers);
-        return new RegisterWorkerTResponse();
-      }
-    });
+    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<RegisterWorkerTResponse>) () -> {
+      mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
+          currentBlocksOnTiers, options);
+      return new RegisterWorkerTResponse();
+    }, "RegisterWorker", "workerId=%s, storageTiers=%s, totalBytesOnTiers=%s, "
+        + "usedBytesOnTiers=%s, currentBlocksOnTiers=%s, options=%s", workerId, storageTiers,
+        totalBytesOnTiers, usedBytesOnTiers, currentBlocksOnTiers, options);
   }
 }
-

@@ -13,6 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.MountTOptions;
+import alluxio.wire.CommonOptions;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -31,6 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
 public final class MountOptions {
+  private CommonOptions mCommonOptions;
   private boolean mReadOnly;
   private Map<String, String> mProperties;
   private boolean mShared;
@@ -46,9 +48,17 @@ public final class MountOptions {
    * Creates a new instance with default values.
    */
   private MountOptions() {
+    mCommonOptions = CommonOptions.defaults();
     mReadOnly = false;
     mProperties = new HashMap<>();
     mShared = false;
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -57,6 +67,15 @@ public final class MountOptions {
    */
   public boolean isReadOnly() {
     return mReadOnly;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public MountOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -105,10 +124,6 @@ public final class MountOptions {
     return this;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -119,18 +134,20 @@ public final class MountOptions {
     }
     MountOptions that = (MountOptions) o;
     return Objects.equal(mReadOnly, that.mReadOnly)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mProperties, that.mProperties)
         && Objects.equal(mShared, that.mShared);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mReadOnly, mProperties, mShared);
+    return Objects.hashCode(mReadOnly, mProperties, mShared, mCommonOptions);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("readonly", mReadOnly)
         .add("properties", mProperties)
         .add("shared", mShared)
@@ -147,6 +164,7 @@ public final class MountOptions {
       options.setProperties(mProperties);
     }
     options.setShared(mShared);
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

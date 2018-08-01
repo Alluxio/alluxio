@@ -18,6 +18,7 @@ import alluxio.ServiceUtils;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -30,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -63,12 +65,11 @@ public final class Format {
     }
     Files.createDirectory(path);
     // For short-circuit read/write to work, others needs to be able to access this directory.
-    // This may not be granted when umask bit of others is set to 7 in the system.
-    Set<PosixFilePermission> perm = Files.getPosixFilePermissions(path);
-    if (!perm.contains(PosixFilePermission.OTHERS_EXECUTE)) {
-      perm.add(PosixFilePermission.OTHERS_EXECUTE);
-      Files.setPosixFilePermissions(path, perm);
-    }
+    // Therefore, default is 777 but if the user specifies the permissions, respect those instead.
+    String permissions = Configuration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
+    Set<PosixFilePermission> perms = PosixFilePermissions.fromString(permissions);
+    Files.setPosixFilePermissions(path, perms);
+    FileUtils.setLocalDirStickyBit(path.toAbsolutePath().toString());
   }
 
   /**
@@ -81,6 +82,8 @@ public final class Format {
       LOG.info(USAGE);
       System.exit(-1);
     }
+    // Set the process type as "MASTER" since format needs to access the journal like the master.
+    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.MASTER);
     Mode mode = null;
     try {
       mode = Mode.valueOf(args[0].toUpperCase());

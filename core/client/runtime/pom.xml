@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core-client</artifactId>
-    <version>1.7.0-SNAPSHOT</version>
+    <version>1.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-client-runtime</artifactId>
   <packaging>jar</packaging>
@@ -90,6 +90,12 @@
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <relocations>
+                <!-- Relocate the native netty libraries to be prefixed with our shade prefix -->
+                <relocation>
+                  <pattern>META-INF/native/libnetty_transport_native_epoll_x86_64.so</pattern>
+                  <shadedPattern>META-INF/native/liballuxio_core_client_runtime_netty_transport_native_epoll_x86_64.so</shadedPattern>
+                  <rawString>true</rawString>
+                </relocation>
                 <relocation>
                   <pattern>com.codahale.metrics</pattern>
                   <shadedPattern>${shading.prefix}.com.codahale.metrics</shadedPattern>
@@ -150,6 +156,8 @@
                 <filter>
                   <artifact>*:*</artifact>
                   <excludes>
+                    <!-- Enforce no unshaded protobuf classes as the input of shading. See ALLUXIO-3278 -->
+                    <exclude>com/google/protobuf/**</exclude>
                     <exclude>LICENSE</exclude>
                     <exclude>META-INF/LICENSE</exclude>
                     <exclude>META-INF/*.SF</exclude>

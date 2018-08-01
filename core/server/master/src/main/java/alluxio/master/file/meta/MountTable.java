@@ -24,6 +24,7 @@ import alluxio.master.journal.JournalEntryIterable;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal;
+import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -124,8 +125,9 @@ public final class MountTable implements JournalEntryIterable {
 
         AddMountPointEntry addMountPoint =
             AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath)
-                .setUfsPath(info.getUfsUri().toString()).setReadOnly(info.getOptions().isReadOnly())
-                .addAllProperties(protoProperties).setShared(info.getOptions().isShared()).build();
+                .setMountId(info.getMountId()).setUfsPath(info.getUfsUri().toString())
+                .setReadOnly(info.getOptions().isReadOnly()).addAllProperties(protoProperties)
+                .setShared(info.getOptions().isShared()).build();
         return Journal.JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build();
       }
 
@@ -149,7 +151,7 @@ public final class MountTable implements JournalEntryIterable {
    */
   public void add(AlluxioURI alluxioUri, AlluxioURI ufsUri, long mountId, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException {
-    String alluxioPath = alluxioUri.getPath();
+    String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
 
     try (LockResource r = new LockResource(mWriteLock)) {
@@ -171,8 +173,8 @@ public final class MountTable implements JournalEntryIterable {
         if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
             && (ufsUri.getAuthority() == null || ufsUri.getAuthority()
             .equals(mountedUfsUri.getAuthority()))) {
-          String ufsPath = ufsUri.getPath();
-          String mountedUfsPath = mountedUfsUri.getPath();
+          String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
+          String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
           if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
             throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
                 .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
@@ -236,17 +238,15 @@ public final class MountTable implements JournalEntryIterable {
    */
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
-    String mountPoint = null;
 
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
         String alluxioPath = entry.getKey();
-        if (PathUtils.hasPrefix(path, alluxioPath)
-            && (mountPoint == null || PathUtils.hasPrefix(alluxioPath, mountPoint))) {
-          mountPoint = alluxioPath;
+        if (!alluxioPath.equals(ROOT) && PathUtils.hasPrefix(path, alluxioPath)) {
+          return alluxioPath;
         }
       }
-      return mountPoint;
+      return mMountTable.containsKey(ROOT) ? ROOT : null;
     }
   }
 
@@ -260,6 +260,24 @@ public final class MountTable implements JournalEntryIterable {
     try (LockResource r = new LockResource(mReadLock)) {
       return new HashMap<>(mMountTable);
     }
+  }
+
+  /**
+   * @param uri the Alluxio uri to check
+   * @return true if the specified uri is mount point, or has a descendant which is a mount point
+   */
+  public boolean containsMountPoint(AlluxioURI uri) throws InvalidPathException {
+    String path = uri.getPath();
+
+    try (LockResource r = new LockResource(mReadLock)) {
+      for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
+        String mountPath = entry.getKey();
+        if (PathUtils.hasPrefix(mountPath, path)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
@@ -290,16 +308,21 @@ public final class MountTable implements JournalEntryIterable {
       if (mountPoint != null) {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
-        UnderFileSystem ufs;
+        UfsManager.UfsClient ufsClient;
+        AlluxioURI resolvedUri;
         try {
-          ufs = mUfsManager.get(info.getMountId()).getUfs();
+          ufsClient = mUfsManager.get(info.getMountId());
+          try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
+            UnderFileSystem ufs = ufsResource.get();
+            resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
+          }
         } catch (NotFoundException | UnavailableException e) {
           throw new RuntimeException(
               String.format("No UFS information for %s for mount Id %d, we should never reach here",
                   uri, info.getMountId()), e);
         }
-        AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
-        return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getMountId());
+        return new Resolution(resolvedUri, ufsClient, info.getOptions().isShared(),
+            info.getMountId());
       }
       // TODO(binfan): throw exception as we should never reach here
       return new Resolution(uri, null, false, IdUtils.INVALID_MOUNT_ID);
@@ -348,13 +371,13 @@ public final class MountTable implements JournalEntryIterable {
    */
   public final class Resolution {
     private final AlluxioURI mUri;
-    private final UnderFileSystem mUfs;
+    private final UfsManager.UfsClient mUfsClient;
     private final boolean mShared;
     private final long mMountId;
 
-    private Resolution(AlluxioURI uri, UnderFileSystem ufs, boolean shared, long mountId) {
+    private Resolution(AlluxioURI uri, UfsManager.UfsClient ufs, boolean shared, long mountId) {
       mUri = uri;
-      mUfs = ufs;
+      mUfsClient = ufs;
       mShared = shared;
       mMountId = mountId;
     }
@@ -367,10 +390,10 @@ public final class MountTable implements JournalEntryIterable {
     }
 
     /**
-     * @return the {@link UnderFileSystem} instance
+     * @return the {@link UnderFileSystem} closeable resource
      */
-    public UnderFileSystem getUfs() {
-      return mUfs;
+    public CloseableResource<UnderFileSystem> acquireUfsResource() {
+      return mUfsClient.acquireUfsResource();
     }
 
     /**

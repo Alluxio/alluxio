@@ -36,14 +36,10 @@ public interface CheckpointPlanner {
      */
     public static CheckpointPlanner create(LineageStoreView lineageStoreView,
         FileSystemMasterView fileSystemMasterView) {
-      try {
-        return CommonUtils.createNewClassInstance(
-            Configuration.<CheckpointPlanner>getClass(PropertyKey.MASTER_LINEAGE_CHECKPOINT_CLASS),
-            new Class[] {LineageStoreView.class, FileSystemMasterView.class},
-            new Object[] {lineageStoreView, fileSystemMasterView});
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
+      return CommonUtils.createNewClassInstance(
+          Configuration.<CheckpointPlanner>getClass(PropertyKey.MASTER_LINEAGE_CHECKPOINT_CLASS),
+          new Class[] {LineageStoreView.class, FileSystemMasterView.class},
+          new Object[] {lineageStoreView, fileSystemMasterView});
     }
   }
 

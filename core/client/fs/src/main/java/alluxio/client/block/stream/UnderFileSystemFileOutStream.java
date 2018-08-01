@@ -39,7 +39,7 @@ public class UnderFileSystemFileOutStream extends BlockOutStream {
   public static UnderFileSystemFileOutStream create(FileSystemContext context,
       WorkerNetAddress address, OutStreamOptions options) throws IOException {
     return new UnderFileSystemFileOutStream(NettyPacketWriter.create(context, address,
-        ID_UNUSED, Long.MAX_VALUE, Protocol.RequestType.UFS_FILE, options));
+        ID_UNUSED, Long.MAX_VALUE, Protocol.RequestType.UFS_FILE, options), address);
   }
 
   /**
@@ -47,7 +47,7 @@ public class UnderFileSystemFileOutStream extends BlockOutStream {
    *
    * @param packetWriter the packet writer
    */
-  protected UnderFileSystemFileOutStream(PacketWriter packetWriter) {
-    super(packetWriter, Long.MAX_VALUE);
+  protected UnderFileSystemFileOutStream(PacketWriter packetWriter, WorkerNetAddress address) {
+    super(packetWriter, Long.MAX_VALUE, address);
   }
 }

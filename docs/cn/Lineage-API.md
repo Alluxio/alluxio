@@ -1,7 +1,7 @@
 ---
 layout: global
-title: （实验版）世系关系（Lineage）客户端API
-nickname: （实验版）世系关系（Lineage）API
+title: （实验）Lineage客户端API
+nickname: （实验）Lineage API
 group: Features
 priority: 99
 ---
@@ -56,7 +56,6 @@ Alluxio提供了Java版本的API来操作和访问世系关系信息。
 
 <table class="table table-striped">
 <tr><th>参数</th><th>默认值</th><th>介绍</th></tr>
-</tr>
 {% for record in site.data.table.LineageParameter %}
 <tr>
   <td>{{record.parameter}}</td>

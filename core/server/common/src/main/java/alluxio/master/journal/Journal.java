@@ -11,6 +11,8 @@
 
 package alluxio.master.journal;
 
+import alluxio.exception.status.UnavailableException;
+
 import java.io.Closeable;
 import java.net.URI;
 
@@ -25,6 +27,8 @@ public interface Journal extends Closeable {
 
   /**
    * @return a journal context for appending journal entries
+   * @throws UnavailableException if a context cannot be created because the journal has been
+   *         closed.
    */
-  JournalContext createJournalContext();
+  JournalContext createJournalContext() throws UnavailableException;
 }

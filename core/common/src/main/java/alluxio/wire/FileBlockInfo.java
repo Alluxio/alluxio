@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import static alluxio.util.StreamUtils.map;
+
 import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
@@ -39,24 +41,6 @@ public final class FileBlockInfo implements Serializable {
    * Creates a new instance of {@link FileBlockInfo}.
    */
   public FileBlockInfo() {}
-
-  /**
-   * Creates a new instance of {@link FileBlockInfo} from a thrift representation.
-   *
-   * @param fileBlockInfo the thrift representation of a file block information
-   */
-  protected FileBlockInfo(alluxio.thrift.FileBlockInfo fileBlockInfo) {
-    mBlockInfo = new BlockInfo(fileBlockInfo.getBlockInfo());
-    mOffset = fileBlockInfo.getOffset();
-    if (fileBlockInfo.getUfsStringLocationsSize() != 0) {
-      mUfsLocations = new ArrayList<>(fileBlockInfo.getUfsStringLocations());
-    } else if (fileBlockInfo.getUfsLocationsSize() != 0) {
-      for (alluxio.thrift.WorkerNetAddress address : fileBlockInfo.getUfsLocations()) {
-        mUfsLocations
-            .add(HostAndPort.fromParts(address.getHost(), address.getDataPort()).toString());
-      }
-    }
-  }
 
   /**
    * @return the block info
@@ -120,6 +104,21 @@ public final class FileBlockInfo implements Serializable {
     }
     return new alluxio.thrift.FileBlockInfo(mBlockInfo.toThrift(), mOffset, ufsLocations,
         mUfsLocations);
+  }
+
+  /**
+   * Creates a new instance of {@link FileBlockInfo} from a thrift representation.
+   *
+   * @param info the thrift representation of a file block information
+   * @return the instance
+   */
+  public static FileBlockInfo fromThrift(alluxio.thrift.FileBlockInfo info) {
+    return new FileBlockInfo()
+        .setBlockInfo(BlockInfo.fromThrift(info.getBlockInfo()))
+        .setOffset(info.getOffset())
+        .setUfsLocations(info.getUfsStringLocationsSize() > 0 ? info.getUfsStringLocations()
+            : map(addr -> HostAndPort.fromParts(addr.getHost(), addr.getDataPort()).toString(),
+                info.getUfsLocations()));
   }
 
   @Override

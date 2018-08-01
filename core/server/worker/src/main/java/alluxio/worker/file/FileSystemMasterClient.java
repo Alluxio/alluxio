@@ -24,7 +24,6 @@ import alluxio.thrift.GetPinnedFileIdsTOptions;
 import alluxio.thrift.GetUfsInfoTOptions;
 import alluxio.thrift.UfsInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
 
@@ -78,13 +77,8 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @return the file info for the given file id
    */
   public synchronized FileInfo getFileInfo(final long fileId) throws IOException {
-    return retryRPC(new RpcCallable<FileInfo>() {
-      @Override
-      public FileInfo call() throws TException {
-        return ThriftUtils
-            .fromThrift(mClient.getFileInfo(fileId, new GetFileInfoTOptions()).getFileInfo());
-      }
-    });
+    return retryRPC(() -> FileInfo
+        .fromThrift(mClient.getFileInfo(fileId, new GetFileInfoTOptions()).getFileInfo()));
   }
 
   /**
@@ -114,7 +108,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * Heartbeats to the worker. It also carries command for the worker to persist the given files.
+   * Heartbeats to the master. It also carries command for the worker to persist the given files.
    *
    * @param workerId the id of the worker that heartbeats
    * @param persistedFiles the files which have been persisted since the last heartbeat
@@ -122,12 +116,24 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    */
   public synchronized FileSystemCommand heartbeat(final long workerId,
       final List<Long> persistedFiles) throws IOException {
+    return heartbeat(workerId, persistedFiles, new FileSystemHeartbeatTOptions());
+  }
+
+  /**
+   * Heartbeats to the master. It also carries command for the worker to persist the given files.
+   *
+   * @param workerId the id of the worker that heartbeats
+   * @param persistedFiles the files which have been persisted since the last heartbeat
+   * @param options heartbeat options
+   * @return the command for file system worker
+   */
+  public synchronized FileSystemCommand heartbeat(final long workerId,
+      final List<Long> persistedFiles, final FileSystemHeartbeatTOptions options)
+      throws IOException {
     return retryRPC(new RpcCallable<FileSystemCommand>() {
       @Override
       public FileSystemCommand call() throws AlluxioTException, TException {
-        return mClient
-            .fileSystemHeartbeat(workerId, persistedFiles, new FileSystemHeartbeatTOptions())
-            .getCommand();
+        return mClient.fileSystemHeartbeat(workerId, persistedFiles, options).getCommand();
       }
     });
   }

@@ -127,7 +127,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       return new StaticCredentialsProvider(new BasicAWSCredentials(
           conf.getValue(PropertyKey.S3A_ACCESS_KEY), conf.getValue(PropertyKey.S3A_SECRET_KEY)));
     }
-    // Checks, in order, env variables, system properties, profile file, and instance profile
+    // Checks, in order, env variables, system properties, profile file, and instance profile.
     return new DefaultAWSCredentialsProviderChain();
   }
 
@@ -144,7 +144,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     AWSCredentialsProvider credentials = createAwsCredentialsProvider(conf);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
 
-    // Set the client configuration based on Alluxio configuration values
+    // Set the client configuration based on Alluxio configuration values.
     ClientConfiguration clientConf = new ClientConfiguration();
 
     // Socket timeout
@@ -168,14 +168,15 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       clientConf.setProxyPort(Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_PROXY_PORT)));
     }
 
-    // Number of metadata and I/O threads to S3
+    // Number of metadata and I/O threads to S3.
     int numAdminThreads = Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
     int numTransferThreads =
         Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX));
     int numThreads = Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_THREADS_MAX));
     if (numThreads < numAdminThreads + numTransferThreads) {
-      LOG.warn("Configured s3 max threads: {} is less than # admin threads: {} plus transfer "
-          + "threads {}. Using admin threads + transfer threads as max threads instead.");
+      LOG.warn("Configured s3 max threads ({}) is less than # admin threads ({}) plus transfer "
+          + "threads ({}). Using admin threads + transfer threads as max threads instead.",
+              numThreads, numAdminThreads, numTransferThreads);
       numThreads = numAdminThreads + numTransferThreads;
     }
     clientConf.setMaxConnections(numThreads);
@@ -307,6 +308,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected List<String> deleteObjects(List<String> keys) throws IOException {
+    if (!Configuration.getBoolean(PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED)) {
+      return super.deleteObjects(keys);
+    }
     Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
     try {
       List<DeleteObjectsRequest.KeyVersion> keysToDelete = new ArrayList<>();
@@ -337,7 +341,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       throws IOException {
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
-    // In case key is root (empty string) do not normalize prefix
+    // In case key is root (empty string) do not normalize prefix.
     key = key.equals(PATH_SEPARATOR) ? "" : key;
     if (mConf.containsKey(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1) && mConf
         .getValue(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1).equals(Boolean.toString(true))) {
@@ -360,14 +364,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return null;
   }
 
-  // Get next chunk of listing result
+  // Get next chunk of listing result.
   private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request)
       throws IOException {
     ListObjectsV2Result result;
     try {
-      // Query S3 for the next batch of objects
+      // Query S3 for the next batch of objects.
       result = mClient.listObjectsV2(request);
-      // Advance the request continuation token to the next set of objects
+      // Advance the request continuation token to the next set of objects.
       request.setContinuationToken(result.getNextContinuationToken());
     } catch (AmazonClientException e) {
       throw new IOException(e);
@@ -375,13 +379,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return result;
   }
 
-  // Get next chunk of listing result
+  // Get next chunk of listing result.
   private ObjectListing getObjectListingChunkV1(ListObjectsRequest request) throws IOException {
     ObjectListing result;
     try {
-      // Query S3 for the next batch of objects
+      // Query S3 for the next batch of objects.
       result = mClient.listObjects(request);
-      // Advance the request continuation token to the next set of objects
+      // Advance the request continuation token to the next set of objects.
       request.setMarker(result.getNextMarker());
     } catch (AmazonClientException e) {
       throw new IOException(e);
@@ -408,7 +412,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (S3ObjectSummary obj : objects) {
-        ret[i++] = new ObjectStatus(obj.getKey(), obj.getSize(), obj.getLastModified().getTime());
+        ret[i++] = new ObjectStatus(obj.getKey(), obj.getETag(), obj.getSize(),
+            obj.getLastModified().getTime());
       }
       return ret;
     }
@@ -451,7 +456,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (S3ObjectSummary obj : objects) {
-        ret[i++] = new ObjectStatus(obj.getKey(), obj.getSize(), obj.getLastModified().getTime());
+        ret[i++] = new ObjectStatus(obj.getKey(), obj.getETag(), obj.getSize(),
+            obj.getLastModified().getTime());
       }
       return ret;
     }
@@ -480,7 +486,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected ObjectStatus getObjectStatus(String key) throws IOException {
     try {
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
-      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
+      return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
+          meta.getLastModified().getTime());
     } catch (AmazonServiceException e) {
       if (e.getStatusCode() == 404) { // file not found, possible for exists calls
         return null;
@@ -516,7 +523,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         bucketMode = S3AUtils.translateBucketAcl(acl, owner.getId());
         accountOwner = CommonUtils.getValueFromStaticMapping(
             mConf.getValue(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), owner.getId());
-        if (accountOwner == null) { // If there is no user-defined mapping, use display name or id
+        if (accountOwner == null) { // If there is no user-defined mapping, use display name or id.
           accountOwner = owner.getDisplayName() != null ? owner.getDisplayName() : owner.getId();
         }
       } catch (AmazonClientException e) {

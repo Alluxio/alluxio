@@ -262,8 +262,8 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
       StorageObject[] objects = mChunk.getObjects();
       ObjectStatus[] ret = new ObjectStatus[objects.length];
       for (int i = 0; i < ret.length; ++i) {
-        ret[i] = new ObjectStatus(objects[i].getKey(), objects[i].getContentLength(),
-            objects[i].getLastModifiedDate().getTime());
+        ret[i] = new ObjectStatus(objects[i].getKey(), objects[i].getMd5HashAsBase64(),
+            objects[i].getContentLength(), objects[i].getLastModifiedDate().getTime());
       }
       return ret;
     }
@@ -293,7 +293,8 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
       if (meta == null) {
         return null;
       }
-      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModifiedDate().getTime());
+      return new ObjectStatus(key, meta.getMd5HashAsBase64(), meta.getContentLength(),
+          meta.getLastModifiedDate().getTime());
     } catch (ServiceException e) {
       return null;
     }

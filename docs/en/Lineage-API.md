@@ -75,7 +75,6 @@ These are the configuration parameters related to Alluxio's lineage feature.
 
 <table class="table table-striped">
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
-</tr>
 {% for record in site.data.table.LineageParameter %}
 <tr>
   <td>{{record.parameter}}</td>

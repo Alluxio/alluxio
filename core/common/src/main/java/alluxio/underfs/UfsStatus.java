@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Objects.ToStringHelper;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -23,6 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public abstract class UfsStatus {
   protected final boolean mIsDirectory;
+  /** Last modified epoch time in ms, or null if it is not available. */
+  protected final Long mLastModifiedTimeMs;
   protected String mName;
 
   // Permissions
@@ -38,13 +41,16 @@ public abstract class UfsStatus {
    * @param owner of the file
    * @param group of the file
    * @param mode of the file
+   * @param lastModifiedTimeMs last modified epoch time in ms, or null if it is not available
    */
-  protected UfsStatus(String name, boolean isDirectory, String owner, String group, short mode) {
+  protected UfsStatus(String name, boolean isDirectory, String owner, String group, short mode,
+      Long lastModifiedTimeMs) {
     mIsDirectory = isDirectory;
     mName = name;
     mOwner = owner;
     mGroup = group;
     mMode = mode;
+    mLastModifiedTimeMs = lastModifiedTimeMs;
   }
 
   /**
@@ -58,6 +64,7 @@ public abstract class UfsStatus {
     mOwner = status.mOwner;
     mGroup = status.mGroup;
     mMode = status.mMode;
+    mLastModifiedTimeMs = status.mLastModifiedTimeMs;
   }
 
   /**
@@ -110,6 +117,17 @@ public abstract class UfsStatus {
   }
 
   /**
+   * Gets the UTC time of when the indicated path was modified recently in ms, or null if the last
+   * modified time is not available.
+   *
+   * @return modification time in milliseconds
+   */
+  @Nullable
+  public Long getLastModifiedTime() {
+    return mLastModifiedTimeMs;
+  }
+
+  /**
    * Gets the mode of the given path in short format, e.g 0700.
    *
    * @return the mode of the file
@@ -150,9 +168,14 @@ public abstract class UfsStatus {
     return this;
   }
 
-  @Override
-  public String toString() {
-    return getName();
+  protected ToStringHelper toStringHelper() {
+    return Objects.toStringHelper(this)
+        .add("isDirectory", mIsDirectory)
+        .add("lastModifiedTimeMs", mLastModifiedTimeMs)
+        .add("name", mName)
+        .add("owner", mOwner)
+        .add("group", mGroup)
+        .add("mode", mMode);
   }
 
   @Override

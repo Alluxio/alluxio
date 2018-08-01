@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Class for launching another class in a new processes.
  */
 @ThreadSafe
-public class ExternalProcess {
+public final class ExternalProcess {
   private final Map<PropertyKey, String> mConf;
   private final Class<?> mClazz;
   private final File mOutFile;
@@ -71,7 +71,7 @@ public class ExternalProcess {
    */
   public synchronized void stop() {
     if (mProcess != null) {
-      mProcess.destroy();
+      mProcess.destroyForcibly();
       mProcess = null;
     }
   }

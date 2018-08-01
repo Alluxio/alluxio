@@ -11,12 +11,13 @@
 
 package alluxio.worker.block;
 
+import alluxio.StorageTierAssoc;
 import alluxio.collections.Pair;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Interface for the block store meta in Alluxio.
@@ -99,4 +100,9 @@ public interface BlockStoreMeta {
    * @return a mapping from tier directory-path pairs to used capacity in bytes
    */
   Map<Pair<String, String>, Long> getUsedBytesOnDirs();
+
+  /**
+   * @return the storage tier mapping
+   */
+  StorageTierAssoc getStorageTierAssoc();
 }

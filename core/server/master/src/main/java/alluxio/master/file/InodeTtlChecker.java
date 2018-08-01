@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
@@ -60,6 +61,9 @@ final class InodeTtlChecker implements HeartbeatExecutor {
         try (LockedInodePath inodePath = mInodeTree
             .lockFullInodePath(inode.getId(), InodeTree.LockMode.READ)) {
           path = inodePath.getUri();
+        } catch (FileDoesNotExistException e) {
+          // The inode has already been deleted, nothing needs to be done.
+          continue;
         } catch (Exception e) {
           LOG.error("Exception trying to clean up {} for ttl check: {}", inode.toString(),
               e.toString());
@@ -67,7 +71,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
         if (path != null) {
           try {
             TtlAction ttlAction = inode.getTtlAction();
-            LOG.debug("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
+            LOG.info("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
             switch (ttlAction) {
               case FREE:
                 // public free method will lock the path, and check WRITE permission required at

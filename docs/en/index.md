@@ -30,14 +30,14 @@ storage systems. Users can run Alluxio using its
 [Amazon EC2](Running-Alluxio-on-EC2.html),
 [Google Compute Engine](Running-Alluxio-on-GCE.html), or launch Alluxio with
 [Apache Mesos](Running-Alluxio-on-Mesos.html) or
-[Apache Yarn](Running-Alluxio-on-EC2-Yarn.html).
+[Apache Yarn](Running-Alluxio-Yarn-Integration.html).
 
 Alluxio is Hadoop compatible. Existing data analytics applications, such as Spark and MapReduce
 programs, can run on top of Alluxio without any code change. The project is open source under
 [Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE) and is deployed at
 many companies. It is one of the fastest growing open source projects. With three
 years of open source history, Alluxio has attracted more than
-[600 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 150
+[700 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 150
 institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
 [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [Google](https://www.google.com),
 [IBM](https://www.ibm.com), [Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/),
@@ -56,7 +56,6 @@ Today, Alluxio is deployed in production by 100s organizations, and runs on clus
 [Issue Tracking](https://alluxio.atlassian.net/browse/ALLUXIO) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [Videos](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA) |
-[Powered By](Powered-By-Alluxio.html) |
 [Github](https://github.com/alluxio/alluxio/) |
 [Releases](http://alluxio.org/releases/)
 
@@ -70,25 +69,19 @@ and Spark to use Alluxio in place of HDFS.
 
 * **Pluggable Under Storage** To provide fault-tolerance, Alluxio checkpoints data to the
 underlying storage system. It has a generic interface to make plugging different underlayer storage
-systems easy. We currently support Microsoft Azure Blob Store, Amazon S3, Google Cloud Storage, 
+systems easy. We currently support Microsoft Azure Blob Store, Amazon S3, Google Cloud Storage,
 OpenStack Swift, GlusterFS, HDFS, MaprFS, Ceph, NFS, Alibaba OSS, Minio, and single-node local file
 systems, and support for many other file systems is coming.
 
-* **[Tiered Storage](Tiered-Storage-on-Alluxio.html)** With Tiered Storage, Alluxio can manage SSDs
-and HDDs in addition to memory, allowing for larger datasets to be stored in Alluxio. Data will
-automatically be managed between the different tiers, keeping hot data in faster tiers. Custom
-policies are easily pluggable, and a pin concept allows for direct user control.
+* **[Alluxio Storage](Alluxio-Storage.html)** Alluxio can manage memory and local storage such SSDs
+and HDDs to accelerate data access. If finer grained control is required, the tiered storage feature
+can be used to automatically manage data between different tiers, keeping hot data in faster tiers.
+Custom policies are easily pluggable, and a pin concept allows for direct user control.
 
 * **[Unified Namespace](Unified-and-Transparent-Namespace.html)** Alluxio enables effective
 data management across different storage systems through the mount feature. Furthermore,
 transparent naming ensures that file names and directory hierarchy for objects created in Alluxio
 is preserved when persisting these objects to the underlying storage system.
-
-* **[Lineage](Lineage-API.html)** Alluxio can achieve high throughput writes without compromising
-fault-tolerance by using lineage, where lost output is recovered by re-executing the jobs that
-created the output. With lineage, applications write output into memory, and Alluxio periodically
-checkpoints the output into the under file system in an asynchronous fashion. In case of failures,
-Alluxio launches job recomputation to restore the lost files.
 
 * **[Web UI](Web-Interface.html) & [Command Line](Command-Line-Interface.html)** Users can browse
 the file system easily through the web UI. Under debug mode, administrators can view detailed
@@ -99,7 +92,7 @@ information of each file, including locations, checkpoint path, etc. Users can a
 
 To quickly get Alluxio up and running, take a look at our [Getting Started](Getting-Started.html)
 page which will go through how to deploy Alluxio and run some basic examples in a local environment.
-See a list of [companies](Powered-By-Alluxio.html) that are using Alluxio.
+See a list of [companies](https://alluxio.org/community/powered-by-alluxio) that are using Alluxio.
 
 ## Downloads and More
 
@@ -107,9 +100,9 @@ You can get the released versions of Alluxio from the
 [Project Downloads Page](http://alluxio.org/download). Each release comes with prebuilt
 binaries compatibile with various Hadoop versions. If you would like to build the project from the
 source code, check out the
-[Building From Master Branch Documentation](Building-Alluxio-Master-Branch.html). If you have any
+[Building From Master Branch Documentation](Building-Alluxio-From-Source.html). If you have any
 questions, please feel free to ask at our
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users). For users
 can not access Google Group, please use its
-[mirror](http://alluxio-users.85194.x6.nabble.com/) (notes: the mirror does not have infomation
+[mirror](http://alluxio-users.85194.x6.nabble.com/) (notes: the mirror does not have information
 before May 2016).

@@ -11,12 +11,14 @@
 
 package alluxio;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +27,8 @@ public final class StreamCacheTest {
   @Test
   public void operations() throws Exception {
     StreamCache streamCache = new StreamCache(Constants.HOUR_MS);
-    FileInStream is = Mockito.mock(FileInStream.class);
-    FileOutStream os = Mockito.mock(FileOutStream.class);
+    FileInStream is = mock(FileInStream.class);
+    FileOutStream os = mock(FileOutStream.class);
     Integer isId = streamCache.put(is);
     Integer osId = streamCache.put(os);
     Assert.assertSame(is, streamCache.getInStream(isId));
@@ -39,8 +41,8 @@ public final class StreamCacheTest {
     Assert.assertNull(streamCache.invalidate(osId));
     Assert.assertNull(streamCache.getInStream(isId));
     Assert.assertNull(streamCache.getOutStream(osId));
-    Mockito.verify(is).close();
-    Mockito.verify(os).close();
+    verify(is).close();
+    verify(os).close();
   }
 
   @Test
@@ -72,8 +74,8 @@ public final class StreamCacheTest {
     final int numOps = 100;
     final List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < numOps; i++) {
-      threads.add(new Thread(new CacheTest<>(Mockito.mock(FileInStream.class))));
-      threads.add(new Thread(new CacheTest<>(Mockito.mock(FileOutStream.class))));
+      threads.add(new Thread(new CacheTest<>(mock(FileInStream.class))));
+      threads.add(new Thread(new CacheTest<>(mock(FileOutStream.class))));
     }
     for (Thread thread : threads) {
       thread.start();
@@ -87,19 +89,19 @@ public final class StreamCacheTest {
   @Test
   public void expiration() throws Exception {
     StreamCache streamCache = new StreamCache(0);
-    FileInStream is = Mockito.mock(FileInStream.class);
-    FileOutStream os = Mockito.mock(FileOutStream.class);
+    FileInStream is = mock(FileInStream.class);
+    FileOutStream os = mock(FileOutStream.class);
     streamCache.put(is);
     streamCache.put(os);
-    Mockito.verify(is).close();
-    Mockito.verify(os).close();
+    verify(is).close();
+    verify(os).close();
   }
 
   @Test
   public void size() throws Exception {
     StreamCache streamCache = new StreamCache(Constants.HOUR_MS);
-    FileInStream is = Mockito.mock(FileInStream.class);
-    FileOutStream os = Mockito.mock(FileOutStream.class);
+    FileInStream is = mock(FileInStream.class);
+    FileOutStream os = mock(FileOutStream.class);
     Assert.assertEquals(0, streamCache.size());
     int isId = streamCache.put(is);
     Assert.assertEquals(1, streamCache.size());
