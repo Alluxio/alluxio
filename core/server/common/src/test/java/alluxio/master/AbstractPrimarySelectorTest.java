@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Unit tests for functionality of {@link AbstractPrimarySelector}.
  */
 public final class AbstractPrimarySelectorTest {
+  private static final int TIMEOUT = 10 * Constants.SECOND_MS;
 
   private TestSelector mSelector;
   private ScheduledExecutorService mExecutor;
@@ -56,7 +57,7 @@ public final class AbstractPrimarySelectorTest {
     assertEquals(State.SECONDARY, mSelector.getState());
   }
 
-  @Test(timeout = Constants.SECOND_MS)
+  @Test(timeout = TIMEOUT)
   public void waitFor() throws Exception {
     mExecutor.schedule(() -> mSelector.setState(State.PRIMARY), 30, TimeUnit.MILLISECONDS);
     mSelector.waitForState(State.PRIMARY);
@@ -66,7 +67,7 @@ public final class AbstractPrimarySelectorTest {
     assertEquals(State.SECONDARY, mSelector.getState());
   }
 
-  @Test(timeout = Constants.SECOND_MS)
+  @Test(timeout = TIMEOUT)
   public void onStateChange() {
     AtomicInteger primaryCounter = new AtomicInteger(0);
     AtomicInteger secondaryCounter = new AtomicInteger(0);
