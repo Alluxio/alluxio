@@ -1171,10 +1171,6 @@ public class InodeTree implements JournalEntryIterable {
    */
   public void syncPersistNewDirectory(InodeDirectory dir)
       throws InvalidPathException, FileDoesNotExistException, IOException {
-    if (dir.getPersistenceState() == PersistenceState.PERSISTED) {
-      // The directory is persisted
-      return;
-    }
     Preconditions.checkState(!mInodes.containsField(dir.getId()));
     syncPersistDirectory(dir);
     dir.setPersistenceState(PersistenceState.PERSISTED);
