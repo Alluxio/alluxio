@@ -1180,7 +1180,8 @@ public class InodeTree implements JournalEntryIterable {
     dir.setPersistenceState(PersistenceState.PERSISTED);
   }
 
-  private void syncPersistDirectory(InodeDirectory dir) throws FileDoesNotExistException, IOException, InvalidPathException {
+  private void syncPersistDirectory(InodeDirectory dir)
+      throws FileDoesNotExistException, IOException, InvalidPathException {
     AlluxioURI uri = getPath(dir);
     MountTable.Resolution resolution = mMountTable.resolve(uri);
     String ufsUri = resolution.getUri().toString();
