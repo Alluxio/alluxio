@@ -20,6 +20,7 @@ import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.interfaces.Scoped;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -29,8 +30,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -42,6 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public abstract class Inode<T> implements JournalEntryRepresentable {
   private static final Logger LOG = LoggerFactory.getLogger(Inode.class);
+  // Journaled state
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected final boolean mDirectory;
@@ -51,11 +56,15 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   private long mLastModificationTimeMs;
   private String mName;
   private long mParentId;
+  @GuardedBy("mPersistenceLock")
   private PersistenceState mPersistenceState;
   private boolean mPinned;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
 
+  // Non-journaled state
+  // Lock guarding access to this inode's persistence state. True means locked.
+  private AtomicBoolean mPersistenceLock;
   private final ReentrantReadWriteLock mLock;
 
   protected Inode(long id, boolean isDirectory) {
@@ -72,6 +81,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mPinned = false;
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
+    mPersistenceLock = new AtomicBoolean(false);
     mLock = new ReentrantReadWriteLock();
   }
 
@@ -139,20 +149,16 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * Compare-and-swaps the persistence state.
+   * Tries to acquire a lock on persisting the inode.
    *
-   * @param oldState the old {@link PersistenceState}
-   * @param newState the new {@link PersistenceState} to set
-   * @return true if the old state matches and the new state was set
+   * @return Empty if the lock is already taken, otherwise return a function which will release
+   *         ownership of the inode's persistence state
    */
-  public boolean compareAndSwap(PersistenceState oldState, PersistenceState newState) {
-    synchronized (this) {
-      if (mPersistenceState == oldState) {
-        mPersistenceState = newState;
-        return true;
-      }
-      return false;
+  public Optional<Scoped> tryAcquirePersistenceLock() {
+    if (mPersistenceLock.compareAndSet(false, true)) {
+      return Optional.of(() -> mPersistenceLock.set(false));
     }
+    return Optional.empty();
   }
 
   /**

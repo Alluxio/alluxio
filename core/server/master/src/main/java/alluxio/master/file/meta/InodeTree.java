@@ -14,9 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.FieldIndex;
-import alluxio.collections.IndexDefinition;
 import alluxio.collections.Pair;
-import alluxio.collections.UniqueFieldIndex;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -26,6 +24,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.ContainerIdGenerable;
+import alluxio.master.file.state.PersistentFsMasterState;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -36,7 +35,9 @@ import alluxio.master.journal.JournalEntryIterable;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
+import alluxio.proto.journal.File.PersistDirectoryEntry;
 import alluxio.proto.journal.Journal;
+import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
@@ -46,6 +47,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.TtlAction;
 
@@ -61,6 +63,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 
@@ -83,13 +86,6 @@ public class InodeTree implements JournalEntryIterable {
 
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
-
-  private static final IndexDefinition<Inode<?>> ID_INDEX = new IndexDefinition<Inode<?>>(true) {
-    @Override
-    public Object getFieldValue(Inode<?> o) {
-      return o.getId();
-    }
-  };
 
   /**
    * The type of lock to lock inode paths with.
@@ -114,8 +110,11 @@ public class InodeTree implements JournalEntryIterable {
   /** Mount table manages the file system mount points. */
   private final MountTable mMountTable;
 
-  /** Use UniqueFieldIndex directly for ID index rather than using IndexedSet. */
-  private final FieldIndex<Inode<?>> mInodes = new UniqueFieldIndex<>(ID_INDEX);
+  // Will eventually be updated to be an immutable view of the official mInodes index stored in
+  // PersistentFsMasterState.
+  private final FieldIndex<Inode<?>> mInodes;
+  private final PersistentFsMasterState mState;
+
   /** A set of inode ids representing pinned inode files. */
   private final Set<Long> mPinnedInodeFileIds = new ConcurrentHashSet<>(64, 0.90f, 64);
 
@@ -141,9 +140,13 @@ public class InodeTree implements JournalEntryIterable {
    * @param containerIdGenerator the container id generator to use to get new container ids
    * @param directoryIdGenerator the directory id generator to use to get new directory ids
    * @param mountTable the mount table to manage the file system mount points
+   * @param state master state
    */
   public InodeTree(ContainerIdGenerable containerIdGenerator,
-      InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable) {
+      InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable,
+      PersistentFsMasterState state) {
+    mState = state;
+    mInodes = state.getInodes();
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = directoryIdGenerator;
     mMountTable = mountTable;
@@ -557,7 +560,7 @@ public class InodeTree implements JournalEntryIterable {
       // Synchronously persist directories. These inodes are already READ locked.
       for (Inode inode : traversalResult.getNonPersisted()) {
         // This cast is safe because we've already verified that the file inode doesn't exist.
-        syncPersistDirectory(rpcContext, (InodeDirectory) inode);
+        syncPersistExistingDirectory(rpcContext, (InodeDirectory) inode);
       }
     }
     if ((pathIndex < (pathComponents.length - 1) || currentInodeDirectory.getChild(name) == null)
@@ -626,7 +629,7 @@ public class InodeTree implements JournalEntryIterable {
             }
             if (options.isPersisted()) {
               // Do not journal the persist entry, since a creation entry will be journaled instead.
-              syncPersistDirectory(RpcContext.NOOP, dir);
+              syncPersistNewDirectory(dir);
             }
           } catch (Exception e) {
             // Failed to persist the directory, so remove it from the parent.
@@ -634,8 +637,8 @@ public class InodeTree implements JournalEntryIterable {
             throw e;
           }
           // Journal the new inode.
-          rpcContext.getJournalContext().append(dir.toJournalEntry());
           mInodes.add(dir);
+          rpcContext.getJournalContext().append(dir.toJournalEntry());
 
           // After creation and journaling, downgrade to a read lock.
           extensibleInodePath.getLockList().downgradeLast();
@@ -676,7 +679,7 @@ public class InodeTree implements JournalEntryIterable {
             .isPersisted() && options.isPersisted()) {
           // The final path component already exists and is not persisted, so it should be added
           // to the non-persisted Inodes of traversalResult.
-          syncPersistDirectory(rpcContext, (InodeDirectory) lastInode);
+          syncPersistDirectory((InodeDirectory) lastInode);
 
         } else if (!lastInode.isDirectory() || !(options instanceof CreateDirectoryOptions
             && ((CreateDirectoryOptions) options).isAllowExists())) {
@@ -712,7 +715,7 @@ public class InodeTree implements JournalEntryIterable {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
             // TODO(david): remove this call to syncPersistDirectory to improve performance
             // of recursive ls.
-            syncPersistDirectory(RpcContext.NOOP, (InodeDirectory) lastInode);
+            syncPersistNewDirectory((InodeDirectory) lastInode);
           }
         } else if (options instanceof CreateFileOptions) {
           CreateFileOptions fileOptions = (CreateFileOptions) options;
@@ -1128,8 +1131,9 @@ public class InodeTree implements JournalEntryIterable {
    * @throws InvalidPathException if the path for the inode is invalid
    * @throws FileDoesNotExistException if the path for the inode is invalid
    */
-  public void syncPersistDirectory(RpcContext rpcContext, InodeDirectory dir)
+  public void syncPersistExistingDirectory(RpcContext rpcContext, InodeDirectory dir)
       throws IOException, InvalidPathException, FileDoesNotExistException {
+    Preconditions.checkState(mInodes.containsField(dir.getId()));
     RetryPolicy retry =
         new ExponentialBackoffRetry(PERSIST_WAIT_BASE_SLEEP_MS, PERSIST_WAIT_MAX_SLEEP_MS,
             PERSIST_WAIT_MAX_RETRIES);
@@ -1138,56 +1142,71 @@ public class InodeTree implements JournalEntryIterable {
         // The directory is persisted
         return;
       }
-      if (dir.compareAndSwap(PersistenceState.NOT_PERSISTED,
-          PersistenceState.TO_BE_PERSISTED)) {
-        boolean success = false;
-        try {
-          AlluxioURI uri = getPath(dir);
-          MountTable.Resolution resolution = mMountTable.resolve(uri);
-          String ufsUri = resolution.getUri().toString();
-          try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-            UnderFileSystem ufs = ufsResource.get();
-            MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
-                .setOwner(dir.getOwner()).setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
-            if (!ufs.mkdirs(ufsUri, mkdirsOptions)) {
-              // Directory might already exist. Try loading the status from ufs.
-              UfsStatus status;
-              try {
-                status = ufs.getStatus(ufsUri);
-              } catch (Exception e) {
-                throw new IOException(String.format("Cannot create or load UFS directory %s: %s.",
-                    ufsUri, e.toString()), e);
-              }
-              if (status.isFile()) {
-                throw new InvalidPathException(String.format(
-                    "Error persisting directory. A file exists at the UFS location %s.", ufsUri));
-              }
-              dir.setOwner(status.getOwner())
-                  .setGroup(status.getGroup())
-                  .setMode(status.getMode());
-              Long lastModificationTime = status.getLastModifiedTime();
-              if (lastModificationTime != null) {
-                dir.setLastModificationTimeMs(status.getLastModifiedTime(), true);
-              }
-            }
-          }
-          dir.setPersistenceState(PersistenceState.PERSISTED);
+      Optional<Scoped> persisting = dir.tryAcquirePersistenceLock();
+      if (!persisting.isPresent()) {
+        // Someone else is doing this persist. Continue and wait for them to finish.
+        continue;
+      }
+      try (Scoped s = persisting.get()) {
+        syncPersistDirectory(dir);
 
-          // Append the persist entry to the journal.
-          File.PersistDirectoryEntry persistDirectory =
-              File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
-          rpcContext.journal(
-              Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
-          success = true;
-        } finally {
-          if (!success) {
-            // Failed to persist the inode, so set the state back to NOT_PERSISTED.
-            dir.setPersistenceState(PersistenceState.NOT_PERSISTED);
-          }
-        }
+        // Append the persist entry to the journal.
+        mState.applyAndJournal(rpcContext,
+            JournalEntry.newBuilder().setPersistDirectory(PersistDirectoryEntry.newBuilder()
+                .setId(dir.getId()))
+                .build());
+        return;
       }
     }
     throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(dir.getName()));
+  }
+
+  /**
+   * Synchronously persists an {@link InodeDirectory} to the UFS.
+   *
+   * This method does not handle concurrent modification to the given inode, so the inode must not
+   * yet be added to the inode tree.
+   *
+   * @param dir the {@link InodeDirectory} to persist
+   */
+  public void syncPersistNewDirectory(InodeDirectory dir)
+      throws InvalidPathException, FileDoesNotExistException, IOException {
+    Preconditions.checkState(!mInodes.containsField(dir.getId()));
+    syncPersistDirectory(dir);
+    dir.setPersistenceState(PersistenceState.PERSISTED);
+  }
+
+  private void syncPersistDirectory(InodeDirectory dir)
+      throws FileDoesNotExistException, IOException, InvalidPathException {
+    AlluxioURI uri = getPath(dir);
+    MountTable.Resolution resolution = mMountTable.resolve(uri);
+    String ufsUri = resolution.getUri().toString();
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
+          .setOwner(dir.getOwner()).setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
+      if (!ufs.mkdirs(ufsUri, mkdirsOptions)) {
+        // Directory might already exist. Try loading the status from ufs.
+        UfsStatus status;
+        try {
+          status = ufs.getStatus(ufsUri);
+        } catch (Exception e) {
+          throw new IOException(String.format("Cannot create or load UFS directory %s: %s.",
+              ufsUri, e.toString()), e);
+        }
+        if (status.isFile()) {
+          throw new InvalidPathException(String.format(
+              "Error persisting directory. A file exists at the UFS location %s.", ufsUri));
+        }
+        dir.setOwner(status.getOwner())
+            .setGroup(status.getGroup())
+            .setMode(status.getMode());
+        Long lastModificationTime = status.getLastModifiedTime();
+        if (lastModificationTime != null) {
+          dir.setLastModificationTimeMs(status.getLastModifiedTime(), true);
+        }
+      }
+    }
   }
 
   @Override
