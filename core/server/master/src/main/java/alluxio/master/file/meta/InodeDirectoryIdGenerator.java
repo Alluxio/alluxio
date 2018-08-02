@@ -14,8 +14,9 @@ package alluxio.master.file.meta;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.ContainerIdGenerable;
+import alluxio.master.file.state.DirectoryId.UnmodifiableDirectoryId;
+import alluxio.master.file.state.PersistentFsMasterState;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 
@@ -29,69 +30,63 @@ import javax.annotation.concurrent.ThreadSafe;
  * retrieved.
  */
 @ThreadSafe
-public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
+public class InodeDirectoryIdGenerator {
   private final ContainerIdGenerable mContainerIdGenerator;
+  private final PersistentFsMasterState mState;
+  private final UnmodifiableDirectoryId mNextDirectoryId;
 
   private boolean mInitialized = false;
-  private long mContainerId;
-  private long mSequenceNumber;
 
   /**
    * @param containerIdGenerator the container id generator to use
+   * @param state master state
    */
-  public InodeDirectoryIdGenerator(ContainerIdGenerable containerIdGenerator) {
+  public InodeDirectoryIdGenerator(ContainerIdGenerable containerIdGenerator,
+      PersistentFsMasterState state) {
     mContainerIdGenerator =
-            Preconditions.checkNotNull(containerIdGenerator, "containerIdGenerator");
+        Preconditions.checkNotNull(containerIdGenerator, "containerIdGenerator");
+    mState = state;
+    mNextDirectoryId = state.getNextDirectoryId();
   }
 
   /**
    * Returns the next directory id, and journals the state.
    *
-   * @param journalContext the journal context
    * @return the next directory id
    */
-  synchronized long getNewDirectoryId(JournalContext journalContext) throws UnavailableException {
-    initialize();
-    long directoryId = BlockId.createBlockId(mContainerId, mSequenceNumber);
-    if (mSequenceNumber == BlockId.getMaxSequenceNumber()) {
+  synchronized long getNewDirectoryId(JournalContext context) throws UnavailableException {
+    initialize(context);
+    long containerId = mNextDirectoryId.getContainerId();
+    long sequenceNumber = mNextDirectoryId.getSequenceNumber();
+    long directoryId = BlockId.createBlockId(containerId, sequenceNumber);
+    if (sequenceNumber == BlockId.getMaxSequenceNumber()) {
       // No more ids in this container. Get a new container for the next id.
-      mContainerId = mContainerIdGenerator.getNewContainerId();
-      mSequenceNumber = 0;
+      containerId = mContainerIdGenerator.getNewContainerId();
+      sequenceNumber = 0;
     } else {
-      mSequenceNumber++;
+      sequenceNumber++;
     }
-    journalContext.append(toJournalEntry());
+    mState.applyAndJournal(context, toEntry(containerId, sequenceNumber));
     return directoryId;
   }
 
-  @Override
-  public synchronized JournalEntry toJournalEntry() {
-    InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator =
-        InodeDirectoryIdGeneratorEntry.newBuilder()
-        .setContainerId(mContainerId)
-        .setSequenceNumber(mSequenceNumber)
-        .build();
-    return JournalEntry.newBuilder()
-        .setInodeDirectoryIdGenerator(inodeDirectoryIdGenerator)
-        .build();
+  private void initialize(JournalContext context) throws UnavailableException {
+    if (!mInitialized) {
+      mState.applyAndJournal(context, toEntry(mContainerIdGenerator.getNewContainerId(), 0));
+      mInitialized = true;
+    }
   }
 
   /**
-   * Initializes the object using a journal entry.
-   *
-   * @param entry {@link InodeDirectoryIdGeneratorEntry} to use for initialization
+   * @param containerId a container ID
+   * @param sequenceNumber a sequence number
+   * @return an inode directory journal entry for the given container ID and sequence number
    */
-  public synchronized void initFromJournalEntry(InodeDirectoryIdGeneratorEntry entry) {
-    mContainerId = entry.getContainerId();
-    mSequenceNumber = entry.getSequenceNumber();
-    mInitialized = true;
-  }
-
-  private void initialize() throws UnavailableException {
-    if (!mInitialized) {
-      mContainerId = mContainerIdGenerator.getNewContainerId();
-      mSequenceNumber = 0;
-      mInitialized = true;
-    }
+  public static JournalEntry toEntry(long containerId, long sequenceNumber) {
+    return JournalEntry.newBuilder()
+        .setInodeDirectoryIdGenerator(InodeDirectoryIdGeneratorEntry.newBuilder()
+            .setContainerId(containerId)
+            .setSequenceNumber(sequenceNumber))
+        .build();
   }
 }

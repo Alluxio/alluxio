@@ -9,16 +9,25 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file;
+package alluxio.master.file.state;
 
 import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
+import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.file.state.DirectoryId.UnmodifiableDirectoryId;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.JournalEntryIterable;
+import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
+
+import java.util.Iterator;
 
 /**
  * Coordinator for persisted master state, i.e. state that must be journaled, and which can be
@@ -27,7 +36,7 @@ import com.google.common.base.Preconditions;
  * As we move more master functionality behind this abstraction, this class will grow to eventually
  * own all master state.
  */
-public final class PersistentFsMasterState {
+public final class PersistentFsMasterState implements JournalEntryIterable {
   private static final IndexDefinition<Inode<?>> ID_INDEX = new IndexDefinition<Inode<?>>(true) {
     @Override
     public Object getFieldValue(Inode<?> o) {
@@ -37,6 +46,7 @@ public final class PersistentFsMasterState {
 
   /** Use UniqueFieldIndex directly for ID index rather than using IndexedSet. */
   private final FieldIndex<Inode<?>> mInodes = new UniqueFieldIndex<>(ID_INDEX);
+  private final DirectoryId mNextDirectoryId = new DirectoryId();
 
   /**
    * @return the inodes of the inode tree, indexed by id
@@ -45,6 +55,13 @@ public final class PersistentFsMasterState {
     // Once all state changes are captured within this class, we will change this to return an
     // immutable view.
     return mInodes;
+  }
+
+  /**
+   * @return the next directory id
+   */
+  public UnmodifiableDirectoryId getNextDirectoryId() {
+    return mNextDirectoryId.getImmutableView();
   }
 
   /**
@@ -59,17 +76,37 @@ public final class PersistentFsMasterState {
       Preconditions.checkState(dir.isDirectory(),
           "Encountered non-directory id in persist directory entry");
       dir.setPersistenceState(PersistenceState.PERSISTED);
+    } else if (entry.hasInodeDirectoryIdGenerator()) {
+      InodeDirectoryIdGeneratorEntry idEntry = entry.getInodeDirectoryIdGenerator();
+      mNextDirectoryId.setContainerId(idEntry.getContainerId());
+      mNextDirectoryId.setSequenceNumber(idEntry.getSequenceNumber());
     }
   }
 
   /**
-   * Applies a journal entry and records it in the rpc context.
+   * Applies a journal entry and records it in the journal.
    *
-   * @param rpcContext the rpc context
+   * @param rpcContext rpc context
    * @param entry the entry
    */
   public void applyAndJournal(RpcContext rpcContext, JournalEntry entry) {
+    applyAndJournal(rpcContext.getJournalContext(), entry);
+  }
+
+  /**
+   * Applies a journal entry and records it in the journal.
+   *
+   * @param journalContext journal context
+   * @param entry the entry
+   */
+  public void applyAndJournal(JournalContext journalContext, JournalEntry entry) {
     apply(entry);
-    rpcContext.journal(entry);
+    journalContext.append(entry);
+  }
+
+  @Override
+  public Iterator<JournalEntry> getJournalEntryIterator() {
+    return CommonUtils.singleElementIterator(InodeDirectoryIdGenerator
+        .toEntry(mNextDirectoryId.getContainerId(), mNextDirectoryId.getSequenceNumber()));
   }
 }

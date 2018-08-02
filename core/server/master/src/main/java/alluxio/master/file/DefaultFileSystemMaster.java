@@ -79,6 +79,7 @@ import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
+import alluxio.master.file.state.PersistentFsMasterState;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.metrics.MasterMetrics;
@@ -404,7 +405,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     mState = new PersistentFsMasterState();
     mBlockMaster = blockMaster;
-    mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
+    mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster, mState);
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager);
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable, mState);
@@ -493,7 +494,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     } else if (entry.hasRename()) {
       renameFromEntry(entry.getRename());
     } else if (entry.hasInodeDirectoryIdGenerator()) {
-      mDirectoryIdGenerator.initFromJournalEntry(entry.getInodeDirectoryIdGenerator());
+      mState.apply(entry);
     } else if (entry.hasReinitializeFile()) {
       resetBlockFileFromEntry(entry.getReinitializeFile());
     } else if (entry.hasAddMountPoint()) {
@@ -565,12 +566,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
     return Iterators.concat(mInodeTree.getJournalEntryIterator(),
-        CommonUtils.singleElementIterator(mDirectoryIdGenerator.toJournalEntry()),
         // The mount table should be written to the checkpoint after the inodes are written, so that
         // when replaying the checkpoint, the inodes exist before mount entries. Replaying a mount
         // entry traverses the inode tree.
         mMountTable.getJournalEntryIterator(),
-        mUfsManager.getJournalEntryIterator()
+        mUfsManager.getJournalEntryIterator(),
+        mState.getJournalEntryIterator()
     );
   }
 
