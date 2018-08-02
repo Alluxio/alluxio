@@ -2268,7 +2268,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         while (!sameMountDirs.empty()) {
           InodeDirectory dir = sameMountDirs.pop();
           if (!dir.isPersisted()) {
-            mInodeTree.syncPersistDirectory(rpcContext, dir);
+            mInodeTree.syncPersistExistingDirectory(rpcContext, dir);
           }
         }
 
