@@ -44,6 +44,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -152,15 +153,17 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // org.apache.hadoop.fs.FileSystem.close may check the existence of certain temp files before
     // closing
     super.close();
-    synchronized (CACHED_CONTEXTS_LOCK) {
-      Pair<FileSystemContext, AtomicInteger> contextAndRefCount =
-          CACHED_CONTEXTS.get(mContext.getParentSubject());
-      if (contextAndRefCount == null) {
-        LOG.warn("Failed to find context to close, have you called close multiple times?");
-        return;
-      }
-      if (contextAndRefCount.getSecond().decrementAndGet() == 0) {
-        contextAndRefCount.getFirst().close();
+    if (mContext != null) {
+      synchronized (CACHED_CONTEXTS_LOCK) {
+        Pair<FileSystemContext, AtomicInteger> contextAndRefCount =
+            CACHED_CONTEXTS.get(mContext.getParentSubject());
+        if (contextAndRefCount == null) {
+          LOG.warn("Failed to find context to close, have you called close multiple times?");
+          return;
+        }
+        if (contextAndRefCount.getSecond().decrementAndGet() == 0) {
+          contextAndRefCount.getFirst().close();
+        }
       }
     }
   }
@@ -759,5 +762,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     return workers.stream().collect(
         toMap(worker -> worker.getNetAddress().getHost(), BlockWorkerInfo::getNetAddress,
             (worker1, worker2) -> worker1));
+  }
+
+  @VisibleForTesting
+  static void clearCachedContexts() {
+    CACHED_CONTEXTS.clear();
   }
 }
