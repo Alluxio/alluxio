@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -55,14 +56,15 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   private long mLastModificationTimeMs;
   private String mName;
   private long mParentId;
+  @GuardedBy("mPersistenceLock")
   private PersistenceState mPersistenceState;
   private boolean mPinned;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
 
   // Non-journaled state
-  // Boolean indicating whether the inode is in the process of being persisted
-  private AtomicBoolean mPersisting;
+  // Lock guarding access to this inode's persistence state. True means locked.
+  private AtomicBoolean mPersistenceLock;
   private final ReentrantReadWriteLock mLock;
 
   protected Inode(long id, boolean isDirectory) {
@@ -79,7 +81,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mPinned = false;
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
-    mPersisting = new AtomicBoolean(false);
+    mPersistenceLock = new AtomicBoolean(false);
     mLock = new ReentrantReadWriteLock();
   }
 
@@ -147,14 +149,14 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * Compare-and-swaps the persisting flag.
+   * Tries to acquire a lock on persisting the inode.
    *
-   * @return true if the compare-and-swap succeeds. False return indicates that someone else
-   *         already successfully called acquirePersisting()
+   * @return Empty if the lock is already taken, otherwise return a function which will release
+   *         ownership of the inode's persistence state
    */
-  public Optional<Scoped> acquirePersisting() {
-    if (mPersisting.compareAndSet(false, true)) {
-      return Optional.of(() -> mPersisting.set(false));
+  public Optional<Scoped> tryAcquirePersistenceLock() {
+    if (mPersistenceLock.compareAndSet(false, true)) {
+      return Optional.of(() -> mPersistenceLock.set(false));
     }
     return Optional.empty();
   }

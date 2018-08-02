@@ -1142,7 +1142,7 @@ public class InodeTree implements JournalEntryIterable {
         // The directory is persisted
         return;
       }
-      Optional<Scoped> persisting = dir.acquirePersisting();
+      Optional<Scoped> persisting = dir.tryAcquirePersistenceLock();
       if (!persisting.isPresent()) {
         // Someone else is doing this persist. Continue and wait for them to finish.
         continue;
