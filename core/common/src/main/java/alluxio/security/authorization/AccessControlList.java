@@ -247,13 +247,7 @@ public class AccessControlList implements Serializable {
     // TODO(cc): when setting non-mask entries, the mask should be dynamically updated too.
     switch (entry.getType()) {
       case NAMED_USER:  // fall through
-      case NAMED_GROUP:
-        if (mExtendedEntries == null) {
-          mExtendedEntries = new ExtendedACLEntries();
-        }
-        mExtendedEntries.setEntry(entry);
-        updateMask();
-        return;
+      case NAMED_GROUP: // fall through
       case MASK:
         if (mExtendedEntries == null) {
           mExtendedEntries = new ExtendedACLEntries();
@@ -270,7 +264,6 @@ public class AccessControlList implements Serializable {
         Mode modeGroup = new Mode(mMode);
         modeGroup.setGroupBits(entry.getActions().toModeBits());
         mMode = modeGroup.toShort();
-        updateMask();
         return;
       case OTHER:
         Mode modeOther = new Mode(mMode);
