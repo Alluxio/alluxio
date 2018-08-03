@@ -67,7 +67,7 @@ public final class MultiPartSchemeURI extends StandardURI {
       String schemePrefix = schemeComponents.getFirst();
 
       return new MultiPartSchemeURI(schemePrefix, mScheme,
-          mAuthority.getAuthority(), newPath, mQuery);
+          mAuthority.getWholeAuthority(), newPath, mQuery);
     }
     return new MultiPartSchemeURI(this, mFullScheme, newPath);
   }

@@ -133,7 +133,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   @Nullable
   public String getAuthority() {
-    return mUri.getAuthority().getAuthority();
+    return mUri.getAuthority().getWholeAuthority();
   }
 
   /**
@@ -315,8 +315,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   @Nullable
   public String getZookeeperAddress() {
     if (isZookeeperURI()) {
-      ZookeeperAuthority zkAuthority = (ZookeeperAuthority) mUri.getAuthority();
-      return zkAuthority.getZookeeperAddress();
+     return mUri.getAuthority().getConnectionAddress();
     }
     return null;
   }
@@ -327,7 +326,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return true if it has, false otherwise
    */
   public boolean hasAuthority() {
-    return mUri.getAuthority().getAuthority() != null;
+    return mUri.getAuthority().getWholeAuthority() != null;
   }
 
   @Override
@@ -402,7 +401,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * @return whether or not the {@link AlluxioURI} is a Alluxio on Zookeeper URI
+   * @return whether or not the {@link AlluxioURI} is a Alluxio URI that contains Zookeeper address
    */
   public boolean isZookeeperURI() {
     return mUri.getAuthority() instanceof ZookeeperAuthority;
@@ -483,7 +482,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       sb.append(mUri.getScheme());
       sb.append("://");
     }
-    if (mUri.getAuthority().getAuthority() != null) {
+    if (mUri.getAuthority().getWholeAuthority() != null) {
       if (mUri.getScheme() == null) {
         sb.append("//");
       }

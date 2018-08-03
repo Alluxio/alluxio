@@ -85,7 +85,7 @@ public class StandardURI implements URI {
   @Override
   public URI createNewPath(String newPath, boolean checkNormalization) {
     if (checkNormalization && URIUtils.needsNormalization(newPath)) {
-      return new StandardURI(mScheme, mAuthority.getAuthority(), newPath, mQuery);
+      return new StandardURI(mScheme, mAuthority.getWholeAuthority(), newPath, mQuery);
     }
     return new StandardURI(this, newPath);
   }
@@ -261,7 +261,7 @@ public class StandardURI implements URI {
         hashCode = URIUtils.hashIgnoreCase(hashCode, mHost);
         hashCode += 1949 * mPort;
       } else {
-        hashCode = URIUtils.hash(hashCode, mAuthority.getAuthority());
+        hashCode = URIUtils.hash(hashCode, mAuthority.getWholeAuthority());
       }
     }
     mHashCode = hashCode;

@@ -31,10 +31,8 @@ public final class ZookeeperAuthority extends HostnameAuthority {
     mZookeeperAddress = getZookeeperAddress(authority);
   }
 
-  /**
-   * @return the Zookeeper address
-   */
-  public String getZookeeperAddress() {
+  @Override
+  public String getConnectionAddress() {
     return mZookeeperAddress;
   }
 

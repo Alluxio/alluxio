@@ -39,5 +39,11 @@ public interface Authority extends Comparable<Authority>, Serializable {
    * @return the whole authority string
    */
   @Nullable
-  String getAuthority();
+  String getWholeAuthority();
+
+  /**
+   * @return the connection address from the authority
+   */
+  @Nullable
+  String getConnectionAddress();
 }

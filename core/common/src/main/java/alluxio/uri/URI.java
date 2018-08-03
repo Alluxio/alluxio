@@ -149,9 +149,9 @@ public interface URI extends Comparable<URI>, Serializable {
       try {
         // To be compatible with URI, must use the last component of the scheme.
         parentUri = new java.net.URI(getSchemeComponents(parent.getScheme()).getSecond(),
-            parent.getAuthority().getAuthority(), parentPath, parent.getQuery(), null);
+            parent.getAuthority().getWholeAuthority(), parentPath, parent.getQuery(), null);
         childUri = new java.net.URI(getSchemeComponents(child.getScheme()).getSecond(),
-            child.getAuthority().getAuthority(), child.getPath(), child.getQuery(), null);
+            child.getAuthority().getWholeAuthority(), child.getPath(), child.getQuery(), null);
       } catch (URISyntaxException e) {
         throw new IllegalArgumentException(e);
       }

@@ -480,7 +480,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
-   * Initializes the default contexts if the connection configuration specified in the URI
+   * Initializes the default contexts if the connection details specified in the URI + hadoop conf
    * is different from the default one.
    */
   void initializeInternal() throws IOException {

@@ -30,22 +30,24 @@ public class HostnameAuthority implements Authority {
     mAuthority = authority;
   }
 
-  /**
-   * @return an authority
-   */
-  @Nullable
-  public String getAuthority() {
+  @Override
+  public String getWholeAuthority() {
+    return mAuthority;
+  }
+
+  @Override
+  public String getConnectionAddress() {
     return mAuthority;
   }
 
   @Override
   public int compareTo(Authority other) {
-    if (mAuthority == null && other.getAuthority() == null) {
+    if (mAuthority == null && other.getWholeAuthority() == null) {
       return 0;
     }
     if (mAuthority != null) {
-      if (other.getAuthority() != null) {
-        return URIUtils.compare(mAuthority, other.getAuthority());
+      if (other.getWholeAuthority() != null) {
+        return URIUtils.compare(mAuthority, other.getWholeAuthority());
       }
       // not null is greater than 'null'.
       return 1;
