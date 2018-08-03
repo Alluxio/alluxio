@@ -16,7 +16,7 @@ a successful response to the client. The journal entry is written to a
 persistent storage such as disk or HDFS, so even if the Alluxio
 master process is killed, state will be recovered on restart.
 
-# Configuration
+## Configuration
 
 The most important configuration value to set for the journal is
 `alluxio.master.journal.folder`. This must be set to a shared filesystem available
@@ -38,7 +38,7 @@ Use the local file system to store the journal:
 alluxio.master.journal.folder=/opt/alluxio/journal
 ```
 
-# Formatting
+## Formatting
 
 Before starting Alluxio for the first time, the journal must be formatted.
 
@@ -47,7 +47,7 @@ Before starting Alluxio for the first time, the journal must be formatted.
 $ bin/alluxio formatMaster
 ```
 
-# Backup
+## Backup
 
 Alluxio supports taking journal backups so that Alluxio metadata can be restored
 to a previous point in time. Generating a backup causes temporary service
@@ -70,7 +70,7 @@ alluxio.master.backup.directory=/alluxio/backups
 See the [backup command documentation](Admin-CLI.html#backup) for additional options for specifying
 where to write a backup.
 
-# Restore
+## Restore
 
 To restore the Alluxio system from a journal backup, stop the system, format the
 journal, then restart the system, passing the URI of the backup with the `-i`

@@ -474,22 +474,19 @@ public class CommonUtilsTest {
     List<Callable<Void>> tasks = new ArrayList<>();
     final Exception testException = new Exception("test message");
     for (int i = 0; i < numTasks; i++) {
-      tasks.add(new Callable<Void>() {
-        @Override
-        public Void call() throws Exception {
-          int myId = id.incrementAndGet();
-          // The 3rd task throws an exception, other tasks sleep.
-          if (myId == 3) {
-            throw testException;
-          } else {
-            Thread.sleep(10 * Constants.SECOND_MS);
-          }
-          return null;
+      tasks.add(() -> {
+        int myId = id.incrementAndGet();
+        // The 3rd task throws an exception, other tasks sleep.
+        if (myId == 3) {
+          throw testException;
+        } else {
+          Thread.sleep(10 * Constants.SECOND_MS);
         }
+        return null;
       });
     }
     try {
-      CommonUtils.invokeAll(tasks, 50, TimeUnit.MILLISECONDS);
+      CommonUtils.invokeAll(tasks, 500, TimeUnit.MILLISECONDS);
       fail("Expected an exception to be thrown");
     } catch (Exception e) {
       assertSame(testException, e);

@@ -88,18 +88,18 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
 
   // Master metadata management.
-  private static final IndexDefinition<MasterInfo> ID_INDEX =
-      new IndexDefinition<MasterInfo>(true) {
+  private static final IndexDefinition<MasterInfo, Long> ID_INDEX =
+      new IndexDefinition<MasterInfo, Long>(true) {
         @Override
-        public Object getFieldValue(MasterInfo o) {
+        public Long getFieldValue(MasterInfo o) {
           return o.getId();
         }
       };
 
-  private static final IndexDefinition<MasterInfo> ADDRESS_INDEX =
-      new IndexDefinition<MasterInfo>(true) {
+  private static final IndexDefinition<MasterInfo, Address> ADDRESS_INDEX =
+      new IndexDefinition<MasterInfo, Address>(true) {
         @Override
-        public Object getFieldValue(MasterInfo o) {
+        public Address getFieldValue(MasterInfo o) {
           return o.getAddress();
         }
       };

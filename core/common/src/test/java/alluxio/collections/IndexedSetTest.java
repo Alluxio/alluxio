@@ -49,24 +49,24 @@ public final class IndexedSetTest {
   }
 
   private IndexedSet<Pair> mSet;
-  private IndexDefinition<Pair> mNonUniqueIntIndex;
-  private IndexDefinition<Pair> mUniqueLongIndex;
+  private IndexDefinition<Pair, Integer> mNonUniqueIntIndex;
+  private IndexDefinition<Pair, Long> mUniqueLongIndex;
 
   /**
    * Sets up the fields before running a test.
    */
   @Before
   public void before() {
-    mNonUniqueIntIndex = new IndexDefinition<Pair>(false) {
+    mNonUniqueIntIndex = new IndexDefinition<Pair, Integer>(false) {
       @Override
-      public Object getFieldValue(Pair o) {
+      public Integer getFieldValue(Pair o) {
         return o.intValue();
       }
     };
 
-    mUniqueLongIndex = new IndexDefinition<Pair>(true) {
+    mUniqueLongIndex = new IndexDefinition<Pair, Long>(true) {
       @Override
-      public Object getFieldValue(Pair o) {
+      public Long getFieldValue(Pair o) {
         return o.longValue();
       }
     };
@@ -127,9 +127,7 @@ public final class IndexedSetTest {
   @Test
   public void uniqueGet() {
     for (int i = 0; i < 9; i++) {
-      Set<Pair> set = mSet.getByField(mUniqueLongIndex, i);
-      assertEquals(0, set.size()); // i is integer, must be in the same type
-      set = mSet.getByField(mUniqueLongIndex, (long) i);
+      Set<Pair> set = mSet.getByField(mUniqueLongIndex, (long) i);
       assertEquals(1, set.size());
       assertEquals(i / 3, set.iterator().next().intValue());
     }
@@ -170,8 +168,6 @@ public final class IndexedSetTest {
     assertTrue(mSet.remove(toRemove));
     assertFalse("Element should not be in the NonUniqueIntIndex",
         mSet.contains(mNonUniqueIntIndex, toRemove.intValue()));
-    assertFalse("Element should not be in the mNonUniqueIntIndex",
-        mSet.contains(mNonUniqueIntIndex, toRemove.longValue()));
 
     toRemove = mSet.getFirstByField(mNonUniqueIntIndex, 2);
     assertTrue(toRemove == null);

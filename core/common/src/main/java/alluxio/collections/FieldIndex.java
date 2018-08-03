@@ -20,9 +20,10 @@ import java.util.Set;
  * must use the same instance of the implementation of this interface as the parameter in all
  * methods of {@link IndexedSet} to represent the same index.
  *
- * @param <T> type of objects in {@link IndexedSet}
+ * @param <T> type of objects in this index
+ * @param <V> type of the field used for indexing
  */
-public interface FieldIndex<T> extends Iterable<T> {
+public interface FieldIndex<T, V> extends Iterable<T> {
   /**
    * Adds an object o to the index.
    *
@@ -50,7 +51,7 @@ public interface FieldIndex<T> extends Iterable<T> {
    * @param fieldValue the field value to be satisfied
    * @return true if there is one such object, otherwise false
    */
-  boolean containsField(Object fieldValue);
+  boolean containsField(V fieldValue);
 
   /**
    * Returns whether there is an object in the set.
@@ -67,7 +68,7 @@ public interface FieldIndex<T> extends Iterable<T> {
    * @param value the field value to be satisfied
    * @return the set of objects or an empty set if no such object exists
    */
-  Set<T> getByField(Object value);
+  Set<T> getByField(V value);
 
   /**
    * Gets an object from the set of objects with the specified field value.
@@ -75,7 +76,7 @@ public interface FieldIndex<T> extends Iterable<T> {
    * @param value the field value to be satisfied
    * @return the object or null if there is no such object
    */
-  T getFirst(Object value);
+  T getFirst(V value);
 
   /**
    * Returns an iterator over the elements in this index. The elements are returned in no particular

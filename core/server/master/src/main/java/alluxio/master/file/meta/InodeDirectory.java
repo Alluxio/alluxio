@@ -38,15 +38,16 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> {
-  private static final IndexDefinition<Inode<?>> NAME_INDEX = new IndexDefinition<Inode<?>>(true) {
-    @Override
-    public Object getFieldValue(Inode<?> o) {
-      return o.getName();
-    }
-  };
+  private static final IndexDefinition<Inode<?>, String> NAME_INDEX =
+      new IndexDefinition<Inode<?>, String>(true) {
+        @Override
+        public String getFieldValue(Inode<?> o) {
+          return o.getName();
+        }
+      };
 
   /** Use UniqueFieldIndex directly for name index rather than using IndexedSet. */
-  private final FieldIndex<Inode<?>> mChildren = new UniqueFieldIndex<>(NAME_INDEX);
+  private final FieldIndex<Inode<?>, String> mChildren = new UniqueFieldIndex<>(NAME_INDEX);
 
   private boolean mMountPoint;
 
@@ -63,7 +64,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     super(id, true);
     mMountPoint = false;
     mDirectChildrenLoaded = false;
-    mDefaultAcl = new DefaultAccessControlList();
+    mDefaultAcl = new DefaultAccessControlList(mAcl);
   }
 
   @Override
