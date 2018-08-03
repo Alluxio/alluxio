@@ -11,6 +11,7 @@
 
 package alluxio.uri;
 
+import alluxio.AlluxioURI;
 import alluxio.util.URIUtils;
 
 import java.net.URISyntaxException;

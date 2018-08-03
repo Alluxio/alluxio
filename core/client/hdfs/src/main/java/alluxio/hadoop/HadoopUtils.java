@@ -11,7 +11,7 @@
 
 package alluxio.hadoop;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 
 import org.apache.hadoop.conf.Configuration;

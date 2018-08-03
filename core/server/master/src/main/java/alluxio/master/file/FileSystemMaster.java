@@ -11,7 +11,7 @@
 
 package alluxio.master.file;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;

@@ -17,7 +17,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;

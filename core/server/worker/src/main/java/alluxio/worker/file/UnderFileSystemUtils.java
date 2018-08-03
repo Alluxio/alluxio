@@ -11,7 +11,7 @@
 
 package alluxio.worker.file;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;

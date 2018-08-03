@@ -11,7 +11,7 @@
 
 package alluxio.master.file;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 
 import com.google.common.base.Preconditions;
 

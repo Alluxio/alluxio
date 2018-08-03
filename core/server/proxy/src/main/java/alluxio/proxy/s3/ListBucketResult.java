@@ -11,7 +11,7 @@
 
 package alluxio.proxy.s3;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.wire.FileInfo;
 

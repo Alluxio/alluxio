@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 
 import org.junit.Rule;
 import org.junit.Test;

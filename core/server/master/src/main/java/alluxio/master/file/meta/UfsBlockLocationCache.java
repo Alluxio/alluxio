@@ -11,7 +11,7 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 
 import java.util.List;
 

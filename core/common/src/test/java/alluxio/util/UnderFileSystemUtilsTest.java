@@ -11,7 +11,7 @@
 
 package alluxio.util;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 
 import org.junit.Assert;
 import org.junit.Test;

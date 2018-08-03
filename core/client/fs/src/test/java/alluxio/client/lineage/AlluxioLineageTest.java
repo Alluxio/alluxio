@@ -14,7 +14,7 @@ package alluxio.client.lineage;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.client.lineage.options.DeleteLineageOptions;

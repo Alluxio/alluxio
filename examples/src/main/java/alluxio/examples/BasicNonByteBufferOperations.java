@@ -11,7 +11,7 @@
 
 package alluxio.examples;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;

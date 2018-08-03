@@ -11,7 +11,7 @@
 
 package alluxio.proxy;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.RestUtils;
 import alluxio.StreamCache;
 import alluxio.client.file.FileInStream;

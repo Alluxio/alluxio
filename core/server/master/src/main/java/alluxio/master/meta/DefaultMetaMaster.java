@@ -11,7 +11,7 @@
 
 package alluxio.master.meta;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.Constants;

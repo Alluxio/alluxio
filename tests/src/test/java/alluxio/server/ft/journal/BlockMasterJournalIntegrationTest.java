@@ -14,7 +14,7 @@ package alluxio.server.ft.journal;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;

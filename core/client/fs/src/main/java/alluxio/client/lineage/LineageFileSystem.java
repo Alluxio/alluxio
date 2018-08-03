@@ -11,7 +11,7 @@
 
 package alluxio.client.lineage;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileOutStream;

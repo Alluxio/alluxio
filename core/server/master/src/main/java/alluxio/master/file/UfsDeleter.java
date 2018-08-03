@@ -11,7 +11,7 @@
 
 package alluxio.master.file;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
 

@@ -13,7 +13,7 @@ package alluxio.server.ft.journal.ufs;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;

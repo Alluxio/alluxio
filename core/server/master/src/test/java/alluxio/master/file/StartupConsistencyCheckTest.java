@@ -13,7 +13,7 @@ package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.master.file.StartupConsistencyCheck.Status;
 
 import com.google.common.collect.ImmutableList;

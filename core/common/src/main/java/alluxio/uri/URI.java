@@ -11,6 +11,7 @@
 
 package alluxio.uri;
 
+import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 
 import com.google.common.base.Preconditions;

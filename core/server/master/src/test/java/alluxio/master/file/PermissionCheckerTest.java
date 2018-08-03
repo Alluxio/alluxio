@@ -13,7 +13,7 @@ package alluxio.master.file;
 
 import static org.mockito.Mockito.mock;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;

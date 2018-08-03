@@ -9,9 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.uri;
+package alluxio;
 
 import alluxio.annotation.PublicApi;
+import alluxio.uri.URI;
+import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
 

@@ -13,7 +13,7 @@ package alluxio.underfs.gcs;
 
 import static org.junit.Assert.assertFalse;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 

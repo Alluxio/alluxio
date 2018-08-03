@@ -12,7 +12,7 @@
 package alluxio.multi.process;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;

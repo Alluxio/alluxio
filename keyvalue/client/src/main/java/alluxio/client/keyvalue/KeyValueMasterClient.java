@@ -12,7 +12,7 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AbstractMasterClient;
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;

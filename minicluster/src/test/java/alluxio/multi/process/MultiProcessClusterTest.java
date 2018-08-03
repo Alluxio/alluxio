@@ -14,7 +14,7 @@ package alluxio.multi.process;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;

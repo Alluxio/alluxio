@@ -11,7 +11,7 @@
 
 package alluxio.client.keyvalue;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 

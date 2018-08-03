@@ -15,7 +15,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;

@@ -19,7 +19,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.AuthenticatedClientUserResource;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;

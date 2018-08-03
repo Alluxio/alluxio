@@ -11,7 +11,7 @@
 
 package alluxio.master.lineage;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyExistsException;

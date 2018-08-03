@@ -11,7 +11,7 @@
 
 package alluxio.examples.keyvalue;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
 import alluxio.cli.CliUtils;
 import alluxio.client.keyvalue.KeyValueIterator;

@@ -11,7 +11,7 @@
 
 package alluxio.exception;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 
 import javax.annotation.concurrent.ThreadSafe;
 

@@ -14,7 +14,7 @@ package alluxio.client.cli.fs.command;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;

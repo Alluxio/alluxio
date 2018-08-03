@@ -11,7 +11,7 @@
 
 package alluxio.client.keyvalue;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.exception.AlluxioException;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.PartitionInfo;

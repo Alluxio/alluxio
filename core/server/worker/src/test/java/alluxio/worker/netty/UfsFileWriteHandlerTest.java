@@ -11,7 +11,7 @@
 
 package alluxio.worker.netty;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.status.Status.PStatus;
 import alluxio.underfs.UfsManager;

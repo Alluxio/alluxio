@@ -13,7 +13,7 @@ package alluxio.server.ft.journal;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.uri.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
