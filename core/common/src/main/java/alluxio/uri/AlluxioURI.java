@@ -315,7 +315,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   @Nullable
   public String getZookeeperAddress() {
     if (isZookeeperURI()) {
-     return mUri.getAuthority().getConnectionAddress();
+      return mUri.getAuthority().getConnectionAddress();
     }
     return null;
   }

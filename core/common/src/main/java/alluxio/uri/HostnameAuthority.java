@@ -13,8 +13,6 @@ package alluxio.uri;
 
 import alluxio.util.URIUtils;
 
-import javax.annotation.Nullable;
-
 /**
  * A hostname authority implementation.
  */
