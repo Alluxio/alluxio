@@ -196,8 +196,7 @@ set the Zookeeper configuration in framework-specific configuration files
 (e.g. core-site.xml for Hadoop MapReduce) or use the Alluxio URI directly.
 
 If the client side Zookeeper configuration is properly set, users can use 'alluxio:///path' to connect to the cluster. 
-Any host provided in the URL is ignored; `alluxio.zookeeper.address` is used instead for finding the
-Alluxio leader master.
+`alluxio.zookeeper.address` is used for finding the Alluxio leader master.
 
 ```
 hadoop fs -ls alluxio:///directory

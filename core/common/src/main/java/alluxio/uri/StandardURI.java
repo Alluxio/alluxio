@@ -44,21 +44,19 @@ public class StandardURI implements URI {
    * @param path the path component of the URI
    * @param query the query component of the URI
    */
-  public StandardURI(String scheme, Authority authority, String path, String query) {
+  public StandardURI(String scheme, String authority, String path, String query) {
     try {
       // Use java.net.URI to parse the URI components.
       java.net.URI uri;
       if (AlluxioURI.CUR_DIR.equals(path)) {
-        uri = new java.net.URI(scheme, authority.getAuthority(),
-            AlluxioURI.normalizePath(path), query, null);
+        uri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null);
       } else {
-        uri = new java.net.URI(scheme, authority.getAuthority(),
-            AlluxioURI.normalizePath(path), query, null)
+        uri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null)
             .normalize();
       }
       mScheme = uri.getScheme();
       mSchemeSpecificPart = uri.getSchemeSpecificPart();
-      mAuthority = authority;
+      mAuthority = Authority.Factory.create(uri.getAuthority());
       mHost = uri.getHost();
       mPort = uri.getPort();
       mPath = uri.getPath();
@@ -87,7 +85,7 @@ public class StandardURI implements URI {
   @Override
   public URI createNewPath(String newPath, boolean checkNormalization) {
     if (checkNormalization && URIUtils.needsNormalization(newPath)) {
-      return new StandardURI(mScheme, mAuthority, newPath, mQuery);
+      return new StandardURI(mScheme, mAuthority.getAuthority(), newPath, mQuery);
     }
     return new StandardURI(this, newPath);
   }

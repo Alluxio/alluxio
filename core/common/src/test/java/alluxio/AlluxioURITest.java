@@ -14,6 +14,7 @@ package alluxio;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -72,10 +73,12 @@ public class AlluxioURITest {
     assertEquals("/xy z/a b c", uri.getPath());
     assertEquals(-1, uri.getPort());
     assertEquals("hdfs", uri.getScheme());
+    assertNull(uri.getZookeeperAddress());
     assertTrue(uri.hasAuthority());
     assertTrue(uri.hasScheme());
     assertTrue(uri.isAbsolute());
     assertTrue(uri.isPathAbsolute());
+    assertFalse(uri.isZookeeperURI());
     assertEquals("hdfs://localhost/xy z/a b c/d", uri.join("/d").toString());
     assertEquals("hdfs://localhost/xy z/a b c/d", uri.join(new AlluxioURI("/d"))
         .toString());
@@ -95,10 +98,12 @@ public class AlluxioURITest {
     assertEquals("scheme:part2://localhost:8000/xy z", uri.getParent().toString());
     assertEquals("scheme:part2://localhost:8000/", uri.getParent().getParent().toString());
     assertEquals("/xy z/a b c", uri.getPath());
+    assertNull(uri.getZookeeperAddress());
     assertTrue(uri.hasAuthority());
     assertTrue(uri.hasScheme());
     assertTrue(uri.isAbsolute());
     assertTrue(uri.isPathAbsolute());
+    assertFalse(uri.isZookeeperURI());
     assertEquals("scheme:part2://localhost:8000/xy z/a b c/d", uri.join("/d").toString());
     assertEquals("scheme:part2://localhost:8000/xy z/a b c/d", uri.join(new AlluxioURI("/d"))
         .toString());
@@ -112,8 +117,11 @@ public class AlluxioURITest {
     assertEquals(uri,
         new AlluxioURI("alluxio://zk@host1:port1,host2:port2,host3:port3/xy z/a b c"));
     assertEquals("alluxio", uri.getScheme());
+
     assertEquals("zk@host1:port1,host2:port2,host3:port3", uri.getAuthority());
     assertEquals("host1:port1,host2:port2,host3:port3", uri.getZookeeperAddress());
+    assertTrue(uri.isZookeeperURI());
+
     assertEquals(null, uri.getHost());
     assertEquals(-1, uri.getPort());
     assertEquals(2, uri.getDepth());
@@ -134,6 +142,15 @@ public class AlluxioURITest {
         .toString());
     assertEquals("alluxio://zk@host1:port1,host2:port2,host3:port3/xy z/a b c",
         uri.toString());
+  }
+
+  @Test
+  public void semicolonZookeeperUri() {
+    AlluxioURI uri =
+        new AlluxioURI("alluxio://zk@host1:port1;host2:port2;host3:port3/xy z/a b c");
+    assertEquals("zk@host1:port1;host2:port2;host3:port3", uri.getAuthority());
+    assertEquals("host1:port1,host2:port2,host3:port3", uri.getZookeeperAddress());
+    assertTrue(uri.isZookeeperURI());
   }
 
   /**

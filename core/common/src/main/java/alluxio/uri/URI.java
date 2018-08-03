@@ -124,12 +124,10 @@ public interface URI extends Comparable<URI>, Serializable {
       String schemePrefix = schemeComponents.getFirst();
       scheme = schemeComponents.getSecond();
 
-      Authority newAuthority = Authority.Factory.create(authority);
-
       if (scheme == null || schemePrefix.isEmpty()) {
-        return new StandardURI(scheme, newAuthority, path, query);
+        return new StandardURI(scheme, authority, path, query);
       } else {
-        return new MultiPartSchemeURI(schemePrefix, scheme, newAuthority, path, query);
+        return new MultiPartSchemeURI(schemePrefix, scheme, authority, path, query);
       }
     }
 

@@ -13,6 +13,8 @@ package alluxio.uri;
 
 import alluxio.util.URIUtils;
 
+import javax.annotation.Nullable;
+
 /**
  * A hostname authority implementation.
  */
@@ -31,17 +33,18 @@ public class HostnameAuthority implements Authority {
   /**
    * @return an authority
    */
+  @Nullable
   public String getAuthority() {
     return mAuthority;
   }
 
   @Override
   public int compareTo(Authority other) {
-    if (mAuthority == null && other == null) {
+    if (mAuthority == null && other.getAuthority() == null) {
       return 0;
     }
     if (mAuthority != null) {
-      if (other != null) {
+      if (other.getAuthority() != null) {
         return URIUtils.compare(mAuthority, other.getAuthority());
       }
       // not null is greater than 'null'.

@@ -49,9 +49,9 @@ public class Source implements Comparable<Source> {
     SYSTEM_PROPERTY,
     /**
      * The property value is set by user during runtime (e.g., Configuration.set or through
-     * HadoopConf).
+     * HadoopConf). This source has the highest priority.
      */
-    RUNTIME
+    RUNTIME,
   }
 
   protected final Type mType;

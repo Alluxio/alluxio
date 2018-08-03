@@ -11,6 +11,7 @@
 
 package alluxio.uri;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
 /**
@@ -37,5 +38,6 @@ public interface Authority extends Comparable<Authority>, Serializable {
   /**
    * @return the whole authority string
    */
+  @Nullable
   String getAuthority();
 }

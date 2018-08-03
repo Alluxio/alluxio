@@ -327,7 +327,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return true if it has, false otherwise
    */
   public boolean hasAuthority() {
-    return mUri.getAuthority() != null;
+    return mUri.getAuthority().getAuthority() != null;
   }
 
   @Override

@@ -465,7 +465,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         ConnectDetails oldDetails = FileSystemContext.get()
             .getMasterInquireClient().getConnectDetails();
         if (!oldDetails.equals(newDetails)) {
-          LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_CONFIGURATION
+          LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS
               .getMessage(newDetails, oldDetails));
           initializeInternal();
         }
@@ -513,9 +513,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // We assume here that all clients use the same configuration.
     HadoopConfigurationUtils.mergeHadoopConfiguration(conf, Configuration.global());
 
-    // For backward compatibility
-    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
-
     // Connection configuration in the Alluxio URI has the highest priority
     AlluxioURI alluxioUri = new AlluxioURI(uri.toString());
     if (alluxioUri.isZookeeperURI()) {
@@ -526,7 +523,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       Configuration.set(PropertyKey.MASTER_RPC_PORT, alluxioUri.getPort());
       Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, false);
       if (Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
-        Configuration.unset(PropertyKey.ZOOKEEPER_ENABLED);
+        Configuration.unset(PropertyKey.ZOOKEEPER_ADDRESS);
       }
     }
   }

@@ -37,11 +37,11 @@ public final class MultiPartSchemeURI extends StandardURI {
   /**
    * @param schemePrefix the prefix of the scheme string of the URI
    * @param scheme the scheme string of the URI
-   * @param authority the authority of the URI
+   * @param authority the authority string of the URI
    * @param path the path component of the URI
    * @param query the query component of the URI
    */
-  public MultiPartSchemeURI(String schemePrefix, String scheme, Authority authority, String path,
+  public MultiPartSchemeURI(String schemePrefix, String scheme, String authority, String path,
       String query) {
     super(scheme, authority, path, query);
     mFullScheme = getFullScheme(schemePrefix, mScheme);
@@ -66,7 +66,8 @@ public final class MultiPartSchemeURI extends StandardURI {
       Pair<String, String> schemeComponents = getSchemeComponents(mFullScheme);
       String schemePrefix = schemeComponents.getFirst();
 
-      return new MultiPartSchemeURI(schemePrefix, mScheme, mAuthority, newPath, mQuery);
+      return new MultiPartSchemeURI(schemePrefix, mScheme,
+          mAuthority.getAuthority(), newPath, mQuery);
     }
     return new MultiPartSchemeURI(this, mFullScheme, newPath);
   }
