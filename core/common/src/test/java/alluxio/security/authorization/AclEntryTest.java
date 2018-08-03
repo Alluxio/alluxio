@@ -100,7 +100,7 @@ public class AclEntryTest {
     checkCliStringInvalid("mask:mask:---");
     checkCliStringInvalid("other:other:---");
 
-    checkCliStringInvalid( "default:user:test");
+    checkCliStringInvalid("default:user:test");
 
   }
 
