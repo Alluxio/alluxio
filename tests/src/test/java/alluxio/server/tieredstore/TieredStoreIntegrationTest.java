@@ -11,7 +11,7 @@
 
 package alluxio.server.tieredstore;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;

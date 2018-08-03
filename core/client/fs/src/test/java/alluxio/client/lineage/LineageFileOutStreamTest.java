@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;

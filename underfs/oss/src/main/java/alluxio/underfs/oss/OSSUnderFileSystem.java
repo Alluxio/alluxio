@@ -11,7 +11,7 @@
 
 package alluxio.underfs.oss;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;

@@ -11,7 +11,7 @@
 
 package alluxio.client.lineage;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;

@@ -11,7 +11,7 @@
 
 package alluxio.master.journal;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 

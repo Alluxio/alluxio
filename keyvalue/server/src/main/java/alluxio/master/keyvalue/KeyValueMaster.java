@@ -11,7 +11,7 @@
 
 package alluxio.master.keyvalue;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;

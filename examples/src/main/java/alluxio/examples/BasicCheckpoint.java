@@ -11,7 +11,7 @@
 
 package alluxio.examples;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.RuntimeConstants;
 import alluxio.cli.CliUtils;
 import alluxio.client.file.FileInStream;

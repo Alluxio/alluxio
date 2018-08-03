@@ -73,7 +73,7 @@ public final class CheckerUtils {
     // Check if the current node can recognize Alluxio classes
     try {
       // Check if the current node can recognize Alluxio common classes
-      Class.forName("alluxio.AlluxioURI");
+      Class.forName("alluxio.uri.AlluxioURI");
       // Check if current node can recognize Alluxio core client classes
       Class.forName("alluxio.client.file.BaseFileSystem");
       Class.forName("alluxio.hadoop.AlluxioFileSystem");

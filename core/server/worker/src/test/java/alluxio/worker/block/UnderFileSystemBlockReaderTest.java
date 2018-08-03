@@ -19,7 +19,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.any;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;

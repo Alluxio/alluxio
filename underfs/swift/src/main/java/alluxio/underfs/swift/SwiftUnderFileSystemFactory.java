@@ -11,7 +11,7 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;

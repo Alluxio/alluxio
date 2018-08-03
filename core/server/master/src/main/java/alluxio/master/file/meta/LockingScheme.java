@@ -11,7 +11,7 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 
 import javax.annotation.concurrent.ThreadSafe;
 

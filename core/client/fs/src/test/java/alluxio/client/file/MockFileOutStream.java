@@ -11,7 +11,7 @@
 
 package alluxio.client.file;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.client.file.options.OutStreamOptions;
 
 import java.io.ByteArrayOutputStream;

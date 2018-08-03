@@ -18,7 +18,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;

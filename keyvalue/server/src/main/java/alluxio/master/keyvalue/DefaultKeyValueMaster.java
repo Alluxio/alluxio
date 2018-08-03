@@ -11,7 +11,7 @@
 
 package alluxio.master.keyvalue;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Constants;
 import alluxio.Server;
 import alluxio.clock.SystemClock;

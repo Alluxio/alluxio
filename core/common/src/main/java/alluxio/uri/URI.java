@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.uri;
 
 import alluxio.collections.Pair;
 
@@ -124,14 +124,12 @@ public interface URI extends Comparable<URI>, Serializable {
       String schemePrefix = schemeComponents.getFirst();
       scheme = schemeComponents.getSecond();
 
-      String zkAuthorityPattern = "^zk@(.*)";
+      Authority newAuthority = Authority.Factory.create(authority);
 
-      if (authority != null && authority.matches(zkAuthorityPattern)) {
-        return new ZookeeperURI(scheme, authority, path, query);
-      } else if (scheme == null || schemePrefix.isEmpty()) {
-        return new StandardURI(scheme, authority, path, query);
+      if (scheme == null || schemePrefix.isEmpty()) {
+        return new StandardURI(scheme, newAuthority, path, query);
       } else {
-        return new MultiPartSchemeURI(schemePrefix, scheme, authority, path, query);
+        return new MultiPartSchemeURI(schemePrefix, scheme, newAuthority, path, query);
       }
     }
 
@@ -153,9 +151,9 @@ public interface URI extends Comparable<URI>, Serializable {
       try {
         // To be compatible with URI, must use the last component of the scheme.
         parentUri = new java.net.URI(getSchemeComponents(parent.getScheme()).getSecond(),
-            parent.getAuthority(), parentPath, parent.getQuery(), null);
+            parent.getAuthority().getAuthority(), parentPath, parent.getQuery(), null);
         childUri = new java.net.URI(getSchemeComponents(child.getScheme()).getSecond(),
-            child.getAuthority(), child.getPath(), child.getQuery(), null);
+            child.getAuthority().getAuthority(), child.getPath(), child.getQuery(), null);
       } catch (URISyntaxException e) {
         throw new IllegalArgumentException(e);
       }
@@ -219,7 +217,7 @@ public interface URI extends Comparable<URI>, Serializable {
   /**
    * @return the authority of the {@link URI}, null if it does not have one
    */
-  String getAuthority();
+  Authority getAuthority();
 
   /**
    * @return the host of the {@link URI}, null if it does not have one

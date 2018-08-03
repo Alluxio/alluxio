@@ -13,7 +13,7 @@ package alluxio.util.network;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;

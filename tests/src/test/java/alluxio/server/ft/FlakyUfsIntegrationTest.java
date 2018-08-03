@@ -14,7 +14,7 @@ package alluxio.server.ft;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;

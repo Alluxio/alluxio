@@ -11,7 +11,7 @@
 
 package alluxio.client.keyvalue;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;

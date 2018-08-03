@@ -11,7 +11,7 @@
 
 package alluxio.underfs;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.uri;
 
 import alluxio.util.URIUtils;
 
@@ -30,7 +30,7 @@ public class StandardURI implements URI {
    */
   protected final String mScheme;
   protected final String mSchemeSpecificPart;
-  protected final String mAuthority;
+  protected final Authority mAuthority;
   protected final String mHost;
   protected final int mPort;
   protected final String mPath;
@@ -44,19 +44,21 @@ public class StandardURI implements URI {
    * @param path the path component of the URI
    * @param query the query component of the URI
    */
-  public StandardURI(String scheme, String authority, String path, String query) {
+  public StandardURI(String scheme, Authority authority, String path, String query) {
     try {
       // Use java.net.URI to parse the URI components.
       java.net.URI uri;
       if (AlluxioURI.CUR_DIR.equals(path)) {
-        uri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null);
+        uri = new java.net.URI(scheme, authority.getAuthority(),
+            AlluxioURI.normalizePath(path), query, null);
       } else {
-        uri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null)
+        uri = new java.net.URI(scheme, authority.getAuthority(),
+            AlluxioURI.normalizePath(path), query, null)
             .normalize();
       }
       mScheme = uri.getScheme();
       mSchemeSpecificPart = uri.getSchemeSpecificPart();
-      mAuthority = uri.getAuthority();
+      mAuthority = authority;
       mHost = uri.getHost();
       mPort = uri.getPort();
       mPath = uri.getPath();
@@ -91,7 +93,7 @@ public class StandardURI implements URI {
   }
 
   @Override
-  public String getAuthority() {
+  public Authority getAuthority() {
     return mAuthority;
   }
 
@@ -160,7 +162,7 @@ public class StandardURI implements URI {
       if ((compare = mPort - other.getPort()) != 0) {
         return compare;
       }
-    } else if ((compare = URIUtils.compare(mAuthority, other.getAuthority())) != 0) {
+    } else if ((compare = mAuthority.compareTo(other.getAuthority())) != 0) {
       return compare;
     }
 
@@ -225,7 +227,7 @@ public class StandardURI implements URI {
       return false;
     }
 
-    if (this.mAuthority == that.mAuthority) {
+    if (this.mAuthority.equals(that.mAuthority)) {
       return true;
     }
     if (this.mHost != null) {
@@ -239,7 +241,7 @@ public class StandardURI implements URI {
       if (this.mPort != that.mPort) {
         return false;
       }
-    } else if (!URIUtils.equals(this.mAuthority, that.mAuthority)) {
+    } else if (this.mAuthority.equals(that.mAuthority)) {
       return false;
     }
     return true;
@@ -261,7 +263,7 @@ public class StandardURI implements URI {
         hashCode = URIUtils.hashIgnoreCase(hashCode, mHost);
         hashCode += 1949 * mPort;
       } else {
-        hashCode = URIUtils.hash(hashCode, mAuthority);
+        hashCode = URIUtils.hash(hashCode, mAuthority.getAuthority());
       }
     }
     mHashCode = hashCode;

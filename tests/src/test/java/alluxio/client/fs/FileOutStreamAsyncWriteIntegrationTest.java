@@ -11,7 +11,7 @@
 
 package alluxio.client.fs;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;

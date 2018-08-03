@@ -11,7 +11,7 @@
 
 package alluxio.testutils.underfs.delegating;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;

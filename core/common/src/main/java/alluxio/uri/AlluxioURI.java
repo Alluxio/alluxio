@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.uri;
 
 import alluxio.annotation.PublicApi;
 import alluxio.util.URIUtils;
@@ -39,8 +39,6 @@ import javax.annotation.concurrent.ThreadSafe;
  *     * scheme:part2://host:123/path
  *     * scheme:part2:part3//host:123/path
  *     * scheme:part2:part3://host:123/path
- *   * Alluxio on Zookeeper URI
- *     * alluxio://zk@zkHost:123/path
  *
  * Does not support fragment in the URI.
  */
@@ -135,7 +133,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   @Nullable
   public String getAuthority() {
-    return mUri.getAuthority();
+    return mUri.getAuthority().getAuthority();
   }
 
   /**
@@ -312,6 +310,18 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
+   * @return the zookeeper address from the URI if exists
+   */
+  @Nullable
+  public String getZookeeperAddress() {
+    if (isZookeeperURI()) {
+      ZookeeperAuthority zkAuthority = (ZookeeperAuthority) mUri.getAuthority();
+      return zkAuthority.getZookeeperAddress();
+    }
+    return null;
+  }
+
+  /**
    * Tells if the {@link AlluxioURI} has authority or not.
    *
    * @return true if it has, false otherwise
@@ -395,7 +405,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return whether or not the {@link AlluxioURI} is a Alluxio on Zookeeper URI
    */
   public boolean isZookeeperURI() {
-    return mUri instanceof ZookeeperURI;
+    return mUri.getAuthority() instanceof ZookeeperAuthority;
   }
 
   /**
@@ -473,11 +483,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       sb.append(mUri.getScheme());
       sb.append("://");
     }
-    if (mUri.getAuthority() != null) {
+    if (mUri.getAuthority().getAuthority() != null) {
       if (mUri.getScheme() == null) {
         sb.append("//");
-      } else if (mUri instanceof ZookeeperURI) {
-        sb.append("zk@");
       }
       sb.append(mUri.getAuthority());
     }

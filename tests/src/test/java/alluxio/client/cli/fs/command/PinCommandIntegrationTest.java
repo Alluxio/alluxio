@@ -15,7 +15,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.heartbeat.HeartbeatContext;

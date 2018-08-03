@@ -11,7 +11,7 @@
 
 package alluxio.hadoop.mapreduce;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;

@@ -11,7 +11,7 @@
 
 package alluxio.master.file.meta.options;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.master.file.options.MountOptions;
 import alluxio.wire.MountPointInfo;
 

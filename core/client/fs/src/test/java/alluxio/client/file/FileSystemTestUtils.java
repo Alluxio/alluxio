@@ -11,7 +11,7 @@
 
 package alluxio.client.file;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.options.CreateFileOptions;

@@ -11,7 +11,7 @@
 
 package alluxio.util;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;

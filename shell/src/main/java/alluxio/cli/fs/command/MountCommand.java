@@ -11,7 +11,7 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;

@@ -11,7 +11,7 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;

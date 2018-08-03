@@ -11,7 +11,7 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;

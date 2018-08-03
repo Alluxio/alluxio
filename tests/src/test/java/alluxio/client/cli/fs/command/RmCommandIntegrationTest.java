@@ -11,7 +11,7 @@
 
 package alluxio.client.cli.fs.command;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;

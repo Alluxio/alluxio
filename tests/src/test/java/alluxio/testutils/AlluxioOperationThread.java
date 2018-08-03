@@ -11,7 +11,7 @@
 
 package alluxio.testutils;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;

@@ -11,7 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 

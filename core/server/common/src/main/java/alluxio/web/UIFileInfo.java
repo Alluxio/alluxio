@@ -11,7 +11,7 @@
 
 package alluxio.web;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authorization.Mode;

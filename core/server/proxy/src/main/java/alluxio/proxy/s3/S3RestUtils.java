@@ -11,7 +11,7 @@
 
 package alluxio.proxy.s3;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.security.LoginUser;

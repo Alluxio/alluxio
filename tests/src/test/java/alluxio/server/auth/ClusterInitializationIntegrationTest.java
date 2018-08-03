@@ -13,7 +13,7 @@ package alluxio.server.auth;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;

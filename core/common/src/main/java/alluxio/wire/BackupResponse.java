@@ -11,7 +11,7 @@
 
 package alluxio.wire;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.thrift.BackupTResponse;
 
 import com.google.common.base.Preconditions;

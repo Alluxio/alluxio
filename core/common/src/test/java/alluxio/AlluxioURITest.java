@@ -17,6 +17,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
+import alluxio.uri.AlluxioURI;
 import alluxio.util.OSUtils;
 
 import org.junit.Test;
@@ -111,7 +112,8 @@ public class AlluxioURITest {
     assertEquals(uri,
         new AlluxioURI("alluxio://zk@host1:port1,host2:port2,host3:port3/xy z/a b c"));
     assertEquals("alluxio", uri.getScheme());
-    assertEquals("host1:port1,host2:port2,host3:port3", uri.getAuthority());
+    assertEquals("zk@host1:port1,host2:port2,host3:port3", uri.getAuthority());
+    assertEquals("host1:port1,host2:port2,host3:port3", uri.getZookeeperAddress());
     assertEquals(null, uri.getHost());
     assertEquals(-1, uri.getPort());
     assertEquals(2, uri.getDepth());
@@ -853,7 +855,7 @@ public class AlluxioURITest {
   }
 
   /**
-   * Tests the {@link alluxio.AlluxioURI#getRootPath()} method.
+   * Tests the {@link AlluxioURI#getRootPath()} method.
    */
   @Test
   public void getRootPath() {

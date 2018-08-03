@@ -11,7 +11,7 @@
 
 package alluxio.master;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Constants;
 import alluxio.HealthCheckClient;
 import alluxio.client.file.FileSystem;

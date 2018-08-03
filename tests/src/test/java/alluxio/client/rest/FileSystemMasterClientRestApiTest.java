@@ -11,7 +11,7 @@
 
 package alluxio.client.rest;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
@@ -21,8 +21,6 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
-import alluxio.client.rest.RestApiTest;
-import alluxio.client.rest.TestCase;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 

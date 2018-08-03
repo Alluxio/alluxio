@@ -22,7 +22,6 @@ public class Source implements Comparable<Source> {
   public static final Source CLUSTER_DEFAULT = new Source(Type.CLUSTER_DEFAULT);
   public static final Source SYSTEM_PROPERTY = new Source(Type.SYSTEM_PROPERTY);
   public static final Source RUNTIME = new Source(Type.RUNTIME);
-  public static final Source URI = new Source(Type.URI);
 
   /**
    * Source type.
@@ -52,12 +51,7 @@ public class Source implements Comparable<Source> {
      * The property value is set by user during runtime (e.g., Configuration.set or through
      * HadoopConf).
      */
-    RUNTIME,
-    /**
-     * The property value is set by HDFS API side Alluxio URI (e.g. Zookeeper configuration
-     * set in Alluxio on Zookeeper URI). This source has the highest priority.
-     */
-    URI
+    RUNTIME
   }
 
   protected final Type mType;

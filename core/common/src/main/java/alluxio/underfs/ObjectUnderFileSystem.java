@@ -11,7 +11,7 @@
 
 package alluxio.underfs;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;

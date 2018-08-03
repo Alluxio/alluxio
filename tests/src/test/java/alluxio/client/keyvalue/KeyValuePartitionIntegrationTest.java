@@ -11,7 +11,7 @@
 
 package alluxio.client.keyvalue;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;

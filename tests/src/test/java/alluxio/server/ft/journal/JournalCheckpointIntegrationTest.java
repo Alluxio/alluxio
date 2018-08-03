@@ -14,7 +14,7 @@ package alluxio.server.ft.journal;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.MetaMasterClient;

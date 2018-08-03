@@ -12,7 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AbstractMasterClient;
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;

@@ -11,7 +11,7 @@
 
 package alluxio.underfs;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;

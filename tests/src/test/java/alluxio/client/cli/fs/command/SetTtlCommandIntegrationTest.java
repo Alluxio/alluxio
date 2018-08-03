@@ -11,7 +11,7 @@
 
 package alluxio.client.cli.fs.command;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.WriteType;

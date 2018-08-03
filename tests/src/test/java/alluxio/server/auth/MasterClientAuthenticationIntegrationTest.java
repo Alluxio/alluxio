@@ -11,7 +11,7 @@
 
 package alluxio.server.auth;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemMasterClient;

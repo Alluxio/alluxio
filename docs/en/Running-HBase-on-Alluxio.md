@@ -39,7 +39,7 @@ Change the `hbase.rootdir` property in `conf/hbase-site.xml`:
 </property>
 ```
 
-When Alluxio is running in fault tolerant mode, change the Alluxio URI to Alluxio on Zookeeper URI.
+When Alluxio is running in fault tolerant mode, change the Alluxio URI to include Zookeeper information.
 
 ```xml
 <property>

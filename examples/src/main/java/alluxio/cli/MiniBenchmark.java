@@ -11,7 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileInStream;

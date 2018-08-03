@@ -13,7 +13,7 @@ package alluxio.client.cli.fs.command;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;

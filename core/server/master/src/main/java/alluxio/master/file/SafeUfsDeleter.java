@@ -11,7 +11,7 @@
 
 package alluxio.master.file;
 
-import alluxio.AlluxioURI;
+import alluxio.uri.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
