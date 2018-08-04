@@ -42,7 +42,6 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Rule;
-
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
