@@ -11,6 +11,10 @@
 
 package alluxio.worker.block;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -42,7 +46,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito.verify;
+
 import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
@@ -345,7 +349,7 @@ public final class TieredBlockStoreTest {
     Evictor evictor = mock(Evictor.class);
     Set<Long> set = new HashSet<>();
     when(
-        evictor.freeSpaceWithView(Mockito.any(Long.class), any(BlockStoreLocation.class),
+        evictor.freeSpaceWithView(any(Long.class), any(BlockStoreLocation.class),
             any(BlockMetadataManagerView.class), any(Mode.class)))
         .thenAnswer((InvocationOnMock invocation) -> {
               for (int i = 0; i < count; i++) {
