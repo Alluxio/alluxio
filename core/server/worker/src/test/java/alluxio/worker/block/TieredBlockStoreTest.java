@@ -16,6 +16,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -39,10 +42,10 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Rule;
+
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
@@ -342,11 +345,11 @@ public final class TieredBlockStoreTest {
     int threadAmount = 10;
     int count = 100_000;
     List<Runnable> runnables = new ArrayList<>();
-    Evictor evictor = Mockito.mock(Evictor.class);
+    Evictor evictor = mock(Evictor.class);
     Set<Long> set = new HashSet<>();
-    Mockito.when(
-        evictor.freeSpaceWithView(Mockito.any(Long.class), Mockito.any(BlockStoreLocation.class),
-            Mockito.any(BlockMetadataManagerView.class), Mockito.any(Mode.class)))
+    when(
+        evictor.freeSpaceWithView(any(Long.class), any(BlockStoreLocation.class),
+            any(BlockMetadataManagerView.class), any(Mode.class)))
         .thenAnswer((InvocationOnMock invocation) -> {
               for (int i = 0; i < count; i++) {
                 set.add(System.nanoTime());
