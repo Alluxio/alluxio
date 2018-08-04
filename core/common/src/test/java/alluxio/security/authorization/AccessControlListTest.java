@@ -74,6 +74,7 @@ public class AccessControlListTest {
         .addAction(AclAction.READ).addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(NAMED_GROUP)
         .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
+    acl.updateMask();
     // Verify mode.
     // owning user
     Assert.assertTrue(checkMode(acl, OWNING_USER, Collections.emptyList(), Mode.Bits.ALL));
@@ -154,6 +155,7 @@ public class AccessControlListTest {
         .addAction(AclAction.READ).build());
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(NAMED_GROUP2)
         .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
+    acl.updateMask();
   }
 
   /**
