@@ -40,11 +40,10 @@ While the master node enforces TTLs, it is up to the clients to set the appropri
 
 ## APIs
 
-There are three ways to set the TTL of a path.
+There are two ways to set the TTL of a path.
 
 1. Through the Alluxio shell command line.
 1. Through the Alluxio Java File System API.
-1. Passively on each load metadata or create file.
 
 The TTL API is as follows:
 
@@ -68,7 +67,7 @@ See the detailed [command line documentation](Command-Line-Interface.html#setttl
 
 Use the Alluxio FileSystem object to set the file attribute with the appropriate options.
 
-```
+```java
 FileSystem alluxioFs = FileSystem.Factory.get();
 
 AlluxioURI path = new AlluxioURI("alluxio://hostname:port/file/path");
