@@ -228,6 +228,7 @@ public class AccessControlList implements Serializable {
 
   /**
    * Update the mask to be the union of owning group entry, named user entry and named group entry.
+   * This method should be called when the aforementioned entries are modified.
    */
   public void updateMask() {
     if (hasExtended()) {
@@ -240,11 +241,11 @@ public class AccessControlList implements Serializable {
    * Sets an entry into the access control list.
    * If an entry with the same type and subject already exists, overwrites the existing entry;
    * Otherwise, adds this new entry.
+   * After we modify entries for NAMED_GROUP, OWNING_GROUP, NAMED_USER, we need to update the mask.
    *
    * @param entry the entry to be added or updated
    */
   public void setEntry(AclEntry entry) {
-    // TODO(cc): when setting non-mask entries, the mask should be dynamically updated too.
     switch (entry.getType()) {
       case NAMED_USER:  // fall through
       case NAMED_GROUP: // fall through
@@ -258,7 +259,6 @@ public class AccessControlList implements Serializable {
         Mode modeOwner = new Mode(mMode);
         modeOwner.setOwnerBits(entry.getActions().toModeBits());
         mMode = modeOwner.toShort();
-
         return;
       case OWNING_GROUP:
         Mode modeGroup = new Mode(mMode);

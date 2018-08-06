@@ -237,6 +237,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
         mAcl.removeEntry(entry);
       }
     }
+    updateMask(entries);
     return getThis();
   }
 
@@ -265,6 +266,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
 
   /**
    * Update Mask for the Inode.
+   * This method should be called after updates to ACL and defaultACL.
    *
    * @param entries the list of ACL entries
    * @return the updated object
@@ -464,6 +466,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
         mAcl.setEntry(entry);
       }
     }
+    updateMask(entries);
     return getThis();
   }
 

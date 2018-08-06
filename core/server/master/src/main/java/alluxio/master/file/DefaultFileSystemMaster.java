@@ -3245,15 +3245,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       case REPLACE:
         // fully replace the acl for the path
         targetInode.replaceAcl(entries);
-        targetInode.updateMask(entries);
         break;
       case MODIFY:
         targetInode.setAcl(entries);
-        targetInode.updateMask(entries);
         break;
       case REMOVE:
         targetInode.removeAcl(entries);
-        targetInode.updateMask(entries);
         break;
       case REMOVE_ALL:
         targetInode.removeExtendedAcl();
