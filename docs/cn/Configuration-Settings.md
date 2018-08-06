@@ -68,7 +68,7 @@ Alluxio管理员可以创建和定制属性文件`alluxio-site.properties`来配
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-确保在启动集群之前该文件上被分发到每个Alluxio节点(master)的`${ALLUXIO_HOME}/conf` 下
+确保在启动集群之前该文件上被分发到每个Alluxio节点(master和worker)的`${ALLUXIO_HOME}/conf` 下
 
 ## 使用集群默认
 

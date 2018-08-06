@@ -68,7 +68,7 @@ See the detailed [command line documentation](Command-Line-Interface.html#setttl
 
 Use the Alluxio FileSystem object to set the file attribute with the appropriate options.
 
-```
+```java
 FileSystem alluxioFs = FileSystem.Factory.get();
 
 AlluxioURI path = new AlluxioURI("alluxio://hostname:port/file/path");
@@ -111,8 +111,9 @@ access patterns.
 
 For example, to delete the files created by the `runTests` after 1 minute:
 
-```
-bin/alluxio runTests -Dalluxio.user.file.create.ttl=1m -Dalluxio.user.file.create.ttl.action=DELETE
+```bash
+$ bin/alluxio runTests -Dalluxio.user.file.create.ttl=1m -Dalluxio.user.file.create.ttl
+.action=DELETE
 ```
 
 Note, if you try this example, make sure the `alluxio.master.ttl.checker.interval` is set to a short
