@@ -14,6 +14,7 @@ package alluxio.hadoop;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import alluxio.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
@@ -29,6 +30,8 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.lineage.LineageContext;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
@@ -38,6 +41,7 @@ import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
+import alluxio.uri.ZookeeperAuthority;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -65,6 +69,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -458,19 +463,15 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
+    AlluxioURI alluxioUri = new AlluxioURI(uri.toString());
+
     synchronized (INIT_LOCK) {
-      setAlluxioConfiguration(uri, conf);
       if (sInitialized) {
-        ConnectDetails newDetails = Factory.getConnectDetails(Configuration.global());
-        ConnectDetails oldDetails = FileSystemContext.get()
-            .getMasterInquireClient().getConnectDetails();
-        if (!oldDetails.equals(newDetails)) {
-          LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS
-              .getMessage(newDetails, oldDetails));
-          initializeInternal();
+        if (!connectDetailsMatch(alluxioUri, conf)) {
+          initializeInternal(alluxioUri, conf);
         }
       } else {
-        initializeInternal();
+        initializeInternal(alluxioUri, conf);
       }
       // Must happen inside the lock so that the global filesystem context isn't changed by a
       // concurrent call to initialize.
@@ -482,8 +483,15 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * Initializes the default contexts if the connection details specified in the URI + hadoop conf
    * is different from the default one.
+   *
+   * @param uri the Alluxio Uri
+   * @param conf the hadoop conf
    */
-  void initializeInternal() throws IOException {
+  void initializeInternal(AlluxioURI uri, org.apache.hadoop.conf.Configuration conf)
+      throws IOException {
+    // Set Alluxio configuration from the input uri + hadooop conf
+    setAlluxioConfiguration(uri, conf);
+
     // These must be reset to pick up the change to the master address.
     // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
     LineageContext.INSTANCE.reset();
@@ -502,25 +510,93 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
-   * Sets Alluxio configuration from the uri + hadoop conf.
+   * Checks whether the connect details from the uri + hadoop conf + global Alluxio conf are the
+   * same as the connect details currently being used by {@link FileSystemContext}.
    *
-   * @param uri a uri that may contains connection configuration
+   * @param uri a Alluxio Uri
+   * @param conf a hadoop conf
+   * @return whether the details match
+   */
+  private boolean connectDetailsMatch(AlluxioURI uri, org.apache.hadoop.conf.Configuration conf) {
+    // To support connection details in the URI has the highest priority, we need to
+    // unset all the zookeeper configuration in Alluxio configuration and hadoop configuration.
+    boolean alluxioZkEnabled = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
+    String alluxioZkAddress = null;
+    if (alluxioZkEnabled) {
+      alluxioZkAddress = Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS);
+      Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, false);
+      Configuration.unset(PropertyKey.ZOOKEEPER_ADDRESS);
+    }
+
+    AlluxioConfiguration alluxioConf = new InstancedConfiguration(Configuration.global());
+    Properties alluxioConfProperties = new Properties();
+
+    boolean hadoopZKEnable = conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
+    String hadoopZkAddress = null;
+
+    // Connection configuration in the Alluxio URI has the highest priority
+    if (uri.getAuthorityType() == AlluxioURI.AuthorityType.ZOOKEEPER) {
+      ZookeeperAuthority authority = (ZookeeperAuthority) uri.getAuthority();
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED, true);
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, authority.getZookeeperAddress());
+    } else if (uri.getHost() != null) {
+      alluxioConfProperties.put(PropertyKey.MASTER_HOSTNAME, uri.getHost());
+      alluxioConfProperties.put(PropertyKey.MASTER_RPC_PORT, uri.getPort());
+      if (hadoopZKEnable) {
+        hadoopZkAddress = conf.get(PropertyKey.ZOOKEEPER_ADDRESS.getName());
+        conf.unset(PropertyKey.ZOOKEEPER_ENABLED.getName());
+        conf.unset(PropertyKey.ZOOKEEPER_ADDRESS.getName());
+      }
+    }
+
+    // Merge hadoop configuration into Alluxio configuration
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioConf);
+    // Merge connection details in URI into Alluxio configuration
+    alluxioConf.merge(alluxioConfProperties, Source.RUNTIME);
+
+    ConnectDetails newDetails = Factory.getConnectDetails(alluxioConf);
+    ConnectDetails oldDetails = FileSystemContext.get()
+        .getMasterInquireClient().getConnectDetails();
+
+    boolean isMatch = newDetails.equals(oldDetails);
+    if (!isMatch) {
+      LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS
+          .getMessage(newDetails, oldDetails));
+    }
+
+    // Reset all the Zookeeper configuration so that connect details match
+    // do not change any existing configuration setting
+    if (alluxioZkEnabled) {
+      Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
+      Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, alluxioZkAddress);
+    }
+    if (hadoopZKEnable) {
+      conf.setBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
+      conf.set(PropertyKey.ZOOKEEPER_ADDRESS.getName(), hadoopZkAddress);
+    }
+    return isMatch;
+  }
+
+  /**
+   * Sets Alluxio configuration from a uri + hadoop conf.
+   *
+   * @param uri a Alluxio Uri that may contain connection configuration
    * @param conf the hadoop configuration to merge
    */
-  private void setAlluxioConfiguration(URI uri, org.apache.hadoop.conf.Configuration conf) {
+  private void setAlluxioConfiguration(AlluxioURI uri, org.apache.hadoop.conf.Configuration conf) {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
     // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
     // We assume here that all clients use the same configuration.
     HadoopConfigurationUtils.mergeHadoopConfiguration(conf, Configuration.global());
 
     // Connection configuration in the Alluxio URI has the highest priority
-    AlluxioURI alluxioUri = new AlluxioURI(uri.toString());
-    if (alluxioUri.isZookeeperURI()) {
+    if (uri.getAuthorityType() == AlluxioURI.AuthorityType.ZOOKEEPER) {
+      ZookeeperAuthority authority = (ZookeeperAuthority) uri.getAuthority();
       Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
-      Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, alluxioUri.getZookeeperAddress());
-    } else if (alluxioUri.getHost() != null) {
-      Configuration.set(PropertyKey.MASTER_HOSTNAME, alluxioUri.getHost());
-      Configuration.set(PropertyKey.MASTER_RPC_PORT, alluxioUri.getPort());
+      Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, authority.getZookeeperAddress());
+    } else if (uri.getHost() != null) {
+      Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, uri.getPort());
       Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, false);
       if (Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
         Configuration.unset(PropertyKey.ZOOKEEPER_ADDRESS);

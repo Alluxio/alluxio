@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.annotation.PublicApi;
+import alluxio.uri.Authority;
 import alluxio.uri.URI;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.URIUtils;
@@ -56,6 +57,15 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
 
   /** A {@link URI} is used to hold the URI components. */
   private final URI mUri;
+
+  /**
+   * Authority type.
+   */
+  public enum AuthorityType {
+    HOSTNAME_PORT, // this URI contains Alluxio hostname and port
+    ZOOKEEPER, // this URI contains Zookeeper address
+    NONE, // this URI do not have authority
+  }
 
   /**
    * Constructs an {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
@@ -134,8 +144,21 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the authority, null if it does not have one
    */
   @Nullable
-  public String getAuthority() {
-    return mUri.getAuthority().getWholeAuthority();
+  public Authority getAuthority() {
+    return mUri.getAuthority();
+  }
+
+  /**
+   * @return the authority type of the {@link AlluxioURI}
+   */
+  public AuthorityType getAuthorityType() {
+    Authority authority = mUri.getAuthority();
+    if (authority instanceof ZookeeperAuthority) {
+      return AuthorityType.ZOOKEEPER;
+    } else if (authority.getWholeAuthority() != null) {
+      return AuthorityType.HOSTNAME_PORT;
+    }
+    return AuthorityType.NONE;
   }
 
   /**
@@ -312,17 +335,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * @return the zookeeper address from the URI if exists
-   */
-  @Nullable
-  public String getZookeeperAddress() {
-    if (isZookeeperURI()) {
-      return mUri.getAuthority().getConnectionAddress();
-    }
-    return null;
-  }
-
-  /**
    * Tells if the {@link AlluxioURI} has authority or not.
    *
    * @return true if it has, false otherwise
@@ -400,13 +412,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   public boolean isRoot() {
     return mUri.getPath().equals(SEPARATOR)
         || (mUri.getPath().isEmpty() && mUri.getAuthority() != null);
-  }
-
-  /**
-   * @return whether or not the {@link AlluxioURI} is a Alluxio URI that contains Zookeeper address
-   */
-  public boolean isZookeeperURI() {
-    return mUri.getAuthority() instanceof ZookeeperAuthority;
   }
 
   /**
@@ -488,7 +493,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       if (mUri.getScheme() == null) {
         sb.append("//");
       }
-      sb.append(mUri.getAuthority());
+      sb.append(mUri.getAuthority().getWholeAuthority());
     }
     if (mUri.getPath() != null) {
       String path = mUri.getPath();

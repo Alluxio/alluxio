@@ -11,12 +11,12 @@
 
 package alluxio.uri;
 
-import alluxio.util.URIUtils;
+import com.google.common.base.Objects;
 
 /**
- * A hostname authority implementation.
+ * A hostname port authority implementation.
  */
-public class HostnameAuthority implements Authority {
+public class HostnamePortAuthority implements Authority {
   private static final long serialVersionUID = 2580736424809131651L;
 
   private final String mAuthority;
@@ -24,17 +24,12 @@ public class HostnameAuthority implements Authority {
   /**
    * @param authority the authority string of the URI
    */
-  public HostnameAuthority(String authority) {
+  public HostnamePortAuthority(String authority) {
     mAuthority = authority;
   }
 
   @Override
   public String getWholeAuthority() {
-    return mAuthority;
-  }
-
-  @Override
-  public String getConnectionAddress() {
     return mAuthority;
   }
 
@@ -45,13 +40,30 @@ public class HostnameAuthority implements Authority {
     }
     if (mAuthority != null) {
       if (other.getWholeAuthority() != null) {
-        return URIUtils.compare(mAuthority, other.getWholeAuthority());
+        return mAuthority.compareTo(other.getWholeAuthority());
       }
       // not null is greater than 'null'.
       return 1;
     }
     // 'null' is less than not null.
     return -1;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof HostnamePortAuthority)) {
+      return false;
+    }
+    HostnamePortAuthority that = (HostnamePortAuthority) o;
+    return compareTo(that) == 0;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mAuthority);
   }
 
   @Override

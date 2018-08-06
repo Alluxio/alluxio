@@ -30,7 +30,7 @@ public interface Authority extends Comparable<Authority>, Serializable {
       if (authority != null && authority.matches(zkAuthorityPattern)) {
         return new ZookeeperAuthority(authority);
       } else {
-        return new HostnameAuthority(authority);
+        return new HostnamePortAuthority(authority);
       }
     }
   }
@@ -40,10 +40,4 @@ public interface Authority extends Comparable<Authority>, Serializable {
    */
   @Nullable
   String getWholeAuthority();
-
-  /**
-   * @return the connection address from the authority
-   */
-  @Nullable
-  String getConnectionAddress();
 }

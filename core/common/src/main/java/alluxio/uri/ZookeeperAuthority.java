@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 /**
  * {@link ZookeeperAuthority} supports authority containing Zookeeper addresses.
  */
-public final class ZookeeperAuthority extends HostnameAuthority {
+public final class ZookeeperAuthority extends HostnamePortAuthority {
   private static final long serialVersionUID = -3549197285125519688L;
   private static final Pattern ZOOKEEPER_PATTERN = Pattern.compile("^zk@(.*)");
 
@@ -31,8 +31,10 @@ public final class ZookeeperAuthority extends HostnameAuthority {
     mZookeeperAddress = getZookeeperAddress(authority);
   }
 
-  @Override
-  public String getConnectionAddress() {
+  /**
+   * @return the Zookeeper address in this authority
+   */
+  public String getZookeeperAddress() {
     return mZookeeperAddress;
   }
 

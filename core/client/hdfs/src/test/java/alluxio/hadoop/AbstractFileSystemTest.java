@@ -143,7 +143,7 @@ public class AbstractFileSystemTest {
 
   @Test
   public void useSameContextWithZookeeper() throws Exception {
-    URI uri = URI.create(Constants.HEADER + "dummyHost:-1/");
+    URI uri = URI.create(Constants.HEADER + "dummyHost:19998/");
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.ZOOKEEPER_ENABLED, "true",
         PropertyKey.ZOOKEEPER_ADDRESS, "zkAddress")).toResource()) {
