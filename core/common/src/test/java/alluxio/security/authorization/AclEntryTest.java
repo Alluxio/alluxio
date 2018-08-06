@@ -99,6 +99,9 @@ public class AclEntryTest {
 
     checkCliStringInvalid("mask:mask:---");
     checkCliStringInvalid("other:other:---");
+
+    checkCliStringInvalid("default:user:test");
+
   }
 
   private void checkCliString(String stringEntry) {
@@ -111,8 +114,11 @@ public class AclEntryTest {
     try {
       checkCliString(stringEntry);
       Assert.fail("this is expected to fail");
-    } catch (Exception e) {
+    } catch (IllegalArgumentException e) {
       // expected
+    } catch (Exception e) {
+      // unexpected
+      Assert.fail("Unexpected exception");
     }
   }
 }
