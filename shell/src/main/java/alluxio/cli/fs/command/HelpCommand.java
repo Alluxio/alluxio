@@ -47,7 +47,12 @@ public final class HelpCommand extends AbstractFileSystemCommand {
   public static void printCommandInfo(Command command, PrintWriter pw) {
     String description =
         String.format("%s: %s", command.getCommandName(), command.getDescription());
-    int width = TerminalFactory.get().getWidth();
+    int width = 80;
+    try {
+      width = TerminalFactory.get().getWidth();
+    } catch (Exception e) {
+      // In case the terminal factory failed to decide terminal type, use default width
+    }
 
     HELP_FORMATTER.printWrapped(pw, width, description);
     HELP_FORMATTER.printUsage(pw, width, command.getUsage());
