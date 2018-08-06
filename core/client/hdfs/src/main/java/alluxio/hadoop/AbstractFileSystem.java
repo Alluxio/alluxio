@@ -30,7 +30,6 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.lineage.LineageContext;
-import alluxio.collections.Pair;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -44,7 +43,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -65,12 +63,10 @@ import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -93,11 +89,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
   /** Lock for initializing the contexts, currently only one set of contexts is supported. */
   private static final Object INIT_LOCK = new Object();
-  /** Lock for cached contexts. */
-  private static final Object CACHED_CONTEXTS_LOCK = new Object();
-  /** Cache of FileSystem Contexts keyed on subjects. */
-  private static final Map<Subject, Pair<FileSystemContext, AtomicInteger>> CACHED_CONTEXTS =
-      new HashMap<>();
 
   /** Flag for if the contexts have been initialized. */
   @GuardedBy("INIT_LOCK")
@@ -154,17 +145,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // closing
     super.close();
     if (mContext != null) {
-      synchronized (CACHED_CONTEXTS_LOCK) {
-        Pair<FileSystemContext, AtomicInteger> contextAndRefCount =
-            CACHED_CONTEXTS.get(mContext.getParentSubject());
-        if (contextAndRefCount == null) {
-          LOG.warn("Failed to find context to close, have you called close multiple times?");
-          return;
-        }
-        if (contextAndRefCount.getSecond().decrementAndGet() == 0) {
-          contextAndRefCount.getFirst().close();
-        }
-      }
+      mContext.close();
     }
   }
 
@@ -562,15 +543,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     Subject subject = getHadoopSubject();
     if (subject != null) {
       LOG.debug("Using Hadoop subject: {}", subject);
+      mContext = FileSystemContext.get(subject);
+      mFileSystem = FileSystem.Factory.get(mContext);
     } else {
       LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
-    }
-    synchronized (CACHED_CONTEXTS_LOCK) {
-      Pair<FileSystemContext, AtomicInteger> contextAndRefCount =
-          CACHED_CONTEXTS.computeIfAbsent(subject, sub -> new Pair<>(FileSystemContext.create(sub),
-              new AtomicInteger(0)));
-      contextAndRefCount.getSecond().incrementAndGet();
-      mContext = contextAndRefCount.getFirst();
+      mContext = FileSystemContext.get();
       mFileSystem = FileSystem.Factory.get(mContext);
     }
   }
@@ -762,10 +739,5 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     return workers.stream().collect(
         toMap(worker -> worker.getNetAddress().getHost(), BlockWorkerInfo::getNetAddress,
             (worker1, worker2) -> worker1));
-  }
-
-  @VisibleForTesting
-  static void clearCachedContexts() {
-    CACHED_CONTEXTS.clear();
   }
 }

@@ -11,6 +11,9 @@
 
 package alluxio.client.file;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -18,6 +21,7 @@ import alluxio.PropertyKey;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.security.auth.Subject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,6 +68,37 @@ public final class FileSystemContextTest {
     if (System.currentTimeMillis() - start >= timeoutMs) {
       Assert.fail("Failed to acquire a master client within " + timeoutMs + "ms. Deadlock?");
     }
+  }
+
+  @Test
+  public void getCache() throws Exception {
+    FileSystemContext ctx1 = FileSystemContext.get();
+    FileSystemContext ctx2 = FileSystemContext.get();
+    assertEquals(ctx1, ctx2);
+  }
+
+  @Test
+  public void getDifferentSubjects() throws Exception {
+    Subject sub = new Subject();
+    FileSystemContext ctx1 = FileSystemContext.get();
+    FileSystemContext ctx2 = FileSystemContext.get(sub);
+    FileSystemContext ctx3 = FileSystemContext.get(sub);
+    assertNotEquals(ctx1, ctx2);
+    assertEquals(ctx2, ctx3);
+  }
+
+  @Test
+  public void refCount() throws Exception {
+    FileSystemContext ctx1 = FileSystemContext.get();
+    FileSystemContext ctx2 = FileSystemContext.get();
+    ctx1.close();
+    FileSystemContext ctx3 = FileSystemContext.get();
+    assertEquals(ctx1, ctx3); // Same context
+    assertEquals(ctx2, ctx3); // Same context
+    ctx2.close();
+    ctx3.close(); // All references closed, so context should be destroyed
+    FileSystemContext ctx4 = FileSystemContext.get();
+    assertNotEquals(ctx1, ctx4); // Different context
   }
 
   class AcquireClient implements Runnable {

@@ -60,7 +60,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -399,31 +398,6 @@ public class AbstractFileSystemTest {
   }
 
   @Test
-  public void contextCachingHadoopCache() throws Exception {
-    final org.apache.hadoop.conf.Configuration conf = getConf();
-    URI uri = URI.create(Constants.HEADER + "host:1");
-    org.apache.hadoop.fs.FileSystem fs1 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    org.apache.hadoop.fs.FileSystem fs2 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    fs1.close();
-    verify(mMockFileSystemContextCustomized, times(1)).close();
-    fs2.close();
-    verify(mMockFileSystemContextCustomized, times(1)).close();
-  }
-
-  @Test
-  public void contextCachingDisableHadoopCache() throws Exception {
-    final org.apache.hadoop.conf.Configuration conf = getConf();
-    conf.set("fs.alluxio.impl.disable.cache", "true");
-    URI uri = URI.create(Constants.HEADER + "host:1");
-    org.apache.hadoop.fs.FileSystem fs1 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    org.apache.hadoop.fs.FileSystem fs2 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    fs1.close();
-    verify(mMockFileSystemContextCustomized, times(0)).close();
-    fs2.close();
-    verify(mMockFileSystemContextCustomized, times(1)).close();
-  }
-
-  @Test
   public void getBlockLocationsOnlyInAlluxio() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
@@ -561,8 +535,8 @@ public class AbstractFileSystemTest {
     when(mMockMasterInquireClient.getConnectDetails()).thenReturn(
         new SingleMasterConnectDetails(new InetSocketAddress("defaultHost", 1)));
     PowerMockito.mockStatic(FileSystemContext.class);
-    Whitebox.setInternalState(FileSystemContext.class, "sInstance", mMockFileSystemContext);
-    PowerMockito.when(FileSystemContext.create(any(Subject.class)))
+    PowerMockito.when(FileSystemContext.get()).thenReturn(mMockFileSystemContext);
+    PowerMockito.when(FileSystemContext.get(any(Subject.class)))
         .thenReturn(mMockFileSystemContextCustomized);
     PowerMockito.when(FileSystemContext.get()).thenReturn(mMockFileSystemContext);
     mMockFileSystemMasterClient = mock(FileSystemMasterClient.class);

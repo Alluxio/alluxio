@@ -39,7 +39,6 @@ public final class HadoopClientTestUtils {
       FileSystemContext.get().reset(Configuration.global());
       LineageContext.INSTANCE.reset();
       Whitebox.setInternalState(AbstractFileSystem.class, "sInitialized", false);
-      AbstractFileSystem.clearCachedContexts();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
