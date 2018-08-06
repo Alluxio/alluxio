@@ -65,11 +65,11 @@ import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -518,39 +518,23 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @return whether the details match
    */
   private boolean connectDetailsMatch(AlluxioURI uri, org.apache.hadoop.conf.Configuration conf) {
-    // To support connection details in the URI has the highest priority, we need to
-    // unset all the zookeeper configuration in Alluxio configuration and hadoop configuration.
-    boolean alluxioZkEnabled = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
-    String alluxioZkAddress = null;
-    if (alluxioZkEnabled) {
-      alluxioZkAddress = Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS);
-      Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, false);
-      Configuration.unset(PropertyKey.ZOOKEEPER_ADDRESS);
-    }
-
     AlluxioConfiguration alluxioConf = new InstancedConfiguration(Configuration.global());
-    Properties alluxioConfProperties = new Properties();
-
-    boolean hadoopZKEnable = conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
-    String hadoopZkAddress = null;
-
-    // Connection configuration in the Alluxio URI has the highest priority
-    if (uri.getAuthorityType() == AlluxioURI.AuthorityType.ZOOKEEPER) {
-      ZookeeperAuthority authority = (ZookeeperAuthority) uri.getAuthority();
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED, true);
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, authority.getZookeeperAddress());
-    } else if (uri.getHost() != null) {
-      alluxioConfProperties.put(PropertyKey.MASTER_HOSTNAME, uri.getHost());
-      alluxioConfProperties.put(PropertyKey.MASTER_RPC_PORT, uri.getPort());
-      if (hadoopZKEnable) {
-        hadoopZkAddress = conf.get(PropertyKey.ZOOKEEPER_ADDRESS.getName());
-        conf.unset(PropertyKey.ZOOKEEPER_ENABLED.getName());
-        conf.unset(PropertyKey.ZOOKEEPER_ADDRESS.getName());
-      }
-    }
-
     // Merge hadoop configuration into Alluxio configuration
     HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioConf);
+
+    // Connection configuration in the Alluxio URI has the highest priority
+    Map<String, Object> alluxioConfProperties = new HashMap<>();
+    if (uri.getAuthorityType() == AlluxioURI.AuthorityType.ZOOKEEPER) {
+      ZookeeperAuthority authority = (ZookeeperAuthority) uri.getAuthority();
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(),
+          authority.getZookeeperAddress());
+    } else if (uri.getHost() != null) {
+      alluxioConfProperties.put(PropertyKey.MASTER_HOSTNAME.getName(), uri.getHost());
+      alluxioConfProperties.put(PropertyKey.MASTER_RPC_PORT.getName(), uri.getPort());
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
+    }
     // Merge connection details in URI into Alluxio configuration
     alluxioConf.merge(alluxioConfProperties, Source.RUNTIME);
 
@@ -564,16 +548,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
           .getMessage(newDetails, oldDetails));
     }
 
-    // Reset all the Zookeeper configuration so that connect details match
-    // do not change any existing configuration setting
-    if (alluxioZkEnabled) {
-      Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
-      Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, alluxioZkAddress);
-    }
-    if (hadoopZKEnable) {
-      conf.setBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
-      conf.set(PropertyKey.ZOOKEEPER_ADDRESS.getName(), hadoopZkAddress);
-    }
     return isMatch;
   }
 
