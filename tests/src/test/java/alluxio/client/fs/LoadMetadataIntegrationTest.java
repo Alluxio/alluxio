@@ -52,7 +52,7 @@ import java.util.List;
 public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private static final long SLEEP_MS = Constants.SECOND_MS / 2;
 
-  private static final long LONG_SLEEP_MS = Constants.SECOND_MS;
+  private static final long LONG_SLEEP_MS = Constants.SECOND_MS * 2;
 
   private FileSystem mFileSystem;
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
