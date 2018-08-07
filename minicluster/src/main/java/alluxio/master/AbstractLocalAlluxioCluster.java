@@ -319,6 +319,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void resetClientPools() throws IOException {
     Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+    FileSystemContext.clearCache();
     FileSystemContext.get().reset(Configuration.global());
   }
 
