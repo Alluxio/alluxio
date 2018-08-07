@@ -126,7 +126,7 @@ public final class FileSystemShellUtils {
    * @return a list of {@link AlluxioURI}s of the files that match the inputURI in parentDir
    */
   private static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI,
-                                                 AlluxioURI parentDir) throws IOException {
+      AlluxioURI parentDir) throws IOException {
     List<AlluxioURI> res = new ArrayList<>();
     List<URIStatus> statuses;
     try {

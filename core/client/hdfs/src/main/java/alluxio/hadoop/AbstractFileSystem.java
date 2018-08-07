@@ -23,7 +23,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -503,15 +502,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     LOG.info("Initializing filesystem context with connect details {}",
         Factory.getConnectDetails(Configuration.global()));
     FileSystemContext.get().reset(Configuration.global());
-
-    // Try to connect to master, if it fails, the provided uri is invalid.
-    FileSystemMasterClient client = FileSystemContext.get().acquireMasterClient();
-    try {
-      client.connect();
-      // Connected, initialize.
-    } finally {
-      FileSystemContext.get().releaseMasterClient(client);
-    }
   }
 
   /**

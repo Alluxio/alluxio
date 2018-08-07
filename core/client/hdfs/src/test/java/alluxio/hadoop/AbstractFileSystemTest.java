@@ -19,7 +19,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,7 +34,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.wire.BlockInfo;
@@ -315,18 +313,6 @@ public class AbstractFileSystemTest {
     for (Thread t : threads) {
       t.join();
     }
-  }
-
-  /**
-   * Tests that failing to connect to Alluxio master causes initialization failure.
-   */
-  @Test
-  public void initializeFailToConnect() throws Exception {
-    doThrow(new UnavailableException("test")).when(mMockFileSystemMasterClient).connect();
-
-    URI uri = URI.create(Constants.HEADER + "randomhost:400/");
-    mExpectedException.expect(UnavailableException.class);
-    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
   }
 
   /**
