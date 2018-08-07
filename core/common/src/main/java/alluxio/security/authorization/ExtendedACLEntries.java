@@ -206,6 +206,38 @@ public class ExtendedACLEntries {
     return actions;
   }
 
+  /**
+   * Update the mask to be the union of owning group entry, named user entry and named group entry.
+   * @param groupActions the group entry to be integrated into the mask
+   */
+  public void updateMask(AclActions groupActions) {
+    AclActions result = new AclActions(groupActions);
+
+    for (Map.Entry<String, AclActions> kv : mNamedUserActions.entrySet()) {
+      AclActions userAction = kv.getValue();
+      result.merge(userAction);
+
+      for (AclAction action : AclAction.values()) {
+        if (result.contains(action) || userAction.contains(action)) {
+          result.add(action);
+        }
+      }
+    }
+
+    for (Map.Entry<String, AclActions> kv : mNamedGroupActions.entrySet()) {
+      AclActions userAction = kv.getValue();
+      result.merge(userAction);
+
+      for (AclAction action : AclAction.values()) {
+        if (result.contains(action) || userAction.contains(action)) {
+          result.add(action);
+        }
+      }
+    }
+
+    mMaskActions = result;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
