@@ -99,7 +99,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   public void impersonationNotUsed() throws Exception {
     Configuration
         .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_NONE);
-    FileSystemContext context = FileSystemContext.create(createHdfsSubject());
+    FileSystemContext context = FileSystemContext.get(createHdfsSubject());
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
     fs.createFile(new AlluxioURI("/impersonation-test")).close();
     List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));
@@ -114,7 +114,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     String arbitraryUser = "arbitrary_user";
     Configuration
         .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, arbitraryUser);
-    FileSystemContext context = FileSystemContext.create(createHdfsSubject());
+    FileSystemContext context = FileSystemContext.get(createHdfsSubject());
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
     fs.createFile(new AlluxioURI("/impersonation-test")).close();
     List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));
@@ -232,7 +232,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   }
 
   private void checkCreateFile(Subject subject, String expectedUser) throws Exception {
-    FileSystemContext context = FileSystemContext.create(subject);
+    FileSystemContext context = FileSystemContext.get(subject);
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
     fs.createFile(new AlluxioURI("/impersonation-test")).close();
     List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));

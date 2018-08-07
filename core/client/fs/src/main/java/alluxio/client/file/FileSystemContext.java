@@ -37,6 +37,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
+import com.google.common.annotations.VisibleForTesting;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -47,7 +48,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -72,7 +75,9 @@ import javax.security.auth.Subject;
 public final class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
-  private static FileSystemContext sInstance;
+  @GuardedBy("CONTEXT_CACHE_LOCK")
+  private static final Map<Subject, FileSystemContext> CONTEXT_CACHE = new HashMap<>();
+  private static final Object CONTEXT_CACHE_LOCK = new Object();
 
   static {
     MetricsSystem.startSinks();
@@ -91,6 +96,8 @@ public final class FileSystemContext implements Closeable {
   private ClientMasterSync mClientMasterSync;
 
   private final String mAppId;
+  @GuardedBy("CONTEXT_CACHE_LOCK")
+  private int mRefCount;
 
   // The netty data server channel pools.
   private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
@@ -116,45 +123,62 @@ public final class FileSystemContext implements Closeable {
   private final Subject mParentSubject;
 
   /**
-   * @return the instance of file system context
+   * @return the instance of file system context with no subject associated
    */
   public static FileSystemContext get() {
-    if (sInstance == null) {
-      synchronized (FileSystemContext.class) {
-        if (sInstance == null) {
-          sInstance = create();
-        }
-      }
-    }
-    return sInstance;
+    return get(null);
   }
 
   /**
-   * @return the context
+   * @param subject the subject associated with this context
+   * @return the instance of the file system context, possibly a shared context
    */
-  private static FileSystemContext create() {
-    return create(null);
+  public static FileSystemContext get(Subject subject) {
+    synchronized (CONTEXT_CACHE_LOCK) {
+      FileSystemContext ctx = CONTEXT_CACHE.computeIfAbsent(subject, FileSystemContext::create);
+      ctx.mRefCount++;
+      return ctx;
+    }
   }
 
   /**
    * @param subject the parent subject, set to null if not present
    * @return the context
    */
-  public static FileSystemContext create(Subject subject) {
-    return create(subject, MasterInquireClient.Factory.create());
+  private static FileSystemContext create(Subject subject) {
+    FileSystemContext context = new FileSystemContext(subject);
+    context.init(MasterInquireClient.Factory.create(), Configuration.global());
+    return context;
   }
 
   /**
+   * This method is provided for testing, use the {@link FileSystemContext#get} methods. The
+   * returned context object will not be cached automatically.
+   *
    * @param subject the parent subject, set to null if not present
    * @param masterInquireClient the client to use for determining the master; note that if the
    *        context is reset, this client will be replaced with a new masterInquireClient based on
    *        global configuration
    * @return the context
    */
+  @VisibleForTesting
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient) {
     FileSystemContext context = new FileSystemContext(subject);
     context.init(masterInquireClient, Configuration.global());
+    synchronized (CONTEXT_CACHE_LOCK) { // Not necessary, for code consistency
+      context.mRefCount++;
+    }
     return context;
+  }
+
+  /**
+   * Clears the context cache. This method should only be called in test code.
+   */
+  @VisibleForTesting
+  public static void clearCache() {
+    synchronized (CONTEXT_CACHE_LOCK) {
+      CONTEXT_CACHE.clear();
+    }
   }
 
   /**
@@ -172,6 +196,7 @@ public final class FileSystemContext implements Closeable {
         + "from the client, such as metrics. It can be set manually through the {} property",
         mAppId, PropertyKey.Name.USER_APP_ID);
     mClosed = new AtomicBoolean(false);
+    mRefCount = 0;
   }
 
   /**
@@ -221,6 +246,22 @@ public final class FileSystemContext implements Closeable {
    */
   @Override
   public void close() throws IOException {
+    synchronized (CONTEXT_CACHE_LOCK) {
+      if (mRefCount == 0) {
+        LOG.warn("Attempted to close FileSystem Context that is already closed, have you called "
+            + "close multiple times?");
+        return;
+      }
+      if (--mRefCount != 0) {
+        return;
+      } else {
+        CONTEXT_CACHE.remove(mParentSubject);
+      }
+    }
+    closeInternal();
+  }
+
+  private void closeInternal() throws IOException {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool = null;
     mBlockMasterClientPool.close();
@@ -253,7 +294,7 @@ public final class FileSystemContext implements Closeable {
    *
    */
   public synchronized void reset(InstancedConfiguration configuration) throws IOException {
-    close();
+    closeInternal();
     init(MasterInquireClient.Factory.create(), configuration);
   }
 
