@@ -139,6 +139,8 @@ public final class Constants {
   public static final String LOCALITY_RACK = "rack";
   public static final String MESOS_LOCAL_INSTALL = "LOCAL";
 
+  public static final String SKIP_CONF_VALIDATION = "alluxio.skip.conf.validation";
+
   /**
    * Maximum number of seconds to wait for thrift servers to stop on shutdown. Tests use a value of
    * 0 instead of this value so that they can run faster.

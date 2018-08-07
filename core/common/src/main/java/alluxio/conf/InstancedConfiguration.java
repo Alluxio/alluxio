@@ -13,6 +13,7 @@ package alluxio.conf;
 
 import alluxio.AlluxioConfiguration;
 import alluxio.ConfigurationValueOptions;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
@@ -266,6 +267,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public void validate() {
+    if (System.getProperty(Constants.SKIP_CONF_VALIDATION) != null) {
+      return;
+    }
     for (PropertyKey key : keySet()) {
       Preconditions.checkState(
           getSource(key).getType() != Source.Type.SITE_PROPERTY || !key.isIgnoredSiteProperty(),

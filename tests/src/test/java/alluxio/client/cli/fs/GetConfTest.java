@@ -14,17 +14,22 @@ package alluxio.client.cli.fs;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.SystemOutRule;
+import alluxio.SystemPropertyRule;
 import alluxio.cli.GetConf;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.wire.ConfigProperty;
 
+import com.google.common.collect.ImmutableMap;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,6 +41,11 @@ public final class GetConfTest {
 
   @Rule
   public SystemOutRule mOutputStreamRule = new SystemOutRule(mOutputStream);
+
+  @After
+  public void after() {
+    Configuration.reset();
+  }
 
   @Test
   public void getConf() throws Exception {
@@ -96,6 +106,17 @@ public final class GetConfTest {
     Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
     assertEquals(1,
         GetConf.getConf("--unit", "bad_unit", PropertyKey.WORKER_MEMORY_SIZE.toString()));
+  }
+
+  @Test
+  public void getConfWithInvalidConf() throws Exception {
+    try (Closeable p = new SystemPropertyRule(ImmutableMap.of(
+        Constants.SKIP_CONF_VALIDATION, "true",
+        PropertyKey.ZOOKEEPER_ENABLED.toString(), "true")).toResource()) {
+      Configuration.reset();
+      assertEquals(0, GetConf.getConf(PropertyKey.ZOOKEEPER_ENABLED.toString()));
+      assertEquals("true\n", mOutputStream.toString());
+    }
   }
 
   @Test
