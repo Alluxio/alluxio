@@ -21,7 +21,7 @@ public interface Authority extends Comparable<Authority>, Serializable {
    * Gets the Authority object from the input string.
    *
    * @param authority the string authority to transfer
-   * @return the Authority object
+   * @return an Authority object
    */
   static Authority fromString(String authority) {
     if (authority == null || authority.length() == 0) {

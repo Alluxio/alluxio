@@ -461,6 +461,7 @@ public class AlluxioURITest {
 
     assertEquals(null, new AlluxioURI("file", Authority.fromString(""), "/b/c").getAuthority());
     assertEquals(null, new AlluxioURI("file", null, "/b/c").getAuthority());
+    assertEquals(null, new AlluxioURI("file", Authority.fromString(null), "/b/c").getAuthority());
     assertEquals(null, new AlluxioURI("file:///b/c").getAuthority());
   }
 
@@ -481,6 +482,8 @@ public class AlluxioURITest {
         new AlluxioURI("file", Authority.fromString(""), "/b/c").getAuthorityType());
     assertEquals(AlluxioURI.AuthorityType.NONE,
         new AlluxioURI("file", null, "/b/c").getAuthorityType());
+    assertEquals(AlluxioURI.AuthorityType.NONE,
+        new AlluxioURI("file", Authority.fromString(null), "/b/c").getAuthorityType());
     assertEquals(AlluxioURI.AuthorityType.NONE, new AlluxioURI("file:///b/c").getAuthorityType());
   }
 

@@ -92,7 +92,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * Constructs an {@link AlluxioURI} from components.
    *
    * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
-   * @param authority the authority string of the path. e.g. localhost:19998, 203.1.2.5:8080
+   * @param authority the authority of the path. e.g. HostnamePortAuthority, ZookeeperAuthority
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    * @param queryMap the (nullable) map of key/value pairs for the query component of the URI
    */
