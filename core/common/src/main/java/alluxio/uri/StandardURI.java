@@ -162,7 +162,8 @@ public class StandardURI implements URI {
       if ((compare = mPort - other.getPort()) != 0) {
         return compare;
       }
-    } else if ((compare = mAuthority.compareTo(other.getAuthority())) != 0) {
+    } else if ((compare = URIUtils.compare(mAuthority == null ? null : mAuthority.toString(),
+        other.getAuthority() == null ? null : other.getAuthority().toString())) != 0) {
       return compare;
     }
 
@@ -227,11 +228,8 @@ public class StandardURI implements URI {
       return false;
     }
 
-    if (this.mAuthority == null && ((StandardURI) o).mAuthority == null) {
-      return true;
-    } else if (this.mAuthority == null || ((StandardURI) o).mAuthority == null) {
-      return false;
-    } else if (this.mAuthority.equals(((StandardURI) o).mAuthority)) {
+    if (URIUtils.equals(this.mAuthority == null ? null : this.mAuthority.toString(),
+        that.mAuthority == null ? null : that.mAuthority.toString())) {
       return true;
     }
 
@@ -246,9 +244,8 @@ public class StandardURI implements URI {
       if (this.mPort != that.mPort) {
         return false;
       }
-    } else if (!this.mAuthority.equals(((StandardURI) o).mAuthority)) {
-      return false;
     }
+
     return true;
   }
 
@@ -268,7 +265,7 @@ public class StandardURI implements URI {
         hashCode = URIUtils.hashIgnoreCase(hashCode, mHost);
         hashCode += 1949 * mPort;
       } else {
-        hashCode = URIUtils.hash(hashCode, mAuthority.toString());
+        hashCode = URIUtils.hash(hashCode, mAuthority == null ? null : mAuthority.toString());
       }
     }
     mHashCode = hashCode;
