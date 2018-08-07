@@ -17,6 +17,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
+import alluxio.uri.Authority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.OSUtils;
 
@@ -239,7 +240,7 @@ public class AlluxioURITest {
   }
 
   /**
-   * Tests the {@link AlluxioURI#AlluxioURI(String, String, String)} constructor to build a URI
+   * Tests the {@link AlluxioURI#AlluxioURI(String, Authority, String)} constructor to build a URI
    * from its different components.
    */
   @Test
@@ -255,21 +256,21 @@ public class AlluxioURITest {
     AlluxioURI uri1 = new AlluxioURI(scheme, null, path);
     assertEquals(scheme + "://" + absPath, uri1.toString());
 
-    AlluxioURI uri2 = new AlluxioURI(scheme, authority, path);
+    AlluxioURI uri2 = new AlluxioURI(scheme, Authority.fromString(authority), path);
     assertEquals(scheme + "://" + authority + absPath, uri2.toString());
 
-    AlluxioURI uri3 = new AlluxioURI(null, authority, path);
+    AlluxioURI uri3 = new AlluxioURI(null, Authority.fromString(authority), path);
     assertEquals("//" + authority + absPath, uri3.toString());
 
-    AlluxioURI uri4 = new AlluxioURI("scheme:part1", authority, path);
+    AlluxioURI uri4 = new AlluxioURI("scheme:part1", Authority.fromString(authority), path);
     assertEquals("scheme:part1://" + authority + absPath, uri4.toString());
 
-    AlluxioURI uri5 = new AlluxioURI("scheme:part1:part2", authority, path);
+    AlluxioURI uri5 = new AlluxioURI("scheme:part1:part2", Authority.fromString(authority), path);
     assertEquals("scheme:part1:part2://" + authority + absPath, uri5.toString());
   }
 
   /**
-   * Tests the {@link AlluxioURI#AlluxioURI(String, String, String, Map)} constructor to build an
+   * Tests the {@link AlluxioURI#AlluxioURI(String, Authority, String, Map)} constructor to build an
    * URI from its different components with a query map.
    */
   @Test
@@ -283,7 +284,7 @@ public class AlluxioURITest {
     queryMap.put(" key: !*'();:@&=+$,/?#[]\"% ", " !*'();:@&=+$,/?#[]\"% ");
     queryMap.put(" key: %26 %3D %20 %25 %2B ", " %26 %3D %20 %25 %2B ");
 
-    AlluxioURI uri1 = new AlluxioURI(scheme, authority, path, queryMap);
+    AlluxioURI uri1 = new AlluxioURI(scheme, Authority.fromString(authority), path, queryMap);
     AlluxioURI uri2 = new AlluxioURI(uri1.toString());
     assertEquals(queryMap, uri1.getQueryMap());
     assertEquals(uri1.getQueryMap(), uri2.getQueryMap());
@@ -395,7 +396,7 @@ public class AlluxioURITest {
 
     AlluxioURI[] uriFromDifferentConstructor =
         new AlluxioURI[] {new AlluxioURI("alluxio://127.0.0.1:8080/a/b/c.txt"),
-            new AlluxioURI("alluxio", "127.0.0.1:8080", "/a/b/c.txt"),
+            new AlluxioURI("alluxio", Authority.fromString("127.0.0.1:8080"), "/a/b/c.txt"),
             new AlluxioURI(
                 new AlluxioURI("alluxio://127.0.0.1:8080/a"), new AlluxioURI("b/c.txt"))};
     for (int i = 0; i < uriFromDifferentConstructor.length - 1; i++) {
@@ -436,14 +437,14 @@ public class AlluxioURITest {
         .equals(new AlluxioURI("scheme://host:123/a.txt?a=b&c=d")));
     // There is no guarantee which order the queryMap will create the query string.
     assertTrue(new AlluxioURI("scheme://host:123/a.txt?c=d&a=b")
-        .equals(new AlluxioURI("scheme", "host:123", "/a.txt", queryMap))
+        .equals(new AlluxioURI("scheme", Authority.fromString("host:123"), "/a.txt", queryMap))
         || new AlluxioURI("scheme://host:123/a.txt?a=b&c=d")
-        .equals(new AlluxioURI("scheme", "host:123", "/a.txt", queryMap)));
+        .equals(new AlluxioURI("scheme", Authority.fromString("host:123"), "/a.txt", queryMap)));
 
     assertFalse(new AlluxioURI("scheme://host:123/a.txt?a=b&c=d&e=f")
         .equals(new AlluxioURI("scheme://host:123/a.txt?a=b&c=d")));
     assertFalse(new AlluxioURI("scheme://host:123/a.txt?a=b&c=d&e=f")
-        .equals(new AlluxioURI("scheme", "host:123", "/a.txt", queryMap)));
+        .equals(new AlluxioURI("scheme", Authority.fromString("host:123"), "/a.txt", queryMap)));
   }
 
   /**
@@ -454,11 +455,11 @@ public class AlluxioURITest {
     String[] authorities =
         new String[] {"localhost", "localhost:8080", "127.0.0.1", "127.0.0.1:8080", "localhost"};
     for (String authority : authorities) {
-      AlluxioURI uri = new AlluxioURI("file", authority, "/a/b");
+      AlluxioURI uri = new AlluxioURI("file", Authority.fromString(authority), "/a/b");
       assertEquals(authority, uri.getAuthority().toString());
     }
 
-    assertEquals(null, new AlluxioURI("file", "", "/b/c").getAuthority());
+    assertEquals(null, new AlluxioURI("file", Authority.fromString(""), "/b/c").getAuthority());
     assertEquals(null, new AlluxioURI("file", null, "/b/c").getAuthority());
     assertEquals(null, new AlluxioURI("file:///b/c").getAuthority());
   }
@@ -469,15 +470,15 @@ public class AlluxioURITest {
   @Test
   public void getAuthorityTypeTests() {
     assertEquals(AlluxioURI.AuthorityType.HOSTNAME_PORT,
-        new AlluxioURI("file", "localhost", "/b/c").getAuthorityType());
+        new AlluxioURI("file", Authority.fromString("localhost"), "/b/c").getAuthorityType());
     assertEquals(AlluxioURI.AuthorityType.HOSTNAME_PORT,
-        new AlluxioURI("file", "localhost:8080", "/b/c").getAuthorityType());
+        new AlluxioURI("file", Authority.fromString("localhost:8080"), "/b/c").getAuthorityType());
 
     assertEquals(AlluxioURI.AuthorityType.ZOOKEEPER,
-        new AlluxioURI("file", "zk@host:port", "/b/c").getAuthorityType());
+        new AlluxioURI("file", Authority.fromString("zk@host:port"), "/b/c").getAuthorityType());
 
     assertEquals(AlluxioURI.AuthorityType.NONE,
-        new AlluxioURI("file", "", "/b/c").getAuthorityType());
+        new AlluxioURI("file", Authority.fromString(""), "/b/c").getAuthorityType());
     assertEquals(AlluxioURI.AuthorityType.NONE,
         new AlluxioURI("file", null, "/b/c").getAuthorityType());
     assertEquals(AlluxioURI.AuthorityType.NONE, new AlluxioURI("file:///b/c").getAuthorityType());
@@ -510,12 +511,16 @@ public class AlluxioURITest {
   public void getHostTests() {
     assertEquals(null, new AlluxioURI(".").getHost());
     assertEquals(null, new AlluxioURI("/").getHost());
-    assertEquals(null, new AlluxioURI("file", "", "/a/b.txt").getHost());
+    assertEquals(null, new AlluxioURI("file", Authority.fromString(""), "/a/b.txt").getHost());
     assertEquals(null, new AlluxioURI("file", null, "/a/b.txt").getHost());
-    assertEquals("localhost", new AlluxioURI("s3", "localhost", "/a/b.txt").getHost());
-    assertEquals("localhost", new AlluxioURI("s3", "localhost:8080", "/a/b.txt").getHost());
-    assertEquals("127.0.0.1", new AlluxioURI("s3", "127.0.0.1", "/a/b.txt").getHost());
-    assertEquals("127.0.0.1", new AlluxioURI("s3", "127.0.0.1:8080", "/a/b.txt").getHost());
+    assertEquals("localhost",
+        new AlluxioURI("s3", Authority.fromString("localhost"), "/a/b.txt").getHost());
+    assertEquals("localhost",
+        new AlluxioURI("s3", Authority.fromString("localhost:8080"), "/a/b.txt").getHost());
+    assertEquals("127.0.0.1",
+        new AlluxioURI("s3", Authority.fromString("127.0.0.1"), "/a/b.txt").getHost());
+    assertEquals("127.0.0.1",
+        new AlluxioURI("s3", Authority.fromString("127.0.0.1:8080"), "/a/b.txt").getHost());
   }
 
   /**
@@ -611,8 +616,8 @@ public class AlluxioURITest {
     assertFalse(new AlluxioURI("file:///test").hasAuthority());
     assertTrue(new AlluxioURI("file://localhost/").hasAuthority());
     assertTrue(new AlluxioURI("file://localhost:8080/").hasAuthority());
-    assertTrue(new AlluxioURI(null, "localhost:8080", "/").hasAuthority());
-    assertTrue(new AlluxioURI(null, "localhost", "/").hasAuthority());
+    assertTrue(new AlluxioURI(null, Authority.fromString("localhost:8080"), "/").hasAuthority());
+    assertTrue(new AlluxioURI(null, Authority.fromString("localhost"), "/").hasAuthority());
   }
 
   /**
@@ -825,7 +830,7 @@ public class AlluxioURITest {
   }
 
   /**
-   * Tests the {@link AlluxioURI#AlluxioURI(String, String, String)} constructor to throw an
+   * Tests the {@link AlluxioURI#AlluxioURI(String, Authority, String)} constructor to throw an
    * exception in case an empty path was provided.
    */
   @Test(expected = IllegalArgumentException.class)
@@ -834,7 +839,7 @@ public class AlluxioURITest {
   }
 
   /**
-   * Tests the {@link AlluxioURI#AlluxioURI(String, String, String)} constructor to throw an
+   * Tests the {@link AlluxioURI#AlluxioURI(String, Authority, String)} constructor to throw an
    * exception in case an empty path was provided.
    */
   @Test(expected = IllegalArgumentException.class)

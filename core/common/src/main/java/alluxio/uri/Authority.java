@@ -11,29 +11,27 @@
 
 package alluxio.uri;
 
-import com.google.common.base.Preconditions;
-
 import java.io.Serializable;
 
 /**
  * This interface represents the authority part of a URI.
  */
 public interface Authority extends Comparable<Authority>, Serializable {
-
   /**
-   * Factory for {@link Authority}.
+   * Gets the Authority object from the input string.
+   *
+   * @param authority the string authority to transfer
+   * @return the Authority object
    */
-  class Factory {
-    private Factory(){} //prevent initialization
-
-    public static Authority create(String authority)  {
-      Preconditions.checkNotNull(authority, "authority should not be null");
-      String zkAuthorityPattern = "^zk@(.*)";
-      if (authority.matches(zkAuthorityPattern)) {
-        return new ZookeeperAuthority(authority);
-      } else {
-        return new HostnamePortAuthority(authority);
-      }
+  static Authority fromString(String authority) {
+    if (authority == null || authority.length() == 0) {
+      return null;
+    }
+    String zkAuthorityPattern = "^zk@(.*)";
+    if (authority.matches(zkAuthorityPattern)) {
+      return new ZookeeperAuthority(authority);
+    } else {
+      return new HostnamePortAuthority(authority);
     }
   }
 }

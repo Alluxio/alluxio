@@ -105,19 +105,19 @@ public interface URI extends Comparable<URI>, Serializable {
         path = path.substring(0, question);
       }
 
-      return create(scheme, authority, path, query);
+      return create(scheme, Authority.fromString(authority), path, query);
     }
 
     /**
      * Creates a {@link URI} from components.
      *
      * @param scheme the scheme string of the URI
-     * @param authority the authority string of the URI
+     * @param authority the authority of the URI
      * @param path the path component of the URI
      * @param query the query component of the URI
      * @return the created {@link URI}
      */
-    public static URI create(String scheme, String authority, String path, String query) {
+    public static URI create(String scheme, Authority authority, String path, String query) {
       Preconditions.checkArgument(path != null, "Can not create a uri with a null path.");
 
       // Handle schemes with two components.
@@ -170,8 +170,8 @@ public interface URI extends Comparable<URI>, Serializable {
         resolvedScheme = parent.getScheme();
       }
 
-      return create(resolvedScheme, resolved.getAuthority(), resolved.getPath(),
-          resolved.getQuery());
+      return create(resolvedScheme, Authority.fromString(resolved.getAuthority()),
+          resolved.getPath(), resolved.getQuery());
     }
 
     /**

@@ -104,8 +104,7 @@ public final class FileSystemShellUtils {
       return Lists.newArrayList(inputURI);
     } else {
       String inputPath = inputURI.getPath();
-      AlluxioURI parentURI = new AlluxioURI(inputURI.getScheme(),
-          inputURI.hasAuthority() ? inputURI.getAuthority().toString() : null,
+      AlluxioURI parentURI = new AlluxioURI(inputURI.getScheme(), inputURI.getAuthority(),
           inputPath.substring(0, inputPath.indexOf(AlluxioURI.WILDCARD) + 1),
           inputURI.getQueryMap()).getParent();
       return getAlluxioURIs(alluxioClient, inputURI, parentURI);
@@ -127,7 +126,7 @@ public final class FileSystemShellUtils {
    * @return a list of {@link AlluxioURI}s of the files that match the inputURI in parentDir
    */
   private static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI,
-      AlluxioURI parentDir) throws IOException {
+                                                 AlluxioURI parentDir) throws IOException {
     List<AlluxioURI> res = new ArrayList<>();
     List<URIStatus> statuses;
     try {
@@ -136,15 +135,14 @@ public final class FileSystemShellUtils {
       throw new IOException(e);
     }
     for (URIStatus status : statuses) {
-      AlluxioURI fileURI = new AlluxioURI(inputURI.getScheme(),
-          inputURI.hasAuthority() ? inputURI.getAuthority().toString() : null, status.getPath());
+      AlluxioURI fileURI =
+          new AlluxioURI(inputURI.getScheme(), inputURI.getAuthority(), status.getPath());
       if (match(fileURI, inputURI)) { // if it matches
         res.add(fileURI);
       } else {
         if (status.isFolder()) { // if it is a folder, we do it recursively
-          AlluxioURI dirURI = new AlluxioURI(inputURI.getScheme(),
-              inputURI.hasAuthority() ? inputURI.getAuthority().toString() : null,
-              status.getPath());
+          AlluxioURI dirURI =
+              new AlluxioURI(inputURI.getScheme(), inputURI.getAuthority(), status.getPath());
           String prefix = inputURI.getLeadingPath(dirURI.getDepth());
           if (prefix != null && match(dirURI, new AlluxioURI(prefix))) {
             res.addAll(getAlluxioURIs(alluxioClient, inputURI, dirURI));
