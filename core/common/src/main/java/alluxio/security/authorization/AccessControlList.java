@@ -228,7 +228,7 @@ public class AccessControlList implements Serializable {
 
   /**
    * Update the mask to be the union of owning group entry, named user entry and named group entry.
-   * This method should be called when the aforementioned entries are modified.
+   * This method must be called when the aforementioned entries are modified.
    */
   public void updateMask() {
     if (hasExtended()) {
