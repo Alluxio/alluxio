@@ -87,7 +87,7 @@ Optionally, you can set jvm-level system properties for customized Kerberos conf
 libraries to specified Kerberos realm and KDC server address.
 If both are set to empty, Kerberos library will respect
 the default Kerberos configuration on the machine. These Java system properties should be set
-for the Alluxio processes. To do su, you can add to `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
+for the Alluxio processes. To do so, you can add to `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
 
 ```bash
 ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
