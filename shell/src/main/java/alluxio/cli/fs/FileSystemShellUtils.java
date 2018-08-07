@@ -105,7 +105,7 @@ public final class FileSystemShellUtils {
     } else {
       String inputPath = inputURI.getPath();
       AlluxioURI parentURI = new AlluxioURI(inputURI.getScheme(),
-          inputURI.getAuthority().getWholeAuthority(),
+          inputURI.hasAuthority() ? inputURI.getAuthority().toString() : null,
           inputPath.substring(0, inputPath.indexOf(AlluxioURI.WILDCARD) + 1),
           inputURI.getQueryMap()).getParent();
       return getAlluxioURIs(alluxioClient, inputURI, parentURI);
@@ -136,16 +136,15 @@ public final class FileSystemShellUtils {
       throw new IOException(e);
     }
     for (URIStatus status : statuses) {
-      AlluxioURI fileURI =
-          new AlluxioURI(inputURI.getScheme(),
-              inputURI.getAuthority().getWholeAuthority(), status.getPath());
+      AlluxioURI fileURI = new AlluxioURI(inputURI.getScheme(),
+          inputURI.hasAuthority() ? inputURI.getAuthority().toString() : null, status.getPath());
       if (match(fileURI, inputURI)) { // if it matches
         res.add(fileURI);
       } else {
         if (status.isFolder()) { // if it is a folder, we do it recursively
-          AlluxioURI dirURI =
-              new AlluxioURI(inputURI.getScheme(),
-                  inputURI.getAuthority().getWholeAuthority(), status.getPath());
+          AlluxioURI dirURI = new AlluxioURI(inputURI.getScheme(),
+              inputURI.hasAuthority() ? inputURI.getAuthority().toString() : null,
+              status.getPath());
           String prefix = inputURI.getLeadingPath(dirURI.getDepth());
           if (prefix != null && match(dirURI, new AlluxioURI(prefix))) {
             res.addAll(getAlluxioURIs(alluxioClient, inputURI, dirURI));

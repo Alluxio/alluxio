@@ -57,7 +57,7 @@ public class StandardURI implements URI {
       }
       mScheme = uri.getScheme();
       mSchemeSpecificPart = uri.getSchemeSpecificPart();
-      mAuthority = Authority.Factory.create(uri.getAuthority());
+      mAuthority = uri.getAuthority() == null ? null : Authority.Factory.create(uri.getAuthority());
       mHost = uri.getHost();
       mPort = uri.getPort();
       mPath = uri.getPath();
@@ -86,7 +86,8 @@ public class StandardURI implements URI {
   @Override
   public URI createNewPath(String newPath, boolean checkNormalization) {
     if (checkNormalization && URIUtils.needsNormalization(newPath)) {
-      return new StandardURI(mScheme, mAuthority.getWholeAuthority(), newPath, mQuery);
+      return new StandardURI(mScheme,
+          mAuthority == null ? null : mAuthority.toString(), newPath, mQuery);
     }
     return new StandardURI(this, newPath);
   }
@@ -226,9 +227,14 @@ public class StandardURI implements URI {
       return false;
     }
 
-    if (this.mAuthority.equals(that.mAuthority)) {
+    if (this.mAuthority == null && ((StandardURI) o).mAuthority == null) {
+      return true;
+    } else if (this.mAuthority == null || ((StandardURI) o).mAuthority == null) {
+      return false;
+    } else if (this.mAuthority.equals(((StandardURI) o).mAuthority)) {
       return true;
     }
+
     if (this.mHost != null) {
       // host-based authority
       if (that.mHost == null) {
@@ -240,7 +246,7 @@ public class StandardURI implements URI {
       if (this.mPort != that.mPort) {
         return false;
       }
-    } else if (this.mAuthority.equals(that.mAuthority)) {
+    } else if (!this.mAuthority.equals(((StandardURI) o).mAuthority)) {
       return false;
     }
     return true;
@@ -262,7 +268,7 @@ public class StandardURI implements URI {
         hashCode = URIUtils.hashIgnoreCase(hashCode, mHost);
         hashCode += 1949 * mPort;
       } else {
-        hashCode = URIUtils.hash(hashCode, mAuthority.getWholeAuthority());
+        hashCode = URIUtils.hash(hashCode, mAuthority.toString());
       }
     }
     mHashCode = hashCode;

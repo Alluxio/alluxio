@@ -12,6 +12,7 @@
 package alluxio.uri;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 /**
  * A hostname port authority implementation.
@@ -25,28 +26,16 @@ public class HostnamePortAuthority implements Authority {
    * @param authority the authority string of the URI
    */
   public HostnamePortAuthority(String authority) {
+    Preconditions.checkNotNull(authority, "authority should not be null");
     mAuthority = authority;
   }
 
   @Override
-  public String getWholeAuthority() {
-    return mAuthority;
-  }
-
-  @Override
   public int compareTo(Authority other) {
-    if (mAuthority == null && other.getWholeAuthority() == null) {
-      return 0;
-    }
-    if (mAuthority != null) {
-      if (other.getWholeAuthority() != null) {
-        return mAuthority.compareTo(other.getWholeAuthority());
-      }
-      // not null is greater than 'null'.
+    if (other == null) {
       return 1;
     }
-    // 'null' is less than not null.
-    return -1;
+    return mAuthority.compareTo(other.toString());
   }
 
   @Override
@@ -58,7 +47,7 @@ public class HostnamePortAuthority implements Authority {
       return false;
     }
     HostnamePortAuthority that = (HostnamePortAuthority) o;
-    return compareTo(that) == 0;
+    return mAuthority.equals(that.mAuthority);
   }
 
   @Override

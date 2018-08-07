@@ -11,7 +11,8 @@
 
 package alluxio.uri;
 
-import javax.annotation.Nullable;
+import com.google.common.base.Preconditions;
+
 import java.io.Serializable;
 
 /**
@@ -26,18 +27,13 @@ public interface Authority extends Comparable<Authority>, Serializable {
     private Factory(){} //prevent initialization
 
     public static Authority create(String authority)  {
+      Preconditions.checkNotNull(authority, "authority should not be null");
       String zkAuthorityPattern = "^zk@(.*)";
-      if (authority != null && authority.matches(zkAuthorityPattern)) {
+      if (authority.matches(zkAuthorityPattern)) {
         return new ZookeeperAuthority(authority);
       } else {
         return new HostnamePortAuthority(authority);
       }
     }
   }
-
-  /**
-   * @return the whole authority string
-   */
-  @Nullable
-  String getWholeAuthority();
 }

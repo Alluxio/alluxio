@@ -153,12 +153,12 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   public AuthorityType getAuthorityType() {
     Authority authority = mUri.getAuthority();
-    if (authority instanceof ZookeeperAuthority) {
+    if (authority == null) {
+      return AuthorityType.NONE;
+    } else if (authority instanceof ZookeeperAuthority) {
       return AuthorityType.ZOOKEEPER;
-    } else if (authority.getWholeAuthority() != null) {
-      return AuthorityType.HOSTNAME_PORT;
     }
-    return AuthorityType.NONE;
+    return AuthorityType.HOSTNAME_PORT;
   }
 
   /**
@@ -340,7 +340,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return true if it has, false otherwise
    */
   public boolean hasAuthority() {
-    return mUri.getAuthority().getWholeAuthority() != null;
+    return mUri.getAuthority() != null;
   }
 
   @Override
@@ -489,11 +489,11 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       sb.append(mUri.getScheme());
       sb.append("://");
     }
-    if (mUri.getAuthority().getWholeAuthority() != null) {
+    if (mUri.getAuthority() != null) {
       if (mUri.getScheme() == null) {
         sb.append("//");
       }
-      sb.append(mUri.getAuthority().getWholeAuthority());
+      sb.append(mUri.getAuthority().toString());
     }
     if (mUri.getPath() != null) {
       String path = mUri.getPath();
