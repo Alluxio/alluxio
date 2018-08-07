@@ -12,7 +12,8 @@
 package alluxio.client.file;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 
 import alluxio.Configuration;
 import alluxio.Constants;
@@ -83,8 +84,8 @@ public final class FileSystemContextTest {
     FileSystemContext ctx1 = FileSystemContext.get();
     FileSystemContext ctx2 = FileSystemContext.get(sub);
     FileSystemContext ctx3 = FileSystemContext.get(sub);
-    assertNotEquals(ctx1, ctx2);
-    assertEquals(ctx2, ctx3);
+    assertNotSame(ctx1, ctx2);
+    assertSame(ctx2, ctx3);
   }
 
   @Test
@@ -93,12 +94,12 @@ public final class FileSystemContextTest {
     FileSystemContext ctx2 = FileSystemContext.get();
     ctx1.close();
     FileSystemContext ctx3 = FileSystemContext.get();
-    assertEquals(ctx1, ctx3); // Same context
-    assertEquals(ctx2, ctx3); // Same context
+    assertSame(ctx1, ctx3); // Same context
+    assertSame(ctx2, ctx3); // Same context
     ctx2.close();
     ctx3.close(); // All references closed, so context should be destroyed
     FileSystemContext ctx4 = FileSystemContext.get();
-    assertNotEquals(ctx1, ctx4); // Different context
+    assertNotSame(ctx1, ctx4); // Different context
   }
 
   class AcquireClient implements Runnable {

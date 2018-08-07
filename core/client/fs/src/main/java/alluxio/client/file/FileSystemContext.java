@@ -57,7 +57,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -100,7 +99,7 @@ public final class FileSystemContext implements Closeable {
 
   private final String mAppId;
   @GuardedBy("CONTEXT_CACHE_LOCK")
-  private final AtomicInteger mRefCount;
+  private int mRefCount;
 
   // The netty data server channel pools.
   private final ConcurrentHashMap<ChannelPoolKey, NettyChannelPool>
@@ -139,7 +138,7 @@ public final class FileSystemContext implements Closeable {
   public static FileSystemContext get(Subject subject) {
     synchronized (CONTEXT_CACHE_LOCK) {
       FileSystemContext ctx = CONTEXT_CACHE.computeIfAbsent(subject, FileSystemContext::create);
-      ctx.mRefCount.incrementAndGet();
+      ctx.mRefCount++;
       return ctx;
     }
   }
@@ -169,7 +168,7 @@ public final class FileSystemContext implements Closeable {
     FileSystemContext context = new FileSystemContext(subject);
     context.init(masterInquireClient, Configuration.global());
     synchronized (CONTEXT_CACHE_LOCK) { // Not necessary, for code consistency
-      context.mRefCount.incrementAndGet();
+      context.mRefCount++;
     }
     return context;
   }
@@ -199,7 +198,7 @@ public final class FileSystemContext implements Closeable {
         + "from the client, such as metrics. It can be set manually through the {} property",
         mAppId, PropertyKey.Name.USER_APP_ID);
     mClosed = new AtomicBoolean(false);
-    mRefCount = new AtomicInteger(0);
+    mRefCount = 0;
   }
 
   /**
@@ -240,12 +239,12 @@ public final class FileSystemContext implements Closeable {
   @Override
   public void close() throws IOException {
     synchronized (CONTEXT_CACHE_LOCK) {
-      if (mRefCount.get() == 0) {
+      if (mRefCount == 0) {
         LOG.warn("Attempted to close FileSystem Context that is already closed, have you called "
             + "close multiple times?");
         return;
       }
-      if (mRefCount.decrementAndGet() != 0) {
+      if (--mRefCount != 0) {
         return;
       } else {
         CONTEXT_CACHE.remove(mParentSubject);
