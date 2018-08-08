@@ -98,4 +98,37 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
     // fileC should be in memory because fileB is evicted.
     assertEquals(100, mFileSystem.getStatus(filePathC).getInAlluxioPercentage());
   }
+
+  /**
+   * Tests the "pin" command with no arguments. Creates a file without pinning it and tests it,
+   * then pinning it and finally unpinning it.
+   */
+  @Test
+  public void pinWithNoArgs() throws Exception {
+    AlluxioURI filePath = new AlluxioURI("/testFile");
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+
+    // Ensure that the file exists
+    assertTrue(fileExists(filePath));
+
+    // There no pinned file yet
+    assertEquals(0, mFileSystem.getPinnedFiles().size());
+    assertEquals(0, mFsShell.run("pin"));
+
+    // Pin the file
+    assertEquals(0, mFsShell.run("pin", filePath.toString()));
+    assertTrue(mFileSystem.getStatus(filePath).isPinned());
+
+    // One pinned file
+    assertEquals(1, mFileSystem.getPinnedFiles().size());
+    assertEquals("/testFile", mFileSystem.getPinnedFiles().get(0));
+    assertEquals(0, mFsShell.run("pin"));
+
+    // Unpin the file
+    assertEquals(0, mFsShell.run("unpin", filePath.toString()));
+    assertFalse(mFileSystem.getStatus(filePath).isPinned());
+
+    // No pinned file
+    assertEquals(0, mFileSystem.getPinnedFiles().size());
+  }
 }

@@ -2524,16 +2524,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public List<String> getPinnedFilePaths() {
-    Set<String> pinnedFiles = new HashSet<>();
+    List<String> pinnedFiles = new ArrayList<>();
     for (long pinId : getPinIdList()) {
       try {
         String pinFilePath = getPath(pinId).getPath();
         pinnedFiles.add(pinFilePath);
       } catch (FileDoesNotExistException e) {
-        e.printStackTrace();
+        LOG.warn("Failed to find file for id {}: {}", pinId, e.getMessage());
       }
     }
-    return new ArrayList<>(pinnedFiles);
+    return pinnedFiles;
   }
 
   @Override

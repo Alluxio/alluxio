@@ -167,7 +167,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized List<String> getPinnedFile()
+  public synchronized List<String> getPinnedFiles()
       throws AlluxioStatusException {
     return retryRPC(() -> {
       List<String> pinnedFiles = mClient.getPinnedFilePaths().getPinnedPaths();

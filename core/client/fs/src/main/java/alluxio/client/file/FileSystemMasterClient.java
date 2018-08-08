@@ -171,7 +171,7 @@ public interface FileSystemMasterClient extends Client {
    * Lists all pinned file paths.
    * @return a list of pinned file paths
    */
-  List<String> getPinnedFile() throws AlluxioStatusException;
+  List<String> getPinnedFiles() throws AlluxioStatusException;
 
   /**
    * Renames a file or a directory.

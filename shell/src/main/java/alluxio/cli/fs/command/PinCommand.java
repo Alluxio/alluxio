@@ -53,7 +53,7 @@ public final class PinCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     if (args.length == 0) {
-      List<String> pinnedFiles = mFileSystem.getPinnedFile();
+      List<String> pinnedFiles = mFileSystem.getPinnedFiles();
       if (pinnedFiles.size() > 0) {
         System.out.println("The current pinned file paths are listed below: ");
       } else {

@@ -352,10 +352,10 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public List<String> getPinnedFile() throws IOException, AlluxioException {
+  public List<String> getPinnedFiles() throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
-      return masterClient.getPinnedFile();
+      return masterClient.getPinnedFiles();
     } catch (UnavailableException e) {
       throw e;
     } catch (AlluxioStatusException e) {

@@ -298,7 +298,7 @@ public interface FileSystem {
    * Lists all pinned file paths.
    * @return a list of pinned file paths
    */
-  List<String> getPinnedFile() throws IOException, AlluxioException;
+  List<String> getPinnedFiles() throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #openFile(AlluxioURI, OpenFileOptions)} with default options.
