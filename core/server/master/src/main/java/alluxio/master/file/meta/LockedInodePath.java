@@ -82,8 +82,8 @@ public abstract class LockedInodePath implements Closeable {
    * @return the target inode
    * @throws FileDoesNotExistException if the target inode does not exist
    */
-  public synchronized Inode<?> getInode() throws FileDoesNotExistException {
-    Inode<?> inode = getInodeOrNull();
+  public synchronized InodeView getInode() throws FileDoesNotExistException {
+    InodeView inode = getInodeOrNull();
     if (inode == null) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
     }
@@ -94,7 +94,7 @@ public abstract class LockedInodePath implements Closeable {
    * @return the target inode, or null if it does not exist
    */
   @Nullable
-  public synchronized Inode<?> getInodeOrNull() {
+  public synchronized InodeView getInodeOrNull() {
     if (!fullPathExists()) {
       return null;
     }
@@ -105,12 +105,12 @@ public abstract class LockedInodePath implements Closeable {
    * @return the target inode as an {@link InodeFile}
    * @throws FileDoesNotExistException if the target inode does not exist, or it is not a file
    */
-  public synchronized  InodeFile getInodeFile() throws FileDoesNotExistException {
-    Inode<?> inode = getInode();
+  public synchronized InodeFileView getInodeFile() throws FileDoesNotExistException {
+    InodeView inode = getInode();
     if (!inode.isFile()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(mUri));
     }
-    return (InodeFile) inode;
+    return (InodeFileView) inode;
   }
 
   /**
@@ -118,9 +118,9 @@ public abstract class LockedInodePath implements Closeable {
    * @throws InvalidPathException if the parent inode is not a directory
    * @throws FileDoesNotExistException if the parent of the target does not exist
    */
-  public synchronized InodeDirectory getParentInodeDirectory()
+  public synchronized InodeDirectoryView getParentInodeDirectory()
       throws InvalidPathException, FileDoesNotExistException {
-    Inode inode = getParentInodeOrNull();
+    InodeView inode = getParentInodeOrNull();
     if (inode == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri.getParent()));
@@ -136,7 +136,7 @@ public abstract class LockedInodePath implements Closeable {
    * @return the parent of the target inode, or null if the parent does not exist
    */
   @Nullable
-  public synchronized Inode getParentInodeOrNull() {
+  public synchronized InodeView getParentInodeOrNull() {
     if (mPathComponents.length < 2 || mLockList.size() < (mPathComponents.length - 1)) {
       // The path is only the root, or the list of inodes is not long enough to contain the parent
       return null;
@@ -147,14 +147,14 @@ public abstract class LockedInodePath implements Closeable {
   /**
    * @return the last existing inode on the inode path
    */
-  public synchronized Inode getLastExistingInode() {
+  public synchronized InodeView getLastExistingInode() {
     return mLockList.get(mLockList.size() - 1);
   }
 
   /**
    * @return a copy of the list of existing inodes, from the root
    */
-  public synchronized List<Inode<?>> getInodeList() {
+  public synchronized List<InodeView> getInodeList() {
     return mLockList.getInodes();
   }
 
@@ -213,7 +213,7 @@ public abstract class LockedInodePath implements Closeable {
    * @return the closest ancestor inode
    * @throws FileDoesNotExistException if an ancestor does not exist
    */
-  public synchronized Inode<?> getAncestorInode() throws FileDoesNotExistException {
+  public synchronized InodeView getAncestorInode() throws FileDoesNotExistException {
     int ancestorIndex = mPathComponents.length - 2;
     if (ancestorIndex < 0) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
@@ -253,7 +253,7 @@ public abstract class LockedInodePath implements Closeable {
    * @throws FileDoesNotExistException if the file does not exist
    */
   public synchronized LockedInodePath createTempPathForExistingChild(
-      Inode<?> child, InodeTree.LockMode lockMode)
+      InodeView child, InodeTree.LockMode lockMode)
       throws InvalidPathException, FileDoesNotExistException {
     InodeLockList lockList = new CompositeInodeLockList(mLockList);
     LockedInodePath lockedDescendantPath;

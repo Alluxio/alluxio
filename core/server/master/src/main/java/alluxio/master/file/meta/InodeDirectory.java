@@ -19,6 +19,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
+import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -37,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * locked ({@link #lockRead()} or {@link #lockWrite()}) before methods are called.
  */
 @NotThreadSafe
-public final class InodeDirectory extends Inode<InodeDirectory> {
+public final class InodeDirectory extends Inode<InodeDirectory> implements InodeDirectoryView {
   private static final IndexDefinition<Inode<?>, String> NAME_INDEX =
       new IndexDefinition<Inode<?>, String>(true) {
         @Override
@@ -82,22 +83,14 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     return mChildren.add(child);
   }
 
-  /**
-   * @param name the name of the child
-   * @return the inode with the given name, or null if there is no child with that name
-   */
-  public Inode<?> getChild(String name) {
+  @Override
+  public InodeView getChild(String name) {
     return mChildren.getFirst(name);
   }
 
-  /**
-   * @param name the name of the child
-   * @param lockList the lock list to add the lock to
-   * @return the read-locked inode with the given name, or null if there is no such child
-   * @throws InvalidPathException if the path to the child is invalid
-   */
+  @Override
   @Nullable
-  public Inode<?> getChildReadLock(String name, InodeLockList lockList) throws
+  public InodeView getChildReadLock(String name, InodeLockList lockList) throws
       InvalidPathException {
     while (true) {
       Inode child = mChildren.getFirst(name);
@@ -114,14 +107,9 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     }
   }
 
-  /**
-   * @param name the name of the child
-   * @param lockList the lock list to add the lock to
-   * @return the write-locked inode with the given name, or null if there is no such child
-   * @throws InvalidPathException if the path to the child is invalid
-   */
+  @Override
   @Nullable
-  public Inode<?> getChildWriteLock(String name, InodeLockList lockList) throws
+  public InodeView getChildWriteLock(String name, InodeLockList lockList) throws
       InvalidPathException {
     while (true) {
       Inode child = mChildren.getFirst(name);
@@ -138,16 +126,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     }
   }
 
-  /**
-   * @return an unmodifiable set of the children inodes
-   */
-  public Set<Inode<?>> getChildren() {
+  @Override
+  public Set<InodeView> getChildren() {
     return ImmutableSet.copyOf(mChildren.iterator());
   }
 
-  /**
-   * @return the ids of the children
-   */
+  @Override
   public Set<Long> getChildrenIds() {
     Set<Long> ret = new HashSet<>(mChildren.size());
     for (Inode<?> child : mChildren) {
@@ -156,37 +140,27 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     return ret;
   }
 
-  /**
-   * @return the number of children in the directory
-   */
+  @Override
   public int getNumberOfChildren() {
     return mChildren.size();
   }
 
-  /**
-   * @return true if the inode is a mount point, false otherwise
-   */
+  @Override
   public boolean isMountPoint() {
     return mMountPoint;
   }
 
-  /**
-   * @return true if we have loaded all the direct children's metadata once
-   */
+  @Override
   public synchronized boolean isDirectChildrenLoaded() {
     return mDirectChildrenLoaded;
   }
 
-  /**
-   * Before calling this method, the caller should hold at least a READ LOCK on the inode.
-   *
-   * @return true if we have loaded all the direct and indirect children's metadata once
-   */
+  @Override
   public synchronized boolean areDescendantsLoaded() {
     if (!isDirectChildrenLoaded()) {
       return false;
     }
-    for (Inode<?> inode : getChildren()) {
+    for (InodeView inode : getChildren()) {
       if (inode.isDirectory()) {
         InodeDirectory inodeDirectory = (InodeDirectory) inode;
         if (!inodeDirectory.areDescendantsLoaded()) {
@@ -195,6 +169,11 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
       }
     }
     return true;
+  }
+
+  @Override
+  public DefaultAccessControlList getDefaultACL() {
+    return mDefaultAcl;
   }
 
   /**
@@ -237,14 +216,10 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   }
 
   @Override
-  public DefaultAccessControlList getDefaultACL() {
-    return mDefaultAcl;
-  }
-
-  @Override
   public void setDefaultACL(DefaultAccessControlList acl) {
     mDefaultAcl = acl;
   }
+
   /**
    * Generates client file info for a folder.
    *
@@ -277,6 +252,24 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setAcl(mAcl);
     ret.setDefaultAcl(mDefaultAcl);
     return ret;
+  }
+
+  /**
+   * Updates this inode directory's state from the given entry.
+   *
+   * @param entry the entry
+   */
+  public void updateFromEntry(UpdateInodeDirectoryEntry entry) {
+    if (entry.hasDefaultAcl()) {
+      setDefaultACL(
+          (DefaultAccessControlList) DefaultAccessControlList.fromProtoBuf(entry.getDefaultAcl()));
+    }
+    if (entry.hasDirectChildrenLoaded()) {
+      setDirectChildrenLoaded(entry.getDirectChildrenLoaded());
+    }
+    if (entry.hasMountPoint()) {
+      setMountPoint(entry.getMountPoint());
+    }
   }
 
   @Override
