@@ -284,6 +284,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey CONF_VALIDATION_ENABLED =
+      new Builder(Name.CONF_VALIDATION_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to validate the configuration properties when initializing " +
+              "Alluxio clients or server process.")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey DEBUG =
       new Builder(Name.DEBUG)
           .setDefaultValue(false)
@@ -3027,6 +3035,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @ThreadSafe
   public static final class Name {
     public static final String CONF_DIR = "alluxio.conf.dir";
+    public static final String CONF_VALIDATION_ENABLED = "alluxio.conf.validation.enabled";
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
     public static final String HOME = "alluxio.home";

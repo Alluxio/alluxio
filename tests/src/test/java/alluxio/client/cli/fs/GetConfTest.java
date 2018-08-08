@@ -14,7 +14,6 @@ package alluxio.client.cli.fs;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.SystemOutRule;
 import alluxio.SystemPropertyRule;
@@ -111,7 +110,7 @@ public final class GetConfTest {
   @Test
   public void getConfWithInvalidConf() throws Exception {
     try (Closeable p = new SystemPropertyRule(ImmutableMap.of(
-        Constants.SKIP_CONF_VALIDATION, "true",
+        PropertyKey.CONF_VALIDATION_ENABLED.toString(), "false",
         PropertyKey.ZOOKEEPER_ENABLED.toString(), "true")).toResource()) {
       Configuration.reset();
       assertEquals(0, GetConf.getConf(PropertyKey.ZOOKEEPER_ENABLED.toString()));
