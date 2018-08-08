@@ -44,7 +44,6 @@ import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Block.DeleteBlockEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.resource.LockResource;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
@@ -113,18 +112,18 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   private static final long CONTAINER_ID_RESERVATION_SIZE = 1000;
 
   // Worker metadata management.
-  private static final IndexDefinition<MasterWorkerInfo> ID_INDEX =
-      new IndexDefinition<MasterWorkerInfo>(true) {
+  private static final IndexDefinition<MasterWorkerInfo, Long> ID_INDEX =
+      new IndexDefinition<MasterWorkerInfo, Long>(true) {
         @Override
-        public Object getFieldValue(MasterWorkerInfo o) {
+        public Long getFieldValue(MasterWorkerInfo o) {
           return o.getId();
         }
       };
 
-  private static final IndexDefinition<MasterWorkerInfo> ADDRESS_INDEX =
-      new IndexDefinition<MasterWorkerInfo>(true) {
+  private static final IndexDefinition<MasterWorkerInfo, WorkerNetAddress> ADDRESS_INDEX =
+      new IndexDefinition<MasterWorkerInfo, WorkerNetAddress>(true) {
         @Override
-        public Object getFieldValue(MasterWorkerInfo o) {
+        public WorkerNetAddress getFieldValue(MasterWorkerInfo o) {
           return o.getWorkerAddress();
         }
       };
@@ -780,7 +779,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       return new Command(CommandType.Register, new ArrayList<Long>());
     }
 
-    try (LockResource r = new LockResource(worker.getHeartbeatLock())) {
+    synchronized (worker) {
       // Technically, 'worker' should be confirmed to still be in the data structure. Lost worker
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
       // will just re-register regardless.

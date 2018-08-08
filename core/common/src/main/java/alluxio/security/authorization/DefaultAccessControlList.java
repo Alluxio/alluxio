@@ -12,6 +12,7 @@
 package alluxio.security.authorization;
 
 import alluxio.collections.Pair;
+import alluxio.thrift.TAcl;
 
 import com.google.common.base.Objects;
 
@@ -51,7 +52,7 @@ public class DefaultAccessControlList extends AccessControlList {
    */
   public DefaultAccessControlList(AccessControlList acl) {
     super();
-    mEmpty = false;
+    mEmpty = true;
     mAccessAcl = acl;
     mOwningUser = acl.mOwningUser;
     mOwningGroup = acl.mOwningGroup;
@@ -82,6 +83,7 @@ public class DefaultAccessControlList extends AccessControlList {
   public Pair<AccessControlList, DefaultAccessControlList> generateChildDirACL() {
     AccessControlList acl = generateChildFileACL();
     DefaultAccessControlList dAcl = new DefaultAccessControlList(acl);
+    dAcl.setEmpty(false);
     dAcl.mOwningUser = mOwningUser;
     dAcl.mOwningGroup = mOwningGroup;
     dAcl.mMode = mMode;
@@ -140,6 +142,9 @@ public class DefaultAccessControlList extends AccessControlList {
 
   @Override
   public void setEntry(AclEntry entry) {
+    if (isEmpty() && mAccessAcl != null) {
+      mMode = mAccessAcl.mMode;
+    }
     super.setEntry(entry);
     setEmpty(false);
   }
@@ -176,6 +181,17 @@ public class DefaultAccessControlList extends AccessControlList {
       entry.setDefault(true);
     }
     return aclEntryList;
+  }
+
+  /**
+   * @return the thrift representation of this object
+   */
+  @Override
+  public TAcl toThrift() {
+    TAcl tAcl = super.toThrift();
+    tAcl.setIsDefault(true);
+    tAcl.setIsDefaultEmpty(isEmpty());
+    return tAcl;
   }
 
   @Override

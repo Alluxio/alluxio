@@ -227,14 +227,25 @@ public class AccessControlList implements Serializable {
   }
 
   /**
+   * Update the mask to be the union of owning group entry, named user entry and named group entry.
+   * This method must be called when the aforementioned entries are modified.
+   */
+  public void updateMask() {
+    if (hasExtended()) {
+      AclActions actions = getOwningGroupActions();
+      mExtendedEntries.updateMask(actions);
+    }
+  }
+
+  /**
    * Sets an entry into the access control list.
    * If an entry with the same type and subject already exists, overwrites the existing entry;
    * Otherwise, adds this new entry.
+   * After we modify entries for NAMED_GROUP, OWNING_GROUP, NAMED_USER, we need to update the mask.
    *
    * @param entry the entry to be added or updated
    */
   public void setEntry(AclEntry entry) {
-    // TODO(cc): when setting non-mask entries, the mask should be dynamically updated too.
     switch (entry.getType()) {
       case NAMED_USER:  // fall through
       case NAMED_GROUP: // fall through
@@ -296,11 +307,11 @@ public class AccessControlList implements Serializable {
    * for other actions, checkPermission(user, groups, action) is false.
    *
    * 1. If the user is the owner, then return the permission in the owner entry;
-   * 2. Else if the user matches the name of one of the named user entries, then return the
-   *    permission in this entry;
+   * 2. Else if the user matches the name of one of the named user entries, then return the AND
+   *    result of the permission in this entry and the mask ;
    * 3. Else if at least one of the groups is the owning group or matches the name of one of the
    *    named group entries, then for the named group entries that match a member of groups, merge
-   *    the permissions in these entries and return the merged permission;
+   *    the permissions in these entries and return the merged permission ANDed with the mask;
    * 4. Otherwise, return the permission in the other entry.
    *
    * @param user the user
@@ -314,7 +325,9 @@ public class AccessControlList implements Serializable {
     if (hasExtended()) {
       AclActions actions = mExtendedEntries.getNamedUser(user);
       if (actions != null) {
-        return new AclActions(actions);
+        AclActions result = new AclActions(actions);
+        result.mask(mExtendedEntries.mMaskActions);
+        return result;
       }
     }
 
@@ -334,6 +347,9 @@ public class AccessControlList implements Serializable {
       }
     }
     if (isGroupKnown) {
+      if (hasExtended()) {
+        groupActions.mask(mExtendedEntries.mMaskActions);
+      }
       return groupActions;
     }
 
@@ -484,26 +500,22 @@ public class AccessControlList implements Serializable {
   public static AccessControlList fromThrift(TAcl tAcl) {
     AccessControlList acl;
 
-    if (tAcl.isSetEntries()) {
-      if (tAcl.getEntries().size() > 0) {
-        TAclEntry tEntry = tAcl.getEntries().get(0);
-        if (tEntry.isIsDefault()) {
-          acl = new DefaultAccessControlList();
-        } else {
-          acl = new AccessControlList();
-        }
-      } else {
-        acl = new DefaultAccessControlList();
-      }
-      for (TAclEntry tEntry : tAcl.getEntries()) {
-        acl.setEntry(AclEntry.fromThrift(tEntry));
-      }
-    } else {
+    if (tAcl.isIsDefault()) {
       acl = new DefaultAccessControlList();
+      ((DefaultAccessControlList) acl).setEmpty(tAcl.isIsDefaultEmpty());
+    } else {
+      acl = new AccessControlList();
     }
 
     acl.setOwningUser(tAcl.getOwner());
     acl.setOwningGroup(tAcl.getOwningGroup());
+    acl.setMode(tAcl.getMode());
+
+    if (tAcl.isSetEntries()) {
+      for (TAclEntry tEntry : tAcl.getEntries()) {
+        acl.setEntry(AclEntry.fromThrift(tEntry));
+      }
+    }
 
     return acl;
   }
@@ -515,9 +527,13 @@ public class AccessControlList implements Serializable {
     TAcl tAcl = new TAcl();
     tAcl.setOwner(getOwningUser());
     tAcl.setOwningGroup(getOwningGroup());
-    for (AclEntry entry : getEntries()) {
-      tAcl.addToEntries(entry.toThrift());
+    tAcl.setMode(mMode);
+    if (hasExtended()) {
+      for (AclEntry entry : mExtendedEntries.getEntries()) {
+        tAcl.addToEntries(entry.toThrift());
+      }
     }
+    tAcl.setIsDefault(false);
     return tAcl;
   }
 

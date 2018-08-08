@@ -32,24 +32,26 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class MetricsStore {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsStore.class);
-  private static final IndexDefinition<Metric> FULL_NAME_INDEX = new IndexDefinition<Metric>(true) {
-    @Override
-    public Object getFieldValue(Metric o) {
-      return o.getFullMetricName();
-    }
-  };
-
-  private static final IndexDefinition<Metric> NAME_INDEX = new IndexDefinition<Metric>(false) {
-    @Override
-    public Object getFieldValue(Metric o) {
-      return o.getName();
-    }
-  };
-
-  private static final IndexDefinition<Metric> ID_INDEX =
-      new IndexDefinition<Metric>(false) {
+  private static final IndexDefinition<Metric, String> FULL_NAME_INDEX =
+      new IndexDefinition<Metric, String>(true) {
         @Override
-        public Object getFieldValue(Metric o) {
+        public String getFieldValue(Metric o) {
+          return o.getFullMetricName();
+        }
+      };
+
+  private static final IndexDefinition<Metric, String> NAME_INDEX =
+      new IndexDefinition<Metric, String>(false) {
+        @Override
+        public String getFieldValue(Metric o) {
+          return o.getName();
+        }
+      };
+
+  private static final IndexDefinition<Metric, String> ID_INDEX =
+      new IndexDefinition<Metric, String>(false) {
+        @Override
+        public String getFieldValue(Metric o) {
           return getFullInstanceId(o.getHostname(), o.getInstanceId());
         }
       };

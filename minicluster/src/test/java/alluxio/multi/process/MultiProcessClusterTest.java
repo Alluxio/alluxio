@@ -34,7 +34,7 @@ public final class MultiProcessClusterTest {
 
   @Test
   public void simpleCluster() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder()
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.MULTI_PROCESS_SIMPLE_CLUSTER)
         .setClusterName("simpleCluster")
         .setNumMasters(1)
         .setNumWorkers(1)
@@ -51,7 +51,7 @@ public final class MultiProcessClusterTest {
 
   @Test
   public void zookeeper() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder()
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.MULTI_PROCESS_ZOOKEEPER)
         .setClusterName("zookeeper")
         .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setNumMasters(3)

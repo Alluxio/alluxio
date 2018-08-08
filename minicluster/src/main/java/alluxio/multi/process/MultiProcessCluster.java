@@ -30,6 +30,7 @@ import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.ZkMasterInquireClient;
+import alluxio.multi.process.PortCoordination.ReservedPort;
 import alluxio.network.PortUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -42,9 +43,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +79,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * The synchronization strategy for this class is to synchronize all public methods.
  */
 @ThreadSafe
-public final class MultiProcessCluster implements TestRule {
+public final class MultiProcessCluster {
+  public static final String ALLUXIO_USE_FIXED_TEST_PORTS = "ALLUXIO_USE_FIXED_TEST_PORTS";
+  public static final int PORTS_PER_MASTER = 2;
+  public static final int PORTS_PER_WORKER = 3;
+
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
   private static final File TESTS_LOG = new File(Constants.TESTS_LOG);
@@ -96,6 +98,7 @@ public final class MultiProcessCluster implements TestRule {
   private final Closer mCloser;
   private final List<Master> mMasters;
   private final List<Worker> mWorkers;
+  private final List<ReservedPort> mPorts;
 
   private DeployMode mDeployMode;
 
@@ -113,8 +116,15 @@ public final class MultiProcessCluster implements TestRule {
 
   private MultiProcessCluster(Map<PropertyKey, String> properties,
       Map<Integer, Map<PropertyKey, String>> masterProperties,
-      Map<Integer, Map<PropertyKey, String>> workerProperties,
-      int numMasters, int numWorkers, String clusterName, DeployMode mode) {
+      Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,
+      String clusterName, DeployMode mode, List<PortCoordination.ReservedPort> ports) {
+    if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) != null) {
+      Preconditions.checkState(
+          ports.size() == numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
+          "We require %s ports per master and %s ports per worker, but there are %s masters, "
+              + "%s workers, and %s ports",
+          PORTS_PER_MASTER, PORTS_PER_WORKER, numMasters, numWorkers, ports.size());
+    }
     mProperties = properties;
     mMasterProperties = masterProperties;
     mWorkerProperties = workerProperties;
@@ -125,6 +135,7 @@ public final class MultiProcessCluster implements TestRule {
     mDeployMode = mode;
     mMasters = new ArrayList<>();
     mWorkers = new ArrayList<>();
+    mPorts = new ArrayList<>(ports);
     mCloser = Closer.create();
     mState = State.NOT_STARTED;
     mSuccess = false;
@@ -469,9 +480,9 @@ public final class MultiProcessCluster implements TestRule {
     File ramdisk = new File(mWorkDir, "ramdisk" + i);
     logsDir.mkdirs();
     ramdisk.mkdirs();
-    int rpcPort = PortUtils.getFreePort();
-    int dataPort = PortUtils.getFreePort();
-    int webPort = PortUtils.getFreePort();
+    int rpcPort = getNewPort();
+    int dataPort = getNewPort();
+    int webPort = getNewPort();
 
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.LOGGER_TYPE, "WORKER_LOGGER");
@@ -535,33 +546,12 @@ public final class MultiProcessCluster implements TestRule {
     }
   }
 
-  @Override
-  public Statement apply(final Statement base, Description description) {
-    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-      public void run() {
-        try {
-          destroy();
-        } catch (IOException e) {
-          LOG.warn("Failed to clean up test cluster processes: {}", e.toString());
-        }
-      }
-    }));
-    return new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        try {
-          start();
-          waitForAllNodesRegistered(5 * Constants.MINUTE_MS);
-          base.evaluate();
-        } finally {
-          try {
-            destroy();
-          } catch (Throwable t) {
-            LOG.error("Failed to destroy cluster", t);
-          }
-        }
-      }
-    };
+  private int getNewPort() throws IOException {
+    if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) == null) {
+      return PortUtils.getFreePort();
+    }
+    Preconditions.checkState(!mPorts.isEmpty(), "Out of ports to reserve");
+    return mPorts.remove(mPorts.size() - 1).getPort();
   }
 
   /**
@@ -590,11 +580,11 @@ public final class MultiProcessCluster implements TestRule {
     }
   }
 
-  private static List<MasterNetAddress> generateMasterAddresses(int numMasters) throws IOException {
+  private List<MasterNetAddress> generateMasterAddresses(int numMasters) throws IOException {
     List<MasterNetAddress> addrs = new ArrayList<>();
     for (int i = 0; i < numMasters; i++) {
-      addrs.add(new MasterNetAddress(NetworkAddressUtils.getLocalHostName(),
-          PortUtils.getFreePort(), PortUtils.getFreePort()));
+      addrs.add(
+          new MasterNetAddress(NetworkAddressUtils.getLocalHostName(), getNewPort(), getNewPort()));
     }
     return addrs;
   }
@@ -614,6 +604,8 @@ public final class MultiProcessCluster implements TestRule {
    * Builder for {@link MultiProcessCluster}.
    */
   public static final class Builder {
+    private final List<ReservedPort> mReservedPorts;
+
     private Map<PropertyKey, String> mProperties = new HashMap<>();
     private Map<Integer, Map<PropertyKey, String>> mMasterProperties = new HashMap<>();
     private Map<Integer, Map<PropertyKey, String>> mWorkerProperties = new HashMap<>();
@@ -622,7 +614,10 @@ public final class MultiProcessCluster implements TestRule {
     private String mClusterName = "AlluxioMiniCluster";
     private DeployMode mDeployMode = DeployMode.NON_HA;
 
-    private Builder() {} // Should only be instantiated by newBuilder().
+    // Should only be instantiated by newBuilder().
+    private Builder(List<ReservedPort> reservedPorts) {
+      mReservedPorts = reservedPorts;
+    }
 
     /**
      * @param key the property key to set
@@ -722,14 +717,15 @@ public final class MultiProcessCluster implements TestRule {
           "The worker indexes in worker properties should be bigger or equal to zero "
               + "and small than %s", mNumWorkers);
       return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
-          mNumMasters, mNumWorkers, mClusterName, mDeployMode);
+          mNumMasters, mNumWorkers, mClusterName, mDeployMode, mReservedPorts);
     }
   }
 
   /**
+   * @param reservedPorts ports reserved for usage by this cluster
    * @return a new builder for an {@link MultiProcessCluster}
    */
-  public static Builder newBuilder() {
-    return new Builder();
+  public static Builder newBuilder(List<ReservedPort> reservedPorts) {
+    return new Builder(reservedPorts);
   }
 }

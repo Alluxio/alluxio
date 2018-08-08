@@ -1,7 +1,7 @@
 ---
 layout: global
-title: （实验版）世系关系（Lineage）客户端API
-nickname: （实验版）世系关系（Lineage）API
+title: （实验）Lineage客户端API
+nickname: （实验）Lineage API
 group: Features
 priority: 99
 ---

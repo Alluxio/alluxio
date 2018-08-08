@@ -52,7 +52,7 @@ public final class NettyClient {
    * (#processors * 2) threads by default.
    */
   private static final EventLoopGroup WORKER_GROUP = NettyUtils
-      .createEventLoop(NettyUtils.CHANNEL_TYPE,
+      .createEventLoop(NettyUtils.USER_CHANNEL_TYPE,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
           "netty-client-worker-%d", true);
 
@@ -68,12 +68,12 @@ public final class NettyClient {
   public static Bootstrap createClientBootstrap(Subject subject, SocketAddress address) {
     final Bootstrap boot = new Bootstrap();
 
-    boot.group(WORKER_GROUP).channel(NettyUtils
-        .getClientChannelClass(NettyUtils.CHANNEL_TYPE, !(address instanceof InetSocketAddress)));
+    boot.group(WORKER_GROUP)
+        .channel(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress)));
     boot.option(ChannelOption.SO_KEEPALIVE, true);
     boot.option(ChannelOption.TCP_NODELAY, true);
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-    if (NettyUtils.CHANNEL_TYPE == ChannelType.EPOLL) {
+    if (NettyUtils.USER_CHANNEL_TYPE == ChannelType.EPOLL) {
       boot.option(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);
     }
 
