@@ -287,8 +287,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey CONF_VALIDATION_ENABLED =
       new Builder(Name.CONF_VALIDATION_ENABLED)
           .setDefaultValue(true)
-          .setDescription("Whether to validate the configuration properties when initializing " +
-              "Alluxio clients or server process.")
+          .setDescription("Whether to validate the configuration properties when initializing "
+              + "Alluxio clients or server process.")
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
