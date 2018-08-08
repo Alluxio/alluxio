@@ -146,7 +146,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // org.apache.hadoop.fs.FileSystem.close may check the existence of certain temp files before
     // closing
     super.close();
-    if (mContext != null && mContext != FileSystemContext.get()) {
+    if (mContext != null) {
       mContext.close();
     }
   }
@@ -559,18 +559,19 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
-   * Sets the file system and context.
+   * Sets the file system and context. Contexts with the same subject are shared among file systems
+   * to reduce resource usage such as the metrics heartbeat.
    */
   private void updateFileSystemAndContext() {
     Subject subject = getHadoopSubject();
     if (subject != null) {
       LOG.debug("Using Hadoop subject: {}", subject);
-      mContext = FileSystemContext.create(subject);
+      mContext = FileSystemContext.get(subject);
       mFileSystem = FileSystem.Factory.get(mContext);
     } else {
-      LOG.debug("No Hadoop subject. Using default FS Context.");
+      LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
       mContext = FileSystemContext.get();
-      mFileSystem = FileSystem.Factory.get();
+      mFileSystem = FileSystem.Factory.get(mContext);
     }
   }
 

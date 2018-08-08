@@ -148,7 +148,7 @@ the user can impersonate any other user. Here are some examples.
 - `alluxio.master.security.impersonation.client.users=*`
     - This means the Alluxio user `client` is allowed to impersonate any user.
 
-For `alluxio.master.security.impersonation.<USERNAME>.users`, you can specify the comma-separated groups
+For `alluxio.master.security.impersonation.<USERNAME>.groups`, you can specify the comma-separated groups
 of users that the `<USERNAME>` is allowed to impersonate. The wildcard `*` can be used to indicate that
 the user can impersonate any other user. Here are some examples.
 

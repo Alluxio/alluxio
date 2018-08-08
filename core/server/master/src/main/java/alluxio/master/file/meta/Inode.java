@@ -19,6 +19,7 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
@@ -236,6 +237,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
         mAcl.removeEntry(entry);
       }
     }
+    updateMask(entries);
     return getThis();
   }
 
@@ -260,6 +262,42 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
       mAcl.clearEntries();
     }
     return setAcl(entries);
+  }
+
+  /**
+   * Update Mask for the Inode.
+   * This method should be called after updates to ACL and defaultACL.
+   *
+   * @param entries the list of ACL entries
+   * @return the updated object
+   */
+  public T updateMask(List<AclEntry> entries) {
+    boolean needToUpdateACL = false;
+    boolean needToUpdateDefaultACL = false;
+
+    for (AclEntry entry : entries) {
+      if (entry.getType().equals(AclEntryType.NAMED_USER)
+          || entry.getType().equals(AclEntryType.NAMED_GROUP)
+          || entry.getType().equals(AclEntryType.OWNING_GROUP)) {
+        if (entry.isDefault()) {
+          needToUpdateDefaultACL = true;
+        } else {
+          needToUpdateACL = true;
+        }
+      }
+      if (entry.getType().equals(AclEntryType.MASK)) {
+        // If mask is explicitly set or removed then we don't need to update the mask
+        return getThis();
+      }
+    }
+    if (needToUpdateACL) {
+      mAcl.updateMask();
+    }
+
+    if (needToUpdateDefaultACL) {
+      getDefaultACL().updateMask();
+    }
+    return getThis();
   }
 
   /**
@@ -428,6 +466,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
         mAcl.setEntry(entry);
       }
     }
+    updateMask(entries);
     return getThis();
   }
 

@@ -183,7 +183,8 @@ public final class AclEntry implements Serializable {
     }
     List<String> components = Arrays.stream(stringEntry.split(":")).map(String::trim).collect(
         Collectors.toList());
-    if (!(components.size() == 3 || (components.size() == 4
+    if (!((components.size() == 3 && !components.get(0).equals(DEFAULT_KEYWORD))
+        || (components.size() == 4
         && components.get(0).equals(DEFAULT_KEYWORD)))) {
       throw new IllegalArgumentException("Unexpected acl components: " + stringEntry);
     }
