@@ -18,8 +18,6 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileAlreadyCompletedException;
-import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.Mode;
 
@@ -72,48 +70,6 @@ public final class InodeFileTest extends AbstractInodeTest {
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.setLength(LENGTH);
     assertEquals(LENGTH, inodeFile.getLength());
-  }
-
-  /**
-   * Tests that an exception is thrown when trying to create a file with a negative length.
-   */
-  @Test
-  public void setNegativeLength() throws Exception {
-    mThrown.expect(InvalidFileSizeException.class);
-    mThrown.expectMessage("File testFile1 cannot have negative length: -2");
-    InodeFile inodeFile = createInodeFile(1);
-    inodeFile.complete(-2);
-  }
-
-  /**
-   * Tests a file can be complete with an unknown length.
-   */
-  @Test
-  public void setUnknownLength() throws Exception {
-    InodeFile inodeFile = createInodeFile(1);
-    inodeFile.complete(Constants.UNKNOWN_SIZE);
-  }
-
-  /**
-   * Tests that an exception is thrown when trying to complete a file twice.
-   */
-  @Test
-  public void completeTwice() throws Exception {
-    mThrown.expect(FileAlreadyCompletedException.class);
-    mThrown.expectMessage("File testFile1 has already been completed.");
-    InodeFile inodeFile = createInodeFile(1);
-    inodeFile.complete(LENGTH);
-    inodeFile.complete(LENGTH);
-  }
-
-  /**
-   * Tests a file can be completed if its length was unknown previously.
-   */
-  @Test
-  public void completeUnknown() throws Exception {
-    InodeFile inodeFile = createInodeFile(1);
-    inodeFile.complete(Constants.UNKNOWN_SIZE);
-    inodeFile.complete(LENGTH);
   }
 
   /**
@@ -195,7 +151,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockReadAndCheckParent(Inode)} method.
+   * Tests the {@link Inode#lockReadAndCheckParent(InodeView)} method.
    */
   @Test
   public void lockReadAndCheckParent() throws Exception {
@@ -208,7 +164,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockReadAndCheckParent(Inode)} method fails when the parent is
+   * Tests the {@link Inode#lockReadAndCheckParent(InodeView)} method fails when the parent is
    * not consistent.
    */
   @Test
@@ -222,7 +178,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockReadAndCheckNameAndParent(Inode, String)} method.
+   * Tests the {@link Inode#lockReadAndCheckNameAndParent(InodeView, String)} method.
    */
   @Test
   public void lockReadAndCheckNameAndParent() throws Exception {
@@ -237,7 +193,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockReadAndCheckNameAndParent(Inode, String)} method fails when the
+   * Tests the {@link Inode#lockReadAndCheckNameAndParent(InodeView, String)} method fails when the
    * parent and name are not consistent.
    */
   @Test
@@ -253,7 +209,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockReadAndCheckNameAndParent(Inode, String)} method fails when the name
+   * Tests the {@link Inode#lockReadAndCheckNameAndParent(InodeView, String)} method fails when the name
    * is not consistent.
    */
   @Test
@@ -269,7 +225,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockReadAndCheckNameAndParent(Inode, String)} method fails when the
+   * Tests the {@link Inode#lockReadAndCheckNameAndParent(InodeView, String)} method fails when the
    * parent is not consistent.
    */
   @Test
@@ -299,7 +255,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockWriteAndCheckParent(Inode)} method.
+   * Tests the {@link Inode#lockWriteAndCheckParent(InodeView)} method.
    */
   @Test
   public void lockWriteAndCheckParent() throws Exception {
@@ -312,7 +268,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockWriteAndCheckParent(Inode)} method fails when the parent is
+   * Tests the {@link Inode#lockWriteAndCheckParent(InodeView)} method fails when the parent is
    * not consistent.
    */
   @Test
@@ -326,7 +282,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockWriteAndCheckNameAndParent(Inode, String)} method.
+   * Tests the {@link Inode#lockWriteAndCheckNameAndParent(InodeView, String)} method.
    */
   @Test
   public void lockWriteAndCheckNameAndParent() throws Exception {
@@ -341,7 +297,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockWriteAndCheckNameAndParent(Inode, String)} method fails when the
+   * Tests the {@link Inode#lockWriteAndCheckNameAndParent(InodeView, String)} method fails when the
    * parent and name are not consistent.
    */
   @Test
@@ -357,7 +313,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockWriteAndCheckNameAndParent(Inode, String)} method fails when the
+   * Tests the {@link Inode#lockWriteAndCheckNameAndParent(InodeView, String)} method fails when the
    * name is not consistent.
    */
   @Test
@@ -373,7 +329,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockWriteAndCheckNameAndParent(Inode, String)} method fails when the
+   * Tests the {@link Inode#lockWriteAndCheckNameAndParent(InodeView, String)} method fails when the
    * parent is not consistent.
    */
   @Test

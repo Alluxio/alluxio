@@ -8689,6 +8689,3601 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.AccessControlList)
   }
 
+  public interface UpdateInodeEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional int64 id = 1;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    // optional int64 parent_id = 2;
+    /**
+     * <code>optional int64 parent_id = 2;</code>
+     */
+    boolean hasParentId();
+    /**
+     * <code>optional int64 parent_id = 2;</code>
+     */
+    long getParentId();
+
+    // optional string name = 3;
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    boolean hasName();
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    java.lang.String getName();
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+
+    // optional string persistence_state = 4;
+    /**
+     * <code>optional string persistence_state = 4;</code>
+     */
+    boolean hasPersistenceState();
+    /**
+     * <code>optional string persistence_state = 4;</code>
+     */
+    java.lang.String getPersistenceState();
+    /**
+     * <code>optional string persistence_state = 4;</code>
+     */
+    com.google.protobuf.ByteString
+        getPersistenceStateBytes();
+
+    // optional bool pinned = 5;
+    /**
+     * <code>optional bool pinned = 5;</code>
+     */
+    boolean hasPinned();
+    /**
+     * <code>optional bool pinned = 5;</code>
+     */
+    boolean getPinned();
+
+    // optional int64 creation_time_ms = 6;
+    /**
+     * <code>optional int64 creation_time_ms = 6;</code>
+     */
+    boolean hasCreationTimeMs();
+    /**
+     * <code>optional int64 creation_time_ms = 6;</code>
+     */
+    long getCreationTimeMs();
+
+    // optional int64 last_modification_time_ms = 7;
+    /**
+     * <code>optional int64 last_modification_time_ms = 7;</code>
+     */
+    boolean hasLastModificationTimeMs();
+    /**
+     * <code>optional int64 last_modification_time_ms = 7;</code>
+     */
+    long getLastModificationTimeMs();
+
+    // optional string owner = 8;
+    /**
+     * <code>optional string owner = 8;</code>
+     */
+    boolean hasOwner();
+    /**
+     * <code>optional string owner = 8;</code>
+     */
+    java.lang.String getOwner();
+    /**
+     * <code>optional string owner = 8;</code>
+     */
+    com.google.protobuf.ByteString
+        getOwnerBytes();
+
+    // optional string group = 9;
+    /**
+     * <code>optional string group = 9;</code>
+     */
+    boolean hasGroup();
+    /**
+     * <code>optional string group = 9;</code>
+     */
+    java.lang.String getGroup();
+    /**
+     * <code>optional string group = 9;</code>
+     */
+    com.google.protobuf.ByteString
+        getGroupBytes();
+
+    // optional int32 mode = 10;
+    /**
+     * <code>optional int32 mode = 10;</code>
+     */
+    boolean hasMode();
+    /**
+     * <code>optional int32 mode = 10;</code>
+     */
+    int getMode();
+
+    // optional int64 ttl = 11;
+    /**
+     * <code>optional int64 ttl = 11;</code>
+     */
+    boolean hasTtl();
+    /**
+     * <code>optional int64 ttl = 11;</code>
+     */
+    long getTtl();
+
+    // optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];
+    /**
+     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+     */
+    boolean hasTtlAction();
+    /**
+     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+     */
+    alluxio.proto.journal.File.PTtlAction getTtlAction();
+
+    // optional .alluxio.proto.journal.AccessControlList acl = 13;
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+     */
+    boolean hasAcl();
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+     */
+    alluxio.proto.journal.File.AccessControlList getAcl();
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+     */
+    alluxio.proto.journal.File.AccessControlListOrBuilder getAclOrBuilder();
+
+    // optional string ufs_fingerprint = 14;
+    /**
+     * <code>optional string ufs_fingerprint = 14;</code>
+     */
+    boolean hasUfsFingerprint();
+    /**
+     * <code>optional string ufs_fingerprint = 14;</code>
+     */
+    java.lang.String getUfsFingerprint();
+    /**
+     * <code>optional string ufs_fingerprint = 14;</code>
+     */
+    com.google.protobuf.ByteString
+        getUfsFingerprintBytes();
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.journal.UpdateInodeEntry}
+   *
+   * <pre>
+   * next available id: 15
+   * </pre>
+   */
+  public static final class UpdateInodeEntry extends
+      com.google.protobuf.GeneratedMessage
+      implements UpdateInodeEntryOrBuilder {
+    // Use UpdateInodeEntry.newBuilder() to construct.
+    private UpdateInodeEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private UpdateInodeEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final UpdateInodeEntry defaultInstance;
+    public static UpdateInodeEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public UpdateInodeEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private UpdateInodeEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              parentId_ = input.readInt64();
+              break;
+            }
+            case 26: {
+              bitField0_ |= 0x00000004;
+              name_ = input.readBytes();
+              break;
+            }
+            case 34: {
+              bitField0_ |= 0x00000008;
+              persistenceState_ = input.readBytes();
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              pinned_ = input.readBool();
+              break;
+            }
+            case 48: {
+              bitField0_ |= 0x00000020;
+              creationTimeMs_ = input.readInt64();
+              break;
+            }
+            case 56: {
+              bitField0_ |= 0x00000040;
+              lastModificationTimeMs_ = input.readInt64();
+              break;
+            }
+            case 66: {
+              bitField0_ |= 0x00000080;
+              owner_ = input.readBytes();
+              break;
+            }
+            case 74: {
+              bitField0_ |= 0x00000100;
+              group_ = input.readBytes();
+              break;
+            }
+            case 80: {
+              bitField0_ |= 0x00000200;
+              mode_ = input.readInt32();
+              break;
+            }
+            case 88: {
+              bitField0_ |= 0x00000400;
+              ttl_ = input.readInt64();
+              break;
+            }
+            case 96: {
+              int rawValue = input.readEnum();
+              alluxio.proto.journal.File.PTtlAction value = alluxio.proto.journal.File.PTtlAction.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(12, rawValue);
+              } else {
+                bitField0_ |= 0x00000800;
+                ttlAction_ = value;
+              }
+              break;
+            }
+            case 106: {
+              alluxio.proto.journal.File.AccessControlList.Builder subBuilder = null;
+              if (((bitField0_ & 0x00001000) == 0x00001000)) {
+                subBuilder = acl_.toBuilder();
+              }
+              acl_ = input.readMessage(alluxio.proto.journal.File.AccessControlList.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(acl_);
+                acl_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00001000;
+              break;
+            }
+            case 114: {
+              bitField0_ |= 0x00002000;
+              ufsFingerprint_ = input.readBytes();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.journal.File.UpdateInodeEntry.class, alluxio.proto.journal.File.UpdateInodeEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<UpdateInodeEntry> PARSER =
+        new com.google.protobuf.AbstractParser<UpdateInodeEntry>() {
+      public UpdateInodeEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new UpdateInodeEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<UpdateInodeEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // optional int64 id = 1;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    // optional int64 parent_id = 2;
+    public static final int PARENT_ID_FIELD_NUMBER = 2;
+    private long parentId_;
+    /**
+     * <code>optional int64 parent_id = 2;</code>
+     */
+    public boolean hasParentId() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 parent_id = 2;</code>
+     */
+    public long getParentId() {
+      return parentId_;
+    }
+
+    // optional string name = 3;
+    public static final int NAME_FIELD_NUMBER = 3;
+    private java.lang.Object name_;
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    public boolean hasName() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          name_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getNameBytes() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        name_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    // optional string persistence_state = 4;
+    public static final int PERSISTENCE_STATE_FIELD_NUMBER = 4;
+    private java.lang.Object persistenceState_;
+    /**
+     * <code>optional string persistence_state = 4;</code>
+     */
+    public boolean hasPersistenceState() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional string persistence_state = 4;</code>
+     */
+    public java.lang.String getPersistenceState() {
+      java.lang.Object ref = persistenceState_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          persistenceState_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string persistence_state = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getPersistenceStateBytes() {
+      java.lang.Object ref = persistenceState_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        persistenceState_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    // optional bool pinned = 5;
+    public static final int PINNED_FIELD_NUMBER = 5;
+    private boolean pinned_;
+    /**
+     * <code>optional bool pinned = 5;</code>
+     */
+    public boolean hasPinned() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bool pinned = 5;</code>
+     */
+    public boolean getPinned() {
+      return pinned_;
+    }
+
+    // optional int64 creation_time_ms = 6;
+    public static final int CREATION_TIME_MS_FIELD_NUMBER = 6;
+    private long creationTimeMs_;
+    /**
+     * <code>optional int64 creation_time_ms = 6;</code>
+     */
+    public boolean hasCreationTimeMs() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional int64 creation_time_ms = 6;</code>
+     */
+    public long getCreationTimeMs() {
+      return creationTimeMs_;
+    }
+
+    // optional int64 last_modification_time_ms = 7;
+    public static final int LAST_MODIFICATION_TIME_MS_FIELD_NUMBER = 7;
+    private long lastModificationTimeMs_;
+    /**
+     * <code>optional int64 last_modification_time_ms = 7;</code>
+     */
+    public boolean hasLastModificationTimeMs() {
+      return ((bitField0_ & 0x00000040) == 0x00000040);
+    }
+    /**
+     * <code>optional int64 last_modification_time_ms = 7;</code>
+     */
+    public long getLastModificationTimeMs() {
+      return lastModificationTimeMs_;
+    }
+
+    // optional string owner = 8;
+    public static final int OWNER_FIELD_NUMBER = 8;
+    private java.lang.Object owner_;
+    /**
+     * <code>optional string owner = 8;</code>
+     */
+    public boolean hasOwner() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <code>optional string owner = 8;</code>
+     */
+    public java.lang.String getOwner() {
+      java.lang.Object ref = owner_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          owner_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string owner = 8;</code>
+     */
+    public com.google.protobuf.ByteString
+        getOwnerBytes() {
+      java.lang.Object ref = owner_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        owner_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    // optional string group = 9;
+    public static final int GROUP_FIELD_NUMBER = 9;
+    private java.lang.Object group_;
+    /**
+     * <code>optional string group = 9;</code>
+     */
+    public boolean hasGroup() {
+      return ((bitField0_ & 0x00000100) == 0x00000100);
+    }
+    /**
+     * <code>optional string group = 9;</code>
+     */
+    public java.lang.String getGroup() {
+      java.lang.Object ref = group_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          group_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string group = 9;</code>
+     */
+    public com.google.protobuf.ByteString
+        getGroupBytes() {
+      java.lang.Object ref = group_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        group_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    // optional int32 mode = 10;
+    public static final int MODE_FIELD_NUMBER = 10;
+    private int mode_;
+    /**
+     * <code>optional int32 mode = 10;</code>
+     */
+    public boolean hasMode() {
+      return ((bitField0_ & 0x00000200) == 0x00000200);
+    }
+    /**
+     * <code>optional int32 mode = 10;</code>
+     */
+    public int getMode() {
+      return mode_;
+    }
+
+    // optional int64 ttl = 11;
+    public static final int TTL_FIELD_NUMBER = 11;
+    private long ttl_;
+    /**
+     * <code>optional int64 ttl = 11;</code>
+     */
+    public boolean hasTtl() {
+      return ((bitField0_ & 0x00000400) == 0x00000400);
+    }
+    /**
+     * <code>optional int64 ttl = 11;</code>
+     */
+    public long getTtl() {
+      return ttl_;
+    }
+
+    // optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];
+    public static final int TTLACTION_FIELD_NUMBER = 12;
+    private alluxio.proto.journal.File.PTtlAction ttlAction_;
+    /**
+     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+     */
+    public boolean hasTtlAction() {
+      return ((bitField0_ & 0x00000800) == 0x00000800);
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+     */
+    public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+      return ttlAction_;
+    }
+
+    // optional .alluxio.proto.journal.AccessControlList acl = 13;
+    public static final int ACL_FIELD_NUMBER = 13;
+    private alluxio.proto.journal.File.AccessControlList acl_;
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+     */
+    public boolean hasAcl() {
+      return ((bitField0_ & 0x00001000) == 0x00001000);
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+     */
+    public alluxio.proto.journal.File.AccessControlList getAcl() {
+      return acl_;
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+     */
+    public alluxio.proto.journal.File.AccessControlListOrBuilder getAclOrBuilder() {
+      return acl_;
+    }
+
+    // optional string ufs_fingerprint = 14;
+    public static final int UFS_FINGERPRINT_FIELD_NUMBER = 14;
+    private java.lang.Object ufsFingerprint_;
+    /**
+     * <code>optional string ufs_fingerprint = 14;</code>
+     */
+    public boolean hasUfsFingerprint() {
+      return ((bitField0_ & 0x00002000) == 0x00002000);
+    }
+    /**
+     * <code>optional string ufs_fingerprint = 14;</code>
+     */
+    public java.lang.String getUfsFingerprint() {
+      java.lang.Object ref = ufsFingerprint_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          ufsFingerprint_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string ufs_fingerprint = 14;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUfsFingerprintBytes() {
+      java.lang.Object ref = ufsFingerprint_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ufsFingerprint_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      parentId_ = 0L;
+      name_ = "";
+      persistenceState_ = "";
+      pinned_ = false;
+      creationTimeMs_ = 0L;
+      lastModificationTimeMs_ = 0L;
+      owner_ = "";
+      group_ = "";
+      mode_ = 0;
+      ttl_ = 0L;
+      ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      acl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
+      ufsFingerprint_ = "";
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, parentId_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBytes(3, getNameBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeBytes(4, getPersistenceStateBytes());
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBool(5, pinned_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        output.writeInt64(6, creationTimeMs_);
+      }
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        output.writeInt64(7, lastModificationTimeMs_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        output.writeBytes(8, getOwnerBytes());
+      }
+      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+        output.writeBytes(9, getGroupBytes());
+      }
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+        output.writeInt32(10, mode_);
+      }
+      if (((bitField0_ & 0x00000400) == 0x00000400)) {
+        output.writeInt64(11, ttl_);
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        output.writeEnum(12, ttlAction_.getNumber());
+      }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        output.writeMessage(13, acl_);
+      }
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+        output.writeBytes(14, getUfsFingerprintBytes());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, parentId_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(3, getNameBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(4, getPersistenceStateBytes());
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, pinned_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(6, creationTimeMs_);
+      }
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(7, lastModificationTimeMs_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(8, getOwnerBytes());
+      }
+      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(9, getGroupBytes());
+      }
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(10, mode_);
+      }
+      if (((bitField0_ & 0x00000400) == 0x00000400)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(11, ttl_);
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(12, ttlAction_.getNumber());
+      }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(13, acl_);
+      }
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(14, getUfsFingerprintBytes());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.journal.File.UpdateInodeEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.journal.File.UpdateInodeEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.journal.UpdateInodeEntry}
+     *
+     * <pre>
+     * next available id: 15
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.UpdateInodeEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.journal.File.UpdateInodeEntry.class, alluxio.proto.journal.File.UpdateInodeEntry.Builder.class);
+      }
+
+      // Construct using alluxio.proto.journal.File.UpdateInodeEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getAclFieldBuilder();
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        parentId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        name_ = "";
+        bitField0_ = (bitField0_ & ~0x00000004);
+        persistenceState_ = "";
+        bitField0_ = (bitField0_ & ~0x00000008);
+        pinned_ = false;
+        bitField0_ = (bitField0_ & ~0x00000010);
+        creationTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000020);
+        lastModificationTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000040);
+        owner_ = "";
+        bitField0_ = (bitField0_ & ~0x00000080);
+        group_ = "";
+        bitField0_ = (bitField0_ & ~0x00000100);
+        mode_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000200);
+        ttl_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000400);
+        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        bitField0_ = (bitField0_ & ~0x00000800);
+        if (aclBuilder_ == null) {
+          acl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
+        } else {
+          aclBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00001000);
+        ufsFingerprint_ = "";
+        bitField0_ = (bitField0_ & ~0x00002000);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor;
+      }
+
+      public alluxio.proto.journal.File.UpdateInodeEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.File.UpdateInodeEntry.getDefaultInstance();
+      }
+
+      public alluxio.proto.journal.File.UpdateInodeEntry build() {
+        alluxio.proto.journal.File.UpdateInodeEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.journal.File.UpdateInodeEntry buildPartial() {
+        alluxio.proto.journal.File.UpdateInodeEntry result = new alluxio.proto.journal.File.UpdateInodeEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.parentId_ = parentId_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.name_ = name_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.persistenceState_ = persistenceState_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.pinned_ = pinned_;
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+          to_bitField0_ |= 0x00000020;
+        }
+        result.creationTimeMs_ = creationTimeMs_;
+        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+          to_bitField0_ |= 0x00000040;
+        }
+        result.lastModificationTimeMs_ = lastModificationTimeMs_;
+        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+          to_bitField0_ |= 0x00000080;
+        }
+        result.owner_ = owner_;
+        if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
+          to_bitField0_ |= 0x00000100;
+        }
+        result.group_ = group_;
+        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
+          to_bitField0_ |= 0x00000200;
+        }
+        result.mode_ = mode_;
+        if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
+          to_bitField0_ |= 0x00000400;
+        }
+        result.ttl_ = ttl_;
+        if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
+          to_bitField0_ |= 0x00000800;
+        }
+        result.ttlAction_ = ttlAction_;
+        if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
+          to_bitField0_ |= 0x00001000;
+        }
+        if (aclBuilder_ == null) {
+          result.acl_ = acl_;
+        } else {
+          result.acl_ = aclBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
+          to_bitField0_ |= 0x00002000;
+        }
+        result.ufsFingerprint_ = ufsFingerprint_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.journal.File.UpdateInodeEntry) {
+          return mergeFrom((alluxio.proto.journal.File.UpdateInodeEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.journal.File.UpdateInodeEntry other) {
+        if (other == alluxio.proto.journal.File.UpdateInodeEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasParentId()) {
+          setParentId(other.getParentId());
+        }
+        if (other.hasName()) {
+          bitField0_ |= 0x00000004;
+          name_ = other.name_;
+          onChanged();
+        }
+        if (other.hasPersistenceState()) {
+          bitField0_ |= 0x00000008;
+          persistenceState_ = other.persistenceState_;
+          onChanged();
+        }
+        if (other.hasPinned()) {
+          setPinned(other.getPinned());
+        }
+        if (other.hasCreationTimeMs()) {
+          setCreationTimeMs(other.getCreationTimeMs());
+        }
+        if (other.hasLastModificationTimeMs()) {
+          setLastModificationTimeMs(other.getLastModificationTimeMs());
+        }
+        if (other.hasOwner()) {
+          bitField0_ |= 0x00000080;
+          owner_ = other.owner_;
+          onChanged();
+        }
+        if (other.hasGroup()) {
+          bitField0_ |= 0x00000100;
+          group_ = other.group_;
+          onChanged();
+        }
+        if (other.hasMode()) {
+          setMode(other.getMode());
+        }
+        if (other.hasTtl()) {
+          setTtl(other.getTtl());
+        }
+        if (other.hasTtlAction()) {
+          setTtlAction(other.getTtlAction());
+        }
+        if (other.hasAcl()) {
+          mergeAcl(other.getAcl());
+        }
+        if (other.hasUfsFingerprint()) {
+          bitField0_ |= 0x00002000;
+          ufsFingerprint_ = other.ufsFingerprint_;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.journal.File.UpdateInodeEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.journal.File.UpdateInodeEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional int64 id = 1;
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 parent_id = 2;
+      private long parentId_ ;
+      /**
+       * <code>optional int64 parent_id = 2;</code>
+       */
+      public boolean hasParentId() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 parent_id = 2;</code>
+       */
+      public long getParentId() {
+        return parentId_;
+      }
+      /**
+       * <code>optional int64 parent_id = 2;</code>
+       */
+      public Builder setParentId(long value) {
+        bitField0_ |= 0x00000002;
+        parentId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 parent_id = 2;</code>
+       */
+      public Builder clearParentId() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        parentId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional string name = 3;
+      private java.lang.Object name_ = "";
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public boolean hasName() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          name_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        name_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public Builder clearName() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        name_ = getDefaultInstance().getName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        name_ = value;
+        onChanged();
+        return this;
+      }
+
+      // optional string persistence_state = 4;
+      private java.lang.Object persistenceState_ = "";
+      /**
+       * <code>optional string persistence_state = 4;</code>
+       */
+      public boolean hasPersistenceState() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional string persistence_state = 4;</code>
+       */
+      public java.lang.String getPersistenceState() {
+        java.lang.Object ref = persistenceState_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          persistenceState_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string persistence_state = 4;</code>
+       */
+      public com.google.protobuf.ByteString
+          getPersistenceStateBytes() {
+        java.lang.Object ref = persistenceState_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          persistenceState_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string persistence_state = 4;</code>
+       */
+      public Builder setPersistenceState(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        persistenceState_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string persistence_state = 4;</code>
+       */
+      public Builder clearPersistenceState() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        persistenceState_ = getDefaultInstance().getPersistenceState();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string persistence_state = 4;</code>
+       */
+      public Builder setPersistenceStateBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        persistenceState_ = value;
+        onChanged();
+        return this;
+      }
+
+      // optional bool pinned = 5;
+      private boolean pinned_ ;
+      /**
+       * <code>optional bool pinned = 5;</code>
+       */
+      public boolean hasPinned() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional bool pinned = 5;</code>
+       */
+      public boolean getPinned() {
+        return pinned_;
+      }
+      /**
+       * <code>optional bool pinned = 5;</code>
+       */
+      public Builder setPinned(boolean value) {
+        bitField0_ |= 0x00000010;
+        pinned_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool pinned = 5;</code>
+       */
+      public Builder clearPinned() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        pinned_ = false;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 creation_time_ms = 6;
+      private long creationTimeMs_ ;
+      /**
+       * <code>optional int64 creation_time_ms = 6;</code>
+       */
+      public boolean hasCreationTimeMs() {
+        return ((bitField0_ & 0x00000020) == 0x00000020);
+      }
+      /**
+       * <code>optional int64 creation_time_ms = 6;</code>
+       */
+      public long getCreationTimeMs() {
+        return creationTimeMs_;
+      }
+      /**
+       * <code>optional int64 creation_time_ms = 6;</code>
+       */
+      public Builder setCreationTimeMs(long value) {
+        bitField0_ |= 0x00000020;
+        creationTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 creation_time_ms = 6;</code>
+       */
+      public Builder clearCreationTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        creationTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 last_modification_time_ms = 7;
+      private long lastModificationTimeMs_ ;
+      /**
+       * <code>optional int64 last_modification_time_ms = 7;</code>
+       */
+      public boolean hasLastModificationTimeMs() {
+        return ((bitField0_ & 0x00000040) == 0x00000040);
+      }
+      /**
+       * <code>optional int64 last_modification_time_ms = 7;</code>
+       */
+      public long getLastModificationTimeMs() {
+        return lastModificationTimeMs_;
+      }
+      /**
+       * <code>optional int64 last_modification_time_ms = 7;</code>
+       */
+      public Builder setLastModificationTimeMs(long value) {
+        bitField0_ |= 0x00000040;
+        lastModificationTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 last_modification_time_ms = 7;</code>
+       */
+      public Builder clearLastModificationTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        lastModificationTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional string owner = 8;
+      private java.lang.Object owner_ = "";
+      /**
+       * <code>optional string owner = 8;</code>
+       */
+      public boolean hasOwner() {
+        return ((bitField0_ & 0x00000080) == 0x00000080);
+      }
+      /**
+       * <code>optional string owner = 8;</code>
+       */
+      public java.lang.String getOwner() {
+        java.lang.Object ref = owner_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          owner_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string owner = 8;</code>
+       */
+      public com.google.protobuf.ByteString
+          getOwnerBytes() {
+        java.lang.Object ref = owner_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          owner_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string owner = 8;</code>
+       */
+      public Builder setOwner(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000080;
+        owner_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string owner = 8;</code>
+       */
+      public Builder clearOwner() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        owner_ = getDefaultInstance().getOwner();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string owner = 8;</code>
+       */
+      public Builder setOwnerBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000080;
+        owner_ = value;
+        onChanged();
+        return this;
+      }
+
+      // optional string group = 9;
+      private java.lang.Object group_ = "";
+      /**
+       * <code>optional string group = 9;</code>
+       */
+      public boolean hasGroup() {
+        return ((bitField0_ & 0x00000100) == 0x00000100);
+      }
+      /**
+       * <code>optional string group = 9;</code>
+       */
+      public java.lang.String getGroup() {
+        java.lang.Object ref = group_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          group_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string group = 9;</code>
+       */
+      public com.google.protobuf.ByteString
+          getGroupBytes() {
+        java.lang.Object ref = group_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          group_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string group = 9;</code>
+       */
+      public Builder setGroup(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000100;
+        group_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string group = 9;</code>
+       */
+      public Builder clearGroup() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        group_ = getDefaultInstance().getGroup();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string group = 9;</code>
+       */
+      public Builder setGroupBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000100;
+        group_ = value;
+        onChanged();
+        return this;
+      }
+
+      // optional int32 mode = 10;
+      private int mode_ ;
+      /**
+       * <code>optional int32 mode = 10;</code>
+       */
+      public boolean hasMode() {
+        return ((bitField0_ & 0x00000200) == 0x00000200);
+      }
+      /**
+       * <code>optional int32 mode = 10;</code>
+       */
+      public int getMode() {
+        return mode_;
+      }
+      /**
+       * <code>optional int32 mode = 10;</code>
+       */
+      public Builder setMode(int value) {
+        bitField0_ |= 0x00000200;
+        mode_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int32 mode = 10;</code>
+       */
+      public Builder clearMode() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        mode_ = 0;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 ttl = 11;
+      private long ttl_ ;
+      /**
+       * <code>optional int64 ttl = 11;</code>
+       */
+      public boolean hasTtl() {
+        return ((bitField0_ & 0x00000400) == 0x00000400);
+      }
+      /**
+       * <code>optional int64 ttl = 11;</code>
+       */
+      public long getTtl() {
+        return ttl_;
+      }
+      /**
+       * <code>optional int64 ttl = 11;</code>
+       */
+      public Builder setTtl(long value) {
+        bitField0_ |= 0x00000400;
+        ttl_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 ttl = 11;</code>
+       */
+      public Builder clearTtl() {
+        bitField0_ = (bitField0_ & ~0x00000400);
+        ttl_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];
+      private alluxio.proto.journal.File.PTtlAction ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      /**
+       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+       */
+      public boolean hasTtlAction() {
+        return ((bitField0_ & 0x00000800) == 0x00000800);
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+       */
+      public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+        return ttlAction_;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+       */
+      public Builder setTtlAction(alluxio.proto.journal.File.PTtlAction value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        bitField0_ |= 0x00000800;
+        ttlAction_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+       */
+      public Builder clearTtlAction() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        onChanged();
+        return this;
+      }
+
+      // optional .alluxio.proto.journal.AccessControlList acl = 13;
+      private alluxio.proto.journal.File.AccessControlList acl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.AccessControlList, alluxio.proto.journal.File.AccessControlList.Builder, alluxio.proto.journal.File.AccessControlListOrBuilder> aclBuilder_;
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       */
+      public boolean hasAcl() {
+        return ((bitField0_ & 0x00001000) == 0x00001000);
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       */
+      public alluxio.proto.journal.File.AccessControlList getAcl() {
+        if (aclBuilder_ == null) {
+          return acl_;
+        } else {
+          return aclBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       */
+      public Builder setAcl(alluxio.proto.journal.File.AccessControlList value) {
+        if (aclBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          acl_ = value;
+          onChanged();
+        } else {
+          aclBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00001000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       */
+      public Builder setAcl(
+          alluxio.proto.journal.File.AccessControlList.Builder builderForValue) {
+        if (aclBuilder_ == null) {
+          acl_ = builderForValue.build();
+          onChanged();
+        } else {
+          aclBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00001000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       */
+      public Builder mergeAcl(alluxio.proto.journal.File.AccessControlList value) {
+        if (aclBuilder_ == null) {
+          if (((bitField0_ & 0x00001000) == 0x00001000) &&
+              acl_ != alluxio.proto.journal.File.AccessControlList.getDefaultInstance()) {
+            acl_ =
+              alluxio.proto.journal.File.AccessControlList.newBuilder(acl_).mergeFrom(value).buildPartial();
+          } else {
+            acl_ = value;
+          }
+          onChanged();
+        } else {
+          aclBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00001000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       */
+      public Builder clearAcl() {
+        if (aclBuilder_ == null) {
+          acl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
+          onChanged();
+        } else {
+          aclBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00001000);
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       */
+      public alluxio.proto.journal.File.AccessControlList.Builder getAclBuilder() {
+        bitField0_ |= 0x00001000;
+        onChanged();
+        return getAclFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       */
+      public alluxio.proto.journal.File.AccessControlListOrBuilder getAclOrBuilder() {
+        if (aclBuilder_ != null) {
+          return aclBuilder_.getMessageOrBuilder();
+        } else {
+          return acl_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.AccessControlList, alluxio.proto.journal.File.AccessControlList.Builder, alluxio.proto.journal.File.AccessControlListOrBuilder> 
+          getAclFieldBuilder() {
+        if (aclBuilder_ == null) {
+          aclBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              alluxio.proto.journal.File.AccessControlList, alluxio.proto.journal.File.AccessControlList.Builder, alluxio.proto.journal.File.AccessControlListOrBuilder>(
+                  acl_,
+                  getParentForChildren(),
+                  isClean());
+          acl_ = null;
+        }
+        return aclBuilder_;
+      }
+
+      // optional string ufs_fingerprint = 14;
+      private java.lang.Object ufsFingerprint_ = "";
+      /**
+       * <code>optional string ufs_fingerprint = 14;</code>
+       */
+      public boolean hasUfsFingerprint() {
+        return ((bitField0_ & 0x00002000) == 0x00002000);
+      }
+      /**
+       * <code>optional string ufs_fingerprint = 14;</code>
+       */
+      public java.lang.String getUfsFingerprint() {
+        java.lang.Object ref = ufsFingerprint_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          ufsFingerprint_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string ufs_fingerprint = 14;</code>
+       */
+      public com.google.protobuf.ByteString
+          getUfsFingerprintBytes() {
+        java.lang.Object ref = ufsFingerprint_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ufsFingerprint_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string ufs_fingerprint = 14;</code>
+       */
+      public Builder setUfsFingerprint(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00002000;
+        ufsFingerprint_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string ufs_fingerprint = 14;</code>
+       */
+      public Builder clearUfsFingerprint() {
+        bitField0_ = (bitField0_ & ~0x00002000);
+        ufsFingerprint_ = getDefaultInstance().getUfsFingerprint();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string ufs_fingerprint = 14;</code>
+       */
+      public Builder setUfsFingerprintBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00002000;
+        ufsFingerprint_ = value;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.UpdateInodeEntry)
+    }
+
+    static {
+      defaultInstance = new UpdateInodeEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.UpdateInodeEntry)
+  }
+
+  public interface UpdateInodeDirectoryEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional int64 id = 1;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    // optional bool mount_point = 2;
+    /**
+     * <code>optional bool mount_point = 2;</code>
+     */
+    boolean hasMountPoint();
+    /**
+     * <code>optional bool mount_point = 2;</code>
+     */
+    boolean getMountPoint();
+
+    // optional bool direct_children_loaded = 3;
+    /**
+     * <code>optional bool direct_children_loaded = 3;</code>
+     */
+    boolean hasDirectChildrenLoaded();
+    /**
+     * <code>optional bool direct_children_loaded = 3;</code>
+     */
+    boolean getDirectChildrenLoaded();
+
+    // optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+     */
+    boolean hasDefaultAcl();
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+     */
+    alluxio.proto.journal.File.AccessControlList getDefaultAcl();
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+     */
+    alluxio.proto.journal.File.AccessControlListOrBuilder getDefaultAclOrBuilder();
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.journal.UpdateInodeDirectoryEntry}
+   *
+   * <pre>
+   * next available id: 5
+   * </pre>
+   */
+  public static final class UpdateInodeDirectoryEntry extends
+      com.google.protobuf.GeneratedMessage
+      implements UpdateInodeDirectoryEntryOrBuilder {
+    // Use UpdateInodeDirectoryEntry.newBuilder() to construct.
+    private UpdateInodeDirectoryEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private UpdateInodeDirectoryEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final UpdateInodeDirectoryEntry defaultInstance;
+    public static UpdateInodeDirectoryEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public UpdateInodeDirectoryEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private UpdateInodeDirectoryEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              mountPoint_ = input.readBool();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              directChildrenLoaded_ = input.readBool();
+              break;
+            }
+            case 34: {
+              alluxio.proto.journal.File.AccessControlList.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000008) == 0x00000008)) {
+                subBuilder = defaultAcl_.toBuilder();
+              }
+              defaultAcl_ = input.readMessage(alluxio.proto.journal.File.AccessControlList.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(defaultAcl_);
+                defaultAcl_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000008;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.journal.File.UpdateInodeDirectoryEntry.class, alluxio.proto.journal.File.UpdateInodeDirectoryEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<UpdateInodeDirectoryEntry> PARSER =
+        new com.google.protobuf.AbstractParser<UpdateInodeDirectoryEntry>() {
+      public UpdateInodeDirectoryEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new UpdateInodeDirectoryEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<UpdateInodeDirectoryEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // optional int64 id = 1;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    // optional bool mount_point = 2;
+    public static final int MOUNT_POINT_FIELD_NUMBER = 2;
+    private boolean mountPoint_;
+    /**
+     * <code>optional bool mount_point = 2;</code>
+     */
+    public boolean hasMountPoint() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional bool mount_point = 2;</code>
+     */
+    public boolean getMountPoint() {
+      return mountPoint_;
+    }
+
+    // optional bool direct_children_loaded = 3;
+    public static final int DIRECT_CHILDREN_LOADED_FIELD_NUMBER = 3;
+    private boolean directChildrenLoaded_;
+    /**
+     * <code>optional bool direct_children_loaded = 3;</code>
+     */
+    public boolean hasDirectChildrenLoaded() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional bool direct_children_loaded = 3;</code>
+     */
+    public boolean getDirectChildrenLoaded() {
+      return directChildrenLoaded_;
+    }
+
+    // optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;
+    public static final int DEFAULTACL_FIELD_NUMBER = 4;
+    private alluxio.proto.journal.File.AccessControlList defaultAcl_;
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+     */
+    public boolean hasDefaultAcl() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+     */
+    public alluxio.proto.journal.File.AccessControlList getDefaultAcl() {
+      return defaultAcl_;
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+     */
+    public alluxio.proto.journal.File.AccessControlListOrBuilder getDefaultAclOrBuilder() {
+      return defaultAcl_;
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      mountPoint_ = false;
+      directChildrenLoaded_ = false;
+      defaultAcl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBool(2, mountPoint_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBool(3, directChildrenLoaded_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeMessage(4, defaultAcl_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(2, mountPoint_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, directChildrenLoaded_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, defaultAcl_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.journal.File.UpdateInodeDirectoryEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeDirectoryEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeDirectoryEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeDirectoryEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeDirectoryEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeDirectoryEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeDirectoryEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeDirectoryEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeDirectoryEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeDirectoryEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.journal.File.UpdateInodeDirectoryEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.journal.UpdateInodeDirectoryEntry}
+     *
+     * <pre>
+     * next available id: 5
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.UpdateInodeDirectoryEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.journal.File.UpdateInodeDirectoryEntry.class, alluxio.proto.journal.File.UpdateInodeDirectoryEntry.Builder.class);
+      }
+
+      // Construct using alluxio.proto.journal.File.UpdateInodeDirectoryEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getDefaultAclFieldBuilder();
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        mountPoint_ = false;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        directChildrenLoaded_ = false;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        if (defaultAclBuilder_ == null) {
+          defaultAcl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
+        } else {
+          defaultAclBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000008);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_descriptor;
+      }
+
+      public alluxio.proto.journal.File.UpdateInodeDirectoryEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.File.UpdateInodeDirectoryEntry.getDefaultInstance();
+      }
+
+      public alluxio.proto.journal.File.UpdateInodeDirectoryEntry build() {
+        alluxio.proto.journal.File.UpdateInodeDirectoryEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.journal.File.UpdateInodeDirectoryEntry buildPartial() {
+        alluxio.proto.journal.File.UpdateInodeDirectoryEntry result = new alluxio.proto.journal.File.UpdateInodeDirectoryEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.mountPoint_ = mountPoint_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.directChildrenLoaded_ = directChildrenLoaded_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        if (defaultAclBuilder_ == null) {
+          result.defaultAcl_ = defaultAcl_;
+        } else {
+          result.defaultAcl_ = defaultAclBuilder_.build();
+        }
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.journal.File.UpdateInodeDirectoryEntry) {
+          return mergeFrom((alluxio.proto.journal.File.UpdateInodeDirectoryEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.journal.File.UpdateInodeDirectoryEntry other) {
+        if (other == alluxio.proto.journal.File.UpdateInodeDirectoryEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasMountPoint()) {
+          setMountPoint(other.getMountPoint());
+        }
+        if (other.hasDirectChildrenLoaded()) {
+          setDirectChildrenLoaded(other.getDirectChildrenLoaded());
+        }
+        if (other.hasDefaultAcl()) {
+          mergeDefaultAcl(other.getDefaultAcl());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.journal.File.UpdateInodeDirectoryEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.journal.File.UpdateInodeDirectoryEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional int64 id = 1;
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional bool mount_point = 2;
+      private boolean mountPoint_ ;
+      /**
+       * <code>optional bool mount_point = 2;</code>
+       */
+      public boolean hasMountPoint() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional bool mount_point = 2;</code>
+       */
+      public boolean getMountPoint() {
+        return mountPoint_;
+      }
+      /**
+       * <code>optional bool mount_point = 2;</code>
+       */
+      public Builder setMountPoint(boolean value) {
+        bitField0_ |= 0x00000002;
+        mountPoint_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool mount_point = 2;</code>
+       */
+      public Builder clearMountPoint() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        mountPoint_ = false;
+        onChanged();
+        return this;
+      }
+
+      // optional bool direct_children_loaded = 3;
+      private boolean directChildrenLoaded_ ;
+      /**
+       * <code>optional bool direct_children_loaded = 3;</code>
+       */
+      public boolean hasDirectChildrenLoaded() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional bool direct_children_loaded = 3;</code>
+       */
+      public boolean getDirectChildrenLoaded() {
+        return directChildrenLoaded_;
+      }
+      /**
+       * <code>optional bool direct_children_loaded = 3;</code>
+       */
+      public Builder setDirectChildrenLoaded(boolean value) {
+        bitField0_ |= 0x00000004;
+        directChildrenLoaded_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool direct_children_loaded = 3;</code>
+       */
+      public Builder clearDirectChildrenLoaded() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        directChildrenLoaded_ = false;
+        onChanged();
+        return this;
+      }
+
+      // optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;
+      private alluxio.proto.journal.File.AccessControlList defaultAcl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.AccessControlList, alluxio.proto.journal.File.AccessControlList.Builder, alluxio.proto.journal.File.AccessControlListOrBuilder> defaultAclBuilder_;
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+       */
+      public boolean hasDefaultAcl() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+       */
+      public alluxio.proto.journal.File.AccessControlList getDefaultAcl() {
+        if (defaultAclBuilder_ == null) {
+          return defaultAcl_;
+        } else {
+          return defaultAclBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+       */
+      public Builder setDefaultAcl(alluxio.proto.journal.File.AccessControlList value) {
+        if (defaultAclBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          defaultAcl_ = value;
+          onChanged();
+        } else {
+          defaultAclBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000008;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+       */
+      public Builder setDefaultAcl(
+          alluxio.proto.journal.File.AccessControlList.Builder builderForValue) {
+        if (defaultAclBuilder_ == null) {
+          defaultAcl_ = builderForValue.build();
+          onChanged();
+        } else {
+          defaultAclBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000008;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+       */
+      public Builder mergeDefaultAcl(alluxio.proto.journal.File.AccessControlList value) {
+        if (defaultAclBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) == 0x00000008) &&
+              defaultAcl_ != alluxio.proto.journal.File.AccessControlList.getDefaultInstance()) {
+            defaultAcl_ =
+              alluxio.proto.journal.File.AccessControlList.newBuilder(defaultAcl_).mergeFrom(value).buildPartial();
+          } else {
+            defaultAcl_ = value;
+          }
+          onChanged();
+        } else {
+          defaultAclBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000008;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+       */
+      public Builder clearDefaultAcl() {
+        if (defaultAclBuilder_ == null) {
+          defaultAcl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
+          onChanged();
+        } else {
+          defaultAclBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000008);
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+       */
+      public alluxio.proto.journal.File.AccessControlList.Builder getDefaultAclBuilder() {
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return getDefaultAclFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+       */
+      public alluxio.proto.journal.File.AccessControlListOrBuilder getDefaultAclOrBuilder() {
+        if (defaultAclBuilder_ != null) {
+          return defaultAclBuilder_.getMessageOrBuilder();
+        } else {
+          return defaultAcl_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.AccessControlList defaultAcl = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.AccessControlList, alluxio.proto.journal.File.AccessControlList.Builder, alluxio.proto.journal.File.AccessControlListOrBuilder> 
+          getDefaultAclFieldBuilder() {
+        if (defaultAclBuilder_ == null) {
+          defaultAclBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              alluxio.proto.journal.File.AccessControlList, alluxio.proto.journal.File.AccessControlList.Builder, alluxio.proto.journal.File.AccessControlListOrBuilder>(
+                  defaultAcl_,
+                  getParentForChildren(),
+                  isClean());
+          defaultAcl_ = null;
+        }
+        return defaultAclBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.UpdateInodeDirectoryEntry)
+    }
+
+    static {
+      defaultInstance = new UpdateInodeDirectoryEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.UpdateInodeDirectoryEntry)
+  }
+
+  public interface UpdateInodeFileEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional int64 id = 1;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    // optional int64 block_size_bytes = 2;
+    /**
+     * <code>optional int64 block_size_bytes = 2;</code>
+     */
+    boolean hasBlockSizeBytes();
+    /**
+     * <code>optional int64 block_size_bytes = 2;</code>
+     */
+    long getBlockSizeBytes();
+
+    // optional int64 length = 3;
+    /**
+     * <code>optional int64 length = 3;</code>
+     */
+    boolean hasLength();
+    /**
+     * <code>optional int64 length = 3;</code>
+     */
+    long getLength();
+
+    // optional bool completed = 4;
+    /**
+     * <code>optional bool completed = 4;</code>
+     */
+    boolean hasCompleted();
+    /**
+     * <code>optional bool completed = 4;</code>
+     */
+    boolean getCompleted();
+
+    // optional bool cacheable = 5;
+    /**
+     * <code>optional bool cacheable = 5;</code>
+     */
+    boolean hasCacheable();
+    /**
+     * <code>optional bool cacheable = 5;</code>
+     */
+    boolean getCacheable();
+
+    // repeated int64 blocks = 6;
+    /**
+     * <code>repeated int64 blocks = 6;</code>
+     */
+    java.util.List<java.lang.Long> getBlocksList();
+    /**
+     * <code>repeated int64 blocks = 6;</code>
+     */
+    int getBlocksCount();
+    /**
+     * <code>repeated int64 blocks = 6;</code>
+     */
+    long getBlocks(int index);
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.journal.UpdateInodeFileEntry}
+   *
+   * <pre>
+   * next available id: 7
+   * </pre>
+   */
+  public static final class UpdateInodeFileEntry extends
+      com.google.protobuf.GeneratedMessage
+      implements UpdateInodeFileEntryOrBuilder {
+    // Use UpdateInodeFileEntry.newBuilder() to construct.
+    private UpdateInodeFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private UpdateInodeFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final UpdateInodeFileEntry defaultInstance;
+    public static UpdateInodeFileEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public UpdateInodeFileEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private UpdateInodeFileEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              blockSizeBytes_ = input.readInt64();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              length_ = input.readInt64();
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              completed_ = input.readBool();
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              cacheable_ = input.readBool();
+              break;
+            }
+            case 48: {
+              if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+                blocks_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000020;
+              }
+              blocks_.add(input.readInt64());
+              break;
+            }
+            case 50: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000020) == 0x00000020) && input.getBytesUntilLimit() > 0) {
+                blocks_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000020;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                blocks_.add(input.readInt64());
+              }
+              input.popLimit(limit);
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+          blocks_ = java.util.Collections.unmodifiableList(blocks_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeFileEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeFileEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.journal.File.UpdateInodeFileEntry.class, alluxio.proto.journal.File.UpdateInodeFileEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<UpdateInodeFileEntry> PARSER =
+        new com.google.protobuf.AbstractParser<UpdateInodeFileEntry>() {
+      public UpdateInodeFileEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new UpdateInodeFileEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<UpdateInodeFileEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // optional int64 id = 1;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    // optional int64 block_size_bytes = 2;
+    public static final int BLOCK_SIZE_BYTES_FIELD_NUMBER = 2;
+    private long blockSizeBytes_;
+    /**
+     * <code>optional int64 block_size_bytes = 2;</code>
+     */
+    public boolean hasBlockSizeBytes() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 block_size_bytes = 2;</code>
+     */
+    public long getBlockSizeBytes() {
+      return blockSizeBytes_;
+    }
+
+    // optional int64 length = 3;
+    public static final int LENGTH_FIELD_NUMBER = 3;
+    private long length_;
+    /**
+     * <code>optional int64 length = 3;</code>
+     */
+    public boolean hasLength() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int64 length = 3;</code>
+     */
+    public long getLength() {
+      return length_;
+    }
+
+    // optional bool completed = 4;
+    public static final int COMPLETED_FIELD_NUMBER = 4;
+    private boolean completed_;
+    /**
+     * <code>optional bool completed = 4;</code>
+     */
+    public boolean hasCompleted() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional bool completed = 4;</code>
+     */
+    public boolean getCompleted() {
+      return completed_;
+    }
+
+    // optional bool cacheable = 5;
+    public static final int CACHEABLE_FIELD_NUMBER = 5;
+    private boolean cacheable_;
+    /**
+     * <code>optional bool cacheable = 5;</code>
+     */
+    public boolean hasCacheable() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bool cacheable = 5;</code>
+     */
+    public boolean getCacheable() {
+      return cacheable_;
+    }
+
+    // repeated int64 blocks = 6;
+    public static final int BLOCKS_FIELD_NUMBER = 6;
+    private java.util.List<java.lang.Long> blocks_;
+    /**
+     * <code>repeated int64 blocks = 6;</code>
+     */
+    public java.util.List<java.lang.Long>
+        getBlocksList() {
+      return blocks_;
+    }
+    /**
+     * <code>repeated int64 blocks = 6;</code>
+     */
+    public int getBlocksCount() {
+      return blocks_.size();
+    }
+    /**
+     * <code>repeated int64 blocks = 6;</code>
+     */
+    public long getBlocks(int index) {
+      return blocks_.get(index);
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      blockSizeBytes_ = 0L;
+      length_ = 0L;
+      completed_ = false;
+      cacheable_ = false;
+      blocks_ = java.util.Collections.emptyList();
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, blockSizeBytes_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt64(3, length_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeBool(4, completed_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBool(5, cacheable_);
+      }
+      for (int i = 0; i < blocks_.size(); i++) {
+        output.writeInt64(6, blocks_.get(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, blockSizeBytes_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, length_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(4, completed_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, cacheable_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < blocks_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt64SizeNoTag(blocks_.get(i));
+        }
+        size += dataSize;
+        size += 1 * getBlocksList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.journal.File.UpdateInodeFileEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeFileEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeFileEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeFileEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeFileEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeFileEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeFileEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeFileEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.journal.File.UpdateInodeFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.journal.File.UpdateInodeFileEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.journal.UpdateInodeFileEntry}
+     *
+     * <pre>
+     * next available id: 7
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.UpdateInodeFileEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeFileEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeFileEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.journal.File.UpdateInodeFileEntry.class, alluxio.proto.journal.File.UpdateInodeFileEntry.Builder.class);
+      }
+
+      // Construct using alluxio.proto.journal.File.UpdateInodeFileEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        blockSizeBytes_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        length_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        completed_ = false;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        cacheable_ = false;
+        bitField0_ = (bitField0_ & ~0x00000010);
+        blocks_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeFileEntry_descriptor;
+      }
+
+      public alluxio.proto.journal.File.UpdateInodeFileEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.File.UpdateInodeFileEntry.getDefaultInstance();
+      }
+
+      public alluxio.proto.journal.File.UpdateInodeFileEntry build() {
+        alluxio.proto.journal.File.UpdateInodeFileEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.journal.File.UpdateInodeFileEntry buildPartial() {
+        alluxio.proto.journal.File.UpdateInodeFileEntry result = new alluxio.proto.journal.File.UpdateInodeFileEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.blockSizeBytes_ = blockSizeBytes_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.length_ = length_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.completed_ = completed_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.cacheable_ = cacheable_;
+        if (((bitField0_ & 0x00000020) == 0x00000020)) {
+          blocks_ = java.util.Collections.unmodifiableList(blocks_);
+          bitField0_ = (bitField0_ & ~0x00000020);
+        }
+        result.blocks_ = blocks_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.journal.File.UpdateInodeFileEntry) {
+          return mergeFrom((alluxio.proto.journal.File.UpdateInodeFileEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.journal.File.UpdateInodeFileEntry other) {
+        if (other == alluxio.proto.journal.File.UpdateInodeFileEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasBlockSizeBytes()) {
+          setBlockSizeBytes(other.getBlockSizeBytes());
+        }
+        if (other.hasLength()) {
+          setLength(other.getLength());
+        }
+        if (other.hasCompleted()) {
+          setCompleted(other.getCompleted());
+        }
+        if (other.hasCacheable()) {
+          setCacheable(other.getCacheable());
+        }
+        if (!other.blocks_.isEmpty()) {
+          if (blocks_.isEmpty()) {
+            blocks_ = other.blocks_;
+            bitField0_ = (bitField0_ & ~0x00000020);
+          } else {
+            ensureBlocksIsMutable();
+            blocks_.addAll(other.blocks_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.journal.File.UpdateInodeFileEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.journal.File.UpdateInodeFileEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional int64 id = 1;
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 block_size_bytes = 2;
+      private long blockSizeBytes_ ;
+      /**
+       * <code>optional int64 block_size_bytes = 2;</code>
+       */
+      public boolean hasBlockSizeBytes() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 block_size_bytes = 2;</code>
+       */
+      public long getBlockSizeBytes() {
+        return blockSizeBytes_;
+      }
+      /**
+       * <code>optional int64 block_size_bytes = 2;</code>
+       */
+      public Builder setBlockSizeBytes(long value) {
+        bitField0_ |= 0x00000002;
+        blockSizeBytes_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 block_size_bytes = 2;</code>
+       */
+      public Builder clearBlockSizeBytes() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        blockSizeBytes_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 length = 3;
+      private long length_ ;
+      /**
+       * <code>optional int64 length = 3;</code>
+       */
+      public boolean hasLength() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional int64 length = 3;</code>
+       */
+      public long getLength() {
+        return length_;
+      }
+      /**
+       * <code>optional int64 length = 3;</code>
+       */
+      public Builder setLength(long value) {
+        bitField0_ |= 0x00000004;
+        length_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 length = 3;</code>
+       */
+      public Builder clearLength() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        length_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional bool completed = 4;
+      private boolean completed_ ;
+      /**
+       * <code>optional bool completed = 4;</code>
+       */
+      public boolean hasCompleted() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional bool completed = 4;</code>
+       */
+      public boolean getCompleted() {
+        return completed_;
+      }
+      /**
+       * <code>optional bool completed = 4;</code>
+       */
+      public Builder setCompleted(boolean value) {
+        bitField0_ |= 0x00000008;
+        completed_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool completed = 4;</code>
+       */
+      public Builder clearCompleted() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        completed_ = false;
+        onChanged();
+        return this;
+      }
+
+      // optional bool cacheable = 5;
+      private boolean cacheable_ ;
+      /**
+       * <code>optional bool cacheable = 5;</code>
+       */
+      public boolean hasCacheable() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional bool cacheable = 5;</code>
+       */
+      public boolean getCacheable() {
+        return cacheable_;
+      }
+      /**
+       * <code>optional bool cacheable = 5;</code>
+       */
+      public Builder setCacheable(boolean value) {
+        bitField0_ |= 0x00000010;
+        cacheable_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool cacheable = 5;</code>
+       */
+      public Builder clearCacheable() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        cacheable_ = false;
+        onChanged();
+        return this;
+      }
+
+      // repeated int64 blocks = 6;
+      private java.util.List<java.lang.Long> blocks_ = java.util.Collections.emptyList();
+      private void ensureBlocksIsMutable() {
+        if (!((bitField0_ & 0x00000020) == 0x00000020)) {
+          blocks_ = new java.util.ArrayList<java.lang.Long>(blocks_);
+          bitField0_ |= 0x00000020;
+         }
+      }
+      /**
+       * <code>repeated int64 blocks = 6;</code>
+       */
+      public java.util.List<java.lang.Long>
+          getBlocksList() {
+        return java.util.Collections.unmodifiableList(blocks_);
+      }
+      /**
+       * <code>repeated int64 blocks = 6;</code>
+       */
+      public int getBlocksCount() {
+        return blocks_.size();
+      }
+      /**
+       * <code>repeated int64 blocks = 6;</code>
+       */
+      public long getBlocks(int index) {
+        return blocks_.get(index);
+      }
+      /**
+       * <code>repeated int64 blocks = 6;</code>
+       */
+      public Builder setBlocks(
+          int index, long value) {
+        ensureBlocksIsMutable();
+        blocks_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 blocks = 6;</code>
+       */
+      public Builder addBlocks(long value) {
+        ensureBlocksIsMutable();
+        blocks_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 blocks = 6;</code>
+       */
+      public Builder addAllBlocks(
+          java.lang.Iterable<? extends java.lang.Long> values) {
+        ensureBlocksIsMutable();
+        super.addAll(values, blocks_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 blocks = 6;</code>
+       */
+      public Builder clearBlocks() {
+        blocks_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.UpdateInodeFileEntry)
+    }
+
+    static {
+      defaultInstance = new UpdateInodeFileEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.UpdateInodeFileEntry)
+  }
+
   public interface InodeDirectoryEntryOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
@@ -15959,14 +19554,26 @@ public final class File {
     // optional string dst_path = 2;
     /**
      * <code>optional string dst_path = 2;</code>
+     *
+     * <pre>
+     * Deprecated, use new_parent_id/new_name instead
+     * </pre>
      */
     boolean hasDstPath();
     /**
      * <code>optional string dst_path = 2;</code>
+     *
+     * <pre>
+     * Deprecated, use new_parent_id/new_name instead
+     * </pre>
      */
     java.lang.String getDstPath();
     /**
      * <code>optional string dst_path = 2;</code>
+     *
+     * <pre>
+     * Deprecated, use new_parent_id/new_name instead
+     * </pre>
      */
     com.google.protobuf.ByteString
         getDstPathBytes();
@@ -15980,12 +19587,37 @@ public final class File {
      * <code>optional int64 op_time_ms = 3;</code>
      */
     long getOpTimeMs();
+
+    // optional int64 new_parent_id = 4;
+    /**
+     * <code>optional int64 new_parent_id = 4;</code>
+     */
+    boolean hasNewParentId();
+    /**
+     * <code>optional int64 new_parent_id = 4;</code>
+     */
+    long getNewParentId();
+
+    // optional string new_name = 5;
+    /**
+     * <code>optional string new_name = 5;</code>
+     */
+    boolean hasNewName();
+    /**
+     * <code>optional string new_name = 5;</code>
+     */
+    java.lang.String getNewName();
+    /**
+     * <code>optional string new_name = 5;</code>
+     */
+    com.google.protobuf.ByteString
+        getNewNameBytes();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.RenameEntry}
    *
    * <pre>
-   * next available id: 4
+   * next available id: 6
    * </pre>
    */
   public static final class RenameEntry extends
@@ -16051,6 +19683,16 @@ public final class File {
               opTimeMs_ = input.readInt64();
               break;
             }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              newParentId_ = input.readInt64();
+              break;
+            }
+            case 42: {
+              bitField0_ |= 0x00000010;
+              newName_ = input.readBytes();
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -16112,12 +19754,20 @@ public final class File {
     private java.lang.Object dstPath_;
     /**
      * <code>optional string dst_path = 2;</code>
+     *
+     * <pre>
+     * Deprecated, use new_parent_id/new_name instead
+     * </pre>
      */
     public boolean hasDstPath() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>optional string dst_path = 2;</code>
+     *
+     * <pre>
+     * Deprecated, use new_parent_id/new_name instead
+     * </pre>
      */
     public java.lang.String getDstPath() {
       java.lang.Object ref = dstPath_;
@@ -16135,6 +19785,10 @@ public final class File {
     }
     /**
      * <code>optional string dst_path = 2;</code>
+     *
+     * <pre>
+     * Deprecated, use new_parent_id/new_name instead
+     * </pre>
      */
     public com.google.protobuf.ByteString
         getDstPathBytes() {
@@ -16166,10 +19820,71 @@ public final class File {
       return opTimeMs_;
     }
 
+    // optional int64 new_parent_id = 4;
+    public static final int NEW_PARENT_ID_FIELD_NUMBER = 4;
+    private long newParentId_;
+    /**
+     * <code>optional int64 new_parent_id = 4;</code>
+     */
+    public boolean hasNewParentId() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional int64 new_parent_id = 4;</code>
+     */
+    public long getNewParentId() {
+      return newParentId_;
+    }
+
+    // optional string new_name = 5;
+    public static final int NEW_NAME_FIELD_NUMBER = 5;
+    private java.lang.Object newName_;
+    /**
+     * <code>optional string new_name = 5;</code>
+     */
+    public boolean hasNewName() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional string new_name = 5;</code>
+     */
+    public java.lang.String getNewName() {
+      java.lang.Object ref = newName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          newName_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string new_name = 5;</code>
+     */
+    public com.google.protobuf.ByteString
+        getNewNameBytes() {
+      java.lang.Object ref = newName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        newName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private void initFields() {
       id_ = 0L;
       dstPath_ = "";
       opTimeMs_ = 0L;
+      newParentId_ = 0L;
+      newName_ = "";
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -16192,6 +19907,12 @@ public final class File {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeInt64(3, opTimeMs_);
       }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeInt64(4, newParentId_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBytes(5, getNewNameBytes());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -16212,6 +19933,14 @@ public final class File {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(3, opTimeMs_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, newParentId_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(5, getNewNameBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -16295,7 +20024,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.RenameEntry}
      *
      * <pre>
-     * next available id: 4
+     * next available id: 6
      * </pre>
      */
     public static final class Builder extends
@@ -16339,6 +20068,10 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000002);
         opTimeMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
+        newParentId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        newName_ = "";
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
 
@@ -16379,6 +20112,14 @@ public final class File {
           to_bitField0_ |= 0x00000004;
         }
         result.opTimeMs_ = opTimeMs_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.newParentId_ = newParentId_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.newName_ = newName_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -16405,6 +20146,14 @@ public final class File {
         }
         if (other.hasOpTimeMs()) {
           setOpTimeMs(other.getOpTimeMs());
+        }
+        if (other.hasNewParentId()) {
+          setNewParentId(other.getNewParentId());
+        }
+        if (other.hasNewName()) {
+          bitField0_ |= 0x00000010;
+          newName_ = other.newName_;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -16470,12 +20219,20 @@ public final class File {
       private java.lang.Object dstPath_ = "";
       /**
        * <code>optional string dst_path = 2;</code>
+       *
+       * <pre>
+       * Deprecated, use new_parent_id/new_name instead
+       * </pre>
        */
       public boolean hasDstPath() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
        * <code>optional string dst_path = 2;</code>
+       *
+       * <pre>
+       * Deprecated, use new_parent_id/new_name instead
+       * </pre>
        */
       public java.lang.String getDstPath() {
         java.lang.Object ref = dstPath_;
@@ -16490,6 +20247,10 @@ public final class File {
       }
       /**
        * <code>optional string dst_path = 2;</code>
+       *
+       * <pre>
+       * Deprecated, use new_parent_id/new_name instead
+       * </pre>
        */
       public com.google.protobuf.ByteString
           getDstPathBytes() {
@@ -16506,6 +20267,10 @@ public final class File {
       }
       /**
        * <code>optional string dst_path = 2;</code>
+       *
+       * <pre>
+       * Deprecated, use new_parent_id/new_name instead
+       * </pre>
        */
       public Builder setDstPath(
           java.lang.String value) {
@@ -16519,6 +20284,10 @@ public final class File {
       }
       /**
        * <code>optional string dst_path = 2;</code>
+       *
+       * <pre>
+       * Deprecated, use new_parent_id/new_name instead
+       * </pre>
        */
       public Builder clearDstPath() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -16528,6 +20297,10 @@ public final class File {
       }
       /**
        * <code>optional string dst_path = 2;</code>
+       *
+       * <pre>
+       * Deprecated, use new_parent_id/new_name instead
+       * </pre>
        */
       public Builder setDstPathBytes(
           com.google.protobuf.ByteString value) {
@@ -16569,6 +20342,113 @@ public final class File {
       public Builder clearOpTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000004);
         opTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 new_parent_id = 4;
+      private long newParentId_ ;
+      /**
+       * <code>optional int64 new_parent_id = 4;</code>
+       */
+      public boolean hasNewParentId() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional int64 new_parent_id = 4;</code>
+       */
+      public long getNewParentId() {
+        return newParentId_;
+      }
+      /**
+       * <code>optional int64 new_parent_id = 4;</code>
+       */
+      public Builder setNewParentId(long value) {
+        bitField0_ |= 0x00000008;
+        newParentId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 new_parent_id = 4;</code>
+       */
+      public Builder clearNewParentId() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        newParentId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional string new_name = 5;
+      private java.lang.Object newName_ = "";
+      /**
+       * <code>optional string new_name = 5;</code>
+       */
+      public boolean hasNewName() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional string new_name = 5;</code>
+       */
+      public java.lang.String getNewName() {
+        java.lang.Object ref = newName_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          newName_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string new_name = 5;</code>
+       */
+      public com.google.protobuf.ByteString
+          getNewNameBytes() {
+        java.lang.Object ref = newName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          newName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string new_name = 5;</code>
+       */
+      public Builder setNewName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+        newName_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string new_name = 5;</code>
+       */
+      public Builder clearNewName() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        newName_ = getDefaultInstance().getNewName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string new_name = 5;</code>
+       */
+      public Builder setNewNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+        newName_ = value;
         onChanged();
         return this;
       }
@@ -19589,6 +23469,21 @@ public final class File {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_AccessControlList_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_journal_UpdateInodeEntry_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_UpdateInodeFileEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_journal_UpdateInodeFileEntry_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -19681,63 +23576,81 @@ public final class File {
       "lActions\0226\n\013maskActions\030\005 \001(\0132!.alluxio." +
       "proto.journal.AclActions\0227\n\014otherActions" +
       "\030\006 \001(\0132!.alluxio.proto.journal.AclAction" +
-      "s\022\021\n\tisDefault\030\007 \001(\010\022\017\n\007isEmpty\030\010 \001(\010\"\313\003",
-      "\n\023InodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tpar" +
-      "ent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistenc" +
-      "e_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creatio" +
-      "n_time_ms\030\006 \001(\003\022!\n\031last_modification_tim" +
-      "e_ms\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t \001(\t" +
-      "\022\014\n\004mode\030\n \001(\005\022\023\n\013mount_point\030\013 \001(\010\022\036\n\026d" +
-      "irect_children_loaded\030\014 \001(\010\022\013\n\003ttl\030\r \001(\003" +
-      "\022<\n\tttlAction\030\016 \001(\0162!.alluxio.proto.jour" +
-      "nal.PTtlAction:\006DELETE\0225\n\003acl\030\017 \001(\0132(.al" +
-      "luxio.proto.journal.AccessControlList\022<\n",
-      "\ndefaultAcl\030\020 \001(\0132(.alluxio.proto.journa" +
-      "l.AccessControlList\"O\n\036InodeDirectoryIdG" +
-      "eneratorEntry\022\024\n\014container_id\030\001 \001(\003\022\027\n\017s" +
-      "equence_number\030\002 \001(\003\"\314\003\n\016InodeFileEntry\022" +
-      "\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003" +
-      " \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006pinne" +
-      "d\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031las" +
-      "t_modification_time_ms\030\007 \001(\003\022\030\n\020block_si" +
-      "ze_bytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tcomple" +
-      "ted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006blocks\030\014",
-      " \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005owner\030\016 \001(\t\022\r\n\005grou" +
-      "p\030\017 \001(\t\022\014\n\004mode\030\020 \001(\005\022<\n\tttlAction\030\021 \001(\016" +
-      "2!.alluxio.proto.journal.PTtlAction:\006DEL" +
-      "ETE\022\027\n\017ufs_fingerprint\030\022 \001(\t\0225\n\003acl\030\023 \001(" +
+      "s\022\021\n\tisDefault\030\007 \001(\010\022\017\n\007isEmpty\030\010 \001(\010\"\356\002",
+      "\n\020UpdateInodeEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent" +
+      "_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_s" +
+      "tate\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_t" +
+      "ime_ms\030\006 \001(\003\022!\n\031last_modification_time_m" +
+      "s\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n" +
+      "\004mode\030\n \001(\005\022\013\n\003ttl\030\013 \001(\003\022<\n\tttlAction\030\014 " +
+      "\001(\0162!.alluxio.proto.journal.PTtlAction:\006" +
+      "DELETE\0225\n\003acl\030\r \001(\0132(.alluxio.proto.jour" +
+      "nal.AccessControlList\022\027\n\017ufs_fingerprint" +
+      "\030\016 \001(\t\"\232\001\n\031UpdateInodeDirectoryEntry\022\n\n\002",
+      "id\030\001 \001(\003\022\023\n\013mount_point\030\002 \001(\010\022\036\n\026direct_" +
+      "children_loaded\030\003 \001(\010\022<\n\ndefaultAcl\030\004 \001(" +
       "\0132(.alluxio.proto.journal.AccessControlL" +
-      "ist\"O\n\036InodeLastModificationTimeEntry\022\n\n" +
-      "\002id\030\001 \001(\003\022!\n\031last_modification_time_ms\030\002" +
-      " \001(\003\"#\n\025PersistDirectoryEntry\022\n\n\002id\030\001 \001(" +
-      "\003\"B\n\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006len" +
-      "gth\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"\212\001\n\025Reinit",
-      "ializeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_s" +
-      "ize_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\022<\n\tttlActio" +
-      "n\030\004 \001(\0162!.alluxio.proto.journal.PTtlActi" +
-      "on:\006DELETE\"?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n" +
-      "\010dst_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"\247\001\n\013" +
-      "SetAclEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 " +
-      "\001(\003\0223\n\006action\030\003 \001(\0162#.alluxio.proto.jour" +
-      "nal.SetAclAction\0220\n\007entries\030\004 \003(\0132\037.allu" +
-      "xio.proto.journal.AclEntry\022\021\n\trecursive\030" +
-      "\005 \001(\010\"\354\001\n\021SetAttributeEntry\022\n\n\002id\030\001 \001(\003\022",
-      "\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003t" +
-      "tl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005owner\030\006 \001" +
-      "(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermission\030\010 \001(\005\022<\n" +
-      "\tttlAction\030\t \001(\0162!.alluxio.proto.journal" +
-      ".PTtlAction:\006DELETE\022\027\n\017ufs_fingerprint\030\n" +
-      " \001(\t\"b\n\022UpdateUfsModeEntry\022\017\n\007ufsPath\030\001 " +
-      "\001(\t\022;\n\007ufsMode\030\002 \001(\0162\036.alluxio.proto.jou" +
-      "rnal.UfsMode:\nREAD_WRITE*-\n\tAclAction\022\010\n" +
-      "\004READ\020\000\022\t\n\005WRITE\020\001\022\013\n\007EXECUTE\020\002*a\n\014AclEn" +
-      "tryType\022\t\n\005OWNER\020\000\022\016\n\nNAMED_USER\020\001\022\020\n\014OW",
-      "NING_GROUP\020\002\022\017\n\013NAMED_GROUP\020\003\022\010\n\004MASK\020\004\022" +
-      "\t\n\005OTHER\020\005*\"\n\nPTtlAction\022\n\n\006DELETE\020\000\022\010\n\004" +
-      "FREE\020\001*W\n\014SetAclAction\022\013\n\007REPLACE\020\000\022\n\n\006M" +
-      "ODIFY\020\001\022\n\n\006REMOVE\020\002\022\016\n\nREMOVE_ALL\020\003\022\022\n\016R" +
-      "EMOVE_DEFAULT\020\004*7\n\007UfsMode\022\r\n\tNO_ACCESS\020" +
-      "\000\022\r\n\tREAD_ONLY\020\001\022\016\n\nREAD_WRITE\020\002"
+      "ist\"\202\001\n\024UpdateInodeFileEntry\022\n\n\002id\030\001 \001(\003" +
+      "\022\030\n\020block_size_bytes\030\002 \001(\003\022\016\n\006length\030\003 \001" +
+      "(\003\022\021\n\tcompleted\030\004 \001(\010\022\021\n\tcacheable\030\005 \001(\010" +
+      "\022\016\n\006blocks\030\006 \003(\003\"\313\003\n\023InodeDirectoryEntry" +
+      "\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030" +
+      "\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006pinn" +
+      "ed\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031la",
+      "st_modification_time_ms\030\007 \001(\003\022\r\n\005owner\030\010" +
+      " \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004mode\030\n \001(\005\022\023\n\013mou" +
+      "nt_point\030\013 \001(\010\022\036\n\026direct_children_loaded" +
+      "\030\014 \001(\010\022\013\n\003ttl\030\r \001(\003\022<\n\tttlAction\030\016 \001(\0162!" +
+      ".alluxio.proto.journal.PTtlAction:\006DELET" +
+      "E\0225\n\003acl\030\017 \001(\0132(.alluxio.proto.journal.A" +
+      "ccessControlList\022<\n\ndefaultAcl\030\020 \001(\0132(.a" +
+      "lluxio.proto.journal.AccessControlList\"O" +
+      "\n\036InodeDirectoryIdGeneratorEntry\022\024\n\014cont" +
+      "ainer_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003\"",
+      "\314\003\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent" +
+      "_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_s" +
+      "tate\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_t" +
+      "ime_ms\030\006 \001(\003\022!\n\031last_modification_time_m" +
+      "s\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006len" +
+      "gth\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheabl" +
+      "e\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005" +
+      "owner\030\016 \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(\005" +
+      "\022<\n\tttlAction\030\021 \001(\0162!.alluxio.proto.jour" +
+      "nal.PTtlAction:\006DELETE\022\027\n\017ufs_fingerprin",
+      "t\030\022 \001(\t\0225\n\003acl\030\023 \001(\0132(.alluxio.proto.jou" +
+      "rnal.AccessControlList\"O\n\036InodeLastModif" +
+      "icationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_mod" +
+      "ification_time_ms\030\002 \001(\003\"#\n\025PersistDirect" +
+      "oryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntry" +
+      "\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time_" +
+      "ms\030\003 \001(\003\"\212\001\n\025ReinitializeFileEntry\022\014\n\004pa" +
+      "th\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003tt" +
+      "l\030\003 \001(\003\022<\n\tttlAction\030\004 \001(\0162!.alluxio.pro" +
+      "to.journal.PTtlAction:\006DELETE\"h\n\013RenameE",
+      "ntry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop" +
+      "_time_ms\030\003 \001(\003\022\025\n\rnew_parent_id\030\004 \001(\003\022\020\n" +
+      "\010new_name\030\005 \001(\t\"\247\001\n\013SetAclEntry\022\n\n\002id\030\001 " +
+      "\001(\003\022\022\n\nop_time_ms\030\002 \001(\003\0223\n\006action\030\003 \001(\0162" +
+      "#.alluxio.proto.journal.SetAclAction\0220\n\007" +
+      "entries\030\004 \003(\0132\037.alluxio.proto.journal.Ac" +
+      "lEntry\022\021\n\trecursive\030\005 \001(\010\"\354\001\n\021SetAttribu" +
+      "teEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022" +
+      "\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersiste" +
+      "d\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n",
+      "\npermission\030\010 \001(\005\022<\n\tttlAction\030\t \001(\0162!.a" +
+      "lluxio.proto.journal.PTtlAction:\006DELETE\022" +
+      "\027\n\017ufs_fingerprint\030\n \001(\t\"b\n\022UpdateUfsMod" +
+      "eEntry\022\017\n\007ufsPath\030\001 \001(\t\022;\n\007ufsMode\030\002 \001(\016" +
+      "2\036.alluxio.proto.journal.UfsMode:\nREAD_W" +
+      "RITE*-\n\tAclAction\022\010\n\004READ\020\000\022\t\n\005WRITE\020\001\022\013" +
+      "\n\007EXECUTE\020\002*a\n\014AclEntryType\022\t\n\005OWNER\020\000\022\016" +
+      "\n\nNAMED_USER\020\001\022\020\n\014OWNING_GROUP\020\002\022\017\n\013NAME" +
+      "D_GROUP\020\003\022\010\n\004MASK\020\004\022\t\n\005OTHER\020\005*\"\n\nPTtlAc" +
+      "tion\022\n\n\006DELETE\020\000\022\010\n\004FREE\020\001*W\n\014SetAclActi",
+      "on\022\013\n\007REPLACE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002\022" +
+      "\016\n\nREMOVE_ALL\020\003\022\022\n\016REMOVE_DEFAULT\020\004*7\n\007U" +
+      "fsMode\022\r\n\tNO_ACCESS\020\000\022\r\n\tREAD_ONLY\020\001\022\016\n\n" +
+      "READ_WRITE\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -19804,68 +23717,86 @@ public final class File {
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_AccessControlList_descriptor,
               new java.lang.String[] { "OwningUser", "OwningGroup", "UserActions", "GroupActions", "MaskActions", "OtherActions", "IsDefault", "IsEmpty", });
-          internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor =
+          internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor =
             getDescriptor().getMessageTypes().get(10);
+          internal_static_alluxio_proto_journal_UpdateInodeEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor,
+              new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "Ttl", "TtlAction", "Acl", "UfsFingerprint", });
+          internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_descriptor =
+            getDescriptor().getMessageTypes().get(11);
+          internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_descriptor,
+              new java.lang.String[] { "Id", "MountPoint", "DirectChildrenLoaded", "DefaultAcl", });
+          internal_static_alluxio_proto_journal_UpdateInodeFileEntry_descriptor =
+            getDescriptor().getMessageTypes().get(12);
+          internal_static_alluxio_proto_journal_UpdateInodeFileEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_UpdateInodeFileEntry_descriptor,
+              new java.lang.String[] { "Id", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", });
+          internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor =
+            getDescriptor().getMessageTypes().get(13);
           internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor,
               new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "MountPoint", "DirectChildrenLoaded", "Ttl", "TtlAction", "Acl", "DefaultAcl", });
           internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor =
-            getDescriptor().getMessageTypes().get(11);
+            getDescriptor().getMessageTypes().get(14);
           internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor,
               new java.lang.String[] { "ContainerId", "SequenceNumber", });
           internal_static_alluxio_proto_journal_InodeFileEntry_descriptor =
-            getDescriptor().getMessageTypes().get(12);
+            getDescriptor().getMessageTypes().get(15);
           internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_InodeFileEntry_descriptor,
               new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", "TtlAction", "UfsFingerprint", "Acl", });
           internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor =
-            getDescriptor().getMessageTypes().get(13);
+            getDescriptor().getMessageTypes().get(16);
           internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor,
               new java.lang.String[] { "Id", "LastModificationTimeMs", });
           internal_static_alluxio_proto_journal_PersistDirectoryEntry_descriptor =
-            getDescriptor().getMessageTypes().get(14);
+            getDescriptor().getMessageTypes().get(17);
           internal_static_alluxio_proto_journal_PersistDirectoryEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_PersistDirectoryEntry_descriptor,
               new java.lang.String[] { "Id", });
           internal_static_alluxio_proto_journal_PersistFileEntry_descriptor =
-            getDescriptor().getMessageTypes().get(15);
+            getDescriptor().getMessageTypes().get(18);
           internal_static_alluxio_proto_journal_PersistFileEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_PersistFileEntry_descriptor,
               new java.lang.String[] { "Id", "Length", "OpTimeMs", });
           internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor =
-            getDescriptor().getMessageTypes().get(16);
+            getDescriptor().getMessageTypes().get(19);
           internal_static_alluxio_proto_journal_ReinitializeFileEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor,
               new java.lang.String[] { "Path", "BlockSizeBytes", "Ttl", "TtlAction", });
           internal_static_alluxio_proto_journal_RenameEntry_descriptor =
-            getDescriptor().getMessageTypes().get(17);
+            getDescriptor().getMessageTypes().get(20);
           internal_static_alluxio_proto_journal_RenameEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_RenameEntry_descriptor,
-              new java.lang.String[] { "Id", "DstPath", "OpTimeMs", });
+              new java.lang.String[] { "Id", "DstPath", "OpTimeMs", "NewParentId", "NewName", });
           internal_static_alluxio_proto_journal_SetAclEntry_descriptor =
-            getDescriptor().getMessageTypes().get(18);
+            getDescriptor().getMessageTypes().get(21);
           internal_static_alluxio_proto_journal_SetAclEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_SetAclEntry_descriptor,
               new java.lang.String[] { "Id", "OpTimeMs", "Action", "Entries", "Recursive", });
           internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor =
-            getDescriptor().getMessageTypes().get(19);
+            getDescriptor().getMessageTypes().get(22);
           internal_static_alluxio_proto_journal_SetAttributeEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor,
               new java.lang.String[] { "Id", "OpTimeMs", "Pinned", "Ttl", "Persisted", "Owner", "Group", "Permission", "TtlAction", "UfsFingerprint", });
           internal_static_alluxio_proto_journal_UpdateUfsModeEntry_descriptor =
-            getDescriptor().getMessageTypes().get(20);
+            getDescriptor().getMessageTypes().get(23);
           internal_static_alluxio_proto_journal_UpdateUfsModeEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_UpdateUfsModeEntry_descriptor,
