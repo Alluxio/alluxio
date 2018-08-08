@@ -291,6 +291,7 @@ function main {
   "getConf")
     CLASS="alluxio.cli.GetConf"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.conf.validation.enabled=false"
     runJavaClass "$@"
   ;;
   "loadufs")
