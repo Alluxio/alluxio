@@ -24,8 +24,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.file.meta.FileSystemMasterView;
-import alluxio.master.file.meta.PersistenceState;
 import alluxio.file.options.CheckConsistencyOptions;
 import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
@@ -38,6 +36,9 @@ import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.GetStatusOptions;
+import alluxio.file.options.WorkerHeartbeatOptions;
+import alluxio.master.file.meta.FileSystemMasterView;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
@@ -504,9 +505,9 @@ public interface FileSystemMaster {
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if permission checking fails
    */
-//  FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
-//      WorkerHeartbeatOptions options)
-//      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
+  FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
+      WorkerHeartbeatOptions options)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
 
   /**
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
