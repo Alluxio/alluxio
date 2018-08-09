@@ -126,6 +126,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
+import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
@@ -163,6 +164,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.Stack;
@@ -3215,11 +3217,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Do not sync an incomplete file, since the UFS file is expected to not exist.
       return SyncResult.defaults();
     }
-    if (inode.getPersistenceState() == PersistenceState.TO_BE_PERSISTED) {
+    Optional<Scoped> persistingLock = inode.tryAcquirePersistingLock();
+    if (!persistingLock.isPresent()) {
       // Do not sync a file in the process of being persisted, since the UFS file is being
       // written.
       return SyncResult.defaults();
     }
+    persistingLock.get().close();
 
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
     AlluxioURI ufsUri = resolution.getUri();
