@@ -35,7 +35,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -47,7 +46,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public abstract class Inode<T> implements InodeView {
   private static final Logger LOG = LoggerFactory.getLogger(Inode.class);
-  // Journaled state
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected final boolean mDirectory;
@@ -57,15 +55,13 @@ public abstract class Inode<T> implements InodeView {
   private long mLastModificationTimeMs;
   private String mName;
   private long mParentId;
-  @GuardedBy("mPersistenceLock")
   private PersistenceState mPersistenceState;
   private boolean mPinned;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
 
-  // Non-journaled state
-  // Lock guarding access to this inode's persistence state. True means locked.
-  private AtomicBoolean mPersistenceLock;
+  // Lock used to prevent multiple threads from trying to persist the inode concurrently.
+  private AtomicBoolean mPersistingLock;
   private final ReentrantReadWriteLock mLock;
 
   protected Inode(long id, boolean isDirectory) {
@@ -82,7 +78,7 @@ public abstract class Inode<T> implements InodeView {
     mPinned = false;
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
-    mPersistenceLock = new AtomicBoolean(false);
+    mPersistingLock = new AtomicBoolean(false);
     mLock = new ReentrantReadWriteLock();
   }
 
@@ -132,9 +128,9 @@ public abstract class Inode<T> implements InodeView {
   }
 
   @Override
-  public Optional<Scoped> tryAcquirePersistenceLock() {
-    if (mPersistenceLock.compareAndSet(false, true)) {
-      return Optional.of(() -> mPersistenceLock.set(false));
+  public Optional<Scoped> tryAcquirePersistingLock() {
+    if (mPersistingLock.compareAndSet(false, true)) {
+      return Optional.of(() -> mPersistingLock.set(false));
     }
     return Optional.empty();
   }

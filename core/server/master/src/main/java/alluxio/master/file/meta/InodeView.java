@@ -77,10 +77,10 @@ public interface InodeView extends JournalEntryRepresentable {
   /**
    * Tries to acquire a lock on persisting the inode.
    *
-   * @return Empty if the lock is already taken, otherwise return a function which will release
-   *         ownership of the inode's persistence state
+   * @return Empty if the lock is already taken, otherwise return an AutoCloseable which will
+   *         release ownership of the inode's persistence state
    */
-  Optional<Scoped> tryAcquirePersistenceLock();
+  Optional<Scoped> tryAcquirePersistingLock();
 
   /**
    * @return the id of the parent folder
