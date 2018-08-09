@@ -159,10 +159,20 @@ public class InodeTreePersistentState {
   }
 
   /**
+   * Deletes an inode (may be either a file or directory).
+   *
    * @param context journal context supplier
    * @param entry delete file entry
    */
   public void applyAndJournal(Supplier<JournalContext> context, DeleteFileEntry entry) {
+    // Unlike most entries, the delete file entry must be applied *before* making the in-memory
+    // change. This is because delete file and create file are performed with only a read lock on
+    // the parent directory. As soon as we do the in-memory-delete, another thread could re-create a
+    // directory with the same name, and append a journal entry for the inode creation. This would
+    // ruin journal replay because we would see two create file entries in a row for the same file
+    // name. The opposite order is safe. We will never append the delete entry for a file before its
+    // creation entry because delete requires a write lock on the deleted file, but the create
+    // operation holds that lock until after it has appended to the journal.
     context.get().append(JournalEntry.newBuilder().setDeleteFile(entry).build());
     try {
       apply(entry);
@@ -175,6 +185,8 @@ public class InodeTreePersistentState {
   }
 
   /**
+   * Allocates and returns the next block ID for the indicated inode.
+   *
    * @param context journal context supplier
    * @param entry new block entry
    * @return the new block id
@@ -186,6 +198,8 @@ public class InodeTreePersistentState {
   }
 
   /**
+   * Renames an inode.
+   *
    * @param context journal context supplier
    * @param entry rename entry
    * @return whether the inode was successfully renamed. Returns false if another inode was
@@ -201,6 +215,8 @@ public class InodeTreePersistentState {
   }
 
   /**
+   * Sets an ACL for an inode.
+   *
    * @param context journal context supplier
    * @param entry set acl entry
    */
@@ -210,6 +226,8 @@ public class InodeTreePersistentState {
   }
 
   /**
+   * Updates an inode's state. This is used for state common to both files and directories.
+   *
    * @param context journal context supplier
    * @param entry update inode entry
    */
@@ -219,6 +237,8 @@ public class InodeTreePersistentState {
   }
 
   /**
+   * Updates an inode directory's state.
+   *
    * @param context journal context supplier
    * @param entry update inode directory entry
    */
@@ -228,6 +248,8 @@ public class InodeTreePersistentState {
   }
 
   /**
+   * Updates an inode file's state.
+   *
    * @param context journal context supplier
    * @param entry update inode file entry
    */
@@ -237,6 +259,8 @@ public class InodeTreePersistentState {
   }
 
   /**
+   * Adds an inode to the inode tree.
+   *
    * @param context journal context supplier
    * @param inode an inode to add and create a journal entry for
    * @return whether the inode was successfully added. Returns false if another inode was
@@ -252,7 +276,8 @@ public class InodeTreePersistentState {
   }
 
   ////
-  /// Apply Implementations
+  /// Apply Implementations. These methods are used for journal replay, so they are not allowed to
+  /// fail. They are also used why making metadata changes during regular operation.
   ////
 
   private void apply(DeleteFileEntry entry) {
@@ -264,6 +289,7 @@ public class InodeTreePersistentState {
     parent.setLastModificationTimeMs(entry.getOpTimeMs());
     inode.setDeleted(true);
     mPinnedInodeFileIds.remove(id);
+    // Should we remove the inode from TtlBuckets as well?
   }
 
   private void apply(InodeDirectoryEntry entry) {
@@ -474,5 +500,4 @@ public class InodeTreePersistentState {
     mInodes.clear();
     mPinnedInodeFileIds.clear();
   }
-
 }

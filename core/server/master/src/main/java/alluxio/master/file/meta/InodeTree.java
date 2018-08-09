@@ -86,9 +86,6 @@ public class InodeTree implements JournalEntryIterable {
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
 
-  /** Only the root inode should have the empty string as its name. */
-  public static final String ROOT_INODE_NAME = "";
-
   /**
    * The type of lock to lock inode paths with.
    */
@@ -100,6 +97,9 @@ public class InodeTree implements JournalEntryIterable {
     /** Read lock the entire path, but write lock the target inode and the parent of the target. */
     WRITE_PARENT,
   }
+
+  /** Only the root inode should have the empty string as its name. */
+  public static final String ROOT_INODE_NAME = "";
 
   /** Number of retries when trying to lock a path, from a given id. */
   private static final int PATH_TRAVERSAL_RETRIES = 1000;
@@ -1031,6 +1031,44 @@ public class InodeTree implements JournalEntryIterable {
     return fileId == mState.getRoot().getId();
   }
 
+  @Override
+  public Iterator<JournalEntry> getJournalEntryIterator() {
+    Queue<InodeView> inodes = new LinkedList<>();
+    if (mState.getRoot() != null) {
+      inodes.add(mState.getRoot());
+    }
+    return new Iterator<Journal.JournalEntry>() {
+      @Override
+      public boolean hasNext() {
+        return !inodes.isEmpty();
+      }
+
+      @Override
+      public Journal.JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        InodeView inode = inodes.poll();
+        if (inode.isDirectory()) {
+          inodes.addAll(((InodeDirectoryView) inode).getChildren());
+        }
+        return inode.toJournalEntry();
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException("remove is not supported in inode tree iterator");
+      }
+    };
+  }
+
+  /**
+   * Resets the inode tree state.
+   */
+  public void reset() {
+    mState.reset();
+  }
+
   /**
    * Synchronously persists an {@link InodeDirectory} to the UFS. If concurrent calls are made, only
    * one thread will persist to UFS, and the others will wait until it is persisted.
@@ -1389,43 +1427,5 @@ public class InodeTree implements JournalEntryIterable {
     public List<InodeView> getCreated() {
       return mCreated;
     }
-  }
-
-  /**
-   * Resets the inode tree state.
-   */
-  public void reset() {
-    mState.reset();
-  }
-
-  @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    Queue<InodeView> inodes = new LinkedList<>();
-    if (mState.getRoot() != null) {
-      inodes.add(mState.getRoot());
-    }
-    return new Iterator<Journal.JournalEntry>() {
-      @Override
-      public boolean hasNext() {
-        return !inodes.isEmpty();
-      }
-
-      @Override
-      public Journal.JournalEntry next() {
-        if (!hasNext()) {
-          throw new NoSuchElementException();
-        }
-        InodeView inode = inodes.poll();
-        if (inode.isDirectory()) {
-          inodes.addAll(((InodeDirectoryView) inode).getChildren());
-        }
-        return inode.toJournalEntry();
-      }
-
-      @Override
-      public void remove() {
-        throw new UnsupportedOperationException("remove is not supported in inode tree iterator");
-      }
-    };
   }
 }

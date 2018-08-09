@@ -665,9 +665,9 @@ public final class InodeTreeTest {
     InodeDirectoryView root = mTree.getRoot();
     InodeDirectory nested = (InodeDirectory) root.getChild("nested");
     InodeDirectory test = (InodeDirectory) nested.getChild("test");
-    Inode file = (Inode) test.getChild("file");
-    Inode[] inodeChildren = {nested, test, file};
-    for (Inode child : inodeChildren) {
+    Inode<?> file = (Inode<?>) test.getChild("file");
+    Inode<?>[] inodeChildren = {nested, test, file};
+    for (Inode<?> child : inodeChildren) {
       child.setOwner("");
       child.setGroup("");
       child.setMode((short) 0600);

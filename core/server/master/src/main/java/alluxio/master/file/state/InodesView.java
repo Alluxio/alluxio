@@ -19,7 +19,6 @@ import alluxio.master.file.meta.InodeView;
  * Read-only access to the inodes index.
  */
 public class InodesView {
-  /** Use UniqueFieldIndex directly for ID index rather than using IndexedSet. */
   private final FieldIndex<Inode<?>, Long> mInodes;
 
   /**
@@ -55,5 +54,4 @@ public class InodesView {
   public int size() {
     return mInodes.size();
   }
-
 }

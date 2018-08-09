@@ -179,12 +179,10 @@ public final class PermissionCheckerTest {
     sMetricsMaster = new MetricsMasterFactory().create(sRegistry, masterContext);
     sRegistry.add(MetricsMaster.class, sMetricsMaster);
     BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, masterContext);
-    InodeDirectoryIdGenerator directoryIdGenerator =
-        new InodeDirectoryIdGenerator(blockMaster);
+    InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);
-    sTree =
-        new InodeTree(blockMaster, directoryIdGenerator, mountTable);
+    sTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
     sRegistry.start(true);
 
