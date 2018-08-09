@@ -1159,7 +1159,7 @@ public final class FileSystemMasterTest {
     // Created nested file.
     Files.createDirectory(Paths.get(ufsMount.join("nested").getPath()));
     Files.createFile(Paths.get(ufsMount.join("nested").join("file").getPath()));
-
+    Files.createFile(Paths.get(ufsMount.join("nested").join("file2").getPath()));
     mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
 
     // Test simple file.
@@ -1179,6 +1179,13 @@ public final class FileSystemMasterTest {
     // Test the nested file with recursive flag.
     mFileSystemMaster.loadMetadata(uri, LoadMetadataOptions.defaults().setCreateAncestors(true));
     assertNotNull(mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS));
+
+    uri = new AlluxioURI("/mnt/local");
+    AlluxioURI fileuri = new AlluxioURI ("/mnt/local/nested/file2");
+    mFileSystemMaster.loadMetadata(uri, LoadMetadataOptions.defaults().setCreateAncestors(true)
+        .setLoadDescendantType(DescendantType.ALL));
+    assertNotNull(mFileSystemMaster.getFileInfo(fileuri, GET_STATUS_OPTIONS));
+
   }
 
   @Test
