@@ -398,6 +398,48 @@ public final class Journal {
      * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
      */
     alluxio.proto.journal.File.UpdateUfsModeEntryOrBuilder getUpdateUfsModeOrBuilder();
+
+    // optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+     */
+    boolean hasUpdateInode();
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+     */
+    alluxio.proto.journal.File.UpdateInodeEntry getUpdateInode();
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+     */
+    alluxio.proto.journal.File.UpdateInodeEntryOrBuilder getUpdateInodeOrBuilder();
+
+    // optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+     */
+    boolean hasUpdateInodeDirectory();
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+     */
+    alluxio.proto.journal.File.UpdateInodeDirectoryEntry getUpdateInodeDirectory();
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+     */
+    alluxio.proto.journal.File.UpdateInodeDirectoryEntryOrBuilder getUpdateInodeDirectoryOrBuilder();
+
+    // optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+     */
+    boolean hasUpdateInodeFile();
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+     */
+    alluxio.proto.journal.File.UpdateInodeFileEntry getUpdateInodeFile();
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+     */
+    alluxio.proto.journal.File.UpdateInodeFileEntryOrBuilder getUpdateInodeFileOrBuilder();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.JournalEntry}
@@ -410,7 +452,7 @@ public final class Journal {
    * 2.6.0 and adding this depedency would conflict with the version of protobuf used by Hadoop 2.x
    * and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
    *
-   * next available id: 32
+   * next available id: 33
    * </pre>
    */
   public static final class JournalEntry extends
@@ -815,6 +857,45 @@ public final class Journal {
                 setAcl_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x02000000;
+              break;
+            }
+            case 258: {
+              alluxio.proto.journal.File.UpdateInodeEntry.Builder subBuilder = null;
+              if (((bitField0_ & 0x10000000) == 0x10000000)) {
+                subBuilder = updateInode_.toBuilder();
+              }
+              updateInode_ = input.readMessage(alluxio.proto.journal.File.UpdateInodeEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(updateInode_);
+                updateInode_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x10000000;
+              break;
+            }
+            case 266: {
+              alluxio.proto.journal.File.UpdateInodeDirectoryEntry.Builder subBuilder = null;
+              if (((bitField0_ & 0x20000000) == 0x20000000)) {
+                subBuilder = updateInodeDirectory_.toBuilder();
+              }
+              updateInodeDirectory_ = input.readMessage(alluxio.proto.journal.File.UpdateInodeDirectoryEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(updateInodeDirectory_);
+                updateInodeDirectory_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x20000000;
+              break;
+            }
+            case 274: {
+              alluxio.proto.journal.File.UpdateInodeFileEntry.Builder subBuilder = null;
+              if (((bitField0_ & 0x40000000) == 0x40000000)) {
+                subBuilder = updateInodeFile_.toBuilder();
+              }
+              updateInodeFile_ = input.readMessage(alluxio.proto.journal.File.UpdateInodeFileEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(updateInodeFile_);
+                updateInodeFile_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x40000000;
               break;
             }
           }
@@ -1467,6 +1548,72 @@ public final class Journal {
       return updateUfsMode_;
     }
 
+    // optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;
+    public static final int UPDATE_INODE_FIELD_NUMBER = 32;
+    private alluxio.proto.journal.File.UpdateInodeEntry updateInode_;
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+     */
+    public boolean hasUpdateInode() {
+      return ((bitField0_ & 0x10000000) == 0x10000000);
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+     */
+    public alluxio.proto.journal.File.UpdateInodeEntry getUpdateInode() {
+      return updateInode_;
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+     */
+    public alluxio.proto.journal.File.UpdateInodeEntryOrBuilder getUpdateInodeOrBuilder() {
+      return updateInode_;
+    }
+
+    // optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;
+    public static final int UPDATE_INODE_DIRECTORY_FIELD_NUMBER = 33;
+    private alluxio.proto.journal.File.UpdateInodeDirectoryEntry updateInodeDirectory_;
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+     */
+    public boolean hasUpdateInodeDirectory() {
+      return ((bitField0_ & 0x20000000) == 0x20000000);
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+     */
+    public alluxio.proto.journal.File.UpdateInodeDirectoryEntry getUpdateInodeDirectory() {
+      return updateInodeDirectory_;
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+     */
+    public alluxio.proto.journal.File.UpdateInodeDirectoryEntryOrBuilder getUpdateInodeDirectoryOrBuilder() {
+      return updateInodeDirectory_;
+    }
+
+    // optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;
+    public static final int UPDATE_INODE_FILE_FIELD_NUMBER = 34;
+    private alluxio.proto.journal.File.UpdateInodeFileEntry updateInodeFile_;
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+     */
+    public boolean hasUpdateInodeFile() {
+      return ((bitField0_ & 0x40000000) == 0x40000000);
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+     */
+    public alluxio.proto.journal.File.UpdateInodeFileEntry getUpdateInodeFile() {
+      return updateInodeFile_;
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+     */
+    public alluxio.proto.journal.File.UpdateInodeFileEntryOrBuilder getUpdateInodeFileOrBuilder() {
+      return updateInodeFile_;
+    }
+
     private void initFields() {
       sequenceNumber_ = 0L;
       addMountPoint_ = alluxio.proto.journal.File.AddMountPointEntry.getDefaultInstance();
@@ -1496,6 +1643,9 @@ public final class Journal {
       setAcl_ = alluxio.proto.journal.File.SetAclEntry.getDefaultInstance();
       setAttribute_ = alluxio.proto.journal.File.SetAttributeEntry.getDefaultInstance();
       updateUfsMode_ = alluxio.proto.journal.File.UpdateUfsModeEntry.getDefaultInstance();
+      updateInode_ = alluxio.proto.journal.File.UpdateInodeEntry.getDefaultInstance();
+      updateInodeDirectory_ = alluxio.proto.journal.File.UpdateInodeDirectoryEntry.getDefaultInstance();
+      updateInodeFile_ = alluxio.proto.journal.File.UpdateInodeFileEntry.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -1592,6 +1742,15 @@ public final class Journal {
       }
       if (((bitField0_ & 0x02000000) == 0x02000000)) {
         output.writeMessage(31, setAcl_);
+      }
+      if (((bitField0_ & 0x10000000) == 0x10000000)) {
+        output.writeMessage(32, updateInode_);
+      }
+      if (((bitField0_ & 0x20000000) == 0x20000000)) {
+        output.writeMessage(33, updateInodeDirectory_);
+      }
+      if (((bitField0_ & 0x40000000) == 0x40000000)) {
+        output.writeMessage(34, updateInodeFile_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1714,6 +1873,18 @@ public final class Journal {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(31, setAcl_);
       }
+      if (((bitField0_ & 0x10000000) == 0x10000000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(32, updateInode_);
+      }
+      if (((bitField0_ & 0x20000000) == 0x20000000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(33, updateInodeDirectory_);
+      }
+      if (((bitField0_ & 0x40000000) == 0x40000000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(34, updateInodeFile_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
@@ -1803,7 +1974,7 @@ public final class Journal {
      * 2.6.0 and adding this depedency would conflict with the version of protobuf used by Hadoop 2.x
      * and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
      *
-     * next available id: 32
+     * next available id: 33
      * </pre>
      */
     public static final class Builder extends
@@ -1860,6 +2031,9 @@ public final class Journal {
           getSetAclFieldBuilder();
           getSetAttributeFieldBuilder();
           getUpdateUfsModeFieldBuilder();
+          getUpdateInodeFieldBuilder();
+          getUpdateInodeDirectoryFieldBuilder();
+          getUpdateInodeFileFieldBuilder();
         }
       }
       private static Builder create() {
@@ -2032,6 +2206,24 @@ public final class Journal {
           updateUfsModeBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x08000000);
+        if (updateInodeBuilder_ == null) {
+          updateInode_ = alluxio.proto.journal.File.UpdateInodeEntry.getDefaultInstance();
+        } else {
+          updateInodeBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x10000000);
+        if (updateInodeDirectoryBuilder_ == null) {
+          updateInodeDirectory_ = alluxio.proto.journal.File.UpdateInodeDirectoryEntry.getDefaultInstance();
+        } else {
+          updateInodeDirectoryBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x20000000);
+        if (updateInodeFileBuilder_ == null) {
+          updateInodeFile_ = alluxio.proto.journal.File.UpdateInodeFileEntry.getDefaultInstance();
+        } else {
+          updateInodeFileBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x40000000);
         return this;
       }
 
@@ -2280,6 +2472,30 @@ public final class Journal {
         } else {
           result.updateUfsMode_ = updateUfsModeBuilder_.build();
         }
+        if (((from_bitField0_ & 0x10000000) == 0x10000000)) {
+          to_bitField0_ |= 0x10000000;
+        }
+        if (updateInodeBuilder_ == null) {
+          result.updateInode_ = updateInode_;
+        } else {
+          result.updateInode_ = updateInodeBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x20000000) == 0x20000000)) {
+          to_bitField0_ |= 0x20000000;
+        }
+        if (updateInodeDirectoryBuilder_ == null) {
+          result.updateInodeDirectory_ = updateInodeDirectory_;
+        } else {
+          result.updateInodeDirectory_ = updateInodeDirectoryBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x40000000) == 0x40000000)) {
+          to_bitField0_ |= 0x40000000;
+        }
+        if (updateInodeFileBuilder_ == null) {
+          result.updateInodeFile_ = updateInodeFile_;
+        } else {
+          result.updateInodeFile_ = updateInodeFileBuilder_.build();
+        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2379,6 +2595,15 @@ public final class Journal {
         }
         if (other.hasUpdateUfsMode()) {
           mergeUpdateUfsMode(other.getUpdateUfsMode());
+        }
+        if (other.hasUpdateInode()) {
+          mergeUpdateInode(other.getUpdateInode());
+        }
+        if (other.hasUpdateInodeDirectory()) {
+          mergeUpdateInodeDirectory(other.getUpdateInodeDirectory());
+        }
+        if (other.hasUpdateInodeFile()) {
+          mergeUpdateInodeFile(other.getUpdateInodeFile());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -5599,6 +5824,357 @@ public final class Journal {
         return updateUfsModeBuilder_;
       }
 
+      // optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;
+      private alluxio.proto.journal.File.UpdateInodeEntry updateInode_ = alluxio.proto.journal.File.UpdateInodeEntry.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.UpdateInodeEntry, alluxio.proto.journal.File.UpdateInodeEntry.Builder, alluxio.proto.journal.File.UpdateInodeEntryOrBuilder> updateInodeBuilder_;
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+       */
+      public boolean hasUpdateInode() {
+        return ((bitField0_ & 0x10000000) == 0x10000000);
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+       */
+      public alluxio.proto.journal.File.UpdateInodeEntry getUpdateInode() {
+        if (updateInodeBuilder_ == null) {
+          return updateInode_;
+        } else {
+          return updateInodeBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+       */
+      public Builder setUpdateInode(alluxio.proto.journal.File.UpdateInodeEntry value) {
+        if (updateInodeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          updateInode_ = value;
+          onChanged();
+        } else {
+          updateInodeBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x10000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+       */
+      public Builder setUpdateInode(
+          alluxio.proto.journal.File.UpdateInodeEntry.Builder builderForValue) {
+        if (updateInodeBuilder_ == null) {
+          updateInode_ = builderForValue.build();
+          onChanged();
+        } else {
+          updateInodeBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x10000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+       */
+      public Builder mergeUpdateInode(alluxio.proto.journal.File.UpdateInodeEntry value) {
+        if (updateInodeBuilder_ == null) {
+          if (((bitField0_ & 0x10000000) == 0x10000000) &&
+              updateInode_ != alluxio.proto.journal.File.UpdateInodeEntry.getDefaultInstance()) {
+            updateInode_ =
+              alluxio.proto.journal.File.UpdateInodeEntry.newBuilder(updateInode_).mergeFrom(value).buildPartial();
+          } else {
+            updateInode_ = value;
+          }
+          onChanged();
+        } else {
+          updateInodeBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x10000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+       */
+      public Builder clearUpdateInode() {
+        if (updateInodeBuilder_ == null) {
+          updateInode_ = alluxio.proto.journal.File.UpdateInodeEntry.getDefaultInstance();
+          onChanged();
+        } else {
+          updateInodeBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x10000000);
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+       */
+      public alluxio.proto.journal.File.UpdateInodeEntry.Builder getUpdateInodeBuilder() {
+        bitField0_ |= 0x10000000;
+        onChanged();
+        return getUpdateInodeFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+       */
+      public alluxio.proto.journal.File.UpdateInodeEntryOrBuilder getUpdateInodeOrBuilder() {
+        if (updateInodeBuilder_ != null) {
+          return updateInodeBuilder_.getMessageOrBuilder();
+        } else {
+          return updateInode_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeEntry update_inode = 32;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.UpdateInodeEntry, alluxio.proto.journal.File.UpdateInodeEntry.Builder, alluxio.proto.journal.File.UpdateInodeEntryOrBuilder> 
+          getUpdateInodeFieldBuilder() {
+        if (updateInodeBuilder_ == null) {
+          updateInodeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              alluxio.proto.journal.File.UpdateInodeEntry, alluxio.proto.journal.File.UpdateInodeEntry.Builder, alluxio.proto.journal.File.UpdateInodeEntryOrBuilder>(
+                  updateInode_,
+                  getParentForChildren(),
+                  isClean());
+          updateInode_ = null;
+        }
+        return updateInodeBuilder_;
+      }
+
+      // optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;
+      private alluxio.proto.journal.File.UpdateInodeDirectoryEntry updateInodeDirectory_ = alluxio.proto.journal.File.UpdateInodeDirectoryEntry.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.UpdateInodeDirectoryEntry, alluxio.proto.journal.File.UpdateInodeDirectoryEntry.Builder, alluxio.proto.journal.File.UpdateInodeDirectoryEntryOrBuilder> updateInodeDirectoryBuilder_;
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+       */
+      public boolean hasUpdateInodeDirectory() {
+        return ((bitField0_ & 0x20000000) == 0x20000000);
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+       */
+      public alluxio.proto.journal.File.UpdateInodeDirectoryEntry getUpdateInodeDirectory() {
+        if (updateInodeDirectoryBuilder_ == null) {
+          return updateInodeDirectory_;
+        } else {
+          return updateInodeDirectoryBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+       */
+      public Builder setUpdateInodeDirectory(alluxio.proto.journal.File.UpdateInodeDirectoryEntry value) {
+        if (updateInodeDirectoryBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          updateInodeDirectory_ = value;
+          onChanged();
+        } else {
+          updateInodeDirectoryBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x20000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+       */
+      public Builder setUpdateInodeDirectory(
+          alluxio.proto.journal.File.UpdateInodeDirectoryEntry.Builder builderForValue) {
+        if (updateInodeDirectoryBuilder_ == null) {
+          updateInodeDirectory_ = builderForValue.build();
+          onChanged();
+        } else {
+          updateInodeDirectoryBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x20000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+       */
+      public Builder mergeUpdateInodeDirectory(alluxio.proto.journal.File.UpdateInodeDirectoryEntry value) {
+        if (updateInodeDirectoryBuilder_ == null) {
+          if (((bitField0_ & 0x20000000) == 0x20000000) &&
+              updateInodeDirectory_ != alluxio.proto.journal.File.UpdateInodeDirectoryEntry.getDefaultInstance()) {
+            updateInodeDirectory_ =
+              alluxio.proto.journal.File.UpdateInodeDirectoryEntry.newBuilder(updateInodeDirectory_).mergeFrom(value).buildPartial();
+          } else {
+            updateInodeDirectory_ = value;
+          }
+          onChanged();
+        } else {
+          updateInodeDirectoryBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x20000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+       */
+      public Builder clearUpdateInodeDirectory() {
+        if (updateInodeDirectoryBuilder_ == null) {
+          updateInodeDirectory_ = alluxio.proto.journal.File.UpdateInodeDirectoryEntry.getDefaultInstance();
+          onChanged();
+        } else {
+          updateInodeDirectoryBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x20000000);
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+       */
+      public alluxio.proto.journal.File.UpdateInodeDirectoryEntry.Builder getUpdateInodeDirectoryBuilder() {
+        bitField0_ |= 0x20000000;
+        onChanged();
+        return getUpdateInodeDirectoryFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+       */
+      public alluxio.proto.journal.File.UpdateInodeDirectoryEntryOrBuilder getUpdateInodeDirectoryOrBuilder() {
+        if (updateInodeDirectoryBuilder_ != null) {
+          return updateInodeDirectoryBuilder_.getMessageOrBuilder();
+        } else {
+          return updateInodeDirectory_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeDirectoryEntry update_inode_directory = 33;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.UpdateInodeDirectoryEntry, alluxio.proto.journal.File.UpdateInodeDirectoryEntry.Builder, alluxio.proto.journal.File.UpdateInodeDirectoryEntryOrBuilder> 
+          getUpdateInodeDirectoryFieldBuilder() {
+        if (updateInodeDirectoryBuilder_ == null) {
+          updateInodeDirectoryBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              alluxio.proto.journal.File.UpdateInodeDirectoryEntry, alluxio.proto.journal.File.UpdateInodeDirectoryEntry.Builder, alluxio.proto.journal.File.UpdateInodeDirectoryEntryOrBuilder>(
+                  updateInodeDirectory_,
+                  getParentForChildren(),
+                  isClean());
+          updateInodeDirectory_ = null;
+        }
+        return updateInodeDirectoryBuilder_;
+      }
+
+      // optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;
+      private alluxio.proto.journal.File.UpdateInodeFileEntry updateInodeFile_ = alluxio.proto.journal.File.UpdateInodeFileEntry.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.UpdateInodeFileEntry, alluxio.proto.journal.File.UpdateInodeFileEntry.Builder, alluxio.proto.journal.File.UpdateInodeFileEntryOrBuilder> updateInodeFileBuilder_;
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+       */
+      public boolean hasUpdateInodeFile() {
+        return ((bitField0_ & 0x40000000) == 0x40000000);
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+       */
+      public alluxio.proto.journal.File.UpdateInodeFileEntry getUpdateInodeFile() {
+        if (updateInodeFileBuilder_ == null) {
+          return updateInodeFile_;
+        } else {
+          return updateInodeFileBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+       */
+      public Builder setUpdateInodeFile(alluxio.proto.journal.File.UpdateInodeFileEntry value) {
+        if (updateInodeFileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          updateInodeFile_ = value;
+          onChanged();
+        } else {
+          updateInodeFileBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x40000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+       */
+      public Builder setUpdateInodeFile(
+          alluxio.proto.journal.File.UpdateInodeFileEntry.Builder builderForValue) {
+        if (updateInodeFileBuilder_ == null) {
+          updateInodeFile_ = builderForValue.build();
+          onChanged();
+        } else {
+          updateInodeFileBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x40000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+       */
+      public Builder mergeUpdateInodeFile(alluxio.proto.journal.File.UpdateInodeFileEntry value) {
+        if (updateInodeFileBuilder_ == null) {
+          if (((bitField0_ & 0x40000000) == 0x40000000) &&
+              updateInodeFile_ != alluxio.proto.journal.File.UpdateInodeFileEntry.getDefaultInstance()) {
+            updateInodeFile_ =
+              alluxio.proto.journal.File.UpdateInodeFileEntry.newBuilder(updateInodeFile_).mergeFrom(value).buildPartial();
+          } else {
+            updateInodeFile_ = value;
+          }
+          onChanged();
+        } else {
+          updateInodeFileBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x40000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+       */
+      public Builder clearUpdateInodeFile() {
+        if (updateInodeFileBuilder_ == null) {
+          updateInodeFile_ = alluxio.proto.journal.File.UpdateInodeFileEntry.getDefaultInstance();
+          onChanged();
+        } else {
+          updateInodeFileBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x40000000);
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+       */
+      public alluxio.proto.journal.File.UpdateInodeFileEntry.Builder getUpdateInodeFileBuilder() {
+        bitField0_ |= 0x40000000;
+        onChanged();
+        return getUpdateInodeFileFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+       */
+      public alluxio.proto.journal.File.UpdateInodeFileEntryOrBuilder getUpdateInodeFileOrBuilder() {
+        if (updateInodeFileBuilder_ != null) {
+          return updateInodeFileBuilder_.getMessageOrBuilder();
+        } else {
+          return updateInodeFile_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 34;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.UpdateInodeFileEntry, alluxio.proto.journal.File.UpdateInodeFileEntry.Builder, alluxio.proto.journal.File.UpdateInodeFileEntryOrBuilder> 
+          getUpdateInodeFileFieldBuilder() {
+        if (updateInodeFileBuilder_ == null) {
+          updateInodeFileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              alluxio.proto.journal.File.UpdateInodeFileEntry, alluxio.proto.journal.File.UpdateInodeFileEntry.Builder, alluxio.proto.journal.File.UpdateInodeFileEntryOrBuilder>(
+                  updateInodeFile_,
+                  getParentForChildren(),
+                  isClean());
+          updateInodeFile_ = null;
+        }
+        return updateInodeFileBuilder_;
+      }
+
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.JournalEntry)
     }
 
@@ -5627,7 +6203,7 @@ public final class Journal {
       "\n\025journal/journal.proto\022\025alluxio.proto.j" +
       "ournal\032\023journal/block.proto\032\022journal/fil" +
       "e.proto\032\027journal/key_value.proto\032\025journa" +
-      "l/lineage.proto\"\343\016\n\014JournalEntry\022\027\n\017sequ" +
+      "l/lineage.proto\"\274\020\n\014JournalEntry\022\027\n\017sequ" +
       "ence_number\030\001 \001(\003\022B\n\017add_mount_point\030\002 \001" +
       "(\0132).alluxio.proto.journal.AddMountPoint" +
       "Entry\022N\n\025async_persist_request\030\020 \001(\0132/.a" +
@@ -5674,8 +6250,13 @@ public final class Journal {
       "rnal.SetAclEntry\022?\n\rset_attribute\030\033 \001(\0132" +
       "(.alluxio.proto.journal.SetAttributeEntr" +
       "y\022B\n\017update_ufs_mode\030\036 \001(\0132).alluxio.pro",
-      "to.journal.UpdateUfsModeEntryB\027\n\025alluxio" +
-      ".proto.journal"
+      "to.journal.UpdateUfsModeEntry\022=\n\014update_" +
+      "inode\030  \001(\0132\'.alluxio.proto.journal.Upda" +
+      "teInodeEntry\022P\n\026update_inode_directory\030!" +
+      " \001(\01320.alluxio.proto.journal.UpdateInode" +
+      "DirectoryEntry\022F\n\021update_inode_file\030\" \001(" +
+      "\0132+.alluxio.proto.journal.UpdateInodeFil" +
+      "eEntryB\027\n\025alluxio.proto.journal"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -5687,7 +6268,7 @@ public final class Journal {
           internal_static_alluxio_proto_journal_JournalEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_JournalEntry_descriptor,
-              new java.lang.String[] { "SequenceNumber", "AddMountPoint", "AsyncPersistRequest", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "CompletePartition", "CompleteStore", "CreateStore", "DeleteBlock", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "DeleteStore", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "MergeStore", "PersistDirectory", "ReinitializeFile", "Rename", "RenameStore", "SetAcl", "SetAttribute", "UpdateUfsMode", });
+              new java.lang.String[] { "SequenceNumber", "AddMountPoint", "AsyncPersistRequest", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "CompletePartition", "CompleteStore", "CreateStore", "DeleteBlock", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "DeleteStore", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "MergeStore", "PersistDirectory", "ReinitializeFile", "Rename", "RenameStore", "SetAcl", "SetAttribute", "UpdateUfsMode", "UpdateInode", "UpdateInodeDirectory", "UpdateInodeFile", });
           return null;
         }
       };

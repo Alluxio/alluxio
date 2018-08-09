@@ -14,7 +14,6 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RpcUtils;
-import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -177,9 +176,10 @@ public final class FileSystemMasterClientServiceHandler implements
   public GetNewBlockIdForFileTResponse getNewBlockIdForFile(final String path,
       final GetNewBlockIdForFileTOptions options) throws AlluxioTException {
     return RpcUtils.call(LOG,
-        (RpcCallable<GetNewBlockIdForFileTResponse>) () -> new GetNewBlockIdForFileTResponse(
-            mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path))), "GetNewBlockIdForFile",
-        "path=%s, options=%s", path, options);
+        (RpcCallableThrowsIOException<GetNewBlockIdForFileTResponse>) () ->
+            new GetNewBlockIdForFileTResponse(
+                mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path))),
+        "GetNewBlockIdForFile", "path=%s, options=%s", path, options);
   }
 
   @Override

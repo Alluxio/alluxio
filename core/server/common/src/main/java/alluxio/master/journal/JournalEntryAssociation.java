@@ -38,7 +38,10 @@ public final class JournalEntryAssociation {
         || entry.hasReinitializeFile()
         || entry.hasSetAcl()
         || entry.hasSetAttribute()
-        || entry.hasUpdateUfsMode()) {
+        || entry.hasUpdateUfsMode()
+        || entry.hasUpdateInode()
+        || entry.hasUpdateInodeDirectory()
+        || entry.hasUpdateInodeFile()) {
       return Constants.FILE_SYSTEM_MASTER_NAME;
     }
     if (entry.hasBlockContainerIdGenerator()

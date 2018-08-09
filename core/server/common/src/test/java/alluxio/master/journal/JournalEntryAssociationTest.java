@@ -31,6 +31,9 @@ import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
+import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
+import alluxio.proto.journal.File.UpdateInodeEntry;
+import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue.CompletePartitionEntry;
@@ -88,7 +91,10 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setRenameStore(RenameStoreEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setSetAcl(SetAclEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setSetAttribute(SetAttributeEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setUpdateUfsMode(UpdateUfsModeEntry.getDefaultInstance()).build()
+      JournalEntry.newBuilder().setUpdateUfsMode(UpdateUfsModeEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setUpdateInode(UpdateInodeEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setUpdateInodeDirectory(UpdateInodeDirectoryEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setUpdateInodeFile(UpdateInodeFileEntry.getDefaultInstance()).build()
   );
   // CHECKSTYLE.OFF: LineLengthExceed
 

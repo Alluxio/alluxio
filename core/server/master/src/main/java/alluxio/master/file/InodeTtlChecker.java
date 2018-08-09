@@ -15,13 +15,16 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.master.file.meta.Inode;
+import alluxio.master.ProtobufUtils;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
+import alluxio.master.journal.JournalContext;
+import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.wire.TtlAction;
 
 import org.slf4j.Logger;
@@ -45,18 +48,17 @@ final class InodeTtlChecker implements HeartbeatExecutor {
   /**
    * Constructs a new {@link InodeTtlChecker}.
    */
-  public InodeTtlChecker(FileSystemMaster fileSystemMaster, InodeTree inodeTree,
-      TtlBucketList ttlBuckets) {
+  public InodeTtlChecker(FileSystemMaster fileSystemMaster, InodeTree inodeTree) {
     mFileSystemMaster = fileSystemMaster;
     mInodeTree = inodeTree;
-    mTtlBuckets = ttlBuckets;
+    mTtlBuckets = inodeTree.getTtlBuckets();
   }
 
   @Override
   public void heartbeat() {
     Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
     for (TtlBucket bucket : expiredBuckets) {
-      for (Inode inode : bucket.getInodes()) {
+      for (InodeView inode : bucket.getInodes()) {
         AlluxioURI path = null;
         try (LockedInodePath inodePath = mInodeTree
             .lockFullInodePath(inode.getId(), InodeTree.LockMode.READ)) {
@@ -82,9 +84,14 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 } else {
                   mFileSystemMaster.free(path, FreeOptions.defaults().setForced(true));
                 }
-                // Reset state
-                inode.setTtl(Constants.NO_TTL);
-                inode.setTtlAction(TtlAction.DELETE);
+                try (JournalContext journalContext = mFileSystemMaster.createJournalContext()) {
+                  // Reset state
+                  mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
+                      .setId(inode.getId())
+                      .setTtl(Constants.NO_TTL)
+                      .setTtlAction(ProtobufUtils.toProtobuf(TtlAction.DELETE))
+                      .build());
+                }
                 mTtlBuckets.remove(inode);
                 break;
               case DELETE:// Default if not set is DELETE
