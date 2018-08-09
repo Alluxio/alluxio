@@ -481,7 +481,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     FileSystemTestUtils
             .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 50, 50);
     mFsShell.run("ls", "--sort", "unknownfield", "/testRoot");
-    String expected = "Invalid sort option ‘unknownfield’ for --sort\n";
+    String expected = "Invalid sort option `unknownfield` for --sort\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 
