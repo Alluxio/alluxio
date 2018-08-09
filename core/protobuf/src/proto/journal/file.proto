@@ -97,6 +97,49 @@ message AccessControlList {
   optional bool isEmpty = 8;
 }
 
+// Creates a new block for a file inode.
+// next available id: 2
+message NewBlockEntry {
+  optional int64 id = 1;
+}
+
+// next available id: 15
+message UpdateInodeEntry {
+  optional int64 id = 1;
+  optional int64 parent_id = 2;
+  optional string name = 3;
+  optional string persistence_state = 4;
+  optional bool pinned = 5;
+  optional int64 creation_time_ms = 6;
+  optional int64 last_modification_time_ms = 7;
+  optional string owner = 8;
+  optional string group = 9;
+  optional int32 mode = 10;
+  optional int64 ttl = 11;
+  optional PTtlAction ttlAction = 12 [default = DELETE];
+  optional AccessControlList acl = 13;
+  optional string ufs_fingerprint = 14;
+}
+
+// next available id: 5
+message UpdateInodeDirectoryEntry {
+  optional int64 id = 1;
+  optional bool mount_point = 2;
+  optional bool direct_children_loaded = 3;
+  optional AccessControlList defaultAcl = 4;
+}
+
+// next available id: 8
+message UpdateInodeFileEntry {
+  optional int64 id = 1;
+  optional int64 block_size_bytes = 2;
+  optional int64 length = 3;
+  optional bool completed = 4;
+  optional bool cacheable = 5;
+  // Overwirte the blocks list
+  repeated int64 set_blocks = 7;
+}
+
 // next available id: 17
 message InodeDirectoryEntry {
   optional int64 id = 1;
@@ -177,11 +220,15 @@ message ReinitializeFileEntry {
   optional PTtlAction ttlAction = 4 [default = DELETE];
 }
 
-// next available id: 4
+// next available id: 6
 message RenameEntry {
   optional int64 id = 1;
+  // Deprecated, use new_parent_id/new_name instead
   optional string dst_path = 2;
   optional int64 op_time_ms = 3;
+
+  optional int64 new_parent_id = 4;
+  optional string new_name = 5;
 }
 
 enum SetAclAction {

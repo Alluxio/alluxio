@@ -1661,6 +1661,8 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setLargerTtlForFileWithTtl() throws Exception {
+    mFileSystemMaster.createDirectory(NESTED_URI,
+        CreateDirectoryOptions.defaults().setRecursive(true));
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
@@ -1679,9 +1681,10 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setLargerTtlForDirectoryWithTtl() throws Exception {
-    CreateDirectoryOptions createDirectoryOptions =
-        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
-    mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
+    mFileSystemMaster.createDirectory(new AlluxioURI("/nested"),
+        CreateDirectoryOptions.defaults().setRecursive(true));
+    mFileSystemMaster.createDirectory(NESTED_URI,
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0));
     mFileSystemMaster.setAttribute(NESTED_URI,
         SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
@@ -1695,6 +1698,8 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setNoTtlForFileWithTtl() throws Exception {
+    mFileSystemMaster.createDirectory(NESTED_URI,
+        CreateDirectoryOptions.defaults().setRecursive(true));
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
@@ -1712,6 +1717,8 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setNoTtlForDirectoryWithTtl() throws Exception {
+    mFileSystemMaster.createDirectory(new AlluxioURI("/nested"),
+        CreateDirectoryOptions.defaults().setRecursive(true));
     CreateDirectoryOptions createDirectoryOptions =
         CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
     mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);

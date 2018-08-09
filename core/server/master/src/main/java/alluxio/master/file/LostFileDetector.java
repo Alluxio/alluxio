@@ -12,11 +12,14 @@
 package alluxio.master.file;
 
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.journal.JournalContext;
+import alluxio.proto.journal.File.UpdateInodeEntry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,14 +47,20 @@ final class LostFileDetector implements HeartbeatExecutor {
   public void heartbeat() {
     for (long fileId : mFileSystemMaster.getLostFiles()) {
       // update the state
-      try (LockedInodePath inodePath = mInodeTree
-          .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
-        Inode<?> inode = inodePath.getInode();
+      try (JournalContext journalContext = mFileSystemMaster.createJournalContext();
+           LockedInodePath inodePath = mInodeTree
+               .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
+        InodeView inode = inodePath.getInode();
         if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
-          inode.setPersistenceState(PersistenceState.LOST);
+          mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
+              .setId(inode.getId())
+              .setPersistenceState(PersistenceState.LOST.name())
+              .build());
         }
       } catch (FileDoesNotExistException e) {
         LOG.debug("Exception trying to get inode from inode tree", e);
+      } catch (UnavailableException e) {
+        LOG.warn("Failed to run lost file detector: {}", e.toString());
       }
     }
   }

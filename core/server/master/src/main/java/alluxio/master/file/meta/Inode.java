@@ -14,13 +14,15 @@ package alluxio.master.file.meta;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.journal.JournalEntryRepresentable;
+import alluxio.master.ProtobufUtils;
+import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.interfaces.Scoped;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -28,10 +30,12 @@ import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -41,8 +45,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <T> the concrete subclass of this object
  */
 @NotThreadSafe
-public abstract class Inode<T> implements JournalEntryRepresentable {
+public abstract class Inode<T> implements InodeView {
   private static final Logger LOG = LoggerFactory.getLogger(Inode.class);
+  // Journaled state
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected final boolean mDirectory;
@@ -52,11 +57,15 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   private long mLastModificationTimeMs;
   private String mName;
   private long mParentId;
+  @GuardedBy("mPersistenceLock")
   private PersistenceState mPersistenceState;
   private boolean mPinned;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
 
+  // Non-journaled state
+  // Lock guarding access to this inode's persistence state. True means locked.
+  private AtomicBoolean mPersistenceLock;
   private final ReentrantReadWriteLock mLock;
 
   protected Inode(long id, boolean isDirectory) {
@@ -73,143 +82,106 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mPinned = false;
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
+    mPersistenceLock = new AtomicBoolean(false);
     mLock = new ReentrantReadWriteLock();
   }
 
-  /**
-   * @return the create time, in milliseconds
-   */
+  @Override
   public long getCreationTimeMs() {
     return mCreationTimeMs;
   }
 
-  /**
-   * @return the group of the inode
-   */
+  @Override
   public String getGroup() {
     return mAcl.getOwningGroup();
   }
 
-  /**
-   * @return the id of the inode
-   */
+  @Override
   public long getId() {
     return mId;
   }
 
-  /**
-   * @return the ttl of the file
-   */
+  @Override
   public long getTtl() {
     return mTtl;
   }
 
-  /**
-   * @return the {@link TtlAction}
-   */
+  @Override
   public TtlAction getTtlAction() {
     return mTtlAction;
   }
 
-  /**
-   * @return the last modification time, in milliseconds
-   */
+  @Override
   public long getLastModificationTimeMs() {
     return mLastModificationTimeMs;
   }
 
-  /**
-   * @return the name of the inode
-   */
+  @Override
   public String getName() {
     return mName;
   }
 
-  /**
-   * @return the mode of the inode
-   */
+  @Override
   public short getMode() {
     return mAcl.getMode();
   }
 
-  /**
-   * @return the {@link PersistenceState} of the inode
-   */
+  @Override
   public PersistenceState getPersistenceState() {
     return mPersistenceState;
   }
 
-  /**
-   * Compare-and-swaps the persistence state.
-   *
-   * @param oldState the old {@link PersistenceState}
-   * @param newState the new {@link PersistenceState} to set
-   * @return true if the old state matches and the new state was set
-   */
-  public boolean compareAndSwap(PersistenceState oldState, PersistenceState newState) {
-    synchronized (this) {
-      if (mPersistenceState == oldState) {
-        mPersistenceState = newState;
-        return true;
-      }
-      return false;
+  @Override
+  public Optional<Scoped> tryAcquirePersistenceLock() {
+    if (mPersistenceLock.compareAndSet(false, true)) {
+      return Optional.of(() -> mPersistenceLock.set(false));
     }
+    return Optional.empty();
   }
 
-  /**
-   * @return the id of the parent folder
-   */
+  @Override
   public long getParentId() {
     return mParentId;
   }
 
-  /**
-   * @return the owner of the inode
-   */
+  @Override
   public String getOwner() {
     return mAcl.getOwningUser();
   }
 
-  /**
-   * @return true if the inode is deleted, false otherwise
-   */
+  @Override
   public boolean isDeleted() {
     return mDeleted;
   }
 
-  /**
-   * @return true if the inode is a directory, false otherwise
-   */
+  @Override
   public boolean isDirectory() {
     return mDirectory;
   }
 
-  /**
-   * @return true if the inode is a file, false otherwise
-   */
+  @Override
   public boolean isFile() {
     return !mDirectory;
   }
 
-  /**
-   * @return true if the inode is pinned, false otherwise
-   */
+  @Override
   public boolean isPinned() {
     return mPinned;
   }
 
-  /**
-   * @return true if the file has persisted, false otherwise
-   */
+  @Override
   public boolean isPersisted() {
     return mPersistenceState == PersistenceState.PERSISTED;
   }
 
-  /**
-   * @return the UFS fingerprint
-   */
+  @Override
   public String getUfsFingerprint() {
     return mUfsFingerprint;
+  }
+
+  @Override
+  public AccessControlList getACL() {
+    return mAcl;
   }
 
   /**
@@ -228,7 +200,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param entries the ACL entries to remove
    * @return the updated object
    */
-  public T removeAcl(List<AclEntry> entries) throws IOException {
+  public T removeAcl(List<AclEntry> entries) {
     for (AclEntry entry : entries) {
       if (entry.isDefault()) {
         AccessControlList defaultAcl = getDefaultACL();
@@ -432,19 +404,6 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the access control list
-   */
-  public AccessControlList getACL() {
-    return mAcl;
-  }
-
-  /**
-   * @return the default ACL associated with this inode
-   * @throws UnsupportedOperationException if the inode is a file
-   */
-  public abstract DefaultAccessControlList getDefaultACL() throws UnsupportedOperationException;
-
-  /**
    * @param acl set the default ACL associated with this inode
    * @throws UnsupportedOperationException if the inode is a file
    */
@@ -489,12 +448,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     return getThis();
   }
 
-  /**
-   * Generates a {@link FileInfo} of the file or folder.
-   *
-   * @param path the path of the file
-   * @return generated {@link FileInfo}
-   */
+  @Override
   public abstract FileInfo generateClientFileInfo(String path);
 
   /**
@@ -502,26 +456,13 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   protected abstract T getThis();
 
-  /**
-   * Obtains a read lock on the inode. This call should only be used when locking the root or an
-   * inode by id and not path or parent.
-   */
+  @Override
   public void lockRead() {
     mLock.readLock().lock();
   }
 
-  /**
-   * Obtains a read lock on the inode. Afterward, checks the inode state:
-   *   - parent is consistent with what the caller is expecting
-   *   - the inode is not marked as deleted
-   * If the state is inconsistent, an exception will be thrown and the lock will be released.
-   *
-   * NOTE: This method assumes that the inode path to the parent has been read locked.
-   *
-   * @param parent the expected parent inode
-   * @throws InvalidPathException if the parent is not as expected
-   */
-  public void lockReadAndCheckParent(Inode parent) throws InvalidPathException {
+  @Override
+  public void lockReadAndCheckParent(InodeView parent) throws InvalidPathException {
     lockRead();
     if (mDeleted) {
       unlockRead();
@@ -533,18 +474,9 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     }
   }
 
-  /**
-   * Obtains a read lock on the inode. Afterward, checks the inode state to ensure the full inode
-   * path is consistent with what the caller is expecting. If the state is inconsistent, an
-   * exception will be thrown and the lock will be released.
-   *
-   * NOTE: This method assumes that the inode path to the parent has been read locked.
-   *
-   * @param parent the expected parent inode
-   * @param name the expected name of the inode to be locked
-   * @throws InvalidPathException if the parent and/or name is not as expected
-   */
-  public void lockReadAndCheckNameAndParent(Inode parent, String name) throws InvalidPathException {
+  @Override
+  public void lockReadAndCheckNameAndParent(InodeView parent, String name)
+      throws InvalidPathException {
     lockReadAndCheckParent(parent);
     if (!mName.equals(name)) {
       unlockRead();
@@ -552,26 +484,13 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     }
   }
 
-  /**
-   * Obtains a write lock on the inode. This call should only be used when locking the root or an
-   * inode by id and not path or parent.
-   */
+  @Override
   public void lockWrite() {
     mLock.writeLock().lock();
   }
 
-  /**
-   * Obtains a write lock on the inode. Afterward, checks the inode state:
-   *   - parent is consistent with what the caller is expecting
-   *   - the inode is not marked as deleted
-   * If the state is inconsistent, an exception will be thrown and the lock will be released.
-   *
-   * NOTE: This method assumes that the inode path to the parent has been read locked.
-   *
-   * @param parent the expected parent inode
-   * @throws InvalidPathException if the parent is not as expected
-   */
-  public void lockWriteAndCheckParent(Inode parent) throws InvalidPathException {
+  @Override
+  public void lockWriteAndCheckParent(InodeView parent) throws InvalidPathException {
     lockWrite();
     if (mDeleted) {
       unlockWrite();
@@ -583,18 +502,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     }
   }
 
-  /**
-   * Obtains a write lock on the inode. Afterward, checks the inode state to ensure the full inode
-   * path is consistent with what the caller is expecting. If the state is inconsistent, an
-   * exception will be thrown and the lock will be released.
-   *
-   * NOTE: This method assumes that the inode path to the parent has been read locked.
-   *
-   * @param parent the expected parent inode
-   * @param name the expected name of the inode to be locked
-   * @throws InvalidPathException if the parent and/or name is not as expected
-   */
-  public void lockWriteAndCheckNameAndParent(Inode parent, String name)
+  @Override
+  public void lockWriteAndCheckNameAndParent(InodeView parent, String name)
       throws InvalidPathException {
     lockWriteAndCheckParent(parent);
     if (!mName.equals(name)) {
@@ -603,58 +512,81 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     }
   }
 
-  /**
-   * Releases the read lock for this inode.
-   */
+  @Override
   public void unlockRead() {
     mLock.readLock().unlock();
   }
 
-  /**
-   * Releases the write lock for this inode.
-   */
+  @Override
   public void unlockWrite() {
     mLock.writeLock().unlock();
   }
 
-  /**
-   * @return returns true if the current thread holds a write lock on this inode, false otherwise
-   */
+  @Override
   public boolean isWriteLocked() {
     return mLock.isWriteLockedByCurrentThread();
   }
 
-  /**
-   * @return returns true if the current thread holds a read lock on this inode, false otherwise
-   */
+  @Override
   public boolean isReadLocked() {
     return mLock.getReadHoldCount() > 0;
   }
 
-  /**
-   * Checks whether the user or one of the groups has the permission to take the action.
-   *
-   *
-   * @param user the user checking permission
-   * @param groups the groups the user belongs to
-   * @param action the action to take
-   * @return whether permitted to take the action
-   * @see AccessControlList#checkPermission(String, List, AclAction)
-   */
+  @Override
   public boolean checkPermission(String user, List<String> groups, AclAction action) {
     return mAcl.checkPermission(user, groups, action);
   }
 
-  /**
-   * Gets the permitted actions for a user.
-   *
-   * @param user the user
-   * @param groups the groups the user belongs to
-   * @return the permitted actions
-   * @see AccessControlList#getPermission(String, List)
-   */
+  @Override
   public AclActions getPermission(String user, List<String> groups) {
     return mAcl.getPermission(user, groups);
+  }
+
+  /**
+   * Updates this inode's state from the given entry.
+   *
+   * @param entry the entry
+   */
+  public void updateFromEntry(UpdateInodeEntry entry) {
+    if (entry.hasAcl()) {
+      setInternalAcl(AccessControlList.fromProtoBuf(entry.getAcl()));
+    }
+    if (entry.hasCreationTimeMs()) {
+      setCreationTimeMs(entry.getCreationTimeMs());
+    }
+    if (entry.hasGroup()) {
+      setGroup(entry.getGroup());
+    }
+    if (entry.hasLastModificationTimeMs()) {
+      setLastModificationTimeMs(entry.getLastModificationTimeMs());
+    }
+    if (entry.hasMode()) {
+      setMode((short) entry.getMode());
+    }
+    if (entry.hasName()) {
+      setName(entry.getName());
+    }
+    if (entry.hasOwner()) {
+      setOwner(entry.getOwner());
+    }
+    if (entry.hasParentId()) {
+      setParentId(entry.getParentId());
+    }
+    if (entry.hasPersistenceState()) {
+      setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()));
+    }
+    if (entry.hasPinned()) {
+      setPinned(entry.getPinned());
+    }
+    if (entry.hasTtl()) {
+      setTtl(entry.getTtl());
+    }
+    if (entry.hasTtlAction()) {
+      setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()));
+    }
+    if (entry.hasUfsFingerprint()) {
+      setUfsFingerprint(entry.getUfsFingerprint());
+    }
   }
 
   @Override
