@@ -128,7 +128,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(TTL_CHECKER_INTERVAL_MS);
 
   @Rule
-  public Timeout mGlobalTimeout = Timeout.seconds(600);
+  public Timeout mGlobalTimeout = Timeout.seconds(60);
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =

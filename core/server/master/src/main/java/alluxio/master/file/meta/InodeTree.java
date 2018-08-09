@@ -158,9 +158,12 @@ public class InodeTree implements JournalEntryIterable {
   }
 
   /**
+   * Applies a journal entry to the inode tree state. This method should only be used during journal
+   * replay.
+   *
    * @param entry an entry to apply to the inode tree
    */
-  public void apply(JournalEntry entry) {
+  public void replayJournalEntryFromJournal(JournalEntry entry) {
     mState.replayJournalEntryFromJournal(entry);
   }
 

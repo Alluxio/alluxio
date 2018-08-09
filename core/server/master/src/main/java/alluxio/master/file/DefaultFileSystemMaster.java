@@ -428,7 +428,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         || entry.hasUpdateInode()
         || entry.hasUpdateInodeDirectory()
         || entry.hasUpdateInodeFile()) {
-      mInodeTree.apply(entry);
+      mInodeTree.replayJournalEntryFromJournal(entry);
     } else if (entry.hasAddMountPoint()) {
       try {
         mountFromEntry(entry.getAddMountPoint());

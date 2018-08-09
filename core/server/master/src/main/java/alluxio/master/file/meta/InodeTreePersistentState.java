@@ -124,14 +124,14 @@ public class InodeTreePersistentState {
    * @param entry the entry
    */
   public void replayJournalEntryFromJournal(JournalEntry entry) {
-    if (entry.hasAddBlock()) {
-      apply(entry.getAddBlock());
-    } else if (entry.hasDeleteFile()) {
+    if (entry.hasDeleteFile()) {
       apply(entry.getDeleteFile());
     } else if (entry.hasInodeDirectory()) {
       apply(entry.getInodeDirectory());
     } else if (entry.hasInodeFile()) {
       apply(entry.getInodeFile());
+    } else if (entry.hasNewBlock()) {
+      apply(entry.getNewBlock());
     } else if (entry.hasRename()) {
       apply(entry.getRename());
     } else if (entry.hasSetAcl()) {
@@ -180,11 +180,9 @@ public class InodeTreePersistentState {
    * @return the new block id
    */
   public long applyAndJournal(Supplier<JournalContext> context, NewBlockEntry entry) {
-    try {
-      return apply(entry);
-    } finally {
-      context.get().append(JournalEntry.newBuilder().setAddBlock(entry).build());
-    }
+    long id = apply(entry);
+    context.get().append(JournalEntry.newBuilder().setNewBlock(entry).build());
+    return id;
   }
 
   /**
@@ -325,7 +323,7 @@ public class InodeTreePersistentState {
     if (entry.hasTtl()) {
       mTtlBuckets.insert(inode);
     }
-    if (entry.hasPinned()) {
+    if (entry.hasPinned() && inode.isFile()) {
       if (entry.getPinned()) {
         mPinnedInodeFileIds.add(entry.getId());
       } else {

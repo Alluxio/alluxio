@@ -48,6 +48,7 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -623,6 +624,78 @@ public final class InodeTreeTest {
     InodeDirectory test1 = (InodeDirectory) nested.getChild("test1");
     InodeView file1 = test1.getChild("file1");
     verifyJournal(mTree, Arrays.asList(root, nested, test, test1, file, file1));
+  }
+
+  @Test
+  public void addInodeFromJournal() throws Exception {
+    createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
+    createPath(mTree, new AlluxioURI("/nested/test1/file1"), sNestedFileOptions);
+    InodeDirectoryView root = mTree.getRoot();
+    InodeDirectory nested = (InodeDirectory) root.getChild("nested");
+    InodeDirectory test = (InodeDirectory) nested.getChild("test");
+    InodeView file = test.getChild("file");
+    InodeDirectory test1 = (InodeDirectory) nested.getChild("test1");
+    InodeView file1 = test1.getChild("file1");
+    // reset the tree
+    mTree.replayJournalEntryFromJournal(root.toJournalEntry());
+    // re-init the root since the tree was reset above
+    mTree.getRoot();
+    try (LockedInodePath inodePath =
+             mTree.lockFullInodePath(new AlluxioURI("/"), InodeTree.LockMode.READ);
+         LockedInodePathList lockedInodePathList = mTree.lockDescendants(inodePath,
+             InodeTree.LockMode.READ)) {
+      assertEquals(0, lockedInodePathList.getInodePathList().size());
+      mTree.replayJournalEntryFromJournal(nested.toJournalEntry());
+      verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested"));
+      mTree.replayJournalEntryFromJournal(test.toJournalEntry());
+      verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested", "test"));
+      mTree.replayJournalEntryFromJournal(test1.toJournalEntry());
+      verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested", "test", "test1"));
+      mTree.replayJournalEntryFromJournal(file.toJournalEntry());
+      verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested", "test", "test1", "file"));
+      mTree.replayJournalEntryFromJournal(file1.toJournalEntry());
+      verifyChildrenNames(mTree, inodePath,
+          Sets.newHashSet("nested", "test", "test1", "file", "file1"));
+    }
+  }
+
+  @Test
+  public void addInodeModeFromJournalWithEmptyOwnership() throws Exception {
+    createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
+    InodeDirectoryView root = mTree.getRoot();
+    InodeDirectory nested = (InodeDirectory) root.getChild("nested");
+    InodeDirectory test = (InodeDirectory) nested.getChild("test");
+    Inode file = (Inode) test.getChild("file");
+    Inode[] inodeChildren = {nested, test, file};
+    for (Inode child : inodeChildren) {
+      child.setOwner("");
+      child.setGroup("");
+      child.setMode((short) 0600);
+    }
+    // reset the tree
+    mTree.replayJournalEntryFromJournal(root.toJournalEntry());
+    // re-init the root since the tree was reset above
+    mTree.getRoot();
+    try (LockedInodePath inodePath =
+             mTree.lockFullInodePath(new AlluxioURI("/"), InodeTree.LockMode.READ);
+         LockedInodePathList lockedInodePathList = mTree.lockDescendants(inodePath,
+             InodeTree.LockMode.READ)) {
+      assertEquals(0, lockedInodePathList.getInodePathList().size());
+      mTree.replayJournalEntryFromJournal(nested.toJournalEntry());
+      mTree.replayJournalEntryFromJournal(test.toJournalEntry());
+      mTree.replayJournalEntryFromJournal(file.toJournalEntry());
+      try (LockedInodePathList descendants = mTree.lockDescendants(inodePath,
+          InodeTree.LockMode.READ)) {
+        assertEquals(inodeChildren.length, descendants.getInodePathList().size());
+        for (LockedInodePath childPath : descendants.getInodePathList()) {
+          InodeView child = childPath.getInodeOrNull();
+          Assert.assertNotNull(child);
+          Assert.assertEquals("", child.getOwner());
+          Assert.assertEquals("", child.getGroup());
+          Assert.assertEquals((short) 0600, child.getMode());
+        }
+      }
+    }
   }
 
   @Test
