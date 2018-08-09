@@ -415,13 +415,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (entry.hasInodeDirectoryIdGenerator()) {
       mDirectoryIdGenerator.apply(entry);
     } else if (entry.hasAsyncPersistRequest()
+        || entry.hasCompleteFile()
+        || entry.hasDeleteFile()
         || entry.hasInodeDirectory()
         || entry.hasInodeFile()
-        || entry.hasPersistDirectory()
-        || entry.hasDeleteFile()
-        || entry.hasCompleteFile()
-        || entry.hasRename()
         || entry.hasInodeLastModificationTime()
+        || entry.hasNewBlock()
+        || entry.hasPersistDirectory()
+        || entry.hasRename()
         || entry.hasSetAcl()
         || entry.hasSetAttribute()
         || entry.hasUpdateInode()

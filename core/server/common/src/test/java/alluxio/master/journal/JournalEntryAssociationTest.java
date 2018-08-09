@@ -26,6 +26,7 @@ import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.InodeLastModificationTimeEntry;
+import alluxio.proto.journal.File.NewBlockEntry;
 import alluxio.proto.journal.File.PersistDirectoryEntry;
 import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
@@ -85,6 +86,7 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setLineage(LineageEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setLineageIdGenerator(LineageIdGeneratorEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setMergeStore(MergeStoreEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setNewBlock(NewBlockEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setPersistDirectory(PersistDirectoryEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setReinitializeFile(ReinitializeFileEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRename(RenameEntry.getDefaultInstance()).build(),
