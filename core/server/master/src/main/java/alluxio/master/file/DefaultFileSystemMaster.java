@@ -1084,8 +1084,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   /**
    * Completes a file. After a file is completed, it cannot be written to.
-   * <p>
-   * Writes to the journal.
    *
    * @param rpcContext the rpc context
    * @param inodePath the {@link LockedInodePath} to complete
@@ -1097,7 +1095,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidFileSizeException if an invalid file size is encountered
    */
   private void completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
-                                    CompleteFileOptions options)
+      CompleteFileOptions options)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException, UnavailableException {
     InodeView inode = inodePath.getInode();
@@ -1250,7 +1248,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return inodePath.getInode().getId();
     }
   }
-
 
   /**
    * @param rpcContext the rpc context
@@ -1405,29 +1402,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * Deletes a given path.
-   *
-   * This method does not delete blocks. Instead, it adds blocks to the blockDeletionContext so that
-   * they can be deleted after the inode deletion journal entry has been written. We cannot delete
-   * blocks earlier because the inode deletion may fail, leaving us with inode containing deleted
-   * blocks.
-   *
-   * @param rpcContext the rpc context
-   * @param inodePath the path to delete
-   * @param deleteOptions the method options
-   * @throws InvalidPathException if the path is invalid
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
-   */
-  @VisibleForTesting
-  public void deleteInternal(RpcContext rpcContext, LockedInodePath inodePath, DeleteOptions deleteOptions)
-      throws InvalidPathException, FileDoesNotExistException, IOException,
-      DirectoryNotEmptyException {
-    long opTimeMs = System.currentTimeMillis();
-    deleteInternal(rpcContext, inodePath, false, opTimeMs, deleteOptions);
-  }
-
-  /**
    * Implements file deletion.
    * <p>
    * This method does not delete blocks. Instead, it returns deleted inodes so that their blocks can
@@ -1436,21 +1410,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param rpcContext the rpc context
    * @param inodePath the file {@link LockedInodePath}
-   * @param replayed whether the operation is a result of replaying the journal
-   * @param opTimeMs the time of the operation
    * @param deleteOptions the method optitions
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if the specified path is the root
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  private void deleteInternal(RpcContext rpcContext, LockedInodePath inodePath, boolean replayed,
-      long opTimeMs, DeleteOptions deleteOptions) throws FileDoesNotExistException, IOException,
+  @VisibleForTesting
+  public void deleteInternal(RpcContext rpcContext, LockedInodePath inodePath,
+      DeleteOptions deleteOptions) throws FileDoesNotExistException, IOException,
       DirectoryNotEmptyException, InvalidPathException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
     if (!inodePath.fullPathExists()) {
       return;
     }
+    long opTimeMs = System.currentTimeMillis();
     InodeView inode = inodePath.getInode();
     if (inode == null) {
       return;
@@ -1485,7 +1459,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       // Prepare to delete persisted inodes
       UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
-      if (!(replayed || deleteOptions.isAlluxioOnly())) {
+      if (!deleteOptions.isAlluxioOnly()) {
         ufsDeleter = new SafeUfsDeleter(mMountTable, inodesToDelete, deleteOptions);
       }
 
@@ -1506,13 +1480,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         String failureReason = null;
         if (unsafeInodes.contains(inodeToDelete.getId())) {
           failureReason = ExceptionMessage.DELETE_FAILED_DIR_NONEMPTY.getMessage();
-        } else if (!replayed && inodeToDelete.isPersisted()) {
+        } else if (!inodeToDelete.isPersisted()) {
           // If this is a mount point, we have deleted all the children and can unmount it
           // TODO(calvin): Add tests (ALLUXIO-1831)
           if (mMountTable.isMountPoint(alluxioUriToDelete)) {
             unmountInternal(alluxioUriToDelete);
           } else {
-            if (!(replayed || deleteOptions.isAlluxioOnly())) {
+            if (!deleteOptions.isAlluxioOnly()) {
               try {
                 checkUfsMode(alluxioUriToDelete, OperationType.WRITE);
                 // Attempt to delete node if all children were deleted successfully
@@ -1543,7 +1517,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       for (Pair<AlluxioURI, LockedInodePath> delInodePair : revisedInodesToDelete) {
         InodeView delInode = delInodePair.getSecond().getInode();
         LockedInodePath tempInodePath = delInodePair.getSecond();
-        // Do not journal entries covered recursively for performance
         if (delInode.getId() == inode.getId() || unsafeInodes.contains(delInode.getParentId())) {
           mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs, deleteOptions);
         } else {
@@ -2237,7 +2210,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
             SetAttributeOptions setAttributeOptions =
                 SetAttributeOptions.defaults().setRecursive(false).setPinned(false);
-            setAttributeInternal(rpcContext, descedant, false, opTimeMs, setAttributeOptions);
+            setAttributeSingelFile(rpcContext, descedant, true, opTimeMs, setAttributeOptions);
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFileView) freeInode).getBlockIds(), false /* delete */);
@@ -2908,10 +2881,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         break;
       default:
     }
-    setAclInternal(rpcContext, action, inodePath, entries, false, opTimeMs, options);
+    setAclRecursive(rpcContext, action, inodePath, entries, false, opTimeMs, options);
   }
 
-  private void setUfsAcl(RpcContext rpcContext, LockedInodePath inodePath)
+  private void setUfsAcl(LockedInodePath inodePath)
       throws InvalidPathException, AccessControlException {
     InodeView inode = inodePath.getInodeOrNull();
 
@@ -2933,7 +2906,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         } catch (IOException e) {
           throw new AccessControlException("Could not setAcl for UFS file: " + ufsUri);
         }
-
       }
     }
   }
@@ -2962,7 +2934,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     try {
       if (!replay && inode.isPersisted()) {
-        setUfsAcl(rpcContext, inodePath);
+        setUfsAcl(inodePath);
       }
     } catch (InvalidPathException | AccessControlException e) {
       LOG.warn("Setting ufs ACL failed for path: {}", inodePath.getUri(), e);
@@ -2970,9 +2942,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
-  private void setAclInternal(RpcContext rpcContext, SetAclAction action, LockedInodePath inodePath,
-      List<AclEntry> entries, boolean replay, long opTimeMs, SetAclOptions options)
-      throws IOException, FileDoesNotExistException {
+  private void setAclRecursive(RpcContext rpcContext, SetAclAction action,
+      LockedInodePath inodePath, List<AclEntry> entries, boolean replay, long opTimeMs,
+      SetAclOptions options) throws IOException, FileDoesNotExistException {
     setAclSingleInode(rpcContext, action, inodePath, entries, replay, opTimeMs);
     try (LockedInodePathList children = options.getRecursive()
         ? mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE) : null) {
@@ -3056,8 +3028,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   /**
    * Sets the file attribute.
-   * <p>
-   * Writes to the journal.
    *
    * @param rpcContext the rpc context
    * @param inodePath the {@link LockedInodePath} to set attribute for
@@ -3080,11 +3050,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           mPermissionChecker.checkSetAttributePermission(childPath, rootRequired, ownerRequired);
         }
         for (LockedInodePath childPath : descendants.getInodePathList()) {
-          setAttributeInternal(rpcContext, childPath, false, opTimeMs, options);
+          setAttributeSingelFile(rpcContext, childPath, true, opTimeMs, options);
         }
       }
     }
-    setAttributeInternal(rpcContext, inodePath, false, opTimeMs, options);
+    setAttributeSingelFile(rpcContext, inodePath, true, opTimeMs, options);
   }
 
   @Override
@@ -3278,13 +3248,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   .setUfsFingerprint(ufsFingerprint);
           long opTimeMs = System.currentTimeMillis();
           // use replayed, since updating UFS is not desired.
-          setAttributeInternal(rpcContext, inodePath, true, opTimeMs, options);
+          setAttributeSingelFile(rpcContext, inodePath, false, opTimeMs, options);
         }
       }
       if (syncPlan.toDelete()) {
         try {
-          deleteInternal(rpcContext, inodePath, false, System.currentTimeMillis(),
-              syncDeleteOptions);
+          deleteInternal(rpcContext, inodePath, syncDeleteOptions);
 
           deletedInode = true;
         } catch (DirectoryNotEmptyException | IOException e) {
@@ -3374,15 +3343,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   /**
    * @param inodePath the {@link LockedInodePath} to use
-   * @param replayed whether the operation is a result of replaying the journal
+   * @param updateUfs whether to update the UFS with the attribute change
    * @param opTimeMs the operation time (in milliseconds)
    * @param options the method options
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if failed to set permission
    */
-  private void setAttributeInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      boolean replayed, long opTimeMs, SetAttributeOptions options)
+  private void setAttributeSingelFile(RpcContext rpcContext, LockedInodePath inodePath,
+      boolean updateUfs, long opTimeMs, SetAttributeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     InodeView inode = inodePath.getInode();
     if (options.getPinned() != null) {
@@ -3417,7 +3386,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     boolean ownerGroupChanged = (options.getOwner() != null) || (options.getGroup() != null);
     boolean modeChanged = (options.getMode() != Constants.INVALID_MODE);
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
-    if ((ownerGroupChanged || modeChanged) && !replayed && inode.isPersisted()) {
+    if ((ownerGroupChanged || modeChanged) && updateUfs && inode.isPersisted()) {
       if ((inode instanceof InodeFileView) && !((InodeFileView) inode).isCompleted()) {
         LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
