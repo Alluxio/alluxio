@@ -1085,16 +1085,20 @@ public class InodeTree implements JournalEntryIterable {
         new ExponentialBackoffRetry(PERSIST_WAIT_BASE_SLEEP_MS, PERSIST_WAIT_MAX_SLEEP_MS,
             PERSIST_WAIT_MAX_RETRIES);
     while (retry.attempt()) {
+      if (dir.getPersistenceState() == PersistenceState.PERSISTED) {
+        // The directory is persisted
+        return;
+      }
       Optional<Scoped> persisting = dir.tryAcquirePersistingLock();
       if (!persisting.isPresent()) {
         // Someone else is doing this persist. Continue and wait for them to finish.
         continue;
       }
-      if (dir.getPersistenceState() == PersistenceState.PERSISTED) {
-        // The directory is persisted
-        return;
-      }
       try (Scoped s = persisting.get()) {
+        if (dir.getPersistenceState() == PersistenceState.PERSISTED) {
+          // The directory is persisted
+          return;
+        }
         UpdateInodeEntry.Builder entry = UpdateInodeEntry.newBuilder()
             .setId(dir.getId());
         syncPersistDirectory(dir).ifPresent(status -> {
