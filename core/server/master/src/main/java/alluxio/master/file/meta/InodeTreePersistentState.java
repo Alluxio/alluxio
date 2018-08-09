@@ -277,6 +277,7 @@ public class InodeTreePersistentState {
       throw new RuntimeException("Failed to apply " + entry);
     }
   }
+
   private long apply(NewBlockEntry entry) {
     InodeFile inode = (InodeFile) mInodes.getFirst(entry.getId());
     return inode.getNewBlockId();
