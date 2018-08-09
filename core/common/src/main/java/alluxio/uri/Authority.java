@@ -11,25 +11,33 @@
 
 package alluxio.uri;
 
+import javax.annotation.Nullable;
+
 import java.io.Serializable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This interface represents the authority part of a URI.
  */
 public interface Authority extends Comparable<Authority>, Serializable {
+  Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@(.*)");
+
   /**
    * Gets the Authority object from the input string.
    *
    * @param authority the string authority to transfer
    * @return an Authority object
    */
+  @Nullable
   static Authority fromString(String authority) {
     if (authority == null || authority.length() == 0) {
       return null;
     }
-    String zkAuthorityPattern = "^zk@(.*)";
-    if (authority.matches(zkAuthorityPattern)) {
-      return new ZookeeperAuthority(authority);
+    Matcher matcher = ZOOKEEPER_AUTH.matcher(authority);
+    if (matcher.find()) {
+      return new ZookeeperAuthority(authority,
+          matcher.group(1).replaceAll(";", ","));
     } else {
       return new HostnamePortAuthority(authority);
     }

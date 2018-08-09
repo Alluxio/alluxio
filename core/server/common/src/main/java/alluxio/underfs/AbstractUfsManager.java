@@ -48,7 +48,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     Key(AlluxioURI uri, Map<String, String> properties) {
       mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
       mAuthority = uri.hasAuthority()
-          ? uri.getAuthority().toString().toLowerCase() : "";
+          ? uri.getParsedAuthority().toString().toLowerCase() : "";
       mProperties = (properties == null || properties.isEmpty()) ? null : properties;
     }
 

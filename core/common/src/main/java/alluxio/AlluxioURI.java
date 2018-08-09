@@ -139,12 +139,25 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Gets the authority of the {@link AlluxioURI}.
+   * Gets the authority string of the {@link AlluxioURI}.
+   *
+   * @return the authority, null if it does not have one
+   * @deprecated It will be removed in 2.0.0. and not recommended for use. Use
+   *             {@link #getParsedAuthority()} instead
+   */
+  @Nullable
+  @Deprecated
+  public String getAuthority() {
+    return mUri.getAuthority() == null ? null : mUri.getAuthority().toString();
+  }
+
+  /**
+   * Gets the authority string of the {@link AlluxioURI}.
    *
    * @return the authority, null if it does not have one
    */
   @Nullable
-  public Authority getAuthority() {
+  public Authority getParsedAuthority() {
     return mUri.getAuthority();
   }
 

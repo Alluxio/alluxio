@@ -191,15 +191,15 @@ ZooKeeper for the current leader master.
 
 ##### HDFS API
 
-When communicating with Alluxio in HA mode using the HDFS API, users can either 
+When communicating with Alluxio in HA mode with Zookeeper using the HDFS API, users can either 
 set the Zookeeper configuration in framework-specific configuration files 
-(e.g. core-site.xml for Hadoop MapReduce) or use the Alluxio URI directly.
+(e.g. `core-site.xml` for Hadoop MapReduce) or use the Alluxio URI directly.
 
 If the client side Zookeeper configuration is properly set, users can use 'alluxio:///path' to connect to the cluster. 
 `alluxio.zookeeper.address` is used for finding the Alluxio leader master.
 
-```
-hadoop fs -ls alluxio:///directory
+```bash
+$ hadoop fs -ls alluxio:///directory
 ```
 
 Alternatively, users can use the Alluxio URI to connect to Alluxio cluster directly.
@@ -209,8 +209,8 @@ Use `alluxio://zk@` to tell Alluxio the following addresses are Zookeeper addres
 For most applications (e.g., Hadoop, HBase, Hive and Flink), you could use
 `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`:
 
-```
-hadoop fs -ls alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/directory
+```bash
+$ hadoop fs -ls alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/directory
 ```
 
 Some applications (e.g., Spark), you need to use semicolons to separate Zookeeper addresses:

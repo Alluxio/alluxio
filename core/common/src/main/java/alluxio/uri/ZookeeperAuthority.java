@@ -11,24 +11,21 @@
 
 package alluxio.uri;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * {@link ZookeeperAuthority} supports authority containing Zookeeper addresses.
  */
 public final class ZookeeperAuthority extends HostnamePortAuthority {
   private static final long serialVersionUID = -3549197285125519688L;
-  private static final Pattern ZOOKEEPER_PATTERN = Pattern.compile("^zk@(.*)");
 
   private final String mZookeeperAddress;
 
   /**
-   * @param authority the authority string of the URI
+   * @param authority the authority string of the uri
+   * @param zookeeperAddress the zookeeper address inside the uri
    */
-  public ZookeeperAuthority(String authority) {
+  public ZookeeperAuthority(String authority, String zookeeperAddress) {
     super(authority);
-    mZookeeperAddress = getZookeeperAddress(authority);
+    mZookeeperAddress = zookeeperAddress;
   }
 
   /**
@@ -36,21 +33,5 @@ public final class ZookeeperAuthority extends HostnamePortAuthority {
    */
   public String getZookeeperAddress() {
     return mZookeeperAddress;
-  }
-
-  /**
-   * Gets zookeeper address from the authority.
-   *
-   * @param authority an authority to get zookeeper address from
-   * @return the Zookeeper addresses
-   */
-  private String getZookeeperAddress(String authority) {
-    Matcher matcher = ZOOKEEPER_PATTERN.matcher(authority);
-    if (matcher.find()) {
-      return matcher.group(1).replaceAll(";", ",");
-    } else {
-      throw new IllegalArgumentException("Alluxio URI in high availability mode "
-          + "should be of format alluxio://zk@host:port/path");
-    }
   }
 }

@@ -29,6 +29,7 @@ import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.SystemPropertyRule;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
@@ -71,6 +72,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.security.auth.Subject;
@@ -121,7 +123,7 @@ public class AbstractFileSystemTest {
 
   @After
   public void after() {
-    ConfigurationTestUtils.resetConfiguration();
+    HadoopClientTestUtils.resetClient();
   }
 
   @Test
@@ -156,6 +158,13 @@ public class AbstractFileSystemTest {
     URI uri = URI.create(Constants.HEADER + "zk@host1:port1,host2:port2,host3:port3/tmp/path.txt");
     org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
+    assertTrue(alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    assertEquals("host1:port1,host2:port2,host3:port3",
+        alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
+    assertTrue(fs instanceof FileSystem);
+
+    uri = URI.create(Constants.HEADER + "zk@host1:port1;host2:port2;host3:port3/tmp/path.txt");
+    fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
     assertTrue(alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("host1:port1,host2:port2,host3:port3",
         alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
@@ -215,6 +224,7 @@ public class AbstractFileSystemTest {
   @Test
   public void hadoopShouldLoadFileSystemWhenConfigured() throws Exception {
     org.apache.hadoop.conf.Configuration conf = getConf();
+    ConfigurationTestUtils.resetConfiguration();
 
     URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
 
@@ -315,31 +325,20 @@ public class AbstractFileSystemTest {
   }
 
   /**
-   * Tests that after initialization, reinitialize with a different URI should fail.
+   * Tests that after initialization, reinitialize with a different URI.
    */
   @Test
   public void reinitializeWithDifferentURI() throws Exception {
-    final org.apache.hadoop.conf.Configuration conf = getConf();
-    String originalURI = "host1:1";
-    URI uri = URI.create(Constants.HEADER + originalURI);
+    org.apache.hadoop.conf.Configuration conf = getConf();
+    URI uri = URI.create("alluxio://host1:1");
     org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    assertEquals("host1", alluxio.Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    assertEquals("1", alluxio.Configuration.get(PropertyKey.MASTER_RPC_PORT));
 
-    when(mMockFileSystemContext.getMasterAddress())
-        .thenReturn(new InetSocketAddress("host1", 1));
-
-    String[] newURIs = new String[]{"host2:1", "host1:2", "host2:2"};
-    for (String newURI : newURIs) {
-      // mExpectedException.expect(IOException.class);
-      // mExpectedException.expectMessage(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
-      //    .getMessage(newURI, originalURI));
-
-      uri = URI.create(Constants.HEADER + newURI);
-      org.apache.hadoop.fs.FileSystem.get(uri, conf);
-
-      // The above code should not throw an exception.
-      // TODO(cc): Remove or bring this check back.
-      // Assert.fail("Initialization should throw an exception.");
-    }
+    uri = URI.create("alluxio://host2:2");
+    org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    assertEquals("host2", alluxio.Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    assertEquals("2", alluxio.Configuration.get(PropertyKey.MASTER_RPC_PORT));
   }
 
   /**
@@ -441,6 +440,45 @@ public class AbstractFileSystemTest {
     URI uri = URI.create(Constants.HEADER + "host:1");
     org.apache.hadoop.fs.FileSystem.get(uri, conf);
     // FileSystem.get would have thrown an exception if the initialization failed.
+  }
+
+  @Test
+  public void initializeWithZookeeperSystemProperties() throws Exception {
+    HashMap<String, String> sysProps = new HashMap<>();
+    sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), "true");
+    sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zkHost:2181");
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      alluxio.Configuration.reset();
+      URI uri = URI.create("alluxio:///");
+      org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+      assertTrue(alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+      assertEquals("zkHost:2181", alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
+    }
+  }
+
+  @Test
+  public void initializeWithZookeeperUriAndSystemProperty() throws Exception {
+    // When URI and system property both have Zookeeper configuration,
+    // those in the URI has the highest priority.
+    try (Closeable p = new SystemPropertyRule(
+         PropertyKey.ZOOKEEPER_ENABLED.getName(), "false").toResource()) {
+      alluxio.Configuration.reset();
+      URI uri = URI.create("alluxio://zk@zkHost:2181");
+      org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+      assertTrue(alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+      assertEquals("zkHost:2181", alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
+    }
+
+    HashMap<String, String> sysProps = new HashMap<>();
+    sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), "true");
+    sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zkHost1:2181");
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      alluxio.Configuration.reset();
+      URI uri = URI.create("alluxio://zk@zkHost2:2181");
+      org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+      assertTrue(alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+      assertEquals("zkHost2:2181", alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
+    }
   }
 
   @Test

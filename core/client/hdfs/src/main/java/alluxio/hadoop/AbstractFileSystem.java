@@ -465,11 +465,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
 
     synchronized (INIT_LOCK) {
-      if (sInitialized) {
-        if (!connectDetailsMatch(uriConfProperties, conf)) {
-          initializeInternal(uriConfProperties, conf);
-        }
-      } else {
+      if (!sInitialized || !connectDetailsMatch(uriConfProperties, conf)) {
         initializeInternal(uriConfProperties, conf);
       }
       // Must happen inside the lock so that the global filesystem context isn't changed by a
@@ -514,7 +510,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     Map<String, Object> alluxioConfProperties = new HashMap<>();
 
     if (alluxioUri.getAuthorityType() == AlluxioURI.AuthorityType.ZOOKEEPER) {
-      ZookeeperAuthority authority = (ZookeeperAuthority) alluxioUri.getAuthority();
+      ZookeeperAuthority authority = (ZookeeperAuthority) alluxioUri.getParsedAuthority();
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(),
           authority.getZookeeperAddress());
@@ -549,13 +545,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     ConnectDetails oldDetails = FileSystemContext.get()
         .getMasterInquireClient().getConnectDetails();
 
-    boolean isMatch = newDetails.equals(oldDetails);
-    if (!isMatch) {
-      LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS
-          .getMessage(newDetails, oldDetails));
-    }
-
-    return isMatch;
+    return newDetails.equals(oldDetails);
   }
 
   /**

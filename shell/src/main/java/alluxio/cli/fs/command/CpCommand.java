@@ -102,7 +102,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         List<AlluxioURI> srcPaths = new ArrayList<>();
         for (File srcFile : srcFiles) {
           srcPaths.add(
-              new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()));
+              new AlluxioURI(srcPath.getScheme(), srcPath.getParsedAuthority(), srcFile.getPath()));
         }
         copyFromLocalWildcard(srcPaths, dstPath);
       } else {
@@ -165,7 +165,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
     List<String> errorMessages = new ArrayList<>();
     for (AlluxioURI srcPath : srcPaths) {
       try {
-        copy(srcPath, new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
+        copy(srcPath, new AlluxioURI(dstPath.getScheme(), dstPath.getParsedAuthority(),
             PathUtils.concatPath(dstPath.getPath(), srcPath.getName())), recursive);
       } catch (AlluxioException | IOException e) {
         errorMessages.add(e.getMessage());
@@ -229,8 +229,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
       List<String> errorMessages = new ArrayList<>();
       for (URIStatus status : statuses) {
         try {
-          copy(new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
-              new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
+          copy(new AlluxioURI(srcPath.getScheme(), srcPath.getParsedAuthority(), status.getPath()),
+              new AlluxioURI(dstPath.getScheme(), dstPath.getParsedAuthority(),
                   PathUtils.concatPath(dstPath.getPath(), status.getName())), recursive);
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
@@ -290,7 +290,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
       try {
         copyPath(
-            new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()),
+            new AlluxioURI(srcPath.getScheme(), srcPath.getParsedAuthority(), srcFile.getPath()),
             newURI);
       } catch (AlluxioException | IOException e) {
         errorMessages.add(e.getMessage());
@@ -442,7 +442,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
         try {
           copyPath(
-              new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()),
+              new AlluxioURI(srcPath.getScheme(), srcPath.getParsedAuthority(), srcFile.getPath()),
               newURI);
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
@@ -487,8 +487,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
     for (AlluxioURI srcPath : srcPaths) {
       try {
         File dstSubFile = new File(dstFile.getAbsoluteFile(), srcPath.getName());
-        copyToLocal(srcPath,
-            new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(), dstSubFile.getPath()));
+        copyToLocal(srcPath, new AlluxioURI(dstPath.getScheme(), dstPath.getParsedAuthority(),
+            dstSubFile.getPath()));
       } catch (IOException e) {
         errorMessages.add(e.getMessage());
       }
@@ -530,8 +530,9 @@ public final class CpCommand extends AbstractFileSystemCommand {
         try {
           File subDstFile = new File(dstFile.getAbsolutePath(), status.getName());
           copyToLocal(
-              new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
-              new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(), subDstFile.getPath()));
+              new AlluxioURI(srcPath.getScheme(), srcPath.getParsedAuthority(), status.getPath()),
+              new AlluxioURI(dstPath.getScheme(), dstPath.getParsedAuthority(),
+                  subDstFile.getPath()));
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
         }
