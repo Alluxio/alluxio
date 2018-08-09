@@ -209,8 +209,8 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockReadAndCheckNameAndParent(InodeView, String)} method fails when the name
-   * is not consistent.
+   * Tests the {@link Inode#lockReadAndCheckNameAndParent(InodeView, String)} method fails when the
+   * name is not consistent.
    */
   @Test
   public void lockReadAndCheckNameAndParentInvalidName() throws Exception {
