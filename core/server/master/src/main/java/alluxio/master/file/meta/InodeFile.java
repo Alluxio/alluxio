@@ -129,16 +129,6 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
   }
 
   @Override
-  public long getNextBlockId() {
-    long blockId = BlockId.createBlockId(mBlockContainerId, mBlocks.size());
-    // TODO(gene): Check for max block sequence number, and sanity check the sequence number.
-    // TODO(gene): Check isComplete?
-    // TODO(gene): This will not work with existing lineage implementation, since a new writer will
-    // not be able to get the same block ids (to write the same block ids).
-    return blockId;
-  }
-
-  @Override
   public long getBlockContainerId() {
     return mBlockContainerId;
   }
@@ -240,8 +230,8 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
     if (entry.hasLength()) {
       setLength(entry.getLength());
     }
-    if (entry.getBlocksCount() > 0) {
-      setBlockIds(entry.getBlocksList());
+    if (entry.getSetBlocksCount() > 0) {
+      setBlockIds(entry.getSetBlocksList());
     }
   }
 

@@ -97,6 +97,12 @@ message AccessControlList {
   optional bool isEmpty = 8;
 }
 
+// Creates a new block for a file inode.
+// next available id: 2
+message NewBlockEntry {
+  optional int64 id = 1;
+}
+
 // next available id: 15
 message UpdateInodeEntry {
   optional int64 id = 1;
@@ -123,14 +129,15 @@ message UpdateInodeDirectoryEntry {
   optional AccessControlList defaultAcl = 4;
 }
 
-// next available id: 7
+// next available id: 8
 message UpdateInodeFileEntry {
   optional int64 id = 1;
   optional int64 block_size_bytes = 2;
   optional int64 length = 3;
   optional bool completed = 4;
   optional bool cacheable = 5;
-  repeated int64 blocks = 6;
+  // Overwirte the blocks list
+  repeated int64 set_blocks = 7;
 }
 
 // next available id: 17

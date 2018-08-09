@@ -30,6 +30,7 @@ import alluxio.master.file.state.InodesView;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.proto.journal.File.DeleteFileEntry;
+import alluxio.proto.journal.File.NewBlockEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
@@ -181,6 +182,15 @@ public class InodeTree implements JournalEntryIterable {
         .setId(id)
         .setDirectChildrenLoaded(true)
         .build());
+  }
+
+  /**
+   * @param context journal context supplier
+   * @param entry an entry representing an add block operation
+   * @return the new block id
+   */
+  public long newBlock(Supplier<JournalContext> context, NewBlockEntry entry) {
+    return mState.applyAndJournal(context, entry);
   }
 
   /**

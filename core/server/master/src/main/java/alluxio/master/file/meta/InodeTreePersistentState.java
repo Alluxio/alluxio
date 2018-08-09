@@ -24,6 +24,7 @@ import alluxio.proto.journal.File.DeleteFileEntry;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.InodeLastModificationTimeEntry;
+import alluxio.proto.journal.File.NewBlockEntry;
 import alluxio.proto.journal.File.PersistDirectoryEntry;
 import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
@@ -123,7 +124,9 @@ public class InodeTreePersistentState {
    * @param entry the entry
    */
   public void replayJournalEntryFromJournal(JournalEntry entry) {
-    if (entry.hasDeleteFile()) {
+    if (entry.hasAddBlock()) {
+      apply(entry.getAddBlock());
+    } else if (entry.hasDeleteFile()) {
       apply(entry.getDeleteFile());
     } else if (entry.hasInodeDirectory()) {
       apply(entry.getInodeDirectory());
@@ -168,6 +171,19 @@ public class InodeTreePersistentState {
       // where we've journaled the delete, but failed to make the in-memory update. We don't yet
       // have a way to recover from this, so we give a fatal error.
       ProcessUtils.fatalError(LOG, t, "Failed to apply entry %s", entry);
+    }
+  }
+
+  /**
+   * @param context journal context supplier
+   * @param entry new block entry
+   * @return the new block id
+   */
+  public long applyAndJournal(Supplier<JournalContext> context, NewBlockEntry entry) {
+    try {
+      return apply(entry);
+    } finally {
+      context.get().append(JournalEntry.newBuilder().setAddBlock(entry).build());
     }
   }
 
@@ -261,6 +277,10 @@ public class InodeTreePersistentState {
       throw new RuntimeException("Failed to apply " + entry);
     }
   }
+  private long apply(NewBlockEntry entry) {
+    InodeFile inode = (InodeFile) mInodes.getFirst(entry.getId());
+    return inode.getNewBlockId();
+  }
 
   private void apply(RenameEntry entry) {
     if (entry.hasDstPath()) {
@@ -295,9 +315,13 @@ public class InodeTreePersistentState {
 
   private void apply(UpdateInodeEntry entry) {
     Inode<?> inode = mInodes.getFirst(entry.getId());
+    if (entry.hasTtl()) {
+      // Remove before updating the inode. #remove relies on the inode having the same
+      // TTL as when it was inserted.
+      mTtlBuckets.remove(inode);
+    }
     inode.updateFromEntry(entry);
     if (entry.hasTtl()) {
-      mTtlBuckets.remove(inode);
       mTtlBuckets.insert(inode);
     }
     if (entry.hasPinned()) {
@@ -347,7 +371,7 @@ public class InodeTreePersistentState {
     apply(UpdateInodeFileEntry.newBuilder()
         .setId(entry.getId())
         .setLength(entry.getLength())
-        .addAllBlocks(entry.getBlockIdsList())
+        .addAllSetBlocks(entry.getBlockIdsList())
         .build());
   }
 
@@ -451,4 +475,5 @@ public class InodeTreePersistentState {
     mInodes.clear();
     mPinnedInodeFileIds.clear();
   }
+
 }

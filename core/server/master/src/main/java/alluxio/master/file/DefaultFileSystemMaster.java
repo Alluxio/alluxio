@@ -87,6 +87,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.DeleteMountPointEntry;
+import alluxio.proto.journal.File.NewBlockEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.StringPairEntry;
@@ -1185,7 +1186,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     int sequenceNumber = 0;
     long remainingBytes = length;
     while (remainingBytes > 0) {
-      entry.addBlocks(BlockId.createBlockId(inode.getBlockContainerId(), sequenceNumber));
+      entry.addSetBlocks(BlockId.createBlockId(inode.getBlockContainerId(), sequenceNumber));
       remainingBytes -= Math.min(remainingBytes, inode.getBlockSizeBytes());
       sequenceNumber++;
     }
@@ -1193,7 +1194,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (inode.isPersisted()) {
       // Commit all the file blocks (without locations) so the metadata for the block exists.
       long currLength = length;
-      for (long blockId : entry.getBlocksList()) {
+      for (long blockId : entry.getSetBlocksList()) {
         long blockSize = Math.min(currLength, inode.getBlockSizeBytes());
         mBlockMaster.commitBlockInUFS(blockId, blockSize);
         currLength -= blockSize;
@@ -1299,12 +1300,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       Metrics.NEW_BLOCKS_GOT.inc();
 
-      long blockId = inodePath.getInodeFile().getNextBlockId();
-      mInodeTree.updateInodeFile(rpcContext, UpdateInodeFileEntry.newBuilder()
+      long blockId = mInodeTree.newBlock(rpcContext, NewBlockEntry.newBuilder()
           .setId(inodePath.getInode().getId())
-          .addBlocks(blockId)
           .build());
-
       auditContext.setSucceeded(true);
       return blockId;
     }
@@ -1480,7 +1478,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         String failureReason = null;
         if (unsafeInodes.contains(inodeToDelete.getId())) {
           failureReason = ExceptionMessage.DELETE_FAILED_DIR_NONEMPTY.getMessage();
-        } else if (!inodeToDelete.isPersisted()) {
+        } else if (inodeToDelete.isPersisted()) {
           // If this is a mount point, we have deleted all the children and can unmount it
           // TODO(calvin): Add tests (ALLUXIO-1831)
           if (mMountTable.isMountPoint(alluxioUriToDelete)) {
@@ -2111,9 +2109,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private void propagatePersistedInternal(RpcContext rpcContext, LockedInodePath inodePath)
       throws FileDoesNotExistException {
     InodeView inode = inodePath.getInode();
-    if (!inode.isPersisted()) {
-      return;
-    }
 
     List<InodeView> inodes = inodePath.getInodeList();
     // Traverse the inodes from target inode to the root.
@@ -2210,7 +2205,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
             SetAttributeOptions setAttributeOptions =
                 SetAttributeOptions.defaults().setRecursive(false).setPinned(false);
-            setAttributeSingelFile(rpcContext, descedant, true, opTimeMs, setAttributeOptions);
+            setAttributeSingleFile(rpcContext, descedant, true, opTimeMs, setAttributeOptions);
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFileView) freeInode).getBlockIds(), false /* delete */);
@@ -3050,11 +3045,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           mPermissionChecker.checkSetAttributePermission(childPath, rootRequired, ownerRequired);
         }
         for (LockedInodePath childPath : descendants.getInodePathList()) {
-          setAttributeSingelFile(rpcContext, childPath, true, opTimeMs, options);
+          setAttributeSingleFile(rpcContext, childPath, true, opTimeMs, options);
         }
       }
     }
-    setAttributeSingelFile(rpcContext, inodePath, true, opTimeMs, options);
+    setAttributeSingleFile(rpcContext, inodePath, true, opTimeMs, options);
   }
 
   @Override
@@ -3248,7 +3243,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   .setUfsFingerprint(ufsFingerprint);
           long opTimeMs = System.currentTimeMillis();
           // use replayed, since updating UFS is not desired.
-          setAttributeSingelFile(rpcContext, inodePath, false, opTimeMs, options);
+          setAttributeSingleFile(rpcContext, inodePath, false, opTimeMs, options);
         }
       }
       if (syncPlan.toDelete()) {
@@ -3350,7 +3345,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if failed to set permission
    */
-  private void setAttributeSingelFile(RpcContext rpcContext, LockedInodePath inodePath,
+  private void setAttributeSingleFile(RpcContext rpcContext, LockedInodePath inodePath,
       boolean updateUfs, long opTimeMs, SetAttributeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     InodeView inode = inodePath.getInode();

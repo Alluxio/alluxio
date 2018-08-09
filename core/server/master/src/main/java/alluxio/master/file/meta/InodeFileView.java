@@ -36,11 +36,6 @@ public interface InodeFileView extends InodeView {
   long getLength();
 
   /**
-   * @return the id of a new block of the file
-   */
-  long getNextBlockId();
-
-  /**
    * @return the block container ID for this inode file
    */
   long getBlockContainerId();
