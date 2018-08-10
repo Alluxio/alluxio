@@ -79,7 +79,7 @@ public final class COSOutputStream extends OutputStream {
     mKey = key;
     mCosClient = client;
 
-    mFile = new File(PathUtils.concatPath("/tmp", UUID.randomUUID()));
+    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
 
     try {
       mHash = MessageDigest.getInstance("MD5");

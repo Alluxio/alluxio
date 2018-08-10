@@ -71,7 +71,7 @@
       <id>ufsContractTest</id>
       <activation>
         <property>
-          <name>testOSSBucket</name>
+          <name>testCOSBucket</name>
         </property>
       </activation>
       <build>
