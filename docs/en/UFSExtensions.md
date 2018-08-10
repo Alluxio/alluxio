@@ -36,7 +36,7 @@ running in containers, build a custom image with extension binaries in the appro
 A command line utility is provided to aid extension manangement.
 
 ```bash
-bin/alluxio extensions
+$ bin/alluxio extensions
 Usage: alluxio extensions [generic options]
 	 [install <URI>]
 	 [ls]
@@ -66,10 +66,10 @@ hosts are not reachable from the host executing the command.
 To install an extension from maven, download the JAR first and then install as follows:
 
 ```bash
-mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId=<extension-group> \
+$ mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId=<extension-group> \
  -DartifactId=<extension-artifact> -Dversion=<version> -Dtransitive=false -Ddest=<extension>.jar
 
-bin/alluxio extensions install <extension.jar>
+$ bin/alluxio extensions install <extension.jar>
 ```
 
 ## Validation
@@ -78,12 +78,12 @@ Once the extension JAR has been distributed, you should be able to mount your un
 the Alluxio CLI as follows:
 
 ```bash
-bin/alluxio fs mount /my-storage <scheme>://<path>/ --option <key>=<value>
+$ bin/alluxio fs mount /my-storage <scheme>://<path>/ --option <key>=<value>
 ```
 where, `<key>=<value>` can be replaced with any required configuration for the under storage.
 
 To run sanity tests execute:
 
 ```bash
-bin/alluxio runTests --directory /my-storage
+$ bin/alluxio runTests --directory /my-storage
 ```
