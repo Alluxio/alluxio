@@ -48,6 +48,15 @@ public final class UnderFileSystemConfigurationTest {
   }
 
   @Test
+  public void getValueWhenGlobalConfOverridesPropertyWithDefaultValue() throws Exception {
+    // Set property in global configuration
+    try (Closeable c = new ConfigurationRule(PropertyKey.UNDERFS_LISTING_LENGTH, "2000").toResource()) {
+      UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults();
+      assertEquals("2000", conf.getValue(PropertyKey.UNDERFS_LISTING_LENGTH));
+    }
+  }
+
+  @Test
   public void getValueWhenGlobalConfHasNotProperty() throws Exception {
     // Set property in global configuration
     try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, null).toResource()) {
@@ -101,5 +110,17 @@ public final class UnderFileSystemConfigurationTest {
       assertEquals(shared, conf.isShared());
       assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
     }
+  }
+
+  @Test
+  public void setUserSpecifiedConfRepeatedly() throws Exception {
+    UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults()
+        .setUserSpecifiedConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+    assertEquals("foo", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
+    assertEquals(1, conf.getUserSpecifiedConf().size());
+    conf.setUserSpecifiedConf(ImmutableMap.of(PropertyKey.S3A_SECRET_KEY.toString(), "bar"));
+    assertEquals("bar", conf.getValue(PropertyKey.S3A_SECRET_KEY));
+    assertFalse(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
+    assertEquals(1, conf.getUserSpecifiedConf().size());
   }
 }

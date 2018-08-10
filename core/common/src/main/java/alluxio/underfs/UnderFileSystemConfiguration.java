@@ -82,7 +82,7 @@ public final class UnderFileSystemConfiguration {
     if (mUfsConf == null) {
       return Collections.emptyMap();
     }
-    return Collections.unmodifiableMap(mUfsConf.toMap());
+    return mProperties.getUserProperties();
   }
 
   /**
@@ -90,7 +90,7 @@ public final class UnderFileSystemConfiguration {
    */
   public Map<String, String> toMap() {
     Map<String, String> all = new HashMap<>(Configuration.toMap());
-    all.putAll(mUfsConf.toMap());
+    all.putAll(getUserSpecifiedConf());
     return Collections.unmodifiableMap(all);
   }
 
@@ -131,6 +131,7 @@ public final class UnderFileSystemConfiguration {
    * @return the updated configuration object
    */
   public UnderFileSystemConfiguration setUserSpecifiedConf(Map<String, String> ufsConf) {
+    mProperties.clear();
     mUfsConf.merge(ufsConf, Source.UFS_OPTION);
     return this;
   }

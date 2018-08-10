@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -83,6 +84,15 @@ public class AlluxioProperties {
     }
     // In case key is not the reference to the original key
     return PropertyKey.fromString(key.toString()).getDefaultValue();
+  }
+
+  /**
+   * @return a map of user-specified properties
+   */
+  public Map<String, String> getUserProperties() {
+    Map<String, String> map = new HashMap<>();
+    mUserProps.forEach((key, value) -> map.put(key.getName(), value.get()));
+    return map;
   }
 
   /**
