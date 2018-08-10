@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -85,6 +87,14 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
     for (Entry<ServiceType, String> entry : PAGES.entries()) {
       verifyWebService(entry.getKey(), entry.getValue());
     }
+  }
+
+  /**
+   * Tests whether the web resources directory is created
+   */
+  @Test
+  public void tempDirectoryCreated() {
+    Files.isDirectory(Paths.get(mLocalAlluxioClusterResource.get().getAlluxioHome(), "web"));
   }
 
   private void verifyWebService(ServiceType serviceType, String path)
