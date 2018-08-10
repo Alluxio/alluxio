@@ -105,17 +105,16 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.file.options.GetStatusOptions;
 import alluxio.thrift.CommandType;
-import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemCommandOptions;
 import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.thrift.MountTOptions;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
-import alluxio.thrift.UfsInfo;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.Fingerprint.Tag;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsInfo;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
@@ -2243,7 +2242,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             InodeTree.LockMode.WRITE_PARENT)) {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
-      RenameOptions options = RenameOptions.defaults().setOperationTimeMs(entry.getOpTimeMs());
+      RenameOptions options = MASTER_OPTIONS.getRenameOptions().setOperationTimeMs(entry.getOpTimeMs());
       renameInternal(RpcContext.NOOP, srcInodePath, dstInodePath, true, options);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -2376,7 +2375,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               // the path to inode for getPath should already be locked.
               tempInodePath.setDescendant(freeInode, mInodeTree.getPath(freeInode));
               SetAttributeOptions setAttributeOptions =
-                  SetAttributeOptions.defaults().setRecursive(false).setPinned(false);
+                  MASTER_OPTIONS.getSetAttributeOptions().setRecursive(false).setPinned(false);
               setAttributeInternal(tempInodePath, false, opTimeMs, setAttributeOptions);
               journalSetAttribute(tempInodePath, opTimeMs, setAttributeOptions,
                   rpcContext.getJournalContext());
@@ -2596,7 +2595,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // Metadata loaded from UFS has no TTL set.
     CreateFileOptions createFileOptions =
-        CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
+        MASTER_OPTIONS.getCreateFileOptions().setBlockSizeBytes(ufsBlockSizeByte)
             .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
     String ufsOwner = ufsStatus.getOwner();
     String ufsGroup = ufsStatus.getGroup();
@@ -2613,7 +2612,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     try {
       createFileAndJournal(rpcContext, inodePath, createFileOptions);
-      CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength);
+      CompleteFileOptions completeOptions = MASTER_OPTIONS.getCompleteFileOptions().setUfsLength(ufsLength);
       if (ufsLastModified != null) {
         completeOptions.setOperationTimeMs(ufsLastModified);
       }
@@ -2656,7 +2655,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         return;
       }
     }
-    CreateDirectoryOptions createDirectoryOptions = CreateDirectoryOptions.defaults()
+    CreateDirectoryOptions createDirectoryOptions = MASTER_OPTIONS.getCreateDirectoryOptions()
         .setMountPoint(mMountTable.isMountPoint(inodePath.getUri())).setPersisted(true)
         .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
@@ -2967,7 +2966,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
       // free the file first
       InodeFile inodeFile = inodePath.getInodeFile();
-      freeAndJournal(rpcContext, inodePath, FreeOptions.defaults().setForced(true));
+      freeAndJournal(rpcContext, inodePath, MASTER_OPTIONS.getFreeOptions().setForced(true));
       inodeFile.reset();
     }
   }
@@ -3344,7 +3343,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         if (ufsFpParsed.isValid()) {
           short mode = Short.parseShort(ufsFpParsed.getTag(Tag.MODE));
           SetAttributeOptions options =
-              SetAttributeOptions.defaults().setOwner(ufsFpParsed.getTag(Tag.OWNER))
+              MASTER_OPTIONS.getSetAttributeOptions().setOwner(ufsFpParsed.getTag(Tag.OWNER))
                   .setGroup(ufsFpParsed.getTag(Tag.GROUP))
                   .setMode(mode)
                   .setUfsFingerprint(ufsFingerprint);
@@ -3432,7 +3431,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       try {
         // Permission checking for each file is performed inside setAttribute
         setAttribute(getPath(fileId),
-            SetAttributeOptions.defaults().setPersisted(true).setUfsFingerprint(ufsFingerprint));
+            MASTER_OPTIONS.getSetAttributeOptions().setPersisted(true).setUfsFingerprint(ufsFingerprint));
       } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {
         LOG.error("Failed to set file {} as persisted, because {}", fileId, e);
       }
@@ -3573,7 +3572,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   private void setAttributeFromEntry(SetAttributeEntry entry)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    SetAttributeOptions options = SetAttributeOptions.defaults();
+    SetAttributeOptions options = MASTER_OPTIONS.getSetAttributeOptions();
     if (entry.hasPinned()) {
       options.setPinned(entry.getPinned());
     }

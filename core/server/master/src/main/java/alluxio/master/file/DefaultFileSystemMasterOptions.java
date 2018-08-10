@@ -12,8 +12,16 @@
 package alluxio.master.file;
 
 import alluxio.master.file.options.CommonOptions;
+import alluxio.master.file.options.CompleteFileOptions;
+import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.GetStatusOptions;
+import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
+import alluxio.master.file.options.RenameOptions;
+import alluxio.master.file.options.SetAttributeOptions;
 
 /**
  * The file system class to set default options.
@@ -26,12 +34,52 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   }
 
   @Override
+  public CompleteFileOptions getCompleteFileOptions() {
+    return CompleteFileOptions.defaults();
+  }
+
+  @Override
+  public CreateDirectoryOptions getCreateDirectoryOptions() {
+    return CreateDirectoryOptions.defaults();
+  }
+
+  @Override
+  public CreateFileOptions getCreateFileOptions() {
+    return CreateFileOptions.defaults();
+  }
+
+  @Override
+  public DeleteOptions getDeleteOptions() {
+    return DeleteOptions.defaults();
+  }
+
+  @Override
+  public FreeOptions getFreeOptions() {
+    return FreeOptions.defaults();
+  }
+
+  @Override
   public GetStatusOptions getGetStatusOptions() {
     return GetStatusOptions.defaults();
   }
 
   @Override
+  public LoadMetadataOptions getLoadMetadataOptions() {
+    return LoadMetadataOptions.defaults();
+  }
+
+  @Override
   public MountOptions getMountOptions() {
     return MountOptions.defaults();
+  }
+
+   @Override
+  public RenameOptions getRenameOptions() {
+    return RenameOptions.defaults();
+  }
+
+  @Override
+  public SetAttributeOptions getSetAttributeOptions() {
+    return SetAttributeOptions.defaults();
   }
 }
