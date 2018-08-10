@@ -50,7 +50,8 @@ public final class UnderFileSystemConfigurationTest {
   @Test
   public void getValueWhenGlobalConfOverridesPropertyWithDefaultValue() throws Exception {
     // Set property in global configuration
-    try (Closeable c = new ConfigurationRule(PropertyKey.UNDERFS_LISTING_LENGTH, "2000").toResource()) {
+    try (Closeable c =
+        new ConfigurationRule(PropertyKey.UNDERFS_LISTING_LENGTH, "2000").toResource()) {
       UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults();
       assertEquals("2000", conf.getValue(PropertyKey.UNDERFS_LISTING_LENGTH));
     }
