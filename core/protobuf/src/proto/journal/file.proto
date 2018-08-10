@@ -103,7 +103,7 @@ message NewBlockEntry {
   optional int64 id = 1;
 }
 
-// next available id: 15
+// next available id: 16
 message UpdateInodeEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -112,13 +112,14 @@ message UpdateInodeEntry {
   optional bool pinned = 5;
   optional int64 creation_time_ms = 6;
   optional int64 last_modification_time_ms = 7;
-  optional string owner = 8;
-  optional string group = 9;
-  optional int32 mode = 10;
-  optional int64 ttl = 11;
-  optional PTtlAction ttlAction = 12 [default = DELETE];
-  optional AccessControlList acl = 13;
-  optional string ufs_fingerprint = 14;
+  optional bool overwrite_modification_time = 8;
+  optional string owner = 9;
+  optional string group = 10;
+  optional int32 mode = 11;
+  optional int64 ttl = 12;
+  optional PTtlAction ttlAction = 13 [default = DELETE];
+  optional AccessControlList acl = 14;
+  optional string ufs_fingerprint = 15;
 }
 
 // next available id: 5

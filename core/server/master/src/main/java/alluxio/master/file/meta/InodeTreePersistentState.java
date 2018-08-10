@@ -391,6 +391,7 @@ public class InodeTreePersistentState {
     apply(UpdateInodeEntry.newBuilder()
         .setId(entry.getId())
         .setLastModificationTimeMs(entry.getOpTimeMs())
+        .setOverwriteModificationTime(true)
         .setUfsFingerprint(entry.getUfsFingerprint())
         .build());
     apply(UpdateInodeFileEntry.newBuilder()

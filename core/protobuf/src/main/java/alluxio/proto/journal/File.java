@@ -9178,91 +9178,101 @@ public final class File {
      */
     long getLastModificationTimeMs();
 
-    // optional string owner = 8;
+    // optional bool overwrite_modification_time = 8;
     /**
-     * <code>optional string owner = 8;</code>
+     * <code>optional bool overwrite_modification_time = 8;</code>
+     */
+    boolean hasOverwriteModificationTime();
+    /**
+     * <code>optional bool overwrite_modification_time = 8;</code>
+     */
+    boolean getOverwriteModificationTime();
+
+    // optional string owner = 9;
+    /**
+     * <code>optional string owner = 9;</code>
      */
     boolean hasOwner();
     /**
-     * <code>optional string owner = 8;</code>
+     * <code>optional string owner = 9;</code>
      */
     java.lang.String getOwner();
     /**
-     * <code>optional string owner = 8;</code>
+     * <code>optional string owner = 9;</code>
      */
     com.google.protobuf.ByteString
         getOwnerBytes();
 
-    // optional string group = 9;
+    // optional string group = 10;
     /**
-     * <code>optional string group = 9;</code>
+     * <code>optional string group = 10;</code>
      */
     boolean hasGroup();
     /**
-     * <code>optional string group = 9;</code>
+     * <code>optional string group = 10;</code>
      */
     java.lang.String getGroup();
     /**
-     * <code>optional string group = 9;</code>
+     * <code>optional string group = 10;</code>
      */
     com.google.protobuf.ByteString
         getGroupBytes();
 
-    // optional int32 mode = 10;
+    // optional int32 mode = 11;
     /**
-     * <code>optional int32 mode = 10;</code>
+     * <code>optional int32 mode = 11;</code>
      */
     boolean hasMode();
     /**
-     * <code>optional int32 mode = 10;</code>
+     * <code>optional int32 mode = 11;</code>
      */
     int getMode();
 
-    // optional int64 ttl = 11;
+    // optional int64 ttl = 12;
     /**
-     * <code>optional int64 ttl = 11;</code>
+     * <code>optional int64 ttl = 12;</code>
      */
     boolean hasTtl();
     /**
-     * <code>optional int64 ttl = 11;</code>
+     * <code>optional int64 ttl = 12;</code>
      */
     long getTtl();
 
-    // optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];
+    // optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
      */
     boolean hasTtlAction();
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
      */
     alluxio.proto.journal.File.PTtlAction getTtlAction();
 
-    // optional .alluxio.proto.journal.AccessControlList acl = 13;
+    // optional .alluxio.proto.journal.AccessControlList acl = 14;
     /**
-     * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+     * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
      */
     boolean hasAcl();
     /**
-     * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+     * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
      */
     alluxio.proto.journal.File.AccessControlList getAcl();
     /**
-     * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+     * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
      */
     alluxio.proto.journal.File.AccessControlListOrBuilder getAclOrBuilder();
 
-    // optional string ufs_fingerprint = 14;
+    // optional string ufs_fingerprint = 15;
     /**
-     * <code>optional string ufs_fingerprint = 14;</code>
+     * <code>optional string ufs_fingerprint = 15;</code>
      */
     boolean hasUfsFingerprint();
     /**
-     * <code>optional string ufs_fingerprint = 14;</code>
+     * <code>optional string ufs_fingerprint = 15;</code>
      */
     java.lang.String getUfsFingerprint();
     /**
-     * <code>optional string ufs_fingerprint = 14;</code>
+     * <code>optional string ufs_fingerprint = 15;</code>
      */
     com.google.protobuf.ByteString
         getUfsFingerprintBytes();
@@ -9271,7 +9281,7 @@ public final class File {
    * Protobuf type {@code alluxio.proto.journal.UpdateInodeEntry}
    *
    * <pre>
-   * next available id: 15
+   * next available id: 16
    * </pre>
    */
   public static final class UpdateInodeEntry extends
@@ -9357,40 +9367,45 @@ public final class File {
               lastModificationTimeMs_ = input.readInt64();
               break;
             }
-            case 66: {
+            case 64: {
               bitField0_ |= 0x00000080;
-              owner_ = input.readBytes();
+              overwriteModificationTime_ = input.readBool();
               break;
             }
             case 74: {
               bitField0_ |= 0x00000100;
-              group_ = input.readBytes();
+              owner_ = input.readBytes();
               break;
             }
-            case 80: {
+            case 82: {
               bitField0_ |= 0x00000200;
-              mode_ = input.readInt32();
+              group_ = input.readBytes();
               break;
             }
             case 88: {
               bitField0_ |= 0x00000400;
-              ttl_ = input.readInt64();
+              mode_ = input.readInt32();
               break;
             }
             case 96: {
+              bitField0_ |= 0x00000800;
+              ttl_ = input.readInt64();
+              break;
+            }
+            case 104: {
               int rawValue = input.readEnum();
               alluxio.proto.journal.File.PTtlAction value = alluxio.proto.journal.File.PTtlAction.valueOf(rawValue);
               if (value == null) {
-                unknownFields.mergeVarintField(12, rawValue);
+                unknownFields.mergeVarintField(13, rawValue);
               } else {
-                bitField0_ |= 0x00000800;
+                bitField0_ |= 0x00001000;
                 ttlAction_ = value;
               }
               break;
             }
-            case 106: {
+            case 114: {
               alluxio.proto.journal.File.AccessControlList.Builder subBuilder = null;
-              if (((bitField0_ & 0x00001000) == 0x00001000)) {
+              if (((bitField0_ & 0x00002000) == 0x00002000)) {
                 subBuilder = acl_.toBuilder();
               }
               acl_ = input.readMessage(alluxio.proto.journal.File.AccessControlList.PARSER, extensionRegistry);
@@ -9398,11 +9413,11 @@ public final class File {
                 subBuilder.mergeFrom(acl_);
                 acl_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00001000;
+              bitField0_ |= 0x00002000;
               break;
             }
-            case 114: {
-              bitField0_ |= 0x00002000;
+            case 122: {
+              bitField0_ |= 0x00004000;
               ufsFingerprint_ = input.readBytes();
               break;
             }
@@ -9612,17 +9627,33 @@ public final class File {
       return lastModificationTimeMs_;
     }
 
-    // optional string owner = 8;
-    public static final int OWNER_FIELD_NUMBER = 8;
-    private java.lang.Object owner_;
+    // optional bool overwrite_modification_time = 8;
+    public static final int OVERWRITE_MODIFICATION_TIME_FIELD_NUMBER = 8;
+    private boolean overwriteModificationTime_;
     /**
-     * <code>optional string owner = 8;</code>
+     * <code>optional bool overwrite_modification_time = 8;</code>
      */
-    public boolean hasOwner() {
+    public boolean hasOverwriteModificationTime() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
     }
     /**
-     * <code>optional string owner = 8;</code>
+     * <code>optional bool overwrite_modification_time = 8;</code>
+     */
+    public boolean getOverwriteModificationTime() {
+      return overwriteModificationTime_;
+    }
+
+    // optional string owner = 9;
+    public static final int OWNER_FIELD_NUMBER = 9;
+    private java.lang.Object owner_;
+    /**
+     * <code>optional string owner = 9;</code>
+     */
+    public boolean hasOwner() {
+      return ((bitField0_ & 0x00000100) == 0x00000100);
+    }
+    /**
+     * <code>optional string owner = 9;</code>
      */
     public java.lang.String getOwner() {
       java.lang.Object ref = owner_;
@@ -9639,7 +9670,7 @@ public final class File {
       }
     }
     /**
-     * <code>optional string owner = 8;</code>
+     * <code>optional string owner = 9;</code>
      */
     public com.google.protobuf.ByteString
         getOwnerBytes() {
@@ -9655,17 +9686,17 @@ public final class File {
       }
     }
 
-    // optional string group = 9;
-    public static final int GROUP_FIELD_NUMBER = 9;
+    // optional string group = 10;
+    public static final int GROUP_FIELD_NUMBER = 10;
     private java.lang.Object group_;
     /**
-     * <code>optional string group = 9;</code>
+     * <code>optional string group = 10;</code>
      */
     public boolean hasGroup() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
+      return ((bitField0_ & 0x00000200) == 0x00000200);
     }
     /**
-     * <code>optional string group = 9;</code>
+     * <code>optional string group = 10;</code>
      */
     public java.lang.String getGroup() {
       java.lang.Object ref = group_;
@@ -9682,7 +9713,7 @@ public final class File {
       }
     }
     /**
-     * <code>optional string group = 9;</code>
+     * <code>optional string group = 10;</code>
      */
     public com.google.protobuf.ByteString
         getGroupBytes() {
@@ -9698,87 +9729,87 @@ public final class File {
       }
     }
 
-    // optional int32 mode = 10;
-    public static final int MODE_FIELD_NUMBER = 10;
+    // optional int32 mode = 11;
+    public static final int MODE_FIELD_NUMBER = 11;
     private int mode_;
     /**
-     * <code>optional int32 mode = 10;</code>
+     * <code>optional int32 mode = 11;</code>
      */
     public boolean hasMode() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
+      return ((bitField0_ & 0x00000400) == 0x00000400);
     }
     /**
-     * <code>optional int32 mode = 10;</code>
+     * <code>optional int32 mode = 11;</code>
      */
     public int getMode() {
       return mode_;
     }
 
-    // optional int64 ttl = 11;
-    public static final int TTL_FIELD_NUMBER = 11;
+    // optional int64 ttl = 12;
+    public static final int TTL_FIELD_NUMBER = 12;
     private long ttl_;
     /**
-     * <code>optional int64 ttl = 11;</code>
+     * <code>optional int64 ttl = 12;</code>
      */
     public boolean hasTtl() {
-      return ((bitField0_ & 0x00000400) == 0x00000400);
+      return ((bitField0_ & 0x00000800) == 0x00000800);
     }
     /**
-     * <code>optional int64 ttl = 11;</code>
+     * <code>optional int64 ttl = 12;</code>
      */
     public long getTtl() {
       return ttl_;
     }
 
-    // optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];
-    public static final int TTLACTION_FIELD_NUMBER = 12;
+    // optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];
+    public static final int TTLACTION_FIELD_NUMBER = 13;
     private alluxio.proto.journal.File.PTtlAction ttlAction_;
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
      */
     public boolean hasTtlAction() {
-      return ((bitField0_ & 0x00000800) == 0x00000800);
+      return ((bitField0_ & 0x00001000) == 0x00001000);
     }
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
      */
     public alluxio.proto.journal.File.PTtlAction getTtlAction() {
       return ttlAction_;
     }
 
-    // optional .alluxio.proto.journal.AccessControlList acl = 13;
-    public static final int ACL_FIELD_NUMBER = 13;
+    // optional .alluxio.proto.journal.AccessControlList acl = 14;
+    public static final int ACL_FIELD_NUMBER = 14;
     private alluxio.proto.journal.File.AccessControlList acl_;
     /**
-     * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+     * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
      */
     public boolean hasAcl() {
-      return ((bitField0_ & 0x00001000) == 0x00001000);
+      return ((bitField0_ & 0x00002000) == 0x00002000);
     }
     /**
-     * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+     * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
      */
     public alluxio.proto.journal.File.AccessControlList getAcl() {
       return acl_;
     }
     /**
-     * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+     * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
      */
     public alluxio.proto.journal.File.AccessControlListOrBuilder getAclOrBuilder() {
       return acl_;
     }
 
-    // optional string ufs_fingerprint = 14;
-    public static final int UFS_FINGERPRINT_FIELD_NUMBER = 14;
+    // optional string ufs_fingerprint = 15;
+    public static final int UFS_FINGERPRINT_FIELD_NUMBER = 15;
     private java.lang.Object ufsFingerprint_;
     /**
-     * <code>optional string ufs_fingerprint = 14;</code>
+     * <code>optional string ufs_fingerprint = 15;</code>
      */
     public boolean hasUfsFingerprint() {
-      return ((bitField0_ & 0x00002000) == 0x00002000);
+      return ((bitField0_ & 0x00004000) == 0x00004000);
     }
     /**
-     * <code>optional string ufs_fingerprint = 14;</code>
+     * <code>optional string ufs_fingerprint = 15;</code>
      */
     public java.lang.String getUfsFingerprint() {
       java.lang.Object ref = ufsFingerprint_;
@@ -9795,7 +9826,7 @@ public final class File {
       }
     }
     /**
-     * <code>optional string ufs_fingerprint = 14;</code>
+     * <code>optional string ufs_fingerprint = 15;</code>
      */
     public com.google.protobuf.ByteString
         getUfsFingerprintBytes() {
@@ -9819,6 +9850,7 @@ public final class File {
       pinned_ = false;
       creationTimeMs_ = 0L;
       lastModificationTimeMs_ = 0L;
+      overwriteModificationTime_ = false;
       owner_ = "";
       group_ = "";
       mode_ = 0;
@@ -9861,25 +9893,28 @@ public final class File {
         output.writeInt64(7, lastModificationTimeMs_);
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        output.writeBytes(8, getOwnerBytes());
+        output.writeBool(8, overwriteModificationTime_);
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
-        output.writeBytes(9, getGroupBytes());
+        output.writeBytes(9, getOwnerBytes());
       }
       if (((bitField0_ & 0x00000200) == 0x00000200)) {
-        output.writeInt32(10, mode_);
+        output.writeBytes(10, getGroupBytes());
       }
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
-        output.writeInt64(11, ttl_);
+        output.writeInt32(11, mode_);
       }
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
-        output.writeEnum(12, ttlAction_.getNumber());
+        output.writeInt64(12, ttl_);
       }
       if (((bitField0_ & 0x00001000) == 0x00001000)) {
-        output.writeMessage(13, acl_);
+        output.writeEnum(13, ttlAction_.getNumber());
       }
       if (((bitField0_ & 0x00002000) == 0x00002000)) {
-        output.writeBytes(14, getUfsFingerprintBytes());
+        output.writeMessage(14, acl_);
+      }
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+        output.writeBytes(15, getUfsFingerprintBytes());
       }
       getUnknownFields().writeTo(output);
     }
@@ -9920,31 +9955,35 @@ public final class File {
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(8, getOwnerBytes());
+          .computeBoolSize(8, overwriteModificationTime_);
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(9, getGroupBytes());
+          .computeBytesSize(9, getOwnerBytes());
       }
       if (((bitField0_ & 0x00000200) == 0x00000200)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(10, mode_);
+          .computeBytesSize(10, getGroupBytes());
       }
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(11, ttl_);
+          .computeInt32Size(11, mode_);
       }
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(12, ttlAction_.getNumber());
+          .computeInt64Size(12, ttl_);
       }
       if (((bitField0_ & 0x00001000) == 0x00001000)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(13, acl_);
+          .computeEnumSize(13, ttlAction_.getNumber());
       }
       if (((bitField0_ & 0x00002000) == 0x00002000)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(14, getUfsFingerprintBytes());
+          .computeMessageSize(14, acl_);
+      }
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(15, getUfsFingerprintBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -10028,7 +10067,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.UpdateInodeEntry}
      *
      * <pre>
-     * next available id: 15
+     * next available id: 16
      * </pre>
      */
     public static final class Builder extends
@@ -10081,24 +10120,26 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000020);
         lastModificationTimeMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000040);
-        owner_ = "";
+        overwriteModificationTime_ = false;
         bitField0_ = (bitField0_ & ~0x00000080);
-        group_ = "";
+        owner_ = "";
         bitField0_ = (bitField0_ & ~0x00000100);
-        mode_ = 0;
+        group_ = "";
         bitField0_ = (bitField0_ & ~0x00000200);
-        ttl_ = 0L;
+        mode_ = 0;
         bitField0_ = (bitField0_ & ~0x00000400);
-        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        ttl_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000800);
+        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        bitField0_ = (bitField0_ & ~0x00001000);
         if (aclBuilder_ == null) {
           acl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
         } else {
           aclBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00001000);
-        ufsFingerprint_ = "";
         bitField0_ = (bitField0_ & ~0x00002000);
+        ufsFingerprint_ = "";
+        bitField0_ = (bitField0_ & ~0x00004000);
         return this;
       }
 
@@ -10158,33 +10199,37 @@ public final class File {
         if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
           to_bitField0_ |= 0x00000080;
         }
-        result.owner_ = owner_;
+        result.overwriteModificationTime_ = overwriteModificationTime_;
         if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
           to_bitField0_ |= 0x00000100;
         }
-        result.group_ = group_;
+        result.owner_ = owner_;
         if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
           to_bitField0_ |= 0x00000200;
         }
-        result.mode_ = mode_;
+        result.group_ = group_;
         if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
           to_bitField0_ |= 0x00000400;
         }
-        result.ttl_ = ttl_;
+        result.mode_ = mode_;
         if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
           to_bitField0_ |= 0x00000800;
         }
-        result.ttlAction_ = ttlAction_;
+        result.ttl_ = ttl_;
         if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
           to_bitField0_ |= 0x00001000;
+        }
+        result.ttlAction_ = ttlAction_;
+        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
+          to_bitField0_ |= 0x00002000;
         }
         if (aclBuilder_ == null) {
           result.acl_ = acl_;
         } else {
           result.acl_ = aclBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
-          to_bitField0_ |= 0x00002000;
+        if (((from_bitField0_ & 0x00004000) == 0x00004000)) {
+          to_bitField0_ |= 0x00004000;
         }
         result.ufsFingerprint_ = ufsFingerprint_;
         result.bitField0_ = to_bitField0_;
@@ -10228,13 +10273,16 @@ public final class File {
         if (other.hasLastModificationTimeMs()) {
           setLastModificationTimeMs(other.getLastModificationTimeMs());
         }
+        if (other.hasOverwriteModificationTime()) {
+          setOverwriteModificationTime(other.getOverwriteModificationTime());
+        }
         if (other.hasOwner()) {
-          bitField0_ |= 0x00000080;
+          bitField0_ |= 0x00000100;
           owner_ = other.owner_;
           onChanged();
         }
         if (other.hasGroup()) {
-          bitField0_ |= 0x00000100;
+          bitField0_ |= 0x00000200;
           group_ = other.group_;
           onChanged();
         }
@@ -10251,7 +10299,7 @@ public final class File {
           mergeAcl(other.getAcl());
         }
         if (other.hasUfsFingerprint()) {
-          bitField0_ |= 0x00002000;
+          bitField0_ |= 0x00004000;
           ufsFingerprint_ = other.ufsFingerprint_;
           onChanged();
         }
@@ -10595,16 +10643,49 @@ public final class File {
         return this;
       }
 
-      // optional string owner = 8;
-      private java.lang.Object owner_ = "";
+      // optional bool overwrite_modification_time = 8;
+      private boolean overwriteModificationTime_ ;
       /**
-       * <code>optional string owner = 8;</code>
+       * <code>optional bool overwrite_modification_time = 8;</code>
        */
-      public boolean hasOwner() {
+      public boolean hasOverwriteModificationTime() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
       }
       /**
-       * <code>optional string owner = 8;</code>
+       * <code>optional bool overwrite_modification_time = 8;</code>
+       */
+      public boolean getOverwriteModificationTime() {
+        return overwriteModificationTime_;
+      }
+      /**
+       * <code>optional bool overwrite_modification_time = 8;</code>
+       */
+      public Builder setOverwriteModificationTime(boolean value) {
+        bitField0_ |= 0x00000080;
+        overwriteModificationTime_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool overwrite_modification_time = 8;</code>
+       */
+      public Builder clearOverwriteModificationTime() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        overwriteModificationTime_ = false;
+        onChanged();
+        return this;
+      }
+
+      // optional string owner = 9;
+      private java.lang.Object owner_ = "";
+      /**
+       * <code>optional string owner = 9;</code>
+       */
+      public boolean hasOwner() {
+        return ((bitField0_ & 0x00000100) == 0x00000100);
+      }
+      /**
+       * <code>optional string owner = 9;</code>
        */
       public java.lang.String getOwner() {
         java.lang.Object ref = owner_;
@@ -10618,7 +10699,7 @@ public final class File {
         }
       }
       /**
-       * <code>optional string owner = 8;</code>
+       * <code>optional string owner = 9;</code>
        */
       public com.google.protobuf.ByteString
           getOwnerBytes() {
@@ -10634,51 +10715,51 @@ public final class File {
         }
       }
       /**
-       * <code>optional string owner = 8;</code>
+       * <code>optional string owner = 9;</code>
        */
       public Builder setOwner(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000080;
+  bitField0_ |= 0x00000100;
         owner_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string owner = 8;</code>
+       * <code>optional string owner = 9;</code>
        */
       public Builder clearOwner() {
-        bitField0_ = (bitField0_ & ~0x00000080);
+        bitField0_ = (bitField0_ & ~0x00000100);
         owner_ = getDefaultInstance().getOwner();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string owner = 8;</code>
+       * <code>optional string owner = 9;</code>
        */
       public Builder setOwnerBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000080;
+  bitField0_ |= 0x00000100;
         owner_ = value;
         onChanged();
         return this;
       }
 
-      // optional string group = 9;
+      // optional string group = 10;
       private java.lang.Object group_ = "";
       /**
-       * <code>optional string group = 9;</code>
+       * <code>optional string group = 10;</code>
        */
       public boolean hasGroup() {
-        return ((bitField0_ & 0x00000100) == 0x00000100);
+        return ((bitField0_ & 0x00000200) == 0x00000200);
       }
       /**
-       * <code>optional string group = 9;</code>
+       * <code>optional string group = 10;</code>
        */
       public java.lang.String getGroup() {
         java.lang.Object ref = group_;
@@ -10692,7 +10773,7 @@ public final class File {
         }
       }
       /**
-       * <code>optional string group = 9;</code>
+       * <code>optional string group = 10;</code>
        */
       public com.google.protobuf.ByteString
           getGroupBytes() {
@@ -10708,155 +10789,155 @@ public final class File {
         }
       }
       /**
-       * <code>optional string group = 9;</code>
+       * <code>optional string group = 10;</code>
        */
       public Builder setGroup(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000100;
+  bitField0_ |= 0x00000200;
         group_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string group = 9;</code>
+       * <code>optional string group = 10;</code>
        */
       public Builder clearGroup() {
-        bitField0_ = (bitField0_ & ~0x00000100);
+        bitField0_ = (bitField0_ & ~0x00000200);
         group_ = getDefaultInstance().getGroup();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string group = 9;</code>
+       * <code>optional string group = 10;</code>
        */
       public Builder setGroupBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000100;
+  bitField0_ |= 0x00000200;
         group_ = value;
         onChanged();
         return this;
       }
 
-      // optional int32 mode = 10;
+      // optional int32 mode = 11;
       private int mode_ ;
       /**
-       * <code>optional int32 mode = 10;</code>
+       * <code>optional int32 mode = 11;</code>
        */
       public boolean hasMode() {
-        return ((bitField0_ & 0x00000200) == 0x00000200);
+        return ((bitField0_ & 0x00000400) == 0x00000400);
       }
       /**
-       * <code>optional int32 mode = 10;</code>
+       * <code>optional int32 mode = 11;</code>
        */
       public int getMode() {
         return mode_;
       }
       /**
-       * <code>optional int32 mode = 10;</code>
+       * <code>optional int32 mode = 11;</code>
        */
       public Builder setMode(int value) {
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000400;
         mode_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int32 mode = 10;</code>
+       * <code>optional int32 mode = 11;</code>
        */
       public Builder clearMode() {
-        bitField0_ = (bitField0_ & ~0x00000200);
+        bitField0_ = (bitField0_ & ~0x00000400);
         mode_ = 0;
         onChanged();
         return this;
       }
 
-      // optional int64 ttl = 11;
+      // optional int64 ttl = 12;
       private long ttl_ ;
       /**
-       * <code>optional int64 ttl = 11;</code>
+       * <code>optional int64 ttl = 12;</code>
        */
       public boolean hasTtl() {
-        return ((bitField0_ & 0x00000400) == 0x00000400);
+        return ((bitField0_ & 0x00000800) == 0x00000800);
       }
       /**
-       * <code>optional int64 ttl = 11;</code>
+       * <code>optional int64 ttl = 12;</code>
        */
       public long getTtl() {
         return ttl_;
       }
       /**
-       * <code>optional int64 ttl = 11;</code>
+       * <code>optional int64 ttl = 12;</code>
        */
       public Builder setTtl(long value) {
-        bitField0_ |= 0x00000400;
+        bitField0_ |= 0x00000800;
         ttl_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 ttl = 11;</code>
+       * <code>optional int64 ttl = 12;</code>
        */
       public Builder clearTtl() {
-        bitField0_ = (bitField0_ & ~0x00000400);
+        bitField0_ = (bitField0_ & ~0x00000800);
         ttl_ = 0L;
         onChanged();
         return this;
       }
 
-      // optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];
+      // optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];
       private alluxio.proto.journal.File.PTtlAction ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
        */
       public boolean hasTtlAction() {
-        return ((bitField0_ & 0x00000800) == 0x00000800);
+        return ((bitField0_ & 0x00001000) == 0x00001000);
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
        */
       public alluxio.proto.journal.File.PTtlAction getTtlAction() {
         return ttlAction_;
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
        */
       public Builder setTtlAction(alluxio.proto.journal.File.PTtlAction value) {
         if (value == null) {
           throw new NullPointerException();
         }
-        bitField0_ |= 0x00000800;
+        bitField0_ |= 0x00001000;
         ttlAction_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 12 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
        */
       public Builder clearTtlAction() {
-        bitField0_ = (bitField0_ & ~0x00000800);
+        bitField0_ = (bitField0_ & ~0x00001000);
         ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
         onChanged();
         return this;
       }
 
-      // optional .alluxio.proto.journal.AccessControlList acl = 13;
+      // optional .alluxio.proto.journal.AccessControlList acl = 14;
       private alluxio.proto.journal.File.AccessControlList acl_ = alluxio.proto.journal.File.AccessControlList.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
           alluxio.proto.journal.File.AccessControlList, alluxio.proto.journal.File.AccessControlList.Builder, alluxio.proto.journal.File.AccessControlListOrBuilder> aclBuilder_;
       /**
-       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
        */
       public boolean hasAcl() {
-        return ((bitField0_ & 0x00001000) == 0x00001000);
+        return ((bitField0_ & 0x00002000) == 0x00002000);
       }
       /**
-       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
        */
       public alluxio.proto.journal.File.AccessControlList getAcl() {
         if (aclBuilder_ == null) {
@@ -10866,7 +10947,7 @@ public final class File {
         }
       }
       /**
-       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
        */
       public Builder setAcl(alluxio.proto.journal.File.AccessControlList value) {
         if (aclBuilder_ == null) {
@@ -10878,11 +10959,11 @@ public final class File {
         } else {
           aclBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00002000;
         return this;
       }
       /**
-       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
        */
       public Builder setAcl(
           alluxio.proto.journal.File.AccessControlList.Builder builderForValue) {
@@ -10892,15 +10973,15 @@ public final class File {
         } else {
           aclBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00002000;
         return this;
       }
       /**
-       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
        */
       public Builder mergeAcl(alluxio.proto.journal.File.AccessControlList value) {
         if (aclBuilder_ == null) {
-          if (((bitField0_ & 0x00001000) == 0x00001000) &&
+          if (((bitField0_ & 0x00002000) == 0x00002000) &&
               acl_ != alluxio.proto.journal.File.AccessControlList.getDefaultInstance()) {
             acl_ =
               alluxio.proto.journal.File.AccessControlList.newBuilder(acl_).mergeFrom(value).buildPartial();
@@ -10911,11 +10992,11 @@ public final class File {
         } else {
           aclBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00002000;
         return this;
       }
       /**
-       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
        */
       public Builder clearAcl() {
         if (aclBuilder_ == null) {
@@ -10924,19 +11005,19 @@ public final class File {
         } else {
           aclBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00001000);
+        bitField0_ = (bitField0_ & ~0x00002000);
         return this;
       }
       /**
-       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
        */
       public alluxio.proto.journal.File.AccessControlList.Builder getAclBuilder() {
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00002000;
         onChanged();
         return getAclFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
        */
       public alluxio.proto.journal.File.AccessControlListOrBuilder getAclOrBuilder() {
         if (aclBuilder_ != null) {
@@ -10946,7 +11027,7 @@ public final class File {
         }
       }
       /**
-       * <code>optional .alluxio.proto.journal.AccessControlList acl = 13;</code>
+       * <code>optional .alluxio.proto.journal.AccessControlList acl = 14;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           alluxio.proto.journal.File.AccessControlList, alluxio.proto.journal.File.AccessControlList.Builder, alluxio.proto.journal.File.AccessControlListOrBuilder> 
@@ -10962,16 +11043,16 @@ public final class File {
         return aclBuilder_;
       }
 
-      // optional string ufs_fingerprint = 14;
+      // optional string ufs_fingerprint = 15;
       private java.lang.Object ufsFingerprint_ = "";
       /**
-       * <code>optional string ufs_fingerprint = 14;</code>
+       * <code>optional string ufs_fingerprint = 15;</code>
        */
       public boolean hasUfsFingerprint() {
-        return ((bitField0_ & 0x00002000) == 0x00002000);
+        return ((bitField0_ & 0x00004000) == 0x00004000);
       }
       /**
-       * <code>optional string ufs_fingerprint = 14;</code>
+       * <code>optional string ufs_fingerprint = 15;</code>
        */
       public java.lang.String getUfsFingerprint() {
         java.lang.Object ref = ufsFingerprint_;
@@ -10985,7 +11066,7 @@ public final class File {
         }
       }
       /**
-       * <code>optional string ufs_fingerprint = 14;</code>
+       * <code>optional string ufs_fingerprint = 15;</code>
        */
       public com.google.protobuf.ByteString
           getUfsFingerprintBytes() {
@@ -11001,36 +11082,36 @@ public final class File {
         }
       }
       /**
-       * <code>optional string ufs_fingerprint = 14;</code>
+       * <code>optional string ufs_fingerprint = 15;</code>
        */
       public Builder setUfsFingerprint(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00002000;
+  bitField0_ |= 0x00004000;
         ufsFingerprint_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string ufs_fingerprint = 14;</code>
+       * <code>optional string ufs_fingerprint = 15;</code>
        */
       public Builder clearUfsFingerprint() {
-        bitField0_ = (bitField0_ & ~0x00002000);
+        bitField0_ = (bitField0_ & ~0x00004000);
         ufsFingerprint_ = getDefaultInstance().getUfsFingerprint();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string ufs_fingerprint = 14;</code>
+       * <code>optional string ufs_fingerprint = 15;</code>
        */
       public Builder setUfsFingerprintBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00002000;
+  bitField0_ |= 0x00004000;
         ufsFingerprint_ = value;
         onChanged();
         return this;
@@ -24040,81 +24121,82 @@ public final class File {
       "proto.journal.AclActions\0227\n\014otherActions" +
       "\030\006 \001(\0132!.alluxio.proto.journal.AclAction" +
       "s\022\021\n\tisDefault\030\007 \001(\010\022\017\n\007isEmpty\030\010 \001(\010\"\033\n",
-      "\rNewBlockEntry\022\n\n\002id\030\001 \001(\003\"\356\002\n\020UpdateIno" +
+      "\rNewBlockEntry\022\n\n\002id\030\001 \001(\003\"\223\003\n\020UpdateIno" +
       "deEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014" +
       "\n\004name\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022" +
       "\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(" +
-      "\003\022!\n\031last_modification_time_ms\030\007 \001(\003\022\r\n\005" +
-      "owner\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004mode\030\n \001(\005" +
-      "\022\013\n\003ttl\030\013 \001(\003\022<\n\tttlAction\030\014 \001(\0162!.allux" +
-      "io.proto.journal.PTtlAction:\006DELETE\0225\n\003a" +
-      "cl\030\r \001(\0132(.alluxio.proto.journal.AccessC" +
-      "ontrolList\022\027\n\017ufs_fingerprint\030\016 \001(\t\"\232\001\n\031",
-      "UpdateInodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\023\n" +
-      "\013mount_point\030\002 \001(\010\022\036\n\026direct_children_lo" +
-      "aded\030\003 \001(\010\022<\n\ndefaultAcl\030\004 \001(\0132(.alluxio" +
-      ".proto.journal.AccessControlList\"\206\001\n\024Upd" +
-      "ateInodeFileEntry\022\n\n\002id\030\001 \001(\003\022\030\n\020block_s" +
-      "ize_bytes\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\021\n\tcompl" +
-      "eted\030\004 \001(\010\022\021\n\tcacheable\030\005 \001(\010\022\022\n\nset_blo" +
-      "cks\030\007 \003(\003\"\313\003\n\023InodeDirectoryEntry\022\n\n\002id\030" +
-      "\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031" +
-      "\n\021persistence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(",
-      "\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_modi" +
-      "fication_time_ms\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n" +
-      "\005group\030\t \001(\t\022\014\n\004mode\030\n \001(\005\022\023\n\013mount_poin" +
-      "t\030\013 \001(\010\022\036\n\026direct_children_loaded\030\014 \001(\010\022" +
-      "\013\n\003ttl\030\r \001(\003\022<\n\tttlAction\030\016 \001(\0162!.alluxi" +
-      "o.proto.journal.PTtlAction:\006DELETE\0225\n\003ac" +
-      "l\030\017 \001(\0132(.alluxio.proto.journal.AccessCo" +
-      "ntrolList\022<\n\ndefaultAcl\030\020 \001(\0132(.alluxio." +
-      "proto.journal.AccessControlList\"O\n\036Inode" +
-      "DirectoryIdGeneratorEntry\022\024\n\014container_i",
-      "d\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003\"\314\003\n\016Ino" +
-      "deFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001" +
-      "(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_state\030\004 " +
-      "\001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030" +
-      "\006 \001(\003\022!\n\031last_modification_time_ms\030\007 \001(\003" +
-      "\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006length\030\t \001" +
-      "(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010" +
-      "\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005owner\030\016" +
-      " \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(\005\022<\n\tttl" +
-      "Action\030\021 \001(\0162!.alluxio.proto.journal.PTt",
-      "lAction:\006DELETE\022\027\n\017ufs_fingerprint\030\022 \001(\t" +
-      "\0225\n\003acl\030\023 \001(\0132(.alluxio.proto.journal.Ac" +
-      "cessControlList\"O\n\036InodeLastModification" +
-      "TimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_modificati" +
-      "on_time_ms\030\002 \001(\003\"#\n\025PersistDirectoryEntr" +
-      "y\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntry\022\n\n\002id\030" +
-      "\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(" +
-      "\003\"\212\001\n\025ReinitializeFileEntry\022\014\n\004path\030\001 \001(" +
-      "\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003" +
-      "\022<\n\tttlAction\030\004 \001(\0162!.alluxio.proto.jour",
-      "nal.PTtlAction:\006DELETE\"h\n\013RenameEntry\022\n\n" +
-      "\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_time_m" +
-      "s\030\003 \001(\003\022\025\n\rnew_parent_id\030\004 \001(\003\022\020\n\010new_na" +
-      "me\030\005 \001(\t\"\247\001\n\013SetAclEntry\022\n\n\002id\030\001 \001(\003\022\022\n\n" +
-      "op_time_ms\030\002 \001(\003\0223\n\006action\030\003 \001(\0162#.allux" +
-      "io.proto.journal.SetAclAction\0220\n\007entries" +
-      "\030\004 \003(\0132\037.alluxio.proto.journal.AclEntry\022" +
-      "\021\n\trecursive\030\005 \001(\010\"\354\001\n\021SetAttributeEntry" +
-      "\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinn" +
-      "ed\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010",
-      "\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermis" +
-      "sion\030\010 \001(\005\022<\n\tttlAction\030\t \001(\0162!.alluxio." +
-      "proto.journal.PTtlAction:\006DELETE\022\027\n\017ufs_" +
-      "fingerprint\030\n \001(\t\"b\n\022UpdateUfsModeEntry\022" +
-      "\017\n\007ufsPath\030\001 \001(\t\022;\n\007ufsMode\030\002 \001(\0162\036.allu" +
-      "xio.proto.journal.UfsMode:\nREAD_WRITE*-\n" +
-      "\tAclAction\022\010\n\004READ\020\000\022\t\n\005WRITE\020\001\022\013\n\007EXECU" +
-      "TE\020\002*a\n\014AclEntryType\022\t\n\005OWNER\020\000\022\016\n\nNAMED" +
-      "_USER\020\001\022\020\n\014OWNING_GROUP\020\002\022\017\n\013NAMED_GROUP" +
-      "\020\003\022\010\n\004MASK\020\004\022\t\n\005OTHER\020\005*\"\n\nPTtlAction\022\n\n",
-      "\006DELETE\020\000\022\010\n\004FREE\020\001*W\n\014SetAclAction\022\013\n\007R" +
-      "EPLACE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002\022\016\n\nREMO" +
-      "VE_ALL\020\003\022\022\n\016REMOVE_DEFAULT\020\004*7\n\007UfsMode\022" +
-      "\r\n\tNO_ACCESS\020\000\022\r\n\tREAD_ONLY\020\001\022\016\n\nREAD_WR" +
-      "ITE\020\002"
+      "\003\022!\n\031last_modification_time_ms\030\007 \001(\003\022#\n\033" +
+      "overwrite_modification_time\030\010 \001(\010\022\r\n\005own" +
+      "er\030\t \001(\t\022\r\n\005group\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\022\013\n" +
+      "\003ttl\030\014 \001(\003\022<\n\tttlAction\030\r \001(\0162!.alluxio." +
+      "proto.journal.PTtlAction:\006DELETE\0225\n\003acl\030" +
+      "\016 \001(\0132(.alluxio.proto.journal.AccessCont",
+      "rolList\022\027\n\017ufs_fingerprint\030\017 \001(\t\"\232\001\n\031Upd" +
+      "ateInodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\023\n\013mo" +
+      "unt_point\030\002 \001(\010\022\036\n\026direct_children_loade" +
+      "d\030\003 \001(\010\022<\n\ndefaultAcl\030\004 \001(\0132(.alluxio.pr" +
+      "oto.journal.AccessControlList\"\206\001\n\024Update" +
+      "InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\030\n\020block_size" +
+      "_bytes\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\021\n\tcomplete" +
+      "d\030\004 \001(\010\022\021\n\tcacheable\030\005 \001(\010\022\022\n\nset_blocks" +
+      "\030\007 \003(\003\"\313\003\n\023InodeDirectoryEntry\022\n\n\002id\030\001 \001" +
+      "(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021p",
+      "ersistence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030" +
+      "\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_modific" +
+      "ation_time_ms\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n\005gr" +
+      "oup\030\t \001(\t\022\014\n\004mode\030\n \001(\005\022\023\n\013mount_point\030\013" +
+      " \001(\010\022\036\n\026direct_children_loaded\030\014 \001(\010\022\013\n\003" +
+      "ttl\030\r \001(\003\022<\n\tttlAction\030\016 \001(\0162!.alluxio.p" +
+      "roto.journal.PTtlAction:\006DELETE\0225\n\003acl\030\017" +
+      " \001(\0132(.alluxio.proto.journal.AccessContr" +
+      "olList\022<\n\ndefaultAcl\030\020 \001(\0132(.alluxio.pro" +
+      "to.journal.AccessControlList\"O\n\036InodeDir",
+      "ectoryIdGeneratorEntry\022\024\n\014container_id\030\001" +
+      " \001(\003\022\027\n\017sequence_number\030\002 \001(\003\"\314\003\n\016InodeF" +
+      "ileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022" +
+      "\014\n\004name\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t" +
+      "\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001" +
+      "(\003\022!\n\031last_modification_time_ms\030\007 \001(\003\022\030\n" +
+      "\020block_size_bytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022" +
+      "\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n" +
+      "\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005owner\030\016 \001(" +
+      "\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(\005\022<\n\tttlAct",
+      "ion\030\021 \001(\0162!.alluxio.proto.journal.PTtlAc" +
+      "tion:\006DELETE\022\027\n\017ufs_fingerprint\030\022 \001(\t\0225\n" +
+      "\003acl\030\023 \001(\0132(.alluxio.proto.journal.Acces" +
+      "sControlList\"O\n\036InodeLastModificationTim" +
+      "eEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_modification_" +
+      "time_ms\030\002 \001(\003\"#\n\025PersistDirectoryEntry\022\n" +
+      "\n\002id\030\001 \001(\003\"B\n\020PersistFileEntry\022\n\n\002id\030\001 \001" +
+      "(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"\212" +
+      "\001\n\025ReinitializeFileEntry\022\014\n\004path\030\001 \001(\t\022\030" +
+      "\n\020block_size_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\022<\n",
+      "\tttlAction\030\004 \001(\0162!.alluxio.proto.journal" +
+      ".PTtlAction:\006DELETE\"h\n\013RenameEntry\022\n\n\002id" +
+      "\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003" +
+      " \001(\003\022\025\n\rnew_parent_id\030\004 \001(\003\022\020\n\010new_name\030" +
+      "\005 \001(\t\"\247\001\n\013SetAclEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_" +
+      "time_ms\030\002 \001(\003\0223\n\006action\030\003 \001(\0162#.alluxio." +
+      "proto.journal.SetAclAction\0220\n\007entries\030\004 " +
+      "\003(\0132\037.alluxio.proto.journal.AclEntry\022\021\n\t" +
+      "recursive\030\005 \001(\010\"\354\001\n\021SetAttributeEntry\022\n\n" +
+      "\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030",
+      "\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n" +
+      "\005owner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermissio" +
+      "n\030\010 \001(\005\022<\n\tttlAction\030\t \001(\0162!.alluxio.pro" +
+      "to.journal.PTtlAction:\006DELETE\022\027\n\017ufs_fin" +
+      "gerprint\030\n \001(\t\"b\n\022UpdateUfsModeEntry\022\017\n\007" +
+      "ufsPath\030\001 \001(\t\022;\n\007ufsMode\030\002 \001(\0162\036.alluxio" +
+      ".proto.journal.UfsMode:\nREAD_WRITE*-\n\tAc" +
+      "lAction\022\010\n\004READ\020\000\022\t\n\005WRITE\020\001\022\013\n\007EXECUTE\020" +
+      "\002*a\n\014AclEntryType\022\t\n\005OWNER\020\000\022\016\n\nNAMED_US" +
+      "ER\020\001\022\020\n\014OWNING_GROUP\020\002\022\017\n\013NAMED_GROUP\020\003\022",
+      "\010\n\004MASK\020\004\022\t\n\005OTHER\020\005*\"\n\nPTtlAction\022\n\n\006DE" +
+      "LETE\020\000\022\010\n\004FREE\020\001*W\n\014SetAclAction\022\013\n\007REPL" +
+      "ACE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002\022\016\n\nREMOVE_" +
+      "ALL\020\003\022\022\n\016REMOVE_DEFAULT\020\004*7\n\007UfsMode\022\r\n\t" +
+      "NO_ACCESS\020\000\022\r\n\tREAD_ONLY\020\001\022\016\n\nREAD_WRITE" +
+      "\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -24192,7 +24274,7 @@ public final class File {
           internal_static_alluxio_proto_journal_UpdateInodeEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor,
-              new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "Ttl", "TtlAction", "Acl", "UfsFingerprint", });
+              new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "OverwriteModificationTime", "Owner", "Group", "Mode", "Ttl", "TtlAction", "Acl", "UfsFingerprint", });
           internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_descriptor =
             getDescriptor().getMessageTypes().get(12);
           internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_fieldAccessorTable = new

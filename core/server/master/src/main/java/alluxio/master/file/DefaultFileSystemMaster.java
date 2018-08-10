@@ -1212,6 +1212,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         .setId(inode.getId())
         .setUfsFingerprint(ufsFingerprint)
         .setLastModificationTimeMs(opTimeMs)
+        .setOverwriteModificationTime(true)
         .build());
     mInodeTree.updateInodeFile(rpcContext, entry.build());
 

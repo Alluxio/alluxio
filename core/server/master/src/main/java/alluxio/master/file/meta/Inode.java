@@ -554,7 +554,8 @@ public abstract class Inode<T> implements InodeView {
       setGroup(entry.getGroup());
     }
     if (entry.hasLastModificationTimeMs()) {
-      setLastModificationTimeMs(entry.getLastModificationTimeMs());
+      setLastModificationTimeMs(entry.getLastModificationTimeMs(),
+          entry.getOverwriteModificationTime());
     }
     if (entry.hasMode()) {
       setMode((short) entry.getMode());

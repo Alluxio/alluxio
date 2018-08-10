@@ -1126,7 +1126,8 @@ public class InodeTree implements JournalEntryIterable {
 
           Long lastModificationTime = status.getLastModifiedTime();
           if (lastModificationTime != null) {
-            entry.setLastModificationTimeMs(lastModificationTime);
+            entry.setLastModificationTimeMs(lastModificationTime)
+                .setOverwriteModificationTime(true);
           }
         });
         entry.setPersistenceState(PersistenceState.PERSISTED.name());
