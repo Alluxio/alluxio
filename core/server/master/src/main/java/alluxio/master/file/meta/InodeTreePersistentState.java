@@ -83,6 +83,7 @@ public class InodeTreePersistentState {
    * TTL bucket list. The list is owned by InodeTree, and is only shared with
    * InodeTreePersistentState so that the list can be updated whenever inode tree state changes.
    */
+  // TODO(andrew): Move ownership of the ttl bucket list to this class
   private final TtlBucketList mTtlBuckets;
 
   /** Unmodifiable view of mInodes. */
