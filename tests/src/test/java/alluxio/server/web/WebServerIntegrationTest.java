@@ -90,7 +90,7 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
-   * Tests whether the web resources directory is created
+   * Tests whether the web resources directory is created.
    */
   @Test
   public void tempDirectoryCreated() {
