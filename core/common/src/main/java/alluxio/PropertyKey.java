@@ -765,19 +765,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_COS_CONNECT_MAX =
       new Builder(Name.UNDERFS_COS_CONNECT_MAX)
-          .setAlias(new String[]{"alluxio.underfs.cos.connection.max"})
           .setDefaultValue(1024)
           .setDescription("The maximum number of COS connections.")
           .build();
   public static final PropertyKey UNDERFS_COS_CONNECT_TIMEOUT =
       new Builder(Name.UNDERFS_COS_CONNECT_TIMEOUT)
-          .setAlias(new String[]{"alluxio.underfs.cos.connection.timeout.ms"})
           .setDefaultValue("50sec")
           .setDescription("The timeout when connecting to COS.")
           .build();
   public static final PropertyKey UNDERFS_COS_SOCKET_TIMEOUT =
       new Builder(Name.UNDERFS_COS_SOCKET_TIMEOUT)
-          .setAlias(new String[]{"alluxio.underfs.cos.socket.timeout.ms"})
           .setDefaultValue("50sec")
           .setDescription("The timeout of COS socket.")
           .build();

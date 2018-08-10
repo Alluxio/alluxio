@@ -113,7 +113,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public String getUnderFSType() {
-    return "ocs";
+    return "cos";
   }
 
   // No ACL integration currently, no-op
@@ -127,7 +127,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected boolean copyObject(String src, String dst) {
     try {
-      LOG.info("Copying {} to {}", src, dst);
+      LOG.debug("Copying {} to {}", src, dst);
       mClient.copyObject(mBucketNameInternal, src, mBucketNameInternal, dst);
       return true;
     } catch (CosClientException e) {
@@ -210,11 +210,9 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     final ObjectListing mResult;
 
     COSObjectListingChunk(ListObjectsRequest request, ObjectListing result) throws IOException {
+      Preconditions.checkNotNull(result, "result") 
       mRequest = request;
       mResult = result;
-      if (mResult == null) {
-        throw new IOException("COS listing result is null");
-      }
     }
 
     @Override

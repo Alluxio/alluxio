@@ -14,13 +14,14 @@ package alluxio.underfs.cos;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.qcloud.cos.COSClient;
+import com.qcloud.cos.model.ObjectMetadata;
+import com.qcloud.cos.exception.CosClientException;
+
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.qcloud.cos.COSClient;
-import com.qcloud.cos.model.ObjectMetadata;
-import com.qcloud.cos.exception.CosClientException;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -145,8 +146,7 @@ public final class COSOutputStream extends OutputStream {
       return;
     }
     mLocalOutputStream.close();
-    try {
-      BufferedInputStream in = new BufferedInputStream(new FileInputStream(mFile));
+    try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(mFile))) {
       ObjectMetadata meta = new ObjectMetadata();
       meta.setContentLength(mFile.length());
       if (mHash != null) {

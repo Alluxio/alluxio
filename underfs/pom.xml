@@ -30,6 +30,7 @@
     <module>s3a</module>
     <module>swift</module>
     <module>wasb</module>
+    <module>cos</module>
   </modules>
 
   <properties>
