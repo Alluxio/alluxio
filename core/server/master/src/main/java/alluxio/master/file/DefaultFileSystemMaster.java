@@ -414,23 +414,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    if (entry.hasInodeDirectoryIdGenerator()) {
-      mDirectoryIdGenerator.apply(entry);
-    } else if (entry.hasAsyncPersistRequest()
-        || entry.hasCompleteFile()
-        || entry.hasDeleteFile()
-        || entry.hasInodeDirectory()
-        || entry.hasInodeFile()
-        || entry.hasInodeLastModificationTime()
-        || entry.hasNewBlock()
-        || entry.hasPersistDirectory()
-        || entry.hasRename()
-        || entry.hasSetAcl()
-        || entry.hasSetAttribute()
-        || entry.hasUpdateInode()
-        || entry.hasUpdateInodeDirectory()
-        || entry.hasUpdateInodeFile()) {
-      mInodeTree.replayJournalEntryFromJournal(entry);
+    if (mDirectoryIdGenerator.replayJournalEntryFromJournal(entry)
+        || mInodeTree.replayJournalEntryFromJournal(entry)) {
+      return;
     } else if (entry.hasAddMountPoint()) {
       try {
         mountFromEntry(entry.getAddMountPoint());

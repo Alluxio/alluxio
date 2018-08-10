@@ -18,6 +18,7 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
 import alluxio.master.file.state.InodesView;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.JournalEntryReplayable;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
 import alluxio.proto.journal.File.CompleteFileEntry;
 import alluxio.proto.journal.File.DeleteFileEntry;
@@ -55,7 +56,7 @@ import java.util.function.Supplier;
  * this class. The getInodesView and getRoot methods expose unmodifiable views of the inode tree.
  * To modify the inode tree, create a journal entry and call one of the applyAndJournal methods.
  */
-public class InodeTreePersistentState {
+public class InodeTreePersistentState implements JournalEntryReplayable {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTreePersistentState.class);
 
   private static final IndexDefinition<Inode<?>, Long> ID_INDEX =
@@ -123,8 +124,9 @@ public class InodeTreePersistentState {
    * replay. Otherwise, use one of the applyAndJournal methods.
    *
    * @param entry the entry
+   * @return whether the journal entry was of a type recognized by the inode tree
    */
-  public void replayJournalEntryFromJournal(JournalEntry entry) {
+  public boolean replayJournalEntryFromJournal(JournalEntry entry) {
     if (entry.hasDeleteFile()) {
       apply(entry.getDeleteFile());
     } else if (entry.hasInodeDirectory()) {
@@ -155,8 +157,9 @@ public class InodeTreePersistentState {
     } else if (entry.hasReinitializeFile()) {
       apply(entry.getReinitializeFile());
     } else {
-      throw new IllegalStateException("Unrecognized journal entry: " + entry);
+      return false;
     }
+    return true;
   }
 
   /**
@@ -278,7 +281,7 @@ public class InodeTreePersistentState {
 
   ////
   /// Apply Implementations. These methods are used for journal replay, so they are not allowed to
-  /// fail. They are also used why making metadata changes during regular operation.
+  /// fail. They are also used when making metadata changes during regular operation.
   ////
 
   private void apply(DeleteFileEntry entry) {
@@ -435,6 +438,8 @@ public class InodeTreePersistentState {
       mRoot = (InodeDirectory) inode;
       return true;
     }
+    // inode should be added to mInodes before getting added to its parent list, because it
+    // becomes visible at this point.
     mInodes.add(inode);
     InodeDirectory parent = (InodeDirectory) mInodes.getFirst(inode.getParentId());
     if (!parent.addChild(inode)) {
@@ -480,7 +485,8 @@ public class InodeTreePersistentState {
         "old-style rename entries should not have the newParentId field set");
     Path path = Paths.get(entry.getDstPath());
     apply(RenameEntry.newBuilder()
-        .setId(getIdFromPath(path))
+        .setId(entry.getId())
+        .setNewParentId(getIdFromPath(path.getParent()))
         .setNewName(path.getFileName().toString())
         .setOpTimeMs(entry.getOpTimeMs())
         .build());

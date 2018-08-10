@@ -18,6 +18,7 @@ import alluxio.master.file.state.DirectoryId;
 import alluxio.master.file.state.DirectoryId.UnmodifiableDirectoryId;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
+import alluxio.master.journal.JournalEntryReplayable;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
@@ -35,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * retrieved.
  */
 @ThreadSafe
-public class InodeDirectoryIdGenerator implements JournalEntryIterable {
+public class InodeDirectoryIdGenerator implements JournalEntryIterable, JournalEntryReplayable {
   private final ContainerIdGenerable mContainerIdGenerator;
 
   private final InodeDirectoryIdGeneratorState mState;
@@ -52,11 +53,9 @@ public class InodeDirectoryIdGenerator implements JournalEntryIterable {
     mNextDirectoryId = mState.getDirectoryId();
   }
 
-  /**
-   * @param entry a journal entry to apply
-   */
-  public void apply(JournalEntry entry) {
-    mState.apply(entry);
+  @Override
+  public boolean replayJournalEntryFromJournal(JournalEntry entry) {
+    return mState.replayJournalEntryFromJournal(entry);
   }
 
   /**
@@ -110,7 +109,7 @@ public class InodeDirectoryIdGenerator implements JournalEntryIterable {
         ).build());
   }
 
-  private static class InodeDirectoryIdGeneratorState {
+  private static class InodeDirectoryIdGeneratorState implements JournalEntryReplayable {
     private final DirectoryId mNextDirectoryId = new DirectoryId();
 
     public UnmodifiableDirectoryId getDirectoryId() {
@@ -123,12 +122,14 @@ public class InodeDirectoryIdGenerator implements JournalEntryIterable {
       context.get().append(JournalEntry.newBuilder().setInodeDirectoryIdGenerator(entry).build());
     }
 
-    public void apply(JournalEntry entry) {
+    @Override
+    public boolean replayJournalEntryFromJournal(JournalEntry entry) {
       if (entry.hasInodeDirectoryIdGenerator()) {
         apply(entry.getInodeDirectoryIdGenerator());
       } else {
-        throw new IllegalStateException("Unexpected journal entry: " + entry);
+        return false;
       }
+      return true;
     }
 
     private void apply(InodeDirectoryIdGeneratorEntry entry) {

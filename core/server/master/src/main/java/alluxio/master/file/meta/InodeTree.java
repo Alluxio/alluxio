@@ -29,6 +29,7 @@ import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.state.InodesView;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
+import alluxio.master.journal.JournalEntryReplayable;
 import alluxio.proto.journal.File.DeleteFileEntry;
 import alluxio.proto.journal.File.NewBlockEntry;
 import alluxio.proto.journal.File.RenameEntry;
@@ -74,7 +75,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 // TODO(jiri): Make this class thread-safe.
-public class InodeTree implements JournalEntryIterable {
+public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTree.class);
   /** The base amount (exponential backoff) to sleep before retrying persisting an inode. */
   private static final int PERSIST_WAIT_BASE_SLEEP_MS = 2;
@@ -167,9 +168,10 @@ public class InodeTree implements JournalEntryIterable {
    * replay.
    *
    * @param entry an entry to apply to the inode tree
+   * @return whether the journal entry was of a type recognized by the inode tree
    */
-  public void replayJournalEntryFromJournal(JournalEntry entry) {
-    mState.replayJournalEntryFromJournal(entry);
+  public boolean replayJournalEntryFromJournal(JournalEntry entry) {
+    return mState.replayJournalEntryFromJournal(entry);
   }
 
   /**
@@ -923,7 +925,7 @@ public class InodeTree implements JournalEntryIterable {
   }
 
   private void lockDescendantsInternal(LockedInodePath inodePath, LockMode lockMode,
-                                      List<LockedInodePath> inodePathList) {
+      List<LockedInodePath> inodePathList) {
     InodeView inode = inodePath.getInodeOrNull();
     if (inode == null || !inode.isDirectory()) {
       return;
@@ -943,7 +945,6 @@ public class InodeTree implements JournalEntryIterable {
         lockDescendantsInternal(lockedDescendantPath, lockMode, inodePathList);
       }
     }
-
   }
 
   /**
@@ -1047,6 +1048,8 @@ public class InodeTree implements JournalEntryIterable {
 
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
+    // Write tree via breadth-first traversal, so that during deserialization, it may be more
+    // efficient than depth-first during deserialization due to parent directory's locality.
     Queue<InodeView> inodes = new LinkedList<>();
     if (mState.getRoot() != null) {
       inodes.add(mState.getRoot());
@@ -1113,6 +1116,10 @@ public class InodeTree implements JournalEntryIterable {
           // The directory is persisted
           return;
         }
+        mState.applyAndJournal(context, UpdateInodeEntry.newBuilder()
+            .setId(dir.getId())
+            .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
+            .build());
         UpdateInodeEntry.Builder entry = UpdateInodeEntry.newBuilder()
             .setId(dir.getId());
         syncPersistDirectory(dir).ifPresent(status -> {
@@ -1150,6 +1157,7 @@ public class InodeTree implements JournalEntryIterable {
   public void syncPersistNewDirectory(InodeDirectory dir)
       throws InvalidPathException, FileDoesNotExistException, IOException {
     Preconditions.checkState(!mInodes.containsId(dir.getId()));
+    dir.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
     syncPersistDirectory(dir).ifPresent(status -> {
       // If the directory already exists in the UFS, update our metadata to match the UFS.
       dir.setOwner(status.getOwner())
