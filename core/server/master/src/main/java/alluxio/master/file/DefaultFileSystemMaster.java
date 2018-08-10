@@ -2340,7 +2340,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (options.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
         // uri does not exist in ufs
         InodeDirectoryView inode = (InodeDirectoryView) inodePath.getInode();
-        mInodeTree.setDirectChildrenLoaded(rpcContext, inode.getId());
+        mInodeTree.setDirectChildrenLoaded(rpcContext, inode);
         return;
       }
       boolean isFile;
@@ -2388,11 +2388,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               if (options.getLoadDescendantType() == DescendantType.ALL
                   && tempInodePath.getInode().isDirectory()) {
                 InodeDirectoryView inodeDirectory = (InodeDirectoryView) tempInodePath.getInode();
-                mInodeTree.setDirectChildrenLoaded(rpcContext, inodeDirectory.getId());
+                mInodeTree.setDirectChildrenLoaded(rpcContext, inodeDirectory);
               }
             }
           }
-          mInodeTree.setDirectChildrenLoaded(rpcContext, inode.getId());
+          mInodeTree.setDirectChildrenLoaded(rpcContext, inode);
         }
       }
     } catch (IOException e) {

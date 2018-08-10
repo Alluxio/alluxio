@@ -108,7 +108,12 @@ public class InodeTree implements JournalEntryIterable {
   private final MountTable mMountTable;
 
   private final TtlBucketList mTtlBuckets;
+  /** Unmodifiable view of all inodes in the inode tree. */
   private final InodesView mInodes;
+  /**
+   * Class for managing the persistent state of the inode tree. All metadata changes must go
+   * through this class by calling mState.applyAndJournal(context, entry).
+   */
   private final InodeTreePersistentState mState;
 
   /**
@@ -178,11 +183,11 @@ public class InodeTree implements JournalEntryIterable {
    * Marks an inode directory as having its direct children loaded.
    *
    * @param context journal context supplier
-   * @param id the inode directory id
+   * @param dir the inode directory
    */
-  public void setDirectChildrenLoaded(Supplier<JournalContext> context, long id) {
+  public void setDirectChildrenLoaded(Supplier<JournalContext> context, InodeDirectoryView dir) {
     mState.applyAndJournal(context, UpdateInodeDirectoryEntry.newBuilder()
-        .setId(id)
+        .setId(dir.getId())
         .setDirectChildrenLoaded(true)
         .build());
   }
@@ -669,9 +674,6 @@ public class InodeTree implements JournalEntryIterable {
             newDir.setDefaultACL(pair.getSecond());
           }
         }
-        if (options.isPersisted()) {
-          syncPersistNewDirectory(newDir);
-        }
 
         if (mState.applyAndJournal(rpcContext, newDir)) {
           // After creation and journaling, downgrade to a read lock.
@@ -683,11 +685,23 @@ public class InodeTree implements JournalEntryIterable {
 
           InodeView existing = currentInodeDirectory.getChildReadLock(pathComponents[k],
               extensibleInodePath.getLockList());
+
+          if (existing == null) {
+            // The competing directory could have been removed.
+            continue;
+          }
+
           if (existing.isFile()) {
             throw new FileAlreadyExistsException(String.format(
                 "Directory creation for %s failed. Inode %s is a file", path, existing.getName()));
           }
           dir = (InodeDirectoryView) existing;
+        }
+
+        // Persist the directory *after* it exists in the inode tree. This prevents multiple
+        // concurrent creates from trying to persist the same directory name.
+        if (options.isPersisted()) {
+          syncPersistExistingDirectory(rpcContext, dir);
         }
       }
 

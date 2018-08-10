@@ -244,6 +244,14 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createFile(path, CreateFileOptions.defaults().setPersisted(true));
   }
 
+  @Test
+  public void createFileUsesOperationTime() throws Exception {
+    AlluxioURI path = new AlluxioURI("/test");
+    mFileSystemMaster.createFile(path, CreateFileOptions.defaults().setOperationTimeMs(100));
+    assertEquals(100, mFileSystemMaster.getFileInfo(path, GetStatusOptions.defaults())
+        .getLastModificationTimeMs());
+  }
+
   /**
    * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method.
    */
