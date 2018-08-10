@@ -22,6 +22,7 @@ public class Source implements Comparable<Source> {
   public static final Source CLUSTER_DEFAULT = new Source(Type.CLUSTER_DEFAULT);
   public static final Source SYSTEM_PROPERTY = new Source(Type.SYSTEM_PROPERTY);
   public static final Source RUNTIME = new Source(Type.RUNTIME);
+  public static final Source UFS_OPTION = new Source(Type.UFS_OPTION);
 
   /**
    * Source type.
@@ -52,6 +53,10 @@ public class Source implements Comparable<Source> {
      * HadoopConf). This source has the highest priority.
      */
     RUNTIME,
+    /**
+     * The property value is specified as options for a mount point.
+     */
+    UFS_OPTION,
   }
 
   protected final Type mType;
