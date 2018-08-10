@@ -67,18 +67,18 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.file.options.CheckConsistencyOptions;
-import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.FreeOptions;
-import alluxio.master.file.options.ListStatusOptions;
-import alluxio.master.file.options.LoadMetadataOptions;
-import alluxio.master.file.options.MountOptions;
-import alluxio.master.file.options.RenameOptions;
-import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.file.options.WorkerHeartbeatOptions;
+import alluxio.file.options.CheckConsistencyOptions;
+import alluxio.file.options.CompleteFileOptions;
+import alluxio.file.options.CreateDirectoryOptions;
+import alluxio.file.options.CreateFileOptions;
+import alluxio.file.options.DeleteOptions;
+import alluxio.file.options.FreeOptions;
+import alluxio.file.options.ListStatusOptions;
+import alluxio.file.options.LoadMetadataOptions;
+import alluxio.file.options.MountOptions;
+import alluxio.file.options.RenameOptions;
+import alluxio.file.options.SetAttributeOptions;
+import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.metrics.MetricsSystem;
@@ -548,7 +548,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // starts.
         long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
-            MountOptions.defaults()
+            MASTER_OPTIONS.getMountOptions()
                 .setShared(ufsResource.get().isObjectStorage() && Configuration
                     .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
                 .setProperties(rootUfsConf));
@@ -784,7 +784,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // This is WRITE locked, since loading metadata is possible.
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
       loadMetadataIfNotExistAndJournal(rpcContext, inodePath,
-          LoadMetadataOptions.defaults().setCreateAncestors(true));
+          MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(true));
       mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
       return inodePath.getInode().getId();
     } catch (InvalidPathException | FileDoesNotExistException e) {
@@ -831,7 +831,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (!inodePath.fullPathExists()) {
         checkLoadMetadataOptions(options.getLoadMetadataType(), inodePath.getUri());
         loadMetadataIfNotExistAndJournal(rpcContext, inodePath,
-            LoadMetadataOptions.defaults().setCreateAncestors(true));
+            MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(true));
         ensureFullPathAndUpdateCache(inodePath);
       }
       FileInfo fileInfo = getFileInfoInternal(inodePath);
@@ -910,7 +910,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           (listStatusOptions.getLoadMetadataType() != LoadMetadataType.Never) ? DescendantType.ONE :
               DescendantType.NONE;
       LoadMetadataOptions loadMetadataOptions =
-          LoadMetadataOptions.defaults().setCreateAncestors(true)
+          MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(true)
               .setLoadDescendantType(loadDescendantType);
       Inode<?> inode;
       if (inodePath.fullPathExists()) {
@@ -1478,7 +1478,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.DELETE_PATHS_OPS.inc();
     try (LockedInodePath inodePath =
         mInodeTree.lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      deleteInternal(RpcContext.NOOP, inodePath, true, entry.getOpTimeMs(), DeleteOptions.defaults()
+      deleteInternal(RpcContext.NOOP, inodePath, true, entry.getOpTimeMs(), MASTER_OPTIONS.getDeleteOptions()
           .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()));
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -2544,7 +2544,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   (options.getLoadDescendantType() == DescendantType.ONE) ? DescendantType.NONE :
                       DescendantType.ALL;
               LoadMetadataOptions loadMetadataOptions =
-                  LoadMetadataOptions.defaults().setLoadDescendantType(loadDescendantType)
+                  MASTER_OPTIONS.getLoadMetadataOptions().setLoadDescendantType(loadDescendantType)
                       .setCreateAncestors(false).setUfsStatus(childStatus);
               loadMetadataAndJournal(rpcContext, tempInodePath, loadMetadataOptions);
             }
@@ -2786,7 +2786,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try {
       // This will create the directory at alluxioPath
       loadDirectoryMetadataAndJournal(rpcContext, inodePath,
-          LoadMetadataOptions.defaults().setCreateAncestors(false));
+          MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(false));
       loadMetadataSucceeded = true;
     } finally {
       if (!loadMetadataSucceeded) {
@@ -2926,7 +2926,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.
       DeleteOptions deleteOptions =
-          DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true);
+          MASTER_OPTIONS.getDeleteOptions().setRecursive(true).setAlluxioOnly(true);
       deleteAndJournal(rpcContext, inodePath, deleteOptions);
     } catch (DirectoryNotEmptyException e) {
       throw new RuntimeException(String.format(
@@ -3225,7 +3225,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           // one of the mountpoint is above the original inodePath, we start loading from the
           // original inodePath. It is already locked. so we proceed to load metadata.
           try {
-            loadMetadataAndJournal(rpcContext, inodePath, LoadMetadataOptions.defaults()
+            loadMetadataAndJournal(rpcContext, inodePath, MASTER_OPTIONS.getLoadMetadataOptions()
                 .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
 
             mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
@@ -3249,7 +3249,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                 tempInodePath.setDescendant(mountPointInode, mountPointUri);
 
                 try {
-                  loadMetadataAndJournal(rpcContext, tempInodePath, LoadMetadataOptions.defaults()
+                  loadMetadataAndJournal(rpcContext, tempInodePath, MASTER_OPTIONS.getLoadMetadataOptions()
                       .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
                 } catch (Exception e) {
                   LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
@@ -3312,7 +3312,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // The options for deleting.
     DeleteOptions syncDeleteOptions =
-        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true).setUnchecked(true);
+        MASTER_OPTIONS.getDeleteOptions().setRecursive(true).setAlluxioOnly(true).setUnchecked(true);
 
     // The requested path already exists in Alluxio.
     Inode<?> inode = inodePath.getInode();

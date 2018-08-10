@@ -11,8 +11,17 @@
 
 package alluxio.master.file;
 
+import alluxio.file.options.CompleteFileOptions;
+import alluxio.file.options.CreateDirectoryOptions;
+import alluxio.file.options.CreateFileOptions;
+import alluxio.file.options.DeleteOptions;
+import alluxio.file.options.FreeOptions;
 import alluxio.file.options.GetStatusOptions;
 import alluxio.file.options.CommonOptions;
+import alluxio.file.options.LoadMetadataOptions;
+import alluxio.file.options.MountOptions;
+import alluxio.file.options.RenameOptions;
+import alluxio.file.options.SetAttributeOptions;
 
 /**
  * The interface for file system master default options.
@@ -20,5 +29,23 @@ import alluxio.file.options.CommonOptions;
 public interface FileSystemMasterOptions {
   CommonOptions getCommonOptions();
 
+  CompleteFileOptions getCompleteFileOptions();
+
+  CreateDirectoryOptions getCreateDirectoryOptions();
+
+  CreateFileOptions getCreateFileOptions();
+
+  DeleteOptions getDeleteOptions();
+
+  FreeOptions getFreeOptions();
+
   GetStatusOptions getGetStatusOptions();
+
+  LoadMetadataOptions getLoadMetadataOptions();
+
+  MountOptions getMountOptions();
+
+  RenameOptions getRenameOptions();
+
+  SetAttributeOptions getSetAttributeOptions();
 }

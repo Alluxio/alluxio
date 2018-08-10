@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.master.file.options.CommonOptions;
 import alluxio.master.file.options.GetStatusOptions;
+import alluxio.master.file.options.MountOptions;
 
 /**
  * The file system class to set default options.
@@ -27,5 +28,10 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   @Override
   public GetStatusOptions getGetStatusOptions() {
     return GetStatusOptions.defaults();
+  }
+
+  @Override
+  public MountOptions getMountOptions() {
+    return MountOptions.defaults();
   }
 }
