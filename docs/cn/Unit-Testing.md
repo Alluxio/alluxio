@@ -1,8 +1,9 @@
 ---
 layout: global
-title: 单元测试指南
-nickname: 单元测试指南
+title: 如何开发单元测试
+nickname: 如何开发单元测试
 group: Resources
+priority: 3
 ---
 
 * 内容列表
@@ -75,19 +76,19 @@ public void detectLostWorker() throws Exception {
 ```
 7\. 循环回到步骤＃3，直到类的整个公共API都已经被测试。
 
-# 惯例
+## 惯例
 1. 对`src/main/java/ClassName.java`的测试应该运行为`src/test/java/ClassNameTest.java`。
 2. 测试不需要处理或记录特定的检查异常，更倾向于简单地添加`throws Exception`到方法声明中。
 3. 目标是保持测试简明扼要而不需要注释帮助理解。
 
-# 应避免的情况
+## 应避免的情况
 
 1. 避免随机性。边缘检测应被明确处理。
 2. 避免通过调用`Thread.sleep()`来等待。这会导致单元测试变慢，如果时间不够长，可能导致时间片的失败。
 3. 避免使用白盒测试，这会混乱测试对象的内部状态。如果你需要模拟一个依赖，改变对象，将依赖作为其构造函数的参数（见[依赖注入](https://en.wikipedia.org/wiki/Dependency_injection)）
 4. 避免低效测试。模拟花销较大的依赖关系，将各个测试时间控制在100ms以下。
 
-# 管理全局状态
+## 管理全局状态
 一个模块中的所有测试在同一个JVM上运行，所以妥善管理全局状态是非常重要的，这样测试不会互相干扰。全局状态包括系统性能，Alluxio配置，以及任何静态字段。我们对管理全局状态的解决方案是使用JUnit对`@Rules`的支持。
 
 ### 在测试过程中更改Alluxio配置
