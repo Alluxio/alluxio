@@ -9,7 +9,7 @@ priority: 1
 * Table of Contents
 {:toc}
 
-# Requirement
+## Requirement
 
 The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 8 or above) installed.
 
@@ -28,7 +28,7 @@ To run in standalone mode, do the following:
 repeatedly input the password, you can add the public ssh key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 
-# Step 0: Format Alluxio Filesystem
+## Format Alluxio Filesystem
 
 > NOTE: This step is only required when you run Alluxio for the first time.
 > If you run this command for an existing Alluxio cluster,
@@ -39,7 +39,7 @@ repeatedly input the password, you can add the public ssh key for the host into
 $ ./bin/alluxio format
 ```
 
-# Step 1: Start Alluxio Filesystem Locally
+## Start Alluxio Filesystem Locally
 
 Simply run the following command to start Alluxio filesystem.
 
@@ -65,13 +65,13 @@ You can stop Alluxio any time by running:
 {% include Running-Alluxio-Locally/Alluxio-stop.md %}
 
 
-# FAQ
+## FAQ
 
-## Why is sudo privilege needed to start Alluxio on Linux?
+### Why is sudo privilege needed to start Alluxio on Linux?
 
 By default, Alluxio filesystem uses [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage. On MacOS, it is fine for Alluxio to mount a RAMFS without being a super user. However, on Linux, it requires sudo privileges to perform "mount" (and the followed "umount", "mkdir" and "chmod" operations).
 
-## Can I still try Alluxio on Linux without sudo privileges?
+### Can I still try Alluxio on Linux without sudo privileges?
 
 If you have no sudo privileges on Linux, for Alluxio Filesystem to work, it requires a RAMFS (e.g., `/path/to/ramdisk`) already mounted
 by the system admin and accessible for read/write-operations by the user. In this case you have can specify the path in
@@ -104,7 +104,7 @@ followed by:
 $ ./bin/alluxio-start.sh local NoMount
 ```
 
-## How can I avoid typing the password to run sudo?
+### How can I avoid typing the password to run sudo?
 
 Options:
 

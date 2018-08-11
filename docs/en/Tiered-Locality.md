@@ -9,19 +9,18 @@ priority: 1
 * Table of Contents
 {:toc}
 
-# Tiered Identity
+## Tiered Identity
 
 In Alluxio, each entity (masters, workers, clients) has a *Tiered Identity*. A tiered
 identity is an address tuple such as `(node=..., rack=...)`. Each pair in the tuple is called
-a *locality tier*. The locality tiers are ordered from most specific to least specific, so if
-two entities have the same node name, they are assumed to also have the same rack name. Alluxio
+a *locality tier*. The locality tiers are ordered from most specific to least specific. Alluxio
 uses tiered identities to optimize for locality. For example, when the client wants to read a
 file from the UFS, it will prefer to read through an Alluxio worker on the same node.
 If there is no local worker in the first tier (node), the next tier (rack) will be checked
 to prefer rack-local data transfer. If no workers share a node or rack with the client, an
 arbitrary worker will be chosen.
 
-# Configuration
+## Configuration
 
 If the user does nothing to provide tiered identity info, each entity will
 perform a localhost lookup to set its node-level identity info. If other locality tiers
@@ -55,7 +54,7 @@ If the no script exists at `alluxio.locality.script`, the property will be ignor
 the script returns a nonzero exit code or returns malformed output, an error will be
 raised in Alluxio.
 
-## Node locality priority order
+### Node locality priority order
 
 There are multiple ways to configure node locality. This is the order of precedence,
 from highest priority to lowest priority:
@@ -66,14 +65,14 @@ from highest priority to lowest priority:
 `alluxio.user.hostname` on a client.
 1. If none of the above are configured, node locality is determined by localhost lookup.
 
-# When is tiered locality used?
+## When is tiered locality used?
 
 1. When choosing a worker to read through during UFS reads.
 1. When choosing a worker to read from when multiple Alluxio workers hold a block.
 1. If using the `LocalFirstPolicy` or `LocalFirstAvoidEvictionPolicy`, tiered locality is
 used to choose which worker to write to when writing data to Alluxio.
 
-# Custom locality tiers
+## Custom locality tiers
 
 By default, Alluxio has two locality tiers: `node` and `rack`. Users may customize the
 set of locality tiers to take advantage of more advanced topologies. To change the set

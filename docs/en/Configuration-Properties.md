@@ -15,7 +15,7 @@ All Alluxio configuration settings fall into one of the six categories:
 Alluxio with cluster managers like Mesos and YARN), and
 [Security specific](#security-configuration) (shared by Master, Worker, and User).
 
-### Common Configuration
+## Common Configuration
 
 The common configuration contains constants shared by different components.
 
@@ -30,7 +30,7 @@ The common configuration contains constants shared by different components.
 {% endfor %}
 </table>
 
-### Master Configuration
+## Master Configuration
 
 The master configuration specifies information regarding the master node, such as the address and
 the port number.
@@ -46,7 +46,7 @@ the port number.
 {% endfor %}
 </table>
 
-### Worker Configuration
+## Worker Configuration
 
 The worker configuration specifies information regarding the worker nodes, such as the address and
 the port number.
