@@ -219,7 +219,6 @@ For most applications (e.g., Hadoop, HBase, Hive and Flink), you could use
 ```bash
 $ hadoop fs -ls alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/directory
 ```
-<<<<<<< HEAD
 
 Some applications (e.g., Spark), you need to use semicolons to separate Zookeeper addresses:
 
@@ -227,11 +226,6 @@ Some applications (e.g., Spark), you need to use semicolons to separate Zookeepe
 > val s = sc.textFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/LICENSE")
 > val double = s.map(line => line + line)
 > double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/LICENSE2")
-||||||| merged common ancestors
-hadoop fs -ls alluxio:///directory
-=======
-$ hadoop fs -ls alluxio:///directory
->>>>>>> 4b6636b1fc115f6c05814b8c0cda1efbc5d5b3af
 ```
 
 Alluxio will help you set Zookeeper properties and find Alluxio leader master.
