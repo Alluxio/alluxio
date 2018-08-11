@@ -41,7 +41,9 @@ instructions to set up S3 as Alluxio's under storage.
 
 Finally, sync all the information to the worker nodes. You can use
 
-{% include Running-Alluxio-on-a-Cluster/sync-info.md %}
+```bash
+$ ./bin/alluxio copyDir <dirname>
+```
 
 to sync files and folders to all hosts specified in the `alluxio/conf/workers` file. If you have
 downloaded and extracted Alluxio tar file on the master only, you can use the `copyDir` command
@@ -52,7 +54,12 @@ to sync any change to `conf/alluxio-site.properties` to the workers.
 
 Now, you can start Alluxio:
 
-{% include Running-Alluxio-on-a-Cluster/start-Alluxio.md %}
+```bash
+$ cd alluxio
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh # use the right parameters here. e.g. all Mount
+# Notice: the Mount and SudoMount parameters will format the existing RamFS.
+```
 
 To verify that Alluxio is running, you can visit `http://<alluxio_master_hostname>:19999`, check the
 log in the directory `alluxio/logs`, or run a sample program:
@@ -212,6 +219,7 @@ For most applications (e.g., Hadoop, HBase, Hive and Flink), you could use
 ```bash
 $ hadoop fs -ls alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/directory
 ```
+<<<<<<< HEAD
 
 Some applications (e.g., Spark), you need to use semicolons to separate Zookeeper addresses:
 
@@ -219,6 +227,11 @@ Some applications (e.g., Spark), you need to use semicolons to separate Zookeepe
 > val s = sc.textFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/LICENSE")
 > val double = s.map(line => line + line)
 > double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/LICENSE2")
+||||||| merged common ancestors
+hadoop fs -ls alluxio:///directory
+=======
+$ hadoop fs -ls alluxio:///directory
+>>>>>>> 4b6636b1fc115f6c05814b8c0cda1efbc5d5b3af
 ```
 
 Alluxio will help you set Zookeeper properties and find Alluxio leader master.

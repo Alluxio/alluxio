@@ -40,7 +40,7 @@ Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-wit
 For the following quick start guide, you will need:
 
 * 3-node Linux cluster
-* [Java 7 or newer](Java-Setup.html)
+* [Java 8 or newer](Java-Setup.html)
 * AWS account and keys
 
 ### Set up SSH (Linux)
@@ -50,7 +50,7 @@ Please make sure on all the nodes, ssh is enabled.
 Optionally, setting up password-less ssh
 will make distributed copy and configuration easier. In this doc, we use the example of manual
 downloading and starting Alluxio on multiple nodes, for demo purpose only. The manual process here
-can be much simplified and automated using `./bin/alluxio copyDirr` or Ansible scripts. Please refer to this [doc](Running-Alluxio-on-a-Cluster.html)
+can be much simplified and automated using `./bin/alluxio copyDir` or Ansible scripts. Please refer to this [doc](Running-Alluxio-on-a-Cluster.html)
 and [Running-Alluxio-on-EC2](Running-Alluxio-on-EC2.html) for the alternatives.
 
 ## Download Alluxio
