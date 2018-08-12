@@ -1203,7 +1203,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       completeFileInternal(entry.getBlockIdsList(), inodePath, entry.getLength(),
           entry.getOpTimeMs(), entry.getUfsFingerprint(), true);
     } catch (FileDoesNotExistException e) {
-      throw new RuntimeException(e);
+      // TODO fix me
+      // qiniu kodo allows filename with ? which will lead fatal error in alluxio journal recovery
+      // throw new RuntimeException(e);
     }
   }
 
