@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Logging Configuration
-nickname: 日志配置
+nickname: 运行日志选项
 group: Resources
 priority: 3
 ---

@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 开发者新手指南
-nickname: 开发者新手指南
+title: Alluxio开发新手指南
+nickname: Alluxio开发新手指南
 group: Resources
 priority: 2
 ---
