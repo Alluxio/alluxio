@@ -15,9 +15,10 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 /**
- * A hostname port authority implementation.
+ * A authority that does not fall into ZookeeperAuthority,
+ * SingleMasterAuthority and NoAuthority implementation.
  */
-public class HostAuthority implements Authority {
+public class OtherAuthority implements Authority {
   private static final long serialVersionUID = 2580736424809131651L;
 
   private final String mAuthority;
@@ -25,16 +26,14 @@ public class HostAuthority implements Authority {
   /**
    * @param authority the authority string of the URI
    */
-  public HostAuthority(String authority) {
-    Preconditions.checkNotNull(authority, "authority should not be null");
+  public OtherAuthority(String authority) {
+    Preconditions.checkArgument(authority != null && authority.length() != 0,
+        "authority should not be null or empty string");
     mAuthority = authority;
   }
 
   @Override
   public int compareTo(Authority other) {
-    if (other == null) {
-      return 1;
-    }
     return mAuthority.compareTo(other.toString());
   }
 
@@ -43,10 +42,10 @@ public class HostAuthority implements Authority {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof HostAuthority)) {
+    if (!(o instanceof OtherAuthority)) {
       return false;
     }
-    HostAuthority that = (HostAuthority) o;
+    OtherAuthority that = (OtherAuthority) o;
     return mAuthority.equals(that.mAuthority);
   }
 

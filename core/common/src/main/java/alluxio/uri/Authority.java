@@ -11,9 +11,8 @@
 
 package alluxio.uri;
 
-import javax.annotation.Nullable;
-
 import java.io.Serializable;
+import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,7 +20,7 @@ import java.util.regex.Pattern;
  * This interface represents the authority part of a URI.
  */
 public interface Authority extends Comparable<Authority>, Serializable {
-  public static final Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@(.*)");
+  Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@(.*)");
 
   /**
    * Gets the Authority object from the input string.
@@ -29,17 +28,27 @@ public interface Authority extends Comparable<Authority>, Serializable {
    * @param authority the string authority to transfer
    * @return an Authority object
    */
-  @Nullable
   static Authority fromString(String authority) {
     if (authority == null || authority.length() == 0) {
-      return null;
+      return new NoAuthority();
     }
     Matcher matcher = ZOOKEEPER_AUTH.matcher(authority);
     if (matcher.find()) {
       return new ZookeeperAuthority(authority,
           matcher.group(1).replaceAll(";", ","));
     } else {
-      return new HostAuthority(authority);
+      java.net.URI uri;
+      try {
+        // Use java.net.URI to parse the authority
+        uri = new java.net.URI("foo", authority, "/", null, null);
+      } catch (URISyntaxException e) {
+        throw new IllegalArgumentException(e);
+      }
+      if (uri.getHost() != null) {
+        return new SingleMasterAuthority(authority, uri.getHost(), uri.getPort());
+      } else {
+        return new OtherAuthority(authority);
+      }
     }
   }
 }

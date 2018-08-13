@@ -104,7 +104,6 @@ public interface URI extends Comparable<URI>, Serializable {
         query = path.substring(question + 1);
         path = path.substring(0, question);
       }
-
       return create(scheme, Authority.fromString(authority), path, query);
     }
 
@@ -150,10 +149,10 @@ public interface URI extends Comparable<URI>, Serializable {
       try {
         // To be compatible with URI, must use the last component of the scheme.
         parentUri = new java.net.URI(getSchemeComponents(parent.getScheme()).getSecond(),
-            parent.getAuthority() == null ? null : parent.getAuthority().toString(),
+            parent.getAuthority().toString().equals("") ? null : parent.getAuthority().toString(),
             parentPath, parent.getQuery(), null);
         childUri = new java.net.URI(getSchemeComponents(child.getScheme()).getSecond(),
-            child.getAuthority() == null ? null : child.getAuthority().toString(),
+            child.getAuthority().toString().equals("") ? null : child.getAuthority().toString(),
             child.getPath(), child.getQuery(), null);
       } catch (URISyntaxException e) {
         throw new IllegalArgumentException(e);
@@ -221,11 +220,6 @@ public interface URI extends Comparable<URI>, Serializable {
   Authority getAuthority();
 
   /**
-   * @return the host of the {@link URI}, null if it does not have one
-   */
-  String getHost();
-
-  /**
    * @return the path of the {@link URI}
    */
   String getPath();
@@ -236,19 +230,9 @@ public interface URI extends Comparable<URI>, Serializable {
   String getQuery();
 
   /**
-   * @return the port of the {@link URI}, -1 if it does not have one
-   */
-  int getPort();
-
-  /**
    * @return the scheme of the {@link URI}, null if there is no scheme
    */
   String getScheme();
-
-  /**
-   * @return the scheme specific part of the {@link URI}, null if there is no scheme
-   */
-  String getSchemeSpecificPart();
 
   /**
    * Tells whether or not the {@link URI} is absolute.

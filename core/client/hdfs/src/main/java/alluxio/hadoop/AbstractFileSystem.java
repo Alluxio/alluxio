@@ -515,12 +515,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     AlluxioURI alluxioUri = new AlluxioURI(uri.toString());
     Map<String, Object> alluxioConfProperties = new HashMap<>();
 
-    if (alluxioUri.getAuthorityType() == AlluxioURI.AuthorityType.ZOOKEEPER) {
-      ZookeeperAuthority authority = (ZookeeperAuthority) alluxioUri.getParsedAuthority();
+    AlluxioURI.AuthorityType authorityType = alluxioUri.getAuthorityType();
+    if (authorityType == AlluxioURI.AuthorityType.ZOOKEEPER) {
+      ZookeeperAuthority authority = (ZookeeperAuthority) alluxioUri.getAuthority();
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(),
           authority.getZookeeperAddress());
-    } else if (alluxioUri.getHost() != null) {
+    } else if (authorityType == AlluxioURI.AuthorityType.SINGLE_MASTER) {
       alluxioConfProperties.put(PropertyKey.MASTER_HOSTNAME.getName(), alluxioUri.getHost());
       alluxioConfProperties.put(PropertyKey.MASTER_RPC_PORT.getName(), alluxioUri.getPort());
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);

@@ -30,10 +30,7 @@ public class StandardURI implements URI {
    * reuse URI functionality.
    */
   protected final String mScheme;
-  protected final String mSchemeSpecificPart;
   protected final Authority mAuthority;
-  protected final String mHost;
-  protected final int mPort;
   protected final String mPath;
   protected final String mQuery;
 
@@ -50,18 +47,17 @@ public class StandardURI implements URI {
       // Use java.net.URI to parse the URI components.
       java.net.URI uri;
       if (AlluxioURI.CUR_DIR.equals(path)) {
-        uri = new java.net.URI(scheme, authority == null ? null : authority.toString(),
+        uri = new java.net.URI(scheme,
+            authority.toString().equals("") ? null : authority.toString(),
             AlluxioURI.normalizePath(path), query, null);
       } else {
-        uri = new java.net.URI(scheme, authority == null ? null : authority.toString(),
+        uri = new java.net.URI(scheme,
+            authority.toString().equals("") ? null : authority.toString(),
             AlluxioURI.normalizePath(path), query, null)
             .normalize();
       }
       mScheme = uri.getScheme();
-      mSchemeSpecificPart = uri.getSchemeSpecificPart();
       mAuthority = authority;
-      mHost = uri.getHost();
-      mPort = uri.getPort();
       mPath = uri.getPath();
       mQuery = uri.getQuery();
     } catch (URISyntaxException e) {
@@ -77,10 +73,7 @@ public class StandardURI implements URI {
    */
   protected StandardURI(URI baseUri, String newPath) {
     mScheme = baseUri.getScheme();
-    mSchemeSpecificPart = baseUri.getSchemeSpecificPart();
     mAuthority = baseUri.getAuthority();
-    mHost = baseUri.getHost();
-    mPort = baseUri.getPort();
     mPath = AlluxioURI.normalizePath(newPath);
     mQuery = baseUri.getQuery();
   }
@@ -99,11 +92,6 @@ public class StandardURI implements URI {
   }
 
   @Override
-  public String getHost() {
-    return mHost;
-  }
-
-  @Override
   public String getPath() {
     return mPath;
   }
@@ -114,18 +102,8 @@ public class StandardURI implements URI {
   }
 
   @Override
-  public int getPort() {
-    return mPort;
-  }
-
-  @Override
   public String getScheme() {
     return mScheme;
-  }
-
-  @Override
-  public String getSchemeSpecificPart() {
-    return mSchemeSpecificPart;
   }
 
   @Override
@@ -144,10 +122,6 @@ public class StandardURI implements URI {
     // schemes are equal.
     if (mPath == null) {
       if (other.getPath() == null) {
-        if ((compare = URIUtils.compare(mSchemeSpecificPart, other.getSchemeSpecificPart()))
-            != 0) {
-          return compare;
-        }
         return 0;
       }
       return 1;
@@ -155,16 +129,7 @@ public class StandardURI implements URI {
       return -1;
     }
 
-    if ((mHost != null) && (other.getHost() != null)) {
-      // compare host-based authority
-      if ((compare = mHost.compareToIgnoreCase(other.getHost())) != 0) {
-        return compare;
-      }
-      if ((compare = mPort - other.getPort()) != 0) {
-        return compare;
-      }
-    } else if ((compare = URIUtils.compare(mAuthority == null ? null : mAuthority.toString(),
-        other.getAuthority() == null ? null : other.getAuthority().toString())) != 0) {
+    if ((compare = URIUtils.compare(mAuthority.toString(), other.getAuthority().toString())) != 0) {
       return compare;
     }
 
@@ -211,43 +176,10 @@ public class StandardURI implements URI {
       return false;
     }
     StandardURI that = (StandardURI) o;
-    if (compareScheme(that) != 0) {
-      return false;
-    }
-
-    if ((this.mPath == null && that.mPath != null) || (this.mPath != null && that.mPath == null)) {
-      return false;
-    }
-
-    if (this.mPath == null) {
-      return URIUtils.equals(this.mSchemeSpecificPart, that.mSchemeSpecificPart);
-    }
-    if (!URIUtils.equals(this.mPath, that.mPath)) {
-      return false;
-    }
-    if (!URIUtils.equals(this.mQuery, that.mQuery)) {
-      return false;
-    }
-
-    if (URIUtils.equals(this.mAuthority == null ? null : this.mAuthority.toString(),
-        that.mAuthority == null ? null : that.mAuthority.toString())) {
-      return true;
-    }
-
-    if (this.mHost != null) {
-      // host-based authority
-      if (that.mHost == null) {
-        return false;
-      }
-      if (this.mHost.compareToIgnoreCase(that.mHost) != 0) {
-        return false;
-      }
-      if (this.mPort != that.mPort) {
-        return false;
-      }
-    }
-
-    return true;
+    return compareScheme(that) == 0
+        && URIUtils.equals(this.mPath, that.mPath)
+        && URIUtils.equals(this.mQuery, that.mQuery)
+        && URIUtils.equals(this.mAuthority.toString(), that.mAuthority.toString());
   }
 
   @Override
@@ -257,18 +189,9 @@ public class StandardURI implements URI {
     }
 
     int hashCode = URIUtils.hashIgnoreCase(0, getScheme());
-    if (mPath == null) {
-      hashCode = URIUtils.hash(hashCode, mSchemeSpecificPart);
-    } else {
-      hashCode = URIUtils.hash(hashCode, mPath);
-      hashCode = URIUtils.hash(hashCode, mQuery);
-      if (mHost != null) {
-        hashCode = URIUtils.hashIgnoreCase(hashCode, mHost);
-        hashCode += 1949 * mPort;
-      } else {
-        hashCode = URIUtils.hash(hashCode, mAuthority == null ? null : mAuthority.toString());
-      }
-    }
+    hashCode = URIUtils.hash(hashCode, mPath);
+    hashCode = URIUtils.hash(hashCode, mQuery);
+    hashCode = URIUtils.hash(hashCode, mAuthority.toString());
     mHashCode = hashCode;
     return hashCode;
   }

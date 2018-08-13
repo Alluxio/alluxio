@@ -39,8 +39,8 @@ public class AlluxioURITest {
   @Test
   public void basicAlluxioUri() {
     AlluxioURI uri = new AlluxioURI("alluxio://localhost:19998/xy z/a b c");
-    assertEquals("localhost:19998", uri.getParsedAuthority().toString());
-    assertEquals(AlluxioURI.AuthorityType.HOST, uri.getAuthorityType());
+    assertEquals("localhost:19998", uri.getAuthority().toString());
+    assertEquals(AlluxioURI.AuthorityType.SINGLE_MASTER, uri.getAuthorityType());
     assertEquals(2, uri.getDepth());
     assertEquals("localhost", uri.getHost());
     assertEquals("a b c", uri.getName());
@@ -65,8 +65,8 @@ public class AlluxioURITest {
   @Test
   public void basicHdfsUri() {
     AlluxioURI uri = new AlluxioURI("hdfs://localhost/xy z/a b c");
-    assertEquals("localhost", uri.getParsedAuthority().toString());
-    assertEquals(AlluxioURI.AuthorityType.HOST, uri.getAuthorityType());
+    assertEquals("localhost", uri.getAuthority().toString());
+    assertEquals(AlluxioURI.AuthorityType.SINGLE_MASTER, uri.getAuthorityType());
     assertEquals(2, uri.getDepth());
     assertEquals("localhost", uri.getHost());
     assertEquals("a b c", uri.getName());
@@ -90,8 +90,8 @@ public class AlluxioURITest {
     AlluxioURI uri = new AlluxioURI("scheme:part2://localhost:8000/xy z/a b c");
     assertEquals(uri, new AlluxioURI("scheme:part2//localhost:8000/xy z/a b c"));
     assertEquals("scheme:part2", uri.getScheme());
-    assertEquals("localhost:8000", uri.getParsedAuthority().toString());
-    assertEquals(AlluxioURI.AuthorityType.HOST, uri.getAuthorityType());
+    assertEquals("localhost:8000", uri.getAuthority().toString());
+    assertEquals(AlluxioURI.AuthorityType.SINGLE_MASTER, uri.getAuthorityType());
     assertEquals("localhost", uri.getHost());
     assertEquals(8000, uri.getPort());
     assertEquals(2, uri.getDepth());
@@ -117,9 +117,9 @@ public class AlluxioURITest {
         new AlluxioURI("alluxio://zk@host1:port1,host2:port2,host3:port3/xy z/a b c"));
     assertEquals("alluxio", uri.getScheme());
 
-    assertEquals("zk@host1:port1,host2:port2,host3:port3", uri.getParsedAuthority().toString());
+    assertEquals("zk@host1:port1,host2:port2,host3:port3", uri.getAuthority().toString());
     assertEquals(AlluxioURI.AuthorityType.ZOOKEEPER, uri.getAuthorityType());
-    ZookeeperAuthority zkAuthority = (ZookeeperAuthority) uri.getParsedAuthority();
+    ZookeeperAuthority zkAuthority = (ZookeeperAuthority) uri.getAuthority();
     assertEquals("host1:port1,host2:port2,host3:port3", zkAuthority.getZookeeperAddress());
 
     assertEquals(null, uri.getHost());
@@ -149,9 +149,9 @@ public class AlluxioURITest {
     AlluxioURI uri =
         new AlluxioURI("alluxio://zk@host1:port1;host2:port2;host3:port3/xy z/a b c");
     assertTrue(uri.hasAuthority());
-    assertEquals("zk@host1:port1;host2:port2;host3:port3", uri.getParsedAuthority().toString());
+    assertEquals("zk@host1:port1;host2:port2;host3:port3", uri.getAuthority().toString());
     assertEquals(AlluxioURI.AuthorityType.ZOOKEEPER, uri.getAuthorityType());
-    ZookeeperAuthority zkAuthority = (ZookeeperAuthority) uri.getParsedAuthority();
+    ZookeeperAuthority zkAuthority = (ZookeeperAuthority) uri.getAuthority();
     assertEquals("host1:port1,host2:port2,host3:port3", zkAuthority.getZookeeperAddress());
   }
 
@@ -202,7 +202,7 @@ public class AlluxioURITest {
   @Test
   public void emptyURI() {
     AlluxioURI uri = new AlluxioURI("");
-    assertEquals(null, uri.getParsedAuthority());
+    assertEquals("", uri.getAuthority().toString());
     assertEquals(AlluxioURI.AuthorityType.NONE, uri.getAuthorityType());
     assertEquals(0, uri.getDepth());
     assertEquals(null, uri.getHost());
@@ -452,7 +452,7 @@ public class AlluxioURITest {
   }
 
   /**
-   * Tests the {@link AlluxioURI#getParsedAuthority()} method.
+   * Tests the {@link AlluxioURI#getAuthority()} method.
    */
   @Test
   public void getAuthorityTests() {
@@ -460,15 +460,15 @@ public class AlluxioURITest {
         new String[] {"localhost", "localhost:8080", "127.0.0.1", "127.0.0.1:8080", "localhost"};
     for (String authority : authorities) {
       AlluxioURI uri = new AlluxioURI("file", Authority.fromString(authority), "/a/b");
-      assertEquals(authority, uri.getParsedAuthority().toString());
+      assertEquals(authority, uri.getAuthority().toString());
     }
 
-    assertEquals(null,
-        new AlluxioURI("file", Authority.fromString(""), "/b/c").getParsedAuthority());
-    assertEquals(null, new AlluxioURI("file", null, "/b/c").getParsedAuthority());
-    assertEquals(null,
-        new AlluxioURI("file", Authority.fromString(null), "/b/c").getParsedAuthority());
-    assertEquals(null, new AlluxioURI("file:///b/c").getParsedAuthority());
+    assertEquals("",
+        new AlluxioURI("file", Authority.fromString(""), "/b/c").getAuthority().toString());
+    assertEquals("", new AlluxioURI("file", null, "/b/c").getAuthority().toString());
+    assertEquals("",
+        new AlluxioURI("file", Authority.fromString(null), "/b/c").getAuthority().toString());
+    assertEquals("", new AlluxioURI("file:///b/c").getAuthority().toString());
   }
 
   /**
@@ -476,9 +476,9 @@ public class AlluxioURITest {
    */
   @Test
   public void getAuthorityTypeTests() {
-    assertEquals(AlluxioURI.AuthorityType.HOST,
+    assertEquals(AlluxioURI.AuthorityType.SINGLE_MASTER,
         new AlluxioURI("file", Authority.fromString("localhost"), "/b/c").getAuthorityType());
-    assertEquals(AlluxioURI.AuthorityType.HOST,
+    assertEquals(AlluxioURI.AuthorityType.SINGLE_MASTER,
         new AlluxioURI("file", Authority.fromString("localhost:8080"), "/b/c").getAuthorityType());
 
     assertEquals(AlluxioURI.AuthorityType.ZOOKEEPER,

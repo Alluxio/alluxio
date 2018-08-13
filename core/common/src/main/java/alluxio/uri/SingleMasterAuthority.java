@@ -14,32 +14,42 @@ package alluxio.uri;
 import com.google.common.base.Objects;
 
 /**
- * {@link ZookeeperAuthority} supports authority containing Zookeeper addresses.
+ * A single master authority implementation.
  */
-public final class ZookeeperAuthority extends OtherAuthority {
-  private static final long serialVersionUID = -3549197285125519688L;
+public class SingleMasterAuthority extends OtherAuthority {
 
-  private final String mZookeeperAddress;
+  private static final long serialVersionUID = -8901940466477691715L;
+  private final String mHost;
+  private final int mPort;
 
   /**
-   * @param authority the authority string of the uri
-   * @param zookeeperAddress the zookeeper address inside the uri
+   * @param authority the authority string of the URI
+   * @param host the host of this authority
+   * @param port the port of this authority
    */
-  public ZookeeperAuthority(String authority, String zookeeperAddress) {
+  public SingleMasterAuthority(String authority, String host, int port) {
     super(authority);
-    mZookeeperAddress = zookeeperAddress;
+    mHost = host;
+    mPort = port;
   }
 
   /**
-   * @return the Zookeeper address in this authority
+   * @return the host of this authority
    */
-  public String getZookeeperAddress() {
-    return mZookeeperAddress;
+  public String getHost() {
+    return mHost;
+  }
+
+  /**
+   * @return the port of this authority
+   */
+  public int getPort() {
+    return mPort;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mZookeeperAddress);
+    return Objects.hashCode(mHost, mPort);
   }
 
   @Override
@@ -47,10 +57,10 @@ public final class ZookeeperAuthority extends OtherAuthority {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof ZookeeperAuthority)) {
+    if (!(o instanceof SingleMasterAuthority)) {
       return false;
     }
-    ZookeeperAuthority that = (ZookeeperAuthority) o;
+    SingleMasterAuthority that = (SingleMasterAuthority) o;
     return toString().equals(that.toString());
   }
 }
