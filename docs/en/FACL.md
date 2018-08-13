@@ -28,8 +28,25 @@ Default ACLs also consists of ACL entries. These entries are similar to those fo
 Now we use an example to explain how default ACL works. We have a directory called `documents`. We can set its default ACL to `default:user:alluxiouser:rwx`. This action does not give the user `alluxiouser` any additional permission to the directory, but the user`alluxiouser` will have full access to any new files created in the `documents` directory. In other words, any new files created in the `documents` directory will have an access ACL entry `user:alluxiouser:rwx`. 
 
 ## Command Line Interface
-There are two command line interface (CLI) tools to manipulate the ACL permissions, `setfacl` and `getfacl`. 
+There are two command line interface (CLI) tools to manipulate the ACL permissions, `setfacl` and `getfacl`, with the following syntax:
 
+ `setfacl [-d] [-R] [--set | -m | -x <acl_entries> <path>] | [-b | -k <path>]`
+
+ `-d` All operations apply to the Default ACL. Any ACL entries will be converted into a default ACL entry.
+
+ `-R` Apply operations to all files and directories recursively.
+
+ `--set` Fully replace the ACL while discarding existing entries. New ACL must be a comma separated list of entries, and must include user, group, and other for compatibility with permission bits.
+
+ `-m` Modify the ACL by adding/overwriting new entries.
+
+ `-x` Remove specific ACL entries
+
+ `-b` Remove all ACL entries, except for the base entries.
+
+ `-k` Remove all the default ACL entries.
+
+ `getfacl <path>`
 
 
  
