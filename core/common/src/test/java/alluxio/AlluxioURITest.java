@@ -40,7 +40,7 @@ public class AlluxioURITest {
   public void basicAlluxioUri() {
     AlluxioURI uri = new AlluxioURI("alluxio://localhost:19998/xy z/a b c");
     assertEquals("localhost:19998", uri.getParsedAuthority().toString());
-    assertEquals(AlluxioURI.AuthorityType.HOSTNAME_PORT, uri.getAuthorityType());
+    assertEquals(AlluxioURI.AuthorityType.HOST, uri.getAuthorityType());
     assertEquals(2, uri.getDepth());
     assertEquals("localhost", uri.getHost());
     assertEquals("a b c", uri.getName());
@@ -66,7 +66,7 @@ public class AlluxioURITest {
   public void basicHdfsUri() {
     AlluxioURI uri = new AlluxioURI("hdfs://localhost/xy z/a b c");
     assertEquals("localhost", uri.getParsedAuthority().toString());
-    assertEquals(AlluxioURI.AuthorityType.HOSTNAME_PORT, uri.getAuthorityType());
+    assertEquals(AlluxioURI.AuthorityType.HOST, uri.getAuthorityType());
     assertEquals(2, uri.getDepth());
     assertEquals("localhost", uri.getHost());
     assertEquals("a b c", uri.getName());
@@ -91,7 +91,7 @@ public class AlluxioURITest {
     assertEquals(uri, new AlluxioURI("scheme:part2//localhost:8000/xy z/a b c"));
     assertEquals("scheme:part2", uri.getScheme());
     assertEquals("localhost:8000", uri.getParsedAuthority().toString());
-    assertEquals(AlluxioURI.AuthorityType.HOSTNAME_PORT, uri.getAuthorityType());
+    assertEquals(AlluxioURI.AuthorityType.HOST, uri.getAuthorityType());
     assertEquals("localhost", uri.getHost());
     assertEquals(8000, uri.getPort());
     assertEquals(2, uri.getDepth());
@@ -476,9 +476,9 @@ public class AlluxioURITest {
    */
   @Test
   public void getAuthorityTypeTests() {
-    assertEquals(AlluxioURI.AuthorityType.HOSTNAME_PORT,
+    assertEquals(AlluxioURI.AuthorityType.HOST,
         new AlluxioURI("file", Authority.fromString("localhost"), "/b/c").getAuthorityType());
-    assertEquals(AlluxioURI.AuthorityType.HOSTNAME_PORT,
+    assertEquals(AlluxioURI.AuthorityType.HOST,
         new AlluxioURI("file", Authority.fromString("localhost:8080"), "/b/c").getAuthorityType());
 
     assertEquals(AlluxioURI.AuthorityType.ZOOKEEPER,

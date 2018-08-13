@@ -62,7 +62,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * Authority type.
    */
   public enum AuthorityType {
-    HOSTNAME_PORT, // this URI contains Alluxio hostname and port
+    HOST, // this URI contains Alluxio hostname and port
     ZOOKEEPER, // this URI contains Zookeeper address
     NONE, // this URI do not have authority
   }
@@ -81,7 +81,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * Constructs an {@link AlluxioURI} from components.
    *
    * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
-   * @param authority the authority of the path. e.g. HostnamePortAuthority, ZookeeperAuthority
+   * @param authority the authority of the path. e.g. HostAuthority, ZookeeperAuthority
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    */
   public AlluxioURI(String scheme, Authority authority, String path) {
@@ -92,7 +92,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * Constructs an {@link AlluxioURI} from components.
    *
    * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
-   * @param authority the authority of the path. e.g. HostnamePortAuthority, ZookeeperAuthority
+   * @param authority the authority of the path. e.g. HostAuthority, ZookeeperAuthority
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    * @param queryMap the (nullable) map of key/value pairs for the query component of the URI
    */
@@ -171,7 +171,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     } else if (authority instanceof ZookeeperAuthority) {
       return AuthorityType.ZOOKEEPER;
     }
-    return AuthorityType.HOSTNAME_PORT;
+    return AuthorityType.HOST;
   }
 
   /**

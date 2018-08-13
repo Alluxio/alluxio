@@ -209,7 +209,7 @@ public enum ExceptionMessage {
 
   // client
   DIFFERENT_CONNECTION_DETAILS(
-      "Connection details {0} are different from that in file system context {1}"),
+      "New connection details are different from that in file system context {0}"),
   INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
 
   // configuration

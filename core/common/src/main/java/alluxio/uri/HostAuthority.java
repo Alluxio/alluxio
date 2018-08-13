@@ -17,7 +17,7 @@ import com.google.common.base.Preconditions;
 /**
  * A hostname port authority implementation.
  */
-public class HostnamePortAuthority implements Authority {
+public class HostAuthority implements Authority {
   private static final long serialVersionUID = 2580736424809131651L;
 
   private final String mAuthority;
@@ -25,7 +25,7 @@ public class HostnamePortAuthority implements Authority {
   /**
    * @param authority the authority string of the URI
    */
-  public HostnamePortAuthority(String authority) {
+  public HostAuthority(String authority) {
     Preconditions.checkNotNull(authority, "authority should not be null");
     mAuthority = authority;
   }
@@ -43,10 +43,10 @@ public class HostnamePortAuthority implements Authority {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof HostnamePortAuthority)) {
+    if (!(o instanceof HostAuthority)) {
       return false;
     }
-    HostnamePortAuthority that = (HostnamePortAuthority) o;
+    HostAuthority that = (HostAuthority) o;
     return mAuthority.equals(that.mAuthority);
   }
 

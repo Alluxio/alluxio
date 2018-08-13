@@ -465,7 +465,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
 
     synchronized (INIT_LOCK) {
-      if (!sInitialized || !connectDetailsMatch(uriConfProperties, conf)) {
+      if (sInitialized) {
+        if (!connectDetailsMatch(uriConfProperties, conf)) {
+          LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS.getMessage(
+              FileSystemContext.get().getMasterInquireClient().getConnectDetails()));
+          initializeInternal(uriConfProperties, conf);
+        }
+      } else {
         initializeInternal(uriConfProperties, conf);
       }
       // Must happen inside the lock so that the global filesystem context isn't changed by a

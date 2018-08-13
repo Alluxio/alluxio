@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
@@ -74,6 +73,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.security.auth.Subject;
 
@@ -224,14 +224,15 @@ public class AbstractFileSystemTest {
   @Test
   public void hadoopShouldLoadFileSystemWhenConfigured() throws Exception {
     org.apache.hadoop.conf.Configuration conf = getConf();
-    ConfigurationTestUtils.resetConfiguration();
 
     URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
 
-    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.MASTER_HOSTNAME, uri.getHost(),
-        PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()),
-        PropertyKey.ZOOKEEPER_ENABLED, "false")).toResource()) {
+    Map<PropertyKey, String> properties = new HashMap<>();
+    properties.put(PropertyKey.MASTER_HOSTNAME, uri.getHost());
+    properties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+    properties.put(PropertyKey.ZOOKEEPER_ENABLED, "false");
+    properties.put(PropertyKey.ZOOKEEPER_ADDRESS, null);
+    try (Closeable c = new ConfigurationRule(properties).toResource()) {
       final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
       assertTrue(fs instanceof FileSystem);
     }

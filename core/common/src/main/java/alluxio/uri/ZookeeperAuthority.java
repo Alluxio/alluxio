@@ -14,7 +14,7 @@ package alluxio.uri;
 /**
  * {@link ZookeeperAuthority} supports authority containing Zookeeper addresses.
  */
-public final class ZookeeperAuthority extends HostnamePortAuthority {
+public final class ZookeeperAuthority extends HostAuthority {
   private static final long serialVersionUID = -3549197285125519688L;
 
   private final String mZookeeperAddress;

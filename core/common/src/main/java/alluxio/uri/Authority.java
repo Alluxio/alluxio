@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * This interface represents the authority part of a URI.
  */
 public interface Authority extends Comparable<Authority>, Serializable {
-  Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@(.*)");
+  public static final Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@(.*)");
 
   /**
    * Gets the Authority object from the input string.
@@ -39,7 +39,7 @@ public interface Authority extends Comparable<Authority>, Serializable {
       return new ZookeeperAuthority(authority,
           matcher.group(1).replaceAll(";", ","));
     } else {
-      return new HostnamePortAuthority(authority);
+      return new HostAuthority(authority);
     }
   }
 }
