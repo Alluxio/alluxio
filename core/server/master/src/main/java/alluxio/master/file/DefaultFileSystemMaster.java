@@ -2766,6 +2766,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               + "is true.",
           e.getClass()));
     }
+    DeleteMountPointEntry deleteMountPoint =
+        DeleteMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString()).build();
+    rpcContext.journal(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build());
   }
 
   /**

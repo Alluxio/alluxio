@@ -99,6 +99,7 @@ public final class MultiProcessCluster {
   private final List<Master> mMasters;
   private final List<Worker> mWorkers;
   private final List<ReservedPort> mPorts;
+  private final boolean mNoFormat;
 
   private DeployMode mDeployMode;
 
@@ -117,7 +118,8 @@ public final class MultiProcessCluster {
   private MultiProcessCluster(Map<PropertyKey, String> properties,
       Map<Integer, Map<PropertyKey, String>> masterProperties,
       Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,
-      String clusterName, DeployMode mode, List<PortCoordination.ReservedPort> ports) {
+      String clusterName, DeployMode mode, boolean noFormat,
+      List<PortCoordination.ReservedPort> ports) {
     if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) != null) {
       Preconditions.checkState(
           ports.size() == numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
@@ -133,6 +135,7 @@ public final class MultiProcessCluster {
     // Add a unique number so that different runs of the same test use different cluster names.
     mClusterName = clusterName + "-" + Math.abs(ThreadLocalRandom.current().nextInt());
     mDeployMode = mode;
+    mNoFormat = noFormat;
     mMasters = new ArrayList<>();
     mWorkers = new ArrayList<>();
     mPorts = new ArrayList<>(ports);
@@ -184,7 +187,9 @@ public final class MultiProcessCluster {
     mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
         PathUtils.concatPath(mWorkDir, "underFSStorage"));
     new File(mProperties.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
-    formatJournal();
+    if (!mNoFormat) {
+      formatJournal();
+    }
     writeConf();
 
     // Start servers
@@ -422,6 +427,13 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * @return the journal directory
+   */
+  public synchronized String getJournalDir() {
+    return mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+  }
+
+  /**
    * @return return the list of master addresses
    */
   public synchronized List<MasterNetAddress> getMasterAddresses() {
@@ -613,6 +625,7 @@ public final class MultiProcessCluster {
     private int mNumWorkers = 1;
     private String mClusterName = "AlluxioMiniCluster";
     private DeployMode mDeployMode = DeployMode.NON_HA;
+    private boolean mNoFormat = false;
 
     // Should only be instantiated by newBuilder().
     private Builder(List<ReservedPort> reservedPorts) {
@@ -705,6 +718,15 @@ public final class MultiProcessCluster {
     }
 
     /**
+     * @param noFormat whether to skip formatting the journal
+     * @return the builder
+     */
+    public Builder setNoFormat(boolean noFormat) {
+      mNoFormat = noFormat;
+      return this;
+    }
+
+    /**
      * @return a constructed {@link MultiProcessCluster}
      */
     public MultiProcessCluster build() {
@@ -717,7 +739,7 @@ public final class MultiProcessCluster {
           "The worker indexes in worker properties should be bigger or equal to zero "
               + "and small than %s", mNumWorkers);
       return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
-          mNumMasters, mNumWorkers, mClusterName, mDeployMode, mReservedPorts);
+          mNumMasters, mNumWorkers, mClusterName, mDeployMode, mNoFormat, mReservedPorts);
     }
   }
 

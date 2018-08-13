@@ -30,8 +30,10 @@ import alluxio.proto.journal.File.PersistDirectoryEntry;
 import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAclEntry;
+import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
+import alluxio.proto.journal.File.UpdateInodeEntry.Builder;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AclEntry;
@@ -158,6 +160,8 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
       apply(entry.getPersistDirectory());
     } else if (entry.hasReinitializeFile()) {
       apply(entry.getReinitializeFile());
+    } else if (entry.hasSetAttribute()) {
+      apply(entry.getSetAttribute());
     } else {
       return false;
     }
@@ -331,7 +335,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
 
   private void apply(RenameEntry entry) {
     if (entry.hasDstPath()) {
-      handleDeprecatedRenameEntry(entry);
+      entry = rewriteDeprecatedRenameEntry(entry);
     }
     Preconditions.checkState(applyRename(entry));
   }
@@ -443,6 +447,41 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     throw new UnsupportedOperationException("Lineage is not currently supported");
   }
 
+  private void apply(SetAttributeEntry entry) {
+    Builder builder = UpdateInodeEntry.newBuilder();
+    builder.setId(entry.getId());
+    if (entry.hasGroup()) {
+      builder.setGroup(entry.getGroup());
+    }
+    if (entry.hasOpTimeMs()) {
+      builder.setLastModificationTimeMs(entry.getOpTimeMs());
+    }
+    if (entry.hasOwner()) {
+      builder.setOwner(entry.getOwner());
+    }
+    if (entry.hasPermission()) {
+      builder.setMode((short) entry.getPermission());
+    }
+    if (entry.hasPersisted()) {
+      if (entry.getPersisted()) {
+        builder.setPersistenceState(PersistenceState.PERSISTED.name());
+      } else {
+        builder.setPersistenceState(PersistenceState.NOT_PERSISTED.name());
+      }
+    }
+    if (entry.hasPinned()) {
+      builder.setPinned(entry.getPinned());
+    }
+    if (entry.hasTtl()) {
+      builder.setTtl(entry.getTtl());
+      builder.setTtlAction(entry.getTtlAction());
+    }
+    if (entry.hasUfsFingerprint()) {
+      builder.setUfsFingerprint(entry.getUfsFingerprint());
+    }
+    apply(builder.build());
+  }
+
   ////
   // Helper methods
   ////
@@ -496,18 +535,18 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     return true;
   }
 
-  private void handleDeprecatedRenameEntry(RenameEntry entry) {
+  private RenameEntry rewriteDeprecatedRenameEntry(RenameEntry entry) {
     Preconditions.checkState(!entry.hasNewName(),
         "old-style rename entries should not have the newName field set");
     Preconditions.checkState(!entry.hasNewParentId(),
         "old-style rename entries should not have the newParentId field set");
     Path path = Paths.get(entry.getDstPath());
-    apply(RenameEntry.newBuilder()
+    return RenameEntry.newBuilder()
         .setId(entry.getId())
         .setNewParentId(getIdFromPath(path.getParent()))
         .setNewName(path.getFileName().toString())
         .setOpTimeMs(entry.getOpTimeMs())
-        .build());
+        .build();
   }
 
   private long getIdFromPath(Path path) {

@@ -19,7 +19,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Represents the possible actions for setting ACL.
- *
  */
 @PublicApi
 @ThreadSafe
