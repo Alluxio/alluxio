@@ -179,8 +179,8 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     // name. The opposite order is safe. We will never append the delete entry for a file before its
     // creation entry because delete requires a write lock on the deleted file, but the create
     // operation holds that lock until after it has appended to the journal.
-    context.get().append(JournalEntry.newBuilder().setDeleteFile(entry).build());
     try {
+      context.get().append(JournalEntry.newBuilder().setDeleteFile(entry).build());
       apply(entry);
     } catch (Throwable t) {
       // Delete entries should always apply cleanly, but if it somehow fails, we are in a state
@@ -198,9 +198,14 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    * @return the new block id
    */
   public long applyAndJournal(Supplier<JournalContext> context, NewBlockEntry entry) {
-    long id = apply(entry);
-    context.get().append(JournalEntry.newBuilder().setNewBlock(entry).build());
-    return id;
+    try {
+      long id = apply(entry);
+      context.get().append(JournalEntry.newBuilder().setNewBlock(entry).build());
+      return id;
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
+      throw t; // fatalError will usually system.exit
+    }
   }
 
   /**
@@ -213,11 +218,16 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    *         and no journal entry is written
    */
   public boolean applyAndJournal(Supplier<JournalContext> context, RenameEntry entry) {
-    if (applyRename(entry)) {
-      context.get().append(JournalEntry.newBuilder().setRename(entry).build());
-      return true;
+    try {
+      if (applyRename(entry)) {
+        context.get().append(JournalEntry.newBuilder().setRename(entry).build());
+        return true;
+      }
+      return false;
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
+      throw t; // fatalError will usually system.exit
     }
-    return false;
   }
 
   /**
@@ -227,8 +237,13 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    * @param entry set acl entry
    */
   public void applyAndJournal(Supplier<JournalContext> context, SetAclEntry entry) {
-    apply(entry);
-    context.get().append(JournalEntry.newBuilder().setSetAcl(entry).build());
+    try {
+      apply(entry);
+      context.get().append(JournalEntry.newBuilder().setSetAcl(entry).build());
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
+      throw t; // fatalError will usually system.exit
+    }
   }
 
   /**
@@ -238,8 +253,13 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    * @param entry update inode entry
    */
   public void applyAndJournal(Supplier<JournalContext> context, UpdateInodeEntry entry) {
-    apply(entry);
-    context.get().append(JournalEntry.newBuilder().setUpdateInode(entry).build());
+    try {
+      apply(entry);
+      context.get().append(JournalEntry.newBuilder().setUpdateInode(entry).build());
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
+      throw t; // fatalError will usually system.exit
+    }
   }
 
   /**
@@ -249,8 +269,13 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    * @param entry update inode directory entry
    */
   public void applyAndJournal(Supplier<JournalContext> context, UpdateInodeDirectoryEntry entry) {
-    apply(entry);
-    context.get().append(JournalEntry.newBuilder().setUpdateInodeDirectory(entry).build());
+    try {
+      apply(entry);
+      context.get().append(JournalEntry.newBuilder().setUpdateInodeDirectory(entry).build());
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
+      throw t; // fatalError will usually system.exit
+    }
   }
 
   /**
@@ -260,8 +285,13 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    * @param entry update inode file entry
    */
   public void applyAndJournal(Supplier<JournalContext> context, UpdateInodeFileEntry entry) {
-    apply(entry);
-    context.get().append(JournalEntry.newBuilder().setUpdateInodeFile(entry).build());
+    try {
+      apply(entry);
+      context.get().append(JournalEntry.newBuilder().setUpdateInodeFile(entry).build());
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
+      throw t; // fatalError will usually system.exit
+    }
   }
 
   /**
@@ -274,11 +304,16 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    *         and no journal entry is written
    */
   public boolean applyAndJournal(Supplier<JournalContext> context, Inode<?> inode) {
-    if (applyInode(inode)) {
-      context.get().append(inode.toJournalEntry());
-      return true;
+    try {
+      if (applyInode(inode)) {
+        context.get().append(inode.toJournalEntry());
+        return true;
+      }
+      return false;
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", inode);
+      throw t; // fatalError will usually system.exit
     }
-    return false;
   }
 
   ////
