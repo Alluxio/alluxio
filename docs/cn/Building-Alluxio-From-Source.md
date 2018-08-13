@@ -9,13 +9,13 @@ priority: 1
 * 内容列表
 {:toc}
 
-# 编译Alluxio
+## 编译Alluxio
 
 该指南介绍如何从头编译Alluxio。
 
 这部分内容的前提条件是你已安装[Java JDK 8或以上](Java-Setup.html)、[Maven 3.3.9或以上](Maven.html)。
 
-## Checkout Alluxio 源码
+### Checkout源码
 
 从Github上获取主分支并编译：
 
@@ -28,6 +28,8 @@ $ cd alluxio
 ```bash
 $ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
 ```
+
+### 编译
 
 使用Maven编译源码：
 
@@ -49,7 +51,7 @@ $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 
 Maven编译环境将自动获取依赖，编译源码，运行单元测试，并进行打包。如果你是第一次编译该项目，下载依赖包可能需要一段时间，但以后的编译过程将会快很多。
 
-## 验证Alluxio编译完成
+### 验证Alluxio编译完成
 
 一旦Alluxio编译完成，你可以运行如下命令：
 
@@ -73,12 +75,12 @@ $ ./bin/alluxio runTests
 $ ./bin/alluxio-stop.sh local
 ```
 
-# 编译选项
+## 编译选项
 
-## 计算框架支持
+### 计算框架支持
 自Alluxio 1.7开始，**你不要在Maven编译的时候使用不同计算框架的配置文件**。编译后位于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`的Alluxio客户端jar包将适用于不同的计算框架（如：Spark、Flink，Presto等）。
 
-## Hadoop发行版的支持
+### Hadoop发行版的支持
 要针对hadoop发行版本中某一个版本构建Alluxio，可以通过指定`<HADOOP_PROFILE>`和对应的`hadoop.version`来运行如下命令：
 
 ```bash
@@ -87,7 +89,7 @@ $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 
 `<HADOOP_VERSION>`可以被设置不同值。可用的Hadoop配置文件包括`hadoop-1`, `hadoop-2`, `hadoop-3`，涵盖主要的Hadoop版本1.x, 2.x和3.x。
 
-### Apache
+#### Apache
 所有主要版本都来自Apache，所以所有Apache发行版都可以直接使用。
 
 ```properties
@@ -104,7 +106,7 @@ $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 -Phadoop-3 -Dhadoop.version=3.0.0
 ```
 
-### Cloudera
+#### Cloudera
 对于Cloudera发行版，使用该形式`$apacheRelease-cdh$cdhRelease`的版本号
 
 ```properties
@@ -112,7 +114,7 @@ $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 -Phadoop-2 -Dhadoop.version=2.0.0-cdh4.7.0
 ```
 
-### MapR
+#### MapR
 
 对于MapR发行版，其值为
 
@@ -123,7 +125,7 @@ $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 -Phadoop-2 -Dhadoop.version=2.3.0-mapr-4.0.0-FCS
 ```
 
-### Hortonworks
+#### Hortonworks
 
 对于Hortonworks发行版，使用`$apacheRelease.$hortonRelease`形式的版本号
 

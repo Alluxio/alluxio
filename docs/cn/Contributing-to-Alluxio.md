@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 开发者代码规范
-nickname: 开发者代码规范
+title: Alluxio开发与代码规范
+nickname: Alluxio开发与代码规范
 group: Resources
 priority: 2
 ---
@@ -9,7 +9,7 @@ priority: 2
 * 内容列表
 {:toc}
 
-> 如果您是一名新的开源贡献者，请先浏览[开始贡献源码向导](Contributing-Getting-Started.html)以熟悉如何向Alluxio贡献源码。
+> 如果您是一名新的开源贡献者，请先浏览[Alluxio开发新手指南](Contributing-Getting-Started.html)以熟悉如何向Alluxio贡献源码。
 
 我们非常感谢您对Alluxio的关注与兴趣！特别感谢您对Alluxio开源社区作出的贡献！
 
