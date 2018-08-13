@@ -68,7 +68,7 @@ $ mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
 $ mvn test -pl underfs/hdfs
 ```
 
-用Hadoop版本运行HDFS UFS模块单元测试：
+您可以指定运行模块单元测试的Hadoop版本, 我们会创建该版本的模拟HDFS服务来进行测试：
 
 ```bash
 # build and run test on HDFS under filesystem module for Hadoop 2.7.0
@@ -77,7 +77,7 @@ $ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
 $ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 ```
 
-以上命令会创建一个特定版本的模拟HDFS服务。要用实时运行的配置在HDFS上运行更多可解释的测试：
+您也可以使用一个正在运行的HDFS服务来对Alluxio的HDFS 底层文件系统进行更加全面的测试：
 
 ```bash
 $ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
@@ -90,7 +90,7 @@ $ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/a
 ```
 
 - 要以交互的方式快速运行某些API测试，你可能需要使用Scala shell，这在
-[blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding)有讨论。
+[blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding)有详细说明。
 
 - 如果libfuse库丢失，其测试将被忽略。要运行这些测试，请安装[FUSE](Mounting-Alluxio-FS-with-FUSE.html#requirements)中所提到的正确的库。
 
@@ -105,7 +105,7 @@ $ sudo launchctl limit maxfiles 32768 32768
 $ sudo launchctl limit maxproc 32768 32768
 ```
 
-同时推荐从Spotlight indexing导出本地Alluxio。否则，你的Mac在单元测试时将会一直挂起来尝试重新定位文件系统。去`System Preferences > Spotlight > Privacy`，点击`+`键，浏览你本地Alluxio的目录，点击`Choose`将其添加到导出列表。
+同时建议关闭本地Alluxio文件夹的spotlight定位服务。否则，你的Mac在单元测试时将会一直挂起来尝试重新定位文件系统。去`System Preferences > Spotlight > Privacy`，点击`+`键，浏览你本地Alluxio的目录，点击`Choose`将其添加到排除列表。
 
 ## 代码风格
 
@@ -150,15 +150,15 @@ public MyClass {
 
 下面是Alluxio源码对不同类别日志的约定：
 
-* 错误级别日志（`LOG.error`）表示无法恢复的系统级问题。错误级别日志总是伴随着堆栈跟踪信息。
+* 错误级别日志（`LOG.error`）表示无法恢复的系统级问题。错误级别日志需要包括堆栈跟踪信息。
 ```java
 LOG.error("Failed to do something due to an exception", e);
 ```
-* 警告级别日志（`LOG.warn`）表示用户预期行为和Alluxio实际行为之间的逻辑不匹配。警告级别日志伴有异常消息。相关的堆栈跟踪信息可以在调试级日志中找到。
+* 警告级别日志（`LOG.warn`）常用于描述用户预期行为与Alluxio实践行为之间的差异。警告级别日志伴有异常消息。相关的堆栈跟踪信息可能在调试级日志中记录。
 ```java
 LOG.warm("Failed to do something due to {}", e.getMessage());
 ```
-* 信息级别日志（`LOG.info`）记录了重要系统状态的更改信息。异常消息和堆栈跟踪与信息级别日志从无关联。
+* 信息级别日志（`LOG.info`）记录了重要系统状态的更改信息。当有错误消息或需要记录堆栈跟踪信息时，请不要使用信息级别日志。需要注意的是，该日志级别不应该出现在频繁使用的关键路径上的程序中以避免对性能的不利影响。
 ```java
 LOG.info("Master started.");
 ```
@@ -197,7 +197,7 @@ if (LOG.isDebugEnabled()) {
 
 ## 更改Thrift RPC的定义
 
-Alluxio使用Thrift来完成客户端与服务端的RPC通信。`.thrift`文件定义在`common/src/thrift/`目录下，其一方面用于自动生成客户端调用RPC的Java代码，另一方面用于实现服务端的RPC。要想更改一个Thrift定义，你首先必须要[安装Thrift的编译器](https://thrift.apache.org/docs/install/)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
+Alluxio使用Thrift来完成客户端与服务端的RPC通信。`common/src/thrift/`目录下的`.thrift`文件，其一方面用于自动生成客户端调用RPC的Java代码，另一方面用于实现服务端的RPC。要想更改一个Thrift定义，你首先必须要[安装Thrift的编译器](https://thrift.apache.org/docs/install/)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
 
 ```bash
 $ brew install thrift
@@ -211,7 +211,7 @@ $ bin/alluxio thriftGen
 
 ## 更改Protocol Buffer消息
 
-Alluxio使用Protocol Buffer来读写日志消息。`.proto`文件被定义在`servers/src/proto/journal/`目录下，其用于为Protocol Buffer消息自动生成Java定义。要需要修改这些消息，首先要[读取更新的消息类型](https://developers.google.com/protocol-buffers/docs/proto#updating)从而保证你的修改不会破坏向后兼容性。然后就是[安装protoc](https://github.com/google/protobuf#protocol-buffers---googles-data-interchange-format)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
+Alluxio使用Protocol Buffer来读写日志消息。`servers/src/proto/journal/`目录下的`.proto`文件用于为Protocol Buffer消息自动生成Java定义。如果需要修改这些消息，首先要读取[更新消息类型](https://developers.google.com/protocol-buffers/docs/proto#updating)从而保证你的修改不会破坏向后兼容性。然后请[安装protoc](https://github.com/google/protobuf#protocol-buffers---googles-data-interchange-format)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
 
 ```bash
 $ brew install protobuf@2.5
