@@ -15,7 +15,7 @@ See the [doc](http://alluxio-py.readthedocs.io) for detailed documentation about
 methods. See the [example](https://github.com/Alluxio/alluxio-py/blob/master/example.py) of how to perform basic filesystem
 operations in Alluxio.
 
-# Alluxio Proxy dependency
+## Alluxio Proxy dependency
 
 The Python client interacts with Alluxio through the REST API provided by the Alluxio proxy.
 
@@ -27,12 +27,12 @@ There are performance implications of using the HTTP proxy. In particular, using
 an extra hop. For optimal performance, it is recommended to run the proxy server and an Alluxio
 worker on each compute node.
 
-# Install Python Client Library
+## Install Python Client Library
 ```bash
 $ pip install alluxio
 ```
 
-# Example Usage
+## Example Usage
 
 The following program includes examples of how to create directory, download, upload, check existence for,
 and list status for files in Alluxio.

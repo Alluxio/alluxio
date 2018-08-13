@@ -80,27 +80,14 @@ To ensure Alluxio servers pick up HDFS configurations in classpath, please copy 
 configuration xml files (`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to
 `${ALLUXIO_HOME}/conf/`
 
-### Kerberos configuration
+### [Optional] Custom Kerberos configuration
 
 Optionally, you can set jvm-level system properties for customized Kerberos configurations:
 `java.security.krb5.realm` and `java.security.krb5.kdc`. Those Kerberos configurations route java
 libraries to specified Kerberos realm and KDC server address.
 If both are set to empty, Kerberos library will respect
-the default Kerberos configuration on the machine. For example:
-
-* If you use Hadoop, you can add to `HADOOP_OPTS` in `${HADOOP_CONF_DIR}/hadoop-env.sh`.
-
-```bash
-$ export HADOOP_OPTS="$HADOOP_OPTS -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
-```
-
-* If you use Spark, you can add to `SPARK_JAVA_OPTS` in `${SPARK_CONF_DIR}/spark-env.sh`.
-
-```bash
-SPARK_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
-```
-
-* If you use Alluxio shell, you can add to `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
+the default Kerberos configuration on the machine. These Java system properties should be set
+for the Alluxio processes. To do so, you can add to `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
 
 ```bash
 ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"

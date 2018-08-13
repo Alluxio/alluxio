@@ -71,7 +71,7 @@ alluxio.user.metrics.collection.enabled:
 alluxio.user.metrics.heartbeat.interval:
   'The time period of client master hearbeat to send the client-side metrics.'
 alluxio.user.network.netty.channel:
-  'Type of netty channels.'
+  'Type of netty channels. If EPOLL is not available, this will automatically fall back to NIO.'
 alluxio.user.network.netty.channel.pool.disabled:
   'Disable netty channel pool. This should be turned on if the client version is >= 1.3.0 but server version is <= 1.2.x.'
 alluxio.user.network.netty.channel.pool.gc.threshold:

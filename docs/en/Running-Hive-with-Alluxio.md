@@ -39,7 +39,7 @@ Set `HIVE_AUX_JARS_PATH` either in shell or `conf/hive-env.sh`:
 export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
-## 1 Use Alluxio as One Option to Store Hive Tables
+## Use Alluxio as One Option to Store Hive Tables
 
 There are different ways to integrate Hive with Alluxio. This section talks about how to use Alluxio
 as one of the filesystems (like HDFS) to store Hive tables. These tables can be either
@@ -184,7 +184,7 @@ Instructions and examples till here illustrate how to use Alluxio as one of the 
 tables in Hive, together with other filesystems like HDFS. They do not require to change the global
 setting in Hive such as the default filesystem which is covered in the next section.
 
-## 2 Use Alluxio as the Default Filesystem
+## Use Alluxio as the Default Filesystem
 
 Apache Hive can also use Alluxio through a generic file system interface to replace the
 Hadoop file system. In this way, the Hive uses Alluxio as the default file system and its internal

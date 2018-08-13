@@ -1,8 +1,9 @@
 ---
 layout: global
-title: Logging Conventions And Tips
-nickname: Logging Conventions And Tips
+title: Logging Configuration
+nickname: 运行日志选项
 group: Resources
+priority: 3
 ---
 
 * 内容列表

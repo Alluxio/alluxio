@@ -9,13 +9,13 @@ priority: 1
 * Table of Contents
 {:toc}
 
-# Build Alluxio
+## Build Alluxio
 
 This guide describes how to compile Alluxio from the beginning.
 
 The prerequisite for this guide is that you have [Java 8 or later](Java-Setup.html), [Maven 3.3.9 or later](Maven.html) installed.
 
-## Checkout Alluxio Source Code
+### Checkout Source Code
 
 
 Checkout the Alluxio master branch from Github and build the source code:
@@ -31,6 +31,8 @@ Otherwise, this will build the master branch of the source code.
 ```bash
 $ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
 ```
+
+### Build
 
 Build the source code using Maven:
 
@@ -53,7 +55,7 @@ $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 
 The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages the system. If this is the first time you are building the project, it can take a while to download all the dependencies. Subsequent builds, however, will be much faster.
 
-## Verify Alluxio is Built
+### Test
 
 Once Alluxio is built, you can start it with:
 
@@ -77,16 +79,16 @@ You can also stop the system by using:
 $ ./bin/alluxio-stop.sh local
 ```
 
-# Build Options
+## Build Options
 
-## Compute Framework Support
+### Compute Framework Support
 
 Since Alluxio 1.7, **you do not need to run Maven build with different compute profiles.**
 The Alluxio client jar built and located at
 `{{site.ALLUXIO_CLIENT_JAR_PATH}}` will work with different compute frameworks
 (e.g., Spark, Flink, Presto and etc) by default.
 
-## Hadoop Distribution Support
+### Hadoop Distribution Support
 
 To build Alluxio against one of the different distributions of hadoop, you can run the following
  command by specifying `<HADOOP_PROFILE>` and the corresponding `hadoop.version`.:
@@ -98,7 +100,7 @@ where `<HADOOP_VERSION>` can be set for different distributions.
 Available Hadoop profiles include `hadoop-1`, `hadoop-2`, `hadoop-3` to cover the major Hadoop
 versions 1.x, 2.x and 3.x.
 
-### Apache
+#### Apache
 
 All main builds are from Apache so all Apache releases can be used directly
 
@@ -116,7 +118,7 @@ All main builds are from Apache so all Apache releases can be used directly
 -Phadoop-3 -Dhadoop.version=3.0.0
 ```
 
-### Cloudera
+#### Cloudera
 
 To build against Cloudera's releases, just use a version like `$apacheRelease-cdh$cdhRelease`
 
@@ -125,7 +127,7 @@ To build against Cloudera's releases, just use a version like `$apacheRelease-cd
 -Phadoop-2 -Dhadoop.version=2.0.0-cdh4.7.0
 ```
 
-### MapR
+#### MapR
 
 To build against a MapR release
 
@@ -136,7 +138,7 @@ To build against a MapR release
 -Phadoop-2 -Dhadoop.version=2.3.0-mapr-4.0.0-FCS
 ```
 
-### Hortonworks
+#### Hortonworks
 
 To build against a Hortonworks release, just use a version like `$apacheRelease.$hortonRelease`
 

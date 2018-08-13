@@ -1,9 +1,9 @@
 ---
 layout: global
-title: （实验版）键值存储库（Key Value Store）客户端API
-nickname: （实验版）键值存储库（Key Value Store) API
+title: （实验）Key Value Store客户端API
+nickname: （实验）Key Value Store API
 group: Features
-priority: 4
+priority: 99
 ---
 
 * 内容列表
