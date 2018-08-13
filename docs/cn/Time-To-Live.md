@@ -56,7 +56,7 @@ SetTTL(path, duration, action)
 
 使用Alluxio文件系统对象来设置具有适当选项的文件属性。
 
-```
+```java
 FileSystem alluxioFs = FileSystem.Factory.get();
 
 AlluxioURI path = new AlluxioURI("alluxio://hostname:port/file/path");
