@@ -2893,11 +2893,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     InodeView inode = inodePath.getInode();
 
     // Check that we are not removing an extended mask.
-    if (inode.getACL().hasExtended() && action == SetAclAction.REMOVE) {
+    if (action == SetAclAction.REMOVE) {
       for (AclEntry entry : entries) {
-        if (entry.getType() == AclEntryType.MASK) {
-          throw new InvalidArgumentException(
-              "Deleting the mask for extended ACLs is not allowed. entry: " + entry);
+        if ((entry.isDefault() && inode.getDefaultACL().hasExtended())
+            || (!entry.isDefault() && inode.getACL().hasExtended())) {
+          if (entry.getType() == AclEntryType.MASK) {
+            throw new InvalidArgumentException(
+                "Deleting the mask for an extended ACL is not allowed. entry: " + entry);
+          }
         }
       }
     }
