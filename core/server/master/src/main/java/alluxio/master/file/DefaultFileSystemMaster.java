@@ -81,7 +81,6 @@ import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.NoopJournalContext;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
@@ -1503,15 +1502,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       // Delete Inodes
       for (Pair<AlluxioURI, LockedInodePath> delInodePair : revisedInodesToDelete) {
-        InodeView delInode = delInodePair.getSecond().getInode();
         LockedInodePath tempInodePath = delInodePair.getSecond();
-        if (delInode.getId() == inode.getId() || unsafeInodes.contains(delInode.getParentId())) {
-          mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs, deleteOptions);
-        } else {
-          mInodeTree.deleteInode(
-              new RpcContext(rpcContext.getBlockDeletionContext(), NoopJournalContext.INSTANCE),
-              tempInodePath, opTimeMs, deleteOptions);
-        }
+        mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs);
       }
 
       if (!failedUris.isEmpty()) {
@@ -2901,7 +2893,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     InodeView inode = inodePath.getInode();
 
     // Check that we are not removing an extended mask.
-    if (action == SetAclAction.REMOVE) {
+    if (inode.getACL().hasExtended() && action == SetAclAction.REMOVE) {
       for (AclEntry entry : entries) {
         if (entry.getType() == AclEntryType.MASK) {
           throw new InvalidArgumentException(

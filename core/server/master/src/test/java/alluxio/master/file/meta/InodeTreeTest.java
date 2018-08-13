@@ -35,7 +35,6 @@ import alluxio.master.file.RpcContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
-import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -798,8 +797,7 @@ public final class InodeTreeTest {
   // Helper to delete an inode by path.
   private static void deleteInodeByPath(InodeTree root, AlluxioURI path) throws Exception {
     try (LockedInodePath inodePath = root.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
-      root.deleteInode(RpcContext.NOOP, inodePath, System.currentTimeMillis(),
-          DeleteOptions.defaults());
+      root.deleteInode(RpcContext.NOOP, inodePath, System.currentTimeMillis());
     }
   }
 

@@ -44,8 +44,10 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -293,7 +295,23 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     parent.setLastModificationTimeMs(entry.getOpTimeMs());
     inode.setDeleted(true);
     mPinnedInodeFileIds.remove(id);
-    // Should we remove the inode from TtlBuckets as well?
+
+    // The recursive option is only used by old versions.
+    if (inode.isDirectory() && entry.getRecursive()) {
+      Queue<InodeDirectory> dirsToDelete = new ArrayDeque<>();
+      dirsToDelete.add((InodeDirectory) inode);
+      while (!dirsToDelete.isEmpty()) {
+        InodeDirectory dir = dirsToDelete.poll();
+        mInodes.remove(dir);
+        for (InodeView child : dir.getChildren()) {
+          if (child.isDirectory()) {
+            dirsToDelete.add((InodeDirectory) child);
+          } else {
+            mInodes.remove((Inode<?>) child);
+          }
+        }
+      }
+    }
   }
 
   private void apply(InodeDirectoryEntry entry) {

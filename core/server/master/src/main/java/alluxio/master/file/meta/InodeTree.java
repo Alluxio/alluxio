@@ -25,7 +25,6 @@ import alluxio.master.file.RpcContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
-import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.state.InodesView;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
@@ -953,11 +952,10 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * @param rpcContext the rpc context
    * @param inodePath the {@link LockedInodePath} to delete
    * @param opTimeMs the operation time
-   * @param deleteOptions the delete options
    * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
-  public void deleteInode(RpcContext rpcContext, LockedInodePath inodePath, long opTimeMs,
-      DeleteOptions deleteOptions) throws FileDoesNotExistException {
+  public void deleteInode(RpcContext rpcContext, LockedInodePath inodePath, long opTimeMs)
+      throws FileDoesNotExistException {
     InodeView inode = inodePath.getInode();
     InodeDirectoryView parent = (InodeDirectoryView) mInodes.getById(inode.getParentId());
     if (parent == null) {
@@ -968,8 +966,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
     mState.applyAndJournal(rpcContext, DeleteFileEntry.newBuilder()
         .setId(inode.getId())
-        .setAlluxioOnly(deleteOptions.isAlluxioOnly())
-        .setRecursive(deleteOptions.isRecursive())
+        .setRecursive(false)
         .setOpTimeMs(opTimeMs)
         .build());
 

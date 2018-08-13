@@ -38,8 +38,10 @@ message CompleteFileEntry {
 // next available id: 5
 message DeleteFileEntry {
   optional int64 id = 1;
+  // Deprecated, we now write one journal entry per inode removed
   optional bool recursive = 2;
   optional int64 op_time_ms = 3;
+  // Deprecated, this field is about whether to delete in the UFS. We don't journal UFS changes.
   optional bool alluxioOnly = 4;
 }
 
