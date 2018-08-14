@@ -30,6 +30,7 @@ public class StandardURI implements URI {
    * reuse URI functionality.
    */
   protected final String mScheme;
+  protected final String mSchemeSpecificPart;
   protected final Authority mAuthority;
   protected final String mPath;
   protected final String mQuery;
@@ -57,6 +58,7 @@ public class StandardURI implements URI {
             .normalize();
       }
       mScheme = uri.getScheme();
+      mSchemeSpecificPart = uri.getSchemeSpecificPart();
       mAuthority = authority;
       mPath = uri.getPath();
       mQuery = uri.getQuery();
@@ -73,6 +75,7 @@ public class StandardURI implements URI {
    */
   protected StandardURI(URI baseUri, String newPath) {
     mScheme = baseUri.getScheme();
+    mSchemeSpecificPart = baseUri.getSchemeSpecificPart();
     mAuthority = baseUri.getAuthority();
     mPath = AlluxioURI.normalizePath(newPath);
     mQuery = baseUri.getQuery();
@@ -107,6 +110,11 @@ public class StandardURI implements URI {
   }
 
   @Override
+  public String getSchemeSpecificPart() {
+    return mSchemeSpecificPart;
+  }
+
+  @Override
   public boolean isAbsolute() {
     return getScheme() != null;
   }
@@ -122,6 +130,10 @@ public class StandardURI implements URI {
     // schemes are equal.
     if (mPath == null) {
       if (other.getPath() == null) {
+        if ((compare = URIUtils.compare(mSchemeSpecificPart, other.getSchemeSpecificPart()))
+            != 0) {
+          return compare;
+        }
         return 0;
       }
       return 1;
@@ -176,8 +188,19 @@ public class StandardURI implements URI {
       return false;
     }
     StandardURI that = (StandardURI) o;
-    return compareScheme(that) == 0
-        && URIUtils.equals(this.mPath, that.mPath)
+    if (compareScheme(that) != 0) {
+      return false;
+    }
+
+    if ((this.mPath == null && that.mPath != null) || (this.mPath != null && that.mPath == null)) {
+      return false;
+    }
+
+    if (this.mPath == null) {
+      return URIUtils.equals(this.mSchemeSpecificPart, that.mSchemeSpecificPart);
+    }
+
+    return URIUtils.equals(this.mPath, that.mPath)
         && URIUtils.equals(this.mQuery, that.mQuery)
         && URIUtils.equals(this.mAuthority.toString(), that.mAuthority.toString());
   }
@@ -189,9 +212,13 @@ public class StandardURI implements URI {
     }
 
     int hashCode = URIUtils.hashIgnoreCase(0, getScheme());
-    hashCode = URIUtils.hash(hashCode, mPath);
-    hashCode = URIUtils.hash(hashCode, mQuery);
-    hashCode = URIUtils.hash(hashCode, mAuthority.toString());
+    if (mPath == null) {
+      hashCode = URIUtils.hash(hashCode, mSchemeSpecificPart);
+    } else {
+      hashCode = URIUtils.hash(hashCode, mPath);
+      hashCode = URIUtils.hash(hashCode, mQuery);
+      hashCode = URIUtils.hash(hashCode, mAuthority.toString());
+    }
     mHashCode = hashCode;
     return hashCode;
   }

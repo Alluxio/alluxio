@@ -435,7 +435,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   public boolean isRoot() {
     return mUri.getPath().equals(SEPARATOR)
-        || (mUri.getPath().isEmpty() && mUri.getAuthority() != null);
+        || (mUri.getPath().isEmpty() && hasAuthority());
   }
 
   /**

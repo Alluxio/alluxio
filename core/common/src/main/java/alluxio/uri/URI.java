@@ -235,6 +235,11 @@ public interface URI extends Comparable<URI>, Serializable {
   String getScheme();
 
   /**
+   * @return the scheme specific part of the {@link URI}, null if there is no scheme
+   */
+  String getSchemeSpecificPart();
+
+  /**
    * Tells whether or not the {@link URI} is absolute.
    *
    * <p>
