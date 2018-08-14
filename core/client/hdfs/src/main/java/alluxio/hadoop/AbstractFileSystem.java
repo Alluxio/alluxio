@@ -40,6 +40,7 @@ import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
+import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -515,13 +516,12 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     AlluxioURI alluxioUri = new AlluxioURI(uri.toString());
     Map<String, Object> alluxioConfProperties = new HashMap<>();
 
-    AlluxioURI.AuthorityType authorityType = alluxioUri.getAuthorityType();
-    if (authorityType == AlluxioURI.AuthorityType.ZOOKEEPER) {
+    if (alluxioUri.getAuthority() instanceof ZookeeperAuthority) {
       ZookeeperAuthority authority = (ZookeeperAuthority) alluxioUri.getAuthority();
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(),
           authority.getZookeeperAddress());
-    } else if (authorityType == AlluxioURI.AuthorityType.SINGLE_MASTER) {
+    } else if (alluxioUri.getAuthority() instanceof SingleMasterAuthority) {
       alluxioConfProperties.put(PropertyKey.MASTER_HOSTNAME.getName(), alluxioUri.getHost());
       alluxioConfProperties.put(PropertyKey.MASTER_RPC_PORT.getName(), alluxioUri.getPort());
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);

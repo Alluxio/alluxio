@@ -146,14 +146,14 @@ public interface URI extends Comparable<URI>, Serializable {
       }
       java.net.URI parentUri;
       java.net.URI childUri;
+      Authority authority = child.getAuthority() instanceof NoAuthority
+          ? parent.getAuthority() : child.getAuthority();
       try {
         // To be compatible with URI, must use the last component of the scheme.
         parentUri = new java.net.URI(getSchemeComponents(parent.getScheme()).getSecond(),
-            parent.getAuthority().toString().equals("") ? null : parent.getAuthority().toString(),
-            parentPath, parent.getQuery(), null);
+            null, parentPath, parent.getQuery(), null);
         childUri = new java.net.URI(getSchemeComponents(child.getScheme()).getSecond(),
-            child.getAuthority().toString().equals("") ? null : child.getAuthority().toString(),
-            child.getPath(), child.getQuery(), null);
+            null, child.getPath(), child.getQuery(), null);
       } catch (URISyntaxException e) {
         throw new IllegalArgumentException(e);
       }
@@ -169,8 +169,7 @@ public interface URI extends Comparable<URI>, Serializable {
         resolvedScheme = parent.getScheme();
       }
 
-      return create(resolvedScheme, Authority.fromString(resolved.getAuthority()),
-          resolved.getPath(), resolved.getQuery());
+      return create(resolvedScheme, authority, resolved.getPath(), resolved.getQuery());
     }
 
     /**

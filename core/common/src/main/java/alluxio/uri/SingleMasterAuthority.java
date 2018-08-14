@@ -16,9 +16,9 @@ import com.google.common.base.Objects;
 /**
  * A single master authority implementation.
  */
-public class SingleMasterAuthority extends OtherAuthority {
-
+public class SingleMasterAuthority implements Authority {
   private static final long serialVersionUID = -8901940466477691715L;
+  private final String mAuthority;
   private final String mHost;
   private final int mPort;
 
@@ -28,7 +28,7 @@ public class SingleMasterAuthority extends OtherAuthority {
    * @param port the port of this authority
    */
   public SingleMasterAuthority(String authority, String host, int port) {
-    super(authority);
+    mAuthority = authority;
     mHost = host;
     mPort = port;
   }
@@ -48,8 +48,13 @@ public class SingleMasterAuthority extends OtherAuthority {
   }
 
   @Override
+  public int compareTo(Authority other) {
+    return toString().compareTo(other.toString());
+  }
+
+  @Override
   public int hashCode() {
-    return Objects.hashCode(mHost, mPort);
+    return Objects.hashCode(mAuthority);
   }
 
   @Override
@@ -62,5 +67,10 @@ public class SingleMasterAuthority extends OtherAuthority {
     }
     SingleMasterAuthority that = (SingleMasterAuthority) o;
     return toString().equals(that.toString());
+  }
+
+  @Override
+  public String toString() {
+    return mAuthority;
   }
 }

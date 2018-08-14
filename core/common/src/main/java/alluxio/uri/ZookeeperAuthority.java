@@ -16,9 +16,10 @@ import com.google.common.base.Objects;
 /**
  * {@link ZookeeperAuthority} supports authority containing Zookeeper addresses.
  */
-public final class ZookeeperAuthority extends OtherAuthority {
+public final class ZookeeperAuthority implements Authority {
   private static final long serialVersionUID = -3549197285125519688L;
 
+  private final String mAuthority;
   private final String mZookeeperAddress;
 
   /**
@@ -26,7 +27,7 @@ public final class ZookeeperAuthority extends OtherAuthority {
    * @param zookeeperAddress the zookeeper address inside the uri
    */
   public ZookeeperAuthority(String authority, String zookeeperAddress) {
-    super(authority);
+    mAuthority = authority;
     mZookeeperAddress = zookeeperAddress;
   }
 
@@ -38,8 +39,13 @@ public final class ZookeeperAuthority extends OtherAuthority {
   }
 
   @Override
+  public int compareTo(Authority other) {
+    return toString().compareTo(other.toString());
+  }
+
+  @Override
   public int hashCode() {
-    return Objects.hashCode(mZookeeperAddress);
+    return Objects.hashCode(mAuthority);
   }
 
   @Override
@@ -52,5 +58,10 @@ public final class ZookeeperAuthority extends OtherAuthority {
     }
     ZookeeperAuthority that = (ZookeeperAuthority) o;
     return toString().equals(that.toString());
+  }
+
+  @Override
+  public String toString() {
+    return mAuthority;
   }
 }

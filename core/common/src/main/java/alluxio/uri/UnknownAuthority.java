@@ -15,10 +15,9 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 /**
- * A authority that does not fall into ZookeeperAuthority,
- * SingleMasterAuthority and NoAuthority implementation.
+ * An unknown authority implementation.
  */
-public class OtherAuthority implements Authority {
+public class UnknownAuthority implements Authority {
   private static final long serialVersionUID = 2580736424809131651L;
 
   private final String mAuthority;
@@ -26,7 +25,7 @@ public class OtherAuthority implements Authority {
   /**
    * @param authority the authority string of the URI
    */
-  public OtherAuthority(String authority) {
+  public UnknownAuthority(String authority) {
     Preconditions.checkArgument(authority != null && authority.length() != 0,
         "authority should not be null or empty string");
     mAuthority = authority;
@@ -42,10 +41,10 @@ public class OtherAuthority implements Authority {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof OtherAuthority)) {
+    if (!(o instanceof UnknownAuthority)) {
       return false;
     }
-    OtherAuthority that = (OtherAuthority) o;
+    UnknownAuthority that = (UnknownAuthority) o;
     return mAuthority.equals(that.mAuthority);
   }
 

@@ -16,13 +16,12 @@ import com.google.common.base.Objects;
 /**
  * A no authority implementation.
  */
-public class NoAuthority implements Authority {
+public final class NoAuthority implements Authority {
   private static final long serialVersionUID = -208199254267143112L;
 
-  /**
-   * Constructs the authority that contains nothing.
-   */
-  public NoAuthority() {}
+  public static final NoAuthority INSTANCE = new NoAuthority();
+
+  private NoAuthority() {} // to prevent initialization
 
   @Override
   public int compareTo(Authority other) {

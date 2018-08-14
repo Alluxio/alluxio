@@ -16,7 +16,6 @@ import alluxio.uri.Authority;
 import alluxio.uri.NoAuthority;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.URI;
-import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
 
@@ -61,28 +60,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   private final URI mUri;
 
   /**
-   * Authority type.
-   */
-  public enum AuthorityType {
-    /**
-     * this URI contains single hostname.
-     */
-    SINGLE_MASTER,
-    /**
-     * this URI contains Zookeeper address.
-     */
-    ZOOKEEPER,
-    /**
-     * this URI contains authority but the authority does not fall into the previous categories.
-     */
-    OTHER,
-    /**
-     * this URI does not have authority.
-     */
-    NONE,
-  }
-
-  /**
    * Constructs an {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
    * elements and some additional normalization.
    *
@@ -96,19 +73,19 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * Constructs an {@link AlluxioURI} from components.
    *
    * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
-   * @param authority the authority of the path. e.g. SingleMasterAuthority, ZookeeperAuthority
+   * @param authority the authority of the path
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    */
   public AlluxioURI(String scheme, Authority authority, String path) {
     mUri = URI.Factory.create(scheme,
-        authority == null ? new NoAuthority() : authority, path, null);
+        authority == null ? NoAuthority.INSTANCE : authority, path, null);
   }
 
   /**
    * Constructs an {@link AlluxioURI} from components.
    *
    * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
-   * @param authority the authority of the path. e.g. SingleMasterAuthority, ZookeeperAuthority
+   * @param authority the authority of the path
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    * @param queryMap the (nullable) map of key/value pairs for the query component of the URI
    */
@@ -159,22 +136,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   public Authority getAuthority() {
     return mUri.getAuthority();
-  }
-
-  /**
-   * @return the authority type of the {@link AlluxioURI}
-   */
-  public AuthorityType getAuthorityType() {
-    Authority authority = mUri.getAuthority();
-    if (authority instanceof NoAuthority) {
-      return AuthorityType.NONE;
-    } else if (authority instanceof ZookeeperAuthority) {
-      return AuthorityType.ZOOKEEPER;
-    } else if (authority instanceof SingleMasterAuthority) {
-      return AuthorityType.SINGLE_MASTER;
-    } else {
-      return AuthorityType.OTHER;
-    }
   }
 
   /**
@@ -275,7 +236,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   @Nullable
   public String getHost() {
-    if (getAuthorityType() == AuthorityType.SINGLE_MASTER) {
+    if (mUri.getAuthority() instanceof SingleMasterAuthority) {
       SingleMasterAuthority authority = (SingleMasterAuthority) mUri.getAuthority();
       return authority.getHost();
     }
@@ -321,7 +282,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the port, -1 if it does not have one
    */
   public int getPort() {
-    if (getAuthorityType() == AuthorityType.SINGLE_MASTER) {
+    if (mUri.getAuthority() instanceof SingleMasterAuthority) {
       SingleMasterAuthority authority = (SingleMasterAuthority) mUri.getAuthority();
       return authority.getPort();
     }

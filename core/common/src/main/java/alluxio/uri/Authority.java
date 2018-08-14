@@ -11,6 +11,9 @@
 
 package alluxio.uri;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.net.URISyntaxException;
 import java.util.regex.Matcher;
@@ -20,6 +23,7 @@ import java.util.regex.Pattern;
  * This interface represents the authority part of a URI.
  */
 public interface Authority extends Comparable<Authority>, Serializable {
+  Logger LOG = LoggerFactory.getLogger(Authority.class);
   Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@(.*)");
 
   /**
@@ -30,7 +34,7 @@ public interface Authority extends Comparable<Authority>, Serializable {
    */
   static Authority fromString(String authority) {
     if (authority == null || authority.length() == 0) {
-      return new NoAuthority();
+      return NoAuthority.INSTANCE;
     }
     Matcher matcher = ZOOKEEPER_AUTH.matcher(authority);
     if (matcher.find()) {
@@ -42,12 +46,13 @@ public interface Authority extends Comparable<Authority>, Serializable {
         // Use java.net.URI to parse the authority
         uri = new java.net.URI("foo", authority, "/", null, null);
       } catch (URISyntaxException e) {
+        LOG.warn("Failed to parse the authority {} of the URI: {}", authority, e.getMessage());
         throw new IllegalArgumentException(e);
       }
       if (uri.getHost() != null) {
         return new SingleMasterAuthority(authority, uri.getHost(), uri.getPort());
       } else {
-        return new OtherAuthority(authority);
+        return new UnknownAuthority(authority);
       }
     }
   }

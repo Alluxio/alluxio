@@ -54,8 +54,7 @@ public class StandardURI implements URI {
       } else {
         uri = new java.net.URI(scheme,
             authority.toString().equals("") ? null : authority.toString(),
-            AlluxioURI.normalizePath(path), query, null)
-            .normalize();
+            AlluxioURI.normalizePath(path), query, null).normalize();
       }
       mScheme = uri.getScheme();
       mSchemeSpecificPart = uri.getSchemeSpecificPart();
@@ -141,7 +140,7 @@ public class StandardURI implements URI {
       return -1;
     }
 
-    if ((compare = URIUtils.compare(mAuthority.toString(), other.getAuthority().toString())) != 0) {
+    if ((compare = mAuthority.compareTo(other.getAuthority())) != 0) {
       return compare;
     }
 
@@ -202,7 +201,7 @@ public class StandardURI implements URI {
 
     return URIUtils.equals(this.mPath, that.mPath)
         && URIUtils.equals(this.mQuery, that.mQuery)
-        && URIUtils.equals(this.mAuthority.toString(), that.mAuthority.toString());
+        && this.mAuthority.equals(that.mAuthority);
   }
 
   @Override
