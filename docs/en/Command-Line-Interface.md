@@ -208,6 +208,13 @@ For example, `getCapacityBytes` can be used to verify if your cluster is set up 
 
 {% include Command-Line-Interface/getCapacityBytes.md %}
 
+### getfacl
+The `getfacl` command returns the ACL entries for a specified file or directory.
+
+For example, `getfacl` can be used to verify ACL is changed successfully after a call to `setfacl`.
+
+{% include Command-Line-Interface/getFacl.md %}
+
 ### getUsedBytes
 
 The `getUsedBytes` command returns the number of used bytes in Alluxio.
@@ -364,6 +371,19 @@ For example, `rm` can be used to remove temporary files which are no longer need
 
 {% include Command-Line-Interface/rm2.md %}
 
+### setfacl
+
+The `setfacl` command modifies the Access Control List associated with a specified file or directory. 
+
+Add `-R` option will apply operations to all files and directories recursively.
+Add `-m` option will modify the ACL by adding/overwriting new entries.
+Add `-x` option will remove specific ACL entries.
+Add `-b` option will remove all ACL entries, except for the base entries.
+Add `-k` option will remove all the default ACL entries.
+
+For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`. 
+
+{% include Command-Line-Interface/setFacl.md %}
 ### setTtl
 
 The `setTtl` command sets the time-to-live of a file or a directory, in milliseconds. If set ttl to a directory, all the children inside that directory will set too. So a directory's TTL expires, all the children inside that directory will also expire. Action parameter will indicate the action to perform once the current time is greater than the TTL + creation time of the file. Action `delete` (default) will delete file or directory from both Alluxio and the under storage system, whereas action `free` will just free the file from Alluxio even they are pinned.
