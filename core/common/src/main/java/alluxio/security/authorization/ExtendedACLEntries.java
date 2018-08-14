@@ -16,7 +16,6 @@ import alluxio.proto.journal.File;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +96,7 @@ public class ExtendedACLEntries {
    *
    * @param entry the entry to be removed
    */
-  public void removeEntry(AclEntry entry) throws IOException {
+  public void removeEntry(AclEntry entry) {
     switch (entry.getType()) {
       case NAMED_USER:
         mNamedUserActions.remove(entry.getSubject());
@@ -107,8 +106,7 @@ public class ExtendedACLEntries {
         return;
       case MASK:
         if (hasExtended()) {
-          // cannot remove the mask if it is extended.
-          throw new IOException(
+          throw new IllegalStateException(
               "Deleting the mask for extended ACLs is not allowed. entry: " + entry);
         } else {
           mMaskActions = new AclActions();

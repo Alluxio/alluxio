@@ -9,23 +9,21 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file;
+package alluxio.master.journal;
 
-import alluxio.AlluxioURI;
-import alluxio.exception.InvalidPathException;
-import alluxio.master.file.meta.InodeView;
-
-import java.io.IOException;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 /**
- * Interface for deleting persisted entries from the UFS.
+ * Interface for classes which can replay journal entries.
  */
-public interface UfsDeleter {
+public interface JournalEntryReplayable {
+
   /**
-   * Deletes a path if not covered by a recursive delete.
+   * Applies a journal entry, returning false if the journal entry is not recognized. This method
+   * should only be used during journal replay.
    *
-   * @param alluxioUri Alluxio path to delete
-   * @param inode to delete
+   * @param entry the entry to apply
+   * @return whether the journal entry was processed
    */
-  void delete(AlluxioURI alluxioUri, InodeView inode) throws IOException, InvalidPathException;
+  boolean replayJournalEntryFromJournal(JournalEntry entry);
 }
