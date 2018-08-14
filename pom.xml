@@ -959,6 +959,9 @@
           <version>2.19.1</version>
           <configuration>
             <argLine>-Djava.net.preferIPv4Stack=true</argLine>
+            <excludes>
+              <exclude>${exclude.tests}</exclude>
+            </excludes>
             <forkCount>${surefire.forkCount}</forkCount>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>
@@ -1228,6 +1231,16 @@
   </reporting>
 
   <profiles>
+    <profile>
+      <id>skipSlowTests</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <exclude.tests>**/BackwardsCompatibilityTest.java</exclude.tests>
+      </properties>
+    </profile>
+
     <profile>
       <id>contractTest</id>
       <properties>

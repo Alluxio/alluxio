@@ -43,7 +43,6 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -69,8 +68,7 @@ import java.util.stream.Collectors;
  * versions (not easy at the moment, could add tooling for this later), or implements
  * supportsVersion to only match the latest version and future versions.
  */
-@Ignore("Test is on the slow side, and doesn't need to be run with every build")
-public class BackwardsCompatibilityTest {
+public final class BackwardsCompatibilityTest {
   // Path relative to tests/src/test
   private static final String OLD_JOURNALS_RESOURCE = "src/test/resources/old_journals";
   // Path is relative to alluxio home directory
