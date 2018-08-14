@@ -33,7 +33,7 @@ public class UnknownAuthority implements Authority {
 
   @Override
   public int compareTo(Authority other) {
-    return mAuthority.compareTo(other.toString());
+    return toString().compareTo(other.toString());
   }
 
   @Override
@@ -45,7 +45,7 @@ public class UnknownAuthority implements Authority {
       return false;
     }
     UnknownAuthority that = (UnknownAuthority) o;
-    return mAuthority.equals(that.mAuthority);
+    return toString().equals(that.toString());
   }
 
   @Override

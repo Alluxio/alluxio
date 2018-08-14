@@ -44,11 +44,6 @@ public final class ZookeeperAuthority implements Authority {
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hashCode(mAuthority);
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -58,6 +53,11 @@ public final class ZookeeperAuthority implements Authority {
     }
     ZookeeperAuthority that = (ZookeeperAuthority) o;
     return toString().equals(that.toString());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mAuthority);
   }
 
   @Override

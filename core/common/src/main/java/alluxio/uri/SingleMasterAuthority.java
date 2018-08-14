@@ -53,11 +53,6 @@ public class SingleMasterAuthority implements Authority {
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hashCode(mAuthority);
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -67,6 +62,11 @@ public class SingleMasterAuthority implements Authority {
     }
     SingleMasterAuthority that = (SingleMasterAuthority) o;
     return toString().equals(that.toString());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mAuthority);
   }
 
   @Override

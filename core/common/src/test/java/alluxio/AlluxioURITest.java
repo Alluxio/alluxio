@@ -473,17 +473,19 @@ public class AlluxioURITest {
     assertEquals("", new AlluxioURI("file:///b/c").getAuthority().toString());
   }
 
-  /**
-   * Tests the {@link AlluxioURI#getAuthorityType()} method.
-   */
   @Test
-  public void getAuthorityTypeTests() {
+  public void AuthorityTypeTests() {
     assertTrue(new AlluxioURI("file", Authority.fromString("localhost"), "/b/c").getAuthority()
         instanceof SingleMasterAuthority);
     assertTrue(new AlluxioURI("file", Authority.fromString("localhost:8080"), "/b/c").getAuthority()
         instanceof SingleMasterAuthority);
+
     assertTrue(new AlluxioURI("file", Authority.fromString("zk@host:port"), "/b/c").getAuthority()
         instanceof ZookeeperAuthority);
+    assertTrue(new AlluxioURI("alluxio://zk@host1:2181,host2:2181,host3:2181/b/c").getAuthority()
+        instanceof ZookeeperAuthority);
+    assertTrue(new AlluxioURI("alluxio://zk@host1:2181;host2:2181;host3:2181/b/c").getAuthority()
+         instanceof ZookeeperAuthority);
 
     assertTrue(new AlluxioURI("file", Authority.fromString(""), "/b/c").getAuthority()
         instanceof NoAuthority);

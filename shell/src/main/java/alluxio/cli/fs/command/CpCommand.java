@@ -487,8 +487,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
     for (AlluxioURI srcPath : srcPaths) {
       try {
         File dstSubFile = new File(dstFile.getAbsoluteFile(), srcPath.getName());
-        copyToLocal(srcPath, new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
-            dstSubFile.getPath()));
+        copyToLocal(srcPath,
+            new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(), dstSubFile.getPath()));
       } catch (IOException e) {
         errorMessages.add(e.getMessage());
       }
@@ -531,8 +531,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
           File subDstFile = new File(dstFile.getAbsolutePath(), status.getName());
           copyToLocal(
               new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
-              new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
-                  subDstFile.getPath()));
+              new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(), subDstFile.getPath()));
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
         }

@@ -14,14 +14,14 @@ package alluxio.uri;
 import com.google.common.base.Objects;
 
 /**
- * A no authority implementation.
+ * A Singleton of NoAuthority, it represents a URI without authority.
  */
 public final class NoAuthority implements Authority {
   private static final long serialVersionUID = -208199254267143112L;
 
   public static final NoAuthority INSTANCE = new NoAuthority();
 
-  private NoAuthority() {} // to prevent initialization
+  private NoAuthority() {} // enforce singleton pattern
 
   @Override
   public int compareTo(Authority other) {
