@@ -43,6 +43,7 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
@@ -68,11 +69,14 @@ import java.util.stream.Collectors;
  * versions (not easy at the moment, could add tooling for this later), or implements
  * supportsVersion to only match the latest version and future versions.
  */
-public final class BackwardsCompatibilityTest {
+public final class BackwardsCompatibilityIntegrationTest {
   // Path relative to tests/src/test
   private static final String OLD_JOURNALS_RESOURCE = "src/test/resources/old_journals";
   // Path is relative to alluxio home directory
   private static final String OLD_JOURNALS = PathUtils.concatPath("tests", OLD_JOURNALS_RESOURCE);
+
+  // Local filesystem directory to mount in the mount operation
+  private static final String LOCAL_FS_MOUNT_DIR = "/tmp/alluxioMount";
 
   private static final List<TestOp> OPS = ImmutableList.<TestOp>builder()
       .add(new CreateDirectory(),
@@ -87,6 +91,11 @@ public final class BackwardsCompatibilityTest {
       ).build();
 
   private MultiProcessCluster mCluster;
+
+  @BeforeClass
+  public static void beforeClass() {
+    new File(LOCAL_FS_MOUNT_DIR).mkdirs();
+  }
 
   @After
   public void after() throws Exception {
@@ -168,7 +177,7 @@ public final class BackwardsCompatibilityTest {
     private static final AlluxioURI ALLUXIO_PATH = new AlluxioURI("/mount");
 
     // This creates a requirement that /tmp exists and the test is allowed to read /tmp
-    private static final AlluxioURI UFS_PATH = new AlluxioURI("/tmp");
+    private static final AlluxioURI UFS_PATH = new AlluxioURI(LOCAL_FS_MOUNT_DIR);
 
     @Override
     public void apply(FileSystem fs) throws Exception {
@@ -487,13 +496,13 @@ public final class BackwardsCompatibilityTest {
    * @param args no args expected
    */
   public static void main(String[] args) throws Exception {
-    File journalDst = new File(BackwardsCompatibilityTest.OLD_JOURNALS,
+    File journalDst = new File(OLD_JOURNALS,
         String.format("journal-%s", ProjectConstants.VERSION));
     if (journalDst.exists()) {
       System.err.printf("%s already exists, delete it first", journalDst.getAbsolutePath());
       System.exit(-1);
     }
-    File backupDst = new File(BackwardsCompatibilityTest.OLD_JOURNALS,
+    File backupDst = new File(OLD_JOURNALS,
         String.format("backup-%s", ProjectConstants.VERSION));
     if (backupDst.exists()) {
       System.err.printf("%s already exists, delete it first", backupDst.getAbsolutePath());
@@ -507,11 +516,11 @@ public final class BackwardsCompatibilityTest {
     try {
       cluster.start();
       cluster.waitForAllNodesRegistered(10 * Constants.SECOND_MS);
-      for (TestOp op : BackwardsCompatibilityTest.OPS) {
+      for (TestOp op : OPS) {
         op.apply(getClients(cluster));
       }
       AlluxioURI backup = cluster.getMetaMasterClient()
-          .backup(new File(BackwardsCompatibilityTest.OLD_JOURNALS).getAbsolutePath(), true)
+          .backup(new File(OLD_JOURNALS).getAbsolutePath(), true)
           .getBackupUri();
       FileUtils.moveFile(new File(backup.getPath()), backupDst);
       cluster.stopMasters();
