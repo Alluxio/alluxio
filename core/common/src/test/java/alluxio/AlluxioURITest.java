@@ -474,7 +474,7 @@ public class AlluxioURITest {
   }
 
   @Test
-  public void AuthorityTypeTests() {
+  public void authorityTypeTests() {
     assertTrue(new AlluxioURI("file", Authority.fromString("localhost"), "/b/c").getAuthority()
         instanceof SingleMasterAuthority);
     assertTrue(new AlluxioURI("file", Authority.fromString("localhost:8080"), "/b/c").getAuthority()
