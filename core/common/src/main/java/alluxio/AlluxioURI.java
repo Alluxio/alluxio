@@ -232,7 +232,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   /**
    * Gets the host of the {@link AlluxioURI}.
    *
-   * @return the host, null if it does not have one
+   * @return the host, null if the authority of this uri
+   *         is not a single master authority
    */
   @Nullable
   public String getHost() {
@@ -279,7 +280,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   /**
    * Gets the port of the {@link AlluxioURI}.
    *
-   * @return the port, -1 if it does not have one
+   * @return the port, -1 if the authority of this uri
+   *         is not a single master authority or it does not have one
    */
   public int getPort() {
     if (mUri.getAuthority() instanceof SingleMasterAuthority) {
