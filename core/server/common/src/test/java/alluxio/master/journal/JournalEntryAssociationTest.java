@@ -27,7 +27,6 @@ import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.InodeLastModificationTimeEntry;
 import alluxio.proto.journal.File.PersistDirectoryEntry;
-import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
@@ -39,9 +38,6 @@ import alluxio.proto.journal.KeyValue.CreateStoreEntry;
 import alluxio.proto.journal.KeyValue.DeleteStoreEntry;
 import alluxio.proto.journal.KeyValue.MergeStoreEntry;
 import alluxio.proto.journal.KeyValue.RenameStoreEntry;
-import alluxio.proto.journal.Lineage.DeleteLineageEntry;
-import alluxio.proto.journal.Lineage.LineageEntry;
-import alluxio.proto.journal.Lineage.LineageIdGeneratorEntry;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,18 +68,14 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setCreateStore(CreateStoreEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setDeleteBlock(DeleteBlockEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setDeleteFile(DeleteFileEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setDeleteLineage(DeleteLineageEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setDeleteMountPoint(DeleteMountPointEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setDeleteStore(DeleteStoreEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setInodeDirectory(InodeDirectoryEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setInodeDirectoryIdGenerator(InodeDirectoryIdGeneratorEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setInodeFile(InodeFileEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setInodeLastModificationTime(InodeLastModificationTimeEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setLineage(LineageEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setLineageIdGenerator(LineageIdGeneratorEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setMergeStore(MergeStoreEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setPersistDirectory(PersistDirectoryEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setReinitializeFile(ReinitializeFileEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRename(RenameEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRenameStore(RenameStoreEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setSetAcl(SetAclEntry.getDefaultInstance()).build(),

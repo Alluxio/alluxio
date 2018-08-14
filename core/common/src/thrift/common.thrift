@@ -39,7 +39,7 @@ enum CommandType {
   Register = 2, // Ask the worker to re-register.
   Free = 3,     // Ask the worker to free files.
   Delete = 4,   // Ask the worker to delete files.
-  Persist = 5,  // Ask the worker to persist a file for lineage
+  Persist = 5,  // Ask the worker to persist a file.
 }
 
 struct ConfigProperty {

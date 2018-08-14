@@ -82,7 +82,6 @@ public final class Constants {
   public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 2;
   public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 2;
-  public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
   public static final long METRICS_MASTER_CLIENT_SERVICE_VERSION = 2;
@@ -92,7 +91,6 @@ public final class Constants {
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
-  public static final String LINEAGE_MASTER_NAME = "LineageMaster";
   public static final String KEY_VALUE_MASTER_NAME = "KeyValueMaster";
   public static final String META_MASTER_NAME = "MetaMaster";
   public static final String METRICS_MASTER_NAME = "MetricsMaster";
@@ -104,7 +102,6 @@ public final class Constants {
   public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";
   public static final String FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME = "FileSystemMasterClient";
   public static final String FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME = "FileSystemMasterWorker";
-  public static final String LINEAGE_MASTER_CLIENT_SERVICE_NAME = "LineageMasterClient";
   // TODO(binfan): set META_MASTER_CLIENT_SERVICE_NAME to "MetaMasterClient" after 2.0.
   // Its value is "MetaMaster" for backwards compatibility so 1.7 clients can talk to 1.8 MetaMaster
   public static final String META_MASTER_CLIENT_SERVICE_NAME = "MetaMaster";

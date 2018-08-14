@@ -36,14 +36,6 @@ alluxio.master.journal.ufs.option:
   journal操作使用的配置。
 alluxio.master.jvm.monitor.enabled:
   是否在master上启动JVM monitor线程。
-alluxio.master.lineage.checkpoint.interval:
-  Alluxio checkpoint机制的时间间隔。
-alluxio.master.lineage.checkpoint.class:
-  用于生成lineage文件的checkpoint策略的类名，默认的策略是将最新的完整的lineage作为检查点，即所有输出文件都完成了的lineage。
-alluxio.master.lineage.recompute.interval:
-  Alluxio执行重新计算任务的时间间隔，executor根据lineage扫描到所有丢失的文件，然后重新执行对应的计算任务。
-alluxio.master.lineage.recompute.log.path:
-  执行重新计算任务时将日志的标准输出重定向到该配置项指定的路径。
 alluxio.master.mount.table.root.alluxio:
   Alluxio mount根节点。
 alluxio.master.mount.table.root.option:

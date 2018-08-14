@@ -77,13 +77,6 @@ funcionalidade `mount`. Além do mais, este garante uma nomenclatura transparent
 arquivos e hierarquia de diretórios para objetos criados no Alluxio serão preservados quando
 estes objetos forem persistidos no sistema de armazenamento inferior.
 
-* **[Linhagem](Lineage-API.html)** O Alluxio pode alcançar altas vazões de escritas sem comprometer
-a tolerância a falha através da utilização de `lineage` (linhagem) onde o resultado perdido
-pode ser recuperado através da re-execução de rotinas que criaram o resultado. Com a linhagem,
-as aplicações escrevem resultados dentro da memória e o Alluxio efetua `checkpoints` periodicamente
-dentro de um `file system` do armazenamento inferior de forma assíncrona. Em caso de falhas, o
-Alluxio inicia rotinas de re-computação para restaurar os arquivos perdidos.
-
 * **[Interface de Usuário Web](Web-Interface.html) & [Linha de Comando](Command-Line-Interface.html)**
 Os usuários podem navegar pelo `file system` facilmente através da `web UI`. No modo `debug`, os
 administradores pode visualizar informações detalhadas de cada arquivo, incluindo localização,

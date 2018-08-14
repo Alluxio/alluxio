@@ -29,7 +29,6 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.lineage.LineageContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -500,9 +499,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       Configuration.set(PropertyKey.MASTER_RPC_PORT, uri.getPort());
     }
 
-    // These must be reset to pick up the change to the master address.
-    // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
-    LineageContext.INSTANCE.reset();
+    // This must be reset to pick up the change to the master address.
     LOG.info("Initializing filesystem context with connect details {}",
         Factory.getConnectDetails(Configuration.global()));
     FileSystemContext.get().reset(Configuration.global());
