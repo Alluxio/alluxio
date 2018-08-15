@@ -248,8 +248,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Starts all masters, including block master, FileSystem master, and additional
-   * masters.
+   * Starts all masters, including block master, FileSystem master, and additional masters.
    *
    * @param isLeader if the Master is leader
    */
