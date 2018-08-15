@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.uri;
 
-import static alluxio.URI.Factory.getSchemeComponents;
+import static alluxio.uri.URI.Factory.getSchemeComponents;
 
 import alluxio.collections.Pair;
 import alluxio.util.URIUtils;
@@ -37,11 +37,11 @@ public final class MultiPartSchemeURI extends StandardURI {
   /**
    * @param schemePrefix the prefix of the scheme string of the URI
    * @param scheme the scheme string of the URI
-   * @param authority the authority string of the URI
+   * @param authority the Authority of the URI
    * @param path the path component of the URI
    * @param query the query component of the URI
    */
-  public MultiPartSchemeURI(String schemePrefix, String scheme, String authority, String path,
+  public MultiPartSchemeURI(String schemePrefix, String scheme, Authority authority, String path,
       String query) {
     super(scheme, authority, path, query);
     mFullScheme = getFullScheme(schemePrefix, mScheme);

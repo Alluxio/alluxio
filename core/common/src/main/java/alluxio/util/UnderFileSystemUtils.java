@@ -134,7 +134,7 @@ public final class UnderFileSystemUtils {
    * @return the bucket or container name of the object storage
    */
   public static String getBucketName(AlluxioURI uri) {
-    return uri.getAuthority();
+    return uri.getAuthority().toString();
   }
 
   /**

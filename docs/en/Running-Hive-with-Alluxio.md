@@ -51,6 +51,9 @@ for Hive. In the following sections, Hive is running on Hadoop MapReduce in this
 
 > Tips：All the following Hive CLI examples are also applicable to Hive Beeline. You can try these commands out in Beeline shell.
 
+> Tips：All the following examples are also applicable to Alluxio in fault tolerant mode with Zookeeper. 
+Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.md#hdfs-api).
+
 ### Create New Tables from Alluxio Files
 
 Hive can create new tables from files stored on Alluxio. The setup is fairly straightforward
@@ -224,7 +227,6 @@ propagated to Alluxio.
   </property>
 </configuration>
 ```
-
 
 ### Add additional Alluxio site properties to Hive
 

@@ -31,12 +31,24 @@ de configuração do `Hadoop`.
 Se você possui uma configuração `Hadoop` com uma instalação `Flink`, adicione a seguinte
 propriedade no arquivo de configuração `core-site.xml`:
 
-{% include Running-Flink-on-Alluxio/core-site-configuration.md %}
+```xml
+<property>
+  <name>fs.alluxio.impl</name>
+  <value>alluxio.hadoop.FileSystem</value>
+</property>
+```
 
 Caso você não possua uma configuração `Hadoop`, você tem que criar um arquivo chamado `core-site.xml` com
 o conteúdo a seguir:
 
-{% include Running-Flink-on-Alluxio/create-core-site.md %}
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+</configuration>
+```
 
 ### Especifique o caminho para `core-site.xml` em `conf/flink-config.yaml`
 
@@ -57,7 +69,9 @@ Existem diferentes maneiras de efetuar isto:
 - Especifique o local do arquivo `jar` na variável de ambiente `HADOOP_CLASSPATH` (tenha certeza que
 isto estará disponível em todo o cluster). Por exemplo:
 
-{% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
+```bash
+$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}
+```
 
 ## Utilizando o Alluxio com Flink
 

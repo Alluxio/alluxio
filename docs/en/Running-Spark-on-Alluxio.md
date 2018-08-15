@@ -173,6 +173,9 @@ service rather than a user-specified hostname derived from the URI.
 > double.saveAsTextFile("alluxio:///Output")
 ```
 
+> Tips：All the previous examples are also applicable to Alluxio in fault tolerant mode with Zookeeper. 
+Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.md#hdfs-api).
+
 ## Advanced Usage
 
 ### Customize Alluxio Setting for Spark Jobs
