@@ -9,8 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.uri;
 
+import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 
 import com.google.common.base.Preconditions;
@@ -103,20 +104,19 @@ public interface URI extends Comparable<URI>, Serializable {
         query = path.substring(question + 1);
         path = path.substring(0, question);
       }
-
-      return create(scheme, authority, path, query);
+      return create(scheme, Authority.fromString(authority), path, query);
     }
 
     /**
      * Creates a {@link URI} from components.
      *
      * @param scheme the scheme string of the URI
-     * @param authority the authority string of the URI
+     * @param authority the authority of the URI
      * @param path the path component of the URI
      * @param query the query component of the URI
      * @return the created {@link URI}
      */
-    public static URI create(String scheme, String authority, String path, String query) {
+    public static URI create(String scheme, Authority authority, String path, String query) {
       Preconditions.checkArgument(path != null, "Can not create a uri with a null path.");
 
       // Handle schemes with two components.
@@ -125,7 +125,6 @@ public interface URI extends Comparable<URI>, Serializable {
       scheme = schemeComponents.getSecond();
 
       if (scheme == null || schemePrefix.isEmpty()) {
-        // This is a standard URI.
         return new StandardURI(scheme, authority, path, query);
       } else {
         return new MultiPartSchemeURI(schemePrefix, scheme, authority, path, query);
@@ -147,12 +146,14 @@ public interface URI extends Comparable<URI>, Serializable {
       }
       java.net.URI parentUri;
       java.net.URI childUri;
+      Authority authority = child.getAuthority() instanceof NoAuthority
+          ? parent.getAuthority() : child.getAuthority();
       try {
         // To be compatible with URI, must use the last component of the scheme.
         parentUri = new java.net.URI(getSchemeComponents(parent.getScheme()).getSecond(),
-            parent.getAuthority(), parentPath, parent.getQuery(), null);
+            null, parentPath, parent.getQuery(), null);
         childUri = new java.net.URI(getSchemeComponents(child.getScheme()).getSecond(),
-            child.getAuthority(), child.getPath(), child.getQuery(), null);
+            null, child.getPath(), child.getQuery(), null);
       } catch (URISyntaxException e) {
         throw new IllegalArgumentException(e);
       }
@@ -168,8 +169,7 @@ public interface URI extends Comparable<URI>, Serializable {
         resolvedScheme = parent.getScheme();
       }
 
-      return create(resolvedScheme, resolved.getAuthority(), resolved.getPath(),
-          resolved.getQuery());
+      return create(resolvedScheme, authority, resolved.getPath(), resolved.getQuery());
     }
 
     /**
@@ -216,12 +216,7 @@ public interface URI extends Comparable<URI>, Serializable {
   /**
    * @return the authority of the {@link URI}, null if it does not have one
    */
-  String getAuthority();
-
-  /**
-   * @return the host of the {@link URI}, null if it does not have one
-   */
-  String getHost();
+  Authority getAuthority();
 
   /**
    * @return the path of the {@link URI}
@@ -232,11 +227,6 @@ public interface URI extends Comparable<URI>, Serializable {
    * @return the query component of the {@link URI}
    */
   String getQuery();
-
-  /**
-   * @return the port of the {@link URI}, -1 if it does not have one
-   */
-  int getPort();
 
   /**
    * @return the scheme of the {@link URI}, null if there is no scheme
