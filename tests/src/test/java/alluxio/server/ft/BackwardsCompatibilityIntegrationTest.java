@@ -91,11 +91,12 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
 
   @Test
   public void readOldJournals() throws Exception {
-    Assume.assumeTrue("Journals must be replayed by the same user that generated them, so this test must "
-        + "be run as root", LoginUser.get().getName().equals("root"));
+    Assume.assumeTrue("Journals must be replayed by the same user that generated them, so this "
+        + "test must be run as root", LoginUser.get().getName().equals("root"));
     // Starts a cluster from each old journal, and checks that all operation checks pass.
-    List<Journal> journals = Arrays.asList(new File(BackwardsCompatibilityJournalGenerator.OLD_JOURNALS_RESOURCE).listFiles()).stream()
-        .map(f -> Journal.parse(f.getAbsolutePath()))
+    List<Journal> journals = Arrays
+        .asList(new File(BackwardsCompatibilityJournalGenerator.OLD_JOURNALS_RESOURCE).listFiles())
+        .stream().map(f -> Journal.parse(f.getAbsolutePath()))
         .filter(Optional::isPresent)
         .map(o -> o.get())
         .collect(Collectors.toList());
