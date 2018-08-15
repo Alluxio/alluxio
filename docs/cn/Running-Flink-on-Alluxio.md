@@ -26,11 +26,23 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 如果你安装Flink的同时安装了Hadoop，将如下属性加到`core-site.xml`配置文件：
 
-{% include Running-Flink-on-Alluxio/core-site-configuration.md %}
+```xml
+<property>
+  <name>fs.alluxio.impl</name>
+  <value>alluxio.hadoop.FileSystem</value>
+</property>
+```
 
 如果你没有安装Hadoop，创建一个包含以下内容的`core-site.xml`文件
 
-{% include Running-Flink-on-Alluxio/create-core-site.md %}
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+</configuration>
+```
 
 ### 在`conf/flink-conf.yaml`中指定`core-site.xml`的路径
 
@@ -48,7 +60,9 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 - 将`{{site.ALLUXIO_CLIENT_JAR_PATH}}`文件放在布置在Yarn中的Flink下的`ship`目录下。
 - 在`HADOOP_CLASSPATH`环境变量中指定该jar文件的路径（要保证该路径对集群中的所有节点都有效）。例如：
 
-{% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
+```bash
+$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}
+```
 
 ### 将Alluxio额外属性转化为Flink属性
 
@@ -73,10 +87,14 @@ Flink中使用Alluxio，指定路径时使用`alluxio://`前缀。
 
 将`LICENSE`文件放入Alluxio中，假定当前目录为Alluxio工程的根目录：
 
-{% include Running-Flink-on-Alluxio/license.md %}
+```bash
+$ bin/alluxio fs copyFromLocal LICENSE alluxio://localhost:19998/LICENSE
+```
 
 在Flink工程的根目录下运行以下命令：
 
-{% include Running-Flink-on-Alluxio/wordcount.md %}
+```bash
+$ bin/flink run examples/batch/WordCount.jar --input alluxio://localhost:19998/LICENSE --output alluxio://localhost:19998/output
+```
 
 接着打开浏览器，进入[http://localhost:19999/browse](http://localhost:19999/browse)，其中应存在一个`output`文件，该文件即为对`LICENSE`文件进行word count的结果。

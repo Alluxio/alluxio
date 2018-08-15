@@ -198,14 +198,40 @@ ZooKeeper for the current leader master.
 
 ##### HDFS API
 
-When communicating with Alluxio in HA mode using the HDFS API, ensure the client side zookeeper
-configuration is properly set. Use `alluxio://` for the scheme but the host and port may be omitted.
-Any host provided in the URL is ignored; `alluxio.zookeeper.address` is used instead for finding the
-Alluxio leader master.
+When communicating with Alluxio in HA mode with Zookeeper using the HDFS API, users can either 
+set the Zookeeper configuration in framework-specific configuration files 
+(e.g. `core-site.xml` for Hadoop MapReduce) or use the Alluxio URI directly.
 
-```
+If the client side Zookeeper configuration is properly set, users can use 'alluxio:///path' to connect to the cluster. 
+`alluxio.zookeeper.address` is used for finding the Alluxio leader master.
+
+```bash
 $ hadoop fs -ls alluxio:///directory
 ```
+
+Alternatively, users can use the Alluxio URI to connect to Alluxio cluster directly.
+
+Use `alluxio://zk@` to tell Alluxio the following addresses are Zookeeper addresses.
+
+For most applications (e.g., Hadoop, HBase, Hive and Flink), you could use
+`alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`:
+
+```bash
+$ hadoop fs -ls alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/directory
+```
+
+Some applications (e.g., Spark), you need to use semicolons to separate Zookeeper addresses:
+
+```scala
+> val s = sc.textFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/LICENSE")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/LICENSE2")
+```
+
+Alluxio will help you set Zookeeper properties and find Alluxio leader master.
+
+If both Zookeeper configuration is set and Alluxio URI is provided, the connection details 
+in the URI will be used for finding the Alluxio leader master.
 
 #### Automatic Fail Over
 
