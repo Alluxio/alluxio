@@ -149,6 +149,8 @@ The following table shows the different types of ACL entries that can appear in 
 |other::permission.      | Sets the access ACLs for all users not specified above.|
 |mask::permission        | Sets the effective rights mask.  The ACL mask indicates the maximum permissions allowed for all users other than the owner and for groups.|
 
+	Notice that ACL entries describing owner's, owning group's and other's permissions exist in the standard POSIX permission bits model already. These three entries are always present in every file and directory. When there are entries in addition to these standard entries, the ACL is considered an extended ACL. A mask entry is automatically generated when an ACL becomes extended. The mask's value is adjusted to be the union of all permissions affected by the mask entry, specifically all the user entries other than the owner and all the group entries. 
+	
 	For example, `user::rw-` is an ACL entry. This entry has the type `user`, with an unspecified name, which means the owner of the file. `rw-` means the owner of the file has `read` and `write` permissions but no `execute` permission. 
 Another example is a file with `group:interns:rwx` and a mask `mask::r--`. The first entry grants all permissions to the group `interns`. 
 However, because the mask is the maximum permission allowed for all groups, the `interns` group will have read-only access to the file.  
