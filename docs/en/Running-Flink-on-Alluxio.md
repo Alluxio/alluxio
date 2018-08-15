@@ -118,4 +118,4 @@ $ bin/flink run examples/batch/WordCount.jar --input alluxio://localhost:19998/L
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There should be an output file `output` which contains the word counts of the file `LICENSE`.
 
 > Tips：The previous example is also applicable to Alluxio in fault tolerant mode with Zookeeper. 
-Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.md#hdfs-api).
+Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
