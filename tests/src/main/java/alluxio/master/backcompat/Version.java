@@ -9,17 +9,22 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.backwards.compatibility;
+package alluxio.master.backcompat;
 
 /**
  * Class for representing a version.
  */
-public class Version implements Comparable<Version> {
+public final class Version implements Comparable<Version> {
   private final int mMajor;
   private final int mMinor;
   private final int mPatch;
 
-  Version(int major, int minor, int patch) {
+  /**
+   * @param major major version
+   * @param minor minor version
+   * @param patch patch version
+   */
+  public Version(int major, int minor, int patch) {
     mMajor = major;
     mMinor = minor;
     mPatch = patch;
@@ -39,6 +44,7 @@ public class Version implements Comparable<Version> {
     return 0;
   }
 
+  @Override
   public String toString() {
     return String.format("%d.%d.%d", mMajor, mMinor, mPatch);
   }

@@ -9,11 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.backwards.compatibility;
+package alluxio.master.backcompat;
 
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemMasterClient;
+import alluxio.multi.process.Clients;
 
+/**
+ * A test operation for use by the backwards compatibility test.
+ */
 public interface TestOp {
   /**
    * Applies the test operation.
@@ -36,26 +38,5 @@ public interface TestOp {
   default boolean supportsVersion(Version version) {
     // Support all versions by default
     return true;
-  }
-
-  /**
-   * Container for various Alluxio clients.
-   */
-  class Clients {
-    private final FileSystem mFs;
-    private final FileSystemMasterClient mFsMaster;
-
-    public Clients(FileSystem fs, FileSystemMasterClient fsm) {
-      mFs = fs;
-      mFsMaster = fsm;
-    }
-
-    public FileSystem getFs() {
-      return mFs;
-    }
-
-    public FileSystemMasterClient getFileSystemMaster() {
-      return mFsMaster;
-    }
   }
 }

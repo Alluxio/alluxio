@@ -9,29 +9,30 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.backwards.compatibility;
+package alluxio.master.backcompat;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.master.MasterClientConfig;
-import alluxio.master.backwards.compatibility.TestOp.Clients;
-import alluxio.multi.process.MultiProcessCluster;
 
-public class Utils {
+/**
+ * Util methods.
+ */
+public final class Utils {
+
+  /**
+   * Creates a file at the given path.
+   *
+   * @param fs a filesystem client
+   * @param path the file path
+   */
   public static void createFile(FileSystem fs, AlluxioURI path) throws Exception {
     try (FileOutStream out =
-             fs.createFile(path, CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB))) {
+        fs.createFile(path, CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB))) {
       out.write("test".getBytes());
     }
-  }
-
-  public static Clients getClients(MultiProcessCluster mCluster) {
-    return new Clients(mCluster.getFileSystemClient(), FileSystemMasterClient.Factory.create(
-        MasterClientConfig.defaults().withMasterInquireClient(mCluster.getMasterInquireClient())));
   }
 
   private Utils() {} // Prevent instantiation

@@ -9,10 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.backwards.compatibility;
+package alluxio.master.backcompat.ops;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.master.backcompat.FsTestOp;
+import alluxio.master.backcompat.Version;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.SetAclAction;
 
@@ -21,7 +23,10 @@ import org.junit.Assert;
 
 import java.util.Arrays;
 
-class SetAcl extends FsTestOp {
+/**
+ * Test for setting an ACL.
+ */
+public final class SetAcl extends FsTestOp {
   private static final AlluxioURI DIR = new AlluxioURI("/dirToSetAcl");
   private static final String ACL_STRING = "group::rwx";
 

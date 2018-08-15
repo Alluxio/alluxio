@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.backwards.compatibility;
+package alluxio.master.backcompat.ops;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -18,6 +18,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.file.meta.PersistenceState;
 
 import org.hamcrest.CoreMatchers;
@@ -25,7 +26,10 @@ import org.junit.Assert;
 
 import java.util.Arrays;
 
-class AsyncPersist extends FsTestOp {
+/**
+ * Test for async persist functionality.
+ */
+public final class AsyncPersist extends FsTestOp {
   private static final AlluxioURI FILE = new AlluxioURI("/asyncPersist");
 
   @Override

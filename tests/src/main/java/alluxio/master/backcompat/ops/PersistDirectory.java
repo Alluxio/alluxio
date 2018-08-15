@@ -9,15 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.backwards.compatibility;
+package alluxio.master.backcompat.ops;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.master.backcompat.FsTestOp;
+import alluxio.master.backcompat.Utils;
 
 import org.junit.Assert;
 
-class PersistDirectory extends FsTestOp {
+/**
+ * Test for persisting a directory.
+ */
+public final class PersistDirectory extends FsTestOp {
   private static final AlluxioURI DIR = new AlluxioURI("/dirToPersist");
   private static final AlluxioURI INNER_FILE = new AlluxioURI("/dirToPersist/innerFile");
 

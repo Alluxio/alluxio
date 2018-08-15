@@ -9,11 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.backwards.compatibility;
+package alluxio.master.backcompat;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.ProjectConstants;
+import alluxio.master.backcompat.ops.AsyncPersist;
+import alluxio.master.backcompat.ops.CreateDirectory;
+import alluxio.master.backcompat.ops.CreateFile;
+import alluxio.master.backcompat.ops.DeleteFile;
+import alluxio.master.backcompat.ops.Mount;
+import alluxio.master.backcompat.ops.PersistDirectory;
+import alluxio.master.backcompat.ops.PersistFile;
+import alluxio.master.backcompat.ops.RenameFile;
+import alluxio.master.backcompat.ops.SetAcl;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.security.LoginUser;
@@ -67,7 +76,8 @@ public final class BackwardsCompatibilityJournalGenerator {
    */
   public static void main(String[] args) throws Exception {
     if (!LoginUser.get().getName().equals("root")) {
-      System.err.printf("Journals must be generated as root so that they can be replayed by root\n");
+      System.err
+          .printf("Journals must be generated as root so that they can be replayed by root\n");
       System.exit(-1);
     }
     File journalDst = new File(OLD_JOURNALS,
@@ -93,7 +103,7 @@ public final class BackwardsCompatibilityJournalGenerator {
       cluster.notifySuccess();
       cluster.waitForAllNodesRegistered(10 * Constants.SECOND_MS);
       for (TestOp op : OPS) {
-        op.apply(Utils.getClients(cluster));
+        op.apply(cluster.getClients());
       }
       AlluxioURI backup = cluster.getMetaMasterClient()
           .backup(new File(OLD_JOURNALS).getAbsolutePath(), true)
@@ -106,7 +116,7 @@ public final class BackwardsCompatibilityJournalGenerator {
     } finally {
       cluster.destroy();
     }
-    System.out.printf("Artifacts successfully generated in %s and %s\n",
+    System.out.printf("Artifacts successfully generated at %s and %s\n",
         journalDst.getAbsolutePath(), backupDst.getAbsolutePath());
   }
 }

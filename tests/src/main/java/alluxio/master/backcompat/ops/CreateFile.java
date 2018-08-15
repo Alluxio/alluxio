@@ -9,31 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.backwards.compatibility;
+package alluxio.master.backcompat.ops;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.master.backcompat.FsTestOp;
+import alluxio.master.backcompat.Utils;
 
 import org.junit.Assert;
 
-import java.io.File;
-
-class Mount extends FsTestOp {
-  private static final AlluxioURI ALLUXIO_PATH = new AlluxioURI("/mount");
-
-  private static final String LOCAL_FS_MOUNT_DIR = "/tmp/alluxioMount";
-  // This creates a requirement that /tmp/alluxioMount exists and is readable by the test
-  private static final AlluxioURI UFS_PATH = new AlluxioURI(LOCAL_FS_MOUNT_DIR);
+/**
+ * Test for file creation.
+ */
+public final class CreateFile extends FsTestOp {
+  private static final AlluxioURI PATH = new AlluxioURI("/createFile");
 
   @Override
   public void apply(FileSystem fs) throws Exception {
-    new File(LOCAL_FS_MOUNT_DIR).mkdirs();
-    fs.mount(ALLUXIO_PATH, UFS_PATH);
-    fs.unmount(ALLUXIO_PATH);
+    Utils.createFile(fs, PATH);
   }
 
   @Override
   public void check(FileSystem fs) throws Exception {
-    Assert.assertFalse("Mounted and unmounted directory should not exist", fs.exists(ALLUXIO_PATH));
+    Assert.assertTrue("Created file should exist", fs.exists(PATH));
   }
 }

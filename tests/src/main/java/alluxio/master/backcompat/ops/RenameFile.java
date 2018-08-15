@@ -9,14 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.backwards.compatibility;
+package alluxio.master.backcompat.ops;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.master.backcompat.FsTestOp;
+import alluxio.master.backcompat.Utils;
 
 import org.junit.Assert;
 
-class RenameFile extends FsTestOp {
+/**
+ * Test for renaming a file.
+ */
+public final class RenameFile extends FsTestOp {
   private static final AlluxioURI SRC = new AlluxioURI("/fileToRename");
   private static final AlluxioURI DST = new AlluxioURI("/fileRenameTarget");
 

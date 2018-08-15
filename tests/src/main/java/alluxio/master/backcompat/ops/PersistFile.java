@@ -9,17 +9,22 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.backwards.compatibility;
+package alluxio.master.backcompat.ops;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
+import alluxio.master.backcompat.TestOp;
+import alluxio.master.backcompat.Utils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import org.junit.Assert;
 
-class PersistFile implements TestOp {
+/**
+ * Test for persisting a file.
+ */
+public final class PersistFile implements TestOp {
   private static final AlluxioURI PATH = new AlluxioURI("/fileToPersist");
 
   @Override

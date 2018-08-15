@@ -14,11 +14,10 @@ package alluxio.server.ft;
 import alluxio.AlluxioTestDirectory;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.master.backwards.compatibility.BackwardsCompatibilityJournalGenerator;
-import alluxio.master.backwards.compatibility.Journal;
-import alluxio.master.backwards.compatibility.TestOp;
-import alluxio.master.backwards.compatibility.TestOp.Clients;
-import alluxio.master.backwards.compatibility.Utils;
+import alluxio.master.backcompat.BackwardsCompatibilityJournalGenerator;
+import alluxio.master.backcompat.Journal;
+import alluxio.master.backcompat.TestOp;
+import alluxio.multi.process.Clients;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.Builder;
 import alluxio.multi.process.PortCoordination;
@@ -76,7 +75,7 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
         .build();
     mCluster.start();
     mCluster.waitForAllNodesRegistered(10 * Constants.SECOND_MS);
-    Clients clients = Utils.getClients(mCluster);
+    Clients clients = mCluster.getClients();
 
     for (TestOp op : BackwardsCompatibilityJournalGenerator.OPS) {
       op.apply(clients);
@@ -120,7 +119,7 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
       try {
         mCluster.start();
         mCluster.waitForAllNodesRegistered(10 * Constants.SECOND_MS);
-        Clients clients = Utils.getClients(mCluster);
+        Clients clients = mCluster.getClients();
         for (TestOp op : BackwardsCompatibilityJournalGenerator.OPS) {
           if (op.supportsVersion(journal.getVersion())) {
             op.check(clients);

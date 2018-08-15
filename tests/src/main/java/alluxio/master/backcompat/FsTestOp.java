@@ -9,23 +9,25 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.backwards.compatibility;
+package alluxio.master.backcompat;
 
-import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 
-import org.junit.Assert;
-
-class CreateDirectory extends FsTestOp {
-  private static final AlluxioURI DIR = new AlluxioURI("/createDirectory");
-
+/**
+ * A test operation which only needs the FileSystem client.
+ */
+public abstract class FsTestOp implements TestOp {
   @Override
-  public void apply(FileSystem fs) throws Exception {
-    fs.createDirectory(DIR);
+  public void apply(Clients clients) throws Exception {
+    apply(clients.getFs());
   }
 
+  protected abstract void apply(FileSystem fs) throws Exception;
+
   @Override
-  public void check(FileSystem fs) throws Exception {
-    Assert.assertTrue("Created directory should exist", fs.exists(DIR));
+  public void check(Clients clients) throws Exception {
+    check(clients.getFs());
   }
+
+  protected abstract void check(FileSystem fs) throws Exception;
 }

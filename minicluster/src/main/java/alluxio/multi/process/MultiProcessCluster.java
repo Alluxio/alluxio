@@ -21,9 +21,11 @@ import alluxio.PropertyKey;
 import alluxio.cli.Format;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientConfig;
@@ -303,6 +305,20 @@ public final class MultiProcessCluster {
         "must be in the started state to get a meta master client, but state was %s", mState);
     return new RetryHandlingMetaMasterClient(new MasterClientConfig()
         .withMasterInquireClient(getMasterInquireClient()));
+  }
+
+  /**
+   * @return clients for communicating with the cluster
+   */
+  public Clients getClients() {
+    Preconditions.checkState(mState == State.STARTED,
+        "must be in the started state to get a meta master client, but state was %s", mState);
+    MasterClientConfig config = MasterClientConfig.defaults()
+        .withMasterInquireClient(getMasterInquireClient());
+    return new Clients(getFileSystemClient(),
+        new RetryHandlingFileSystemMasterClient(config),
+        new RetryHandlingMetaMasterClient(config),
+        new RetryHandlingBlockMasterClient(config));
   }
 
   /**

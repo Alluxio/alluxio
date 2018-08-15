@@ -9,14 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.backwards.compatibility;
+package alluxio.master.backcompat;
 
 import java.io.File;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Journal {
+/**
+ * Class representing a journal used by the backwards compatibility test.
+ */
+public final class Journal {
   private static final String VERSION = "(?<major>\\d+).(?<minor>\\d+).(?<patch>\\d+).*";
   private static final Pattern JOURNAL_VERSION_RE = Pattern.compile("journal-" + VERSION);
   private static final Pattern BACKUP_VERSION_RE = Pattern.compile("backup-" + VERSION);
