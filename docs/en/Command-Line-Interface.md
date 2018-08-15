@@ -208,6 +208,15 @@ For example, `getCapacityBytes` can be used to verify if your cluster is set up 
 
 {% include Command-Line-Interface/getCapacityBytes.md %}
 
+### getfacl
+The `getfacl` command returns the ACL entries for a specified file or directory.
+
+For example, `getfacl` can be used to verify that an ACL is changed successfully after a call to `setfacl`.
+
+```bash
+$ ./bin/alluxio fs getfacl /testdir/testfile
+```
+
 ### getUsedBytes
 
 The `getUsedBytes` command returns the number of used bytes in Alluxio.
@@ -363,6 +372,22 @@ Add `-R` option will delete all contents of the directory and then the directory
 For example, `rm` can be used to remove temporary files which are no longer needed.
 
 {% include Command-Line-Interface/rm2.md %}
+
+### setfacl
+
+The `setfacl` command modifies the access control list associated with a specified file or directory. 
+
+The`-R` option will apply operations to all files and directories recursively.
+The `-m` option will modify the ACL by adding/overwriting new entries.
+The `-x` option will remove specific ACL entries.
+The `-b` option will remove all ACL entries, except for the base entries.
+The `-k` option will remove all the default ACL entries.
+
+For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`. 
+
+```bash
+$ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
+```
 
 ### setTtl
 
