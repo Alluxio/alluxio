@@ -20,14 +20,14 @@ import alluxio.multi.process.Clients;
 public abstract class FsTestOp implements TestOp {
   @Override
   public void apply(Clients clients) throws Exception {
-    apply(clients.getFs());
+    apply(clients.getFileSystemClient());
   }
 
   protected abstract void apply(FileSystem fs) throws Exception;
 
   @Override
   public void check(Clients clients) throws Exception {
-    check(clients.getFs());
+    check(clients.getFileSystemClient());
   }
 
   protected abstract void check(FileSystem fs) throws Exception;

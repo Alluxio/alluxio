@@ -30,9 +30,9 @@ public final class PersistFile implements TestOp {
 
   @Override
   public void apply(Clients clients) throws Exception {
-    FileSystem fs = clients.getFs();
+    FileSystem fs = clients.getFileSystemClient();
     Utils.createFile(fs, PATH);
-    clients.getFileSystemMaster().scheduleAsyncPersist(PATH);
+    clients.getFileSystemMasterClient().scheduleAsyncPersist(PATH);
     CommonUtils.waitFor("file to be async persisted", () -> {
       try {
         return fs.getStatus(PATH).isPersisted();
@@ -45,6 +45,6 @@ public final class PersistFile implements TestOp {
   @Override
   public void check(Clients clients) throws Exception {
     Assert.assertTrue("Persisted file should be persisted",
-        clients.getFs().getStatus(PATH).isPersisted());
+        clients.getFileSystemClient().getStatus(PATH).isPersisted());
   }
 }

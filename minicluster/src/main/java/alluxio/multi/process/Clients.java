@@ -42,28 +42,28 @@ public final class Clients {
   /**
    * @return the filesystem client
    */
-  public FileSystem getFs() {
+  public FileSystem getFileSystemClient() {
     return mFs;
   }
 
   /**
    * @return the filesystem master client
    */
-  public FileSystemMasterClient getFileSystemMaster() {
+  public FileSystemMasterClient getFileSystemMasterClient() {
     return mFsMaster;
   }
 
   /**
    * @return the meta master client
    */
-  public MetaMasterClient getMetaMaster() {
+  public MetaMasterClient getMetaMasterClient() {
     return mMetaMaster;
   }
 
   /**
    * @return the block master client
    */
-  public BlockMasterClient getBlockMaster() {
+  public BlockMasterClient getBlockMasterClient() {
     return mBlockMaster;
   }
 }
