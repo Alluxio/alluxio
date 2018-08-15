@@ -77,7 +77,7 @@ rmr:
   Remove a file, or a directory with all the files and sub-directories that this directory
   contains.
 setfacl:
-  set the Access Control List of a file or directory.
+  Set the Access Control List of a file or directory.
 setTtl:
   Set the TTL (time to live) in milliseconds for a file. Allow to perform either "delete"
   or "free" after expiry of ttl interval.
