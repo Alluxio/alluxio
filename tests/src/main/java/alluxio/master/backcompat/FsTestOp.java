@@ -12,6 +12,7 @@
 package alluxio.master.backcompat;
 
 import alluxio.client.file.FileSystem;
+import alluxio.multi.process.Clients;
 
 /**
  * A test operation which only needs the FileSystem client.

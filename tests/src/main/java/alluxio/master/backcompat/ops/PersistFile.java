@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.master.backcompat.TestOp;
 import alluxio.master.backcompat.Utils;
+import alluxio.multi.process.Clients;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 

@@ -38,19 +38,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Tests that the current version can read journals from previous versions.
- *
- * This class has a main() method which can be used to populate src/test/resources/old_journals
- * with a journal and journal backup built from the current version. Whenever we release, we
- * generate new journal artifacts for the released version. The readOldJournals test will iterate
- * over all journal artifacts, replay them using the current version, and verify the results.
+ * Tests that the current version can read journals from previous versions, including the current
+ * version.
  *
  * To cover many types of journal entries, the test runs a series of TestOps, each of which makes
  * some independent modification to master state, and has a method to verify that the change was
  * correctly applied. To add a new TestOp, implement the TestOp interface or extend FsTestOp, and
- * add your TestOp to the OPS list. Also, either re-generate all journal artifacts from previous
- * versions (not easy at the moment, could add tooling for this later), or implements
- * supportsVersion to only match the latest version and future versions.
+ * add your TestOp to the OPS list. Then either re-generate all journal artifacts from previous
+ * versions (not easy at the moment, could add tooling for this later), or implement
+ * TestOp#supportsVersion to only match the latest version and future versions.
  */
 public final class BackwardsCompatibilityIntegrationTest extends BaseIntegrationTest {
   private static final Logger LOG =
@@ -130,5 +126,4 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
       }
     }
   }
-
 }

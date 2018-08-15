@@ -35,19 +35,17 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Tests that the current version can read journals from previous versions.
+ * Generates journals for consumption by the BackwardsCompatibilityIntegrationTest.
  *
- * This class has a main() method which can be used to populate src/test/resources/old_journals
- * with a journal and journal backup built from the current version. Whenever we release, we
- * generate new journal artifacts for the released version. The readOldJournals test will iterate
- * over all journal artifacts, replay them using the current version, and verify the results.
+ * This class
+ * 1. starts a new cluster
+ * 2. runs all the test operations listed in OPS
+ * 3. takes a journal backup at stores it to src/test/resources/old_journals
+ * 4. stops the cluster
+ * 5. copies the journal to src/test/resources/old_journals
  *
- * To cover many types of journal entries, the test runs a series of TestOps, each of which makes
- * some independent modification to master state, and has a method to verify that the change was
- * correctly applied. To add a new TestOp, implement the TestOp interface or extend FsTestOp, and
- * add your TestOp to the OPS list. Also, either re-generate all journal artifacts from previous
- * versions (not easy at the moment, could add tooling for this later), or implements
- * supportsVersion to only match the latest version and future versions.
+ * Later, BackwardsCompatibilityIntegrationTest will start clusters from the backups and copies
+ * in old_journals, and validate that the operations' checks pass.
  */
 public final class BackwardsCompatibilityJournalGenerator {
   // Path relative to tests/src/test
