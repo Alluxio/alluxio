@@ -34,6 +34,7 @@ import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.Builder;
 import alluxio.multi.process.PortCoordination;
 import alluxio.security.authorization.AclEntry;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -45,6 +46,8 @@ import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Arrays;
@@ -69,7 +72,10 @@ import java.util.stream.Collectors;
  * versions (not easy at the moment, could add tooling for this later), or implements
  * supportsVersion to only match the latest version and future versions.
  */
-public final class BackwardsCompatibilityIntegrationTest {
+public final class BackwardsCompatibilityIntegrationTest extends BaseIntegrationTest {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(BackwardsCompatibilityIntegrationTest.class);
+
   // Path relative to tests/src/test
   private static final String OLD_JOURNALS_RESOURCE = "src/test/resources/old_journals";
   // Path is relative to alluxio home directory
@@ -169,7 +175,7 @@ public final class BackwardsCompatibilityIntegrationTest {
 
     @Override
     public void check(FileSystem fs) throws Exception {
-      assertTrue(fs.exists(PATH));
+      assertTrue("Created file should exist", fs.exists(PATH));
     }
   }
 
@@ -187,7 +193,7 @@ public final class BackwardsCompatibilityIntegrationTest {
 
     @Override
     public void check(FileSystem fs) throws Exception {
-      assertFalse(fs.exists(ALLUXIO_PATH));
+      assertFalse("Mounted and unmounted directory should not exist", fs.exists(ALLUXIO_PATH));
     }
   }
 
@@ -205,7 +211,7 @@ public final class BackwardsCompatibilityIntegrationTest {
     @Override
     public void check(FileSystem fs) throws Exception {
       URIStatus status = fs.getStatus(FILE);
-      assertThat(
+      assertThat("Async persisted file should be PERSISTED or TO_BE_PERSISTED",
           Arrays.asList(PersistenceState.PERSISTED.name(), PersistenceState.TO_BE_PERSISTED.name()),
           CoreMatchers.hasItem(status.getPersistenceState()));
     }
@@ -222,7 +228,7 @@ public final class BackwardsCompatibilityIntegrationTest {
 
     @Override
     public void check(FileSystem fs) throws Exception {
-      assertFalse(fs.exists(PATH));
+      assertFalse("Deleted file should not exist", fs.exists(PATH));
     }
   }
 
@@ -245,7 +251,8 @@ public final class BackwardsCompatibilityIntegrationTest {
 
     @Override
     public void check(Clients clients) throws Exception {
-      assertTrue(clients.getFs().getStatus(PATH).isPersisted());
+      assertTrue("Persisted file should be persisted",
+          clients.getFs().getStatus(PATH).isPersisted());
     }
   }
 
@@ -262,8 +269,8 @@ public final class BackwardsCompatibilityIntegrationTest {
 
     @Override
     public void check(FileSystem fs) throws Exception {
-      assertTrue(fs.getStatus(DIR).isPersisted());
-      assertTrue(fs.getStatus(INNER_FILE).isPersisted());
+      assertTrue("Parent directory should be persisted", fs.getStatus(DIR).isPersisted());
+      assertTrue("Persisted file should be persisted", fs.getStatus(INNER_FILE).isPersisted());
     }
   }
 
@@ -279,8 +286,8 @@ public final class BackwardsCompatibilityIntegrationTest {
 
     @Override
     public void check(FileSystem fs) throws Exception {
-      assertFalse(fs.exists(SRC));
-      assertTrue(fs.exists(DST));
+      assertFalse("Rename src should not exist", fs.exists(SRC));
+      assertTrue("Rename dst should exist", fs.exists(DST));
     }
   }
 
@@ -296,7 +303,8 @@ public final class BackwardsCompatibilityIntegrationTest {
 
     @Override
     public void check(FileSystem fs) throws Exception {
-      assertThat(fs.getStatus(DIR).getAcl().toString(), containsString(ACL_STRING));
+      assertThat("Acl should be set", fs.getStatus(DIR).getAcl().toString(),
+          containsString(ACL_STRING));
     }
 
     @Override
@@ -338,6 +346,7 @@ public final class BackwardsCompatibilityIntegrationTest {
         .collect(Collectors.toList());
     for (Journal journal : journals) {
       System.out.printf("Checking journal %s\n", journal.getDir());
+      LOG.info("Checking journal %s\n", journal.getDir());
       Builder builder = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_FAILURE)
           .setClusterName("BackwardsCompatibility")
           .setNumMasters(1)
