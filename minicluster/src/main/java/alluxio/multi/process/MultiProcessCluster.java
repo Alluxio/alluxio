@@ -310,7 +310,7 @@ public final class MultiProcessCluster {
   /**
    * @return clients for communicating with the cluster
    */
-  public Clients getClients() {
+  public synchronized Clients getClients() {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to get a meta master client, but state was %s", mState);
     MasterClientConfig config = MasterClientConfig.defaults()
