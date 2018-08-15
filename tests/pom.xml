@@ -30,7 +30,11 @@
   </properties>
 
   <dependencies>
-    <!-- External test dependencies -->
+    <!-- External dependencies -->
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>

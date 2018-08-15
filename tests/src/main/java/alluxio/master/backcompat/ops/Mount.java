@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.master.backcompat.FsTestOp;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Assert;
 
 import java.io.File;
@@ -30,6 +31,10 @@ public final class Mount extends FsTestOp {
   private static final AlluxioURI UFS_PATH = new AlluxioURI(LOCAL_FS_MOUNT_DIR);
 
   @Override
+  @SuppressFBWarnings(
+      value = "DMI_HARDCODED_ABSOLUTE_FILENAME",
+      justification = "Findbugs doesn't like the use of an absolute path. However, we need one "
+      + "here so that generated journals are portable across machines")
   public void apply(FileSystem fs) throws Exception {
     new File(LOCAL_FS_MOUNT_DIR).mkdirs();
     fs.mount(ALLUXIO_PATH, UFS_PATH);

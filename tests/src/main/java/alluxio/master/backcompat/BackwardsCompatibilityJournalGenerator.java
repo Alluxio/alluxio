@@ -26,8 +26,9 @@ import alluxio.master.backcompat.ops.SetAcl;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.security.LoginUser;
-import alluxio.util.io.PathUtils;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.FileUtils;
 
@@ -50,8 +51,6 @@ import java.util.List;
 public final class BackwardsCompatibilityJournalGenerator {
   // Path relative to tests/src/test
   public static final String OLD_JOURNALS_RESOURCE = "src/test/resources/old_journals";
-  // Path is relative to alluxio home directory
-  private static final String OLD_JOURNALS = PathUtils.concatPath("tests", OLD_JOURNALS_RESOURCE);
 
   public static final List<TestOp> OPS = ImmutableList.<TestOp>builder()
       .add(new CreateDirectory(),
@@ -65,6 +64,17 @@ public final class BackwardsCompatibilityJournalGenerator {
           new SetAcl()
       ).build();
 
+  @Parameter(required = true, names = {"-o", "--outputDirectory"},
+      description = "The directory to write generated journal artifacts to")
+  private String mOutputDirectory;
+
+  /**
+   * @return the output directory
+   */
+  public String getOutputDirectory() {
+    return mOutputDirectory;
+  }
+
   /**
    * Generates journal files to be used by the backwards compatibility test. The files are named
    * based on the current version defined in ProjectConstants.VERSION. Run this with each release,
@@ -73,21 +83,23 @@ public final class BackwardsCompatibilityJournalGenerator {
    * @param args no args expected
    */
   public static void main(String[] args) throws Exception {
+    BackwardsCompatibilityJournalGenerator generator = new BackwardsCompatibilityJournalGenerator();
+    new JCommander(generator, args);
     if (!LoginUser.get().getName().equals("root")) {
       System.err
-          .printf("Journals must be generated as root so that they can be replayed by root\n");
+          .printf("Journals must be generated as root so that they can be replayed by root%n");
       System.exit(-1);
     }
-    File journalDst = new File(OLD_JOURNALS,
+    File journalDst = new File(generator.getOutputDirectory(),
         String.format("journal-%s", ProjectConstants.VERSION));
     if (journalDst.exists()) {
-      System.err.printf("%s already exists, delete it first\n", journalDst.getAbsolutePath());
+      System.err.printf("%s already exists, delete it first%n", journalDst.getAbsolutePath());
       System.exit(-1);
     }
-    File backupDst = new File(OLD_JOURNALS,
+    File backupDst = new File(generator.getOutputDirectory(),
         String.format("backup-%s", ProjectConstants.VERSION));
     if (backupDst.exists()) {
-      System.err.printf("%s already exists, delete it first\n", backupDst.getAbsolutePath());
+      System.err.printf("%s already exists, delete it first%n", backupDst.getAbsolutePath());
       System.exit(-1);
     }
     MultiProcessCluster cluster =
@@ -104,7 +116,7 @@ public final class BackwardsCompatibilityJournalGenerator {
         op.apply(cluster.getClients());
       }
       AlluxioURI backup = cluster.getMetaMasterClient()
-          .backup(new File(OLD_JOURNALS).getAbsolutePath(), true)
+          .backup(new File(generator.getOutputDirectory()).getAbsolutePath(), true)
           .getBackupUri();
       FileUtils.moveFile(new File(backup.getPath()), backupDst);
       cluster.stopMasters();
@@ -114,7 +126,7 @@ public final class BackwardsCompatibilityJournalGenerator {
     } finally {
       cluster.destroy();
     }
-    System.out.printf("Artifacts successfully generated at %s and %s\n",
+    System.out.printf("Artifacts successfully generated at %s and %s%n",
         journalDst.getAbsolutePath(), backupDst.getAbsolutePath());
   }
 }
