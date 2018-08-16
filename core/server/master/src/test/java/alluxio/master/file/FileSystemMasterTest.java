@@ -11,10 +11,13 @@
 
 package alluxio.master.file;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -1402,6 +1405,70 @@ public final class FileSystemMasterTest {
     for (FileInfo info : infos) {
       assertEquals(newEntries, Sets.newHashSet(info.convertAclToStringEntries()));
     }
+  }
+
+  @Test
+  public void removeExtendedAclMask() throws Exception {
+    mFileSystemMaster.createDirectory(NESTED_URI,
+        CreateDirectoryOptions.defaults().setRecursive(true));
+    AclEntry newAcl = AclEntry.fromCliString("user:newuser:rwx");
+    // Add an ACL
+    addAcl(NESTED_URI, newAcl);
+    assertThat(getFileInfo(NESTED_URI).getAcl().getEntries(), hasItem(newAcl));
+
+    // Attempt to remove the ACL mask
+    AclEntry maskEntry = AclEntry.fromCliString("mask::rwx");
+    assertThat(getFileInfo(NESTED_URI).getAcl().getEntries(), hasItem(maskEntry));
+    try {
+      removeAcl(NESTED_URI, maskEntry);
+      fail("Expected removing the mask from an extended ACL to fail");
+    } catch (IOException e) {
+      assertThat(e.getMessage(), containsString("mask"));
+    }
+
+    // Remove the extended ACL
+    removeAcl(NESTED_URI, newAcl);
+    // Now we can add and remove a mask
+    addAcl(NESTED_URI, maskEntry);
+    removeAcl(NESTED_URI, maskEntry);
+  }
+
+  @Test
+  public void removeExtendedDefaultAclMask() throws Exception {
+    mFileSystemMaster.createDirectory(NESTED_URI,
+        CreateDirectoryOptions.defaults().setRecursive(true));
+    AclEntry newAcl = AclEntry.fromCliString("default:user:newuser:rwx");
+    // Add an ACL
+    addAcl(NESTED_URI, newAcl);
+    assertThat(getFileInfo(NESTED_URI).getDefaultAcl().getEntries(), hasItem(newAcl));
+
+    // Attempt to remove the ACL mask
+    AclEntry maskEntry = AclEntry.fromCliString("default:mask::rwx");
+    assertThat(getFileInfo(NESTED_URI).getDefaultAcl().getEntries(), hasItem(maskEntry));
+    try {
+      removeAcl(NESTED_URI, maskEntry);
+      fail("Expected removing the mask from an extended ACL to fail");
+    } catch (IOException e) {
+      assertThat(e.getMessage(), containsString("mask"));
+    }
+
+    // Remove the extended ACL
+    removeAcl(NESTED_URI, newAcl);
+    // Now we can add and remove a mask
+    addAcl(NESTED_URI, maskEntry);
+    removeAcl(NESTED_URI, maskEntry);
+  }
+
+  private void addAcl(AlluxioURI uri, AclEntry acl) throws Exception {
+    mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, Arrays.asList(acl), SetAclOptions.defaults());
+  }
+
+  private void removeAcl(AlluxioURI uri, AclEntry acl) throws Exception {
+    mFileSystemMaster.setAcl(uri, SetAclAction.REMOVE, Arrays.asList(acl), SetAclOptions.defaults());
+  }
+
+  private FileInfo getFileInfo(AlluxioURI uri) throws Exception {
+    return mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
   }
 
   /**
