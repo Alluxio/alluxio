@@ -158,7 +158,7 @@
     <slf4j.version>1.7.2</slf4j.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
-    <surefire.excludesFile>no-excludes</surefire.excludesFile>
+    <surefire.excludesFile>slow-tests</surefire.excludesFile>
     <test.output.redirect>true</test.output.redirect>
   </properties>
 
@@ -1228,12 +1228,9 @@
 
   <profiles>
     <profile>
-      <id>skipSlowTests</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
+      <id>runAllTests</id>
       <properties>
-        <surefire.excludesFile>slow-tests</surefire.excludesFile>
+        <surefire.excludesFile>no-excludes</surefire.excludesFile>
       </properties>
     </profile>
 
