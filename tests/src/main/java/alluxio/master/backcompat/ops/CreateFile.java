@@ -36,7 +36,7 @@ public final class CreateFile extends FsTestOp {
   private static final Mode TEST_MODE = ModeParser.parse("u=rw,g=x");
   private static final AlluxioURI MODE = new AlluxioURI("/createFileMode/a");
   private static final AlluxioURI THROUGH = new AlluxioURI("/createFileThrough/a");
-  private static long TEST_TTL = Long.MAX_VALUE / 2;
+  private static final long TEST_TTL = Long.MAX_VALUE / 2;
   private static final AlluxioURI TTL = new AlluxioURI("/createFileTtl/a");
 
   @Override
