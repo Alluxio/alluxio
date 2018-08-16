@@ -2527,9 +2527,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     List<String> pinnedFiles = new ArrayList<>();
     for (long pinId : getPinIdList()) {
       try {
-        String pinFilePath = getPath(pinId).getPath();
+        // check if the user has permission to list pinned file
+        long fileId = getFileId(getPath(pinId));
+        String pinFilePath = getPath(fileId).getPath();
         pinnedFiles.add(pinFilePath);
-      } catch (FileDoesNotExistException e) {
+      } catch (FileDoesNotExistException | UnavailableException | AccessControlException e) {
         LOG.warn("Failed to find file for id {}: {}", pinId, e.getMessage());
       }
     }
