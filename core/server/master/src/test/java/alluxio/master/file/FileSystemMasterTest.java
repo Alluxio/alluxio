@@ -1414,11 +1414,11 @@ public final class FileSystemMasterTest {
     AclEntry newAcl = AclEntry.fromCliString("user:newuser:rwx");
     // Add an ACL
     addAcl(NESTED_URI, newAcl);
-    assertThat(getFileInfo(NESTED_URI).getAcl().getEntries(), hasItem(newAcl));
+    assertThat(getInfo(NESTED_URI).getAcl().getEntries(), hasItem(newAcl));
 
     // Attempt to remove the ACL mask
     AclEntry maskEntry = AclEntry.fromCliString("mask::rwx");
-    assertThat(getFileInfo(NESTED_URI).getAcl().getEntries(), hasItem(maskEntry));
+    assertThat(getInfo(NESTED_URI).getAcl().getEntries(), hasItem(maskEntry));
     try {
       removeAcl(NESTED_URI, maskEntry);
       fail("Expected removing the mask from an extended ACL to fail");
@@ -1440,11 +1440,11 @@ public final class FileSystemMasterTest {
     AclEntry newAcl = AclEntry.fromCliString("default:user:newuser:rwx");
     // Add an ACL
     addAcl(NESTED_URI, newAcl);
-    assertThat(getFileInfo(NESTED_URI).getDefaultAcl().getEntries(), hasItem(newAcl));
+    assertThat(getInfo(NESTED_URI).getDefaultAcl().getEntries(), hasItem(newAcl));
 
     // Attempt to remove the ACL mask
     AclEntry maskEntry = AclEntry.fromCliString("default:mask::rwx");
-    assertThat(getFileInfo(NESTED_URI).getDefaultAcl().getEntries(), hasItem(maskEntry));
+    assertThat(getInfo(NESTED_URI).getDefaultAcl().getEntries(), hasItem(maskEntry));
     try {
       removeAcl(NESTED_URI, maskEntry);
       fail("Expected removing the mask from an extended ACL to fail");
@@ -1460,14 +1460,16 @@ public final class FileSystemMasterTest {
   }
 
   private void addAcl(AlluxioURI uri, AclEntry acl) throws Exception {
-    mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, Arrays.asList(acl), SetAclOptions.defaults());
+    mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, Arrays.asList(acl),
+        SetAclOptions.defaults());
   }
 
   private void removeAcl(AlluxioURI uri, AclEntry acl) throws Exception {
-    mFileSystemMaster.setAcl(uri, SetAclAction.REMOVE, Arrays.asList(acl), SetAclOptions.defaults());
+    mFileSystemMaster.setAcl(uri, SetAclAction.REMOVE, Arrays.asList(acl),
+        SetAclOptions.defaults());
   }
 
-  private FileInfo getFileInfo(AlluxioURI uri) throws Exception {
+  private FileInfo getInfo(AlluxioURI uri) throws Exception {
     return mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
   }
 
