@@ -22,7 +22,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public enum PreconditionMessage {
   BLOCK_LENGTH_INCONSISTENT("Block %s is expected to be %s bytes, but only %s bytes are available. "
       + "Please ensure its metadata is consistent between Alluxio and UFS."),
-  COMMAND_LINE_LINEAGE_ONLY("Only command line jobs are supported by createLineage"),
   EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK(
       "The passed-in file info list can not be empty when checking permission"),
   ERR_BLOCK_REMAINING("The current block still has space left, no need to get new block"),

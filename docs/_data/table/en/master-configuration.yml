@@ -50,14 +50,6 @@ alluxio.master.jvm.monitor.enabled:
   'Whether to enable start JVM monitor thread on master.'
 alluxio.master.keytab.file:
   'Kerberos keytab file for Alluxio master.'
-alluxio.master.lineage.checkpoint.class:
-  'The class name of the checkpoint strategy for lineage output files. The default strategy is to checkpoint the latest completed lineage, i.e. the lineage whose output files are completed.'
-alluxio.master.lineage.checkpoint.interval:
-  'The interval between Alluxio''s checkpoint scheduling.'
-alluxio.master.lineage.recompute.interval:
-  'The interval between Alluxio''s recompute execution. The executor scans the all the lost files tracked by lineage, and re-executes the corresponding jobs.'
-alluxio.master.lineage.recompute.log.path:
-  'The path to the log that the recompute executor redirects the job''s stdout into.'
 alluxio.master.log.config.report.heartbeat.interval:
   'The interval for periodically logging the configuration check report.'
 alluxio.master.master.heartbeat.interval:

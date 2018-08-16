@@ -140,7 +140,6 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
-import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
@@ -498,8 +497,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       renameFromEntry(entry.getRename());
     } else if (entry.hasInodeDirectoryIdGenerator()) {
       mDirectoryIdGenerator.initFromJournalEntry(entry.getInodeDirectoryIdGenerator());
-    } else if (entry.hasReinitializeFile()) {
-      resetBlockFileFromEntry(entry.getReinitializeFile());
+    } else if (entry.hasReinitializeFile() || entry.hasLineage() || entry.hasLineageIdGenerator()
+        || entry.hasDeleteLineage()) {
+      // lineage is no longer supported, fall through
     } else if (entry.hasAddMountPoint()) {
       try {
         mountFromEntry(entry.getAddMountPoint());
@@ -1399,21 +1399,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.FILES_CREATED.inc();
     Metrics.DIRECTORIES_CREATED.inc();
     return createResult;
-  }
-
-  @Override
-  public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl, TtlAction ttlAction)
-      throws InvalidPathException, FileDoesNotExistException, UnavailableException {
-    try (RpcContext rpcContext = createRpcContext();
-        LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
-      long id = mInodeTree.reinitializeFile(inodePath, blockSizeBytes, ttl, ttlAction);
-      ReinitializeFileEntry reinitializeFile =
-          ReinitializeFileEntry.newBuilder().setPath(path.getPath())
-              .setBlockSizeBytes(blockSizeBytes).setTtl(ttl)
-              .setTtlAction(ProtobufUtils.toProtobuf(ttlAction)).build();
-      rpcContext.journal(JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build());
-      return id;
-    }
   }
 
   /**
@@ -2557,29 +2542,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void reportLostFile(long fileId) throws FileDoesNotExistException, UnavailableException {
-    try (
-        LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, InodeTree.LockMode.READ)) {
-      Inode<?> inode = inodePath.getInode();
-      if (inode.isDirectory()) {
-        LOG.warn("Reported file is a directory {}", inode);
-        return;
-      }
-
-      List<Long> blockIds = new ArrayList<>();
-      try {
-        for (FileBlockInfo fileBlockInfo : getFileBlockInfoListInternal(inodePath)) {
-          blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
-        }
-      } catch (InvalidPathException e) {
-        LOG.info("Failed to get file info {}", fileId, e);
-      }
-      mBlockMaster.reportLostBlocks(blockIds);
-      LOG.info("Reported file loss of blocks {}. Alluxio will recompute it: {}", blockIds, fileId);
-    }
-  }
-
-  @Override
   public long loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException {
@@ -3098,21 +3060,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   private boolean unmountInternal(AlluxioURI uri) {
     return mMountTable.delete(uri);
-  }
-
-  @Override
-  public void resetFile(long fileId)
-      throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException, IOException {
-    // TODO(yupeng) check the file is not persisted
-    try (RpcContext rpcContext = createRpcContext();
-        LockedInodePath inodePath = mInodeTree
-            .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
-      // free the file first
-      InodeFile inodeFile = inodePath.getInodeFile();
-      freeAndJournal(rpcContext, inodePath, FreeOptions.defaults().setForced(true));
-      inodeFile.reset();
-    }
   }
 
   @Override

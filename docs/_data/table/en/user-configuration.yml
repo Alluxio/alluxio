@@ -66,10 +66,6 @@ alluxio.user.heartbeat.interval:
   'The interval between Alluxio workers'' heartbeats.'
 alluxio.user.hostname:
   'The hostname to use for the client. Note: this property is deprecated. set alluxio.locality.node instead'
-alluxio.user.lineage.enabled:
-  'Flag to enable lineage feature.'
-alluxio.user.lineage.master.client.threads:
-  'The number of threads used by a lineage master client to talk to the lineage master.'
 alluxio.user.local.reader.packet.size.bytes:
   'When a client reads from a local worker, the maximum data packet size.'
 alluxio.user.local.writer.packet.size.bytes:

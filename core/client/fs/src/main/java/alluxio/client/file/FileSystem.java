@@ -29,8 +29,6 @@ import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
-import alluxio.client.lineage.LineageContext;
-import alluxio.client.lineage.LineageFileSystem;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -84,9 +82,6 @@ public interface FileSystem {
           Source source = Configuration.getSource(key);
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
-      }
-      if (Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED)) {
-        return LineageFileSystem.get(context, LineageContext.INSTANCE);
       }
       return BaseFileSystem.get(context);
     }
