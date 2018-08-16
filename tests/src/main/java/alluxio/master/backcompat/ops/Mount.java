@@ -49,9 +49,7 @@ public final class Mount extends FsTestOp {
 
   @Override
   public void check(FileSystem fs) throws Exception {
-    Assert.assertTrue("Mounted directory should be a mount point",
-        fs.getStatus(ALLUXIO_MOUNT_PATH).isMountPoint());
-    Assert.assertFalse("Mounted and unmounted directory should not exist",
-        fs.exists(ALLUXIO_UNMOUNT_PATH));
+    Assert.assertTrue(fs.getStatus(ALLUXIO_MOUNT_PATH).isMountPoint());
+    Assert.assertFalse(fs.exists(ALLUXIO_UNMOUNT_PATH));
   }
 }

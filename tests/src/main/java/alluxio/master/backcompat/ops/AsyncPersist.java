@@ -30,16 +30,25 @@ import java.io.IOException;
  */
 public final class AsyncPersist extends FsTestOp {
   private static final AlluxioURI FILE = new AlluxioURI("/asyncPersist");
+  private static final AlluxioURI NESTED_FILE = new AlluxioURI("/asyncPersistDir/nested");
 
   @Override
   public void apply(FileSystem fs) throws Exception {
     try (FileOutStream out = fs.createFile(FILE, CreateFileOptions.defaults()
-        .setBlockSizeBytes(Constants.KB).setWriteType(WriteType.ASYNC_THROUGH))) {
+        .setBlockSizeBytes(Constants.KB)
+        .setWriteType(WriteType.ASYNC_THROUGH))) {
       out.write("test".getBytes());
     }
-    CommonUtils.waitFor("file to be persisted", () -> {
+    // Nested file
+    try (FileOutStream out = fs.createFile(NESTED_FILE, CreateFileOptions.defaults()
+        .setBlockSizeBytes(Constants.KB)
+        .setWriteType(WriteType.ASYNC_THROUGH)
+        .setRecursive(true))) {
+      out.write("test".getBytes());
+    }
+    CommonUtils.waitFor("files to be persisted", () -> {
       try {
-        return fs.getStatus(FILE).isPersisted();
+        return fs.getStatus(FILE).isPersisted() && fs.getStatus(NESTED_FILE).isPersisted();
       } catch (IOException | AlluxioException e) {
         throw new RuntimeException(e);
       }
@@ -49,5 +58,7 @@ public final class AsyncPersist extends FsTestOp {
   @Override
   public void check(FileSystem fs) throws Exception {
     assertTrue(fs.getStatus(FILE).isPersisted());
+    assertTrue(fs.getStatus(NESTED_FILE).isPersisted());
+    assertTrue(fs.getStatus(NESTED_FILE.getParent()).isPersisted());
   }
 }

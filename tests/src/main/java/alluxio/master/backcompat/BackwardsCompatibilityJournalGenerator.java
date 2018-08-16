@@ -17,11 +17,11 @@ import alluxio.ProjectConstants;
 import alluxio.master.backcompat.ops.AsyncPersist;
 import alluxio.master.backcompat.ops.CreateDirectory;
 import alluxio.master.backcompat.ops.CreateFile;
-import alluxio.master.backcompat.ops.DeleteFile;
+import alluxio.master.backcompat.ops.Delete;
 import alluxio.master.backcompat.ops.Mount;
 import alluxio.master.backcompat.ops.PersistDirectory;
 import alluxio.master.backcompat.ops.PersistFile;
-import alluxio.master.backcompat.ops.RenameFile;
+import alluxio.master.backcompat.ops.Rename;
 import alluxio.master.backcompat.ops.SetAcl;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
@@ -57,10 +57,10 @@ public final class BackwardsCompatibilityJournalGenerator {
           new CreateFile(),
           new Mount(),
           new AsyncPersist(),
-          new DeleteFile(),
+          new Delete(),
           new PersistFile(),
           new PersistDirectory(),
-          new RenameFile(),
+          new Rename(),
           new SetAcl()
       ).build();
 

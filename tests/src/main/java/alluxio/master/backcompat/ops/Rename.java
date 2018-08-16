@@ -13,25 +13,36 @@ package alluxio.master.backcompat.ops;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;
 
 import org.junit.Assert;
 
 /**
- * Test for file deletion.
+ * Test for renaming a file.
  */
-public final class DeleteFile extends FsTestOp {
-  private static final AlluxioURI PATH = new AlluxioURI("/pathToDelete");
+public final class Rename extends FsTestOp {
+  private static final AlluxioURI SRC = new AlluxioURI("/fileToRename");
+  private static final AlluxioURI DST = new AlluxioURI("/fileRenameTarget");
 
   @Override
   public void apply(FileSystem fs) throws Exception {
-    Utils.createFile(fs, PATH);
-    fs.delete(PATH);
+    Utils.createFile(fs, SRC);
+    fs.rename(SRC, DST);
+
+    fs.createDirectory(new AlluxioURI("/renameDir/a/b"),
+        CreateDirectoryOptions.defaults().setRecursive(true));
+    fs.rename(new AlluxioURI("/renameDir/a"), new AlluxioURI("/renameDir/c"));
   }
 
   @Override
   public void check(FileSystem fs) throws Exception {
-    Assert.assertFalse("Deleted file should not exist", fs.exists(PATH));
+    Assert.assertFalse(fs.exists(SRC));
+    Assert.assertTrue(fs.exists(DST));
+
+    Assert.assertFalse(fs.exists(new AlluxioURI("/renameDir/a")));
+    Assert.assertTrue(fs.exists(new AlluxioURI("/renameDir/c")));
+    Assert.assertTrue(fs.exists(new AlluxioURI("/renameDir/c/b")));
   }
 }

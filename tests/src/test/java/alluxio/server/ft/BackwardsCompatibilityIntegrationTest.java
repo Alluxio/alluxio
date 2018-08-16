@@ -70,7 +70,7 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
         .setNumWorkers(1)
         .build();
     mCluster.start();
-    mCluster.waitForAllNodesRegistered(10 * Constants.SECOND_MS);
+    mCluster.waitForAllNodesRegistered(30 * Constants.SECOND_MS);
     Clients clients = mCluster.getClients();
 
     for (TestOp op : BackwardsCompatibilityJournalGenerator.OPS) {
@@ -114,7 +114,7 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
       mCluster = builder.build();
       try {
         mCluster.start();
-        mCluster.waitForAllNodesRegistered(10 * Constants.SECOND_MS);
+        mCluster.waitForAllNodesRegistered(30 * Constants.SECOND_MS);
         Clients clients = mCluster.getClients();
         for (TestOp op : BackwardsCompatibilityJournalGenerator.OPS) {
           if (op.supportsVersion(journal.getVersion())) {

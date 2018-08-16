@@ -11,6 +11,8 @@
 
 package alluxio.master.backcompat.ops;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
@@ -20,22 +22,25 @@ import alluxio.multi.process.Clients;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import org.junit.Assert;
+import java.util.Arrays;
 
 /**
  * Test for persisting a file.
  */
 public final class PersistFile implements TestOp {
   private static final AlluxioURI PATH = new AlluxioURI("/fileToPersist");
+  private static final AlluxioURI NESTED_PATH = new AlluxioURI("/persistFileDir/a");
 
   @Override
   public void apply(Clients clients) throws Exception {
     FileSystem fs = clients.getFileSystemClient();
     Utils.createFile(fs, PATH);
     clients.getFileSystemMasterClient().scheduleAsyncPersist(PATH);
+    Utils.createFile(fs, NESTED_PATH);
+    clients.getFileSystemMasterClient().scheduleAsyncPersist(NESTED_PATH);
     CommonUtils.waitFor("file to be async persisted", () -> {
       try {
-        return fs.getStatus(PATH).isPersisted();
+        return fs.getStatus(PATH).isPersisted() && fs.getStatus(NESTED_PATH).isPersisted();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -44,7 +49,8 @@ public final class PersistFile implements TestOp {
 
   @Override
   public void check(Clients clients) throws Exception {
-    Assert.assertTrue("Persisted file should be persisted",
-        clients.getFileSystemClient().getStatus(PATH).isPersisted());
+    for (AlluxioURI uri : Arrays.asList(PATH, NESTED_PATH, NESTED_PATH.getParent())) {
+      assertTrue(clients.getFileSystemClient().getStatus(uri).isPersisted());
+    }
   }
 }
