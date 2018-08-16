@@ -14,6 +14,12 @@ package alluxio.heartbeat;
 import alluxio.clock.ManualClock;
 import alluxio.time.Sleeper;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -33,9 +39,9 @@ public final class SleepingTimerTest {
 
   @Before
   public void before() {
-    mMockLogger = Mockito.mock(Logger.class);
+    mMockLogger = mock(Logger.class);
     mFakeClock = new ManualClock();
-    mMockSleeper = Mockito.mock(Sleeper.class);
+    mMockSleeper = mock(Sleeper.class);
   }
 
   @Test
@@ -47,7 +53,7 @@ public final class SleepingTimerTest {
     mFakeClock.addTimeMs(5 * INTERVAL_MS);
     timer.tick();
 
-    Mockito.verify(mMockLogger).warn(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(),
+    verify(mMockLogger).warn(anyString(), anyString(), Mockito.anyLong(),
         Mockito.anyLong());
   }
 
@@ -56,9 +62,9 @@ public final class SleepingTimerTest {
     final SleepingTimer timer =
         new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mFakeClock, mMockSleeper);
     timer.tick(); // first tick won't sleep
-    Mockito.verify(mMockSleeper, Mockito.times(0)).sleep(Mockito.any(Duration.class));
+    verify(mMockSleeper, times(0)).sleep(any(Duration.class));
     timer.tick();
-    Mockito.verify(mMockSleeper).sleep(Duration.ofMillis(INTERVAL_MS));
+    verify(mMockSleeper).sleep(Duration.ofMillis(INTERVAL_MS));
   }
 
   /**
@@ -74,6 +80,6 @@ public final class SleepingTimerTest {
     stimer.tick();
     mFakeClock.addTimeMs(INTERVAL_MS / 3);
     stimer.tick();
-    Mockito.verify(mMockSleeper).sleep(Duration.ofMillis(INTERVAL_MS - (INTERVAL_MS / 3)));
+    verify(mMockSleeper).sleep(Duration.ofMillis(INTERVAL_MS - (INTERVAL_MS / 3)));
   }
 }
