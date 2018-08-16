@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.ProjectConstants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.lineage.LineageContext;
 
 import org.powermock.core.classloader.MockClassLoader;
 import org.powermock.reflect.Whitebox;
@@ -37,7 +36,6 @@ public final class HadoopClientTestUtils {
     try {
       Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
       FileSystemContext.get().reset(Configuration.global());
-      LineageContext.INSTANCE.reset();
       Whitebox.setInternalState(AbstractFileSystem.class, "sInitialized", false);
     } catch (Exception e) {
       throw new RuntimeException(e);

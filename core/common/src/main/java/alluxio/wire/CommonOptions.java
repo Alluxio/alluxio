@@ -160,7 +160,7 @@ public final class CommonOptions implements Serializable {
   }
 
   /**
-   * @return thrift representation of the lineage information
+   * @return thrift representation of the common options
    */
   public FileSystemMasterCommonTOptions toThrift() {
     FileSystemMasterCommonTOptions options = new FileSystemMasterCommonTOptions();

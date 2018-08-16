@@ -355,14 +355,6 @@ For example, `pin` can be used to manually ensure performance if the administrat
 
 {% include Command-Line-Interface/pin.md %}
 
-### report
-
-The `report` command marks a file as lost to the Alluxio master. This command should only be used with files created using the [Lineage API](Lineage-API.html). Marking a file as lost will cause the master to schedule a recomputation job to regenerate the file.
-
-For example, `report` can be used to force recomputation of a file.
-
-{% include Command-Line-Interface/report.md %}
-
 ### rm
 
 The `rm` command removes a file from Alluxio space and the under storage system. The file will be unavailable immediately after this command returns, but the actual data may be deleted a while later.

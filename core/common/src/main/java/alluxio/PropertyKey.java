@@ -1158,41 +1158,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_LINEAGE_CHECKPOINT_CLASS =
-      new Builder(Name.MASTER_LINEAGE_CHECKPOINT_CLASS)
-          .setDefaultValue("alluxio.master.lineage.checkpoint.CheckpointLatestPlanner")
-          .setDescription("The class name of the checkpoint strategy for lineage output "
-              + "files. The default strategy is to checkpoint the latest completed lineage, "
-              + "i.e. the lineage whose output files are completed.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
-      new Builder(Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)
-          .setAlias(new String[]{"alluxio.master.lineage.checkpoint.interval.ms"})
-          .setDefaultValue("5min")
-          .setDescription("The interval between Alluxio's checkpoint scheduling.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS =
-      new Builder(Name.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)
-          .setAlias(new String[]{"alluxio.master.lineage.recompute.interval.ms"})
-          .setDefaultValue("5min")
-          .setDescription("The interval between Alluxio's recompute "
-              + "execution. The executor scans the all the lost files tracked by lineage, and "
-              + "re-executes the corresponding jobs.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
-      new Builder(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH)
-          .setDefaultValue(String.format("${%s}/recompute.log", Name.LOGS_DIR))
-          .setDescription("The path to the log that the recompute executor redirects the "
-              + "job's stdout into.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)
           .setDefaultValue("1h")
@@ -2506,21 +2471,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
       .setScope(Scope.CLIENT)
       .build();
-  public static final PropertyKey USER_LINEAGE_ENABLED =
-      new Builder(Name.USER_LINEAGE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Flag to enable lineage feature.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_LINEAGE_MASTER_CLIENT_THREADS =
-      new Builder(Name.USER_LINEAGE_MASTER_CLIENT_THREADS)
-          .setDefaultValue(10)
-          .setDescription("The number of threads used by a lineage master client to talk to "
-              + "the lineage master.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_LOCAL_READER_PACKET_SIZE_BYTES =
       new Builder(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES)
           .setDefaultValue("8MB")
@@ -3255,14 +3205,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
         "alluxio.master.journal.tailer.sleep.time";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
-    public static final String MASTER_LINEAGE_CHECKPOINT_CLASS =
-        "alluxio.master.lineage.checkpoint.class";
-    public static final String MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
-        "alluxio.master.lineage.checkpoint.interval";
-    public static final String MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS =
-        "alluxio.master.lineage.recompute.interval";
-    public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
-        "alluxio.master.lineage.recompute.log.path";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
@@ -3514,9 +3456,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.write.tier.default";
     public static final String USER_HEARTBEAT_INTERVAL_MS = "alluxio.user.heartbeat.interval";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
-    public static final String USER_LINEAGE_ENABLED = "alluxio.user.lineage.enabled";
-    public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
-        "alluxio.user.lineage.master.client.threads";
     public static final String USER_LOCAL_READER_PACKET_SIZE_BYTES =
         "alluxio.user.local.reader.packet.size.bytes";
     public static final String USER_LOCAL_WRITER_PACKET_SIZE_BYTES =

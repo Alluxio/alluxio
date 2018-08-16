@@ -2297,9 +2297,10 @@ public final class FileSystemMasterTest {
   public void lostFilesDetection() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
     long fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
-    mFileSystemMaster.reportLostFile(fileId);
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    mBlockMaster.reportLostBlocks(fileInfo.getBlockIds());
+
     assertEquals(PersistenceState.NOT_PERSISTED.name(), fileInfo.getPersistenceState());
     // Check with getPersistenceState.
     assertEquals(PersistenceState.NOT_PERSISTED,
