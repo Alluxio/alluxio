@@ -21,7 +21,7 @@ storage services (e.g., AWS S3 buckets, Azure Object Store buckets, remote HDFS 
 and etc). Data can be actively fetched or transparently cached into Alluxio to speed up
 the I/O performance especially when Spark deployment is remote to data.
 In addition, Alluxio can help simplify the architecture by decoupling
-compute and physical storage because when the real data path in persistent under storage is
+compute and physical storage. When the real data path in persistent under storage is
 hidden from Spark, a change to under storages can be independent from application logic; meanwhile
 as a near-compute cache Alluxio can still provide compute frameworks like Spark data-locality.
 
@@ -32,7 +32,7 @@ as a near-compute cache Alluxio can still provide compute frameworks like Spark 
 This guide assumes the persistent under storage is a local HDFS
 deployment. E.g., a line of
 `alluxio.underfs.address= hdfs://localhost:9000/alluxio/` is included in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
-Note that, Alluxio supports many other under
+Note that Alluxio supports many other under
 storage systems in addition to HDFS. To access data from any number of those systems is orthogonal
 to the focus of this guide but covered by
 [Unified and Transparent Namespace](Unified-and-Transparent-Namespace.html).
@@ -86,7 +86,7 @@ Alternatively you can add the properties to the Hadoop configuration file
 </configuration>
 ```
 
-### Check Spark is Correctly Set-up
+### Check Spark is Correctly Set Up
 
 To ensure that your Spark can correctly work with Alluxio
 before running Spark, a tool that comes with Alluxio v1.8 can help check the configuration.
@@ -118,20 +118,20 @@ First, we will copy some local data to the Alluxio file system. Put the file `LI
 assuming you are in the Alluxio project directory:
 
 ```bash
-$ bin/alluxio fs copyFromLocal LICENSE /LICENSE
+$ bin/alluxio fs copyFromLocal LICENSE /Input
 ```
 
 Run the following commands from `spark-shell`, assuming Alluxio Master is running on `localhost`:
 
 ```scala
-> val s = sc.textFile("alluxio://localhost:19998/LICENSE")
+> val s = sc.textFile("alluxio://localhost:19998/Input")
 > val double = s.map(line => line + line)
 > double.saveAsTextFile("alluxio://localhost:19998/Output")
 ```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There
 should be an output directory `/Output` which contains the doubled content of the input
-file `LICENSE`.
+file `Input`.
 
 ### Access Data in Under Storage
 
@@ -139,59 +139,97 @@ Alluxio supports transparently fetching the data from the under storage system, 
 path. For this section, HDFS is used
 as an example of a distributed under storage system.
 
-Put a file `LICENSE_HDFS` into HDFS:
+Put a file `Input_HDFS` into HDFS:
 
 ```bash
-$ hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/LICENSE_HDFS
+$ hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
 ```
 
 Note that Alluxio has no notion of the file. You can verify this by going to the web UI. Run the
 following commands from `spark-shell`, assuming Alluxio Master is running on `localhost`:
 
 ```scala
-> val s = sc.textFile("alluxio://localhost:19998/LICENSE_HDFS")
+> val s = sc.textFile("alluxio://localhost:19998/Input_HDFS")
 > val double = s.map(line => line + line)
 > double.saveAsTextFile("alluxio://localhost:19998/Output_HDFS")
 ```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There
 should be an output directory `Output_HDFS` which contains the doubled content of the input file
-`LICENSE_HDFS`.
-Also, the input file `LICENSE_HDFS` now will be 100% loaded in the Alluxio file system space.
+`Input_HDFS`.
+Also, the input file `Input_HDFS` now will be 100% loaded in the Alluxio file system space.
 
 ### Access Data from Alluxio in HA Mode
 
-When Spark is correctly set up by the instructions in
-[Alluxio with HA](#additional-setup-for-alluxio-with-ha),
-you can refer to Alluxio authority in the URI without specifying an Alluxio master. This is because
+If Spark is set up by the instructions in [Alluxio with HA](#additional-setup-for-alluxio-with-ha),
+you can write URIs using the "alluxio://" scheme without specifying an Alluxio master in the authority. This is because
 in HA mode, the address of primary Alluxio master will be served by the configured Zookeeper
 service rather than a user-specified hostname derived from the URI.
 
 ```scala
-> val s = sc.textFile("alluxio:///LICENSE")
+> val s = sc.textFile("alluxio:///Input")
 > val double = s.map(line => line + line)
 > double.saveAsTextFile("alluxio:///Output")
 ```
 
-> Tips：All the previous examples are also applicable to Alluxio in fault tolerant mode with Zookeeper. 
-Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.md#hdfs-api).
+Alternatively, if the Zookeeper address for Alluxio HA is not set in Spark configuration, one can
+specify the address of Zookeeper in the URI in the format of "`zk@zkHost1:2181;zkHost2:2181`":
+
+```scala
+> val s = sc.textFile("alluxio://zk@zkHost1:2181;zkHost2:2181/Input")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181/Output")
+```
+
+> Note that you must use semicolons rather than commas to separate different Zookeeper addresses to
+refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
+Please refer to the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
 
 ## Advanced Usage
 
-### Customize Alluxio Setting for Spark Jobs
-
-To customize Alluxio client-side properties in a Spark job, see
-[how to configure Spark Jobs](Configuration-Settings.html#spark-jobs).
-
 ### Cache RDD into Alluxio
+
+Storing RDDs in Alluxio memory is simply saving the RDD as a file to Alluxio.
+Two common ways to save RDDs as files in Alluxio are
+
+1. `saveAsTextFile`: writes the RDD as a text file, where each element is a line in the file,
+1. `saveAsObjectFile`: writes the RDD out to a file, by using Java serialization on each element.
+
+The saved RDDs in Alluxio can be read again (from memory) by using `sc.textFile` or
+`sc.objectFile` respectively.
+
+```scala
+// as text file
+> rdd.saveAsTextFile("alluxio://localhost:19998/rdd1")
+> rdd = sc.textFile("alluxio://localhost:19998/rdd1")
+
+// as object file
+> rdd.saveAsObjectFile("alluxio://localhost:19998/rdd2")
+> rdd = sc.objectFile("alluxio://localhost:19998/rdd2")
+```
 
 See the blog article
 "[Effective Spark RDDs with Alluxio](https://www.alluxio.com/blog/effective-spark-rdds-with-alluxio)".
 
 ### Cache Dataframe into Alluxio
 
+Storing Spark DataFrames in Alluxio memory is simply saving the DataFrame as a file to Alluxio.
+DataFrames are commonly written as parquet files, with `df.write.parquet()`.
+After the parquet is written to Alluxio, it can be read from memory by using `sqlContext.read.parquet()`.
+
+```scala
+> df.write.parquet("alluxio://localhost:19998/data.parquet")
+> df = sqlContext.read.parquet("alluxio://localhost:19998/data.parquet")
+```
+
 See the blog article
 "[Effective Spark DataFrames with Alluxio](https://www.alluxio.com/blog/effective-spark-dataframes-with-alluxio)".
+
+### Customize Alluxio User Properties for Spark Jobs
+
+To customize Alluxio client-side properties in a Spark job, see
+[how to configure Spark Jobs](Configuration-Settings.html#spark-jobs).
+
 
 ## Frequently Asked Questions
 
