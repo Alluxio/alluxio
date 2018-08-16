@@ -9,60 +9,69 @@ priority: 0
 * Table of Contents
 {:toc}
 
-This guide describes how to run [Apache Spark](http://spark-project.org/) on Alluxio. HDFS is used
-as an example of a distributed under storage system. Note that, Alluxio supports many other under
-storage systems in addition to HDFS and enables frameworks like Spark to read data from or write
-data to any number of those systems.
+This guide describes how to configure [Apache Spark](http://spark-project.org/) to access Alluxio.
 
-## Compatibility
+## Overview
 
-Alluxio works together with Spark 1.1 or later out-of-the-box.
+Applications of Spark 1.1 or later can access an Alluxio cluster through its
+HDFS-compatible interface out-of-the-box.
+Using Alluxio as the data access layer, Spark applications can transparently access
+data in many different types and instances of persistent
+storage services (e.g., AWS S3 buckets, Azure Object Store buckets, remote HDFS deployments
+and etc). Data can be actively fetched or transparently cached into Alluxio to speed up
+the I/O performance especially when Spark deployment is remote to data.
+In addition, Alluxio can help simplify the architecture by decoupling
+compute and physical storage. When the real data path in persistent under storage is
+hidden from Spark, a change to under storages can be independent from application logic; meanwhile
+as a near-compute cache Alluxio can still provide compute frameworks like Spark data-locality.
 
 ## Prerequisites
 
-### General Setup
-
-* Alluxio cluster has been set up in accordance to these guides for either
+* An Alluxio cluster has been set up and is running according to either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+This guide assumes the persistent under storage is a local HDFS
+deployment. E.g., a line of
+`alluxio.underfs.address= hdfs://localhost:9000/alluxio/` is included in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
+Note that Alluxio supports many other under
+storage systems in addition to HDFS. To access data from any number of those systems is orthogonal
+to the focus of this guide but covered by
+[Unified and Transparent Namespace](Unified-and-Transparent-Namespace.html).
 
-* We recommend you to download the tarball from
-  Alluxio [download page](http://www.alluxio.org/download).
-  Alternatively, advanced users can choose to compile this client jar from the source code
-  by following Follow the instructs [here](Building-Alluxio-From-Source.html#compute-framework-support).
-  The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
+* Make sure that the Alluxio client jar is available.
+  This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
+  downloaded from Alluxio [download page](http://www.alluxio.org/download).
+  Alternatively, advanced users can compile this client jar from the source code
+  by following the [instructions](Building-Alluxio-From-Source.html).
 
-* In order for Spark applications to read and write files in Alluxio, the Alluxio client jar must be distributed
-  on the classpath of the application across different nodes
-  (each node must have the client jar on the same local path `{{site.ALLUXIO_CLIENT_JAR_PATH}}`).
+## Configure Spark
 
-* Add the following line to `spark/conf/spark-defaults.conf`.
+### Basic Setup
+
+Step 1, distribute the Alluxio client jar across the nodes where Spark drivers or executors are
+running. Specifically, put the client jar on the same local path (e.g. `{{site.ALLUXIO_CLIENT_JAR_PATH}}`) on each node.
+
+Step 2, add the Alluxio client jar to the classpath of Spark drivers and executors
+in order for Spark applications to use the client jar to read and write files in Alluxio.
+Specifically, add the following line to `spark/conf/spark-defaults.conf`.
 
 ```bash
-spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
+spark.driver.extraClassPath   {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
-### Additional Setup for HDFS
+### Additional Setup for Alluxio with HA
 
-* If Alluxio is run on top of a Hadoop 1.x cluster, add the following content to `${SPARK_HOME}/conf/core-site.xml`:
-
-```xml
-<configuration>
-  <property>
-    <name>fs.alluxio.impl</name>
-    <value>alluxio.hadoop.FileSystem</value>
-  </property>
-</configuration>
-```
-
-* If you are running Alluxio in fault tolerant mode with zookeeper,
-add the following line to `${SPARK_HOME}/conf/spark-defaults.conf`:
+If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
+`zkHost1:2181` and `zkHost2:2181`,
+add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf`:
 
 ```bash
-spark.driver.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
-spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
+spark.driver.extraJavaOptions   -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181 -Dalluxio.zookeeper.enabled=true
+spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181 -Dalluxio.zookeeper.enabled=true
 ```
-Alternatively you can add the properties to the previously created Hadoop configuration file `${SPARK_HOME}/conf/core-site.xml`:
+
+Alternatively you can add the properties to the Hadoop configuration file
+`${SPARK_HOME}/conf/core-site.xml`:
 
 ```xml
 <configuration>
@@ -72,111 +81,166 @@ Alternatively you can add the properties to the previously created Hadoop config
   </property>
   <property>
     <name>alluxio.zookeeper.address</name>
-    <value>[zookeeper_hostname]:2181</value>
+    <value>zkHost1:2181,zkHost2:2181</value>
   </property>
 </configuration>
 ```
 
-## Check Spark with Alluxio integration (Supports Spark 2.X)
+### Check Spark is Correctly Set Up
 
-Before running Spark on Alluxio, you might want to make sure that your Spark configuration has been
-setup correctly for integrating with Alluxio. The Spark integration checker can help you achieve this.
+To ensure that your Spark can correctly work with Alluxio
+before running Spark, a tool that comes with Alluxio v1.8 can help check the configuration.
 
-When you have a running Spark cluster (or Spark standalone), you can run the following command in the Alluxio project directory:
+When you have a running Spark cluster (or Spark standalone) of version 2.x, you can run the
+following command in the Alluxio project directory:
 
 ```bash
-$ integration/checker/bin/alluxio-checker.sh spark <spark master uri> [partition number]
+$ integration/checker/bin/alluxio-checker.sh spark <spark master uri>
 ```
 
-Here `partition number` is optional.
-You can use `-h` to display helpful information about the command.
+For example,
+
+```bash
+$ integration/checker/bin/alluxio-checker.sh spark spark://sparkMaster:7077
+```
+
 This command will report potential problems that might prevent you from running Spark on Alluxio.
 
-## Use Alluxio as Input and Output
+You can use `-h` to display helpful information about the command.
+
+## Examples: Use Alluxio as Input and Output
 
 This section shows how to use Alluxio as input and output sources for your Spark applications.
 
-### Use Data Already in Alluxio
+### Access Data Only in Alluxio
 
 First, we will copy some local data to the Alluxio file system. Put the file `LICENSE` into Alluxio,
 assuming you are in the Alluxio project directory:
 
 ```bash
-$ bin/alluxio fs copyFromLocal LICENSE /LICENSE
+$ bin/alluxio fs copyFromLocal LICENSE /Input
 ```
 
 Run the following commands from `spark-shell`, assuming Alluxio Master is running on `localhost`:
 
 ```scala
-> val s = sc.textFile("alluxio://localhost:19998/LICENSE")
+> val s = sc.textFile("alluxio://localhost:19998/Input")
 > val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://localhost:19998/LICENSE2")
+> double.saveAsTextFile("alluxio://localhost:19998/Output")
 ```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There
-should be an output `LICENSE2` containing the doubled content of `LICENSE`.
+should be an output directory `/Output` which contains the doubled content of the input
+file `Input`.
 
-### Use Data from HDFS
+### Access Data in Under Storage
 
 Alluxio supports transparently fetching the data from the under storage system, given the exact
-path. Put a file `LICENSE_HDFS` into HDFS under the folder Alluxio is mounted to.
+path. For this section, HDFS is used
+as an example of a distributed under storage system.
 
-Assuming the root UFS address (`alluxio.master.mount.table.root.ufs`) is `hdfs://localhost:9000/alluxio/`, run
+Put a file `Input_HDFS` into HDFS:
 
 ```bash
-$ hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/LICENSE_HDFS
+$ hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
 ```
 
 Note that Alluxio has no notion of the file. You can verify this by going to the web UI. Run the
 following commands from `spark-shell`, assuming Alluxio Master is running on `localhost`:
 
 ```scala
-> val s = sc.textFile("alluxio://localhost:19998/LICENSE_HDFS")
+> val s = sc.textFile("alluxio://localhost:19998/Input_HDFS")
 > val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://localhost:19998/LICENSE_HDFS2")
+> double.saveAsTextFile("alluxio://localhost:19998/Output_HDFS")
 ```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There
-should be an output `LICENSE_HDFS2` which doubles each line in the file `LICENSE_HDFS`. Also, the
-`LICENSE_HDFS` file now appears in the Alluxio file system space.
+should be an output directory `Output_HDFS` which contains the doubled content of the input file
+`Input_HDFS`.
+Also, the input file `Input_HDFS` now will be 100% loaded in the Alluxio file system space.
 
-> NOTE: Block caching on partial reads is enabled by default, but if you have turned off the option,
-> it is possible that the `LICENSE_HDFS` file is not in Alluxio storage. This is
-> because Alluxio only stores fully read blocks, and if the file is too small, the Spark job will
-> have each executor read a partial block. To avoid this behavior, you can specify the partition
-> count in Spark. For this example, we would set it to 1 as there is only 1 block.
+### Access Data from Alluxio in HA Mode
 
-```scala
-> val s = sc.textFile("alluxio://localhost:19998/LICENSE_HDFS", 1)
-> val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://localhost:19998/LICENSE_HDFS2")
-```
-
-### Using Fault Tolerant Mode
-
-When running Alluxio with fault tolerant mode, you can point to any Alluxio master:
+If Spark is set up by the instructions in [Alluxio with HA](#additional-setup-for-alluxio-with-ha),
+you can write URIs using the "alluxio://" scheme without specifying an Alluxio master in the authority. This is because
+in HA mode, the address of primary Alluxio master will be served by the configured Zookeeper
+service rather than a user-specified hostname derived from the URI.
 
 ```scala
-> val s = sc.textFile("alluxio://standbyHost:19998/LICENSE")
+> val s = sc.textFile("alluxio:///Input")
 > val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://activeHost:19998/LICENSE2")
+> double.saveAsTextFile("alluxio:///Output")
 ```
 
-> Tips：All the previous examples are also applicable to Alluxio in fault tolerant mode with Zookeeper. 
-Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
+Alternatively, if the Zookeeper address for Alluxio HA is not set in Spark configuration, one can
+specify the address of Zookeeper in the URI in the format of "`zk@zkHost1:2181;zkHost2:2181`":
 
-## Data Locality
+```scala
+> val s = sc.textFile("alluxio://zk@zkHost1:2181;zkHost2:2181/Input")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181/Output")
+```
+
+> Note that you must use semicolons rather than commas to separate different Zookeeper addresses to
+refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
+Please refer to the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
+
+## Advanced Usage
+
+### Cache RDD into Alluxio
+
+Storing RDDs in Alluxio memory is simply saving the RDD as a file to Alluxio.
+Two common ways to save RDDs as files in Alluxio are
+
+1. `saveAsTextFile`: writes the RDD as a text file, where each element is a line in the file,
+1. `saveAsObjectFile`: writes the RDD out to a file, by using Java serialization on each element.
+
+The saved RDDs in Alluxio can be read again (from memory) by using `sc.textFile` or
+`sc.objectFile` respectively.
+
+```scala
+// as text file
+> rdd.saveAsTextFile("alluxio://localhost:19998/rdd1")
+> rdd = sc.textFile("alluxio://localhost:19998/rdd1")
+
+// as object file
+> rdd.saveAsObjectFile("alluxio://localhost:19998/rdd2")
+> rdd = sc.objectFile("alluxio://localhost:19998/rdd2")
+```
+
+See the blog article
+"[Effective Spark RDDs with Alluxio](https://www.alluxio.com/blog/effective-spark-rdds-with-alluxio)".
+
+### Cache Dataframe into Alluxio
+
+Storing Spark DataFrames in Alluxio memory is simply saving the DataFrame as a file to Alluxio.
+DataFrames are commonly written as parquet files, with `df.write.parquet()`.
+After the parquet is written to Alluxio, it can be read from memory by using `sqlContext.read.parquet()`.
+
+```scala
+> df.write.parquet("alluxio://localhost:19998/data.parquet")
+> df = sqlContext.read.parquet("alluxio://localhost:19998/data.parquet")
+```
+
+See the blog article
+"[Effective Spark DataFrames with Alluxio](https://www.alluxio.com/blog/effective-spark-dataframes-with-alluxio)".
+
+### Customize Alluxio User Properties for Spark Jobs
+
+To customize Alluxio client-side properties in a Spark job, see
+[how to configure Spark Jobs](Configuration-Settings.html#spark-jobs).
+
+## Frequently Asked Questions
+
+### Incorrect Data Locality Level of Spark Tasks
 
 If Spark task locality is `ANY` while it should be `NODE_LOCAL`, it is probably because Alluxio and
 Spark use different network address representations, maybe one of them uses hostname while
-another uses IP address. Please refer to [this jira ticket](
+another uses IP address. Please refer to JIRA ticket [SPARK-10149](
 https://issues.apache.org/jira/browse/SPARK-10149) for more details, where you can find solutions
 from the Spark community.
 
-Note: Alluxio uses hostname to represent network address except in version 0.7.1 where IP address is
-used. Spark v1.5.x ships with Alluxio v0.7.1 by default, in this case, by default, Spark and Alluxio
-both use IP address to represent network address, so data locality should work out of the box.
-But since release 0.8.0, to be consistent with HDFS, Alluxio represents network address by hostname.
+Note: Alluxio workers use hostnames to represent network addresses to be consistent with HDFS.
 There is a workaround when launching Spark to achieve data locality. Users can explicitly specify
 hostnames by using the following script offered in Spark. Start Spark Worker in each slave node with
 slave-hostname:
@@ -194,18 +258,18 @@ $ ${SPARK_HOME}/sbin/start-slave.sh -h simple30 spark://simple27:7077
 You can also set the `SPARK_LOCAL_HOSTNAME` in `$SPARK_HOME/conf/spark-env.sh` to achieve this. For
 example:
 
-```properties
+```bash
 SPARK_LOCAL_HOSTNAME=simple30
 ```
 
-In either way, the Spark Worker addresses become hostnames and Locality Level becomes NODE_LOCAL as shown
+In either way, the Spark Worker addresses become hostnames and Locality Level becomes `NODE_LOCAL` as shown
 in Spark WebUI below.
 
 ![hostname]({{site.data.img.screenshot_datalocality_sparkwebui}})
 
 ![locality]({{site.data.img.screenshot_datalocality_tasklocality}})
 
-### Running Spark on YARN
+### Data Locality of Spark Jobs on YARN
 
 To maximize the amount of locality your Spark jobs attain, you should use as many
 executors as possible, hopefully at least one executor per node.
@@ -218,10 +282,10 @@ cluster with `--num-executors=1`, Spark might place the only executor on `host2`
 However, if `--num-executors=2` and executors are started on `host1` and `host2`, Spark will be smart
 enough to prioritize placing the job on `host1`.
 
-## `Class alluxio.hadoop.FileSystem not found` Issues with SparkSQL and Hive MetaStore
+### `Class alluxio.hadoop.FileSystem not found` Issues with SparkSQL and Hive MetaStore
 
 To run the `spark-shell` with the Alluxio client, the Alluxio client jar will have to be added to the classpath of the
-Spark driver and Spark executors, as [described earlier](Running-Spark-on-Alluxio.html#general-setup).
+Spark driver and Spark executors, as [described earlier](Running-Spark-on-Alluxio.html#configure-spark).
 However, sometimes SparkSQL may fail to save tables to the Hive MetaStore (location in Alluxio), with an error
 message similar to the following:
 
@@ -236,13 +300,13 @@ However, the isolated classloader ignores certain packages and allows the main c
 (the Hadoop HDFS client is one of these "shared" classes). The Alluxio client should also be loaded by the main
 classloader, and you can append the `alluxio` package to the configuration parameter
 `spark.sql.hive.metastore.sharedPrefixes` to inform Spark to load Alluxio with the main classloader. For example, the
-parameter may be set to:
+parameter may be set in `spark/conf/spark-defaults.conf`:
 
 ```bash
 spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
 ```
 
-## `java.io.IOException: No FileSystem for scheme: alluxio` Issue with Spark on YARN
+### `java.io.IOException: No FileSystem for scheme: alluxio` Issue with Spark on YARN
 
 If you use Spark on YARN with Alluxio and run into the exception `java.io.IOException: No FileSystem for scheme: alluxio`, please add the following content to `${SPARK_HOME}/conf/core-site.xml`:
 
