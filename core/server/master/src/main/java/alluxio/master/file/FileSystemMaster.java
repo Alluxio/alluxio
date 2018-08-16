@@ -79,7 +79,7 @@ public interface FileSystemMaster extends Master {
 
   /**
    * Returns the {@link FileInfo} for a given file id. This method is not user-facing but supposed
-   * to be called by other internal servers (e.g., block workers, lineage master, web UI).
+   * to be called by other internal servers (e.g., block workers, web UI).
    *
    * @param fileId the file id to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file
@@ -107,7 +107,7 @@ public interface FileSystemMaster extends Master {
       UnavailableException, IOException;
 
   /**
-   * Returns the persistence state for a file id. This method is used by the lineage master.
+   * Returns the persistence state for a file id.
    *
    * @param fileId the file id
    * @return the {@link PersistenceState} for the given file id
@@ -327,7 +327,6 @@ public interface FileSystemMaster extends Master {
    * @return the path of the file
    * @throws FileDoesNotExistException raise if the file does not exist
    */
-  // Currently used by Lineage Master
   // TODO(binfan): Add permission checking for internal APIs
   AlluxioURI getPath(long fileId) throws FileDoesNotExistException;
 
@@ -356,16 +355,6 @@ public interface FileSystemMaster extends Master {
    * @return all the files lost on the workers
    */
   List<Long> getLostFiles();
-
-  /**
-   * Reports a file as lost.
-   *
-   * @param fileId the id of the file
-   * @throws FileDoesNotExistException if the file does not exist
-   */
-  // Currently used by Lineage Master
-  // TODO(binfan): Add permission checking for internal APIs
-  void reportLostFile(long fileId) throws FileDoesNotExistException, UnavailableException;
 
   /**
    * Loads metadata for the object identified by the given path from UFS into Alluxio.

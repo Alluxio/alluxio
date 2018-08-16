@@ -82,8 +82,14 @@ public final class StorageTier {
     for (int i = 0; i < dirPaths.length; i++) {
       int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
       long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
-      totalCapacity += capacity;
-      mDirs.add(StorageDir.newStorageDir(this, i, capacity, dirPaths[i]));
+      try {
+        StorageDir dir = StorageDir.newStorageDir(this, i, capacity, dirPaths[i]);
+        totalCapacity += capacity;
+        mDirs.add(dir);
+      } catch (IOException e) {
+        LOG.error("Unable to initialize storage directory at {}: {}", dirPaths[i], e.getMessage());
+        continue;
+      }
 
       // Delete tmp directory.
       String tmpDirPath = PathUtils.concatPath(dirPaths[i], tmpDir);

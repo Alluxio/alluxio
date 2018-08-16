@@ -21,8 +21,6 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
-import alluxio.client.rest.RestApiTest;
-import alluxio.client.rest.TestCase;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 

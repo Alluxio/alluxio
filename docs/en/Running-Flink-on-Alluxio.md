@@ -31,12 +31,24 @@ Therefore, the configuration of Alluxio is done mostly in Hadoop configuration f
 If you have a Hadoop setup next to the Flink installation, add the following property to the
 `core-site.xml` configuration file:
 
-{% include Running-Flink-on-Alluxio/core-site-configuration.md %}
+```xml
+<property>
+  <name>fs.alluxio.impl</name>
+  <value>alluxio.hadoop.FileSystem</value>
+</property>
+```
 
 In case you don't have a Hadoop setup, you have to create a file called `core-site.xml` with the
 following contents:
 
-{% include Running-Flink-on-Alluxio/create-core-site.md %}
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+</configuration>
+```
 
 ### Specify path to `core-site.xml` in `conf/flink-conf.yaml`
 
@@ -65,7 +77,9 @@ standalone cluster setups)
 - Specify the location of the jar file in the `HADOOP_CLASSPATH` environment variable (make sure its
 available on all cluster nodes as well). For example like this:
 
-{% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
+```bash
+$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}
+```
 
 ### Translate additional Alluxio site properties to Flink
 
@@ -91,10 +105,17 @@ This example assumes you have set up Alluxio and Flink as previously described.
 
 Put the file `LICENSE` into Alluxio, assuming you are in the top level Alluxio project directory:
 
-{% include Running-Flink-on-Alluxio/license.md %}
+```bash
+$ bin/alluxio fs copyFromLocal LICENSE alluxio://localhost:19998/LICENSE
+```
 
 Run the following command from the top level Flink project directory:
 
-{% include Running-Flink-on-Alluxio/wordcount.md %}
+```bash
+$ bin/flink run examples/batch/WordCount.jar --input alluxio://localhost:19998/LICENSE --output alluxio://localhost:19998/output
+```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There should be an output file `output` which contains the word counts of the file `LICENSE`.
+
+> Tips：The previous example is also applicable to Alluxio in fault tolerant mode with Zookeeper. 
+Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).

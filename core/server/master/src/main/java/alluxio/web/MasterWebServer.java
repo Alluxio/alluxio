@@ -74,7 +74,7 @@ public final class MasterWebServer extends WebServer {
         .addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet()), "/metricsui");
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.master", "alluxio.master.block",
-        "alluxio.master.file", "alluxio.master.lineage");
+        "alluxio.master.file");
     // Override the init method to inject a reference to AlluxioMaster into the servlet context.
     // ServletContext may not be modified until after super.init() is called.
     ServletContainer servlet = new ServletContainer(config) {

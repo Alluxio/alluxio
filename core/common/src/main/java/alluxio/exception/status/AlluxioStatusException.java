@@ -26,8 +26,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.LineageDeletionException;
-import alluxio.exception.LineageDoesNotExistException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.thrift.AlluxioTException;
@@ -232,8 +230,7 @@ public class AlluxioStatusException extends IOException {
     } catch (BlockAlreadyExistsException | FileAlreadyCompletedException
         | FileAlreadyExistsException e) {
       return new AlreadyExistsException(e);
-    } catch (BlockDoesNotExistException | FileDoesNotExistException
-        | LineageDoesNotExistException e) {
+    } catch (BlockDoesNotExistException | FileDoesNotExistException e) {
       return new NotFoundException(e);
     } catch (BlockInfoException | InvalidFileSizeException | InvalidPathException e) {
       return new InvalidArgumentException(e);
@@ -241,7 +238,7 @@ public class AlluxioStatusException extends IOException {
         | UfsBlockAccessTokenUnavailableException e) {
       return new UnavailableException(e);
     } catch (DependencyDoesNotExistException | DirectoryNotEmptyException
-        | InvalidWorkerStateException | LineageDeletionException e) {
+        | InvalidWorkerStateException e) {
       return new FailedPreconditionException(e);
     } catch (WorkerOutOfSpaceException e) {
       return new ResourceExhaustedException(e);

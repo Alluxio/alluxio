@@ -9,43 +9,40 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.lineage.options;
-
-import alluxio.annotation.PublicApi;
+package alluxio.uri;
 
 import com.google.common.base.Objects;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 /**
- * Method options for creating a lineage.
+ * A Singleton of NoAuthority, it represents a URI without authority.
  */
-@PublicApi
-@NotThreadSafe
-public final class CreateLineageOptions {
-  /**
-   * @return the default options
-   */
-  public static CreateLineageOptions defaults() {
-    return new CreateLineageOptions();
-  }
+public final class NoAuthority implements Authority {
+  private static final long serialVersionUID = -208199254267143112L;
 
-  private CreateLineageOptions() {
-    // No options currently
+  public static final NoAuthority INSTANCE = new NoAuthority();
+
+  private NoAuthority() {} // enforce singleton pattern
+
+  @Override
+  public int compareTo(Authority other) {
+    return toString().compareTo(other.toString());
   }
 
   @Override
   public boolean equals(Object o) {
-    return this == o || o instanceof CreateLineageOptions;
+    if (this == o || o instanceof NoAuthority) {
+      return true;
+    }
+    return false;
   }
 
   @Override
   public int hashCode() {
-    return 0;
+    return Objects.hashCode("");
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).toString();
+    return "";
   }
 }

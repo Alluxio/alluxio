@@ -416,6 +416,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (mDirectoryIdGenerator.replayJournalEntryFromJournal(entry)
         || mInodeTree.replayJournalEntryFromJournal(entry)) {
       return;
+    } else if (entry.hasReinitializeFile() || entry.hasLineage() || entry.hasLineageIdGenerator()
+        || entry.hasDeleteLineage()) {
+      // lineage is no longer supported, fall through
     } else if (entry.hasAddMountPoint()) {
       try {
         mountFromEntry(entry.getAddMountPoint());
@@ -2246,29 +2249,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       lostFiles.add(fileId);
     }
     return new ArrayList<>(lostFiles);
-  }
-
-  @Override
-  public void reportLostFile(long fileId) throws FileDoesNotExistException, UnavailableException {
-    try (
-        LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, InodeTree.LockMode.READ)) {
-      InodeView inode = inodePath.getInode();
-      if (inode.isDirectory()) {
-        LOG.warn("Reported file is a directory {}", inode);
-        return;
-      }
-
-      List<Long> blockIds = new ArrayList<>();
-      try {
-        for (FileBlockInfo fileBlockInfo : getFileBlockInfoListInternal(inodePath)) {
-          blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
-        }
-      } catch (InvalidPathException e) {
-        LOG.info("Failed to get file info {}", fileId, e);
-      }
-      mBlockMaster.reportLostBlocks(blockIds);
-      LOG.info("Reported file loss of blocks {}. Alluxio will recompute it: {}", blockIds, fileId);
-    }
   }
 
   @Override

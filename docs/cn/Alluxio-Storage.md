@@ -29,7 +29,7 @@ Alluxio存储通过Alluxio的`alluxio-site.properties`配置。详细配置请�
 alluxio.worker.memory.size=16GB
 ```
 
-另一个常见设置是指定多个存储介质，如ramdisk和SSD。 我们需要更新`alluxio.worker.tieredstore.level0.dirs.path`来指定我们想要的每个存储介质作为存储目录。例如，要使用ramdisk（安装在`/ mnt / ramdisk`）和两个
+另一个常见设置是指定多个存储介质，如ramdisk和SSD。 我们需要更新`alluxio.worker.tieredstore.level0.dirs.path`来指定我们想要的每个存储介质作为存储目录。例如，要使用ramdisk（安装在`/mnt/ramdisk`）和两个
 SSD（安装在`/mnt/ssd1`和`/mnt/ssd2`）：
 
 ```
@@ -50,7 +50,7 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 
 ## 回收
 
-因为Alluxio存储设计是不稳定的，所以必须有一个机制在Alluxio存储已满时为新的数据腾出空间。这被称为回收。
+因为Alluxio存储被设计成动态变化的，所以必须有一个机制在Alluxio存储已满时为新的数据腾出空间。这被称为回收。
 
 在Alluxio中有两种回收模式，异步（默认）和同步。你可以通过启用和禁用处理异步驱逐的空间预留器在这两者之间切换。
 例如，要关闭异步回收：

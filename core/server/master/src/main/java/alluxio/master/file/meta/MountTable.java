@@ -171,8 +171,7 @@ public final class MountTable implements JournalEntryIterable {
               mountedAlluxioPath, alluxioPath));
         }
         if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
-            && (ufsUri.getAuthority() == null || ufsUri.getAuthority()
-            .equals(mountedUfsUri.getAuthority()))) {
+            && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
           String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
           String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
           if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {

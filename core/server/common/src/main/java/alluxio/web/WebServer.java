@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -89,6 +91,17 @@ public abstract class WebServer {
     mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
     File warPath = new File(Configuration.get(PropertyKey.WEB_RESOURCES));
     mWebAppContext.setWar(warPath.getAbsolutePath());
+    String webTempPath = Configuration.get(PropertyKey.WEB_TEMP_PATH);
+    LOG.info("Using temporary directory {} for web server resources", webTempPath);
+    if (!Files.exists(Paths.get(webTempPath))) {
+      try {
+        Files.createDirectories(Paths.get(webTempPath));
+      } catch (IOException e) {
+        LOG.error("Failed to create temporary directory {} for web server: {}", webTempPath, e);
+      }
+    }
+
+    mWebAppContext.setAttribute(WebAppContext.BASETEMPDIR, webTempPath);
 
     // Set the ContainerIncludeJarPattern so that jetty examines these
     // container-path jars for tlds, web-fragments etc.
