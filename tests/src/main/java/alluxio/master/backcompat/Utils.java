@@ -29,8 +29,22 @@ public final class Utils {
    * @param path the file path
    */
   public static void createFile(FileSystem fs, AlluxioURI path) throws Exception {
-    try (FileOutStream out =
-        fs.createFile(path, CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB))) {
+    try (FileOutStream out = fs.createFile(path,
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true))) {
+      out.write("test".getBytes());
+    }
+  }
+
+  /**
+   * Creates a file at the given path.
+   *
+   * @param fs a filesystem client
+   * @param path the file path
+   * @param options create file options
+   */
+  public static void createFile(FileSystem fs, AlluxioURI path, CreateFileOptions options)
+      throws Exception {
+    try (FileOutStream out = fs.createFile(path, options)) {
       out.write("test".getBytes());
     }
   }

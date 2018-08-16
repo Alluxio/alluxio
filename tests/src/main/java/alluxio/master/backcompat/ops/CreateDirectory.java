@@ -11,25 +11,83 @@
 
 package alluxio.master.backcompat.ops;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.master.backcompat.FsTestOp;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.Assert;
+import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.master.backcompat.FsTestOp;
+import alluxio.security.authorization.Mode;
+import alluxio.security.authorization.ModeParser;
+import alluxio.wire.CommonOptions;
+import alluxio.wire.TtlAction;
+
+import java.util.Arrays;
 
 /**
  * Test for directory creation.
  */
 public final class CreateDirectory extends FsTestOp {
   private static final AlluxioURI DIR = new AlluxioURI("/createDirectory");
+  private static final AlluxioURI NESTED_DIR = new AlluxioURI("/createDirectory/a");
+  private static final AlluxioURI NESTED_NESTED_DIR = new AlluxioURI("/createDirectory/a/b");
+  private static final AlluxioURI RECURSIVE = new AlluxioURI("/createDirectoryRecursive/a/b");
+  private static final Mode TEST_MODE = ModeParser.parse("u=rwx,g=x,o=wx");
+  private static final AlluxioURI MODE_DIR = new AlluxioURI("/createDirectoryMode/a");
+  private static final Long TTL = Long.MAX_VALUE / 2;
+  private static final AlluxioURI TTL_DIR = new AlluxioURI("/createDirectoryTtl/a");
+  private static final AlluxioURI COMMON_TTL_DIR = new AlluxioURI("/createDirectoryCommonTtl/a");
+  private static final AlluxioURI THROUGH_DIR = new AlluxioURI("/createDirectoryThrough/a");
+  private static final AlluxioURI ALL_OPTS_DIR = new AlluxioURI("/createDirectoryAllOpts/a");
 
   @Override
   public void apply(FileSystem fs) throws Exception {
     fs.createDirectory(DIR);
+    fs.createDirectory(NESTED_DIR);
+    fs.createDirectory(NESTED_NESTED_DIR);
+    fs.createDirectory(RECURSIVE, CreateDirectoryOptions.defaults().setRecursive(true));
+    fs.createDirectory(RECURSIVE, CreateDirectoryOptions.defaults().setAllowExists(true));
+    fs.createDirectory(MODE_DIR, CreateDirectoryOptions.defaults().setMode(TEST_MODE)
+        .setRecursive(true));
+    // Set TTL via common options instead (should have the same effect).
+    fs.createDirectory(COMMON_TTL_DIR, CreateDirectoryOptions.defaults()
+        .setRecursive(true)
+        .setCommonOptions(CommonOptions.defaults()
+            .setTtl(TTL)
+            .setTtlAction(TtlAction.DELETE)));
+    fs.createDirectory(TTL_DIR, CreateDirectoryOptions.defaults().setTtl(TTL)
+        .setTtlAction(TtlAction.DELETE)
+        .setRecursive(true));
+    fs.createDirectory(THROUGH_DIR, CreateDirectoryOptions.defaults()
+        .setWriteType(WriteType.THROUGH)
+        .setRecursive(true));
+    fs.createDirectory(ALL_OPTS_DIR, CreateDirectoryOptions.defaults()
+        .setRecursive(true)
+        .setMode(TEST_MODE)
+        .setAllowExists(true)
+        .setWriteType(WriteType.THROUGH)
+        .setTtl(TTL)
+        .setTtlAction(TtlAction.DELETE)
+    );
   }
 
   @Override
   public void check(FileSystem fs) throws Exception {
-    Assert.assertTrue("Created directory should exist", fs.exists(DIR));
+    for (AlluxioURI dir : Arrays.asList(DIR, NESTED_DIR, NESTED_NESTED_DIR, RECURSIVE, MODE_DIR,
+        TTL_DIR, COMMON_TTL_DIR, THROUGH_DIR, ALL_OPTS_DIR)) {
+      assertTrue(fs.exists(dir));
+    }
+    assertEquals(TEST_MODE, new Mode((short) fs.getStatus(MODE_DIR).getMode()));
+    assertEquals((long) TTL, fs.getStatus(TTL_DIR).getTtl());
+    assertEquals(TtlAction.DELETE, fs.getStatus(TTL_DIR).getTtlAction());
+    assertEquals((long) TTL, fs.getStatus(COMMON_TTL_DIR).getTtl());
+    assertEquals(TtlAction.DELETE, fs.getStatus(COMMON_TTL_DIR).getTtlAction());
+    assertTrue(fs.getStatus(THROUGH_DIR).isPersisted());
+    assertEquals(TEST_MODE, new Mode((short) fs.getStatus(ALL_OPTS_DIR).getMode()));
+    assertEquals((long) TTL, fs.getStatus(ALL_OPTS_DIR).getTtl());
+    assertEquals(TtlAction.DELETE, fs.getStatus(ALL_OPTS_DIR).getTtlAction());
+    assertTrue(fs.getStatus(ALL_OPTS_DIR).isPersisted());
   }
 }

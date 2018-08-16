@@ -35,7 +35,7 @@ public final class PersistDirectory extends FsTestOp {
 
   @Override
   public void check(FileSystem fs) throws Exception {
-    Assert.assertTrue("Parent directory should be persisted", fs.getStatus(DIR).isPersisted());
-    Assert.assertTrue("Persisted file should be persisted", fs.getStatus(INNER_FILE).isPersisted());
+    Assert.assertTrue(fs.getStatus(DIR).isPersisted());
+    Assert.assertTrue(fs.getStatus(INNER_FILE).isPersisted());
   }
 }
