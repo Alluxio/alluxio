@@ -423,6 +423,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Path to store temporary web server files.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.SERVER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey WEB_THREADS =
       new Builder(Name.WEB_THREADS)
