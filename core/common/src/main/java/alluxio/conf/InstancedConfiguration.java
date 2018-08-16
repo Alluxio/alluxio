@@ -266,6 +266,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public void validate() {
+    if (!getBoolean(PropertyKey.CONF_VALIDATION_ENABLED)) {
+      return;
+    }
     for (PropertyKey key : keySet()) {
       Preconditions.checkState(
           getSource(key).getType() != Source.Type.SITE_PROPERTY || !key.isIgnoredSiteProperty(),

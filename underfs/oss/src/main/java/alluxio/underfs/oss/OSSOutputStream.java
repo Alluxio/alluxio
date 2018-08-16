@@ -54,7 +54,7 @@ public final class OSSOutputStream extends OutputStream {
   /** The oss client for OSS operations. */
   private final OSSClient mOssClient;
 
-  /** The outputstream to a local file where the file will be buffered until closed. */
+  /** The OutputStream to a local file where the file will be buffered until closed. */
   private OutputStream mLocalOutputStream;
   /** The MD5 hash of the file. */
   private MessageDigest mHash;
@@ -146,9 +146,7 @@ public final class OSSOutputStream extends OutputStream {
       return;
     }
     mLocalOutputStream.close();
-    try {
-      BufferedInputStream in = new BufferedInputStream(
-          new FileInputStream(mFile));
+    try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(mFile))) {
       ObjectMetadata objMeta = new ObjectMetadata();
       objMeta.setContentLength(mFile.length());
       if (mHash != null) {
@@ -156,10 +154,10 @@ public final class OSSOutputStream extends OutputStream {
         objMeta.setContentMD5(new String(Base64.encodeBase64(hashBytes)));
       }
       mOssClient.putObject(mBucketName, mKey, in, objMeta);
-      mFile.delete();
     } catch (ServiceException e) {
       LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
       throw new IOException(e);
     }
+    mFile.delete();
   }
 }

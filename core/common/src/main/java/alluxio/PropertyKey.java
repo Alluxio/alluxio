@@ -284,6 +284,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey CONF_VALIDATION_ENABLED =
+      new Builder(Name.CONF_VALIDATION_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to validate the configuration properties when initializing "
+              + "Alluxio clients or server process.")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey DEBUG =
       new Builder(Name.DEBUG)
           .setDefaultValue(false)
@@ -421,6 +429,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(String.format("${%s}/core/server/common/src/main/webapp", Name.HOME))
           .setDescription("Path to the web application resources.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WEB_TEMP_PATH =
+      new Builder(Name.WEB_TEMP_PATH)
+          .setDefaultValue(String.format("${%s}/web/", Name.WORK_DIR))
+          .setDescription("Path to store temporary web server files.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey WEB_THREADS =
@@ -3056,6 +3071,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @ThreadSafe
   public static final class Name {
     public static final String CONF_DIR = "alluxio.conf.dir";
+    public static final String CONF_VALIDATION_ENABLED = "alluxio.conf.validation.enabled";
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
     public static final String HOME = "alluxio.home";
@@ -3101,6 +3117,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String VERSION = "alluxio.version";
     public static final String WEB_FILE_INFO_ENABLED = "alluxio.web.file.info.enabled";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
+    public static final String WEB_TEMP_PATH = "alluxio.web.temp.path";
     public static final String WEB_THREADS = "alluxio.web.threads";
     public static final String WORK_DIR = "alluxio.work.dir";
     public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";

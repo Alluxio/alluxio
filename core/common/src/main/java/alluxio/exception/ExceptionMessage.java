@@ -188,7 +188,7 @@ public enum ExceptionMessage {
   INVALID_ARGS_NUM("Command {0} takes {1} arguments, not {2}"),
   INVALID_ARGS_NUM_INSUFFICIENT("Command {0} requires at least {1} arguments ({2} provided)"),
   INVALID_ARGS_NUM_TOO_MANY("Command {0} requires at most {1} arguments ({2} provided)"),
-  INVALID_ARGS_SORT_FIELD("Invalid sort option ‘{0}’ for --sort"),
+  INVALID_ARGS_SORT_FIELD("Invalid sort option `{0}` for --sort"),
 
   // extension shell
   INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),
@@ -208,7 +208,8 @@ public enum ExceptionMessage {
   UNKNOWN_LINEAGE_FILE_STATE("Unknown LineageFileState: {0}"),
 
   // client
-  DIFFERENT_MASTER_ADDRESS("Master address {0} is different from that in file system context {1}"),
+  DIFFERENT_CONNECTION_DETAILS(
+      "New connection details are different from that in file system context {0}"),
   INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
 
   // configuration

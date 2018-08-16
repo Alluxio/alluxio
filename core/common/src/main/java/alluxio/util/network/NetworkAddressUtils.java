@@ -19,6 +19,7 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
+import alluxio.uri.Authority;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -592,7 +593,8 @@ public final class NetworkAddressUtils {
       if (path.getPort() != -1) {
         authority += ":" + path.getPort();
       }
-      return new AlluxioURI(path.getScheme(), authority, path.getPath(), path.getQueryMap());
+      return new AlluxioURI(path.getScheme(), Authority.fromString(authority),
+          path.getPath(), path.getQueryMap());
     }
     return path;
   }

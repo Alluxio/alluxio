@@ -35,7 +35,16 @@ Change the `hbase.rootdir` property in `conf/hbase-site.xml`:
 ```xml
 <property>
   <name>hbase.rootdir</name>
-  <value>alluxio://<ALLUXIO_MASTER_HOSTNAME>:<PORT>/hbase</value>
+  <value>alluxio://master_hostname:port/hbase</value>
+</property>
+```
+
+When Alluxio is running in fault tolerant mode, change the Alluxio URI to include Zookeeper information.
+
+```xml
+<property>
+  <name>hbase.rootdir</name>
+  <value>alluxio://zk@zookeeper_hostname1:2181,zookeeper_hostname2:2181,zookeeper_hostname3:2181/hbase</value>
 </property>
 ```
 
