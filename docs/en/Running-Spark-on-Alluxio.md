@@ -230,7 +230,6 @@ See the blog article
 To customize Alluxio client-side properties in a Spark job, see
 [how to configure Spark Jobs](Configuration-Settings.html#spark-jobs).
 
-
 ## Frequently Asked Questions
 
 ### Incorrect Data Locality Level of Spark Tasks
