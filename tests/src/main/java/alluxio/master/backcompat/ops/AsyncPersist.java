@@ -11,20 +11,19 @@
 
 package alluxio.master.backcompat.ops;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.exception.AlluxioException;
 import alluxio.master.backcompat.FsTestOp;
-import alluxio.master.file.meta.PersistenceState;
+import alluxio.util.CommonUtils;
 
-import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-
-import java.util.Arrays;
+import java.io.IOException;
 
 /**
  * Test for async persist functionality.
@@ -38,13 +37,17 @@ public final class AsyncPersist extends FsTestOp {
         .setBlockSizeBytes(Constants.KB).setWriteType(WriteType.ASYNC_THROUGH))) {
       out.write("test".getBytes());
     }
+    CommonUtils.waitFor("file to be persisted", () -> {
+      try {
+        return fs.getStatus(FILE).isPersisted();
+      } catch (IOException | AlluxioException e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   @Override
   public void check(FileSystem fs) throws Exception {
-    URIStatus status = fs.getStatus(FILE);
-    Assert.assertThat("Async persisted file should be PERSISTED or TO_BE_PERSISTED",
-        Arrays.asList(PersistenceState.PERSISTED.name(), PersistenceState.TO_BE_PERSISTED.name()),
-        CoreMatchers.hasItem(status.getPersistenceState()));
+    assertTrue(fs.getStatus(FILE).isPersisted());
   }
 }
