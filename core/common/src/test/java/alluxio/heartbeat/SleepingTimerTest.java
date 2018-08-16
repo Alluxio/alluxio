@@ -11,14 +11,14 @@
 
 package alluxio.heartbeat;
 
-import alluxio.clock.ManualClock;
-import alluxio.time.Sleeper;
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
+import alluxio.clock.ManualClock;
+import alluxio.time.Sleeper;
 
 import org.junit.Before;
 import org.junit.Test;
