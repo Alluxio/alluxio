@@ -33,12 +33,16 @@ public final class JournalEntryAssociation {
         || entry.hasInodeDirectoryIdGenerator()
         || entry.hasInodeFile()
         || entry.hasInodeLastModificationTime()
+        || entry.hasNewBlock()
         || entry.hasPersistDirectory()
         || entry.hasRename()
         || entry.hasReinitializeFile()
         || entry.hasSetAcl()
         || entry.hasSetAttribute()
-        || entry.hasUpdateUfsMode()) {
+        || entry.hasUpdateUfsMode()
+        || entry.hasUpdateInode()
+        || entry.hasUpdateInodeDirectory()
+        || entry.hasUpdateInodeFile()) {
       return Constants.FILE_SYSTEM_MASTER_NAME;
     }
     if (entry.hasBlockContainerIdGenerator()

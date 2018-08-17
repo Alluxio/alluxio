@@ -109,7 +109,7 @@ public class BlockMasterIntegrityIntegrationTest {
     LockedInodePath path = tree.lockInodePath(uri, InodeTree.LockMode.WRITE);
     DeleteOptions options = DeleteOptions.defaults();
     RpcContext rpcContext = ((DefaultFileSystemMaster) fsm).createRpcContext();
-    ((DefaultFileSystemMaster) fsm).deleteAndJournal(rpcContext, path, options);
+    ((DefaultFileSystemMaster) fsm).deleteInternal(rpcContext, path, options);
     path.close();
     rpcContext.close();
   }

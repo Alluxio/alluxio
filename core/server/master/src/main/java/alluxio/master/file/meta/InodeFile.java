@@ -13,12 +13,11 @@ package alluxio.master.file.meta;
 
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
-import alluxio.exception.FileAlreadyCompletedException;
-import alluxio.exception.InvalidFileSizeException;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
+import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -36,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * ({@link #lockRead()} or {@link #lockWrite()}) before methods are called.
  */
 @NotThreadSafe
-public final class InodeFile extends Inode<InodeFile> {
+public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
   private List<Long> mBlocks;
   private long mBlockContainerId;
   private long mBlockSizeBytes;
@@ -114,25 +113,43 @@ public final class InodeFile extends Inode<InodeFile> {
     throw new UnsupportedOperationException("setDefaultACL: File does not have default ACL");
   }
 
-  /**
-   * @return a duplication of all the block ids of the file
-   */
+  @Override
   public List<Long> getBlockIds() {
     return new ArrayList<>(mBlocks);
   }
 
-  /**
-   * @return the block size in bytes
-   */
+  @Override
   public long getBlockSizeBytes() {
     return mBlockSizeBytes;
   }
 
-  /**
-   * @return the length of the file in bytes. This is not accurate before the file is closed
-   */
+  @Override
   public long getLength() {
     return mLength;
+  }
+
+  @Override
+  public long getBlockContainerId() {
+    return mBlockContainerId;
+  }
+
+  @Override
+  public long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
+    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
+      throw new BlockInfoException(
+          "blockIndex " + blockIndex + " is out of range. File blocks: " + mBlocks.size());
+    }
+    return mBlocks.get(blockIndex);
+  }
+
+  @Override
+  public boolean isCacheable() {
+    return mCacheable;
+  }
+
+  @Override
+  public boolean isCompleted() {
+    return mCompleted;
   }
 
   /**
@@ -144,35 +161,6 @@ public final class InodeFile extends Inode<InodeFile> {
     // TODO(gene): Check isComplete?
     mBlocks.add(blockId);
     return blockId;
-  }
-
-  /**
-   * Gets the block id for a given index.
-   *
-   * @param blockIndex the index to get the block id for
-   * @return the block id for the index
-   * @throws BlockInfoException if the index of the block is out of range
-   */
-  public long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
-    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
-      throw new BlockInfoException(
-          "blockIndex " + blockIndex + " is out of range. File blocks: " + mBlocks.size());
-    }
-    return mBlocks.get(blockIndex);
-  }
-
-  /**
-   * @return true if the file is cacheable, false otherwise
-   */
-  public boolean isCacheable() {
-    return mCacheable;
-  }
-
-  /**
-   * @return true if the file is complete, false otherwise
-   */
-  public boolean isCompleted() {
-    return mCompleted;
   }
 
   /**
@@ -223,36 +211,25 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   /**
-   * Completes the file. Cannot set the length if the file is already completed. However, an unknown
-   * file size, {@link Constants#UNKNOWN_SIZE}, is valid. Cannot complete an already complete file,
-   * unless the completed length was previously {@link Constants#UNKNOWN_SIZE}.
+   * Updates this inode file's state from the given entry.
    *
-   * @param length The new length of the file, cannot be negative, but can be
-   *               {@link Constants#UNKNOWN_SIZE}
-   * @throws InvalidFileSizeException if invalid file size is encountered
-   * @throws FileAlreadyCompletedException if the file is already completed
+   * @param entry the entry
    */
-  public void complete(long length)
-      throws InvalidFileSizeException, FileAlreadyCompletedException {
-    if (mCompleted && mLength != Constants.UNKNOWN_SIZE) {
-      throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
+  public void updateFromEntry(UpdateInodeFileEntry entry) {
+    if (entry.hasBlockSizeBytes()) {
+      setBlockSizeBytes(entry.getBlockSizeBytes());
     }
-    if (length < 0 && length != Constants.UNKNOWN_SIZE) {
-      throw new InvalidFileSizeException(
-          "File " + getName() + " cannot have negative length: " + length);
+    if (entry.hasCacheable()) {
+      setCacheable(entry.getCacheable());
     }
-    mCompleted = true;
-    mLength = length;
-    mBlocks.clear();
-    if (length == Constants.UNKNOWN_SIZE) {
-      // TODO(gpang): allow unknown files to be multiple blocks.
-      // If the length of the file is unknown, only allow 1 block to the file.
-      length = mBlockSizeBytes;
+    if (entry.hasCompleted()) {
+      setCompleted(entry.getCompleted());
     }
-    while (length > 0) {
-      long blockSize = Math.min(length, mBlockSizeBytes);
-      getNewBlockId();
-      length -= blockSize;
+    if (entry.hasLength()) {
+      setLength(entry.getLength());
+    }
+    if (entry.getSetBlocksCount() > 0) {
+      setBlockIds(entry.getSetBlocksList());
     }
   }
 
@@ -324,6 +301,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setTtl(options.getTtl())
         .setTtlAction(options.getTtlAction())
         .setParentId(parentId)
+        .setLastModificationTimeMs(options.getOperationTimeMs(), true)
         .setOwner(options.getOwner())
         .setGroup(options.getGroup())
         .setMode(options.getMode().toShort())
