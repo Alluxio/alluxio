@@ -11,10 +11,13 @@
 
 package alluxio.master.file;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -242,6 +245,14 @@ public final class FileSystemMasterTest {
 
     mThrown.expect(FileAlreadyExistsException.class);
     mFileSystemMaster.createFile(path, CreateFileOptions.defaults().setPersisted(true));
+  }
+
+  @Test
+  public void createFileUsesOperationTime() throws Exception {
+    AlluxioURI path = new AlluxioURI("/test");
+    mFileSystemMaster.createFile(path, CreateFileOptions.defaults().setOperationTimeMs(100));
+    assertEquals(100, mFileSystemMaster.getFileInfo(path, GetStatusOptions.defaults())
+        .getLastModificationTimeMs());
   }
 
   /**
@@ -1396,6 +1407,72 @@ public final class FileSystemMasterTest {
     }
   }
 
+  @Test
+  public void removeExtendedAclMask() throws Exception {
+    mFileSystemMaster.createDirectory(NESTED_URI,
+        CreateDirectoryOptions.defaults().setRecursive(true));
+    AclEntry newAcl = AclEntry.fromCliString("user:newuser:rwx");
+    // Add an ACL
+    addAcl(NESTED_URI, newAcl);
+    assertThat(getInfo(NESTED_URI).getAcl().getEntries(), hasItem(newAcl));
+
+    // Attempt to remove the ACL mask
+    AclEntry maskEntry = AclEntry.fromCliString("mask::rwx");
+    assertThat(getInfo(NESTED_URI).getAcl().getEntries(), hasItem(maskEntry));
+    try {
+      removeAcl(NESTED_URI, maskEntry);
+      fail("Expected removing the mask from an extended ACL to fail");
+    } catch (IOException e) {
+      assertThat(e.getMessage(), containsString("mask"));
+    }
+
+    // Remove the extended ACL
+    removeAcl(NESTED_URI, newAcl);
+    // Now we can add and remove a mask
+    addAcl(NESTED_URI, maskEntry);
+    removeAcl(NESTED_URI, maskEntry);
+  }
+
+  @Test
+  public void removeExtendedDefaultAclMask() throws Exception {
+    mFileSystemMaster.createDirectory(NESTED_URI,
+        CreateDirectoryOptions.defaults().setRecursive(true));
+    AclEntry newAcl = AclEntry.fromCliString("default:user:newuser:rwx");
+    // Add an ACL
+    addAcl(NESTED_URI, newAcl);
+    assertThat(getInfo(NESTED_URI).getDefaultAcl().getEntries(), hasItem(newAcl));
+
+    // Attempt to remove the ACL mask
+    AclEntry maskEntry = AclEntry.fromCliString("default:mask::rwx");
+    assertThat(getInfo(NESTED_URI).getDefaultAcl().getEntries(), hasItem(maskEntry));
+    try {
+      removeAcl(NESTED_URI, maskEntry);
+      fail("Expected removing the mask from an extended ACL to fail");
+    } catch (IOException e) {
+      assertThat(e.getMessage(), containsString("mask"));
+    }
+
+    // Remove the extended ACL
+    removeAcl(NESTED_URI, newAcl);
+    // Now we can add and remove a mask
+    addAcl(NESTED_URI, maskEntry);
+    removeAcl(NESTED_URI, maskEntry);
+  }
+
+  private void addAcl(AlluxioURI uri, AclEntry acl) throws Exception {
+    mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, Arrays.asList(acl),
+        SetAclOptions.defaults());
+  }
+
+  private void removeAcl(AlluxioURI uri, AclEntry acl) throws Exception {
+    mFileSystemMaster.setAcl(uri, SetAclAction.REMOVE, Arrays.asList(acl),
+        SetAclOptions.defaults());
+  }
+
+  private FileInfo getInfo(AlluxioURI uri) throws Exception {
+    return mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
+  }
+
   /**
    * Tests that an exception is in the
    * {@link FileSystemMaster#createFile(AlluxioURI, CreateFileOptions)} with a TTL set in the
@@ -1661,6 +1738,8 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setLargerTtlForFileWithTtl() throws Exception {
+    mFileSystemMaster.createDirectory(NESTED_URI,
+        CreateDirectoryOptions.defaults().setRecursive(true));
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
@@ -1679,9 +1758,10 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setLargerTtlForDirectoryWithTtl() throws Exception {
-    CreateDirectoryOptions createDirectoryOptions =
-        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
-    mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
+    mFileSystemMaster.createDirectory(new AlluxioURI("/nested"),
+        CreateDirectoryOptions.defaults().setRecursive(true));
+    mFileSystemMaster.createDirectory(NESTED_URI,
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0));
     mFileSystemMaster.setAttribute(NESTED_URI,
         SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
@@ -1695,6 +1775,8 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setNoTtlForFileWithTtl() throws Exception {
+    mFileSystemMaster.createDirectory(NESTED_URI,
+        CreateDirectoryOptions.defaults().setRecursive(true));
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
@@ -1712,6 +1794,8 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setNoTtlForDirectoryWithTtl() throws Exception {
+    mFileSystemMaster.createDirectory(new AlluxioURI("/nested"),
+        CreateDirectoryOptions.defaults().setRecursive(true));
     CreateDirectoryOptions createDirectoryOptions =
         CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
     mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);

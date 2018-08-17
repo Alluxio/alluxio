@@ -283,9 +283,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         mFsMaster.listStatus(ROOT_PATH2, ListStatusOptions.defaults()).size());
   }
 
-  /**
-   * Tests that creating a file which already exists.
-   */
   @Test
   public void createAlreadyExistFile() throws Exception {
     mThrown.expect(FileAlreadyExistsException.class);
@@ -293,9 +290,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFile"), CreateDirectoryOptions.defaults());
   }
 
-  /**
-   * Tests that creating a directory.
-   */
   @Test
   public void createDirectory() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());

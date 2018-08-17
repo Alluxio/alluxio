@@ -395,6 +395,12 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    setAcl(path, action, entries, SetAclOptions.defaults());
+  }
+
+  @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();

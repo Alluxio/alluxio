@@ -194,8 +194,8 @@ public interface FileSystemMaster extends Master {
   /**
    * Gets a new block id for the next block of a given file to write to.
    * <p>
-   * This operation requires users to have WRITE permission on the path as
-   * this API is called when creating a new block for a file.
+   * This operation requires users to have WRITE permission on the path as this API is called when
+   * creating a new block for a file.
    *
    * @param path the path of the file to get the next block id for
    * @return the next block id for the given file
@@ -203,8 +203,8 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidPathException if the given path is not valid
    * @throws AccessControlException if permission checking fails
    */
-  long getNewBlockIdForFile(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException;
+  long getNewBlockIdForFile(AlluxioURI path) throws FileDoesNotExistException, InvalidPathException,
+      AccessControlException, UnavailableException;
 
   /**
    * @return a copy of the current mount table

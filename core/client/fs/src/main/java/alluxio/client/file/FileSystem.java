@@ -334,6 +334,18 @@ public interface FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
+   * Convenience method for {@link #setAcl(AlluxioURI, SetAclAction, List, SetAclOptions)} with
+   * default options.
+   *
+   * @param path the path to set the ACL for
+   * @param action the set action to perform
+   * @param entries the ACL entries
+   * @throws FileDoesNotExistException if the given file does not exist
+   */
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
    * Sets the ACL for a path.
    *
    * @param path the path to set the ACL for

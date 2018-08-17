@@ -33,7 +33,7 @@ public final class UfsSyncUtils {
    * @param containsMountPoint true if this inode contains a mount point, false otherwise
    * @return a {@link SyncPlan} describing how to sync the inode with the ufs
    */
-  public static SyncPlan computeSyncPlan(Inode inode, Fingerprint ufsFingerprint,
+  public static SyncPlan computeSyncPlan(InodeView inode, Fingerprint ufsFingerprint,
       boolean containsMountPoint) {
     boolean isContentSynced = inodeUfsIsContentSynced(inode, ufsFingerprint);
     boolean isMetadataSynced = inodeUfsIsMetadataSynced(inode, ufsFingerprint);
@@ -91,7 +91,7 @@ public final class UfsSyncUtils {
    * @param ufsFingerprint the ufs fingerprint to check for the sync
    * @return true of the inode is synced with the ufs status
    */
-  public static boolean inodeUfsIsContentSynced(Inode inode, Fingerprint ufsFingerprint) {
+  public static boolean inodeUfsIsContentSynced(InodeView inode, Fingerprint ufsFingerprint) {
     boolean isSyncedUnpersisted =
         !inode.isPersisted() && !ufsFingerprint.isValid();
     boolean isSyncedPersisted;
@@ -111,7 +111,7 @@ public final class UfsSyncUtils {
    * @param ufsFingerprint the ufs fingerprint to check for the sync
    * @return true of the inode is synced with the ufs status
    */
-  public static boolean inodeUfsIsMetadataSynced(Inode inode, Fingerprint ufsFingerprint) {
+  public static boolean inodeUfsIsMetadataSynced(InodeView inode, Fingerprint ufsFingerprint) {
     Fingerprint inodeFingerprint = Fingerprint.parse(inode.getUfsFingerprint());
     return inodeFingerprint.isValid() && inodeFingerprint.matchMetadata(ufsFingerprint);
   }

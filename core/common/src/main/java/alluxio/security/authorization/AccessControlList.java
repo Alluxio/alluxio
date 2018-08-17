@@ -169,7 +169,7 @@ public class AccessControlList implements Serializable {
    *
    * @param entry the entry to be removed
    */
-  public void removeEntry(AclEntry entry) throws IOException {
+  public void removeEntry(AclEntry entry) {
     switch (entry.getType()) {
       case NAMED_USER:  // fall through
       case NAMED_GROUP: // fall through
