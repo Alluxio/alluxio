@@ -16,6 +16,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.when;
+import static org.mockito.any;
+import static org.mockito.mock;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -43,7 +46,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
@@ -340,10 +342,12 @@ public final class TieredBlockStoreTest {
   public void freeSpaceThreadSafe() throws Exception {
     int threadAmount = 10;
     List<Runnable> runnables = new ArrayList<>();
-    Evictor evictor = Mockito.mock(Evictor.class);
-    Mockito.when(
-        evictor.freeSpaceWithView(Mockito.any(Long.class), Mockito.any(BlockStoreLocation.class),
-            Mockito.any(BlockMetadataManagerView.class), Mockito.any(Mode.class)))
+    Evictor evictor = mock(Evictor.class);
+    when(
+        evictor.freeSpaceWithView(any(Long.class), any(BlockStoreLocation.class),
+            any(BlockMetadataManagerView.class), 
+                                  
+                                  any(Mode.class)))
         .thenAnswer((InvocationOnMock invocation) -> {
           CommonUtils.sleepMs(20);
           return new EvictionPlan(new ArrayList<>(), new ArrayList<>());
