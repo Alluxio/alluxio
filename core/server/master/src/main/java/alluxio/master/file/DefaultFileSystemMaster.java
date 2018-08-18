@@ -150,6 +150,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -3381,38 +3382,40 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     PersistFile pf = null;
     FileInfo info = null;
     while (it.hasNext()) {
+        pf = it.next().getValue();
         try {
-            pf = it.next().getValue();
-            info = getFileInfo(pf.getFileId());  // this may throw exception
+            info = getFileInfo(pf.getFileId());
+
             if (info.isPersisted()) {
                 DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
                         new PersistFile(info.getFileId(), getBlocks4Worker(info, workerId)));
                 continue;
             } 
 
-            List<FileBlockInfo> bs = info.getFileBlockInfos();
-            if (bs == null || bs.size() == 0 || bs.get(0).getBlockInfo() == null 
-                    || bs.get(0).getBlockInfo().getLocations() == null
-                    || bs.get(0).getBlockInfo().getLocations().size() == 0) {
-                LOG.error("=== bs invalid" + bs);
+            if (!info.getBlockIds().containsAll(pf.getBlockIds())) {
+                LOG.error("=== block {} not in file {}, bs {}", pf.getBlockIds(), info.getPath(), info.getFileBlockInfos());
+                pf.getBlockIds().removeAll(info.getBlockIds());
+                DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId, pf); 
                 continue;
             }
 
-            long firstWorker = bs.get(0).getBlockInfo().getLocations().get(0).getWorkerId();
-            if (firstWorker != workerId) {  // move to own worker
-                DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_EVICT, firstWorker, pf);
-                LOG.info("=== move file {} from {} to {}", info.getPath(), workerId, firstWorker);
-                continue;
-            }
+            // don't go thru journal
+            mAsyncPersistHandler.scheduleAsyncPersistence(new AlluxioURI(info.getPath()));
 
             if (DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_PERSIST, workerId,  // ready for persist 
                         new PersistFile(info.getFileId(), new ArrayList<Long>(info.getBlockIds())))) {
-                filesToPersist.add(new PersistFile(info.getFileId(), info.getBlockIds()));
+                //filesToPersist.add(new PersistFile(info.getFileId(), info.getBlockIds()));
                 LOG.debug("===== EVICT[PERSIST] worker:" + workerId + " file:" + info.getPath()
                         + "(" + info.getFileId() + ")" + " blocks:" + info.getBlockIds());
             }
+        } catch (FileDoesNotExistException e) {
+            DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId, pf);
+            LOG.error("==== EVICT: block {} for {} not found; do free: {}", pf.getBlockIds(), pf.getFileId(), e.getMessage());
+            continue;
         } catch (Exception e) {
-            LOG.error("==== EVICT[PERSIST or FREE ERROR]:" + e.getMessage());   // complain and ignore the file
+            //TODO free it?
+            LOG.error("==== EVICT: block {} for {} exception: {}", pf.getBlockIds(), pf.getFileId(), e.getMessage());
+            continue;
         }
     }
     m.clear();

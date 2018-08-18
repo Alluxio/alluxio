@@ -733,13 +733,19 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
      
       // qiniu: don't want to change thrift (see its warning), so use '0' to delimit the
       // to_be_remove and already_removed block ids
-      Set<Long> evictingFiles = new HashSet<Long>();
+      Map<Long, PersistFile> evictingFiles = new HashMap<Long, PersistFile>();
       for (int i = 0; i < removedBlockIds.size(); i++) {
           if (removedBlockIds.get(i) == 0) {
               for (int j = 0; j < i; j++) {
-                  long containerId = BlockId.getContainerId(removedBlockIds.get(0));
+                  long blockId = removedBlockIds.get(0);
+                  long containerId = BlockId.getContainerId(blockId);
                   long fileId = IdUtils.createFileId(containerId);
-                  evictingFiles.add(fileId);
+                  PersistFile pf = evictingFiles.get(fileId);
+                  if (pf == null) {
+                      pf = new PersistFile(fileId, new ArrayList<Long>());
+                      evictingFiles.put(fileId, pf);
+                  }
+                  pf.getBlockIds().add(blockId);
                   removedBlockIds.remove(0);
               }
               removedBlockIds.remove(0);
@@ -751,9 +757,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
        * sicne we can't get file info in the block context.
        * we will let the worker with first block to handle persist to avoid duplication.
        */
-      for (long id: evictingFiles) {
-          DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_EVICT, workerId, 
-                  new PersistFile(id, new ArrayList<Long>()));  // no block ids yet
+      for (PersistFile pf: evictingFiles.values()) {
+          DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_EVICT, workerId, pf);
       }
 
       processWorkerRemovedBlocks(worker, removedBlockIds);
