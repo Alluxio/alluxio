@@ -723,18 +723,20 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         continue;
       }
 
-      worker.updateLastUpdatedTimeMs();
-      mWorkers.add(worker);
-      workers.remove(worker);
-      if (workers ==  mLostWorkers) {
-        for (Consumer<Address> function : mLostWorkerFoundListeners) {
-          function.accept(new Address(worker.getWorkerAddress().getHost(),
-                                      worker.getWorkerAddress().getRpcPort()));
+      synchronized (worker) {
+        worker.updateLastUpdatedTimeMs();
+        mWorkers.add(worker);
+        workers.remove(worker);
+        if (workers ==  mLostWorkers) {
+          for (Consumer<Address> function : mLostWorkerFoundListeners) {
+            function.accept(new Address(worker.getWorkerAddress().getHost(),
+                  worker.getWorkerAddress().getRpcPort()));
+          }
+          LOG.warn("A lost worker {} has requested its old id {}.",
+              worker.getWorkerAddress(), worker.getId());
+        } else {
+          LOG.info("=== move worker {}:{}", worker.getId(), worker.getWorkerAddress());
         }
-        LOG.warn("A lost worker {} has requested its old id {}.",
-            worker.getWorkerAddress(), worker.getId());
-      } else {
-        LOG.info("=== move worker {}:{}", worker.getId(), worker.getWorkerAddress());
       }
 
       return worker;
