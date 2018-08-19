@@ -721,12 +721,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       processWorkerRemovedBlocks(worker, removedBlocks);
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
       processWorkerOrphanedBlocks(worker);
+      LOG.info("registerWorker(): id:{}, adr:{}, cap:{}, avail:{}, total_tier:{}, free_tier:{}, blocks:{}, to_remove:{}", 
+        worker.getId(), worker.getWorkerAddress(), worker.getCapacityBytes(), 
+        worker.getAvailableBytes(), worker.getTotalBytesOnTiers(), worker.getFreeBytesOnTiers(), 
+        worker.getBlocks().size(), worker.getToRemoveBlocks().size());
     }
-
-    LOG.info("registerWorker(): id:{}, adr:{}, cap:{}, avail:{}, total_tier:{}, free_tier:{}, blocks:{}, to_remove:{}", 
-            worker.getId(), worker.getWorkerAddress(), worker.getCapacityBytes(), 
-            worker.getAvailableBytes(), worker.getTotalBytesOnTiers(), worker.getFreeBytesOnTiers(), 
-            worker.getBlocks().size(), worker.getToRemoveBlocks().size());
   }
 
   @Override
