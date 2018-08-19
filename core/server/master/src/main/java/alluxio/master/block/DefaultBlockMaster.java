@@ -65,8 +65,11 @@ import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import jersey.repackaged.com.google.common.base.Preconditions;
+
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +78,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -171,6 +175,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
+      new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+  /** Worker is not visualable until after registered. */
+  private final IndexedSet<MasterWorkerInfo> mTempWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /** Listeners to call when lost workers are found. */
@@ -689,6 +696,52 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     return ret;
   }
 
+  private MasterWorkerInfo lookupWorker(WorkerNetAddress workerNetAddress) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+      MasterWorkerInfo worker = workers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
+      if (worker != null) {
+        return worker;
+      }
+    }
+    return null;
+  }
+
+  private MasterWorkerInfo lookupWorker(long workerId) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+      MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
+      if (worker != null) {
+        return worker;
+      }
+    }
+    return null;
+  }
+
+  private MasterWorkerInfo moveWorker(long workerId) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+      MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
+      if (worker == null) {
+        continue;
+      }
+
+      worker.updateLastUpdatedTimeMs();
+      mWorkers.add(worker);
+      workers.remove(worker);
+      if (workers ==  mLostWorkers) {
+        for (Consumer<Address> function : mLostWorkerFoundListeners) {
+          function.accept(new Address(worker.getWorkerAddress().getHost(),
+                                      worker.getWorkerAddress().getRpcPort()));
+        }
+        LOG.warn("A lost worker {} has requested its old id {}.",
+            worker.getWorkerAddress(), worker.getId());
+      } else {
+        LOG.info("=== move worker {}:{}", worker.getId(), worker.getWorkerAddress());
+      }
+
+      return worker;
+    }
+    return null;
+  }
+
   @Override
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
     // TODO(gpang): Clone WorkerNetAddress in case thrift re-uses the object. Does thrift re-use it?
@@ -700,28 +753,15 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       return oldWorkerId;
     }
 
-    MasterWorkerInfo lostWorker = mLostWorkers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
-    if (lostWorker != null) {
-      // this is one of the lost workers
-      synchronized (lostWorker) {
-        final long lostWorkerId = lostWorker.getId();
-        LOG.warn("A lost worker {} has requested its old id {}.", workerNetAddress, lostWorkerId);
-
-        // Update the timestamp of the worker before it is considered an active worker.
-        lostWorker.updateLastUpdatedTimeMs();
-        mWorkers.add(lostWorker);
-        mLostWorkers.remove(lostWorker);
-        WorkerNetAddress workerAddress = lostWorker.getWorkerAddress();
-        for (Consumer<Address> function : mLostWorkerFoundListeners) {
-          function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
-        }
-        return lostWorkerId;
-      }
+    existingWorker = lookupWorker(workerNetAddress);
+    if (existingWorker != null) {
+      return existingWorker.getId();
     }
 
     // Generate a new worker id.
     long workerId = IdUtils.getRandomNonNegativeLong();
-    while (!mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
+    //while (!mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
+    while (!mTempWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
       workerId = IdUtils.getRandomNonNegativeLong();
     }
 
@@ -736,6 +776,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       RegisterWorkerTOptions options) throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+
+    if (worker == null) {
+      worker = lookupWorker(workerId);
+    }
+
     if (worker == null) {
       throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
@@ -765,6 +810,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             wireConfigList);
       }
     }
+
+    moveWorker(workerId);
 
     LOG.info("registerWorker(): {}", worker);
   }
