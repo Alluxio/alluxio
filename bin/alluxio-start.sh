@@ -392,13 +392,17 @@ main() {
   case "${ACTION}" in
     all|worker|workers|local)
       if [[ -z "${MOPT}" ]]; then
+        echo  "Assuming NoMount by default."
         MOPT="NoMount"
       elif [[ "${MOPT}" == "-f" ]]; then
+        echo  "Assuming SudoMount given -f option."
         MOPT="SudoMount"
       else
         shift
       fi
-      check_mount_mode "${MOPT}"
+      if [[ "${ACTION}" = "worker" ]] || [[ "${ACTION}" = "local" ]]; then
+        check_mount_mode "${MOPT}"
+      fi
       ;;
     *)
       MOPT=""
