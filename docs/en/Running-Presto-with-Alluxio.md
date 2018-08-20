@@ -9,24 +9,34 @@ priority: 2
 * Table of Contents
 {:toc}
 
-This guide describes how to run [Presto](https://prestodb.io/) with Alluxio, so
-that you can easily use Presto to query Hive tables stored in Alluxio's tiered storage.
+## Overview
 
+[Presto](https://prestodb.io/)
+is an open source distributed SQL query engine for running interactive analytic queries
+on data at a large scale.
+This guide describes how to run Presto to query Hive tables from Alluxio,
+which provides Presto a block-level distributed caching layer that connects to a variety of 
+storage systems including AWS S3, Azure blob store, and HDFS.
+ 
 ## Prerequisites
 
-The prerequisite for this part is that you have [Java](Java-Setup.html). And the Java version must use Java 8 Update 60 or higher (8u60+), 64-bit.
-Alluxio cluster should also be set up in accordance to these guides for either
+* [Setup Java](Java-Setup.html) for Java 8 Update 60 or higher (8u60+), 64-bit.
+* [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/), 
+and follow the instructions on [deploy Presto](https://prestodb.io/docs/current/installation/deployment.html).
+This doc assumes and is tested with presto-0.191. 
+* Alluxio cluster should also be set up in accordance to these guides for either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+* Setup Hive to serve tables in Alluxio, see [Hive On Alluxio](Running-Hive-with-Alluxio.html).
 
-Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(This doc uses presto-0.191). Also, please complete Hive setup using
-[Hive On Alluxio](Running-Hive-with-Alluxio.html)
+## Configuration Presto
 
-## Configuration
+### Basic Setup
+
 
 Presto gets the database and table metadata information from Hive Metastore. At the same time,
-the file system location of table data is obtained from the table's metadata entries. So you need to configure
-[Presto on HDFS](https://prestodb.io/docs/current/installation/deployment.html). In order to access HDFS,
-you need to add the Hadoop conf files (core-site.xml,hdfs-site.xml), and use `hive.config.resources` in
+the file system location of table data is obtained from the table's metadata entries. So you need
+ to . In order to access HDFS,
+you need to add the Hadoop conf files (`core-site.xml`,`hdfs-site.xml`), and use `hive.config.resources` in
 file `/<PATH_TO_PRESTO>/etc/catalog/hive.properties` to point to the file's location for every Presto worker.
 
 ### Configure `core-site.xml`
@@ -45,12 +55,14 @@ You need to add the following configuration items to the `core-site.xml` configu
 </property>
 ```
 
+### Additional Setup for Alluxio with HA
+
 To use fault tolerant mode, set the Alluxio cluster properties appropriately in an
 `alluxio-site.properties` file which is on the classpath.
 
 ```properties
 alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=[zookeeper_hostname]:2181
+alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181
 ```
 
 Alternatively you can add the properties to the Hadoop `core-site.xml` configuration which is then
@@ -64,7 +76,7 @@ propagated to Alluxio.
   </property>
   <property>
     <name>alluxio.zookeeper.address</name>
-    <value>[zookeeper_hostname]:2181</value>
+    <value>zkHost1:2181,zkHost2:2181</value>
   </property>
 </configuration>
 ```
