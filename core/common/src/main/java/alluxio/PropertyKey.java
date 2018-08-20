@@ -872,7 +872,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey COS_SECRET_KEY = new Builder(Name.COS_SECRET_KEY)
       .setDescription("The secret key of COS bucket.").build();
   public static final PropertyKey COS_APPID_KEY = new Builder(Name.COS_APPID_KEY)
-          .setDescription("The app id of COS bucket.").build();
+      .setDescription("The app id of COS bucket.").build();
 
   // Journal ufs related properties
   public static final PropertyKey MASTER_JOURNAL_UFS_OPTION =

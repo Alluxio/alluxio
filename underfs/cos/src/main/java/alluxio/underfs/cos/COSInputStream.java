@@ -12,6 +12,7 @@
 package alluxio.underfs.cos;
 
 import alluxio.underfs.MultiRangeObjectInputStream;
+
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.COSObject;
 import com.qcloud.cos.model.GetObjectRequest;
