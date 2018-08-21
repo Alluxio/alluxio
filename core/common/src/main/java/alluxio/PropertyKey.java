@@ -3628,12 +3628,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
       private static BiFunction<String, PropertyKey, PropertyKey> createNestedPropertyCreator(
           Scope scope, ConsistencyCheckLevel consistencyCheckLevel) {
-        return (name, baseProperty) -> new Builder(name)
-            .setDisplayType(baseProperty.getDisplayType())
-            .setDefaultSupplier(baseProperty.getDefaultSupplier())
-            .setScope(scope)
-            .setConsistencyCheckLevel(consistencyCheckLevel)
-            .buildUnregistered();
+        return (name, baseProperty) -> {
+          Builder builder = new Builder(name)
+              .setScope(scope)
+              .setConsistencyCheckLevel(consistencyCheckLevel);
+          if (baseProperty != null) {
+            builder.setDisplayType(baseProperty.getDisplayType());
+            builder.setDefaultSupplier(baseProperty.getDefaultSupplier());
+          }
+          return builder.buildUnregistered();
+        };
       }
     }
 
