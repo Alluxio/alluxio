@@ -29,8 +29,8 @@ import java.util.Map;
 public final class UnderFileSystemConfiguration {
   private boolean mReadOnly;
   private boolean mShared;
-  private final AlluxioProperties mProperties;
-  private final InstancedConfiguration mUfsConf;
+  private AlluxioProperties mProperties;
+  private InstancedConfiguration mUfsConf;
 
   /**
    * @return default UFS configuration
@@ -45,7 +45,12 @@ public final class UnderFileSystemConfiguration {
   private UnderFileSystemConfiguration() {
     mReadOnly = false;
     mShared = false;
-    mProperties = new AlluxioProperties();
+    reset();
+  }
+
+  // Resets the configuration to ignore ufs specific properties
+  private void reset() {
+    mProperties = Configuration.getAllProperties();
     mUfsConf = new InstancedConfiguration(mProperties);
   }
 
@@ -54,7 +59,7 @@ public final class UnderFileSystemConfiguration {
    * @return true if the key is contained in the given UFS configuration or global configuration
    */
   public boolean containsKey(PropertyKey key) {
-    return mUfsConf.isSet(key) || Configuration.isSet(key);
+    return mUfsConf.isSet(key);
   }
 
   /**
@@ -66,31 +71,30 @@ public final class UnderFileSystemConfiguration {
    * @return the value associated with the given key
    */
   public String getValue(PropertyKey key) {
-    if (mUfsConf.isSet(key)) {
-      return mUfsConf.get(key);
-    }
-    if (Configuration.isSet(key)) {
-      return Configuration.get(key);
-    }
-    throw new RuntimeException("key " + key + " not found");
+    return mUfsConf.get(key);
   }
 
   /**
-   * @return the map of user-customized configuration
+   * @return the map of resolved user-customized configuration
    */
   public Map<String, String> getUserSpecifiedConf() {
     if (mUfsConf == null) {
       return Collections.emptyMap();
     }
-    return mProperties.getUserProperties();
+    Map<String, String> map = new HashMap<>();
+    mUfsConf.keySet().forEach(key -> {
+      if (mUfsConf.getSource(key) == Source.UFS_OPTION) {
+        map.put(key.getName(), mUfsConf.get(key));
+      }
+    });
+    return map;
   }
 
   /**
    * @return all the global and mount specific properties as an immutable map
    */
   public Map<String, String> toMap() {
-    Map<String, String> all = new HashMap<>(Configuration.toMap());
-    all.putAll(getUserSpecifiedConf());
+    Map<String, String> all = new HashMap<>(mUfsConf.toMap());
     return Collections.unmodifiableMap(all);
   }
 
@@ -131,7 +135,7 @@ public final class UnderFileSystemConfiguration {
    * @return the updated configuration object
    */
   public UnderFileSystemConfiguration setUserSpecifiedConf(Map<String, String> ufsConf) {
-    mProperties.clear();
+    reset();
     mUfsConf.merge(ufsConf, Source.UFS_OPTION);
     return this;
   }

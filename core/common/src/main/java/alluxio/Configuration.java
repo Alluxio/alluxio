@@ -235,6 +235,15 @@ public final class Configuration {
   }
 
   /**
+   * Gets all properties.
+   *
+   * @return all properties
+   */
+  public static AlluxioProperties getAllProperties() {
+    return new AlluxioProperties(PROPERTIES);
+  }
+
+  /**
    * Gets the integer representation of the value for the given key.
    *
    * @param key the key to get the value for
