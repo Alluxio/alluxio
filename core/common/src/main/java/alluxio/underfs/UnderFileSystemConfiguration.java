@@ -19,6 +19,7 @@ import alluxio.conf.Source;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -84,8 +85,11 @@ public final class UnderFileSystemConfiguration {
    */
   public Map<String, String> getUfsSpecificConf() {
     Map<String, String> map = new HashMap<>();
-    mUfsConf.keySet().stream().filter(key -> mUfsConf.getSource(key) == Source.MOUNT_OPTION)
-        .map(key -> map.put(key.getName(), mUfsConf.get(key)));
+    mUfsConf.keySet().forEach(key -> {
+      if (mUfsConf.getSource(key) == Source.MOUNT_OPTION) {
+        map.put(key.getName(), mUfsConf.get(key));
+      }
+    });
     return map;
   }
 
