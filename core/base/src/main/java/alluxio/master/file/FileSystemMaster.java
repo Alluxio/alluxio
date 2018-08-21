@@ -39,6 +39,7 @@ import alluxio.file.options.GetStatusOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.wire.FileSystemCommand;
 import alluxio.wire.UfsInfo;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.FileBlockInfo;
@@ -507,7 +508,7 @@ public interface FileSystemMaster {
    * @throws AccessControlException if permission checking fails
    */
   FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
-      WorkerHeartbeatOptions options)
+                                    WorkerHeartbeatOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
 
   /**

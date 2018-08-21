@@ -110,6 +110,8 @@ import alluxio.underfs.Fingerprint;
 import alluxio.underfs.Fingerprint.Tag;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.wire.FileSystemCommand;
+import alluxio.wire.PersistFile;
 import alluxio.wire.UfsInfo;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsMode;
@@ -3415,7 +3417,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
-      WorkerHeartbeatOptions options)
+                                           WorkerHeartbeatOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       IOException {
 

@@ -18,8 +18,6 @@ import alluxio.file.options.MountOptions;
  * Class to represent a ufs info.
  */
 public final class UfsInfo {
-  private static final long serialVersionUID = 2423431482148091402L;
-
   private AlluxioURI mUri;
   private MountOptions mMountOptions;
 

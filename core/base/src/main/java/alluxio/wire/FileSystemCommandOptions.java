@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file;
+package alluxio.wire;
 
 /**
  * Class to represent a FileSystem command.
  */
-public final class FileSystemCommand {
+public final class FileSystemCommandOptions {
   // TODO(adit): implement me
 }
