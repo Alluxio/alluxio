@@ -904,4 +904,14 @@ public class ConfigurationTest {
       assertEquals("0.0.0.0", Configuration.get(PropertyKey.PROXY_WEB_BIND_HOST));
     }
   }
+
+  @Test
+  public void initConfWithExtenstionProperty() throws Exception {
+    try (Closeable p = new SystemPropertyRule("alluxio.master.journal.ufs.option.fs.obs.endpoint",
+        "foo").toResource()) {
+      Configuration.reset();
+      assertEquals("foo",
+          Configuration.get(Template.MASTER_JOURNAL_UFS_OPTION_PROPERTY.format("fs.obs.endpoint")));
+    }
+  }
 }
