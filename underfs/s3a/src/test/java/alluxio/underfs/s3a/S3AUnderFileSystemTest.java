@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Unit tests for the {@link S3AUnderFileSystem}.
@@ -57,6 +58,7 @@ public class S3AUnderFileSystemTest {
 
   private S3AUnderFileSystem mS3UnderFileSystem;
   private AmazonS3Client mClient;
+  private ExecutorService mExecutor;
   private TransferManager mManager;
 
   @Rule
@@ -65,9 +67,10 @@ public class S3AUnderFileSystemTest {
   @Before
   public void before() throws InterruptedException, AmazonClientException {
     mClient = Mockito.mock(AmazonS3Client.class);
+    mExecutor = Mockito.mock(ExecutorService.class);
     mManager = Mockito.mock(TransferManager.class);
     mS3UnderFileSystem = new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient,
-        BUCKET_NAME, mManager, UnderFileSystemConfiguration.defaults());
+        BUCKET_NAME, mExecutor, mManager, UnderFileSystemConfiguration.defaults(), false);
   }
 
   @Test

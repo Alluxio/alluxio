@@ -93,8 +93,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
+  /** Executor for executing upload tasks in streaming upload. */
+  private final ExecutorService mExecutor;
+
   /** Transfer Manager for efficient I/O to S3. */
   private final TransferManager mManager;
+
+  /** Enabled streaming upload. */
+  private final boolean mStreamingUploadEnabled;
 
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
   private final Supplier<ObjectPermissions> mPermissions = Suppliers
@@ -147,10 +153,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // Set the client configuration based on Alluxio configuration values.
     ClientConfiguration clientConf = new ClientConfiguration();
 
-    // Socket timeout
-    clientConf
-        .setSocketTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
-
     // HTTP protocol
     if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED))) {
       clientConf.setProtocol(Protocol.HTTPS);
@@ -181,10 +183,18 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
     clientConf.setMaxConnections(numThreads);
 
-    // Set client request timeout for all requests since multipart copy is used, and copy parts can
-    // only be set with the client configuration.
-    clientConf
-        .setRequestTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
+    boolean streamingUploadEnbaled =
+        conf.containsKey(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED)
+        && conf.getValue(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED).equals("true");
+    if (!streamingUploadEnbaled) {
+      // Socket timeout
+      clientConf
+          .setSocketTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+      // Set client request timeout for all requests since multipart copy is used,
+      // and copy parts can only be set with the client configuration.
+      clientConf
+          .setRequestTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
+    }
 
     // Signer algorithm
     if (conf.containsKey(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM)) {
@@ -213,7 +223,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
     transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
     transferManager.setConfiguration(transferConf);
-    return new S3AUnderFileSystem(uri, amazonS3Client, bucketName, transferManager, conf);
+    return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
+        service, transferManager, conf, streamingUploadEnbaled);
   }
 
   /**
@@ -222,16 +233,21 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @param uri the {@link AlluxioURI} for this UFS
    * @param amazonS3Client AWS-SDK S3 client
    * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param executor the executor for executing upload tasks
    * @param transferManager Transfer Manager for efficient I/O to S3
    * @param conf configuration for this S3A ufs
+   * @param streamingUploadEnabled whether streaming uplaod is enabled
    */
   protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3Client amazonS3Client, String bucketName,
-      TransferManager transferManager, UnderFileSystemConfiguration conf) {
+      ExecutorService executor, TransferManager transferManager, UnderFileSystemConfiguration conf,
+      boolean streamingUploadEnabled) {
     super(uri, conf);
     mClient = amazonS3Client;
     mBucketName = bucketName;
+    mExecutor = executor;
     mManager = transferManager;
     mConf = conf;
+    mStreamingUploadEnabled = streamingUploadEnabled;
   }
 
   @Override
@@ -292,6 +308,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
+    if (mStreamingUploadEnabled) {
+      return new S3AFastOutputStream(mBucketName, key, mClient, mExecutor);
+    }
     return new S3AOutputStream(mBucketName, key, mManager);
   }
 

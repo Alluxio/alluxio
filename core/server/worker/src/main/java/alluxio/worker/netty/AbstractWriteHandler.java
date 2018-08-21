@@ -85,10 +85,12 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
    * EOF: the end of file.
    * CANCEL: the write request is cancelled by the client.
    * ABORT: a non-recoverable error is detected, abort this channel.
+   * FLUSH: flush the buffered data.
    */
   private static final ByteBuf EOF = Unpooled.buffer(0);
   private static final ByteBuf CANCEL = Unpooled.buffer(0);
   private static final ByteBuf ABORT = Unpooled.buffer(0);
+  private static final ByteBuf FLUSH = Unpooled.buffer(0);
 
   private ReentrantLock mLock = new ReentrantLock();
 
@@ -169,6 +171,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         buf = EOF;
       } else if (writeRequest.getCancel()) {
         buf = CANCEL;
+      } else if (writeRequest.getFlush()) {
+        buf = FLUSH;
       } else {
         DataBuffer dataBuffer = msg.getPayloadDataBuffer();
         Preconditions.checkState(dataBuffer != null && dataBuffer.getLength() > 0);
@@ -287,6 +291,18 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
           }
         }
 
+        if (buf == FLUSH) {
+          try {
+            flushRequest(mContext, mChannel);
+            replyFlush();
+            continue;
+          } catch (Exception e) {
+            LOG.error("Failed to flush with error {}.", e);
+            Throwables.propagateIfPossible(e);
+            pushAbortPacket(mChannel,
+                new Error(AlluxioStatusException.fromCheckedException(e), true));
+          }
+        }
         try {
           int readableBytes = buf.readableBytes();
           mContext.setPosToWrite(mContext.getPosToWrite() + readableBytes);
@@ -350,6 +366,14 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
     protected abstract void cleanupRequest(T context) throws Exception;
 
     /**
+     * Flushes the buffered data.
+     *
+     * @param context context of the request to complete
+     * @param channel netty channel
+     */
+    protected abstract void flushRequest(T context, Channel channel) throws Exception;
+
+    /**
      * Writes the buffer.
      *
      * @param context context of the request to complete
@@ -393,6 +417,13 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         mChannel.writeAndFlush(RPCProtoMessage.createResponse(error.getCause()))
             .addListener(ChannelFutureListener.CLOSE);
       }
+    }
+
+    /**
+     * Writes a flushed response to the channel.
+     */
+    private void replyFlush() {
+      mChannel.writeAndFlush(RPCProtoMessage.createOkResponse(null));
     }
   }
 

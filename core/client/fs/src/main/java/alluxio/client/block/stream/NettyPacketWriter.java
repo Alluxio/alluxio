@@ -75,6 +75,9 @@ public final class NettyPacketWriter implements PacketWriter {
       Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
   private static final long CLOSE_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS);
+  /** Uses a long flush timeout since flush in S3 streaming upload may take a long time. */
+  private static final long FLUSH_TIMEOUT_MS =
+      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_FLUSH_TIMEOUT_MS);
 
   private final FileSystemContext mContext;
   private final Channel mChannel;
@@ -109,6 +112,9 @@ public final class NettyPacketWriter implements PacketWriter {
   private final Condition mBufferNotFullOrFailed = mLock.newCondition();
   /** This condition is met if there is nothing in the netty buffer. */
   private final Condition mBufferEmptyOrFailed = mLock.newCondition();
+
+  /** flush() should not be called before write. */
+  private boolean mWrote = false;
 
   /**
    * @param context the file system context
@@ -207,6 +213,7 @@ public final class NettyPacketWriter implements PacketWriter {
     DataBuffer dataBuffer = new DataNettyBufferV2(buf);
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), dataBuffer))
         .addListener(new WriteListener(offset + len));
+    mWrote = true;
   }
 
   @Override
@@ -220,21 +227,22 @@ public final class NettyPacketWriter implements PacketWriter {
   @Override
   public void flush() throws IOException {
     mChannel.flush();
-
+    if (!mWrote) {
+      return;
+    }
+    final long pos;
     try (LockResource lr = new LockResource(mLock)) {
-      while (true) {
-        if (mPosToWrite == mPosToQueue) {
-          return;
-        }
-        if (mPacketWriteException != null) {
-          Throwables.propagateIfPossible(mPacketWriteException, IOException.class);
-          throw AlluxioStatusException.fromCheckedException(mPacketWriteException);
-        }
-        if (!mBufferEmptyOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-          throw new DeadlineExceededException(
-              String.format("Timeout flushing to %s for request %s after %dms.",
-                  mAddress, mPartialRequest, WRITE_TIMEOUT_MS));
-        }
+      Preconditions.checkState(!mClosed && !mEOFSent && !mCancelSent);
+      pos = mPosToQueue;
+
+      Protocol.WriteRequest writeRequest =
+          mPartialRequest.toBuilder().setOffset(pos).setFlush(true).build();
+      mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
+          .addListener(new EofOrCancelorFlushListener());
+      if (!mDoneOrFailed.await(FLUSH_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+        throw new DeadlineExceededException(
+            String.format("Timeout flush to %s for request %s after %dms.",
+                mAddress, mPartialRequest, FLUSH_TIMEOUT_MS));
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -325,7 +333,7 @@ public final class NettyPacketWriter implements PacketWriter {
     Protocol.WriteRequest writeRequest =
         mPartialRequest.toBuilder().setOffset(pos).setEof(true).build();
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
-        .addListener(new EofOrCancelListener());
+        .addListener(new EofOrCancelorFlushListener());
   }
 
   /**
@@ -344,7 +352,7 @@ public final class NettyPacketWriter implements PacketWriter {
     Protocol.WriteRequest writeRequest =
         mPartialRequest.toBuilder().setOffset(pos).setCancel(true).build();
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
-        .addListener(new EofOrCancelListener());
+        .addListener(new EofOrCancelorFlushListener());
   }
 
   @Override
@@ -481,13 +489,13 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   /**
-   * The netty channel future listener that is called when a EOF or CANCEL is complete.
+   * The netty channel future listener that is called when a EOF or CANCEL or FLUSH is complete.
    */
-  private final class EofOrCancelListener implements ChannelFutureListener {
+  private final class EofOrCancelorFlushListener implements ChannelFutureListener {
     /**
      * Constructor.
      */
-    EofOrCancelListener() {}
+    EofOrCancelorFlushListener() {}
 
     @Override
     public void operationComplete(ChannelFuture future) {

@@ -797,6 +797,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_S3A_STREAMING_UPLOAD_ENABLED =
+      new Builder(Name.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using streaming upload to write to S3A.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE =
+      new Builder(Name.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "S3A streaming upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, S3A upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // UFS access control related properties
@@ -2583,6 +2600,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_NETWORK_NETTY_WRITER_FLUSH_TIMEOUT_MS =
+      new Builder(Name.USER_NETWORK_NETTY_WRITER_FLUSH_TIMEOUT_MS)
+          .setDefaultValue("1day")
+          .setDescription("The timeout to wait for flush to finish in a netty writer.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       new Builder(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS)
           .setDefaultValue(16)
@@ -3127,6 +3151,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.s3a.signer.algorithm";
     public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
         "alluxio.underfs.s3a.socket.timeout";
+    public static final String UNDERFS_S3A_STREAMING_UPLOAD_ENABLED =
+        "alluxio.underfs.s3a.streaming.upload.enabled";
+    public static final String UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.s3a.streaming.upload.partition.size";
     public static final String UNDERFS_S3_ADMIN_THREADS_MAX =
         "alluxio.underfs.s3.admin.threads.max";
     public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
@@ -3470,6 +3498,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.netty.timeout";
     public static final String USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
         "alluxio.user.network.netty.writer.close.timeout";
+    public static final String USER_NETWORK_NETTY_WRITER_FLUSH_TIMEOUT_MS =
+        "alluxio.user.network.netty.writer.flush.timeout.ms";
     public static final String USER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.user.network.netty.worker.threads";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
