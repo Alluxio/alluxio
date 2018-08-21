@@ -74,7 +74,7 @@ message FileInfo {
 }
 
 message FileSystemCommand {
-  optional common.CommandType commandType = 1;
+  optional grpc.CommandType commandType = 1;
   optional FileSystemCommandOptions commandOptions = 2;
 }
 

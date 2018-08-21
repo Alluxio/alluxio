@@ -60,9 +60,11 @@ public final class CommonProto {
       "ss\022\014\n\004host\030\001 \001(\t\022\017\n\007rpcPort\030\002 \001(\005\022\020\n\010dat" +
       "aPort\030\003 \001(\005\022\017\n\007webPort\030\004 \001(\005\022\030\n\020domainSo" +
       "cketPath\030\005 \001(\t\0224\n\016tieredIdentity\030\006 \001(\0132\034" +
-      ".alluxio.grpc.TieredIdentity*!\n\tTtlActio" +
-      "n\022\n\n\006DELETE\020\000\022\010\n\004FREE\020\001B\035\n\014alluxio.grpcB" +
-      "\013CommonProtoP\001"
+      ".alluxio.grpc.TieredIdentity*X\n\013CommandT" +
+      "ype\022\013\n\007Unknown\020\000\022\013\n\007Nothing\020\001\022\014\n\010Registe" +
+      "r\020\002\022\010\n\004Free\020\003\022\n\n\006Delete\020\004\022\013\n\007Persist\020\005*!" +
+      "\n\tTtlAction\022\n\n\006DELETE\020\000\022\010\n\004FREE\020\001B\035\n\014all" +
+      "uxio.grpcB\013CommonProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

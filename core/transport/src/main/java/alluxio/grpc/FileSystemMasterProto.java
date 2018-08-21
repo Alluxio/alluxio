@@ -44,6 +44,26 @@ public final class FileSystemMasterProto {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_FileInfo_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_FileSystemCommand_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_FileSystemCommand_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_FileSystemCommandOptions_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_FileSystemCommandOptions_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_PersistCommandOptions_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_PersistCommandOptions_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_PersistFile_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_PersistFile_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -81,12 +101,21 @@ public final class FileSystemMasterProto {
       " \003(\0132\033.alluxio.grpc.FileBlockInfo\022*\n\tttl" +
       "Action\030\026 \001(\0162\027.alluxio.grpc.TtlAction\022\017\n" +
       "\007mountId\030\027 \001(\003\022\033\n\023inAlluxioPercentage\030\030 " +
-      "\001(\005\022\026\n\016ufsFingerprint\030\031 \001(\t*4\n\021LoadMetad" +
-      "ataPType\022\t\n\005NEVER\020\000\022\010\n\004ONCE\020\001\022\n\n\006ALWAYS\020" +
-      "\0022i\n\027FileSystemMasterService\022N\n\tGetStatu" +
-      "s\022\037.alluxio.grpc.GetStatusPRequest\032 .all" +
-      "uxio.grpc.GetStatusPResponseB\'\n\014alluxio." +
-      "grpcB\025FileSystemMasterProtoP\001"
+      "\001(\005\022\026\n\016ufsFingerprint\030\031 \001(\t\"\203\001\n\021FileSyst" +
+      "emCommand\022.\n\013commandType\030\001 \001(\0162\031.alluxio" +
+      ".grpc.CommandType\022>\n\016commandOptions\030\002 \001(" +
+      "\0132&.alluxio.grpc.FileSystemCommandOption" +
+      "s\"W\n\030FileSystemCommandOptions\022;\n\016persist" +
+      "Options\030\001 \001(\0132#.alluxio.grpc.PersistComm" +
+      "andOptions\"H\n\025PersistCommandOptions\022/\n\014p" +
+      "ersistFiles\030\001 \003(\0132\031.alluxio.grpc.Persist" +
+      "File\"/\n\013PersistFile\022\016\n\006fileId\030\001 \001(\003\022\020\n\010b" +
+      "lockIds\030\002 \003(\003*4\n\021LoadMetadataPType\022\t\n\005NE" +
+      "VER\020\000\022\010\n\004ONCE\020\001\022\n\n\006ALWAYS\020\0022i\n\027FileSyste" +
+      "mMasterService\022N\n\tGetStatus\022\037.alluxio.gr" +
+      "pc.GetStatusPRequest\032 .alluxio.grpc.GetS" +
+      "tatusPResponseB\'\n\014alluxio.grpcB\025FileSyst" +
+      "emMasterProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -137,6 +166,30 @@ public final class FileSystemMasterProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_FileInfo_descriptor,
         new java.lang.String[] { "FileId", "Name", "Path", "UfsPath", "Length", "BlockSizeBytes", "CreationTimeMs", "Completed", "Folder", "Pinned", "Cacheable", "Persisted", "BlockIds", "LastModificationTimeMs", "Ttl", "Owner", "Group", "Mode", "PersistenceState", "MountPoint", "FileBlockInfos", "TtlAction", "MountId", "InAlluxioPercentage", "UfsFingerprint", });
+    internal_static_alluxio_grpc_FileSystemCommand_descriptor =
+      getDescriptor().getMessageTypes().get(6);
+    internal_static_alluxio_grpc_FileSystemCommand_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_FileSystemCommand_descriptor,
+        new java.lang.String[] { "CommandType", "CommandOptions", });
+    internal_static_alluxio_grpc_FileSystemCommandOptions_descriptor =
+      getDescriptor().getMessageTypes().get(7);
+    internal_static_alluxio_grpc_FileSystemCommandOptions_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_FileSystemCommandOptions_descriptor,
+        new java.lang.String[] { "PersistOptions", });
+    internal_static_alluxio_grpc_PersistCommandOptions_descriptor =
+      getDescriptor().getMessageTypes().get(8);
+    internal_static_alluxio_grpc_PersistCommandOptions_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_PersistCommandOptions_descriptor,
+        new java.lang.String[] { "PersistFiles", });
+    internal_static_alluxio_grpc_PersistFile_descriptor =
+      getDescriptor().getMessageTypes().get(9);
+    internal_static_alluxio_grpc_PersistFile_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_PersistFile_descriptor,
+        new java.lang.String[] { "FileId", "BlockIds", });
     alluxio.grpc.CommonProto.getDescriptor();
   }
 

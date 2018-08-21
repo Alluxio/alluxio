@@ -86,7 +86,7 @@ public enum TtlAction
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return alluxio.grpc.CommonProto.getDescriptor().getEnumTypes().get(0);
+    return alluxio.grpc.CommonProto.getDescriptor().getEnumTypes().get(1);
   }
 
   private static final TtlAction[] VALUES = values();
