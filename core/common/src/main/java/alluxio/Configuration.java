@@ -80,6 +80,15 @@ public final class Configuration {
   }
 
   /**
+   * Create and return a copy of all properties.
+   *
+   * @return a copy of properties
+   */
+  public static AlluxioProperties copyProperties() {
+    return new AlluxioProperties(PROPERTIES);
+  }
+
+  /**
    * Resets {@link Configuration} back to the default one.
    */
   public static void reset() {
@@ -232,15 +241,6 @@ public final class Configuration {
    */
   public static Set<PropertyKey> keySet() {
     return CONF.keySet();
-  }
-
-  /**
-   * Gets all properties.
-   *
-   * @return all properties
-   */
-  public static AlluxioProperties getAllProperties() {
-    return new AlluxioProperties(PROPERTIES);
   }
 
   /**

@@ -88,15 +88,6 @@ public class AlluxioProperties {
   }
 
   /**
-   * @return a map of user-specified properties
-   */
-  public Map<String, String> getUserProperties() {
-    Map<String, String> map = new HashMap<>();
-    mUserProps.forEach((key, value) -> map.put(key.getName(), value.get()));
-    return Collections.unmodifiableMap(map);
-  }
-
-  /**
    * Clears all existing user-specified properties.
    */
   public void clear() {

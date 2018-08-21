@@ -39,7 +39,7 @@ public final class ConfExpectingUnderFileSystemFactory implements UnderFileSyste
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
-    Preconditions.checkArgument(mExpectedConf.equals(conf.getUserSpecifiedConf()),
+    Preconditions.checkArgument(mExpectedConf.equals(conf.getUfsSpecificConf()),
         "ufs conf {} does not match expected {}", conf, mExpectedConf);
     return new LocalUnderFileSystem(new AlluxioURI(new AlluxioURI(path).getPath()), conf);
   }

@@ -190,7 +190,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         System.getProperty("fs.hdfs.impl.disable.cache", "true"));
 
     // Set all parameters passed through --option
-    for (Map.Entry<String, String> entry : conf.getUserSpecifiedConf().entrySet()) {
+    for (Map.Entry<String, String> entry : conf.getUfsSpecificConf().entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
     return hdfsConf;

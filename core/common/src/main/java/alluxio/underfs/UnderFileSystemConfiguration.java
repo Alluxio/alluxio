@@ -13,7 +13,6 @@ package alluxio.underfs;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 
@@ -21,15 +20,27 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
- * A class that gets the value of the given key in the given UFS configuration or the global
- * configuration (in case the key is not found in the UFS configuration), throw
- * {@link RuntimeException} if the key is not found in both configurations..
+ * <p>
+ * Ufs configuration properties, including ufs specific configuration and global configuration.
+ *
+ * <p>
+ * The order of precedence for properties is:
+ * <ol>
+ * <li>Ufs specific properties</li>
+ * <li>Global configuration properties</li>
+ * </ol>
+ *
+ * <p>
+ * This class is a wrapper over {@link InstancedConfiguration}. Variable substitution and aliases
+ * are supported.
  */
+@NotThreadSafe
 public final class UnderFileSystemConfiguration {
   private boolean mReadOnly;
   private boolean mShared;
-  private AlluxioProperties mProperties;
   private InstancedConfiguration mUfsConf;
 
   /**
@@ -45,13 +56,7 @@ public final class UnderFileSystemConfiguration {
   private UnderFileSystemConfiguration() {
     mReadOnly = false;
     mShared = false;
-    reset();
-  }
-
-  // Resets the configuration to ignore ufs specific properties
-  private void reset() {
-    mProperties = Configuration.getAllProperties();
-    mUfsConf = new InstancedConfiguration(mProperties);
+    mUfsConf = new InstancedConfiguration(Configuration.copyProperties());
   }
 
   /**
@@ -75,18 +80,12 @@ public final class UnderFileSystemConfiguration {
   }
 
   /**
-   * @return the map of resolved user-customized configuration
+   * @return the map of resolved ufs specific configuration
    */
-  public Map<String, String> getUserSpecifiedConf() {
-    if (mUfsConf == null) {
-      return Collections.emptyMap();
-    }
+  public Map<String, String> getUfsSpecificConf() {
     Map<String, String> map = new HashMap<>();
-    mUfsConf.keySet().forEach(key -> {
-      if (mUfsConf.getSource(key) == Source.UFS_OPTION) {
-        map.put(key.getName(), mUfsConf.get(key));
-      }
-    });
+    mUfsConf.keySet().stream().filter(key -> mUfsConf.getSource(key) == Source.MOUNT_OPTION)
+        .map(key -> map.put(key.getName(), mUfsConf.get(key)));
     return map;
   }
 
@@ -94,8 +93,7 @@ public final class UnderFileSystemConfiguration {
    * @return all the global and mount specific properties as an immutable map
    */
   public Map<String, String> toMap() {
-    Map<String, String> all = new HashMap<>(mUfsConf.toMap());
-    return Collections.unmodifiableMap(all);
+    return Collections.unmodifiableMap(new HashMap<>(mUfsConf.toMap()));
   }
 
   /**
@@ -135,8 +133,8 @@ public final class UnderFileSystemConfiguration {
    * @return the updated configuration object
    */
   public UnderFileSystemConfiguration setUserSpecifiedConf(Map<String, String> ufsConf) {
-    reset();
-    mUfsConf.merge(ufsConf, Source.UFS_OPTION);
+    mUfsConf = new InstancedConfiguration(Configuration.copyProperties());
+    mUfsConf.merge(ufsConf, Source.MOUNT_OPTION);
     return this;
   }
 }

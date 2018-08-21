@@ -118,10 +118,10 @@ public final class UnderFileSystemConfigurationTest {
     UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults()
         .setUserSpecifiedConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
     assertEquals("foo", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
-    assertEquals(1, conf.getUserSpecifiedConf().size());
+    assertEquals(1, conf.getUfsSpecificConf().size());
     conf.setUserSpecifiedConf(ImmutableMap.of(PropertyKey.S3A_SECRET_KEY.toString(), "bar"));
     assertEquals("bar", conf.getValue(PropertyKey.S3A_SECRET_KEY));
     assertFalse(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
-    assertEquals(1, conf.getUserSpecifiedConf().size());
+    assertEquals(1, conf.getUfsSpecificConf().size());
   }
 }

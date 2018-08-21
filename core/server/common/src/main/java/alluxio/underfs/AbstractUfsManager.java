@@ -113,7 +113,7 @@ public abstract class AbstractUfsManager implements UfsManager {
    * @return the UFS instance
    */
   private UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
-    Key key = new Key(ufsUri, ufsConf.getUserSpecifiedConf());
+    Key key = new Key(ufsUri, ufsConf.getUfsSpecificConf());
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       return cachedFs;
