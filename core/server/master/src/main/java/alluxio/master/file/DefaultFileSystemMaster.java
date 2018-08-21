@@ -40,6 +40,7 @@ import alluxio.file.options.DescendantType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
+import alluxio.master.Master;
 import alluxio.master.MasterContext;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
@@ -178,7 +179,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The master that handles all file system metadata management.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster {
+public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster, Master {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);

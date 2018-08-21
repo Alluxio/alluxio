@@ -124,7 +124,8 @@ public final class ThriftUtils {
    * @return wire representation of the lineage information
    */
   public static MountPointInfo fromThrift(alluxio.thrift.MountPointInfo mountPointInfo) {
-    return new MountPointInfo(mountPointInfo);
+    return null;
+//    return new MountPointInfo(mountPointInfo);
   }
 
   /**
@@ -261,7 +262,8 @@ public final class ThriftUtils {
    * @return thrift representation of the mount point information
    */
   public static alluxio.thrift.MountPointInfo toThrift(MountPointInfo mountPointInfo) {
-    return mountPointInfo.toThrift();
+      return null;
+//    return mountPointInfo.toThrift();
   }
 
   /**

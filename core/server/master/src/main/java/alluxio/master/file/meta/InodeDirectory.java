@@ -17,7 +17,7 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.ProtobufUtils;
-import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.wire.FileInfo;
