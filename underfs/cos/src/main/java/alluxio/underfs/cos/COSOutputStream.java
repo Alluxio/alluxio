@@ -11,6 +11,7 @@
 
 package alluxio.underfs.cos;
 
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
