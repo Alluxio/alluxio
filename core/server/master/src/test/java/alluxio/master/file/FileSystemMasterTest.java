@@ -2187,6 +2187,17 @@ public final class FileSystemMasterTest {
   }
 
   @Test
+  public void ignoreInvalidFiles() throws Exception {
+    FileUtils.createDir(Paths.get(mUnderFS, "test").toString());
+    FileUtils.createFile(Paths.get(mUnderFS, "test", "a?b=C").toString());
+    FileUtils.createFile(Paths.get(mUnderFS, "test", "valid").toString());
+    List<FileInfo> listing = mFileSystemMaster.listStatus(new AlluxioURI("/test"), ListStatusOptions
+        .defaults().setLoadMetadataType(LoadMetadataType.Always).setRecursive(true));
+    assertEquals(1, listing.size());
+    assertEquals("valid", listing.get(0).getName());
+  }
+
+  @Test
   public void propagatePersisted() throws Exception {
     AlluxioURI nestedFile = new AlluxioURI("/nested1/nested2/file");
     AlluxioURI parent1 = new AlluxioURI("/nested1/");

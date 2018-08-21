@@ -385,7 +385,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<UfsStatus[]>() {
       @Override
       public UfsStatus[] call() throws IOException {
-        return mUnderFileSystem.listStatus(path);
+        return filterInvalidPaths(mUnderFileSystem.listStatus(path), path);
       }
 
       @Override
@@ -401,7 +401,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<UfsStatus[]>() {
       @Override
       public UfsStatus[] call() throws IOException {
-        return mUnderFileSystem.listStatus(path, options);
+        return filterInvalidPaths(mUnderFileSystem.listStatus(path, options), path);
       }
 
       @Override
@@ -409,6 +409,33 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         return String.format("ListStatus: path=%s, options=%s", path, options);
       }
     });
+  }
+
+  private UfsStatus[] filterInvalidPaths(UfsStatus[] statuses, String listedPath) {
+    // This is a temporary fix to prevent us from choking on paths containing '?'.
+    if (statuses == null) {
+      return null;
+    }
+    int removed = 0;
+    for (UfsStatus status : statuses) {
+      if (status.getName().contains("?")) {
+        LOG.warn("Ignoring {} while listing {} since it contains '?'", status.getName(),
+            listedPath);
+        removed++;
+      }
+    }
+    if (removed > 0) {
+      UfsStatus[] newStatuses = new UfsStatus[statuses.length - removed];
+      int i = 0;
+      // We perform two passes to keep the common case (no invalid names) very cheap.
+      for (UfsStatus status : statuses) {
+        if (!status.getName().contains("?")) {
+          newStatuses[i++] = status;
+        }
+      }
+      return newStatuses;
+    }
+    return statuses;
   }
 
   @Override
