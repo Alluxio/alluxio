@@ -39,7 +39,7 @@ import alluxio.file.options.GetStatusOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.underfs.UfsInfo;
+import alluxio.wire.UfsInfo;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;

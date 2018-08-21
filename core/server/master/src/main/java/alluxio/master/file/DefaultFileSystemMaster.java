@@ -110,7 +110,7 @@ import alluxio.underfs.Fingerprint;
 import alluxio.underfs.Fingerprint.Tag;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsFileStatus;
-import alluxio.underfs.UfsInfo;
+import alluxio.wire.UfsInfo;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
@@ -2411,9 +2411,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return new UfsInfo();
     }
     MountOptions options = info.getOptions();
-    return new UfsInfo().setUri(info.getUfsUri().toString())
-        .setProperties(alluxio.master.file.options.MountOptions.defaults().setProperties(options.getProperties())
-            .setReadOnly(options.isReadOnly()).setShared(options.isShared()));
+    return new UfsInfo().setUri(info.getUfsUri())
+        .setMountOptions(alluxio.master.file.options.MountOptions.defaults()
+            .setProperties(options.getProperties()).setReadOnly(options.isReadOnly())
+            .setShared(options.isShared()));
   }
 
   @Override
