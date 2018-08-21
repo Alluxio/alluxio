@@ -15,5 +15,27 @@ package alluxio.wire;
  * Class to represent a FileSystem command.
  */
 public final class FileSystemCommand {
-  // TODO(adit): implement me
+  private CommandType mCommandType;
+  private FileSystemCommandOptions mCommandOptions;
+
+  public FileSystemCommand(CommandType commandType, FileSystemCommandOptions commandOptions) {
+    mCommandType = commandType;
+    mCommandOptions = commandOptions;
+  }
+
+  public CommandType getCommandType() {
+    return mCommandType;
+  }
+
+  public FileSystemCommandOptions getCommmandOptions() {
+    return mCommandOptions;
+  }
+
+  public void setCommmandOptions(FileSystemCommandOptions commandOptions) {
+    this.mCommandOptions = commandOptions;
+  }
+
+  public void setCommandType(CommandType commandType) {
+    this.mCommandType = commandType;
+  }
 }

@@ -11,9 +11,27 @@
 
 package alluxio.wire;
 
+import java.util.List;
+
 /**
- * Class to represent a FileSystem command.
+ * Class to represent a persist options.
  */
 public final class PersistCommandOptions {
-  // TODO(adit): implement me
+  private List<PersistFile> mFilesToPersist;
+
+  /**
+   * Creates a new instance of {@link PersistCommandOptions}
+   *
+   */
+  public PersistCommandOptions(List<PersistFile> filesToPersist) {
+    mFilesToPersist = filesToPersist;
+  }
+
+  public List<PersistFile> getFilesToPersist() {
+    return mFilesToPersist;
+  }
+
+  public void setFilesToPersist(List<PersistFile> filesToPersist) {
+    this.mFilesToPersist = filesToPersist;
+  }
 }

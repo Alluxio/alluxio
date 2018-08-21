@@ -15,5 +15,18 @@ package alluxio.wire;
  * Class to represent a FileSystem command.
  */
 public final class FileSystemCommandOptions {
-  // TODO(adit): implement me
+  private PersistCommandOptions mPersistCommandOptions;
+
+  /**
+   * Creates a new instance of {@link FileSystemCommandOptions}.
+   */
+  public FileSystemCommandOptions() {}
+
+  public PersistCommandOptions getPersistOptions() {
+    return mPersistCommandOptions;
+  }
+
+  public void setPersistOptions(PersistCommandOptions persistCommandOptions) {
+    this.mPersistCommandOptions = persistCommandOptions;
+  }
 }

@@ -39,11 +39,11 @@ public final class PersistFile {
     return mFileId;
   }
 
-  public void setBlockIds(List<Long> mBlockIds) {
-    this.mBlockIds = mBlockIds;
+  public void setBlockIds(List<Long> blockIds) {
+    this.mBlockIds = blockIds;
   }
 
-  public void setFileId(long mFileId) {
-    this.mFileId = mFileId;
+  public void setFileId(long fileId) {
+    this.mFileId = fileId;
   }
 }
