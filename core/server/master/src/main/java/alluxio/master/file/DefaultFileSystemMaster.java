@@ -105,12 +105,7 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.file.options.GetStatusOptions;
-import alluxio.thrift.CommandType;
-import alluxio.thrift.FileSystemCommandOptions;
 import alluxio.thrift.FileSystemMasterWorkerService;
-import alluxio.thrift.MountTOptions;
-import alluxio.thrift.PersistCommandOptions;
-import alluxio.thrift.PersistFile;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.Fingerprint.Tag;
 import alluxio.underfs.MasterUfsManager;
@@ -2417,7 +2412,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     MountOptions options = info.getOptions();
     return new UfsInfo().setUri(info.getUfsUri().toString())
-        .setProperties(new MountTOptions().setProperties(options.getProperties())
+        .setProperties(alluxio.master.file.options.MountOptions.defaults().setProperties(options.getProperties())
             .setReadOnly(options.isReadOnly()).setShared(options.isShared()));
   }
 

@@ -73,6 +73,25 @@ message FileInfo {
   optional string ufsFingerprint = 25;
 }
 
+message FileSystemCommand {
+  optional common.CommandType commandType = 1;
+  optional FileSystemCommandOptions commandOptions = 2;
+}
+
+message FileSystemCommandOptions {
+  optional PersistCommandOptions persistOptions = 1;
+}
+
+message PersistCommandOptions {
+  repeated PersistFile persistFiles = 1;
+}
+
+message PersistFile {
+  optional int64 fileId = 1;
+  repeated int64 blockIds = 2;
+}
+
+
 service FileSystemMasterService {
   rpc GetStatus (GetStatusPRequest) returns (GetStatusPResponse);
 }
