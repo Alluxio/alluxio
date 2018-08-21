@@ -2821,7 +2821,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (LockedInodePath inodePath = mInodeTree
         .lockInodePath(alluxioURI, InodeTree.LockMode.WRITE)) {
       mountInternal(inodePath, ufsURI, entry.getMountId(), true /* replayed */,
-          new MountOptions(entry));
+          new alluxio.master.file.options.MountOptions(entry));
     }
   }
 
