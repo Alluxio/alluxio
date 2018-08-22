@@ -78,6 +78,7 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
    * Creates a new instance of {@link MountTable}.
    *
    * @param ufsManager the UFS manager
+   * @param rootMountInfo root mount info
    */
   public MountTable(UfsManager ufsManager, MountInfo rootMountInfo) {
     mState = new State(rootMountInfo);

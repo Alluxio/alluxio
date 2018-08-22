@@ -48,7 +48,6 @@ public final class MountTableTest {
       new LocalUnderFileSystemFactory().create("/", UnderFileSystemConfiguration.defaults());
   private static final String ROOT_UFS = "s3a://bucket/";
 
-
   @Before
   public void before() throws Exception {
     UfsManager ufsManager = mock(UfsManager.class);
