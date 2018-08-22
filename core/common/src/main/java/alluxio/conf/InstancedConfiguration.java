@@ -50,7 +50,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Source of the truth of all property values (default or customized). */
-  private final AlluxioProperties mProperties;
+  protected AlluxioProperties mProperties;
 
   /**
    * @param properties alluxio properties underlying this configuration
