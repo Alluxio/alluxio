@@ -474,7 +474,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
         MountInfo mountInfo = mMountTable.getMountTable().get(key);
         UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults()
-            .setUserSpecifiedConf(mountInfo.getOptions().getProperties());
+            .setMountSpecificConf(mountInfo.getOptions().getProperties());
         mUfsManager.addMount(mountInfo.getMountId(), new AlluxioURI(key), ufsConf);
       }
       // Startup Checks and Periodic Threads.
@@ -2534,7 +2534,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // Adding the mount point will not create the UFS instance and thus not connect to UFS
     mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
-            .setShared(options.isShared()).setUserSpecifiedConf(options.getProperties()));
+            .setShared(options.isShared()).setMountSpecificConf(options.getProperties()));
     try {
       if (!replayed) {
         try (CloseableResource<UnderFileSystem> ufsResource =

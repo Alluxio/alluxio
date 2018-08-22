@@ -11,6 +11,7 @@
 
 package alluxio.underfs;
 
+import alluxio.annotation.PublicApi;
 import alluxio.extensions.ExtensionFactory;
 
 import javax.annotation.Nullable;
@@ -18,6 +19,7 @@ import javax.annotation.Nullable;
 /**
  * Interface for under file system factories.
  */
+@PublicApi
 public interface UnderFileSystemFactory
     extends ExtensionFactory<UnderFileSystem, UnderFileSystemConfiguration> {
 
