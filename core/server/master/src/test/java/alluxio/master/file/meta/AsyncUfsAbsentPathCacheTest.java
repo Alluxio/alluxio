@@ -11,8 +11,6 @@
 
 package alluxio.master.file.meta;
 
-import static org.mockito.Mockito.mock;
-
 import alluxio.AlluxioURI;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
@@ -53,7 +51,8 @@ public class AsyncUfsAbsentPathCacheTest {
   public void before() throws Exception {
     mLocalUfsPath = Files.createTempDir().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
-    mMountTable = new MountTable(mUfsManager, mock(MountInfo.class));
+    mMountTable = new MountTable(mUfsManager,
+        new MountInfo(new AlluxioURI("/"), new AlluxioURI("/ufs"), 1, MountOptions.defaults()));
     mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
 
     mMountId = IdUtils.getRandomNonNegativeLong();

@@ -11,8 +11,6 @@
 
 package alluxio.master.file.meta;
 
-import static org.mockito.Mockito.mock;
-
 import alluxio.AlluxioURI;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
@@ -58,7 +56,8 @@ public class LazyUfsBlockLocationCacheTest {
             .setShared(options.isShared())
             .setUserSpecifiedConf(Collections.<String, String>emptyMap()));
 
-    mMountTable = new MountTable(mUfsManager, mock(MountInfo.class));
+    mMountTable = new MountTable(mUfsManager,
+        new MountInfo(new AlluxioURI("/"), new AlluxioURI("/ufs"), 1, MountOptions.defaults()));
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
         new AlluxioURI(mLocalUfsPath), mMountId, options);
 
