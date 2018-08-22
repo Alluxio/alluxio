@@ -12,21 +12,35 @@
 package alluxio.underfs;
 
 import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.annotation.PublicApi;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Source;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
- * A class that gets the value of the given key in the given UFS configuration or the global
- * configuration (in case the key is not found in the UFS configuration), throw
- * {@link RuntimeException} if the key is not found in both configurations..
+ * <p>
+ * Ufs configuration properties, including ufs specific configuration and global configuration.
+ *
+ * <p>
+ * The order of precedence for properties is:
+ * <ol>
+ * <li>Ufs specific properties</li>
+ * <li>Global configuration properties</li>
+ * </ol>
+ *
+ * <p>
+ * This class extends {@link InstancedConfiguration}. Variable substitution and aliases
+ * are supported.
  */
-public final class UnderFileSystemConfiguration {
+@NotThreadSafe
+@PublicApi
+public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   private boolean mReadOnly;
   private boolean mShared;
-  private Map<String, String> mUfsConf;
 
   /**
    * @return default UFS configuration
@@ -39,55 +53,22 @@ public final class UnderFileSystemConfiguration {
    * Constructs a new instance of {@link UnderFileSystemConfiguration} with defaults.
    */
   private UnderFileSystemConfiguration() {
+    super(Configuration.copyProperties());
     mReadOnly = false;
     mShared = false;
-    mUfsConf = Collections.EMPTY_MAP;
   }
 
   /**
-   * @param key property key
-   * @return true if the key is contained in the given UFS configuration or global configuration
+   * @return the map of resolved mount specific configuration
    */
-  public boolean containsKey(PropertyKey key) {
-    return (mUfsConf != null && mUfsConf.containsKey(key.toString()))
-        || Configuration.isSet(key);
-  }
-
-  /**
-   * Gets the value of the given key in the given UFS configuration or the global configuration
-   * (in case the key is not found in the UFS configuration), throw {@link RuntimeException} if the
-   * key is not found in both configurations.
-   *
-   * @param key property key
-   * @return the value associated with the given key
-   */
-  public String getValue(PropertyKey key) {
-    if (mUfsConf != null && mUfsConf.containsKey(key.toString())) {
-      return mUfsConf.get(key.toString());
-    }
-    if (Configuration.isSet(key)) {
-      return Configuration.get(key);
-    }
-    throw new RuntimeException("key " + key + " not found");
-  }
-
-  /**
-   * @return the map of user-customized configuration
-   */
-  public Map<String, String> getUserSpecifiedConf() {
-    if (mUfsConf == null) {
-      return Collections.emptyMap();
-    }
-    return Collections.unmodifiableMap(mUfsConf);
-  }
-
-  /**
-   * @return all the global and mount specific properties as an immutable map
-   */
-  public Map<String, String> toMap() {
-    Map<String, String> all = new HashMap<>(Configuration.toMap());
-    all.putAll(mUfsConf);
-    return Collections.unmodifiableMap(all);
+  public Map<String, String> getMountSpecificConf() {
+    Map<String, String> map = new HashMap<>();
+    keySet().forEach(key -> {
+      if (getSource(key) == Source.MOUNT_OPTION) {
+        map.put(key.getName(), get(key));
+      }
+    });
+    return map;
   }
 
   /**
@@ -123,11 +104,12 @@ public final class UnderFileSystemConfiguration {
   }
 
   /**
-   * @param ufsConf the user-specified UFS configuration as a map
+   * @param mountConf the mount specific configuration map
    * @return the updated configuration object
    */
-  public UnderFileSystemConfiguration setUserSpecifiedConf(Map<String, String> ufsConf) {
-    mUfsConf = ufsConf;
+  public UnderFileSystemConfiguration setMountSpecificConf(Map<String, String> mountConf) {
+    mProperties = Configuration.copyProperties();
+    merge(mountConf, Source.MOUNT_OPTION);
     return this;
   }
 }

@@ -112,7 +112,7 @@ public class UfsJournal implements Journal {
   protected static UnderFileSystemConfiguration getJournalUfsConf() {
     Map<String, String> ufsConf =
         Configuration.getNestedProperties(PropertyKey.MASTER_JOURNAL_UFS_OPTION);
-    return UnderFileSystemConfiguration.defaults().setUserSpecifiedConf(ufsConf);
+    return UnderFileSystemConfiguration.defaults().setMountSpecificConf(ufsConf);
   }
 
   /**

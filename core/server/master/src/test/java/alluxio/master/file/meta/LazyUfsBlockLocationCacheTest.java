@@ -52,7 +52,7 @@ public class LazyUfsBlockLocationCacheTest {
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
             .setShared(options.isShared())
-            .setUserSpecifiedConf(Collections.<String, String>emptyMap()));
+            .setMountSpecificConf(Collections.<String, String>emptyMap()));
 
     mMountTable = new MountTable(mUfsManager);
     mMountTable.add(new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), mMountId, options);

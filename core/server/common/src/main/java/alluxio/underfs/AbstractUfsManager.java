@@ -113,7 +113,7 @@ public abstract class AbstractUfsManager implements UfsManager {
    * @return the UFS instance
    */
   private UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
-    Key key = new Key(ufsUri, ufsConf.getUserSpecifiedConf());
+    Key key = new Key(ufsUri, ufsConf.getMountSpecificConf());
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       return cachedFs;
@@ -175,7 +175,7 @@ public abstract class AbstractUfsManager implements UfsManager {
             Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         addMount(IdUtils.ROOT_MOUNT_ID, new AlluxioURI(rootUri),
             UnderFileSystemConfiguration.defaults().setReadOnly(rootReadOnly).setShared(rootShared)
-                .setUserSpecifiedConf(rootConf));
+                .setMountSpecificConf(rootConf));
         try {
           mRootUfsClient = get(IdUtils.ROOT_MOUNT_ID);
         } catch (NotFoundException | UnavailableException e) {
