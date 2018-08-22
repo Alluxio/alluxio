@@ -23,6 +23,7 @@
   <description>Parent POM for different implementations of Alluxio under file system</description>
 
   <modules>
+    <module>cos</module>
     <module>gcs</module>
     <module>hdfs</module>
     <module>local</module>
