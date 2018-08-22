@@ -50,7 +50,6 @@ message JournalEntry {
   optional SetAclEntry set_acl = 31;
   optional SetAttributeEntry set_attribute = 27;
   optional UpdateUfsModeEntry update_ufs_mode = 30;
-
   optional UpdateInodeEntry update_inode = 32;
   optional UpdateInodeDirectoryEntry update_inode_directory = 33;
   optional UpdateInodeFileEntry update_inode_file = 34;
