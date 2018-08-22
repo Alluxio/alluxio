@@ -12,7 +12,6 @@
 package alluxio.underfs.cos;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
@@ -62,6 +61,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketNameInternal;
+
   /**
    * Constructs a new instance of {@link COSUnderFileSystem}.
    *
@@ -69,28 +69,24 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf the configuration for this UFS
    * @return the created {@link COSUnderFileSystem} instance
    */
-  public static COSUnderFileSystem createInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration conf) throws Exception {
+  public static COSUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf)
+      throws Exception {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
-    Preconditions.checkArgument(
-        conf.containsKey(PropertyKey.COS_ACCESS_KEY),
+    Preconditions.checkArgument(conf.isSet(PropertyKey.COS_ACCESS_KEY),
         "Property %s is required to connect to COS", PropertyKey.COS_ACCESS_KEY);
-    Preconditions.checkArgument(
-        conf.containsKey(PropertyKey.COS_SECRET_KEY),
+    Preconditions.checkArgument(conf.isSet(PropertyKey.COS_SECRET_KEY),
         "Property %s is required to connect to COS", PropertyKey.COS_SECRET_KEY);
-    Preconditions.checkArgument(
-        conf.containsKey(PropertyKey.COS_REGION),
+    Preconditions.checkArgument(conf.isSet(PropertyKey.COS_REGION),
         "Property %s is required to connect to COS", PropertyKey.COS_REGION);
-    Preconditions.checkArgument(
-        conf.containsKey(PropertyKey.COS_APP_ID),
+    Preconditions.checkArgument(conf.isSet(PropertyKey.COS_APP_ID),
         "Property %s is required to connect to COS", PropertyKey.COS_APP_ID);
-    String accessId = conf.getValue(PropertyKey.COS_ACCESS_KEY);
-    String accessKey = conf.getValue(PropertyKey.COS_SECRET_KEY);
-    String regionName = conf.getValue(PropertyKey.COS_REGION);
-    String appId = conf.getValue(PropertyKey.COS_APP_ID);
+    String accessKey = conf.get(PropertyKey.COS_ACCESS_KEY);
+    String secretKey = conf.get(PropertyKey.COS_SECRET_KEY);
+    String regionName = conf.get(PropertyKey.COS_REGION);
+    String appId = conf.get(PropertyKey.COS_APP_ID);
 
-    COSCredentials cred = new BasicCOSCredentials(accessId, accessKey);
-    ClientConfig clientConfig = createCOSClientConfig(regionName);
+    COSCredentials cred = new BasicCOSCredentials(accessKey, secretKey);
+    ClientConfig clientConfig = createCOSClientConfig(regionName, conf);
     COSClient client = new COSClient(cred, clientConfig);
 
     return new COSUnderFileSystem(uri, client, bucketName, appId, conf);
@@ -123,7 +119,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   // No ACL integration currently, no-op
   @Override
-  public void setMode(String path, short mode) throws IOException {}
+  public void setMode(String path, short mode) {}
 
   @Override
   protected boolean copyObject(String src, String dst) {
@@ -290,12 +286,12 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @return the COS {@link ClientConfig}
    */
-  private static ClientConfig createCOSClientConfig(String regionName) {
+  private static ClientConfig createCOSClientConfig(String regionName,
+      UnderFileSystemConfiguration conf) {
     ClientConfig config = new ClientConfig(new Region(regionName));
-    // TODO(binfan): use ufs conf to derive these values
-    config.setConnectionTimeout((int) Configuration.getMs(PropertyKey.COS_CONNECTION_TIMEOUT));
-    config.setSocketTimeout((int) Configuration.getMs(PropertyKey.COS_SOCKET_TIMEOUT));
-    config.setMaxConnectionsCount(Configuration.getInt(PropertyKey.COS_CONNECTION_MAX));
+    config.setConnectionTimeout((int) conf.getMs(PropertyKey.COS_CONNECTION_TIMEOUT));
+    config.setSocketTimeout((int) conf.getMs(PropertyKey.COS_SOCKET_TIMEOUT));
+    config.setMaxConnectionsCount(conf.getInt(PropertyKey.COS_CONNECTION_MAX));
     return config;
   }
 
