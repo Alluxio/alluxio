@@ -21,13 +21,13 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
+
 import com.google.common.base.Preconditions;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
 import com.qcloud.cos.exception.CosClientException;
-import com.qcloud.cos.exception.CosServiceException;
 import com.qcloud.cos.model.COSObjectSummary;
 import com.qcloud.cos.model.ListObjectsRequest;
 import com.qcloud.cos.model.ObjectListing;
@@ -36,12 +36,13 @@ import com.qcloud.cos.region.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Tencent Cloud COS {@link UnderFileSystem} implementation.
@@ -210,7 +211,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     final ObjectListing mResult;
 
     COSObjectListingChunk(ListObjectsRequest request, ObjectListing result) throws IOException {
-      Preconditions.checkNotNull(result, "result") 
+      Preconditions.checkNotNull(result, "result");
       mRequest = request;
       mResult = result;
     }
@@ -291,7 +292,8 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    */
   private static ClientConfig initializeCOSClientConfig(String regionName) {
     ClientConfig config = new ClientConfig(new Region(regionName));
-    config.setConnectionRequestTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_COS_CONNECT_TIMEOUT));
+    config.setConnectionRequestTimeout((int) Configuration.getMs(
+        PropertyKey.UNDERFS_COS_CONNECT_TIMEOUT));
     config.setSocketTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_COS_SOCKET_TIMEOUT));
     config.setMaxConnectionsCount(Configuration.getInt(PropertyKey.UNDERFS_COS_CONNECT_MAX));
     return config;

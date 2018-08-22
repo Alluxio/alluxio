@@ -779,7 +779,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The timeout of COS socket.")
           .build();
 
-
   //
   // UFS access control related properties
   //
@@ -3134,14 +3133,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
     public static final String SWIFT_REGION_KEY = "fs.swift.region";
     public static final String UNDERFS_COS_CONNECT_MAX = "alluxio.underfs.cos.connection.max";
-    public static final String UNDERFS_COS_CONNECT_TIMEOUT = "alluxio.underfs.cos.connection.timeout";
-    public static final String UNDERFS_COS_CONNECT_TTL = "alluxio.underfs.cos.connection.ttl";
+    public static final String UNDERFS_COS_CONNECT_TIMEOUT =
+        "alluxio.underfs.cos.connection.timeout";
     public static final String UNDERFS_COS_SOCKET_TIMEOUT = "alluxio.underfs.cos.socket.timeout";
     public static final String COS_ACCESS_KEY = "fs.cos.access.key";
     public static final String COS_REGION_KEY = "fs.cos.region";
     public static final String COS_SECRET_KEY = "fs.cos.access.secret";
     public static final String COS_APPID_KEY = "fs.cos.app.id";
-
 
     //
     // Master related properties
