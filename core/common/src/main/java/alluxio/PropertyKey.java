@@ -3137,10 +3137,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_COS_CONNECT_TIMEOUT = "alluxio.underfs.cos.connection.timeout";
     public static final String UNDERFS_COS_CONNECT_TTL = "alluxio.underfs.cos.connection.ttl";
     public static final String UNDERFS_COS_SOCKET_TIMEOUT = "alluxio.underfs.cos.socket.timeout";
-    public static final String COS_ACCESS_KEY = "fs.cos.accessKeyId";
+    public static final String COS_ACCESS_KEY = "fs.cos.access.key";
     public static final String COS_REGION_KEY = "fs.cos.region";
-    public static final String COS_SECRET_KEY = "fs.cos.accessKeySecret";
-    public static final String COS_APPID_KEY = "fs.cos.appId";
+    public static final String COS_SECRET_KEY = "fs.cos.access.secret";
+    public static final String COS_APPID_KEY = "fs.cos.app.id";
 
 
     //
@@ -3185,7 +3185,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.tailer.shutdown.quiet.wait.time";
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
         "alluxio.master.journal.tailer.sleep.time";
-    public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
+    public static final String MASTER_KEYTAB_KEY_FILE =
+        "alluxio.master.keytab.file";
     public static final String MASTER_LINEAGE_CHECKPOINT_CLASS =
         "alluxio.master.lineage.checkpoint.class";
     public static final String MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
