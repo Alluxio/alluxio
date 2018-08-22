@@ -56,7 +56,7 @@ public final class FileSystemMasterFactory implements MasterFactory {
     BlockMaster blockMaster = registry.get(BlockMaster.class);
     DefaultFileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(blockMaster,
         new MasterContext(journalFactory, safeModeManager));
-    registry.add(Master.class, fileSystemMaster);
+    registry.add(FileSystemMaster.class, fileSystemMaster);
     return fileSystemMaster;
   }
 }
