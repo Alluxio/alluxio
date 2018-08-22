@@ -44,6 +44,8 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
+import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.file.async.AsyncPersistHandler;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
@@ -138,7 +140,9 @@ import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -146,6 +150,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -156,6 +161,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.Stack;
 import java.util.TreeMap;
+import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -468,8 +474,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     } else if (entry.hasAddMountPoint()) {
       try {
         mountFromEntry(entry.getAddMountPoint());
-      } catch (FileAlreadyExistsException | InvalidPathException e) {
-        throw new RuntimeException(e);
+        // work around journal bad entries(multi-mount and no mount_id)
+      } catch (FileAlreadyExistsException e) {
+        LOG.warn("process journal entry failed, file already exists: {}", e);
+      } catch (InvalidPathException e) {
+        LOG.warn("process journal entry failed, invalid path exception: {}", e);
       }
     } else if (entry.hasDeleteMountPoint()) {
       unmountFromEntry(entry.getDeleteMountPoint());
@@ -865,7 +874,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // If synced, do not load metadata.
         listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
       }
-
+      
       // load metadata for 1 level of descendants
       DescendantType loadDescendantType =
           (listStatusOptions.getLoadMetadataType() != LoadMetadataType.Never) ? DescendantType.ONE :
@@ -1056,7 +1065,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
-      completeFileAndJournal(inodePath, options, journalContext);
+      completeFileAndJournal(inodePath, options, journalContext, null);
       auditContext.setSucceeded(true);
     }
   }
@@ -1076,7 +1085,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidFileSizeException if an invalid file size is encountered
    */
   private void completeFileAndJournal(LockedInodePath inodePath, CompleteFileOptions options,
-      JournalContext journalContext)
+      JournalContext journalContext, UfsStatus status)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException, UnavailableException {
     Inode<?> inode = inodePath.getInode();
@@ -1116,7 +1125,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI resolvedUri = resolution.getUri();
       UnderFileSystem ufs = resolution.getUfs();
-      ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
+      if (status == null) {
+        ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
+      } else {
+        ufsFingerprint = Fingerprint.create(mUfsManager.getRoot().getUfs().
+          getUnderFSType(), status).serialize();
+      }
     }
 
     completeFileInternal(fileInode.getBlockIds(), inodePath, length, options.getOperationTimeMs(),
@@ -1180,7 +1194,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       completeFileInternal(entry.getBlockIdsList(), inodePath, entry.getLength(),
           entry.getOpTimeMs(), entry.getUfsFingerprint(), true);
     } catch (FileDoesNotExistException e) {
-      throw new RuntimeException(e);
+      // TODO fix me
+      // qiniu kodo allows filename with ? which will lead fatal error in alluxio journal recovery
+      // throw new RuntimeException(e);
     }
   }
 
@@ -2524,7 +2540,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UnderFileSystem ufs = resolution.getUfs();
 
     long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
-    UfsFileStatus ufsStatus = (UfsFileStatus) options.getUfsStatus();
+    UfsFileStatus ufsStatus = (UfsFileStatus) options.getUfsStatus(); // convert UfsStatus to UfsFileStatus
     if (ufsStatus == null) {
       ufsStatus = ufs.getFileStatus(ufsUri.toString());
     }
@@ -2544,8 +2560,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     try {
       createFileAndJournal(inodePath, createFileOptions, journalContext);
-      CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength);
-      completeFileAndJournal(inodePath, completeOptions, journalContext);
+      CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength); // no LastModifyTime
+      completeOptions.setOperationTimeMs(ufsStatus.getLastModifiedTime()); // useless
+      completeFileAndJournal(inodePath, completeOptions, journalContext, options.getUfsStatus());
       if (inodePath.getLockMode() == InodeTree.LockMode.READ) {
         // After completing the inode, the lock on the last inode which stands for the created file
         // should be downgraded to a read lock, so that it won't block the reads operations from
@@ -2742,6 +2759,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   private void mountFromEntry(AddMountPointEntry entry)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
+    // workaround bad journal entry(not mount_id)
+    if (entry.getMountId() == 0L) {
+      LOG.warn("trying to mount alluxioPath " + entry.getAlluxioPath() +
+        " of ufsPath " + entry.getUfsPath() +
+        " from journal entry, but mount id is 0, it has to be ignore to get rid of fatal error");
+      return;
+    }
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
     AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
     try (LockedInodePath inodePath = mInodeTree
@@ -3079,7 +3103,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
     journalContext
         .append(JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
-
   }
 
   /**
@@ -3303,6 +3326,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     return new SyncResult(loadMetadata, deletedInode);
   }
 
+  private List<Long> getBlocks4Worker(FileInfo info, long worker) {
+    //qiniu PMW lock local blocks only
+    List<Long> blocks = new ArrayList<Long>();
+    for (FileBlockInfo bInfo: info.getFileBlockInfos()) {
+        for (BlockLocation loc: bInfo.getBlockInfo().getLocations()) {
+            if (loc.getWorkerId() == worker) {
+                blocks.add(bInfo.getBlockInfo().getBlockId());
+                break;
+            }
+        }
+    }
+    return blocks;
+  }
+
   @Override
   public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
       WorkerHeartbeatOptions options)
@@ -3326,6 +3363,71 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // get the files for the given worker to persist
     List<PersistFile> filesToPersist = mAsyncPersistHandler.pollFilesToPersist(workerId);
+
+    // qiniu
+    // EVICT -> PERSIST or FREE
+    Map<Long, PersistFile> m = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_EVICT, workerId);
+    Iterator<Map.Entry<Long, PersistFile>> it = m.entrySet().iterator();
+    PersistFile pf = null;
+    FileInfo info = null;
+    while (it.hasNext()) {
+        pf = it.next().getValue();
+        try {
+            info = getFileInfo(pf.getFileId());
+
+            if (info.isPersisted()) {
+                DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
+                        new PersistFile(info.getFileId(), getBlocks4Worker(info, workerId)));
+                continue;
+            } 
+
+            if (!info.getBlockIds().containsAll(pf.getBlockIds())) {
+                LOG.error("=== block {} not in file {}, bs {}", pf.getBlockIds(), info.getPath(), info.getFileBlockInfos());
+                pf.getBlockIds().removeAll(info.getBlockIds());
+                DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId, pf); 
+                continue;
+            }
+
+            // don't go thru journal
+            mAsyncPersistHandler.scheduleAsyncPersistence(new AlluxioURI(info.getPath()));
+
+            if (DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_PERSIST, workerId,  // ready for persist 
+                        new PersistFile(info.getFileId(), new ArrayList<Long>(info.getBlockIds())))) {
+                //filesToPersist.add(new PersistFile(info.getFileId(), info.getBlockIds()));
+                LOG.debug("===== EVICT[PERSIST] worker:" + workerId + " file:" + info.getPath()
+                        + "(" + info.getFileId() + ")" + " blocks:" + info.getBlockIds());
+            }
+        } catch (FileDoesNotExistException e) {
+            DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId, pf);
+            LOG.error("==== EVICT: block {} for {} not found; do free: {}", pf.getBlockIds(), pf.getFileId(), e.getMessage());
+            continue;
+        } catch (Exception e) {
+            //TODO free it?
+            LOG.error("==== EVICT: block {} for {} exception: {}", pf.getBlockIds(), pf.getFileId(), e.getMessage());
+            continue;
+        }
+    }
+    m.clear();
+    Metrics.FILES_PERSISTING.inc(filesToPersist.size() + DefaultBlockMaster.getEvictFileCnt(
+                DefaultBlockMaster.EVICT_PERSIST, IdUtils.INVALID_WORKER_ID) - Metrics.FILES_PERSISTING.getCount());
+
+    // PERSIST -> FREE
+    m = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_PERSIST, workerId);
+    it = m.entrySet().iterator();
+    while (it.hasNext()) {
+        info = null;
+        try {
+            info = getFileInfo(it.next().getValue().getFileId());
+            if (info.isPersisted()) {
+                DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
+                        new PersistFile(info.getFileId(), getBlocks4Worker(info, workerId)));
+            }
+        } catch (Exception e) {
+            LOG.error("==== EVICT[FREE ERROR]:" + e.getMessage());   // complain and ignore the file
+        }
+        if (info == null || info.isPersisted()) it.remove(); // file gone or already persisted
+    }
+
     if (!filesToPersist.isEmpty()) {
       LOG.debug("Sent files {} to worker {} to persist", filesToPersist, workerId);
     }
@@ -3506,6 +3608,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     private static final Counter FILES_CREATED = MetricsSystem.masterCounter("FilesCreated");
     private static final Counter FILES_FREED = MetricsSystem.masterCounter("FilesFreed");
     private static final Counter FILES_PERSISTED = MetricsSystem.masterCounter("FilesPersisted");
+    private static final Counter FILES_PERSISTING = MetricsSystem.masterCounter("FilesPersisting");
     private static final Counter NEW_BLOCKS_GOT = MetricsSystem.masterCounter("NewBlocksGot");
     private static final Counter PATHS_DELETED = MetricsSystem.masterCounter("PathsDeleted");
     private static final Counter PATHS_MOUNTED = MetricsSystem.masterCounter("PathsMounted");

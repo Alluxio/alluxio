@@ -27,12 +27,15 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -141,8 +144,14 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
       return IdUtils.INVALID_WORKER_ID;
     }
 
-    LOG.error("Not all the blocks of file {} stored on the same worker", path);
-    return IdUtils.INVALID_WORKER_ID;
+    // qiniu PMW get worker with most blocks
+    Map<Long, Integer> workers = new LinkedHashMap<>();
+    workerBlockCounts.entrySet().stream().sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+        .forEachOrdered(x -> workers.put(x.getKey(), x.getValue()));
+    return workers.keySet().iterator().next();
+
+    //LOG.error("Not all the blocks of file {} stored on the same worker", path);
+    //return IdUtils.INVALID_WORKER_ID;
   }
 
   /**
@@ -160,6 +169,7 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     List<PersistFile> filesToPersist = new ArrayList<>();
     List<Long> fileIdsToPersist = new ArrayList<>();
+    List<Long> fileIdsRemoved = new ArrayList<>();
 
     if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
       return filesToPersist;
@@ -168,23 +178,29 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
     Set<Long> scheduledFiles = mWorkerToAsyncPersistFiles.get(workerId);
     try {
       for (long fileId : scheduledFiles) {
-        FileInfo fileInfo = mFileSystemMasterView.getFileInfo(fileId);
-        if (fileInfo.isCompleted()) {
-          fileIdsToPersist.add(fileId);
-          List<Long> blockIds = new ArrayList<>();
-          for (FileBlockInfo fileBlockInfo : mFileSystemMasterView
-              .getFileBlockInfoList(mFileSystemMasterView.getPath(fileId))) {
-            blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
-          }
+          try { // qiniu
+              FileInfo fileInfo = mFileSystemMasterView.getFileInfo(fileId);
+              if (fileInfo.isCompleted()) {
+                  fileIdsToPersist.add(fileId);
+                  List<Long> blockIds = new ArrayList<>();
+                  for (FileBlockInfo fileBlockInfo : mFileSystemMasterView
+                          .getFileBlockInfoList(mFileSystemMasterView.getPath(fileId))) {
+                      blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
+                          }
 
-          filesToPersist.add(new PersistFile(fileId, blockIds));
-        }
+                  filesToPersist.add(new PersistFile(fileId, blockIds));
+              }
+          } catch (FileDoesNotExistException e) {
+              LOG.warn("==== fileId {} removed during asyn persist", fileId);
+              fileIdsRemoved.add(fileId);
+          }
       }
     } catch (UnavailableException e) {
       return filesToPersist;
     }
 
     mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsToPersist);
+    mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsRemoved); //qiniu
     return filesToPersist;
   }
 }

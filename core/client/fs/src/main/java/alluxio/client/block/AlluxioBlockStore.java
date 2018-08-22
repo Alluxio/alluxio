@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import alluxio.Constants;
+import alluxio.MetaCache;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
@@ -35,15 +36,19 @@ import alluxio.util.FormatUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.TieredIdentity;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +67,13 @@ public final class AlluxioBlockStore {
 
   private final FileSystemContext mContext;
   private final TieredIdentity mTieredIdentity;
+
+  private static List<String> readerExHosts = null;
+  {
+      String hosts = System.getenv("QINIU_READER_EX_HOSTS");
+      if (hosts != null) readerExHosts = Arrays.asList(hosts.split("\\s*,\\s*"));
+      if (readerExHosts == null) readerExHosts = new ArrayList<String>();
+  }
 
   /**
    * Creates an Alluxio block store with default file system context and default local host name.
@@ -101,9 +113,14 @@ public final class AlluxioBlockStore {
    * @return a {@link BlockInfo} containing the metadata of the block
    */
   public BlockInfo getInfo(long blockId) throws IOException {
+    BlockInfo info = MetaCache.getBlockInfoCache(blockId); //qiniu2
+    if (info != null) return info;
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireBlockMasterClientResource()) {
-      return masterClientResource.get().getBlockInfo(blockId);
+      //return masterClientResource.get().getBlockInfo(blockId); -- qiniu2
+      info = masterClientResource.get().getBlockInfo(blockId);
+      if (info != null) MetaCache.addBlockInfoCache(blockId, info); //qiniu2
+      return info;
     }
   }
 
@@ -152,23 +169,37 @@ public final class AlluxioBlockStore {
    */
   public BlockInStream getInStream(long blockId, InStreamOptions options,
       Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
-    // Get the latest block info from master
-    BlockInfo info;
-    try (CloseableResource<BlockMasterClient> masterClientResource =
+    /*try (CloseableResource<BlockMasterClient> masterClientResource =
              mContext.acquireBlockMasterClientResource()) {
       info = masterClientResource.get().getBlockInfo(blockId);
-    }
+      
+    }*/
+    BlockInfo info = getInfo(blockId);
     List<BlockLocation> locations = info.getLocations();
+
+    //qiniu
+    Set<WorkerNetAddress> cachedWorkers = MetaCache.getWorkerInfoList().stream().map(WorkerInfo::getAddress).collect(toSet());
+    Set<WorkerNetAddress> blockWorkers = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
+    if (!cachedWorkers.containsAll(blockWorkers)) MetaCache.invalidateWorkerInfoList();
+
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
     // Initial target workers to read the block given the block locations.
+    // By default, read will no go to QINIU_READER_EX_HOSTS unless the block is already there - qiniu
     Set<WorkerNetAddress> workerPool;
     if (options.getStatus().isPersisted()) {
       blockWorkerInfo = getEligibleWorkers();
       workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
+      if (readerExHosts.size() > 0) {
+          Set<WorkerNetAddress> subPool = workerPool.stream()
+              .filter(w -> blockWorkers.contains(w) || !readerExHosts.contains(w.getHost() + ":" + w.getDataPort()))
+              .collect(toSet());
+          if (!failedWorkers.keySet().containsAll(subPool)) workerPool = subPool;
+      }
     } else {
       workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
     }
     if (workerPool.isEmpty()) {
+      MetaCache.invalidateBlockInfoCache(blockId); //qiniu
       throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
     }
     // Workers to read the block, after considering failed workers.
@@ -196,9 +227,12 @@ public final class AlluxioBlockStore {
           dataSourceType = BlockInStreamSource.REMOTE;
         }
       }
+    } else {
+        MetaCache.invalidateBlockInfoCache(blockId);
     }
     // Can't get data from Alluxio, get it from the UFS instead
     if (dataSource == null) {
+      MetaCache.invalidateBlockInfoCache(blockId);
       dataSourceType = BlockInStreamSource.UFS;
       BlockLocationPolicy policy =
           Preconditions.checkNotNull(options.getOptions().getUfsReadLocationPolicy(),
@@ -244,10 +278,12 @@ public final class AlluxioBlockStore {
   public BlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address,
       OutStreamOptions options) throws IOException {
     if (blockSize == -1) {
+      /*
       try (CloseableResource<BlockMasterClient> blockMasterClientResource =
           mContext.acquireBlockMasterClientResource()) {
         blockSize = blockMasterClientResource.get().getBlockInfo(blockId).getLength();
-      }
+      }*/
+      blockSize = getInfo(blockId).getLength();
     }
     // No specified location to write to.
     if (address == null) {

@@ -33,6 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class GetStatusOptions {
   private CommonOptions mCommonOptions;
   private LoadMetadataType mLoadMetadataType;
+  private boolean invalidateCache; //qiniu
 
   /**
    * @return the default {@link GetStatusOptions}
@@ -45,6 +46,16 @@ public final class GetStatusOptions {
     mCommonOptions = CommonOptions.defaults();
     mLoadMetadataType =
         Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class);
+    invalidateCache = false;
+  }
+
+  public GetStatusOptions invalidateCache(boolean b) {  //qiniu
+      this.invalidateCache = b;
+      return this;
+  }
+
+  public boolean isInvalidateCache() {
+      return this.invalidateCache;
   }
 
   /**

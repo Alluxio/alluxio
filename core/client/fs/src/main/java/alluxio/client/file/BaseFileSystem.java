@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.MetaCache;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -40,7 +41,9 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.CommonOptions;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 
@@ -122,7 +125,8 @@ public class BaseFileSystem implements FileSystem {
     try {
       masterClient.createFile(path, options);
       // Do not sync before this getStatus, since the UFS file is expected to not exist.
-      status = masterClient.getStatus(path,
+      //status = masterClient.getStatus(path,
+      status = getStatus(path,
           GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
               .setCommonOptions(CommonOptions.defaults().setSyncIntervalMs(-1)));
       LOG.debug("Created file {}, options: {}", path.getPath(), options);
@@ -179,10 +183,14 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public boolean exists(AlluxioURI path, ExistsOptions options)
       throws InvalidPathException, IOException, AlluxioException {
+    URIStatus s = MetaCache.getStatus(path.getPath());
+    if (s != null && s.getLength() > 0) return true;  // qiniu
+
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this more efficient
-      masterClient.getStatus(path, options.toGetStatusOptions());
+      s = masterClient.getStatus(path, options.toGetStatusOptions());
+      MetaCache.setStatus(path.getPath(), s);
       return true;
     } catch (NotFoundException e) {
       return false;
@@ -232,9 +240,18 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    if (options.isInvalidateCache()) { 
+        MetaCache.invalidate(path.getPath()); // qiniu
+    } else {
+        URIStatus s = MetaCache.getStatus(path.getPath());
+        if (s != null) return s;
+    }
+
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
-      return masterClient.getStatus(path, options);
+      URIStatus s = masterClient.getStatus(path, options);  // qiniu
+      MetaCache.setStatus(path.getPath(), s);
+      return s;
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (UnavailableException e) {

@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.Configuration;
+import alluxio.MetaCache;
 import alluxio.PropertyKey;
 import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
@@ -31,7 +32,9 @@ import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+
 import io.netty.channel.Channel;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -340,6 +343,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     WorkerNetAddress workerAddress = stream.getAddress();
     LOG.warn("Failed to read block {} from worker {}, will retry: {}",
         stream.getId(), workerAddress, e.getMessage());
+
+    //qiniu2 - block may be evicted or wrong
+    MetaCache.invalidateBlockInfoCache(stream.getId());
+
     try {
       stream.close();
     } catch (Exception ex) {

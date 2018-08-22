@@ -65,7 +65,7 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
 
   @Override
   public BlockHeartbeatTResponse blockHeartbeat(final long workerId,
-      final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlockIds,
+      final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlockIds, 
       final Map<String, List<Long>> addedBlocksOnTiers, BlockHeartbeatTOptions options)
       throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<BlockHeartbeatTResponse>() {

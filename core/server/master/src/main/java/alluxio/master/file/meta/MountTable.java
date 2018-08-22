@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -123,7 +124,7 @@ public final class MountTable implements JournalEntryIterable {
         }
 
         AddMountPointEntry addMountPoint =
-            AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath)
+            AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath).setMountId(info.getMountId())
                 .setUfsPath(info.getUfsUri().toString()).setReadOnly(info.getOptions().isReadOnly())
                 .addAllProperties(protoProperties).setShared(info.getOptions().isShared()).build();
         return Journal.JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build();
@@ -163,6 +164,13 @@ public final class MountTable implements JournalEntryIterable {
       for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
         String mountedAlluxioPath = entry.getKey();
         AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
+        MountOptions mos = entry.getValue().getOptions();
+        boolean isAva = alluxioPath.matches("/ava/qn-bucket/[0-9]{10}/.+");
+        String oldUid = mos.getProperties().get(PropertyKey.Name.OSS_USER_ID);
+        String newUid = options.getProperties().get(PropertyKey.Name.OSS_USER_ID);
+        boolean sameUid = isAva && newUid != null && oldUid != null && newUid.equals(oldUid);
+        // workaround bad entries in journal
+        sameUid = sameUid || (isAva && oldUid == null && newUid != null);
         if (!mountedAlluxioPath.equals(ROOT)
             && PathUtils.hasPrefix(alluxioPath, mountedAlluxioPath)) {
           throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(
@@ -173,16 +181,17 @@ public final class MountTable implements JournalEntryIterable {
             .equals(mountedUfsUri.getAuthority()))) {
           String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
           String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
-          if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
+          if (PathUtils.hasPrefix(ufsPath, mountedUfsPath) && sameUid) {
             throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
                 .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
           }
-          if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
+          if (PathUtils.hasPrefix(mountedUfsPath, ufsPath) && sameUid) {
             throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
                 .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
           }
         }
       }
+      LOG.info("alluxioPath: {}, ufsUri: {}, mountId: {}, options: {}", alluxioPath, ufsUri, mountId, options);
       mMountTable
           .put(alluxioPath, new MountInfo(new AlluxioURI(alluxioPath), ufsUri, mountId, options));
     }

@@ -54,7 +54,9 @@ import alluxio.wire.WorkerNetAddress;
 import com.codahale.metrics.Gauge;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +64,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -72,6 +75,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Function;
@@ -79,6 +83,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
+
+import alluxio.thrift.PersistFile;
 
 /**
  * This block master manages the metadata for all the blocks and block workers in Alluxio.
@@ -155,6 +161,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+  /** Worker is not visualable until after registered. */
+  private final IndexedSet<MasterWorkerInfo> mTempWorkers =
+      new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
@@ -166,6 +175,50 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
   private long mJournaledNextContainerId = 0;
+
+  //qiniu worker -> array of files
+  final static public int EVICT_EVICT = 0;
+  final static public int EVICT_PERSIST = 1;
+  final static public int EVICT_FREE = 2;
+  static private Map <Long, Map<Long, PersistFile> > mEvictEvict = new ConcurrentHashMap<>();
+  static private Map <Long, Map<Long, PersistFile> > mEvictPersist = new ConcurrentHashMap<>();
+  static private Map <Long, Map<Long, PersistFile> > mEvictFree = new ConcurrentHashMap<>();
+
+  // need to synchronized
+  static public Map<Long, PersistFile> getEvictFileMap(int type, long worker) {
+      Map <Long, Map<Long, PersistFile> > m = (EVICT_EVICT == type) ? mEvictEvict : 
+                            (( EVICT_PERSIST == type) ? mEvictPersist : mEvictFree);
+      Map<Long, PersistFile> l = m.get(worker);
+      if (l == null) {
+          l = new ConcurrentHashMap<Long, PersistFile>();
+          m.put(worker, l);
+      }
+      return l;
+  }
+
+  // add a place-hold PersistFile first, add blocks later
+  static public boolean addEvictFile(int type, long worker, PersistFile file) {
+      Map<Long, PersistFile> m = getEvictFileMap(type, worker);
+      if (m.get(file.getFileId()) != null) {
+          LOG.debug("===== EVICT[INFO] file already added:" + file.getFileId());
+          return false;
+      }
+
+      m.put(file.getFileId(), file);
+      return true;
+  }
+
+  static public long getEvictFileCnt(int type, long worker) {
+      Map <Long, Map<Long, PersistFile> > m = (EVICT_EVICT == type) ? mEvictEvict : 
+                            (( EVICT_PERSIST == type) ? mEvictPersist : mEvictFree);
+      long count = 0;
+      for (Map.Entry<Long, Map<Long, PersistFile>> entry : m.entrySet()) {
+          if (worker == IdUtils.INVALID_WORKER_ID || worker == entry.getKey()) {
+              count += entry.getValue().size();
+          }
+      }
+      return count;
+  }
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
@@ -593,6 +646,50 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     return ret;
   }
 
+  private MasterWorkerInfo lookupWorker(WorkerNetAddress workerNetAddress) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+      MasterWorkerInfo worker = workers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
+      if (worker != null) {
+        return worker;
+      }
+    }
+    return null;
+  }
+
+  private MasterWorkerInfo lookupWorker(long workerId) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+      MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
+      if (worker != null) {
+        return worker;
+      }
+    }
+    return null;
+  }
+
+  private MasterWorkerInfo moveWorker(long workerId) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+      MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
+      if (worker == null) {
+        continue;
+      }
+
+      synchronized (worker) {
+        worker.updateLastUpdatedTimeMs();
+        mWorkers.add(worker);
+        workers.remove(worker);
+        if (workers ==  mLostWorkers) {
+          LOG.warn("A lost worker {} has requested its old id {}.",
+              worker.getWorkerAddress(), worker.getId());
+        } else {
+          LOG.info("=== move worker {}:{}", worker.getId(), worker.getWorkerAddress());
+        }
+      }
+
+      return worker;
+    }
+    return null;
+  }
+
   @Override
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
     // TODO(gpang): Clone WorkerNetAddress in case thrift re-uses the object. Does thrift re-use it?
@@ -604,24 +701,15 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       return oldWorkerId;
     }
 
-    MasterWorkerInfo lostWorker = mLostWorkers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
-    if (lostWorker != null) {
-      // this is one of the lost workers
-      synchronized (lostWorker) {
-        final long lostWorkerId = lostWorker.getId();
-        LOG.warn("A lost worker {} has requested its old id {}.", workerNetAddress, lostWorkerId);
-
-        // Update the timestamp of the worker before it is considered an active worker.
-        lostWorker.updateLastUpdatedTimeMs();
-        mWorkers.add(lostWorker);
-        mLostWorkers.remove(lostWorker);
-        return lostWorkerId;
-      }
+    existingWorker = lookupWorker(workerNetAddress);
+    if (existingWorker != null) {
+      return existingWorker.getId();
     }
 
     // Generate a new worker id.
     long workerId = IdUtils.getRandomNonNegativeLong();
-    while (!mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
+    //while (!mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
+    while (!mTempWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
       workerId = IdUtils.getRandomNonNegativeLong();
     }
 
@@ -634,6 +722,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+    if (worker == null) {
+      worker = lookupWorker(workerId);
+    }
     if (worker == null) {
       throw new NoWorkerException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
@@ -652,9 +743,13 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       processWorkerRemovedBlocks(worker, removedBlocks);
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
       processWorkerOrphanedBlocks(worker);
+      LOG.info("registerWorker(): id:{}, adr:{}, cap:{}, avail:{}, total_tier:{}, free_tier:{}, blocks:{}, to_remove:{}", 
+        worker.getId(), worker.getWorkerAddress(), worker.getCapacityBytes(), 
+        worker.getAvailableBytes(), worker.getTotalBytesOnTiers(), worker.getFreeBytesOnTiers(), 
+        worker.getBlocks().size(), worker.getToRemoveBlocks().size());
     }
 
-    LOG.info("registerWorker(): {}", worker);
+    moveWorker(workerId);
   }
 
   @Override
@@ -670,6 +765,37 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       // Technically, 'worker' should be confirmed to still be in the data structure. Lost worker
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
       // will just re-register regardless.
+     
+      // qiniu: don't want to change thrift (see its warning), so use '0' to delimit the
+      // to_be_remove and already_removed block ids
+      Map<Long, PersistFile> evictingFiles = new HashMap<Long, PersistFile>();
+      for (int i = 0; i < removedBlockIds.size(); i++) {
+          if (removedBlockIds.get(i) == 0) {
+              for (int j = 0; j < i; j++) {
+                  long blockId = removedBlockIds.get(0);
+                  long containerId = BlockId.getContainerId(blockId);
+                  long fileId = IdUtils.createFileId(containerId);
+                  PersistFile pf = evictingFiles.get(fileId);
+                  if (pf == null) {
+                      pf = new PersistFile(fileId, new ArrayList<Long>());
+                      evictingFiles.put(fileId, pf);
+                  }
+                  pf.getBlockIds().add(blockId);
+                  removedBlockIds.remove(0);
+              }
+              removedBlockIds.remove(0);
+              break;
+          }
+      }
+      /** qiniu
+       * we now add to queue for workerId without blocks, but may move to another worker queue later
+       * sicne we can't get file info in the block context.
+       * we will let the worker with first block to handle persist to avoid duplication.
+       */
+      for (PersistFile pf: evictingFiles.values()) {
+          DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_EVICT, workerId, pf);
+      }
+
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocksOnTiers);
 
@@ -677,6 +803,20 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       worker.updateLastUpdatedTimeMs();
 
       List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
+
+      // qiniu
+      ArrayList<Long> ids = new ArrayList<Long>();
+      Map<Long, PersistFile> frees = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_FREE, workerId);
+      Iterator<Map.Entry<Long, PersistFile>> it = frees.entrySet().iterator();
+      while (it.hasNext()) {
+          PersistFile f = it.next().getValue();
+          LOG.debug("===== EVICT[FREE] worker:" + workerId + " file:" + f.getFileId() + " blocks:" + f.getBlockIds());
+          ids.addAll(f.getBlockIds());
+      }
+      frees.clear();
+
+      toRemoveBlocks.addAll(ids);
+
       if (toRemoveBlocks.isEmpty()) {
         return new Command(CommandType.Nothing, new ArrayList<Long>());
       }

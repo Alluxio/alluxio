@@ -529,6 +529,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDescription("The endpoint key of OSS bucket.").build();
   public static final PropertyKey OSS_SECRET_KEY = new Builder(Name.OSS_SECRET_KEY)
       .setDescription("The secret key of OSS bucket.").build();
+  public static final PropertyKey OSS_USER_ID = new Builder(Name.OSS_USER_ID)
+      .setDescription("The user id of OSS bucket.").build();
   public static final PropertyKey S3A_ACCESS_KEY = new Builder(Name.S3A_ACCESS_KEY)
       .setDescription("The access key of S3 bucket.").build();
   public static final PropertyKey S3A_SECRET_KEY = new Builder(Name.S3A_SECRET_KEY)
@@ -2233,6 +2235,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
     public static final String OSS_ENDPOINT_KEY = "fs.oss.endpoint";
     public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
+    public static final String OSS_USER_ID = "fs.oss.userId";
     public static final String S3A_ACCESS_KEY = "aws.accessKeyId";
     public static final String S3A_SECRET_KEY = "aws.secretKey";
     public static final String SWIFT_API_KEY = "fs.swift.apikey";

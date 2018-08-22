@@ -909,7 +909,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       }
       chunk = chunk.getNextChunk();
     }
-    UfsStatus[] ret = new UfsStatus[children.size()];
+    UfsStatus[] ret = new UfsStatus[children.size()];// all UfsFileStatus convert to UfsStatus
     int pos = 0;
     for (UfsStatus status : children.values()) {
       ret[pos++] = status;
