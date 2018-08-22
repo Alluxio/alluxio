@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,16 +40,9 @@ public interface Authority extends Comparable<Authority>, Serializable {
       return new ZookeeperAuthority(authority,
           matcher.group(1).replaceAll(";", ","));
     } else {
-      java.net.URI uri;
-      try {
-        // Use java.net.URI to parse the authority
-        uri = new java.net.URI("foo", authority, "/", null, null);
-      } catch (URISyntaxException e) {
-        LOG.warn("Failed to parse the authority {} of the URI: {}", authority, e.getMessage());
-        throw new IllegalArgumentException(e);
-      }
-      if (uri.getHost() != null) {
-        return new SingleMasterAuthority(authority, uri.getHost(), uri.getPort());
+      String[] strArr = authority.split(":");
+      if (strArr.length == 2) {
+        return new SingleMasterAuthority(authority, strArr[0], Integer.parseInt(strArr[1]));
       } else {
         return new UnknownAuthority(authority);
       }

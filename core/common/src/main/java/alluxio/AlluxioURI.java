@@ -14,7 +14,6 @@ package alluxio;
 import alluxio.annotation.PublicApi;
 import alluxio.uri.Authority;
 import alluxio.uri.NoAuthority;
-import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.URI;
 import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
@@ -230,21 +229,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Gets the host of the {@link AlluxioURI}.
-   *
-   * @return the host, null if the authority of this uri
-   *         is not a single master authority
-   */
-  @Nullable
-  public String getHost() {
-    if (mUri.getAuthority() instanceof SingleMasterAuthority) {
-      SingleMasterAuthority authority = (SingleMasterAuthority) mUri.getAuthority();
-      return authority.getHost();
-    }
-    return null;
-  }
-
-  /**
    * Get the parent of this {@link AlluxioURI} or null if at root.
    *
    * @return the parent of this {@link AlluxioURI} or null if at root
@@ -275,20 +259,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   public String getPath() {
     return mUri.getPath();
-  }
-
-  /**
-   * Gets the port of the {@link AlluxioURI}.
-   *
-   * @return the port, -1 if the authority of this uri
-   *         is not a single master authority or it does not have one
-   */
-  public int getPort() {
-    if (mUri.getAuthority() instanceof SingleMasterAuthority) {
-      SingleMasterAuthority authority = (SingleMasterAuthority) mUri.getAuthority();
-      return authority.getPort();
-    }
-    return -1;
   }
 
   /**
