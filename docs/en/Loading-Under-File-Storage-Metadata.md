@@ -48,7 +48,7 @@ default value of `-1` means to never re-sync metadata.
 
 Low values for `alluxio.user.file.metadata.sync.interval` allow Alluxio clients
 to quickly observe out of band UFS changes, but increase the number of calls to
-the UFS.
+the UFS, decreasing RPC response time performance.
 
 Metadata sync keeps a fingerprint of each UFS file so that Alluxio can re-sync
 the file if it changes. The fingerprint includes information such as file size
@@ -89,9 +89,10 @@ the UFS. There are a couple other methods mentioned here for completeness.
 
 `alluxio.user.file.metadata.load.type`: This property can be set to either
 `ALWAYS`, `ONCE`, or `NEVER`. It acts similar to
-`alluxio.user.file.metadata.sync.interval`, but with the caveat that it only
+`alluxio.user.file.metadata.sync.interval`, but with two caveats: (1) It only
 discovers new files, and doesn't re-load UFS-modified files or remove UFS-deleted
-files. `ALWAYS` will always check the UFS for new files, `ONCE` will use the default
+files, and (2) it only applies to the `exists`, `list`, and `getStatus` RPCs.
+`ALWAYS` will always check the UFS for new files, `ONCE` will use the default
 behavior of only scanning each directory once ever, and `NEVER` will prevent Alluxio
 from scanning for new files at all.
 
