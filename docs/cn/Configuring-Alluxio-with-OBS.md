@@ -13,7 +13,7 @@ priority: 5
 
 ## 初始步骤
 
-要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](http://alluxio.org/documentation/master/Building-Alluxio-Master-Branch.html)，或者[下载二进制包](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html)。
+要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)。
 
 OBS底层存储系统可作为扩展实现。预编译的OBS底层存储jar包可以从[这里](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs/target)下载。
 
@@ -31,10 +31,10 @@ $ bin/alluxio extensions install /PATH/TO/DOWNLOADED/OBS/jar
 
 ## 登录OBS
 
-Alluxio通过[统一命名空间]((Unified-and-Transparent-Namespace.html)统一访问不同存储系统。OBS的安装位置可以在Alluxio命名空间的根目录或嵌套目录下。
+Alluxio通过[统一命名空间](Unified-and-Transparent-Namespace.html)统一访问不同存储系统。OBS的安装位置可以在Alluxio命名空间的根目录或嵌套目录下。
 
 ### 根目录安装
-若要在Alluxio中使用OSS作为底层文件系统，需要修改`conf/alluxio-site.properties`配置文件。首先要指定一个已有的OBS bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-site.properties`中添加如下语句指定它：
+若要在Alluxio中使用OBS作为底层文件系统，需要修改`conf/alluxio-site.properties`配置文件。首先要指定一个已有的OBS bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-site.properties`中添加如下语句指定它：
 
 ```
 alluxio.underfs.address=obs://<OBS_BUCKET>/<OBS_DIRECTORY>/

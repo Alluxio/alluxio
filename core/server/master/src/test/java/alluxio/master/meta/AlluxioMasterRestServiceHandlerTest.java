@@ -30,9 +30,11 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
-import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
+import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.underfs.UnderFileSystem;
@@ -49,7 +51,6 @@ import com.codahale.metrics.MetricSet;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -79,8 +80,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
 
   private static final long UFS_SPACE_TOTAL = 100L;
-  private static final long UFS_SPACE_USED = 100L;
-  private static final long UFS_SPACE_FREE = 100L;
+  private static final long UFS_SPACE_USED = 25L;
+  private static final long UFS_SPACE_FREE = 75L;
   private static final String TEST_PATH = "test://test";
   private static final Map<String, Long> WORKER1_TOTAL_BYTES_ON_TIERS = ImmutableMap.of("MEM", 10L,
       "SSD", 20L);
@@ -93,6 +94,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   private MasterProcess mMasterProcess;
   private BlockMaster mBlockMaster;
+  private FileSystemMaster mFileSystemMaster;
   private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
   private MetricsMaster mMetricsMaster;
@@ -107,13 +109,6 @@ public final class AlluxioMasterRestServiceHandlerTest {
     }
   });
 
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
-    MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
-  }
-
   @Before
   public void before() throws Exception {
     mMasterProcess = mock(MasterProcess.class);
@@ -122,12 +117,14 @@ public final class AlluxioMasterRestServiceHandlerTest {
     MasterContext masterContext = MasterTestUtils.testMasterContext();
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
+    registerMockUfs();
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
+    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
+    when(mMasterProcess.getMaster(FileSystemMaster.class)).thenReturn(mFileSystemMaster);
     when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
         mMasterProcess);
-    registerFileSystemMock();
     mHandler = new AlluxioMasterRestServiceHandler(context);
     // Register two workers
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
@@ -138,9 +135,13 @@ public final class AlluxioMasterRestServiceHandlerTest {
         WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, new RegisterWorkerTOptions());
     mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
         WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, new RegisterWorkerTOptions());
+
+    String filesPinnedProperty =
+        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+    MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
   }
 
-  private void registerFileSystemMock() throws IOException {
+  private void registerMockUfs() throws IOException {
     UnderFileSystemFactory underFileSystemFactoryMock = mock(UnderFileSystemFactory.class);
     when(underFileSystemFactoryMock.supportsPath(anyString(), anyObject()))
         .thenReturn(Boolean.FALSE);
@@ -196,7 +197,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   public void getMetrics() {
     final int FILES_PINNED_TEST_VALUE = 100;
     String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
     Gauge<Integer> filesPinnedGauge = new Gauge<Integer>() {
       @Override
       public Integer getValue() {

@@ -112,18 +112,18 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   private static final long CONTAINER_ID_RESERVATION_SIZE = 1000;
 
   // Worker metadata management.
-  private static final IndexDefinition<MasterWorkerInfo> ID_INDEX =
-      new IndexDefinition<MasterWorkerInfo>(true) {
+  private static final IndexDefinition<MasterWorkerInfo, Long> ID_INDEX =
+      new IndexDefinition<MasterWorkerInfo, Long>(true) {
         @Override
-        public Object getFieldValue(MasterWorkerInfo o) {
+        public Long getFieldValue(MasterWorkerInfo o) {
           return o.getId();
         }
       };
 
-  private static final IndexDefinition<MasterWorkerInfo> ADDRESS_INDEX =
-      new IndexDefinition<MasterWorkerInfo>(true) {
+  private static final IndexDefinition<MasterWorkerInfo, WorkerNetAddress> ADDRESS_INDEX =
+      new IndexDefinition<MasterWorkerInfo, WorkerNetAddress>(true) {
         @Override
-        public Object getFieldValue(MasterWorkerInfo o) {
+        public WorkerNetAddress getFieldValue(MasterWorkerInfo o) {
           return o.getWorkerAddress();
         }
       };
@@ -352,7 +352,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
-    if (mSafeModeManager.isInSafeMode()) {
+    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
@@ -366,7 +366,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException {
-    if (mSafeModeManager.isInSafeMode()) {
+    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mLostWorkers.size());
@@ -382,7 +382,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public List<WorkerInfo> getWorkerReport(GetWorkerReportOptions options)
       throws UnavailableException, InvalidArgumentException {
-    if (mSafeModeManager.isInSafeMode()) {
+    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
 
@@ -889,7 +889,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    */
   @GuardedBy("masterBlockInfo")
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) throws UnavailableException {
-    if (mSafeModeManager.isInSafeMode()) {
+    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     // "Join" to get all the addresses of the workers.
@@ -1035,7 +1035,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
      */
     @VisibleForTesting
     public static void registerGauges(final BlockMaster master) {
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_TOTAL),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_TOTAL),
           new Gauge<Long>() {
             @Override
             public Long getValue() {
@@ -1043,7 +1043,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_USED),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_USED),
           new Gauge<Long>() {
             @Override
             public Long getValue() {
@@ -1051,7 +1051,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_FREE),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_FREE),
           new Gauge<Long>() {
             @Override
             public Long getValue() {
@@ -1062,7 +1062,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       for (int i = 0; i < master.getGlobalStorageTierAssoc().size(); i++) {
         String alias = master.getGlobalStorageTierAssoc().getAlias(i);
         MetricsSystem.registerGaugeIfAbsent(
-            MetricsSystem.getMasterMetricName(CAPACITY_TOTAL + TIER + alias), new Gauge<Long>() {
+            MetricsSystem.getMetricName(CAPACITY_TOTAL + TIER + alias), new Gauge<Long>() {
               @Override
               public Long getValue() {
                 return master.getTotalBytesOnTiers().getOrDefault(alias, 0L);
@@ -1070,14 +1070,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             });
 
         MetricsSystem.registerGaugeIfAbsent(
-            MetricsSystem.getMasterMetricName(CAPACITY_USED + TIER + alias), new Gauge<Long>() {
+            MetricsSystem.getMetricName(CAPACITY_USED + TIER + alias), new Gauge<Long>() {
               @Override
               public Long getValue() {
                 return master.getUsedBytesOnTiers().getOrDefault(alias, 0L);
               }
             });
         MetricsSystem.registerGaugeIfAbsent(
-            MetricsSystem.getMasterMetricName(CAPACITY_FREE + TIER + alias), new Gauge<Long>() {
+            MetricsSystem.getMetricName(CAPACITY_FREE + TIER + alias), new Gauge<Long>() {
               @Override
               public Long getValue() {
                 return master.getTotalBytesOnTiers().getOrDefault(alias, 0L)
@@ -1086,7 +1086,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             });
       }
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(WORKERS),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(WORKERS),
           new Gauge<Integer>() {
             @Override
             public Integer getValue() {

@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core-client</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
+    <version>1.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-client-runtime</artifactId>
   <packaging>jar</packaging>
@@ -25,9 +25,7 @@
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <license.header.path>${project.parent.parent.parent.basedir}/build/license/</license.header.path>
-    <checkstyle.path>${project.parent.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
-    <findbugs.path>${project.parent.parent.parent.basedir}/build/findbugs/</findbugs.path>
+    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
     <failIfNoTests>false</failIfNoTests>
     <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
     <shading.prefix>alluxio.core.client.runtime</shading.prefix>
@@ -156,6 +154,8 @@
                 <filter>
                   <artifact>*:*</artifact>
                   <excludes>
+                    <!-- Enforce no unshaded protobuf classes as the input of shading. See ALLUXIO-3278 -->
+                    <exclude>com/google/protobuf/**</exclude>
                     <exclude>LICENSE</exclude>
                     <exclude>META-INF/LICENSE</exclude>
                     <exclude>META-INF/*.SF</exclude>

@@ -24,53 +24,54 @@
 <div class="container-fluid">
   <jsp:include page="/header" />
 
-  <div class="container-fluid">
-    <div class="row-fluid">
-      <div class="span12 well">
-          <h1 class="text-error">
-            <%= request.getAttribute("fatalError") %>
-          </h1>
-          <table class="table table-hover">
-          <thead>
-            <th>File Path</th>
-            <th>Size</th>
-            <th>Block Size</th>
-            <% if ((Boolean)request.getAttribute("showPermissions")) { %>
-              <th>Permission</th>
-              <th>Owner</th>
-              <th>Group</th>
-            <% } %>
-            <th>Pin</th>
-            <th>Creation Time</th>
-            <th>Modification Time</th>
-          </thead>
-          <tbody>
-            <% if (request.getAttribute("fileInfos") != null) { %>
-              <% for (UIFileInfo fileInfo : ((List<UIFileInfo>) request.getAttribute("fileInfos"))) { %>
-                <tr>
-                  <th><%= fileInfo.getAbsolutePath() %></th>
-                  <th><%= fileInfo.getSize() %></th>
-                  <th><%= fileInfo.getBlockSizeBytes() %></th>
-                  <% if ((Boolean)request.getAttribute("showPermissions")) { %>
-                    <th><%= fileInfo.getMode() %></th>
-                    <th><%= fileInfo.getOwner() %></th>
-                    <th><%= fileInfo.getGroup() %></th>
-                  <% } %>
-                  <th><%= (fileInfo.isPinned() ? "YES" : "NO") %></th>
-                  <th><%= fileInfo.getCreationTime() %></th>
-                  <th><%= fileInfo.getModificationTime() %></th>
-                </tr>
+  <% if ((boolean) request.getAttribute("fileInfoEnabled")) { %>
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span12 well">
+            <h1 class="text-error">
+              <%= request.getAttribute("fatalError") %>
+            </h1>
+            <table class="table table-hover">
+            <thead>
+              <th>File Path</th>
+              <th>Size</th>
+              <th>Block Size</th>
+              <% if ((Boolean)request.getAttribute("showPermissions")) { %>
+                <th>Permission</th>
+                <th>Owner</th>
+                <th>Group</th>
               <% } %>
-            <% } %>
-          </tbody>
-        </table>
+              <th>Pin</th>
+              <th>Creation Time</th>
+              <th>Modification Time</th>
+            </thead>
+            <tbody>
+              <% if (request.getAttribute("fileInfos") != null) { %>
+                <% for (UIFileInfo fileInfo : ((List<UIFileInfo>) request.getAttribute("fileInfos"))) { %>
+                  <tr>
+                    <th><%= fileInfo.getAbsolutePath() %></th>
+                    <th><%= fileInfo.getSize() %></th>
+                    <th><%= fileInfo.getBlockSizeBytes() %></th>
+                    <% if ((Boolean)request.getAttribute("showPermissions")) { %>
+                      <th><%= fileInfo.getMode() %></th>
+                      <th><%= fileInfo.getOwner() %></th>
+                      <th><%= fileInfo.getGroup() %></th>
+                    <% } %>
+                    <th><%= (fileInfo.isPinned() ? "YES" : "NO") %></th>
+                    <th><%= fileInfo.getCreationTime() %></th>
+                    <th><%= fileInfo.getModificationTime() %></th>
+                  </tr>
+                <% } %>
+              <% } %>
+            </tbody>
+          </table>
 
-        <%@ include file="pagination-component.jsp" %>
+          <%@ include file="pagination-component.jsp" %>
 
+        </div>
       </div>
     </div>
-  </div>
-
+  <% } %>
   <%@ include file="footer.jsp" %>
 </div>
 

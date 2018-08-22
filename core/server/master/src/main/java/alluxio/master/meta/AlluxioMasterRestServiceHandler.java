@@ -15,16 +15,15 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.MasterStorageTierAssoc;
-import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
+import alluxio.master.file.meta.MountTable;
+import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.util.LogUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
@@ -36,7 +35,6 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.qmino.miredot.annotations.ReturnType;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -97,8 +95,6 @@ public final class AlluxioMasterRestServiceHandler {
   private final MasterProcess mMasterProcess;
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
-  private final String mUfsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-  private final UnderFileSystem mUfs;
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.
@@ -111,7 +107,6 @@ public final class AlluxioMasterRestServiceHandler {
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
-    mUfs = UnderFileSystem.Factory.createForRoot();
   }
 
   /**
@@ -290,7 +285,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsCapacityBytes() {
-    return RestUtils.call(() -> mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED));
+    return RestUtils.call(() -> getUfsCapacityInternal().getTotal());
   }
 
   /**
@@ -304,7 +299,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsUsedBytes() {
-    return RestUtils.call(() -> mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED));
+    return RestUtils.call(() -> getUfsCapacityInternal().getUsed());
   }
 
   /**
@@ -318,7 +313,14 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsFreeBytes() {
-    return RestUtils.call(() -> mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_FREE));
+    return RestUtils.call(() -> {
+      Capacity capacity = getUfsCapacityInternal();
+      if (capacity.getTotal() >= 0 && capacity.getUsed() >= 0 && capacity.getTotal() >= capacity
+          .getUsed()) {
+        return capacity.getTotal() - capacity.getUsed();
+      }
+      return -1;
+    });
   }
 
   private Comparator<String> getTierAliasComparator() {
@@ -429,7 +431,7 @@ public final class AlluxioMasterRestServiceHandler {
     // free/used
     // spaces, those statistics can be gotten via other REST apis.
     String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
     @SuppressWarnings("unchecked") Gauge<Integer> filesPinned =
         (Gauge<Integer>) MetricsSystem.METRIC_REGISTRY.getGauges().get(filesPinnedProperty);
 
@@ -471,9 +473,14 @@ public final class AlluxioMasterRestServiceHandler {
     return tierCapacity;
   }
 
-  private Capacity getUfsCapacityInternal() throws IOException {
-    return new Capacity().setTotal(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL))
-        .setUsed(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED));
+  private Capacity getUfsCapacityInternal() {
+    MountPointInfo mountInfo = mFileSystemMaster.getMountTable().get(MountTable.ROOT);
+    if (mountInfo == null) {
+      return new Capacity().setTotal(-1).setUsed(-1);
+    }
+    long capacityBytes = mountInfo.getUfsCapacityBytes();
+    long usedBytes = mountInfo.getUfsUsedBytes();
+    return new Capacity().setTotal(capacityBytes).setUsed(usedBytes);
   }
 
   /**

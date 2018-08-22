@@ -27,7 +27,6 @@ import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -44,6 +43,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, WorkerNetAddress.class})
@@ -205,13 +205,9 @@ public final class NettyPacketReaderTest {
    * @param packetSize the packet size
    */
   private void validateReadRequestSent(final EmbeddedChannel channel, long offset, long length,
-      boolean cancel, long packetSize) {
-    Object request = CommonUtils.waitForResult("read request", new Function<Void, Object>() {
-      @Override
-      public Object apply(Void v) {
-        return channel.readOutbound();
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
+      boolean cancel, long packetSize) throws TimeoutException, InterruptedException {
+    Object request = CommonUtils.waitForResult("read request", () -> channel.readOutbound(),
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
 
     assertTrue(request != null);
     assertTrue(request instanceof RPCProtoMessage);

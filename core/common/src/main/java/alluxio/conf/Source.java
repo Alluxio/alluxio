@@ -11,12 +11,15 @@
 
 package alluxio.conf;
 
+import com.google.common.base.Objects;
+
 /**
  * The source of a configuration property.
  */
 public class Source implements Comparable<Source> {
   public static final Source UNKNOWN = new Source(Type.UNKNOWN);
   public static final Source DEFAULT = new Source(Type.DEFAULT);
+  public static final Source CLUSTER_DEFAULT = new Source(Type.CLUSTER_DEFAULT);
   public static final Source SYSTEM_PROPERTY = new Source(Type.SYSTEM_PROPERTY);
   public static final Source RUNTIME = new Source(Type.RUNTIME);
 
@@ -32,6 +35,10 @@ public class Source implements Comparable<Source> {
      * The default property value from <code>PropertyKey</code> on compile time.
      */
     DEFAULT,
+    /**
+     * The default property value as loaded from the masters of the cluster.
+     */
+    CLUSTER_DEFAULT,
     /**
      * The property value is specified in site properties file (alluxio-site.properties).
      */
@@ -86,6 +93,23 @@ public class Source implements Comparable<Source> {
     private SitePropertySource(String filename) {
       super(Type.SITE_PROPERTY);
       mFilename = filename;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof SitePropertySource)) {
+        return false;
+      }
+      SitePropertySource that = (SitePropertySource) o;
+      return Objects.equal(mFilename, that.mFilename);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mFilename);
     }
 
     @Override

@@ -85,16 +85,13 @@ public final class ProcessUtils {
    * @param process the data structure representing the process to terminate
    */
   public static void stopProcessOnShutdown(final Process process) {
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        try {
-          process.stop();
-        } catch (Throwable t) {
-          fatalError(LOG, t, "Failed to shut down process");
-        }
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      try {
+        process.stop();
+      } catch (Throwable t) {
+        LOG.error("Failed to stop process", t);
       }
-    });
+    }, "alluxio-process-shutdown-hook"));
   }
 
   private ProcessUtils() {} // prevent instantiation

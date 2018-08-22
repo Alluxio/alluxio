@@ -25,15 +25,16 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class InodeLockList implements AutoCloseable {
-  protected List<Inode<?>> mInodes;
+  private static final int INITIAL_CAPACITY = 4;
+  protected List<InodeView> mInodes;
   protected List<InodeTree.LockMode> mLockModes;
 
   /**
    * Creates a new instance of {@link InodeLockList}.
    */
   public InodeLockList() {
-    mInodes = new ArrayList<>();
-    mLockModes = new ArrayList<>();
+    mInodes = new ArrayList<>(INITIAL_CAPACITY);
+    mLockModes = new ArrayList<>(INITIAL_CAPACITY);
   }
 
   /**
@@ -42,7 +43,7 @@ public class InodeLockList implements AutoCloseable {
    *
    * @param inode the inode to lock
    */
-  public synchronized void lockRead(Inode<?> inode) {
+  public synchronized void lockRead(InodeView inode) {
     inode.lockRead();
     mInodes.add(inode);
     mLockModes.add(InodeTree.LockMode.READ);
@@ -58,7 +59,7 @@ public class InodeLockList implements AutoCloseable {
    * @param parent the expected parent inode
    * @throws InvalidPathException if the inode is no long consistent with the caller's expectations
    */
-  public synchronized void lockReadAndCheckParent(Inode<?> inode, Inode parent)
+  public synchronized void lockReadAndCheckParent(InodeView inode, InodeView parent)
       throws InvalidPathException {
     inode.lockReadAndCheckParent(parent);
     mInodes.add(inode);
@@ -76,8 +77,8 @@ public class InodeLockList implements AutoCloseable {
    * @param name the expected name of the inode to be locked
    * @throws InvalidPathException if the inode is not consistent with the caller's expectations
    */
-  public synchronized void lockReadAndCheckNameAndParent(Inode<?> inode, Inode parent, String name)
-      throws InvalidPathException {
+  public synchronized void lockReadAndCheckNameAndParent(InodeView inode, InodeView parent,
+      String name) throws InvalidPathException {
     inode.lockReadAndCheckNameAndParent(parent, name);
     mInodes.add(inode);
     mLockModes.add(InodeTree.LockMode.READ);
@@ -90,7 +91,7 @@ public class InodeLockList implements AutoCloseable {
     if (mInodes.isEmpty()) {
       return;
     }
-    Inode<?> inode = mInodes.remove(mInodes.size() - 1);
+    InodeView inode = mInodes.remove(mInodes.size() - 1);
     InodeTree.LockMode lockMode = mLockModes.remove(mLockModes.size() - 1);
     if (lockMode == InodeTree.LockMode.READ) {
       inode.unlockRead();
@@ -109,7 +110,7 @@ public class InodeLockList implements AutoCloseable {
     }
     if (mLockModes.get(mLockModes.size() - 1) != InodeTree.LockMode.READ) {
       // The last inode was previously WRITE locked, so downgrade the lock.
-      Inode<?> inode = mInodes.get(mInodes.size() - 1);
+      InodeView inode = mInodes.get(mInodes.size() - 1);
       inode.lockRead();
       inode.unlockWrite();
       // Update the last lock mode to READ
@@ -124,7 +125,7 @@ public class InodeLockList implements AutoCloseable {
    *
    * @param inode the inode to lock
    */
-  public synchronized void lockWrite(Inode<?> inode) {
+  public synchronized void lockWrite(InodeView inode) {
     inode.lockWrite();
     mInodes.add(inode);
     mLockModes.add(InodeTree.LockMode.WRITE);
@@ -140,7 +141,7 @@ public class InodeLockList implements AutoCloseable {
    * @param parent the expected parent inode
    * @throws InvalidPathException if the inode is not consistent with the caller's expectations
    */
-  public synchronized void lockWriteAndCheckParent(Inode<?> inode, Inode parent)
+  public synchronized void lockWriteAndCheckParent(InodeView inode, InodeView parent)
       throws InvalidPathException {
     inode.lockWriteAndCheckParent(parent);
     mInodes.add(inode);
@@ -158,8 +159,8 @@ public class InodeLockList implements AutoCloseable {
    * @param name the expected name of the inode to be locked
    * @throws InvalidPathException if the inode is not consistent with the caller's expectations
    */
-  public synchronized void lockWriteAndCheckNameAndParent(Inode<?> inode, Inode parent, String name)
-      throws InvalidPathException {
+  public synchronized void lockWriteAndCheckNameAndParent(InodeView inode, InodeView parent,
+      String name) throws InvalidPathException {
     inode.lockWriteAndCheckNameAndParent(parent, name);
     mInodes.add(inode);
     mLockModes.add(InodeTree.LockMode.WRITE);
@@ -170,8 +171,23 @@ public class InodeLockList implements AutoCloseable {
    * the inodes were locked
    */
   // TODO(david): change this API to not return a copy
-  public synchronized List<Inode<?>> getInodes() {
+  public synchronized List<InodeView> getInodes() {
     return Lists.newArrayList(mInodes);
+  }
+
+  /**
+   * @param index the index of the list
+   * @return the inode at the specified index
+   */
+  public synchronized InodeView get(int index) {
+    return mInodes.get(index);
+  }
+
+  /**
+   * @return the size of the list
+   */
+  public synchronized int size() {
+    return mInodes.size();
   }
 
   /**
@@ -184,7 +200,7 @@ public class InodeLockList implements AutoCloseable {
   @Override
   public synchronized void close() {
     for (int i = mInodes.size() - 1; i >= 0; i--) {
-      Inode<?> inode = mInodes.get(i);
+      InodeView inode = mInodes.get(i);
       InodeTree.LockMode lockMode = mLockModes.get(i);
       if (lockMode == InodeTree.LockMode.READ) {
         inode.unlockRead();

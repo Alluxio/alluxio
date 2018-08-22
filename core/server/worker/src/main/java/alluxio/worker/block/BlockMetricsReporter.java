@@ -26,11 +26,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockMetricsReporter extends AbstractBlockStoreEventListener {
   private final StorageTierAssoc mStorageTierAssoc;
 
-  private static final Counter BLOCKS_ACCESSED = MetricsSystem.workerCounter("BlocksAccessed");
-  private static final Counter BLOCKS_PROMOTED = MetricsSystem.workerCounter("BlocksPromoted");
-  private static final Counter BLOCKS_DELETED = MetricsSystem.workerCounter("BlocksDeleted");
-  private static final Counter BLOCKS_EVICTED = MetricsSystem.workerCounter("BlocksEvicted");
-  private static final Counter BLOCKS_CANCELLED = MetricsSystem.workerCounter("BlocksCanceled");
+  private static final Counter BLOCKS_ACCESSED = MetricsSystem.counter("BlocksAccessed");
+  private static final Counter BLOCKS_PROMOTED = MetricsSystem.counter("BlocksPromoted");
+  private static final Counter BLOCKS_DELETED = MetricsSystem.counter("BlocksDeleted");
+  private static final Counter BLOCKS_EVICTED = MetricsSystem.counter("BlocksEvicted");
+  private static final Counter BLOCKS_CANCELLED = MetricsSystem.counter("BlocksCanceled");
 
   /**
    * Creates a new instance of {@link BlockMetricsReporter}.

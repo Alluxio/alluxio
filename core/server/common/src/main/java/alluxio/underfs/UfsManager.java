@@ -20,8 +20,12 @@ import alluxio.resource.CloseableResource;
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A class that manages the UFS used by different services.
@@ -29,7 +33,9 @@ import java.io.Closeable;
 public interface UfsManager extends Closeable {
   /** Container for a UFS and the URI for that UFS. */
   class UfsClient {
-    private UnderFileSystem mUfs;
+    private static final Logger LOG = LoggerFactory.getLogger(UfsClient.class);
+
+    private final AtomicReference<UnderFileSystem> mUfs;
     private final AlluxioURI mUfsMountPointUri;
     private final Supplier<UnderFileSystem> mUfsSupplier;
     private final Counter mCounter;
@@ -41,19 +47,31 @@ public interface UfsManager extends Closeable {
     public UfsClient(Supplier<UnderFileSystem> ufsSupplier, AlluxioURI ufsMountPointUri) {
       mUfsSupplier = Preconditions.checkNotNull(ufsSupplier, "ufsSupplier is null");
       mUfsMountPointUri = Preconditions.checkNotNull(ufsMountPointUri, "ufsMountPointUri is null");
-      mCounter = MetricsSystem.workerCounter(
+      mCounter = MetricsSystem.counter(
           String.format("UfsSessionCount-Ufs:%s", MetricsSystem.escape(mUfsMountPointUri)));
+      mUfs = new AtomicReference<>();
     }
 
     /**
      * @return the UFS instance
      */
-    public synchronized CloseableResource<UnderFileSystem> acquireUfsResource() {
-      if (mUfs == null) {
-        mUfs = mUfsSupplier.get();
+    public CloseableResource<UnderFileSystem> acquireUfsResource() {
+      if (mUfs.get() == null) {
+        UnderFileSystem ufs = mUfsSupplier.get();
+        if (!mUfs.compareAndSet(null, ufs)) {
+          // Another thread already added this ufs, close this one.
+          try {
+            ufs.close();
+          } catch (IOException e) {
+            // ignore the close exception, log a warning
+            LOG.warn(String
+                .format("Failed to close extra UFS. mount point: %s error: %s", mUfsMountPointUri,
+                    e.toString()));
+          }
+        }
       }
       mCounter.inc();
-      return new CloseableResource<UnderFileSystem>(mUfs) {
+      return new CloseableResource<UnderFileSystem>(mUfs.get()) {
         @Override
         public void close() {
           mCounter.dec();

@@ -14,15 +14,33 @@ package alluxio;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnavailableException;
+import alluxio.network.thrift.BootstrapClientTransport;
+import alluxio.network.thrift.ThriftUtils;
+import alluxio.thrift.GetConfigurationTOptions;
+import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.ConfigurationUtils;
+import alluxio.wire.ConfigProperty;
+import alluxio.wire.Scope;
 
 import com.google.common.base.Preconditions;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -52,6 +70,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class Configuration {
+  private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
+
   private static final AlluxioProperties PROPERTIES = new AlluxioProperties();
   private static final InstancedConfiguration CONF = new InstancedConfiguration(PROPERTIES);
 
@@ -75,7 +95,7 @@ public final class Configuration {
 
     // Step2: Load site specific properties file if not in test mode. Note that we decide whether in
     // test mode by default properties and system properties (via getBoolean).
-    Properties siteProps;
+    Properties siteProps = null;
     // we are not in test mode, load site properties
     String confPaths = Configuration.get(PropertyKey.SITE_CONF_DIR);
     String[] confPathList = confPaths.split(",");
@@ -84,7 +104,13 @@ public final class Configuration {
     if (sitePropertyFile != null) {
       siteProps = ConfigurationUtils.loadPropertiesFromFile(sitePropertyFile);
     } else {
-      siteProps = ConfigurationUtils.loadPropertiesFromResource(Constants.SITE_PROPERTIES);
+      URL resource = Configuration.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
+      if (resource != null) {
+        siteProps = ConfigurationUtils.loadPropertiesFromResource(resource);
+        if (siteProps != null) {
+          sitePropertyFile = resource.getPath();
+        }
+      }
     }
     PROPERTIES.merge(siteProps, Source.siteProperty(sitePropertyFile));
     validate();
@@ -110,9 +136,20 @@ public final class Configuration {
    * @param value the value for the key
    */
   public static void set(PropertyKey key, Object value) {
+    set(key, String.valueOf(value), Source.RUNTIME);
+  }
+
+  /**
+   * Sets the value for the appropriate key in the {@link Properties} by source.
+   *
+   * @param key the key to set
+   * @param value the value for the key
+   * @param source the source of the the properties (e.g., system property, default and etc)
+   */
+  public static void set(PropertyKey key, Object value, Source source) {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
-    PROPERTIES.put(key, String.valueOf(value), Source.RUNTIME);
+    PROPERTIES.put(key, String.valueOf(value), source);
   }
 
   /**
@@ -362,6 +399,80 @@ public final class Configuration {
    */
   public static InstancedConfiguration global() {
     return CONF;
+  }
+
+  /** Whether the cluster-default is loaded. */
+  private static final AtomicBoolean CLUSTER_DEFAULT_LOADED = new AtomicBoolean(false);
+
+  /**
+   * Loads cluster default values from the meta master.
+   *
+   * @param address the master address
+   */
+  public static void loadClusterDefault(InetSocketAddress address) throws AlluxioStatusException {
+    if (!Configuration.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
+        || CLUSTER_DEFAULT_LOADED.get()) {
+      return;
+    }
+    synchronized (Configuration.class) {
+      if (CLUSTER_DEFAULT_LOADED.get()) {
+        return;
+      }
+      LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
+          RuntimeConstants.VERSION, address);
+      // A plain socket transport to bootstrap
+      TSocket socket = ThriftUtils.createThriftSocket(address);
+      TTransport bootstrapTransport = new BootstrapClientTransport(socket);
+      TProtocol protocol = ThriftUtils.createThriftProtocol(bootstrapTransport,
+          Constants.META_MASTER_CLIENT_SERVICE_NAME);
+      List<ConfigProperty> clusterConfig;
+      try {
+        bootstrapTransport.open();
+        // We didn't use RetryHandlingMetaMasterClient because it inherits AbstractClient,
+        // and AbstractClient uses Configuration.loadClusterDefault inside.
+        MetaMasterClientService.Client client = new MetaMasterClientService.Client(protocol);
+        // The credential configuration properties use displayValue
+        clusterConfig = client.getConfiguration(new GetConfigurationTOptions().setRawValue(true))
+            .getConfigList()
+            .stream()
+            .map(ConfigProperty::fromThrift)
+            .collect(Collectors.toList());
+      } catch (TException e) {
+        throw new UnavailableException(String.format(
+            "Failed to handshake with master %s to load cluster default configuration values",
+            address), e);
+      } finally {
+        bootstrapTransport.close();
+      }
+      // merge conf returned by master as the cluster default into Configuration
+      Properties clusterProps = new Properties();
+      for (ConfigProperty property : clusterConfig) {
+        String name = property.getName();
+        // TODO(binfan): support propagating unsetting properties from master
+        if (PropertyKey.isValid(name) && property.getValue() != null) {
+          PropertyKey key = PropertyKey.fromString(name);
+          if (!key.getScope().contains(Scope.CLIENT)) {
+            // Only propagate client properties.
+            continue;
+          }
+          String value = property.getValue();
+          clusterProps.put(key, value);
+          LOG.debug("Loading cluster default: {} ({}) -> {}", key, key.getScope(), value);
+        }
+      }
+      String clientVersion = Configuration.get(PropertyKey.VERSION);
+      String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
+      if (!clientVersion.equals(clusterVersion)) {
+        LOG.warn("Alluxio client version ({}) does not match Alluxio cluster version ({})",
+            clientVersion, clusterVersion);
+        clusterProps.remove(PropertyKey.VERSION);
+      }
+      Configuration.merge(clusterProps, Source.CLUSTER_DEFAULT);
+      Configuration.validate();
+      // This needs to be the last
+      CLUSTER_DEFAULT_LOADED.set(true);
+      LOG.info("Alluxio client has bootstrap-connected with {}", address);
+    }
   }
 
   private Configuration() {} // prevent instantiation

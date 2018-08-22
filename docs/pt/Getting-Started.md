@@ -75,5 +75,3 @@ se encaixam na memória de possuírem a vantagem de estar na arquitetura Alluxio
 * [Namespace Unificado](Unified-and-Transparent-Namespace.html), prove a habilidade aos usuários para
 gerenciar dados a partir de sistemas de armazenamento existentes e, facilmente, manusear implantações de
 onde nem todos os sistemas estão cientes do Alluxio.
-* [Linhagem](Lineage-API.html), permite uma alternativa para tolerância a falha e durabilidade de dado,
-mantendo ótimos desempenho de escrita, ao invés do dispendioso processo de replicação de dado em disco.

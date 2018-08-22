@@ -91,13 +91,13 @@ public class AlluxioPropertiesTest {
   }
 
   @Test
-  public void hasValueSet() {
-    assertTrue(mProperties.hasValueSet(mKeyWithValue));
-    assertFalse(mProperties.hasValueSet(mKeyWithoutValue));
+  public void isSet() {
+    assertTrue(mProperties.isSet(mKeyWithValue));
+    assertFalse(mProperties.isSet(mKeyWithoutValue));
     mProperties.remove(mKeyWithValue);
     mProperties.put(mKeyWithoutValue, "value", Source.RUNTIME);
-    assertFalse(mProperties.hasValueSet(mKeyWithValue));
-    assertTrue(mProperties.hasValueSet(mKeyWithoutValue));
+    assertFalse(mProperties.isSet(mKeyWithValue));
+    assertTrue(mProperties.isSet(mKeyWithoutValue));
   }
 
   @Test

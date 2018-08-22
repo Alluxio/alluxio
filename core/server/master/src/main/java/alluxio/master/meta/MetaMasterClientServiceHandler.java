@@ -35,6 +35,7 @@ import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.Address;
 import alluxio.wire.BackupOptions;
+import alluxio.wire.GetConfigurationOptions;
 import alluxio.wire.MetricValue;
 
 import com.codahale.metrics.Counter;
@@ -71,42 +72,41 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
 
   @Override
   public BackupTResponse backup(BackupTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<BackupTResponse>) () -> mMetaMaster
-            .backup(BackupOptions.fromThrift(options)).toThrift());
+    return RpcUtils.call((RpcUtils.RpcCallableThrowsIOException<BackupTResponse>) () -> mMetaMaster
+        .backup(BackupOptions.fromThrift(options)).toThrift());
   }
 
   @Override
   public GetConfigReportTResponse getConfigReport(final GetConfigReportTOptions options)
       throws TException {
-    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigReportTResponse>) ()
-        -> new GetConfigReportTResponse(mMetaMaster.getConfigCheckReport().toThrift()));
+    return RpcUtils
+        .call((RpcUtils.RpcCallable<GetConfigReportTResponse>) () -> new GetConfigReportTResponse(
+            mMetaMaster.getConfigCheckReport().toThrift()));
   }
 
   @Override
   public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigurationTResponse>) ()
-        -> (new GetConfigurationTResponse(mMetaMaster.getConfiguration()
-        .stream()
-        .map(configProperty -> (configProperty.toThrift()))
-        .collect(Collectors.toList()))));
+    return RpcUtils.call((RpcUtils.RpcCallable<GetConfigurationTResponse>) () ->
+        (new GetConfigurationTResponse(
+            mMetaMaster.getConfiguration(GetConfigurationOptions.fromThrift(options)).stream()
+                .map(configProperty -> (configProperty.toThrift())).collect(Collectors.toList()))));
   }
 
   @Override
   public GetMasterInfoTResponse getMasterInfo(final GetMasterInfoTOptions options)
       throws TException {
-    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetMasterInfoTResponse>) () -> {
+    return RpcUtils.call((RpcUtils.RpcCallable<GetMasterInfoTResponse>) () -> {
       MasterInfo info = new alluxio.thrift.MasterInfo();
-      for (MasterInfoField field : options.getFilter() != null ? options.getFilter()
-          : Arrays.asList(MasterInfoField.values())) {
+      for (MasterInfoField field : options.getFilter() != null ? options.getFilter() : Arrays
+          .asList(MasterInfoField.values())) {
         switch (field) {
           case LEADER_MASTER_ADDRESS:
             info.setLeaderMasterAddress(mMetaMaster.getRpcAddress().toString());
             break;
           case MASTER_ADDRESSES:
-            info.setMasterAddresses(mMetaMaster.getMasterAddresses()
-                .stream().map(Address::toThrift).collect(Collectors.toList()));
+            info.setMasterAddresses(mMetaMaster.getMasterAddresses().stream()
+                .map(Address::toThrift).collect(Collectors.toList()));
             break;
           case RPC_PORT:
             info.setRpcPort(mMetaMaster.getRpcAddress().getPort());
@@ -127,13 +127,13 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
             info.setWebPort(mMetaMaster.getWebPort());
             break;
           case WORKER_ADDRESSES:
-            info.setWorkerAddresses(mMetaMaster.getWorkerAddresses()
-                .stream().map(Address::toThrift).collect(Collectors.toList()));
+            info.setWorkerAddresses(mMetaMaster.getWorkerAddresses().stream()
+                .map(Address::toThrift).collect(Collectors.toList()));
             break;
           case ZOOKEEPER_ADDRESSES:
             if (Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
-              info.setZookeeperAddresses(Arrays
-                  .asList(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
+              info.setZookeeperAddresses(Arrays.asList(Configuration.get(
+                  PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
             }
             break;
           default:
@@ -145,9 +145,8 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   }
 
   @Override
-  public GetMetricsTResponse getMetrics(final GetMetricsTOptions options)
-      throws TException {
-    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetMetricsTResponse>) () -> {
+  public GetMetricsTResponse getMetrics(final GetMetricsTOptions options) throws TException {
+    return RpcUtils.call((RpcUtils.RpcCallable<GetMetricsTResponse>) () -> {
       MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
       Map<String, alluxio.thrift.MetricValue> metricsMap = new HashMap<>();
 
@@ -159,14 +158,12 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
       for (Map.Entry<String, Gauge> entry : mr.getGauges().entrySet()) {
         Object value = entry.getValue().getValue();
         if (value instanceof Integer) {
-          metricsMap.put(entry.getKey(),
-              MetricValue.forLong(Long.valueOf((Integer) value)).toThrift());
+          metricsMap.put(entry.getKey(), MetricValue.forLong(Long.valueOf((Integer) value))
+              .toThrift());
         } else if (value instanceof Long) {
-          metricsMap.put(entry.getKey(),
-              MetricValue.forLong((Long) value).toThrift());
+          metricsMap.put(entry.getKey(), MetricValue.forLong((Long) value).toThrift());
         } else if (value instanceof Double) {
-          metricsMap.put(entry.getKey(),
-              MetricValue.forDouble((Double) value).toThrift());
+          metricsMap.put(entry.getKey(), MetricValue.forDouble((Double) value).toThrift());
         }
       }
       return new GetMetricsTResponse(metricsMap);

@@ -1,3 +1,7 @@
+backup:
+  Back up all Alluxio metadata to the backup directory configured on master.
+doctor:
+  Show Alluxio errors and warnings.
 report:
   Report Alluxio running cluster information.
 ufs:

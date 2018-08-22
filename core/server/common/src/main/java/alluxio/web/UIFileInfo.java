@@ -106,6 +106,9 @@ public final class UIFileInfo {
    * @param status underlying {@link URIStatus}
    */
   public UIFileInfo(URIStatus status) {
+    // detect the extended acls
+    boolean hasExtended = status.getAcl().hasExtended() || !status.getDefaultAcl().isEmpty();
+
     mId = status.getFileId();
     mName = status.getName();
     mAbsolutePath = status.getPath();
@@ -119,7 +122,7 @@ public final class UIFileInfo {
     mPinned = status.isPinned();
     mOwner = status.getOwner();
     mGroup = status.getGroup();
-    mMode = FormatUtils.formatMode((short) status.getMode(), status.isFolder());
+    mMode = FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended);
     mPersistenceState = status.getPersistenceState();
     mFileLocations = new ArrayList<>();
   }
@@ -152,7 +155,7 @@ public final class UIFileInfo {
     mPinned = false;
     mOwner = "";
     mGroup = "";
-    mMode = FormatUtils.formatMode(Mode.createNoAccess().toShort(), true);
+    mMode = FormatUtils.formatMode(Mode.createNoAccess().toShort(), true, false);
     mPersistenceState = PersistenceState.NOT_PERSISTED.name();
     mFileLocations = new ArrayList<>();
   }

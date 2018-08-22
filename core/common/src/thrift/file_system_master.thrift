@@ -5,6 +5,8 @@ include "exception.thrift"
 
 struct FileSystemMasterCommonTOptions {
   1: optional i64 syncIntervalMs
+  2: optional i64 ttl
+  3: optional common.TTtlAction ttlAction
 }
 
 struct CheckConsistencyTOptions {
@@ -25,8 +27,8 @@ struct CreateDirectoryTOptions {
   2: optional bool recursive
   3: optional bool allowExists
   4: optional i16 mode
-  5: optional i64 ttl
-  6: optional common.TTtlAction ttlAction
+  5: optional i64 ttlNotUsed // deprecated from 1.8
+  6: optional common.TTtlAction ttlActionNotUsed // deprecated from 1.8
   7: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct CreateDirectoryTResponse {}
@@ -35,9 +37,9 @@ struct CreateFileTOptions {
   1: optional i64 blockSizeBytes
   2: optional bool persisted
   3: optional bool recursive
-  4: optional i64 ttl
+  4: optional i64 ttlNotUsed // deprecated from 1.8
   5: optional i16 mode
-  6: optional common.TTtlAction ttlAction
+  6: optional common.TTtlAction ttlActionNotUsed // deprecated from 1.8
   7: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct CreateFileTResponse {}
@@ -96,6 +98,37 @@ struct LoadMetadataTResponse {
   1: i64 id
 }
 
+enum TAclEntryType {
+  Owner = 0,
+  NamedUser = 1,
+  OwningGroup = 2,
+  NamedGroup = 3,
+  Mask = 4,
+  Other = 5,
+}
+
+enum TAclAction {
+  Read = 0,
+  Write = 1,
+  Execute = 2,
+}
+
+struct TAclEntry {
+  1: optional TAclEntryType type
+  2: optional string subject
+  3: optional list<TAclAction> actions
+  4: optional bool isDefault;
+}
+
+struct TAcl {
+  1: optional string owner
+  2: optional string owningGroup
+  3: optional list<TAclEntry> entries
+  4: optional i16 mode
+  5: optional bool isDefault
+  6: optional bool isDefaultEmpty
+}
+
 /**
 * Contains the information of a block in a file. In addition to the BlockInfo, it includes the
 * offset in the file, and the under file system locations of the block replicas.
@@ -134,6 +167,8 @@ struct FileInfo {
   25: i64 mountId
   26: i32 inAlluxioPercentage
   27: string ufsFingerprint
+  28: TAcl acl
+  29: TAcl defaultAcl
 }
 
 struct MountTOptions {
@@ -180,6 +215,21 @@ struct RenameTOptions {
   1: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct RenameTResponse {}
+
+enum TSetAclAction {
+  Replace = 0,
+  Modify = 1,
+  Remove = 2,
+  RemoveAll = 3,
+  RemoveDefault = 4,
+}
+
+struct SetAclTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+  2: optional bool recursive
+}
+
+struct SetAclTResponse {}
 
 struct SetAttributeTOptions {
   1: optional bool pinned
@@ -365,6 +415,17 @@ service FileSystemMasterClientService extends common.AlluxioService {
   ScheduleAsyncPersistenceTResponse scheduleAsyncPersistence(
     /** the path of the file */ 1: string path,
     /** the method options */ 2: ScheduleAsyncPersistenceTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Sets ACL for the path.
+   */
+  SetAclTResponse setAcl(
+    /** the path of the file or directory */ 1: string path,
+    /** the set action to perform */ 2: TSetAclAction action,
+    /** the list of ACL entries */ 3: list<TAclEntry> entries,
+    /** the method options */ 4: SetAclTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 

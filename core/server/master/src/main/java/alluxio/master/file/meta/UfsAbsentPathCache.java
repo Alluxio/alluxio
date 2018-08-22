@@ -31,7 +31,7 @@ public interface UfsAbsentPathCache {
    * @param path the path to process for the cache
    * @param prefixInodes the existing inodes for the path prefix
    */
-  void process(AlluxioURI path, List<Inode<?>> prefixInodes);
+  void process(AlluxioURI path, List<InodeView> prefixInodes);
 
   /**
    * Processes the given path that already exists. This will sequentially walk down the path and

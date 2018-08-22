@@ -17,11 +17,12 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
+import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.thrift.ThriftUtils;
-import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
@@ -33,13 +34,13 @@ import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.time.Duration;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -52,14 +53,6 @@ import javax.security.auth.Subject;
 @ThreadSafe
 public abstract class AbstractClient implements Client {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
-
-  private static Supplier<RetryPolicy> defaultRetry() {
-    Duration maxRetryDuration = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
-    Duration baseSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
-    Duration maxSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
-    return () -> ExponentialTimeBoundedRetry.builder().withMaxDuration(maxRetryDuration)
-        .withInitialSleep(baseSleepMs).withMaxSleep(maxSleepMs).build();
-  }
 
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
@@ -92,7 +85,7 @@ public abstract class AbstractClient implements Client {
    * @param address the address
    */
   public AbstractClient(Subject subject, InetSocketAddress address) {
-    this(subject, address, defaultRetry());
+    this(subject, address, RetryUtils::defaultClientRetry);
   }
 
   /**
@@ -155,6 +148,17 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
+   * This method is called before the connection is connected. Implementations should add any
+   * additional operations before the connection is connected.
+   */
+  protected void beforeConnect() throws IOException {
+    // Bootstrap once for clients
+    if (!isConnected()) {
+      Configuration.loadClusterDefault(mAddress);
+    }
+  }
+
+  /**
    * This method is called after the connection is disconnected. Implementations should clean up any
    * additional state created for the connection.
    */
@@ -194,12 +198,14 @@ public abstract class AbstractClient implements Client {
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
-      LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
-          RuntimeConstants.VERSION, getServiceName(), mAddress);
-
-      mProtocol = ThriftUtils.createThriftProtocol(
-          mTransportProvider.getClientTransport(mParentSubject, mAddress), getServiceName());
       try {
+        beforeConnect();
+        LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
+            RuntimeConstants.VERSION, getServiceName(), mAddress);
+        // The wrapper transport
+        TTransport clientTransport =
+            mTransportProvider.getClientTransport(mParentSubject, mAddress);
+        mProtocol = ThriftUtils.createThriftProtocol(clientTransport, getServiceName());
         mProtocol.getTransport().open();
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
         mConnected = true;
@@ -217,7 +223,6 @@ public abstract class AbstractClient implements Client {
           throw new UnavailableException(message, e);
         }
       }
-      // TODO(peis): Consider closing the connection here as well.
     }
     // Reaching here indicates that we did not successfully connect.
     if (mAddress == null) {
@@ -309,13 +314,13 @@ public abstract class AbstractClient implements Client {
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc, String rpcName)
       throws AlluxioStatusException {
-    try (Timer.Context ctx = MetricsSystem.clientTimer(getQualifiedMetricName(rpcName)).time()) {
+    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(rpcName)).time()) {
       return retryRPCInternal(rpc, () -> {
-        MetricsSystem.clientCounter(getQualifiedRetryMetricName(rpcName)).inc();
+        MetricsSystem.counter(getQualifiedRetryMetricName(rpcName)).inc();
         return null;
       });
     } catch (Exception e) {
-      MetricsSystem.clientCounter(getQualifiedFailureMetricName(rpcName)).inc();
+      MetricsSystem.counter(getQualifiedFailureMetricName(rpcName)).inc();
       throw e;
     }
   }
@@ -353,7 +358,8 @@ public abstract class AbstractClient implements Client {
   private String getQualifiedMetricName(String metricName) {
     try {
       if (SecurityUtils.isAuthenticationEnabled() && LoginUser.get() != null) {
-        return Metric.getMetricNameWithTags(metricName, "User", LoginUser.get().getName());
+        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER, LoginUser.get()
+            .getName());
       } else {
         return metricName;
       }

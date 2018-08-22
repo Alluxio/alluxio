@@ -13,8 +13,8 @@ package alluxio.master.meta;
 
 import alluxio.Constants;
 import alluxio.RpcUtils;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.AlluxioStatusException;
+import alluxio.RpcUtils.RpcCallable;
+import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetMasterIdTOptions;
 import alluxio.thrift.GetMasterIdTResponse;
@@ -53,58 +53,33 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
 
   @Override
   public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
-    return new GetServiceVersionTResponse(Constants.META_MASTER_CLIENT_SERVICE_VERSION);
+    return new GetServiceVersionTResponse(Constants.META_MASTER_MASTER_SERVICE_VERSION);
   }
 
   @Override
   public GetMasterIdTResponse getMasterId(final MasterNetAddress address,
       GetMasterIdTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetMasterIdTResponse>() {
-      @Override
-      public GetMasterIdTResponse call() throws AlluxioException {
-        return new GetMasterIdTResponse(mMetaMaster
-            .getMasterId(Address.fromThrift(address)));
-      }
-
-      @Override
-      public String toString() {
-        return String
-            .format("getMasterId: address=%s, options=%s", address, options);
-      }
-    });
+    return RpcUtils.call(LOG, (RpcCallable<GetMasterIdTResponse>) () -> new GetMasterIdTResponse(
+        mMetaMaster.getMasterId(Address.fromThrift(address))), "GetMasterId",
+        "address=%s, options=%s", address, options);
   }
 
   @Override
   public MasterHeartbeatTResponse masterHeartbeat(final long masterId,
-       final MasterHeartbeatTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<MasterHeartbeatTResponse>() {
-      @Override
-      public MasterHeartbeatTResponse call() throws AlluxioException {
-        return new MasterHeartbeatTResponse(mMetaMaster.masterHeartbeat(masterId));
-      }
-
-      @Override
-      public String toString() {
-        return String.format("masterHeartbeat: masterId=%s, options=%s", masterId, options);
-      }
-    });
+      final MasterHeartbeatTOptions options) throws AlluxioTException {
+    return RpcUtils.call(
+        LOG,
+        (RpcCallable<MasterHeartbeatTResponse>) () -> new MasterHeartbeatTResponse(mMetaMaster
+            .masterHeartbeat(masterId)), "MasterHeartbeat",
+        "masterId=%s, options=%s", masterId, options);
   }
 
   @Override
-  public RegisterMasterTResponse registerMaster(final long masterId,
-      RegisterMasterTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallableThrowsIOException<RegisterMasterTResponse>() {
-      @Override
-      public RegisterMasterTResponse call() throws AlluxioException, AlluxioStatusException {
-        mMetaMaster.masterRegister(masterId, options);
-        return new RegisterMasterTResponse();
-      }
-
-      @Override
-      public String toString() {
-        return String.format("registerMaster: masterId=%s, options=%s", masterId, options);
-      }
-    });
+  public RegisterMasterTResponse registerMaster(final long masterId, RegisterMasterTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<RegisterMasterTResponse>) () -> {
+      mMetaMaster.masterRegister(masterId, options);
+      return new RegisterMasterTResponse();
+    }, "RegisterMaster", "masterId=%s, options=%s", masterId, options);
   }
 }

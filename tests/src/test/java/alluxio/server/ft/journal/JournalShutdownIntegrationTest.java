@@ -33,6 +33,7 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
+import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.master.MasterTestUtils;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystem;
@@ -95,16 +96,18 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
     ConfigurationTestUtils.resetConfiguration();
-    FileSystemContext.get().reset();
+    Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+    FileSystemContext.get().reset(Configuration.global());
   }
 
   @Test
   public void singleMasterJournalStopIntegration() throws Exception {
-    MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
-        .setClusterName("singleMasterJournalStopIntegration")
-        .setNumWorkers(0)
-        .setNumMasters(1)
-        .build();
+    MultiProcessCluster cluster =
+        MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_STOP_SINGLE_MASTER)
+            .setClusterName("singleMasterJournalStopIntegration")
+            .setNumWorkers(0)
+            .setNumMasters(1)
+            .build();
     try {
       cluster.start();
       FileSystem fs = cluster.getFileSystemClient();
@@ -128,15 +131,16 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void multiMasterJournalStopIntegration() throws Exception {
-    MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
-        .setClusterName("multiMasterJournalStopIntegration")
-        .setNumWorkers(0)
-        .setNumMasters(TEST_NUM_MASTERS)
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
-        // Cannot go lower than 2x the tick time. Curator testing cluster tick time is 3s and cannot
-        // be overridden until later versions of Curator.
-        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "6s")
-        .build();
+    MultiProcessCluster cluster =
+        MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_STOP_MULTI_MASTER)
+            .setClusterName("multiMasterJournalStopIntegration")
+            .setNumWorkers(0)
+            .setNumMasters(TEST_NUM_MASTERS)
+            .setDeployMode(DeployMode.ZOOKEEPER_HA)
+            // Cannot go lower than 2x the tick time. Curator testing cluster tick time is 3s and
+            // cannot be overridden until later versions of Curator.
+            .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "6s")
+            .build();
     try {
       cluster.start();
       FileSystem fs = cluster.getFileSystemClient();

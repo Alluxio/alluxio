@@ -22,9 +22,9 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 * Alluxio集群根据向导搭建完成(可以是[本地模式](Running-Alluxio-Locally.html)或者[集群模式](Running-Alluxio-on-a-Cluster.html))。
 
 * 我们建议您从Alluxio[下载页面](http://www.alluxio.org/download)下载tarball.
-  另外，高级用户可以选择根据[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)的说明将源代码编译为客户端jar包，并在本文余下部分使用于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`路径处生成的jar包。
+  另外，高级用户可以选择根据[这里](Building-Alluxio-From-Source.html#compute-framework-support)的说明将源代码编译为客户端jar包，并在本文余下部分使用于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`路径处生成的jar包。
 
-* 为使Spark应用程序能够在Alluxio中读写文件， 必须将Alluxio客户端jar包分布在不同节点的应用程序的classpath中（每个节点必须使客户端jar包具有相同的本地路径{{site.ALLUXIO_CLIENT_JAR_PATH}}）
+* 为使Spark应用程序能够在Alluxio中读写文件， 必须将Alluxio客户端jar包分布在不同节点的应用程序的classpath中（每个节点必须使客户端jar包具有相同的本地路径`{{site.ALLUXIO_CLIENT_JAR_PATH}}`）
 
 * 请添加如下代码到`spark/conf/spark-defaults.conf`。
 
@@ -137,9 +137,9 @@ $ hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
 当以容错模式运行Alluxio时，可以使用任何一个Alluxio master：
 
 ```scala
-> val s = sc.textFile("alluxio-ft://stanbyHost:19998/LICENSE")
+> val s = sc.textFile("alluxio://stanbyHost:19998/LICENSE")
 > val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio-ft://activeHost:19998/LICENSE2")
+> double.saveAsTextFile("alluxio://activeHost:19998/LICENSE2")
 ```
 
 ## 数据本地化
@@ -171,75 +171,37 @@ SPARK_LOCAL_HOSTNAME=simple30
 
 ![locality]({{site.data.img.screenshot_datalocality_tasklocality}})
 
-##在YARN上运行SPARK
+### 在YARN上运行SPARK
 
 为了最大化Spark作业所能达到数据本地化的数量，应当尽可能多地使用executor,希望至少每个节点拥有一个executor。按照Alluxio所有方法的部署，所有的计算节点上也应当拥有一个Alluxio worker。
 
 当一个Spark作业在YARN上运行时,Spark启动executors不会考虑数据的本地化。之后Spark在决定怎样为它的executors分配任务时会正确地考虑数据的本地化。举例而言：
 如果`host1`包含了`blockA`并且使用`blockA`的作业已经在YARN集群上以`--num-executors=1`的方式启动了,Spark会将唯一的executor放置在`host2`上，本地化就比较差。但是，如果以`--num-executors=2`的方式启动并且executors开始于`host1`和`host2`上,Spark会足够智能地将作业优先放置在`host1`上。
 
-## Spark Shell中`Failed to login`问题
-为了用Alluxio客户端运行Spark Shell，Alluxio客户端的jar包必须被添加到Spark driver和Spark executors的classpath中。可是有的时候Alluxio不能判断安全用户，从而导致类似于`Failed to login: No Alluxio User is found.`的错误。以下是一些解决方案。
+## `class alluxio.hadoop.FileSystem not found` 与SparkSQL和Hive MetaStore有关的问题
+为了用Alluxio客户端运行Spark Shell，Alluxio客户端的jar包必须如[之前描述](Running-Spark-on-Alluxio.html#general-setup)的那样，被添加到Spark driver和Spark executors的classpath中。可是有的时候Alluxio不能判断安全用户，从而导致类似于下面的错误。
 
-### [建议] 为Spark 1.4.0以上版本配置`spark.sql.hive.metastore.sharedPrefixes`
+```
+org.apache.hadoop.hive.ql.metadata.HiveException: MetaException(message:java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found)
+```
 
-这是建议的解决方案。
-
+推荐的解决方案是为Spark 1.4.0以上版本配置[`spark.sql.hive.metastore.sharedPrefixes`](http://spark.apache.org/docs/2.0.0/sql-programming-guide.html#interacting-with-different-versions-of-hive-metastore).
 在Spark 1.4.0和之后的版本中，Spark为了访问hive元数据使用了独立的类加载器来加载java类。然而，这个独立的类加载器忽视了特定的包，并且让主类加载器去加载"共享"类（Hadoop的HDFS客户端就是一种"共享"类）。Alluxio客户端也应该由主类加载器加载，你可以将`alluxio`包加到配置参数`spark.sql.hive.metastore.sharedPrefixes`中，以通知Spark用主类加载器加载Alluxio。例如，该参数可以这样设置:
 
 ```bash
 spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
 ```
 
-### [规避] 为Hadoop配置指定`fs.alluxio.impl`
+## `java.io.IOException: No FileSystem for scheme: alluxio` 与在YARN上运行Spark有关的问题
 
-如果以上的建议方案不可行，以下的方案可以规避掉这个问题。
 
-为Hadoop配置指定`fs.alluxio.impl`也许可以帮助你解决该错误。`fs.alluxio.impl`应该被设置为`alluxio.hadoop.FileSystem`。这里有几个选项来设置这些参数。
-
-#### 更新SparkContext中的`hadoopConfiguration`
-
-你可以在SparkContext中通过以下方式来更新Hadoop配置：
-
-```scala
-sc.hadoopConfiguration.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem")
-```
-
-该操作应该在 `spark-shell`阶段早期，即Alluxio操作之前运行。
-
-#### 更新Hadoop配置文件
-
-你可以在Hadoop的配置文件中增加参数，并使Spark指向Hadoop的配置文件。Hadoop的`core-site.xml`中需要添加如下内容。
-
-你可以通过在`spark-env.sh`设置`HADOOP_CONF_DIR`来使Spark指向Hadoop的配置文件。
+如果你在YARN上使用基于Alluxio的Spark并遇到异常`java.io.IOException：No FileSystem for scheme：alluxio`，请将以下内容添加到 `${SPARK_HOME}/conf/core-site.xml`：
 
 ```xml
 <configuration>
   <property>
     <name>fs.alluxio.impl</name>
     <value>alluxio.hadoop.FileSystem</value>
-  </property>
-</configuration>
-```
-
-要使用容错机制，可以适当地设置classpath中`alluxio-site.properties`文件里的Alluxio集群属性。
-
-```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=[zookeeper_hostname]:2181
-```
-
-或者你可以增加属性到Hadoop的`core-site.xml`配置文件中，然后其会被传输到Alluxio中。
-
-```xml
-<configuration>
-  <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>[zookeeper_hostname]:2181</value>
   </property>
 </configuration>
 ```

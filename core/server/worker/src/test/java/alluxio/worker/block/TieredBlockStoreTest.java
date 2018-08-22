@@ -16,6 +16,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -28,6 +31,7 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.test.util.ConcurrencyUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.evictor.Evictor;
@@ -42,15 +46,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Unit tests for {@link TieredBlockStore}.
@@ -340,19 +341,15 @@ public final class TieredBlockStoreTest {
   @Test
   public void freeSpaceThreadSafe() throws Exception {
     int threadAmount = 10;
-    int count = 100_000;
     List<Runnable> runnables = new ArrayList<>();
-    Evictor evictor = Mockito.mock(Evictor.class);
-    Set<Long> set = new HashSet<>();
-    Mockito.when(
-        evictor.freeSpaceWithView(Mockito.any(Long.class), Mockito.any(BlockStoreLocation.class),
-            Mockito.any(BlockMetadataManagerView.class), Mockito.any(Mode.class)))
+    Evictor evictor = mock(Evictor.class);
+    when(
+        evictor.freeSpaceWithView(any(Long.class), any(BlockStoreLocation.class),
+            any(BlockMetadataManagerView.class), any(Mode.class)))
         .thenAnswer((InvocationOnMock invocation) -> {
-              for (int i = 0; i < count; i++) {
-                set.add(System.nanoTime());
-              }
-              return new EvictionPlan(new ArrayList<>(), new ArrayList<>());
-            }
+          CommonUtils.sleepMs(20);
+          return new EvictionPlan(new ArrayList<>(), new ArrayList<>());
+        }
       );
     Field field = mBlockStore.getClass().getDeclaredField("mEvictor");
     field.setAccessible(true);
@@ -428,7 +425,9 @@ public final class TieredBlockStoreTest {
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
+    mThrown.expectMessage(
+        ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(mTestDir1.getCapacityBytes(),
+            mTestDir1.toBlockStoreLocation().tierAlias()));
     mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
         mTestDir1.getCapacityBytes());
 
@@ -458,7 +457,8 @@ public final class TieredBlockStoreTest {
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
+    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
+        BLOCK_SIZE, mTestDir2.toBlockStoreLocation().tierAlias()));
     mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
 
     // Expect createBlockMeta to succeed after unlocking this block.
@@ -484,7 +484,8 @@ public final class TieredBlockStoreTest {
 
     // Expect an empty eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
+    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
+        mTestDir1.getCapacityBytes(), mTestDir1.toBlockStoreLocation().tierAlias()));
     mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
         mTestDir1.toBlockStoreLocation());
 

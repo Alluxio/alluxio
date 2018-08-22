@@ -133,7 +133,7 @@ public class AlluxioProperties {
         // This will register the key as a valid PropertyKey
         // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuration
         // is made dynamic
-        propertyKey = new PropertyKey.Builder(key).build();
+        propertyKey = new PropertyKey.Builder(key).setIsBuiltIn(false).build();
       }
       put(propertyKey, value, source);
     }
@@ -154,7 +154,7 @@ public class AlluxioProperties {
    * @param key the key to check
    * @return true if there is value for the key, false otherwise
    */
-  public boolean hasValueSet(PropertyKey key) {
+  public boolean isSet(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
       return mUserProps.get(key).isPresent();
     }

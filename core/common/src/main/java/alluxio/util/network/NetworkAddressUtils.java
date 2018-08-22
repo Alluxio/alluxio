@@ -19,6 +19,7 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
+import alluxio.uri.Authority;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -60,6 +61,7 @@ public final class NetworkAddressUtils {
   public static final boolean WINDOWS = OSUtils.isWindows();
 
   private static String sLocalHost;
+  private static String sLocalHostMetricName;
   private static String sLocalIP;
 
   private NetworkAddressUtils() {}
@@ -453,6 +455,20 @@ public final class NetworkAddressUtils {
   }
 
   /**
+   * Gets a local hostname for the host this JVM is running on with '.' replaced with '_' for
+   * metrics usage.
+   *
+   * @return the metrics system friendly local host name
+   */
+  public static synchronized String getLocalHostMetricName() {
+    if (sLocalHostMetricName != null) {
+      return sLocalHostMetricName;
+    }
+    sLocalHostMetricName = getLocalHostName().replace('.', '_');
+    return sLocalHostMetricName;
+  }
+
+  /**
    * Gets a local IP address for the host this JVM is running on.
    *
    * @return the local ip address, which is not a loopback address and is reachable
@@ -577,7 +593,8 @@ public final class NetworkAddressUtils {
       if (path.getPort() != -1) {
         authority += ":" + path.getPort();
       }
-      return new AlluxioURI(path.getScheme(), authority, path.getPath(), path.getQueryMap());
+      return new AlluxioURI(path.getScheme(), Authority.fromString(authority),
+          path.getPath(), path.getQueryMap());
     }
     return path;
   }

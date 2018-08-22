@@ -11,8 +11,7 @@
 
 package alluxio.master.file.meta;
 
-import com.google.common.collect.Lists;
-
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -48,11 +47,25 @@ public class CompositeInodeLockList extends InodeLockList {
   }
 
   @Override
-  public synchronized List<Inode<?>> getInodes() {
+  public synchronized List<InodeView> getInodes() {
     // Combine the base list of inodes first.
-    List<Inode<?>> ret = Lists.newArrayList(mBaseLockList.getInodes());
+    List<InodeView> ret = new ArrayList<>(mBaseLockList.size() + mInodes.size());
+    ret.addAll(mBaseLockList.getInodes());
     ret.addAll(mInodes);
     return ret;
+  }
+
+  @Override
+  public synchronized InodeView get(int index) {
+    if (index < mBaseLockList.size()) {
+      return mBaseLockList.get(index);
+    }
+    return mInodes.get(index - mBaseLockList.size());
+  }
+
+  @Override
+  public synchronized int size() {
+    return mBaseLockList.size() + mInodes.size();
   }
 
   /**

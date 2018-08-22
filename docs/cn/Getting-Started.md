@@ -51,13 +51,17 @@ $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 
 在开始使用Alluxio之前，我们需要配置它。大部分使用默认设置即可。
 
-在`${ALLUXIO_HOME}/conf`目录下，根据模板文件创建`conf/alluxio-env.sh`配置文件。
+在`${ALLUXIO_HOME}/conf`目录下，根据模板文件创建`conf/alluxio-site.properties`配置文件。
 
 ```bash
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 在`conf/alluxio-site.properties`文件中将 `alluxio.master.hostname`更新为你打算运行Alluxio Master的机器主机名。
+
+```bash
+$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
+```
 ### [奖励] AWS相关配置
 
 如果你有一个包含access key id和secret accsee key的AWS账户，你可以添加你的Alluxio配置以备接下来与Amazon S3的交互。如下命令可以添加你的AWS访问信息到`conf/alluxio-site.properties`文件。
@@ -104,7 +108,7 @@ $ ./bin/alluxio format
 现在，我们启动Alluxio！Alluxio默认配置成在localhost启动master和worker。我们可以用如下命令在localhost启动Alluxio：
 
 ```bash
-$ ./bin/alluxio-start.sh local
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 恭喜！Alluxio已经启动并运行了！你可以访问[http://localhost:19999](http://localhost:19999)查看Alluxio master的运行状态，访问[http://localhost:30000](http://localhost:30000)查看Alluxio worker的运行状态。
@@ -125,7 +129,7 @@ $ ./bin/alluxio fs
 $ ./bin/alluxio fs ls /
 ```
 
-可惜现在Alluxio里没有文件。我们可以拷贝文件到Alluxio。`copyFromLocal`命令可以拷贝本地文件到Alluxio中。
+不过现在Alluxio里没有文件。我们可以拷贝文件到Alluxio。`copyFromLocal`命令可以拷贝本地文件到Alluxio中。
 
 ```bash
 $ ./bin/alluxio fs copyFromLocal LICENSE /LICENSE
@@ -167,7 +171,7 @@ $ ./bin/alluxio fs persist /LICENSE
 persisted file /LICENSE with size 26847
 ```
 
-现在，如果我们再次检查UFS。文件出现了。
+如果我们现在再次检查UFS，文件就会出现。
 
 ```bash
 $ ls ./underFSStorage
@@ -227,14 +231,14 @@ dr-x------ staff  staff         4 PERSISTED 01-09-2018 16:34:55:362  DIR /mnt/s3
 
 ## [奖励]用Alluxio加速数据访问
 
-由于Alluxio利用内存存储数据，它可以加速数据的访问。首先，我们看一看Alluxio中文件的状态(从S3中挂载)。
+由于Alluxio利用内存存储数据，它可以加速数据的访问。首先，我们看一看Alluxio中一个文件的状态(从S3中挂载)。
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 -r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
-输出显示了文件**Not In Memory**。该文件是tweet的样本。我们看看有多少tweet提到了单词“kitten”。使用如下的命令，我们可以统计含有“kitten”的tweet数量。
+输出显示了文件**Not In Memory**。该文件是微博的样本。我们看看有多少微博提到了单词“kitten”。使用如下的命令，我们可以统计含有“kitten”的tweet数量。
 
 ```bash
 $ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c kitten
@@ -246,34 +250,18 @@ sys	0m1.181s
 ```
 
 取决于你的网络连接状况，该操作可能会超过20秒。如果读取文件时间过长，你可以选择一个小一点的数据集。该目录下的其他文件是该文件的更小子集。
+如你所见，每个访问数据的命令都需要花费较长的时间。通过将数据放在内存中，Alluxio可以提高访问数据的速度。
 
-现在，让我们看一下有多少tweet包含单词"puppy"。
-
-```bash
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
-1553
-
-real	0m25.998s
-user	0m6.828s
-sys	0m1.048s
-```
-
-正如你看见的，每个命令花费大量的时间访问数据。Alluxio使用内存存储这些数据来加速数据访问。`cat`命令不能缓存数据到Alluxio内存中。另外一个命令`load`可以告诉Alluxio存储数据到内存中。你可以使用如下命令告诉Alluxio加载数据到内存中。
-
-```bash
-$ ./bin/alluxio fs load /mnt/s3/sample_tweets_150m.csv
-```
-
-加载完文件之后，使用`ls`命令检查其状态：
+在通过`cat`命令获取文件后，你可以用`ls`命令查看文件的状态：
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 -r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002 100% /mnt/s3/sample_tweets_150m.csv
 ```
 
-输出显示文件已被Alluxio完全加载。既然文件在Alluxio中，读文件应该会更快。
+输出显示文件已经100%被加载到Alluxio中，既然如此，那么再次访问该文件的速度应该会快很多。
 
-我们统计一下包含"puppy"的tweet数量。
+让我们来统计一下拥有“puppy”这个单词的微博的数目。
 
 ```bash
 $ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
@@ -284,7 +272,8 @@ user	0m2.306s
 sys	0m0.243s
 ```
 
-如你所见，读文件非常快，只有几秒！由于数据在Alluxio内存中，你可以再次很快的读取文件。我们统计一下包含单词"bunny"的tweet数量。
+如你所见，读文件的速度非常快，仅仅需要数秒钟！并且，因为数据已经存放到了Alluxio中了，你可以轻易的以较快的速度再次读该文件。
+现在让我们来统计一下有多少微博包含“bunny”这个词。
 
 ```bash
 $ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c bunny
@@ -297,9 +286,9 @@ sys	0m0.240s
 
 恭喜！你在本地安装了Alluxio并且通过Alluxio加速了数据访问！
 
-## 关闭Alluxio
+## 中止Alluxio
 
-你完成了本地安装和使用Alluxio，你可以使用如下命令关闭Alluxio：
+你完成了本地安装和使用Alluxio，你可以使用如下命令中止Alluxio：
 
 ```bash
 $ ./bin/alluxio-stop.sh local
@@ -319,7 +308,6 @@ Alluxio可以部署在很多不同的环境下。
 * [在集群上独立运行Alluxio](Running-Alluxio-on-a-Cluster.html)
 * [在Virtual Box中运行Alluxio](Running-Alluxio-on-Virtual-Box.html)
 * [在Docker中运行Alluxio](Running-Alluxio-On-Docker.html)
-* [Alluxio独立模式实现容错](Running-Alluxio-Fault-Tolerant.html)
 * [在EC2上运行Alluxio](Running-Alluxio-on-EC2.html)
 * [在GCE上运行Alluxio](Running-Alluxio-on-GCE.html)
 * [在EC2上使用Mesos运行Alluxio](Running-Alluxio-on-Mesos.html)

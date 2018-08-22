@@ -136,6 +136,7 @@ public abstract class ResourcePool<T> implements Pool<T> {
         mTakeLock.unlock();
       }
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
   }

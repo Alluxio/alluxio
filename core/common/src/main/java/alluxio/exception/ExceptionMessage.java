@@ -91,11 +91,16 @@ public enum ExceptionMessage {
   BLOCK_NOT_FOUND_AT_LOCATION("blockId {0,number,#} not found at location: {1}"),
   MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted blockId {0,number,#}"),
   NO_BLOCK_ID_FOUND("blockId {0,number,#} not found"),
-  NO_EVICTION_PLAN_TO_FREE_SPACE("No eviction plan by evictor to free space"),
+  NO_EVICTION_PLAN_TO_FREE_SPACE(
+      "Failed to find an eviction plan to free {0,number,#} bytes space at location {1}"),
   NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT(
-      "Failed to allocate {0,number,#} bytes after {1}ms for blockId {2,number,#}"),
+      "Failed to allocate {0,number,#} bytes on {1} after {2}ms to create blockId {3,number,#}"),
   NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED(
-      "Failed to allocate {0,number,#} bytes after {1} attempts for blockId {2,number,#}"),
+      "Failed to allocate {0,number,#} bytes on {1} after {2} attempts for blockId {3,number,#}"),
+  NO_SPACE_FOR_BLOCK_REQUEST_SPACE_TIMEOUT(
+      "Failed to request {0,number,#} bytes after {1}ms to create blockId {2,number,#}"),
+  NO_SPACE_FOR_BLOCK_REQUEST_SPACE_RETRIES_EXCEEDED(
+      "Failed to request {0,number,#} bytes after {1} attempts for blockId {2,number,#}"),
   NO_SPACE_FOR_BLOCK_MOVE_TIMEOUT(
       "Failed to find space in {0} to move blockId {1,number,#} after {2}ms"),
   NO_SPACE_FOR_BLOCK_MOVE_RETRIES_EXCEEDED(
@@ -121,6 +126,8 @@ public enum ExceptionMessage {
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
+  DELETE_FAILED_DIR_CHILDREN(
+      "Cannot delete directory {0}. Failed to delete children: {1}"),
   DELETE_FAILED_DIR_NONEMPTY("Directory not empty"),
   DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
   DELETE_FAILED_UFS_DIR("UFS delete dir failed"),
@@ -181,7 +188,7 @@ public enum ExceptionMessage {
   INVALID_ARGS_NUM("Command {0} takes {1} arguments, not {2}"),
   INVALID_ARGS_NUM_INSUFFICIENT("Command {0} requires at least {1} arguments ({2} provided)"),
   INVALID_ARGS_NUM_TOO_MANY("Command {0} requires at most {1} arguments ({2} provided)"),
-  INVALID_ARGS_SORT_FIELD("Invalid sort option ‘{0}’ for --sort"),
+  INVALID_ARGS_SORT_FIELD("Invalid sort option `{0}` for --sort"),
 
   // extension shell
   INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),
@@ -192,16 +199,9 @@ public enum ExceptionMessage {
           + "files."),
   INVALID_TIME("{0} is not valid time"),
 
-  // lineage
-  DELETE_LINEAGE_WITH_CHILDREN("The lineage {0} to delete has child lineages"),
-  LINEAGE_DOES_NOT_EXIST("The lineage {0} does not exist"),
-  LINEAGE_INPUT_FILE_NOT_EXIST("The lineage input file {0} does not exist"),
-  LINEAGE_OUTPUT_FILE_NOT_EXIST("No lineage has output file {0}"),
-  MISSING_REINITIALIZE_FILE("Cannot reinitialize file {0} because its lineage does not exist"),
-  UNKNOWN_LINEAGE_FILE_STATE("Unknown LineageFileState: {0}"),
-
   // client
-  DIFFERENT_MASTER_ADDRESS("Master address {0} is different from that in file system context {1}"),
+  DIFFERENT_CONNECTION_DETAILS(
+      "New connection details are different from that in file system context {0}"),
   INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
 
   // configuration
@@ -220,6 +220,9 @@ public enum ExceptionMessage {
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
+  ACL_BASE_REQUIRED(
+      "Replacing ACL entries must include the base entries for 'user', 'group', and 'other'. "
+          + "missing: {0}"),
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
   IMPERSONATION_NOT_CONFIGURED(
@@ -248,7 +251,7 @@ public enum ExceptionMessage {
   MOUNT_POINT_PREFIX_OF_ANOTHER("Mount point {0} is a prefix of {1}"),
   MOUNT_PATH_SHADOWS_DEFAULT_UFS(
       "Mount path {0} shadows an existing path in the default underlying filesystem"),
-  MOUNT_READONLY("A write operation on {0} is under a readonly mount point {1}"),
+  MOUNT_READONLY("A write operation on {0} under a readonly mount point {1} is not allowed"),
   UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
 
   // key-value
@@ -261,7 +264,6 @@ public enum ExceptionMessage {
 
   // ufs maintenance
   UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),
-  INVALID_UFS_MODE("{0} is not a valid ufs mode"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

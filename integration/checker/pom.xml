@@ -15,18 +15,17 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-integration</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
+    <version>1.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-checker</artifactId>
-  <name>Alluxio Integration Checker</name>
+  <name>Alluxio Integration - Checker</name>
   <description>Check integration of computation frameworks with Alluxio</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
-    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
-    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
-    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+    <build.path>${project.parent.parent.basedir}/build</build.path>
+    <checker.hadoop.version>${hadoop.version}</checker.hadoop.version>
   </properties>
 
   <dependencies>
@@ -41,7 +40,12 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
-      <version>2.2.0</version>
+      <version>${checker.hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-yarn-client</artifactId>
+      <version>${checker.hadoop.version}</version>
     </dependency>
 
     <!-- We pick a particular Hive version here for convenience, but this checker
@@ -50,6 +54,12 @@
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-jdbc</artifactId>
       <version>2.3.2</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jamon</groupId>
+          <artifactId>jamon-runtime</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- We pick a particular Spark version here for convenience, but this checker

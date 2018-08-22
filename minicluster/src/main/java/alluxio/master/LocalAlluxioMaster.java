@@ -113,7 +113,7 @@ public final class LocalAlluxioMaster {
     mMasterThread = new Thread(runMaster);
     mMasterThread.setName("MasterThread-" + System.identityHashCode(mMasterThread));
     mMasterThread.start();
-    mMasterProcess.waitForReady();
+    TestUtils.waitForReady(mMasterProcess);
     mSecondaryMaster = new AlluxioSecondaryMaster();
     Runnable runSecondaryMaster = new Runnable() {
       @Override
@@ -134,7 +134,7 @@ public final class LocalAlluxioMaster {
     mSecondaryMasterThread
         .setName("SecondaryMasterThread-" + System.identityHashCode(mSecondaryMasterThread));
     mSecondaryMasterThread.start();
-    mSecondaryMaster.waitForReady();
+    TestUtils.waitForReady(mSecondaryMaster);
   }
 
   /**

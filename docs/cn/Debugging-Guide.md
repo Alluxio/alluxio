@@ -1,7 +1,8 @@
 ---
 layout: global
-title: 调试指南
+title: 异常诊断与调试
 group: Resources
+priority: 4
 ---
 
 * 内容列表
@@ -40,7 +41,7 @@ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y
 
 ## Alluxio部署常见问题
 
-#### 问题: 在本地机器上初次安装使用Alluxio失败，应该怎么办？
+### 问题: 在本地机器上初次安装使用Alluxio失败，应该怎么办？
 
 解决办法: 首先检查目录`{ALLUXIO_HOME}/logs`下是否存在master和worker日志，然后按照日志提示的错误信息进行操作。否则，再次检查是否遗漏了[本地运行Alluxio](Running-Alluxio-Locally.html)里的配置步骤
 
@@ -49,9 +50,9 @@ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y
 - `ALLUXIO_UNDERFS_ADDRESS`配置不正确
 - 如果 `ssh localhost` 失败, 请确认`~/.ssh/authorized_keys`文件中包含主机的ssh公钥
 
-#### 问题: 打算在Spark/HDFS集群中部署Alluxio，有什么建议？
+### 问题: 打算在Spark/HDFS集群中部署Alluxio，有什么建议？
 
-解决办法: 按照[集群环境运行Alluxio](Running-Alluxio-on-a-Cluster.html), 
+解决办法: 按照[集群环境运行Alluxio](Running-Alluxio-on-a-Cluster.html),
  [Alluxio配置HDFS](Configuring-Alluxio-with-HDFS.html)提示操作。
 
 提示:
@@ -60,7 +61,7 @@ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y
 - 如果你正在使用Mesos或者Yarn管理集群,也可以将Mesos和Yarn集成到Alluxio中，使用Mesos和Yarn可方便集群管理
 - 如果底层存储是远程的，比如说S3或者远程HDFS,这种情况下，使用Alluxio会非常有帮助
 
-#### 问题: 在EC2上安装Alluxio遇到问题，有什么建议？
+### 问题: 在EC2上安装Alluxio遇到问题，有什么建议？
 
 解决办法: 可按照[EC2上运行Alluxio](Running-Alluxio-on-EC2.html)提示操作。
 
@@ -72,7 +73,7 @@ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y
 
 ## ALLuxio使用常见问题
 
-#### 问题：出现“No FileSystem for scheme: alluxio”这种错误信息是什么原因？
+### 问题：出现“No FileSystem for scheme: alluxio”这种错误信息是什么原因？
 
 解决办法：当你的应用（例如MapReduce、Spark）尝试以HDFS兼容文件系统接口访问Alluxio，而又无法解析`alluxio://`模式时会产生该异常。要确保HDFS配置文件`core-site.xml`（默认在hadoop安装目录，如果为Spark自定义了该文件则在`spark/conf/`目录下）包含以下配置：
 
@@ -85,7 +86,7 @@ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y
 </configuration>
 ```
 
-#### 问题：出现“java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found”这种错误信息是什么原因？
+### 问题：出现“java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found”这种错误信息是什么原因？
 
 解决办法：当你的应用（例如MapReduce、Spark）尝试以HDFS兼容文件系统接口访问Alluxio，并且`alluxio://`模式也已配置正确，但应用的classpath未包含Alluxio客户端jar包时会产生该异常。用户通常需要通过设置环境变量或者属性的方式将Alluxio客户端jar包添加到所有节点上的应用的classpath中，这取决于具体的计算框架。以下是一些示例：
 
@@ -115,7 +116,7 @@ spark.executor.extraClassPath
 $ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
-#### 问题: 出现类似如下的错误信息: "Frame size (67108864) larger than max length (16777216)",这种类型错误信息出现的原因是什么?
+### 问题: 出现类似如下的错误信息: "Frame size (67108864) larger than max length (16777216)",这种类型错误信息出现的原因是什么?
 
 解决办法: 多种可能的原因会导致这种错误信息的出现。
 
@@ -129,7 +130,7 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用�
 解决办法：需要Alluxio client需要在编译时指定Spark选项，具体参考[Running-Spark-on-Alluxio](Running-Spark-on-Alluxio.html)；
 编译好的依赖包也可以直接下载，下载地址：<a href="http://downloads.alluxio.org/downloads/files/1.3.0/alluxio-1.3.0-spark-client-jar-with-dependencies.jar"> 依赖包下载 </a>。
 
-#### 问题: 向Alluxio拷贝数据或者写数据时出现如下问题 "Failed to cache: Not enough space to store block on worker",为什么？
+### 问题: 向Alluxio拷贝数据或者写数据时出现如下问题 "Failed to cache: Not enough space to store block on worker",为什么？
 
 解决办法: 这种错误说明alluxio空间不足，无法完成用户写请求。
 
@@ -146,18 +147,32 @@ $ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.
 - 检查一下内存中是否有多余的文件并从内存中释放这些文件。查看[Command-Line-Interface](Command-Line-Interface.html)获取更多信息。
 - 通过改变`alluxio.worker.memory.size`属性值增加worker节点可用内存的容量，查看[Configuration](Configuration-Settings.html#common-configuration) 获取更多信息。
 
-#### 问题： 当我正在写一个新的文件/目录，我的应用程序中出现日志错误。
+### 问题： 当我正在写一个新的文件/目录，我的应用程序中出现日志错误。
 
 解决办法： 当你看见类似"Failed to replace a bad datanode on the existing pipeline due to no more good datanodes being avilabe to try"。
 这是因为Alluxio master还没有根据`alluxio.master.journal.folder`属性来更新HDFS目录下的日志文件。有多种原因可以导致这种类型的错误，其中典型的原因是：
 一些用来管理日志文件的HDFS datanode处于高负载状态或者磁盘空间已经用完。当日志目录设置在HDFS中时，请确保HDFS部署处于连接状态并且能够让Alluxio正常存储日志文件。
 
+### 问题：当我看见客户端请求被主机所拒绝。
+
+解决办法: 当你看见类似 `"alluxio.exception.status.UnavailableException:
+Failed to connect to BlockMasterClient @ hostname:19998 after 13 attempts"` 并且
+在 `logs/master.log`中有如下警告: `"WARN  TThreadPoolServer - Task has been rejected by
+ExecutorService 9 times till timedout, reason: java.util.concurrent.RejectedExecutionException:
+Task org.apache.thrift.server.TThreadPoolServer$WorkerProcess@22fba58c rejected from
+java.util.concurrent.ThreadPoolExecutor@19593091[Running, pool size = 2048, active threads = 2048,
+queued tasks = 0, completed tasks = 14]"`, 这表明Alluxio服务器主机用完了线程池因而不能为后面的客户端提供服务。
+
+要解决该问题，你可以尝试：
+- 增大`alluxio.master.worker.threads.max`来增加主机响应客户端请求的线程池容量。你可以在`conf/alluxio-site.properties`中将其设置为一个更大的值。要注意，这个值不能比系统允许的最大打开文件数量更大。在Linux中你可以用`"ulimit -n"`查看该上限或者用
+[other approaches](https://stackoverflow.com/questions/880557/socket-accept-too-many-open-files)。
+- 减小`alluxio.user.block.master.client.threads` (默认为10)和`alluxio.user.file.master.client.threads` (默认为10)来减少客户端向主机发送请求的连接池容量。你可以在`conf/alluxio-site.properties`中将其设置为一个更小的值。要注意，减小这两个值可能会增加主机响应请求的延时。
 
 ## Alluxio性能常见问题
 
-#### 问题: 在Alluxio/Spark上进行测试（对大小为GBs的文件运行单词统计），相对于HDFS/Spark，性能并无明显差异。为什么?
+### 问题: 在Alluxio/Spark上进行测试（对大小为GBs的文件运行单词统计），相对于HDFS/Spark，性能并无明显差异。为什么?
 
-解决办法: Alluxio通过使用分布式的内存存储（以及分层存储）和时间或空间的本地化来实现性能加速。如果数据集没有任何本地化, 性能加速效果并不明显。 
+解决办法: Alluxio通过使用分布式的内存存储（以及分层存储）和时间或空间的本地化来实现性能加速。如果数据集没有任何本地化, 性能加速效果并不明显。
 
 ## 环境
 

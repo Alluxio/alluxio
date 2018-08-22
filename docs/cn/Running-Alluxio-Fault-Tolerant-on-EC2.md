@@ -91,7 +91,7 @@ $ ./create <number of machines> aws
 集群中每个节点都运行一个Alluxio worker，每个master节点都运行一个Alluxio master，而leader为这些master节
 点中的其中之一。
 
-# 访问集群
+## 访问集群
 
 **通过Web UI访问**
 

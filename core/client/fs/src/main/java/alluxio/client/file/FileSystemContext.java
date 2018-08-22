@@ -17,6 +17,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -27,6 +28,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyChannelPool;
 import alluxio.network.netty.NettyClient;
 import alluxio.resource.CloseableResource;
+import alluxio.security.authentication.TransportProviderUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -36,6 +38,8 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -46,7 +50,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -71,7 +77,9 @@ import javax.security.auth.Subject;
 public final class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
-  private static FileSystemContext sInstance;
+  @GuardedBy("CONTEXT_CACHE_LOCK")
+  private static final Map<Subject, FileSystemContext> CONTEXT_CACHE = new HashMap<>();
+  private static final Object CONTEXT_CACHE_LOCK = new Object();
 
   static {
     MetricsSystem.startSinks();
@@ -90,9 +98,11 @@ public final class FileSystemContext implements Closeable {
   private ClientMasterSync mClientMasterSync;
 
   private final String mAppId;
+  @GuardedBy("CONTEXT_CACHE_LOCK")
+  private int mRefCount;
 
   // The netty data server channel pools.
-  private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
+  private final ConcurrentHashMap<ChannelPoolKey, NettyChannelPool>
       mNettyChannelPools = new ConcurrentHashMap<>();
 
   /** The shared master inquire client associated with the {@link FileSystemContext}. */
@@ -115,45 +125,62 @@ public final class FileSystemContext implements Closeable {
   private final Subject mParentSubject;
 
   /**
-   * @return the instance of file system context
+   * @return the instance of file system context with no subject associated
    */
   public static FileSystemContext get() {
-    if (sInstance == null) {
-      synchronized (FileSystemContext.class) {
-        if (sInstance == null) {
-          sInstance = create();
-        }
-      }
-    }
-    return sInstance;
+    return get(null);
   }
 
   /**
-   * @return the context
+   * @param subject the subject associated with this context
+   * @return the instance of the file system context, possibly a shared context
    */
-  private static FileSystemContext create() {
-    return create(null);
+  public static FileSystemContext get(Subject subject) {
+    synchronized (CONTEXT_CACHE_LOCK) {
+      FileSystemContext ctx = CONTEXT_CACHE.computeIfAbsent(subject, FileSystemContext::create);
+      ctx.mRefCount++;
+      return ctx;
+    }
   }
 
   /**
    * @param subject the parent subject, set to null if not present
    * @return the context
    */
-  public static FileSystemContext create(Subject subject) {
-    return create(subject, MasterInquireClient.Factory.create());
+  private static FileSystemContext create(Subject subject) {
+    FileSystemContext context = new FileSystemContext(subject);
+    context.init(MasterInquireClient.Factory.create(), Configuration.global());
+    return context;
   }
 
   /**
+   * This method is provided for testing, use the {@link FileSystemContext#get} methods. The
+   * returned context object will not be cached automatically.
+   *
    * @param subject the parent subject, set to null if not present
    * @param masterInquireClient the client to use for determining the master; note that if the
    *        context is reset, this client will be replaced with a new masterInquireClient based on
    *        global configuration
    * @return the context
    */
+  @VisibleForTesting
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient) {
     FileSystemContext context = new FileSystemContext(subject);
-    context.init(masterInquireClient);
+    context.init(masterInquireClient, Configuration.global());
+    synchronized (CONTEXT_CACHE_LOCK) { // Not necessary, for code consistency
+      context.mRefCount++;
+    }
     return context;
+  }
+
+  /**
+   * Clears the context cache. This method should only be called in test code.
+   */
+  @VisibleForTesting
+  public static void clearCache() {
+    synchronized (CONTEXT_CACHE_LOCK) {
+      CONTEXT_CACHE.clear();
+    }
   }
 
   /**
@@ -171,23 +198,24 @@ public final class FileSystemContext implements Closeable {
         + "from the client, such as metrics. It can be set manually through the {} property",
         mAppId, PropertyKey.Name.USER_APP_ID);
     mClosed = new AtomicBoolean(false);
+    mRefCount = 0;
   }
 
   /**
    * Initializes the context. Only called in the factory methods and reset.
    *
    * @param masterInquireClient the client to use for determining the master
+   * @param configuration the instance configuration
    */
-  private synchronized void init(MasterInquireClient masterInquireClient) {
+  private synchronized void init(MasterInquireClient masterInquireClient,
+      InstancedConfiguration configuration) {
     mMasterInquireClient = masterInquireClient;
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
     mClosed.set(false);
 
-    // Only send metrics if enabled and the port is set (can be zero when tests are setting up).
-    if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)
-        && Configuration.getInt(PropertyKey.MASTER_RPC_PORT) != 0) {
+    if (configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
       mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults()
           .withSubject(mParentSubject).withMasterInquireClient(mMasterInquireClient));
@@ -196,7 +224,7 @@ public final class FileSystemContext implements Closeable {
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
       mExecutorService
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
-              (int) Configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
+              (int) configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
       // register the shutdown hook
       Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
     }
@@ -210,6 +238,22 @@ public final class FileSystemContext implements Closeable {
    */
   @Override
   public void close() throws IOException {
+    synchronized (CONTEXT_CACHE_LOCK) {
+      if (mRefCount == 0) {
+        LOG.warn("Attempted to close FileSystem Context that is already closed, have you called "
+            + "close multiple times?");
+        return;
+      }
+      if (--mRefCount != 0) {
+        return;
+      } else {
+        CONTEXT_CACHE.remove(mParentSubject);
+      }
+    }
+    closeInternal();
+  }
+
+  private void closeInternal() throws IOException {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool = null;
     mBlockMasterClientPool.close();
@@ -235,12 +279,15 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Resets the context. It is only used in {@link alluxio.hadoop.AbstractFileSystem} and
-   * tests to reset the default file system context.
+   * Resets the context. It is only used in {@link alluxio.hadoop.AbstractFileSystem} and tests to
+   * reset the default file system context.
+   *
+   * @param configuration the instance configuration
+   *
    */
-  public synchronized void reset() throws IOException {
-    close();
-    init(MasterInquireClient.Factory.create());
+  public synchronized void reset(InstancedConfiguration configuration) throws IOException {
+    closeInternal();
+    init(MasterInquireClient.Factory.create(), configuration);
   }
 
   /**
@@ -330,18 +377,20 @@ public final class FileSystemContext implements Closeable {
    */
   public Channel acquireNettyChannel(final WorkerNetAddress workerNetAddress) throws IOException {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    if (!mNettyChannelPools.containsKey(address)) {
-      Bootstrap bs = NettyClient.createClientBootstrap(address);
+    ChannelPoolKey key =
+        new ChannelPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
+    if (!mNettyChannelPools.containsKey(key)) {
+      Bootstrap bs = NettyClient.createClientBootstrap(mParentSubject, address);
       bs.remoteAddress(address);
       NettyChannelPool pool = new NettyChannelPool(bs,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
           Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
-      if (mNettyChannelPools.putIfAbsent(address, pool) != null) {
+      if (mNettyChannelPools.putIfAbsent(key, pool) != null) {
         // This can happen if this function is called concurrently.
         pool.close();
       }
     }
-    return mNettyChannelPools.get(address).acquire();
+    return mNettyChannelPools.get(key).acquire();
   }
 
   /**
@@ -352,11 +401,13 @@ public final class FileSystemContext implements Closeable {
    */
   public void releaseNettyChannel(WorkerNetAddress workerNetAddress, Channel channel) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    if (mNettyChannelPools.containsKey(address)) {
-      mNettyChannelPools.get(address).release(channel);
+    ChannelPoolKey key =
+        new ChannelPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
+    if (mNettyChannelPools.containsKey(key)) {
+      mNettyChannelPools.get(key).release(channel);
     } else {
-      LOG.warn("No channel pool for address {}, closing channel instead. Context is closed: {}",
-          address, mClosed.get());
+      LOG.warn("No channel pool for key {}, closing channel instead. Context is closed: {}",
+          key, mClosed.get());
       CommonUtils.closeChannel(channel);
     }
   }
@@ -429,8 +480,11 @@ public final class FileSystemContext implements Closeable {
     @Override
     public void run() {
       try {
-        mClientMasterSync.heartbeat();
+        if (mClientMasterSync != null) {
+          mClientMasterSync.heartbeat();
+        }
       } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
         LOG.error("Failed to heartbeat to the metrics master before exit");
       }
     }
@@ -442,7 +496,7 @@ public final class FileSystemContext implements Closeable {
   @ThreadSafe
   private static final class Metrics {
     private static void initializeGauges() {
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClientMetricName("NettyConnectionsOpen"),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName("NettyConnectionsOpen"),
           new Gauge<Long>() {
             @Override
             public Long getValue() {
@@ -457,4 +511,45 @@ public final class FileSystemContext implements Closeable {
 
     private Metrics() {} // prevent instantiation
   }
+
+  /**
+   * Key for Netty channel pools. This requires both the worker address and the username, so that
+   * netty channels are created for different users.
+   */
+  private static final class ChannelPoolKey {
+    private final SocketAddress mSocketAddress;
+    private final String mUsername;
+
+    public ChannelPoolKey(SocketAddress socketAddress, String username) {
+      mSocketAddress = socketAddress;
+      mUsername = username;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mSocketAddress, mUsername);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof ChannelPoolKey)) {
+        return false;
+      }
+      ChannelPoolKey that = (ChannelPoolKey) o;
+      return Objects.equal(mSocketAddress, that.mSocketAddress)
+          && Objects.equal(mUsername, that.mUsername);
+    }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this)
+          .add("socketAddress", mSocketAddress)
+          .add("username", mUsername)
+          .toString();
+    }
+  }
+
 }

@@ -12,19 +12,12 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
-import alluxio.cli.fsadmin.report.ConfigurationCommand;
 import alluxio.cli.fsadmin.report.MetricsCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.cli.fsadmin.report.UfsCommand;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.exception.status.UnavailableException;
-import alluxio.master.MasterInquireClient;
-import alluxio.master.PollingMasterInquireClient;
-import alluxio.resource.CloseableResource;
-import alluxio.retry.ExponentialBackoffRetry;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
@@ -32,9 +25,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Reports Alluxio running cluster information.
@@ -75,7 +65,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
 
   enum Command {
     CAPACITY, // Report worker capacity information
-    CONFIGURATION, // Report runtime configuration
     METRICS, // Report metrics information
     SUMMARY, // Report cluster summary
     UFS // Report under filesystem information
@@ -105,15 +94,14 @@ public final class ReportCommand extends AbstractFsAdminCommand {
       return 0;
     }
 
+    FileSystemAdminShellUtils.checkMasterClientService();
+
     // Get the report category
     Command command = Command.SUMMARY;
     if (args.length == 1) {
       switch (args[0]) {
         case "capacity":
           command = Command.CAPACITY;
-          break;
-        case "configuration":
-          command = Command.CONFIGURATION;
           break;
         case "metrics":
           command = Command.METRICS;
@@ -140,39 +128,11 @@ public final class ReportCommand extends AbstractFsAdminCommand {
       }
     }
 
-    // Check if Alluxio master and client services are running
-    try (CloseableResource<FileSystemMasterClient> client =
-             FileSystemContext.get().acquireMasterClientResource()) {
-      MasterInquireClient inquireClient = null;
-      try {
-        InetSocketAddress address = client.get().getAddress();
-        List<InetSocketAddress> addresses = Arrays.asList(address);
-        inquireClient = new PollingMasterInquireClient(addresses, () ->
-            new ExponentialBackoffRetry(50, 100, 2));
-      } catch (UnavailableException e) {
-        System.err.println("Failed to get the leader master.");
-        System.err.println("Please check your Alluxio master status");
-        return 1;
-      }
-      try {
-        inquireClient.getPrimaryRpcAddress();
-      } catch (UnavailableException e) {
-        System.err.println("The Alluxio leader master is not currently serving requests.");
-        System.err.println("Please check your Alluxio master status");
-        return 1;
-      }
-    }
-
     switch (command) {
       case CAPACITY:
         CapacityCommand capacityCommand = new CapacityCommand(
             mBlockClient, mPrintStream);
         capacityCommand.run(cl);
-        break;
-      case CONFIGURATION:
-        ConfigurationCommand configurationCommand = new ConfigurationCommand(
-            mMetaClient, mPrintStream);
-        configurationCommand.run();
         break;
       case METRICS:
         MetricsCommand metricsCommand = new MetricsCommand(
@@ -231,7 +191,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         + "summary information will be printed out.\n"
         + "[category] can be one of the following:\n"
         + "    capacity         worker capacity information\n"
-        + "    configuration    runtime configuration\n"
         + "    metrics          metrics information\n"
         + "    summary          cluster summary\n"
         + "    ufs              under filesystem information\n";

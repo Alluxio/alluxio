@@ -28,10 +28,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.powermock.reflect.Whitebox;
 
+import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -532,6 +535,14 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void shortMasterHeartBeatTimeout() {
+    Configuration.set(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL, "5min");
+    Configuration.set(PropertyKey.MASTER_HEARTBEAT_TIMEOUT, "4min");
+    mThrown.expect(IllegalStateException.class);
+    Configuration.validate();
+  }
+
+  @Test
   public void setUserFileBufferBytesMaxInteger() {
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(Integer.MAX_VALUE) + "B");
     assertEquals(Integer.MAX_VALUE,
@@ -751,10 +762,9 @@ public class ConfigurationTest {
     // Test if the value of the created nested property remains raw
     assertEquals(testValue, rawMap.get(testKey.toString()));
 
-    // Test if some values in raw map is of ${VALUE} format
+    // Test if some value in raw map is of ${VALUE} format
     String regexString = "(\\$\\{([^{}]*)\\})";
     Pattern confRegex = Pattern.compile(regexString);
-    assertTrue(confRegex.matcher(rawMap.get("alluxio.locality.script")).find());
     assertTrue(confRegex.matcher(rawMap.get("alluxio.logs.dir")).find());
   }
 
@@ -853,5 +863,55 @@ public class ConfigurationTest {
     String displayValue2 = Configuration.get(testKey,
         ConfigurationValueOptions.defaults().useDisplayValue(true));
     assertEquals(displayValue1, displayValue2);
+  }
+
+  @Test
+  public void extensionProperty() {
+    // simulate the case a ext key is picked by site property, unrecognized
+    String fakeKeyName = "fake.extension.key";
+    Configuration.merge(ImmutableMap.of(fakeKeyName, "value"), Source.siteProperty("ignored"));
+    assertFalse(PropertyKey.fromString(fakeKeyName).isBuiltIn());
+    // simulate the case the same key is built again inside the extension
+    PropertyKey fakeExtensionKey = new PropertyKey.Builder(fakeKeyName).build();
+    assertEquals("value", Configuration.get(fakeExtensionKey));
+    assertTrue(PropertyKey.fromString(fakeKeyName).isBuiltIn());
+  }
+
+  @Test
+  public void findPropertiesFileClasspath() throws Exception {
+    try (Closeable p =
+        new SystemPropertyRule(PropertyKey.TEST_MODE.toString(), "false").toResource()) {
+      File dir = AlluxioTestDirectory.createTemporaryDirectory("findPropertiesFileClasspath");
+      Whitebox.invokeMethod(ClassLoader.getSystemClassLoader(), "addURL", dir.toURI().toURL());
+      File props = new File(dir, "alluxio-site.properties");
+      try (BufferedWriter writer = Files.newBufferedWriter(props.toPath())) {
+        writer.write(String.format("%s=%s", PropertyKey.MASTER_HOSTNAME, "test_hostname"));
+      }
+      Configuration.reset();
+      assertEquals("test_hostname", Configuration.get(PropertyKey.MASTER_HOSTNAME));
+      assertEquals(Source.siteProperty(props.getPath()),
+          Configuration.getSource(PropertyKey.MASTER_HOSTNAME));
+      props.delete();
+    }
+  }
+
+  @Test
+  public void noPropertiesAnywhere() throws Exception {
+    try (Closeable p =
+             new SystemPropertyRule(PropertyKey.TEST_MODE.toString(), "false").toResource()) {
+      Configuration.set(PropertyKey.SITE_CONF_DIR, "");
+      Configuration.reset();
+      assertEquals("0.0.0.0", Configuration.get(PropertyKey.PROXY_WEB_BIND_HOST));
+    }
+  }
+
+  @Test
+  public void initConfWithExtenstionProperty() throws Exception {
+    try (Closeable p = new SystemPropertyRule("alluxio.master.journal.ufs.option.fs.obs.endpoint",
+        "foo").toResource()) {
+      Configuration.reset();
+      assertEquals("foo",
+          Configuration.get(Template.MASTER_JOURNAL_UFS_OPTION_PROPERTY.format("fs.obs.endpoint")));
+    }
   }
 }

@@ -30,11 +30,23 @@ public final class ThreadUtils {
    * @return a human-readable representation of the thread's stack trace
    */
   public static String formatStackTrace(Thread thread) {
-    Throwable t = new Throwable(String.format("Stack trace for thread %s:", thread.getName()));
+    Throwable t = new Throwable(String.format("Stack trace for thread %s (State: %s):",
+        thread.getName(), thread.getState()));
     t.setStackTrace(thread.getStackTrace());
     StringWriter sw = new StringWriter();
     t.printStackTrace(new PrintWriter(sw));
     return sw.toString();
+  }
+
+  /**
+   * Logs a stack trace for all threads currently running in the JVM, similar to jstack.
+   */
+  public static void logAllThreads() {
+    StringBuilder sb = new StringBuilder("Dumping all threads:\n");
+    for (Thread t : Thread.getAllStackTraces().keySet()) {
+      sb.append(formatStackTrace(t));
+    }
+    LOG.info(sb.toString());
   }
 
   /**
@@ -58,10 +70,9 @@ public final class ThreadUtils {
         }
       }
     } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt();
       // (Re-)Cancel if current thread also interrupted
       pool.shutdownNow();
-      // Preserve interrupt status
-      Thread.currentThread().interrupt();
     }
   }
 

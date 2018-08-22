@@ -6,7 +6,7 @@ kramdown:
 
 # For release candidates and release branches, this should match the pom.xml Alluxio version, e.g. "1.5.0" or "1.5.0-RC1"
 # For master branch, this should be the latest released version, e.g. "1.5.0"
-ALLUXIO_RELEASED_VERSION: 1.7.1
+ALLUXIO_RELEASED_VERSION: 1.8.0
 # This should be the same as ALLUXIO_RELEASED_VERSION, except on master branch, where it should be "master"
 ALLUXIO_MASTER_VERSION_SHORT: master
 # For release candidates and release branches, this should be the major Alluxio version, e.g. both 1.5.0 and 1.5.0-RC1 should use "1.5"
@@ -14,7 +14,7 @@ ALLUXIO_MASTER_VERSION_SHORT: master
 ALLUXIO_MAJOR_VERSION: master
 # We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro of Alluxio version.
 # Otherwise the macro name remains in the output.
-ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-1.8.0-SNAPSHOT-client.jar
+ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-1.9.0-SNAPSHOT-client.jar
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:

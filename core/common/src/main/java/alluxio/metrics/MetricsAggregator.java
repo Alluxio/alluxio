@@ -12,8 +12,6 @@
 package alluxio.metrics;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Interface for the aggregator that aggregates a cluster-level metric from the metrics of different
@@ -29,13 +27,4 @@ public interface MetricsAggregator {
    * @return the filters for matching the instance metrics
    */
   List<MetricsFilter> getFilters();
-
-  /**
-   * Gets the aggregated value from the filtered metrics. The values of map will be the filtered
-   * metrics using the {@link MetricsFilter} defined in {@link #getFilters()}.
-   *
-   * @param map a map of {@link MetricsFilter} to the set of metrics that it filter to
-   * @return the aggregated value
-   */
-  long getValue(Map<MetricsFilter, Set<Metric>> map);
 }

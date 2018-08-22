@@ -22,7 +22,7 @@ To run an Alluxio cluster on a set of machines, you must deploy Alluxio server b
 these machines. You can either
 [download the precompiled binaries directly](http://www.alluxio.org/download)
 with the correct Hadoop version (recommended), or
-[compile the binaries from Alluxio source code](building-Alluxio-Master-Branch.html)
+[compile the binaries from Alluxio source code](Building-Alluxio-From-Source.html)
 (for advanced users).
 
 Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
@@ -31,27 +31,27 @@ versions, one needs to specify  the correct Hadoop profile and run the following
 directory:
 
 ```bash
-$ mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
+$ mvn install -P<YOUR_HADOOP_PROFILE> -D<HADOOP_VERSION> -DskipTests
 ```
 
-Alluxio provides predefined build profiles including `hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ...
-`hadoop-2.8` for different distributions of Hadoop. If you want to build Alluxio with a specific
-Hadoop release version, you can also specify the version `<YOUR_HADOOP_VERSION>` in the command.
-For example,
+Alluxio provides predefined build profiles including `hadoop-1`, `hadoop-2` (enabled by default),
+`hadoop-3` for the major Hadoop versions 1.x, 2.x and 3.x. If you want to build Alluxio with a specific
+Hadoop release version, you can also specify the version in the command. For example,
 
 ```bash
-$ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
+# Build Alluxio for the Apache Hadoop version Hadoop 2.7.1
+$ mvn install -Phadoop-2 -Dhadoop.version=2.7.1 -DskipTests
+# Build Alluxio for the Apache Hadoop version Hadoop 2.7.1
+$ mvn install -Phadoop-3 -Dhadoop.version=3.0.0 -DskipTests
 ```
 
-would compile Alluxio for the Apache Hadoop version 2.7.1.
 Please visit the
-[Building Alluxio Master Branch](Building-Alluxio-Master-Branch.html#distro-support) page for more
+[Building Alluxio Master Branch](Building-Alluxio-From-Source.html#distro-support) page for more
 information about support for other distributions.
 
 If everything succeeds, you should see
 `alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in
-the `assembly/server/target` directory and this is the jar file you can use to run both Alluxio
-Master and Worker.
+the `${ALLUXIO_HOME}/assembly/server/target` directory.
 
 
 ## Configuring Alluxio
@@ -61,7 +61,7 @@ Master and Worker.
 First create the configuration file from the template.
 
 ```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Then edit `conf/alluxio-site.properties` file to set the under storage address to the HDFS namenode
@@ -71,36 +71,23 @@ mapping HDFS root directory to Alluxio, or `hdfs://localhost:9000/alluxio/data` 
 directory `/alluxio/data` is mapped to Alluxio.
 
 ```
-alluxio.underfs.address=hdfs://NAMENODE:PORT
+alluxio.underfs.address=hdfs://<NAMENODE>:<PORT>
 ```
 
 ### HDFS configuration files
 
-To ensure Alluxio client picks up HDFS configurations in classpath, please copy secure HDFS
+To ensure Alluxio servers pick up HDFS configurations in classpath, please copy secure HDFS
 configuration xml files (`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to
 `${ALLUXIO_HOME}/conf/`
 
-### Kerberos configuration
+### [Optional] Custom Kerberos configuration
 
 Optionally, you can set jvm-level system properties for customized Kerberos configurations:
 `java.security.krb5.realm` and `java.security.krb5.kdc`. Those Kerberos configurations route java
 libraries to specified Kerberos realm and KDC server address.
 If both are set to empty, Kerberos library will respect
-the default Kerberos configuration on the machine. For example:
-
-* If you use Hadoop, you can add to `HADOOP_OPTS` in `${HADOOP_CONF_DIR}/hadoop-env.sh`.
-
-```bash
-$ export HADOOP_OPTS="$HADOOP_OPTS -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
-```
-
-* If you use Spark, you can add to `SPARK_JAVA_OPTS` in `${SPARK_CONF_DIR}/spark-env.sh`.
-
-```bash
-SPARK_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
-```
-
-* If you use Alluxio shell, you can add to `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
+the default Kerberos configuration on the machine. These Java system properties should be set
+for the Alluxio processes. To do so, you can add to `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
 
 ```bash
 ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"

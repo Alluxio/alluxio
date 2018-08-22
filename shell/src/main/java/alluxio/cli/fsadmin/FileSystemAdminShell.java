@@ -11,6 +11,8 @@
 
 package alluxio.cli.fsadmin;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
@@ -18,6 +20,7 @@ import alluxio.cli.fsadmin.command.Context;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.conf.Source;
 import alluxio.master.MasterClientConfig;
 import alluxio.util.ConfigurationUtils;
 
@@ -54,6 +57,8 @@ public final class FileSystemAdminShell extends AbstractShell {
       System.out.println("Cannot run fsadmin shell as master hostname is not configured.");
       System.exit(1);
     }
+    // Reduce the RPC retry max duration to fall earlier for CLIs
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
     FileSystemAdminShell fsAdminShell = new FileSystemAdminShell();
     System.exit(fsAdminShell.run(args));
   }

@@ -33,10 +33,16 @@ public final class JournalEntryAssociation {
         || entry.hasInodeDirectoryIdGenerator()
         || entry.hasInodeFile()
         || entry.hasInodeLastModificationTime()
+        || entry.hasNewBlock()
         || entry.hasPersistDirectory()
         || entry.hasRename()
         || entry.hasReinitializeFile()
-        || entry.hasSetAttribute()) {
+        || entry.hasSetAcl()
+        || entry.hasSetAttribute()
+        || entry.hasUpdateUfsMode()
+        || entry.hasUpdateInode()
+        || entry.hasUpdateInodeDirectory()
+        || entry.hasUpdateInodeFile()) {
       return Constants.FILE_SYSTEM_MASTER_NAME;
     }
     if (entry.hasBlockContainerIdGenerator()
@@ -53,8 +59,11 @@ public final class JournalEntryAssociation {
       return Constants.KEY_VALUE_MASTER_NAME;
     }
     if (entry.hasDeleteLineage()
+        || entry.hasLineageIdGenerator()
         || entry.hasLineage()) {
-      return Constants.LINEAGE_MASTER_NAME;
+      // Lineage no longer exists, these will now be routed to
+      // FileSystemMaster, where they will be ignored.
+      return Constants.FILE_SYSTEM_MASTER_NAME;
     }
     throw new IllegalStateException("Unrecognized journal entry: " + entry);
   }

@@ -28,7 +28,6 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterContext;
-import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
@@ -53,6 +52,7 @@ import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.GetConfigurationOptions;
 import alluxio.wire.Scope;
 
 import com.google.common.collect.ImmutableSet;
@@ -88,18 +88,18 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
 
   // Master metadata management.
-  private static final IndexDefinition<MasterInfo> ID_INDEX =
-      new IndexDefinition<MasterInfo>(true) {
+  private static final IndexDefinition<MasterInfo, Long> ID_INDEX =
+      new IndexDefinition<MasterInfo, Long>(true) {
         @Override
-        public Object getFieldValue(MasterInfo o) {
+        public Long getFieldValue(MasterInfo o) {
           return o.getId();
         }
       };
 
-  private static final IndexDefinition<MasterInfo> ADDRESS_INDEX =
-      new IndexDefinition<MasterInfo>(true) {
+  private static final IndexDefinition<MasterInfo, Address> ADDRESS_INDEX =
+      new IndexDefinition<MasterInfo, Address>(true) {
         @Override
-        public Object getFieldValue(MasterInfo o) {
+        public Address getFieldValue(MasterInfo o) {
           return o.getAddress();
         }
       };
@@ -129,12 +129,6 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   private final InetSocketAddress mRpcConnectAddress
       = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC);
 
-  /** The manager of safe mode state. */
-  private final SafeModeManager mSafeModeManager;
-
-  /** The start time for when the master started serving the RPC server. */
-  private final long mStartTimeMs;
-
   /** The address of this master. */
   private Address mMasterAddress;
 
@@ -160,10 +154,9 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   DefaultMetaMaster(BlockMaster blockMaster, MasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
-    mSafeModeManager = masterContext.getSafeModeManager();
-    mStartTimeMs = masterContext.getStartTimeMs();
-    mMasterAddress = new Address().setHost(Configuration.get(PropertyKey.MASTER_HOSTNAME))
-        .setRpcPort(masterContext.getPort());
+    mMasterAddress =
+        new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME, "localhost"))
+            .setRpcPort(masterContext.getPort());
     mBlockMaster = blockMaster;
     mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
     mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
@@ -223,14 +216,17 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           new LogConfigReportHeartbeatExecutor(),
           (int) Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)));
     } else {
-      // Standby master should setup MetaMasterSync to communicate with the leader master
-      RetryHandlingMetaMasterMasterClient metaMasterClient =
-          new RetryHandlingMetaMasterMasterClient(MasterClientConfig.defaults());
-      getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
-          new MetaMasterSync(mMasterAddress, metaMasterClient),
-          (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL)));
-      LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
-          mMasterAddress);
+      boolean haEnabled = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
+      if (haEnabled) {
+        // Standby master should setup MetaMasterSync to communicate with the leader master
+        RetryHandlingMetaMasterMasterClient metaMasterClient =
+            new RetryHandlingMetaMasterMasterClient(MasterClientConfig.defaults());
+        getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
+            new MetaMasterSync(mMasterAddress, metaMasterClient),
+            (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL)));
+        LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
+            mMasterAddress);
+      }
     }
   }
 
@@ -254,26 +250,21 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       }
     }
     String backupFilePath;
-    try (LockResource lr = new LockResource(mPauseStateLock)) {
+    try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
       Instant now = Instant.now();
       String backupFileName = String.format("alluxio-backup-%s-%s.gz",
           DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
           now.toEpochMilli());
       backupFilePath = PathUtils.concatPath(dir, backupFileName);
-      OutputStream ufsStream = ufs.create(backupFilePath);
       try {
-        mBackupManager.backup(ufsStream);
-      } catch (Throwable t) {
-        try {
-          ufsStream.close();
-        } catch (Throwable t2) {
-          LOG.error("Failed to close backup stream to {}", backupFilePath, t2);
-          t.addSuppressed(t2);
+        try (OutputStream ufsStream = ufs.create(backupFilePath)) {
+          mMasterContext.getBackupManager().backup(ufsStream);
         }
+      } catch (Throwable t) {
         try {
           ufs.deleteFile(backupFilePath);
         } catch (Throwable t2) {
-          LOG.error("Failed to clean up partially-written backup at {}", backupFilePath, t2);
+          LOG.error("Failed to clean up failed backup at {}", backupFilePath, t2);
           t.addSuppressed(t2);
         }
         throw t;
@@ -294,14 +285,14 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public List<ConfigProperty> getConfiguration() {
+  public List<ConfigProperty> getConfiguration(GetConfigurationOptions options) {
     List<ConfigProperty> configInfoList = new ArrayList<>();
-    String alluxioConfPrefix = "alluxio";
     for (PropertyKey key : Configuration.keySet()) {
-      if (key.getName().startsWith(alluxioConfPrefix)) {
+      if (key.isBuiltIn()) {
         String source = Configuration.getSource(key).toString();
         String value = Configuration.getOrDefault(key, null,
-            ConfigurationValueOptions.defaults().useDisplayValue(true));
+            ConfigurationValueOptions.defaults().useDisplayValue(true)
+                .useRawValue(options.isRawValue()));
         configInfoList
             .add(new ConfigProperty().setName(key.getName()).setValue(value).setSource(source));
       }
@@ -362,12 +353,12 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public long getStartTimeMs() {
-    return mStartTimeMs;
+    return mMasterContext.getStartTimeMs();
   }
 
   @Override
   public long getUptimeMs() {
-    return System.currentTimeMillis() - mStartTimeMs;
+    return System.currentTimeMillis() - mMasterContext.getStartTimeMs();
   }
 
   @Override
@@ -377,7 +368,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public boolean isInSafeMode() {
-    return mSafeModeManager.isInSafeMode();
+    return mMasterContext.getSafeModeManager().isInSafeMode();
   }
 
   @Override
@@ -422,7 +413,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
     @Override
     public void heartbeat() {
-      long masterTimeoutMs = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
+      long masterTimeoutMs = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
       for (MasterInfo master : mMasters) {
         synchronized (master) {
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
@@ -444,19 +435,20 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   /**
-   * Periodic log config check report.
+   * Periodically log the config check report.
    */
   private final class LogConfigReportHeartbeatExecutor implements HeartbeatExecutor {
-
-    /**
-     * Constructs a new {@link LogConfigReportHeartbeatExecutor}.
-     */
-    public LogConfigReportHeartbeatExecutor() {
-    }
+    private volatile boolean mFirst = true;
 
     @Override
     public void heartbeat() {
-      mConfigChecker.logConfigReport();
+      // Skip the first heartbeat since it happens before servers have time to register their
+      // configurations.
+      if (mFirst) {
+        mFirst = false;
+      } else {
+        mConfigChecker.logConfigReport();
+      }
     }
 
     @Override

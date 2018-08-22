@@ -59,7 +59,7 @@ public class BlockMasterIntegrityIntegrationTest {
     mCluster.startWorkers(); // creates a new worker, so need to get the new BlockWorker
     BlockWorker newWorker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
     CommonUtils.waitFor("orphan blocks to be deleted",
-        (v) -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,
+        () -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,
         WaitForOptions.defaults().setTimeoutMs(2000));
   }
 
@@ -80,7 +80,7 @@ public class BlockMasterIntegrityIntegrationTest {
     mCluster.startWorkers(); // creates a new worker, so need to get the new BlockWorker
     BlockWorker newWorker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
     CommonUtils.waitFor("invalid blocks to be deleted",
-        (v) -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,
+        () -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,
         WaitForOptions.defaults().setTimeoutMs(2000));
   }
 
@@ -98,7 +98,7 @@ public class BlockMasterIntegrityIntegrationTest {
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
     removeFileMetadata(uri);
     CommonUtils.waitFor("invalid blocks to be deleted",
-        (v) -> worker.getStoreMetaFull().getNumberOfBlocks() == 0,
+        () -> worker.getStoreMetaFull().getNumberOfBlocks() == 0,
         WaitForOptions.defaults().setTimeoutMs(2000));
   }
 
@@ -109,7 +109,7 @@ public class BlockMasterIntegrityIntegrationTest {
     LockedInodePath path = tree.lockInodePath(uri, InodeTree.LockMode.WRITE);
     DeleteOptions options = DeleteOptions.defaults();
     RpcContext rpcContext = ((DefaultFileSystemMaster) fsm).createRpcContext();
-    ((DefaultFileSystemMaster) fsm).deleteAndJournal(rpcContext, path, options);
+    ((DefaultFileSystemMaster) fsm).deleteInternal(rpcContext, path, options);
     path.close();
     rpcContext.close();
   }

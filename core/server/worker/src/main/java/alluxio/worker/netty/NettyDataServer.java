@@ -18,7 +18,6 @@ import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
 
-import com.google.common.base.Throwables;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
@@ -64,7 +63,8 @@ public final class NettyDataServer implements DataServer {
     try {
       mChannelFuture = mBootstrap.bind(address).sync();
     } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
     }
   }
 
@@ -101,8 +101,7 @@ public final class NettyDataServer implements DataServer {
   }
 
   private ServerBootstrap createBootstrap() {
-    final ServerBootstrap boot = createBootstrapOfType(
-        Configuration.getEnum(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.class));
+    final ServerBootstrap boot = createBootstrapOfType(NettyUtils.WORKER_CHANNEL_TYPE);
 
     // use pooled buffers
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -167,7 +166,7 @@ public final class NettyDataServer implements DataServer {
         .createEventLoop(type, workerThreadCount, dataServerEventLoopNamePrefix + "-worker-%d",
             true);
 
-    final Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(type,
+    final Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(
          mSocketAddress instanceof DomainSocketAddress);
     boot.group(bossGroup, workerGroup).channel(socketChannelClass);
     if (type == ChannelType.EPOLL) {

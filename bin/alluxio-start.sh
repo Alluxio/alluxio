@@ -41,7 +41,7 @@ MOPT (Mount Option) is one of:
   NoMount  \tDo not mount the configured RamFS.
            \tNotice: to avoid sudo requirement but using tmpFS in Linux,
              set ALLUXIO_RAM_FOLDER=/dev/shm on each worker and use NoMount.
-  SudoMount is assumed if MOPT is not specified.
+  NoMount is assumed if MOPT is not specified.
 
 -f         format Journal, UnderFS Data and Workers Folder on master.
 -h         display this help.
@@ -106,12 +106,9 @@ check_mount_mode() {
       fi
       is_ram_folder_mounted "${tier_path}"
       if [[ $? -ne 0 ]]; then
-        if [[ $(uname -s) == Darwin ]]; then
-          # Assuming Mac OS X
-          echo "ERROR: NoMount is not supported on Mac OS X." >&2
-          echo -e "${USAGE}" >&2
-          exit 1
-        fi
+        echo "ERROR: Ramdisk ${tier_path} is not mounted with mount option NoMount. Use alluxio-mount.sh to mount ramdisk." >&2
+        echo -e "${USAGE}" >&2
+        exit 1
       fi
       if [[ "${tier_path}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
         echo "WARNING: Using tmpFS does not guarantee data to be stored in memory."
@@ -207,7 +204,11 @@ start_master() {
 }
 
 start_masters() {
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "master" $1
+  start_opts=""
+  if [[ -n ${journal_backup} ]]; then
+    start_opts="-i ${journal_backup}"
+  fi
+  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" ${start_opts} "master" $1
 }
 
 start_proxy() {
@@ -390,12 +391,18 @@ main() {
   # Set MOPT.
   case "${ACTION}" in
     all|worker|workers|local)
-      if [[ -z "${MOPT}" || "${MOPT}" == "-f" ]]; then
+      if [[ -z "${MOPT}" ]]; then
+        echo  "Assuming NoMount by default."
+        MOPT="NoMount"
+      elif [[ "${MOPT}" == "-f" ]]; then
+        echo  "Assuming SudoMount given -f option."
         MOPT="SudoMount"
       else
         shift
       fi
-      check_mount_mode "${MOPT}"
+      if [[ "${ACTION}" = "worker" ]] || [[ "${ACTION}" = "local" ]]; then
+        check_mount_mode "${MOPT}"
+      fi
       ;;
     *)
       MOPT=""
