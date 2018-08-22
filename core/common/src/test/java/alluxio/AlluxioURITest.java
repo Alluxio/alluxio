@@ -20,6 +20,7 @@ import static org.junit.Assume.assumeTrue;
 import alluxio.uri.Authority;
 import alluxio.uri.NoAuthority;
 import alluxio.uri.SingleMasterAuthority;
+import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.OSUtils;
 
@@ -66,25 +67,25 @@ public class AlluxioURITest {
    */
   @Test
   public void basicHdfsUri() {
-    AlluxioURI uri = new AlluxioURI("hdfs://localhost/xy z/a b c");
-    assertEquals("localhost", uri.getAuthority().toString());
+    AlluxioURI uri = new AlluxioURI("hdfs://localhost:8020/xy z/a b c");
+    assertEquals("localhost:8020", uri.getAuthority().toString());
     assertTrue(uri.getAuthority() instanceof SingleMasterAuthority);
     assertEquals(2, uri.getDepth());
     assertEquals("localhost", uri.getHost());
     assertEquals("a b c", uri.getName());
-    assertEquals("hdfs://localhost/xy z", uri.getParent().toString());
-    assertEquals("hdfs://localhost/", uri.getParent().getParent().toString());
+    assertEquals("hdfs://localhost:8020/xy z", uri.getParent().toString());
+    assertEquals("hdfs://localhost:8020/", uri.getParent().getParent().toString());
     assertEquals("/xy z/a b c", uri.getPath());
-    assertEquals(-1, uri.getPort());
+    assertEquals(8020, uri.getPort());
     assertEquals("hdfs", uri.getScheme());
     assertTrue(uri.hasAuthority());
     assertTrue(uri.hasScheme());
     assertTrue(uri.isAbsolute());
     assertTrue(uri.isPathAbsolute());
-    assertEquals("hdfs://localhost/xy z/a b c/d", uri.join("/d").toString());
-    assertEquals("hdfs://localhost/xy z/a b c/d", uri.join(new AlluxioURI("/d"))
+    assertEquals("hdfs://localhost:8020/xy z/a b c/d", uri.join("/d").toString());
+    assertEquals("hdfs://localhost:8020/xy z/a b c/d", uri.join(new AlluxioURI("/d"))
         .toString());
-    assertEquals("hdfs://localhost/xy z/a b c", uri.toString());
+    assertEquals("hdfs://localhost:8020/xy z/a b c", uri.toString());
   }
 
   @Test
@@ -475,8 +476,6 @@ public class AlluxioURITest {
 
   @Test
   public void authorityTypeTests() {
-    assertTrue(new AlluxioURI("file", Authority.fromString("localhost"), "/b/c").getAuthority()
-        instanceof SingleMasterAuthority);
     assertTrue(new AlluxioURI("file", Authority.fromString("localhost:8080"), "/b/c").getAuthority()
         instanceof SingleMasterAuthority);
 
@@ -495,6 +494,9 @@ public class AlluxioURITest {
         instanceof NoAuthority);
     assertTrue(new AlluxioURI("file:///b/c").getAuthority()
         instanceof NoAuthority);
+
+    assertTrue(new AlluxioURI("file", Authority.fromString("localhost"), "/b/c").getAuthority()
+        instanceof UnknownAuthority);
   }
 
   /**
@@ -526,11 +528,11 @@ public class AlluxioURITest {
     assertEquals(null, new AlluxioURI("/").getHost());
     assertEquals(null, new AlluxioURI("file", Authority.fromString(""), "/a/b.txt").getHost());
     assertEquals(null, new AlluxioURI("file", null, "/a/b.txt").getHost());
-    assertEquals("localhost",
+    assertEquals(null,
         new AlluxioURI("s3", Authority.fromString("localhost"), "/a/b.txt").getHost());
     assertEquals("localhost",
         new AlluxioURI("s3", Authority.fromString("localhost:8080"), "/a/b.txt").getHost());
-    assertEquals("127.0.0.1",
+    assertEquals(null,
         new AlluxioURI("s3", Authority.fromString("127.0.0.1"), "/a/b.txt").getHost());
     assertEquals("127.0.0.1",
         new AlluxioURI("s3", Authority.fromString("127.0.0.1:8080"), "/a/b.txt").getHost());
