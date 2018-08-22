@@ -73,8 +73,9 @@ public final class FileSystemMasterWorkerServiceHandler
         new RpcUtils.RpcCallableThrowsIOException<FileSystemHeartbeatTResponse>() {
           @Override
           public FileSystemHeartbeatTResponse call() throws AlluxioException, IOException {
-            return new FileSystemHeartbeatTResponse(mFileSystemMaster
-                .workerHeartbeat(workerId, persistedFiles, new WorkerHeartbeatOptions(options)));
+            return null;
+//            return new FileSystemHeartbeatTResponse(mFileSystemMaster
+//                .workerHeartbeat(workerId, persistedFiles, new WorkerHeartbeatOptions(options)));
           }
 
           @Override
@@ -125,7 +126,8 @@ public final class FileSystemMasterWorkerServiceHandler
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetUfsInfoTResponse>() {
       @Override
       public GetUfsInfoTResponse call() throws AlluxioException {
-        return new GetUfsInfoTResponse(mFileSystemMaster.getUfsInfo(mountId));
+        return null;
+//        return new GetUfsInfoTResponse(mFileSystemMaster.getUfsInfo(mountId));
       }
 
       @Override

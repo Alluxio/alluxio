@@ -19,7 +19,7 @@ import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.master.MasterClientConfig;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UfsMode;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;

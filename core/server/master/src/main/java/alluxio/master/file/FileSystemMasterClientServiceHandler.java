@@ -23,7 +23,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.DescendantType;
+//import alluxio.master.file.options.DescendantType;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
@@ -115,13 +115,14 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<CheckConsistencyTResponse>() {
       @Override
       public CheckConsistencyTResponse call() throws AlluxioException, IOException {
-        List<AlluxioURI> inconsistentUris = mFileSystemMaster.checkConsistency(
-            new AlluxioURI(path), new CheckConsistencyOptions(options));
-        List<String> uris = new ArrayList<>(inconsistentUris.size());
-        for (AlluxioURI uri : inconsistentUris) {
-          uris.add(uri.getPath());
-        }
-        return new CheckConsistencyTResponse(uris);
+        return null;
+//        List<AlluxioURI> inconsistentUris = mFileSystemMaster.checkConsistency(
+//            new AlluxioURI(path), new CheckConsistencyOptions(options));
+//        List<String> uris = new ArrayList<>(inconsistentUris.size());
+//        for (AlluxioURI uri : inconsistentUris) {
+//          uris.add(uri.getPath());
+//        }
+//        return new CheckConsistencyTResponse(uris);
       }
 
       @Override
@@ -137,7 +138,7 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<CompleteFileTResponse>() {
       @Override
       public CompleteFileTResponse call() throws AlluxioException, AlluxioStatusException {
-        mFileSystemMaster.completeFile(new AlluxioURI(path), new CompleteFileOptions(options));
+//        mFileSystemMaster.completeFile(new AlluxioURI(path), new CompleteFileOptions(options));
         return new CompleteFileTResponse();
       }
 
@@ -154,9 +155,10 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<CreateDirectoryTResponse>() {
       @Override
       public CreateDirectoryTResponse call() throws AlluxioException, IOException {
-        mFileSystemMaster.createDirectory(new AlluxioURI(path),
-            new CreateDirectoryOptions(options));
-        return new CreateDirectoryTResponse();
+        return null;
+//        mFileSystemMaster.createDirectory(new AlluxioURI(path),
+//            new CreateDirectoryOptions(options));
+//        return new CreateDirectoryTResponse();
       }
 
       @Override
@@ -172,8 +174,9 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<CreateFileTResponse>() {
       @Override
       public CreateFileTResponse call() throws AlluxioException, IOException {
-        mFileSystemMaster.createFile(new AlluxioURI(path), new CreateFileOptions(options));
-        return new CreateFileTResponse();
+        return null;
+//        mFileSystemMaster.createFile(new AlluxioURI(path), new CreateFileOptions(options));
+//        return new CreateFileTResponse();
       }
 
       @Override
@@ -189,16 +192,17 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<FreeTResponse>() {
       @Override
       public FreeTResponse call() throws AlluxioException, IOException {
-        if (options == null) {
-          // For Alluxio client v1.4 or earlier.
-          // NOTE, we try to be conservative here so early Alluxio clients will not be able to force
-          // freeing pinned items but see the error thrown.
-          mFileSystemMaster.free(new AlluxioURI(path),
-              FreeOptions.defaults().setRecursive(recursive));
-        } else {
-          mFileSystemMaster.free(new AlluxioURI(path), new FreeOptions(options));
-        }
-        return new FreeTResponse();
+        return null;
+//        if (options == null) {
+//          // For Alluxio client v1.4 or earlier.
+//          // NOTE, we try to be conservative here so early Alluxio clients will not be able to force
+//          // freeing pinned items but see the error thrown.
+//          mFileSystemMaster.free(new AlluxioURI(path),
+//              FreeOptions.defaults().setRecursive(recursive));
+//        } else {
+//          mFileSystemMaster.free(new AlluxioURI(path), new FreeOptions(options));
+//        }
+//        return new FreeTResponse();
       }
 
       @Override
@@ -250,12 +254,13 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<ListStatusTResponse>() {
       @Override
       public ListStatusTResponse call() throws AlluxioException, IOException {
-        List<FileInfo> result = new ArrayList<>();
-        for (alluxio.wire.FileInfo fileInfo : mFileSystemMaster
-            .listStatus(new AlluxioURI(path), new ListStatusOptions(options))) {
-          result.add(ThriftUtils.toThrift(fileInfo));
-        }
-        return new ListStatusTResponse(result);
+        return null;
+//        List<FileInfo> result = new ArrayList<>();
+//        for (alluxio.wire.FileInfo fileInfo : mFileSystemMaster
+//            .listStatus(new AlluxioURI(path), new ListStatusOptions(options))) {
+//          result.add(ThriftUtils.toThrift(fileInfo));
+//        }
+//        return new ListStatusTResponse(result);
       }
 
       @Override
@@ -278,9 +283,10 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<LoadMetadataTResponse>() {
       @Override
       public LoadMetadataTResponse call() throws AlluxioException, IOException {
-        return new LoadMetadataTResponse(mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath),
-            LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantType(
-                DescendantType.ONE)));
+        return null;
+//        return new LoadMetadataTResponse(mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath),
+//            LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantType(
+//                DescendantType.ONE)));
       }
 
       @Override
@@ -297,9 +303,10 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<MountTResponse>() {
       @Override
       public MountTResponse call() throws AlluxioException, IOException {
-        mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
-            new MountOptions(options));
-        return new MountTResponse();
+        return null;
+//        mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
+//            new MountOptions(options));
+//        return new MountTResponse();
       }
 
       @Override
@@ -339,16 +346,17 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<DeleteTResponse>() {
       @Override
       public DeleteTResponse call() throws AlluxioException, IOException {
-        if (options == null) {
-          // For Alluxio client v1.4 or earlier.
-          // NOTE, we try to be conservative here so early Alluxio clients will not be able to
-          // delete files in Alluxio only.
-          mFileSystemMaster.delete(new AlluxioURI(path), DeleteOptions.defaults()
-              .setRecursive(recursive).setUnchecked(options.isUnchecked()));
-        } else {
-          mFileSystemMaster.delete(new AlluxioURI(path), new DeleteOptions(options));
-        }
-        return new DeleteTResponse();
+        return null;
+//        if (options == null) {
+//          // For Alluxio client v1.4 or earlier.
+//          // NOTE, we try to be conservative here so early Alluxio clients will not be able to
+//          // delete files in Alluxio only.
+//          mFileSystemMaster.delete(new AlluxioURI(path), DeleteOptions.defaults()
+//              .setRecursive(recursive).setUnchecked(options.isUnchecked()));
+//        } else {
+//          mFileSystemMaster.delete(new AlluxioURI(path), new DeleteOptions(options));
+//        }
+//        return new DeleteTResponse();
       }
 
       @Override
@@ -364,9 +372,10 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<RenameTResponse>() {
       @Override
       public RenameTResponse call() throws AlluxioException, IOException {
-        mFileSystemMaster
-            .rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), new RenameOptions(options));
-        return new RenameTResponse();
+        return null;
+//        mFileSystemMaster
+//            .rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), new RenameOptions(options));
+//        return new RenameTResponse();
       }
 
       @Override
@@ -401,8 +410,9 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<SetAttributeTResponse>() {
       @Override
       public SetAttributeTResponse call() throws AlluxioException, IOException {
-        mFileSystemMaster.setAttribute(new AlluxioURI(path), new SetAttributeOptions(options));
-        return new SetAttributeTResponse();
+        return null;
+//        mFileSystemMaster.setAttribute(new AlluxioURI(path), new SetAttributeOptions(options));
+//        return new SetAttributeTResponse();
       }
 
       @Override
@@ -435,20 +445,21 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<UpdateUfsModeTResponse>() {
       @Override
       public UpdateUfsModeTResponse call() throws AlluxioException, IOException {
-        UfsMode ufsMode;
-        switch (options.getUfsMode()) {
-          case NoAccess:
-            ufsMode = UfsMode.NO_ACCESS;
-            break;
-          case ReadOnly:
-            ufsMode = UfsMode.READ_ONLY;
-            break;
-          default:
-            ufsMode = UfsMode.READ_WRITE;
-            break;
-        }
-        mFileSystemMaster.updateUfsMode(new AlluxioURI(ufsPath), ufsMode);
-        return new UpdateUfsModeTResponse();
+        return null;
+//        UfsMode ufsMode;
+//        switch (options.getUfsMode()) {
+//          case NoAccess:
+//            ufsMode = UfsMode.NO_ACCESS;
+//            break;
+//          case ReadOnly:
+//            ufsMode = UfsMode.READ_ONLY;
+//            break;
+//          default:
+//            ufsMode = UfsMode.READ_WRITE;
+//            break;
+//        }
+//        mFileSystemMaster.updateUfsMode(new AlluxioURI(ufsPath), ufsMode);
+//        return new UpdateUfsModeTResponse();
       }
 
       @Override
