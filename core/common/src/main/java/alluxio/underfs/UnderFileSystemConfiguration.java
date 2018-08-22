@@ -12,12 +12,10 @@
 package alluxio.underfs;
 
 import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
