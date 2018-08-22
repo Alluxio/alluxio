@@ -74,23 +74,23 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(
         conf.containsKey(PropertyKey.COS_ACCESS_KEY),
-        "Property " + PropertyKey.COS_ACCESS_KEY + " is required to connect to COS");
+        "Property %s is required to connect to COS", PropertyKey.COS_ACCESS_KEY);
     Preconditions.checkArgument(
         conf.containsKey(PropertyKey.COS_SECRET_KEY),
-        "Property " + PropertyKey.COS_SECRET_KEY + " is required to connect to COS");
+        "Property %s is required to connect to COS", PropertyKey.COS_SECRET_KEY);
     Preconditions.checkArgument(
-        conf.containsKey(PropertyKey.COS_REGION_KEY),
-        "Property " + PropertyKey.COS_REGION_KEY + " is required to connect to COS");
+        conf.containsKey(PropertyKey.COS_REGION),
+        "Property %s is required to connect to COS", PropertyKey.COS_REGION);
     Preconditions.checkArgument(
-            conf.containsKey(PropertyKey.COS_APPID_KEY),
-            "Property " + PropertyKey.COS_APPID_KEY + " is required to connect to COS");
+        conf.containsKey(PropertyKey.COS_APP_ID),
+        "Property %s is required to connect to COS", PropertyKey.COS_APP_ID);
     String accessId = conf.getValue(PropertyKey.COS_ACCESS_KEY);
     String accessKey = conf.getValue(PropertyKey.COS_SECRET_KEY);
-    String regionName = conf.getValue(PropertyKey.COS_REGION_KEY);
-    String appId = conf.getValue(PropertyKey.COS_APPID_KEY);
+    String regionName = conf.getValue(PropertyKey.COS_REGION);
+    String appId = conf.getValue(PropertyKey.COS_APP_ID);
 
     COSCredentials cred = new BasicCOSCredentials(accessId, accessKey);
-    ClientConfig clientConfig = initializeCOSClientConfig(regionName);
+    ClientConfig clientConfig = createCOSClientConfig(regionName);
     COSClient client = new COSClient(cred, clientConfig);
 
     return new COSUnderFileSystem(uri, client, bucketName, appId, conf);
@@ -290,12 +290,12 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @return the COS {@link ClientConfig}
    */
-  private static ClientConfig initializeCOSClientConfig(String regionName) {
+  private static ClientConfig createCOSClientConfig(String regionName) {
     ClientConfig config = new ClientConfig(new Region(regionName));
-    config.setConnectionRequestTimeout((int) Configuration.getMs(
-        PropertyKey.UNDERFS_COS_CONNECT_TIMEOUT));
-    config.setSocketTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_COS_SOCKET_TIMEOUT));
-    config.setMaxConnectionsCount(Configuration.getInt(PropertyKey.UNDERFS_COS_CONNECT_MAX));
+    // TODO(binfan): use ufs conf to derive these values
+    config.setConnectionTimeout((int) Configuration.getMs(PropertyKey.COS_CONNECTION_TIMEOUT));
+    config.setSocketTimeout((int) Configuration.getMs(PropertyKey.COS_SOCKET_TIMEOUT));
+    config.setMaxConnectionsCount(Configuration.getInt(PropertyKey.COS_CONNECTION_MAX));
     return config;
   }
 

@@ -65,6 +65,6 @@ public class COSUnderFileSystemFactory implements UnderFileSystemFactory {
   private boolean checkCOSCredentials(UnderFileSystemConfiguration conf) {
     return conf.containsKey(PropertyKey.COS_ACCESS_KEY)
         && conf.containsKey(PropertyKey.COS_SECRET_KEY)
-        && conf.containsKey(PropertyKey.COS_REGION_KEY);
+        && conf.containsKey(PropertyKey.COS_REGION);
   }
 }

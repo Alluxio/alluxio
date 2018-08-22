@@ -797,21 +797,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_COS_CONNECT_MAX =
-      new Builder(Name.UNDERFS_COS_CONNECT_MAX)
-          .setDefaultValue(1024)
-          .setDescription("The maximum number of COS connections.")
-          .build();
-  public static final PropertyKey UNDERFS_COS_CONNECT_TIMEOUT =
-      new Builder(Name.UNDERFS_COS_CONNECT_TIMEOUT)
-          .setDefaultValue("50sec")
-          .setDescription("The timeout when connecting to COS.")
-          .build();
-  public static final PropertyKey UNDERFS_COS_SOCKET_TIMEOUT =
-      new Builder(Name.UNDERFS_COS_SOCKET_TIMEOUT)
-          .setDefaultValue("50sec")
-          .setDescription("The timeout of COS socket.")
-          .build();
 
   //
   // UFS access control related properties
@@ -897,16 +882,46 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDescription("Service region when using Keystone authentication.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .build();
-
-  public static final PropertyKey COS_ACCESS_KEY = new Builder(Name.COS_ACCESS_KEY)
-      .setDescription("The access key of COS bucket.").build();
-  public static final PropertyKey COS_REGION_KEY = new Builder(Name.COS_REGION_KEY)
-      .setDescription("The region name of COS bucket.").build();
-  public static final PropertyKey COS_SECRET_KEY = new Builder(Name.COS_SECRET_KEY)
-      .setDescription("The secret key of COS bucket.").build();
-  public static final PropertyKey COS_APPID_KEY = new Builder(Name.COS_APPID_KEY)
-      .setDescription("The app id of COS bucket.").build();
-
+  public static final PropertyKey COS_ACCESS_KEY =
+      new Builder(Name.COS_ACCESS_KEY)
+          .setDescription("The access key of COS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey COS_APP_ID =
+      new Builder(Name.COS_APP_ID)
+          .setDescription("The app id of COS bucket.")
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey COS_CONNECTION_MAX =
+      new Builder(Name.COS_CONNECTION_MAX)
+          .setDefaultValue(1024)
+          .setDescription("The maximum number of COS connections.")
+          .build();
+  public static final PropertyKey COS_CONNECTION_TIMEOUT =
+      new Builder(Name.COS_CONNECTION_TIMEOUT)
+          .setDefaultValue("50sec")
+          .setDescription("The timeout of connecting to COS.")
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey COS_SOCKET_TIMEOUT =
+      new Builder(Name.COS_SOCKET_TIMEOUT)
+          .setDefaultValue("50sec")
+          .setDescription("The timeout of COS socket.")
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey COS_REGION =
+      new Builder(Name.COS_REGION)
+          .setDescription("The region name of COS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey COS_SECRET_KEY =
+      new Builder(Name.COS_SECRET_KEY)
+          .setDescription("The secret key of COS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   // Journal ufs related properties
   public static final PropertyKey MASTER_JOURNAL_UFS_OPTION =
       new Builder(Template.MASTER_JOURNAL_UFS_OPTION)
@@ -3167,6 +3182,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // UFS access control related properties
     //
+    public static final String COS_ACCESS_KEY = "fs.cos.access.key";
+    public static final String COS_APP_ID = "fs.cos.app.id";
+    public static final String COS_CONNECTION_MAX = "fs.cos.connection.max";
+    public static final String COS_CONNECTION_TIMEOUT = "fs.cos.connection.timeout";
+    public static final String COS_REGION = "fs.cos.region";
+    public static final String COS_SECRET_KEY = "fs.cos.secret.key";
+    public static final String COS_SOCKET_TIMEOUT = "fs.cos.socket.timeout";
     public static final String GCS_ACCESS_KEY = "fs.gcs.accessKeyId";
     public static final String GCS_SECRET_KEY = "fs.gcs.secretAccessKey";
     public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
@@ -3178,19 +3200,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
     public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
     public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
+    public static final String SWIFT_REGION_KEY = "fs.swift.region";
     public static final String SWIFT_SIMULATION = "fs.swift.simulation";
     public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
-    public static final String SWIFT_USER_KEY = "fs.swift.user";
     public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
-    public static final String SWIFT_REGION_KEY = "fs.swift.region";
-    public static final String UNDERFS_COS_CONNECT_MAX = "alluxio.underfs.cos.connection.max";
-    public static final String UNDERFS_COS_CONNECT_TIMEOUT =
-        "alluxio.underfs.cos.connection.timeout";
-    public static final String UNDERFS_COS_SOCKET_TIMEOUT = "alluxio.underfs.cos.socket.timeout";
-    public static final String COS_ACCESS_KEY = "fs.cos.access.key";
-    public static final String COS_REGION_KEY = "fs.cos.region";
-    public static final String COS_SECRET_KEY = "fs.cos.access.secret";
-    public static final String COS_APPID_KEY = "fs.cos.app.id";
+    public static final String SWIFT_USER_KEY = "fs.swift.user";
 
     //
     // Master related properties
