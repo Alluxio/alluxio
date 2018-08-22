@@ -13,6 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.master.file.options.MountOptions;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -55,7 +56,8 @@ public class LazyUfsBlockLocationCacheTest {
             .setUserSpecifiedConf(Collections.<String, String>emptyMap()));
 
     mMountTable = new MountTable(mUfsManager);
-    mMountTable.add(new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), mMountId, options);
+    mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
+        new AlluxioURI(mLocalUfsPath), mMountId, options);
 
     mUfsBlockLocationCache = new LazyUfsBlockLocationCache(mMountTable);
   }

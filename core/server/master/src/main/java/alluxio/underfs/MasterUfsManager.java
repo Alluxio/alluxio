@@ -105,7 +105,7 @@ public final class MasterUfsManager extends AbstractUfsManager implements Journa
 
   @Override
   public void addMount(long mountId, final AlluxioURI ufsUri,
-                       final UnderFileSystemConfiguration ufsConf) {
+      final UnderFileSystemConfiguration ufsConf) {
     super.addMount(mountId, ufsUri, ufsConf);
 
     try (CloseableResource<UnderFileSystem> ufsResource = get(mountId).acquireUfsResource()) {
