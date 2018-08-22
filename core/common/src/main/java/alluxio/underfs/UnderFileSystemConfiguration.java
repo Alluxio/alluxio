@@ -35,15 +35,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </ol>
  *
  * <p>
- * This class is a wrapper over {@link InstancedConfiguration}. Variable substitution and aliases
+ * This class extends {@link InstancedConfiguration}. Variable substitution and aliases
  * are supported.
  */
-@PublicApi
 @NotThreadSafe
-public final class UnderFileSystemConfiguration {
+@PublicApi
+public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   private boolean mReadOnly;
   private boolean mShared;
-  private InstancedConfiguration mUfsConf;
 
   /**
    * @return default UFS configuration
@@ -56,49 +55,22 @@ public final class UnderFileSystemConfiguration {
    * Constructs a new instance of {@link UnderFileSystemConfiguration} with defaults.
    */
   private UnderFileSystemConfiguration() {
+    super(Configuration.copyProperties());
     mReadOnly = false;
     mShared = false;
-    mUfsConf = new InstancedConfiguration(Configuration.copyProperties());
   }
 
   /**
-   * @param key property key
-   * @return true if the key is contained in the given UFS configuration or global configuration
-   */
-  public boolean isSet(PropertyKey key) {
-    return mUfsConf.isSet(key);
-  }
-
-  /**
-   * Gets the value of the given key in the given UFS configuration or the global configuration
-   * (in case the key is not found in the UFS configuration), throw {@link RuntimeException} if the
-   * key is not found in both configurations.
-   *
-   * @param key property key
-   * @return the value associated with the given key
-   */
-  public String get(PropertyKey key) {
-    return mUfsConf.get(key);
-  }
-
-  /**
-   * @return the map of resolved ufs specific configuration
+   * @return the map of resolved mount specific configuration
    */
   public Map<String, String> getMountSpecificConf() {
     Map<String, String> map = new HashMap<>();
-    mUfsConf.keySet().forEach(key -> {
-      if (mUfsConf.getSource(key) == Source.MOUNT_OPTION) {
-        map.put(key.getName(), mUfsConf.get(key));
+    keySet().forEach(key -> {
+      if (getSource(key) == Source.MOUNT_OPTION) {
+        map.put(key.getName(), get(key));
       }
     });
     return map;
-  }
-
-  /**
-   * @return all the global and mount specific properties as an immutable map
-   */
-  public Map<String, String> toMap() {
-    return Collections.unmodifiableMap(new HashMap<>(mUfsConf.toMap()));
   }
 
   /**
@@ -134,12 +106,12 @@ public final class UnderFileSystemConfiguration {
   }
 
   /**
-   * @param ufsConf the user-specified UFS configuration as a map
+   * @param mountConf the mount specific configuration map
    * @return the updated configuration object
    */
-  public UnderFileSystemConfiguration setMountSpecificConf(Map<String, String> ufsConf) {
-    mUfsConf = new InstancedConfiguration(Configuration.copyProperties());
-    mUfsConf.merge(ufsConf, Source.MOUNT_OPTION);
+  public UnderFileSystemConfiguration setMountSpecificConf(Map<String, String> mountConf) {
+    mProperties = Configuration.copyProperties();
+    merge(mountConf, Source.MOUNT_OPTION);
     return this;
   }
 }
