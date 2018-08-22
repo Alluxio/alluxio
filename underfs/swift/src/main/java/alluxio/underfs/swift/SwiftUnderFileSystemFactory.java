@@ -67,19 +67,19 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
    */
   private boolean checkSwiftCredentials(UnderFileSystemConfiguration conf) {
     // We do not need authentication credentials in simulation mode
-    if (conf.containsKey(PropertyKey.SWIFT_SIMULATION)
-        && Boolean.valueOf(conf.getValue(PropertyKey.SWIFT_SIMULATION))) {
+    if (conf.isSet(PropertyKey.SWIFT_SIMULATION)
+        && Boolean.valueOf(conf.get(PropertyKey.SWIFT_SIMULATION))) {
       return true;
     }
 
     // API or Password Key is required
-    PropertyKey apiOrPasswordKey = conf.containsKey(PropertyKey.SWIFT_API_KEY)
+    PropertyKey apiOrPasswordKey = conf.isSet(PropertyKey.SWIFT_API_KEY)
         ? PropertyKey.SWIFT_API_KEY : PropertyKey.SWIFT_PASSWORD_KEY;
 
     // Check if required credentials exist
-    return conf.containsKey(apiOrPasswordKey)
-        && conf.containsKey(PropertyKey.SWIFT_TENANT_KEY)
-        && conf.containsKey(PropertyKey.SWIFT_AUTH_URL_KEY)
-        && conf.containsKey(PropertyKey.SWIFT_USER_KEY);
+    return conf.isSet(apiOrPasswordKey)
+        && conf.isSet(PropertyKey.SWIFT_TENANT_KEY)
+        && conf.isSet(PropertyKey.SWIFT_AUTH_URL_KEY)
+        && conf.isSet(PropertyKey.SWIFT_USER_KEY);
   }
 }

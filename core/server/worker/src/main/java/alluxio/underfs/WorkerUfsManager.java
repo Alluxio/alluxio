@@ -68,7 +68,7 @@ public final class WorkerUfsManager extends AbstractUfsManager {
     super.addMount(mountId, new AlluxioURI(info.getUri()),
         UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().isReadOnly())
             .setShared(info.getProperties().isShared())
-            .setUserSpecifiedConf(info.getProperties().getProperties()));
+            .setMountSpecificConf(info.getProperties().getProperties()));
     UfsClient ufsClient = super.get(mountId);
     try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();

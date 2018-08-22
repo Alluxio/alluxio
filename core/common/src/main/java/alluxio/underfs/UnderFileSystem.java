@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -40,6 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Alluxio stores data into an under layer file system. Any file system implementing this interface
  * can be a valid under layer file system
  */
+@PublicApi
 @ThreadSafe
 // TODO(adit); API calls should use a URI instead of a String wherever appropriate
 public interface UnderFileSystem extends Closeable {
@@ -132,7 +134,7 @@ public interface UnderFileSystem extends Closeable {
       Map<String, String> ufsConf =
           Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
       return create(ufsRoot, UnderFileSystemConfiguration.defaults().setReadOnly(readOnly)
-          .setShared(shared).setUserSpecifiedConf(ufsConf));
+          .setShared(shared).setMountSpecificConf(ufsConf));
     }
   }
 

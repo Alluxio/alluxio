@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.annotation.PublicApi;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 
@@ -37,6 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class is a wrapper over {@link InstancedConfiguration}. Variable substitution and aliases
  * are supported.
  */
+@PublicApi
 @NotThreadSafe
 public final class UnderFileSystemConfiguration {
   private boolean mReadOnly;
@@ -63,7 +65,7 @@ public final class UnderFileSystemConfiguration {
    * @param key property key
    * @return true if the key is contained in the given UFS configuration or global configuration
    */
-  public boolean containsKey(PropertyKey key) {
+  public boolean isSet(PropertyKey key) {
     return mUfsConf.isSet(key);
   }
 
@@ -75,14 +77,14 @@ public final class UnderFileSystemConfiguration {
    * @param key property key
    * @return the value associated with the given key
    */
-  public String getValue(PropertyKey key) {
+  public String get(PropertyKey key) {
     return mUfsConf.get(key);
   }
 
   /**
    * @return the map of resolved ufs specific configuration
    */
-  public Map<String, String> getUfsSpecificConf() {
+  public Map<String, String> getMountSpecificConf() {
     Map<String, String> map = new HashMap<>();
     mUfsConf.keySet().forEach(key -> {
       if (mUfsConf.getSource(key) == Source.MOUNT_OPTION) {
@@ -135,7 +137,7 @@ public final class UnderFileSystemConfiguration {
    * @param ufsConf the user-specified UFS configuration as a map
    * @return the updated configuration object
    */
-  public UnderFileSystemConfiguration setUserSpecifiedConf(Map<String, String> ufsConf) {
+  public UnderFileSystemConfiguration setMountSpecificConf(Map<String, String> ufsConf) {
     mUfsConf = new InstancedConfiguration(Configuration.copyProperties());
     mUfsConf.merge(ufsConf, Source.MOUNT_OPTION);
     return this;
