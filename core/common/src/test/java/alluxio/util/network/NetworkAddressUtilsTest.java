@@ -13,7 +13,6 @@ package alluxio.util.network;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
@@ -249,26 +248,6 @@ public class NetworkAddressUtilsTest {
   @Test
   public void getLocalNodeNameLookup() throws Exception {
     assertEquals(NetworkAddressUtils.getLocalHostName(), NetworkAddressUtils.getLocalNodeName());
-  }
-
-  /**
-   * Tests the {@link NetworkAddressUtils#replaceHostName(AlluxioURI)} method.
-   */
-  @Test
-  public void replaceHostName() throws UnknownHostException {
-    assertEquals(NetworkAddressUtils.replaceHostName(AlluxioURI.EMPTY_URI),
-        AlluxioURI.EMPTY_URI);
-    assertEquals(NetworkAddressUtils.replaceHostName(null), null);
-
-    AlluxioURI[] paths =
-        new AlluxioURI[] {new AlluxioURI("hdfs://localhost:9000/dir"),
-            new AlluxioURI("hdfs://localhost/dir"), new AlluxioURI("hdfs://localhost/"),
-            new AlluxioURI("hdfs://localhost"), new AlluxioURI("file:///dir"),
-            new AlluxioURI("/dir"), new AlluxioURI("anythingElse")};
-
-    for (AlluxioURI path : paths) {
-      assertEquals(NetworkAddressUtils.replaceHostName(path), path);
-    }
   }
 
   /**
