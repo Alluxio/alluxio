@@ -56,7 +56,7 @@ import java.util.Set;
 /**
  * The interface of file system master service.
  */
-public interface FileSystemMaster {
+public interface FileSystemMasterService {
   // Server side defaults
   FileSystemMasterOptions getMasterOptions();
 

@@ -34,7 +34,7 @@ public final class FileSystemMasterClientServiceHandlerNew
     extends FileSystemMasterServiceGrpc.FileSystemMasterServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandlerNew.class);
-  private final FileSystemMaster mFileSystemMaster;
+  private final FileSystemMasterService mFileSystemMaster;
   private final FileSystemMasterOptions mOptionsService;
 
   /**
@@ -42,7 +42,7 @@ public final class FileSystemMasterClientServiceHandlerNew
    *
    * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
    */
-  public FileSystemMasterClientServiceHandlerNew(FileSystemMaster fileSystemMaster) {
+  public FileSystemMasterClientServiceHandlerNew(FileSystemMasterService fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
     mOptionsService = fileSystemMaster.getMasterOptions();

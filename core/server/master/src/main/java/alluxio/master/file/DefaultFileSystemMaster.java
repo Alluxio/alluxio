@@ -179,7 +179,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The master that handles all file system metadata management.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster, Master {
+public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
