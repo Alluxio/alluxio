@@ -350,7 +350,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mBlockMaster = blockMaster;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = new MasterUfsManager();
-    mMountTable = new MountTable(mUfsManager);
+    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
 
     // TODO(gene): Handle default config value for whitelist.
@@ -364,6 +364,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
+  }
+
+  private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
+    try (CloseableResource<UnderFileSystem> resource = ufsManager.getRoot().acquireUfsResource()) {
+      String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      boolean shared = resource.get().isObjectStorage()
+          && Configuration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
+      Map<String, String> rootUfsConf =
+          Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+      MountOptions mountOptions =
+          MountOptions.defaults().setShared(shared).setProperties(rootUfsConf);
+      return new MountInfo(new AlluxioURI(MountTable.ROOT),
+          new AlluxioURI(rootUfsUri), IdUtils.ROOT_MOUNT_ID, mountOptions);
+    }
   }
 
   @Override

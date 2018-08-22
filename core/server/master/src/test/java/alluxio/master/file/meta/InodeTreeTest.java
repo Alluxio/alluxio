@@ -32,6 +32,7 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
@@ -115,7 +116,7 @@ public final class InodeTreeTest {
     InodeDirectoryIdGenerator directoryIdGenerator =
         new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager);
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
     mRegistry.start(true);

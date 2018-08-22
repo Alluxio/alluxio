@@ -12,8 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -81,19 +79,8 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
    *
    * @param ufsManager the UFS manager
    */
-  public MountTable(UfsManager ufsManager) {
-    try (CloseableResource<UnderFileSystem> resource = ufsManager.getRoot().acquireUfsResource()) {
-      String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      boolean shared = resource.get().isObjectStorage()
-          && Configuration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
-      Map<String, String> rootUfsConf =
-          Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      MountOptions mountOptions =
-          MountOptions.defaults().setShared(shared).setProperties(rootUfsConf);
-      MountInfo mountInfo = new MountInfo(new AlluxioURI(MountTable.ROOT),
-          new AlluxioURI(rootUfsUri), IdUtils.ROOT_MOUNT_ID, mountOptions);
-      mState = new State(mountInfo);
-    }
+  public MountTable(UfsManager ufsManager, MountInfo rootMountInfo) {
+    mState = new State(rootMountInfo);
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
@@ -247,8 +234,8 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
     try (LockResource r = new LockResource(mWriteLock)) {
       if (mState.getMountTable().containsKey(path)) {
         mUfsManager.removeMount(mState.getMountTable().get(path).getMountId());
-        mState.applyAndJournal(journalContext, DeleteMountPointEntry.newBuilder()
-            .setAlluxioPath(uri.toString()).build());
+        mState.applyAndJournal(journalContext,
+            DeleteMountPointEntry.newBuilder().setAlluxioPath(path).build());
         return true;
       }
       LOG.warn("Mount point {} does not exist.", path);
