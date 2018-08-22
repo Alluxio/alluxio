@@ -57,7 +57,7 @@ public class AsyncUfsAbsentPathCacheTest {
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
             .setShared(options.isShared())
-            .setUserSpecifiedConf(Collections.<String, String>emptyMap()));
+            .setMountSpecificConf(Collections.<String, String>emptyMap()));
     mMountTable.add(new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), mMountId, options);
   }
 
@@ -162,7 +162,7 @@ public class AsyncUfsAbsentPathCacheTest {
     mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
             .setShared(options.isShared())
-            .setUserSpecifiedConf(Collections.<String, String>emptyMap()));
+            .setMountSpecificConf(Collections.<String, String>emptyMap()));
     mMountTable.add(new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), newMountId, options);
 
     // The cache should not contain any paths now.
