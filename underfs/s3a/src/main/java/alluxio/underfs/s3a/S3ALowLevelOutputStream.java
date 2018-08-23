@@ -299,15 +299,15 @@ public class S3ALowLevelOutputStream extends OutputStream {
     ListenableFuture<PartETag> futureTag =
         mExecutor.submit((Callable) () -> {
           PartETag partETag;
-            try {
-              partETag = mClient.uploadPart(request).getPartETag();
-              LOG.debug("Completed upload of part {} and get ETag {}", partNumber,
-                  partETag.getETag());
-              return partETag;
-            } finally {
-              // Delete the uploaded file
-              file.delete();
-            }
+          try {
+            partETag = mClient.uploadPart(request).getPartETag();
+            LOG.debug("Completed upload of part {} and get ETag {}", partNumber,
+                partETag.getETag());
+            return partETag;
+          } finally {
+            // Delete the uploaded file
+            file.delete();
+          }
         });
     mFutureTags.add(futureTag);
     LOG.debug("Submit upload part request. partNum={}, file={}, fileSize={}.",

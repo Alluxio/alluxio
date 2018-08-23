@@ -36,7 +36,6 @@ import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.internal.Mimetypes;
-import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
@@ -388,27 +387,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return null;
   }
 
-  /**
-   * Aborts all intermediate multipart uploads older than clean age.
-   *
-   * @param manager a transfer manager
-   * @param bucketName the bucket to abort
-   * @param conf the under filesystem configuration
-   */
-  private static void abortMultiPartUpload(TransferManager manager, String bucketName,
-      UnderFileSystemConfiguration conf) {
-    if (!conf.containsKey(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED)
-        || !conf.getValue(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED).equals("true")) {
-      return;
-    }
-    long cleanAge = conf.containsKey(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS) ?
-        Math.max(FormatUtils.parseTimeSize(conf.getValue(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS)), 0)
-        : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS.getDefaultValue());
-    Date cleanDate = new Date(new Date().getTime() - cleanAge);
-    manager.abortMultipartUploads(bucketName, cleanDate);
-    LOG.debug("Cleaned all intermediate multipart uploads of bucket {} older than {}.", bucketName, cleanDate);
-  }
-
   // Get next chunk of listing result.
   private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request)
       throws IOException {
@@ -436,6 +414,31 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       throw new IOException(e);
     }
     return result;
+  }
+
+  /**
+   * Aborts all intermediate multipart uploads older than clean age.
+   *
+   * @param manager a transfer manager
+   * @param bucketName the bucket to abort
+   * @param conf the under filesystem configuration
+   */
+  private static void abortMultiPartUpload(TransferManager manager, String bucketName,
+      UnderFileSystemConfiguration conf) {
+    if (!conf.containsKey(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED)
+        || !conf.getValue(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED)
+        .equals("true")) {
+      return;
+    }
+    long cleanAge = conf.containsKey(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS)
+        ? Math.max(FormatUtils.parseTimeSize(conf
+        .getValue(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS)), 0)
+        : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS
+        .getDefaultValue());
+    Date cleanDate = new Date(new Date().getTime() - cleanAge);
+    manager.abortMultipartUploads(bucketName, cleanDate);
+    LOG.debug("Cleaned all intermediate multipart uploads of bucket {} older than {}.",
+        bucketName, cleanDate);
   }
 
   /**
