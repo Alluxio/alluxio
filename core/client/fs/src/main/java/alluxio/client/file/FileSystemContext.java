@@ -226,7 +226,17 @@ public final class FileSystemContext implements Closeable {
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
               (int) configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
       // register the shutdown hook
-      Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
+      try {
+        Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
+      } catch (IllegalStateException e) {
+        // this exception is thrown when the system is already in the process of shutting down. In
+        // such a situation, we are about to shutdown anyway and there is no need to register this
+        // shutdown hook
+      } catch (SecurityException e) {
+        LOG.info("Not registering metrics shutdown hook due to security exception. Regular "
+            + "heartbeats will still be performed to collect metrics data, but no final heartbeat "
+            + "will be performed on JVM exit. Security exception: {}", e.toString());
+      }
     }
   }
 
@@ -474,18 +484,35 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Class that heartbeats to the metrics master before exit.
+   * Class that heartbeats to the metrics master before exit. The heartbeat is performed in a second
+   * thread so that we can exit early if the heartbeat is taking too long.
    */
   private final class MetricsMasterSyncShutDownHook extends Thread {
+    private final Thread mLastHeartbeatThread = new Thread() {
+      @Override
+      public void run() {
+        if (mClientMasterSync != null) {
+          try {
+            mClientMasterSync.heartbeat();
+          } catch (InterruptedException e) {
+            return;
+          }
+        }
+      }
+    };
+
     @Override
     public void run() {
+      mLastHeartbeatThread.start();
       try {
-        if (mClientMasterSync != null) {
-          mClientMasterSync.heartbeat();
+        // Shutdown hooks should run quickly, so we limit the wait time to 500ms. It isn't the end
+        // of the world if the final heartbeat fails.
+        mLastHeartbeatThread.join(500);
+        if (mLastHeartbeatThread.isAlive()) {
+          LOG.warn("Failed to heartbeat to the metrics master before exit");
         }
       } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        LOG.error("Failed to heartbeat to the metrics master before exit");
+        return;
       }
     }
   }
