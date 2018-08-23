@@ -67,7 +67,7 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
   private final Lock mReadLock;
   private final Lock mWriteLock;
 
-  /** Maps from Alluxio path string, to {@link MountInfo}. */
+  /** Mount table state that is preserved across restarts. */
   @GuardedBy("mReadLock,mWriteLock")
   private final State mState;
 
@@ -437,6 +437,7 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
    * applyAndJournal methods.
    */
   public static final class State implements JournalEntryReplayable {
+    /** Maps from Alluxio path string, to {@link MountInfo}. */
     private final Map<String, MountInfo> mMountTable;
 
     /**
