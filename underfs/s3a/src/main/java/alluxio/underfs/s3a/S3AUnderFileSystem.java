@@ -185,10 +185,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
     clientConf.setMaxConnections(numThreads);
 
-    boolean streamingUploadEnbaled =
-        conf.containsKey(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED)
-        && conf.getValue(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED).equals("true");
-    if (!streamingUploadEnbaled) {
+    boolean streamingUploadEnabled =
+        conf.isSet(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED)
+        && conf.getBoolean(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED);
+    if (!streamingUploadEnabled) {
       // Socket timeout
       clientConf
           .setSocketTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
@@ -228,7 +228,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     abortMultiPartUpload(transferManager, bucketName, conf);
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
-        service, transferManager, conf, streamingUploadEnbaled);
+        service, transferManager, conf, streamingUploadEnabled);
   }
 
   /**
@@ -425,14 +425,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    */
   private static void abortMultiPartUpload(TransferManager manager, String bucketName,
       UnderFileSystemConfiguration conf) {
-    if (!conf.containsKey(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED)
-        || !conf.getValue(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED)
-        .equals("true")) {
+    if (!conf.isSet(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED)
+        || !conf.getBoolean(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED)) {
       return;
     }
-    long cleanAge = conf.containsKey(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS)
-        ? Math.max(FormatUtils.parseTimeSize(conf
-        .getValue(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS)), 0)
+    long cleanAge = conf.isSet(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS)
+        ? Math.max(conf.getMs(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS), 0)
         : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS
         .getDefaultValue());
     Date cleanDate = new Date(new Date().getTime() - cleanAge);
