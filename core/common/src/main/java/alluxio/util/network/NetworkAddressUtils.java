@@ -12,14 +12,12 @@
 package alluxio.util.network;
 
 import alluxio.AlluxioConfiguration;
-import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
-import alluxio.uri.Authority;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -572,31 +570,6 @@ public final class NetworkAddressUtils {
     return !address.isAnyLocalAddress() && !address.isLinkLocalAddress()
         && !address.isLoopbackAddress() && address.isReachable(timeoutMs)
         && (address instanceof Inet4Address);
-  }
-
-  /**
-   * Replaces and resolves the hostname in a given address or path string.
-   *
-   * @param path an address or path string, e.g., "hdfs://host:port/dir", "file:///dir", "/dir"
-   * @return an address or path string with hostname resolved, or the original path intact if no
-   *         hostname is embedded, or null if the given path is null or empty.
-   * @throws UnknownHostException if the hostname cannot be resolved
-   */
-  @Nullable
-  public static AlluxioURI replaceHostName(AlluxioURI path) throws UnknownHostException {
-    if (path == null) {
-      return null;
-    }
-
-    if (path.hasAuthority()) {
-      String authority = resolveHostName(path.getHost());
-      if (path.getPort() != -1) {
-        authority += ":" + path.getPort();
-      }
-      return new AlluxioURI(path.getScheme(), Authority.fromString(authority),
-          path.getPath(), path.getQueryMap());
-    }
-    return path;
   }
 
   /**

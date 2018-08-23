@@ -9,10 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.oss;
+package alluxio.underfs.cos;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
@@ -22,14 +21,17 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
-import com.aliyun.oss.ClientConfiguration;
-import com.aliyun.oss.OSSClient;
-import com.aliyun.oss.ServiceException;
-import com.aliyun.oss.model.ListObjectsRequest;
-import com.aliyun.oss.model.OSSObjectSummary;
-import com.aliyun.oss.model.ObjectListing;
-import com.aliyun.oss.model.ObjectMetadata;
 import com.google.common.base.Preconditions;
+import com.qcloud.cos.COSClient;
+import com.qcloud.cos.ClientConfig;
+import com.qcloud.cos.auth.BasicCOSCredentials;
+import com.qcloud.cos.auth.COSCredentials;
+import com.qcloud.cos.exception.CosClientException;
+import com.qcloud.cos.model.COSObjectSummary;
+import com.qcloud.cos.model.ListObjectsRequest;
+import com.qcloud.cos.model.ObjectListing;
+import com.qcloud.cos.model.ObjectMetadata;
+import com.qcloud.cos.region.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,65 +44,73 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Aliyun OSS {@link UnderFileSystem} implementation.
+ * Tencent Cloud COS {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public class OSSUnderFileSystem extends ObjectUnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(OSSUnderFileSystem.class);
+public class COSUnderFileSystem extends ObjectUnderFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(COSUnderFileSystem.class);
 
   /** Suffix for an empty file to flag it as a directory. */
-  private static final String FOLDER_SUFFIX = "_$folder$";
+  private static final String FOLDER_SUFFIX = "/";
 
-  /** Aliyun OSS client. */
-  private final OSSClient mClient;
+  /** Aliyun COS client. */
+  private final COSClient mClient;
 
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
+  /** Bucket name of user's configured Alluxio bucket. */
+  private final String mBucketNameInternal;
+
   /**
-   * Constructs a new instance of {@link OSSUnderFileSystem}.
+   * Constructs a new instance of {@link COSUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @return the created {@link OSSUnderFileSystem} instance
+   * @return the created {@link COSUnderFileSystem} instance
    */
-  public static OSSUnderFileSystem createInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration conf) throws Exception {
+  public static COSUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf)
+      throws Exception {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
-    Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ACCESS_KEY),
-        "Property %s is required to connect to OSS", PropertyKey.OSS_ACCESS_KEY);
-    Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_SECRET_KEY),
-        "Property %s is required to connect to OSS", PropertyKey.OSS_SECRET_KEY);
-    Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ENDPOINT_KEY),
-        "Property %s is required to connect to OSS", PropertyKey.OSS_ENDPOINT_KEY);
-    String accessId = conf.get(PropertyKey.OSS_ACCESS_KEY);
-    String accessKey = conf.get(PropertyKey.OSS_SECRET_KEY);
-    String endPoint = conf.get(PropertyKey.OSS_ENDPOINT_KEY);
+    Preconditions.checkArgument(conf.isSet(PropertyKey.COS_ACCESS_KEY),
+        "Property %s is required to connect to COS", PropertyKey.COS_ACCESS_KEY);
+    Preconditions.checkArgument(conf.isSet(PropertyKey.COS_SECRET_KEY),
+        "Property %s is required to connect to COS", PropertyKey.COS_SECRET_KEY);
+    Preconditions.checkArgument(conf.isSet(PropertyKey.COS_REGION),
+        "Property %s is required to connect to COS", PropertyKey.COS_REGION);
+    Preconditions.checkArgument(conf.isSet(PropertyKey.COS_APP_ID),
+        "Property %s is required to connect to COS", PropertyKey.COS_APP_ID);
+    String accessKey = conf.get(PropertyKey.COS_ACCESS_KEY);
+    String secretKey = conf.get(PropertyKey.COS_SECRET_KEY);
+    String regionName = conf.get(PropertyKey.COS_REGION);
+    String appId = conf.get(PropertyKey.COS_APP_ID);
 
-    ClientConfiguration ossClientConf = initializeOSSClientConfig();
-    OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
+    COSCredentials cred = new BasicCOSCredentials(accessKey, secretKey);
+    ClientConfig clientConfig = createCOSClientConfig(regionName, conf);
+    COSClient client = new COSClient(cred, clientConfig);
 
-    return new OSSUnderFileSystem(uri, ossClient, bucketName, conf);
+    return new COSUnderFileSystem(uri, client, bucketName, appId, conf);
   }
 
   /**
-   * Constructor for {@link OSSUnderFileSystem}.
+   * Constructor for {@link COSUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param ossClient Aliyun OSS client
+   * @param client Aliyun COS client
    * @param bucketName bucket name of user's configured Alluxio bucket
    * @param conf configuration for this UFS
    */
-  protected OSSUnderFileSystem(AlluxioURI uri, OSSClient ossClient, String bucketName,
+  protected COSUnderFileSystem(AlluxioURI uri, COSClient client, String bucketName, String appId,
       UnderFileSystemConfiguration conf) {
     super(uri, conf);
-    mClient = ossClient;
+    mClient = client;
     mBucketName = bucketName;
+    mBucketNameInternal = bucketName + "-" + appId;
   }
 
   @Override
   public String getUnderFSType() {
-    return "oss";
+    return "cos";
   }
 
   // No ACL integration currently, no-op
@@ -109,15 +119,15 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   // No ACL integration currently, no-op
   @Override
-  public void setMode(String path, short mode) throws IOException {}
+  public void setMode(String path, short mode) {}
 
   @Override
   protected boolean copyObject(String src, String dst) {
-    LOG.debug("Copying {} to {}", src, dst);
     try {
-      mClient.copyObject(mBucketName, src, mBucketName, dst);
+      LOG.debug("Copying {} to {}", src, dst);
+      mClient.copyObject(mBucketNameInternal, src, mBucketNameInternal, dst);
       return true;
-    } catch (ServiceException e) {
+    } catch (CosClientException e) {
       LOG.error("Failed to rename file {} to {}", src, dst, e);
       return false;
     }
@@ -128,9 +138,9 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     try {
       ObjectMetadata objMeta = new ObjectMetadata();
       objMeta.setContentLength(0);
-      mClient.putObject(mBucketName, key, new ByteArrayInputStream(new byte[0]), objMeta);
+      mClient.putObject(mBucketNameInternal, key, new ByteArrayInputStream(new byte[0]), objMeta);
       return true;
-    } catch (ServiceException e) {
+    } catch (CosClientException e) {
       LOG.error("Failed to create object: {}", key, e);
       return false;
     }
@@ -138,14 +148,14 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    return new OSSOutputStream(mBucketName, key, mClient);
+    return new COSOutputStream(mBucketNameInternal, key, mClient);
   }
 
   @Override
   protected boolean deleteObject(String key) {
     try {
-      mClient.deleteObject(mBucketName, key);
-    } catch (ServiceException e) {
+      mClient.deleteObject(mBucketNameInternal, key);
+    } catch (CosClientException e) {
       LOG.error("Failed to delete {}", key, e);
       return false;
     }
@@ -164,14 +174,15 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     // In case key is root (empty string) do not normalize prefix
     key = key.equals(PATH_SEPARATOR) ? "" : key;
-    ListObjectsRequest request = new ListObjectsRequest(mBucketName);
+    ListObjectsRequest request = new ListObjectsRequest();
+    request.setBucketName(mBucketNameInternal);
     request.setPrefix(key);
     request.setMaxKeys(getListingChunkLength());
     request.setDelimiter(delimiter);
 
     ObjectListing result = getObjectListingChunk(request);
     if (result != null) {
-      return new OSSObjectListingChunk(request, result);
+      return new COSObjectListingChunk(request, result);
     }
     return null;
   }
@@ -181,7 +192,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     ObjectListing result;
     try {
       result = mClient.listObjects(request);
-    } catch (ServiceException e) {
+    } catch (CosClientException e) {
       LOG.error("Failed to list path {}", request.getPrefix(), e);
       result = null;
     }
@@ -189,26 +200,24 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * Wrapper over OSS {@link ObjectListingChunk}.
+   * Wrapper over COS {@link ObjectListingChunk}.
    */
-  private final class OSSObjectListingChunk implements ObjectListingChunk {
+  private final class COSObjectListingChunk implements ObjectListingChunk {
     final ListObjectsRequest mRequest;
     final ObjectListing mResult;
 
-    OSSObjectListingChunk(ListObjectsRequest request, ObjectListing result) throws IOException {
+    COSObjectListingChunk(ListObjectsRequest request, ObjectListing result) throws IOException {
+      Preconditions.checkNotNull(result, "result");
       mRequest = request;
       mResult = result;
-      if (mResult == null) {
-        throw new IOException("OSS listing result is null");
-      }
     }
 
     @Override
     public ObjectStatus[] getObjectStatuses() {
-      List<OSSObjectSummary> objects = mResult.getObjectSummaries();
+      List<COSObjectSummary> objects = mResult.getObjectSummaries();
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
-      for (OSSObjectSummary obj : objects) {
+      for (COSObjectSummary obj : objects) {
         ret[i++] = new ObjectStatus(obj.getKey(), obj.getETag(), obj.getSize(),
             obj.getLastModified().getTime());
       }
@@ -226,7 +235,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       if (mResult.isTruncated()) {
         ObjectListing nextResult = mClient.listObjects(mRequest);
         if (nextResult != null) {
-          return new OSSObjectListingChunk(mRequest, nextResult);
+          return new COSObjectListingChunk(mRequest, nextResult);
         }
       }
       return null;
@@ -234,15 +243,28 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  public boolean isDirectory(String path) throws IOException {
+    // Root is always a folder
+    if (isRoot(path) || path.equals(PATH_SEPARATOR)) {
+      return true;
+    }
+    String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
+    if (getObjectStatus(keyAsFolder) != null) {
+      return true;
+    }
+    return getObjectListingChunkForPath(path, true) != null;
+  }
+
+  @Override
   protected ObjectStatus getObjectStatus(String key) {
     try {
-      ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
+      ObjectMetadata meta = mClient.getObjectMetadata(mBucketNameInternal, key);
       if (meta == null) {
         return null;
       }
       return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
           meta.getLastModified().getTime());
-    } catch (ServiceException e) {
+    } catch (CosClientException e) {
       LOG.warn("Failed to get Object {}, return null", key, e);
       return null;
     }
@@ -256,30 +278,28 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getRootKey() {
-    return Constants.HEADER_OSS + mBucketName;
+    return Constants.HEADER_COS + mBucketName;
   }
 
   /**
-   * Creates an OSS {@code ClientConfiguration} using an Alluxio Configuration.
+   * Creates an COS {@code ClientConfiguration} using an Alluxio Configuration.
    *
-   * @return the OSS {@link ClientConfiguration}
+   * @return the COS {@link ClientConfig}
    */
-  private static ClientConfiguration initializeOSSClientConfig() {
-    ClientConfiguration ossClientConf = new ClientConfiguration();
-    ossClientConf
-        .setConnectionTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
-    ossClientConf
-        .setSocketTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
-    ossClientConf.setConnectionTTL(Configuration.getLong(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
-    ossClientConf.setMaxConnections(Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
-    return ossClientConf;
+  private static ClientConfig createCOSClientConfig(String regionName,
+      UnderFileSystemConfiguration conf) {
+    ClientConfig config = new ClientConfig(new Region(regionName));
+    config.setConnectionTimeout((int) conf.getMs(PropertyKey.COS_CONNECTION_TIMEOUT));
+    config.setSocketTimeout((int) conf.getMs(PropertyKey.COS_SOCKET_TIMEOUT));
+    config.setMaxConnectionsCount(conf.getInt(PropertyKey.COS_CONNECTION_MAX));
+    return config;
   }
 
   @Override
   protected InputStream openObject(String key, OpenOptions options) throws IOException {
     try {
-      return new OSSInputStream(mBucketName, key, mClient, options.getOffset());
-    } catch (ServiceException e) {
+      return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset());
+    } catch (CosClientException e) {
       throw new IOException(e.getMessage());
     }
   }

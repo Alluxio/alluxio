@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.oss;
+package alluxio.underfs.cos;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -26,35 +26,35 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory for creating {@link OSSUnderFileSystem}.
+ * Factory for creating {@link COSUnderFileSystem}.
  */
 @ThreadSafe
-public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
+public class COSUnderFileSystemFactory implements UnderFileSystemFactory {
 
   /**
-   * Constructs a new {@link OSSUnderFileSystemFactory}.
+   * Constructs a new {@link COSUnderFileSystemFactory}.
    */
-  public OSSUnderFileSystemFactory() {}
+  public COSUnderFileSystemFactory() {}
 
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
 
-    if (checkOSSCredentials(conf)) {
+    if (checkCOSCredentials(conf)) {
       try {
-        return OSSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
+        return COSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
     }
 
-    String err = "OSS Credentials not available, cannot create OSS Under File System.";
+    String err = "COS Credentials not available, cannot create COS Under File System.";
     throw Throwables.propagate(new IOException(err));
   }
 
   @Override
   public boolean supportsPath(String path) {
-    return path != null && path.startsWith(Constants.HEADER_OSS);
+    return path != null && path.startsWith(Constants.HEADER_COS);
   }
 
   /**
@@ -62,9 +62,9 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
    *
    * @return true if both access, secret and endpoint keys are present, false otherwise
    */
-  private boolean checkOSSCredentials(UnderFileSystemConfiguration conf) {
-    return conf.isSet(PropertyKey.OSS_ACCESS_KEY)
-        && conf.isSet(PropertyKey.OSS_SECRET_KEY)
-        && conf.isSet(PropertyKey.OSS_ENDPOINT_KEY);
+  private boolean checkCOSCredentials(UnderFileSystemConfiguration conf) {
+    return conf.isSet(PropertyKey.COS_ACCESS_KEY)
+        && conf.isSet(PropertyKey.COS_SECRET_KEY)
+        && conf.isSet(PropertyKey.COS_REGION);
   }
 }

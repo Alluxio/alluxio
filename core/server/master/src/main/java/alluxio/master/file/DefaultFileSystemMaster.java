@@ -146,7 +146,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -173,6 +172,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -185,8 +185,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
-  private static final Set<Class<? extends Server>> DEPS =
-      ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
+  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
   /**
    * Locking in DefaultFileSystemMaster
@@ -320,25 +319,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   /** This caches paths which have been synced with UFS. */
   private final UfsSyncPathCache mUfsSyncPathCache;
-
-  /**
-   * The service that checks for inode files with ttl set. We store it here so that it can be
-   * accessed from tests.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mTtlCheckerService;
-
-  /**
-   * The service that detects lost files. We store it here so that it can be accessed from tests.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mLostFilesDetectionService;
-
-  /**
-   * The service that checks for blocks which no longer correspond to existing inodes.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mBlockIntegrityCheck;
 
   private Future<List<AlluxioURI>> mStartupConsistencyCheck;
 
@@ -511,15 +491,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       int blockIntegrityCheckInterval =
           (int) Configuration.getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL);
       if (blockIntegrityCheckInterval > 0) { // negative or zero interval implies disabled
-        mBlockIntegrityCheck = getExecutorService().submit(
+        getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_BLOCK_INTEGRITY_CHECK,
                 new BlockIntegrityChecker(this), blockIntegrityCheckInterval));
       }
-      mTtlCheckerService = getExecutorService().submit(
+      getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree),
               (int) Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS)));
-      mLostFilesDetectionService = getExecutorService().submit(
+      getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
               new LostFileDetector(this, mInodeTree),
               (int) Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL)));
@@ -558,10 +538,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * check on the file / directory is complete.
    *
    * @return a list of paths in Alluxio which are not consistent with the under storage
-   * @throws InterruptedException if the thread is interrupted during execution
    */
   private List<AlluxioURI> startupCheckConsistency(final ExecutorService service)
-      throws InterruptedException, IOException {
+      throws InterruptedException {
     /** A marker {@link StartupConsistencyChecker}s add to the queue to signal completion */
     final long completionMarker = -1;
     /** A shared queue of directories which have yet to be checked */
@@ -711,8 +690,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      UnavailableException, IOException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.READ);
@@ -752,11 +730,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /**
    * @param inodePath the {@link LockedInodePath} to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws AccessControlException if permission denied
    */
   private FileInfo getFileInfoInternal(LockedInodePath inodePath)
-      throws FileDoesNotExistException, AccessControlException, UnavailableException {
+      throws FileDoesNotExistException, UnavailableException {
     InodeView inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
@@ -881,9 +857,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param descendantType if the currInodePath is a directory, how many levels of its descendant
    *                       should be returned
    * @param statusList To be populated with the status of the files and directories requested
-   * @throws AccessControlException if the path can not be read by the user
-   * @throws FileDoesNotExistException if the path does not exist
-   * @throws UnavailableException if the service is temporarily unavailable
    */
   private void listStatusInternal(LockedInodePath currInodePath, AuditContext auditContext,
       DescendantType descendantType, List<FileInfo> statusList)
@@ -934,11 +907,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param loadMetadataType the {@link LoadMetadataType} to check
    * @param path the path that does not exist in Alluxio namespace (used for exception message)
-   * @throws InvalidPathException if the path is invalid
-   * @throws FileDoesNotExistException if the path does not exist
    */
   private void checkLoadMetadataOptions(LoadMetadataType loadMetadataType, AlluxioURI path)
-      throws InvalidPathException, FileDoesNotExistException {
+      throws FileDoesNotExistException {
     if (loadMetadataType == LoadMetadataType.Never || (loadMetadataType == LoadMetadataType.Once
         && mUfsAbsentPathCache.isAbsent(path))) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
@@ -950,8 +921,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * exist.
    *
    * @param inodePath the path to ensure
-   * @throws InvalidPathException if the path is invalid
-   * @throws FileDoesNotExistException if the path does not exist
    */
   private void ensureFullPathAndUpdateCache(LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException {
@@ -1025,11 +994,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inode the inode to check
    * @param path the current path associated with the inode
    * @return true if the path is consistent, false otherwise
-   * @throws FileDoesNotExistException if the path cannot be found in the Alluxio inode tree
-   * @throws InvalidPathException if the path is not well formed
    */
   private boolean checkConsistencyInternal(InodeView inode, AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(path);
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
@@ -1080,11 +1047,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param inodePath the {@link LockedInodePath} to complete
    * @param options the method options
-   * @throws InvalidPathException if an invalid path is encountered
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws BlockInfoException if a block information exception is encountered
-   * @throws FileAlreadyCompletedException if the file is already completed
-   * @throws InvalidFileSizeException if an invalid file size is encountered
    */
   private void completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
       CompleteFileOptions options)
@@ -1147,10 +1109,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param length the length to use
    * @param opTimeMs the operation time (in milliseconds)
    * @param ufsFingerprint the ufs fingerprint
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws InvalidPathException if an invalid path is encountered
-   * @throws InvalidFileSizeException if an invalid file size is encountered
-   * @throws FileAlreadyCompletedException if the file has already been completed
    */
   private void completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath, long length,
       long opTimeMs, String ufsFingerprint)
@@ -1247,11 +1205,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the path to be created
    * @param options method options
    * @return {@link InodeTree.CreatePathResult} with the path creation result
-   * @throws InvalidPathException if an invalid path is encountered
-   * @throws FileAlreadyExistsException if the file already exists
-   * @throws BlockInfoException if invalid block information is encountered
-   * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
-   *         option is false
    */
   InodeTree.CreatePathResult createFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
       CreateFileOptions options)
@@ -1401,9 +1354,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param inodePath the file {@link LockedInodePath}
    * @param deleteOptions the method optitions
-   * @throws FileDoesNotExistException if a non-existent file is encountered
-   * @throws InvalidPathException if the specified path is the root
-   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
   @VisibleForTesting
   public void deleteInternal(RpcContext rpcContext, LockedInodePath inodePath,
@@ -1545,7 +1495,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /**
    * @param inodePath the {@link LockedInodePath} to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the given inode
-   * @throws InvalidPathException if the path of the given file is invalid
    */
   private List<FileBlockInfo> getFileBlockInfoListInternal(LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException, UnavailableException {
@@ -1566,10 +1515,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the file the block is a part of
    * @param blockInfo the {@link BlockInfo} to generate the {@link FileBlockInfo} from
    * @return a new {@link FileBlockInfo} for the block
-   * @throws InvalidPathException if the mount table is not able to resolve the file
    */
   private FileBlockInfo generateFileBlockInfo(LockedInodePath inodePath, BlockInfo blockInfo)
-      throws InvalidPathException, FileDoesNotExistException {
+      throws FileDoesNotExistException {
     InodeFileView file = inodePath.getInodeFile();
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.setBlockInfo(blockInfo);
@@ -1817,13 +1765,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param options method options
    * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
    *         modified inodes and created inodes during path creation
-   * @throws InvalidPathException when the path is invalid
-   * @throws FileAlreadyExistsException when there is already a file at path
-   * @throws AccessControlException if permission checking fails
    */
   private InodeTree.CreatePathResult createDirectoryInternal(RpcContext rpcContext,
       LockedInodePath inodePath, CreateDirectoryOptions options) throws InvalidPathException,
-      FileAlreadyExistsException, IOException, AccessControlException, FileDoesNotExistException {
+      FileAlreadyExistsException, IOException, FileDoesNotExistException {
     try {
       InodeTree.CreatePathResult createResult =
           mInodeTree.createPath(rpcContext, inodePath, options);
@@ -1911,9 +1856,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param srcInodePath the source path to rename
    * @param dstInodePath the destination path to rename the file to
    * @param options method options
-   * @throws InvalidPathException if an invalid path is encountered
-   * @throws FileDoesNotExistException if a non-existent file is encountered
-   * @throws FileAlreadyExistsException if the file already exists
    */
   private void renameInternal(RpcContext rpcContext, LockedInodePath srcInodePath,
       LockedInodePath dstInodePath, RenameOptions options) throws InvalidPathException,
@@ -1985,8 +1927,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param dstInodePath the path to the rename destination
    * @param replayed whether the operation is a result of replaying the journal
    * @param options method options
-   * @throws FileDoesNotExistException if a non-existent file is encountered
-   * @throws InvalidPathException if an invalid path is encountered
    */
   private void renameInternal(RpcContext rpcContext, LockedInodePath srcInodePath,
       LockedInodePath dstInodePath, boolean replayed, RenameOptions options)
@@ -2086,13 +2026,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /**
    * Propagates the persisted status to all parents of the given inode in the same mount partition.
    *
-   * @param rpcContext the rpc context
+   * @param journalContext the journal context
    * @param inodePath the inode to start the propagation at
    * @return list of inodes which were marked as persisted
-   * @throws FileDoesNotExistException if a non-existent file is encountered
    */
-  private void propagatePersistedInternal(RpcContext rpcContext, LockedInodePath inodePath)
-      throws FileDoesNotExistException {
+  private void propagatePersistedInternal(Supplier<JournalContext> journalContext,
+      LockedInodePath inodePath) throws FileDoesNotExistException {
     InodeView inode = inodePath.getInode();
 
     List<InodeView> inodes = inodePath.getInodeList();
@@ -2113,7 +2052,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // Stop if a persisted directory is encountered.
         break;
       }
-      mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
+      mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
           .setId(ancestor.getId())
           .setPersistenceState(PersistenceState.PERSISTED.name())
           .build());
@@ -2147,9 +2086,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param inodePath inode of the path to free
    * @param options options to free
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the given path is invalid
    */
   private void freeInternal(RpcContext rpcContext, LockedInodePath inodePath, FreeOptions options)
       throws FileDoesNotExistException, UnexpectedAlluxioException,
@@ -2280,12 +2216,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param inodePath the path for which metadata should be loaded
    * @param options the load metadata options
-   * @throws InvalidPathException if invalid path is encountered
-   * @throws FileDoesNotExistException if there is no UFS path
-   * @throws BlockInfoException if an invalid block size is encountered
-   * @throws FileAlreadyCompletedException if the file is already completed
-   * @throws InvalidFileSizeException if invalid file size is encountered
-   * @throws AccessControlException if permission checking fails
    */
   private void loadMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
       LoadMetadataOptions options)
@@ -2368,12 +2298,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the path for which metadata should be loaded
    * @param resolution the UFS resolution of path
    * @param options the load metadata options
-   * @throws BlockInfoException if an invalid block size is encountered
-   * @throws FileDoesNotExistException if there is no UFS path
-   * @throws InvalidPathException if invalid path is encountered
-   * @throws AccessControlException if permission checking fails or permission setting fails
-   * @throws FileAlreadyCompletedException if the file is already completed
-   * @throws InvalidFileSizeException if invalid file size is encountered
    */
   private void loadFileMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
       MountTable.Resolution resolution, LoadMetadataOptions options)
@@ -2455,9 +2379,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param inodePath the path for which metadata should be loaded
    * @param options the load metadata options
-   * @throws InvalidPathException if invalid path is encountered
-   * @throws AccessControlException if permission checking fails
-   * @throws FileDoesNotExistException if the path does not exist
    */
   private void loadDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
       LoadMetadataOptions options)
@@ -2578,10 +2499,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the Alluxio path to mount to
    * @param ufsPath the UFS path to mount
    * @param options the mount options
-   * @throws InvalidPathException if an invalid path is encountered
-   * @throws FileAlreadyExistsException if the path to be mounted to already exists
-   * @throws FileDoesNotExistException if the parent of the path to be mounted to does not exist
-   * @throws AccessControlException if the permission check fails
    */
   private void mountAndJournal(RpcContext rpcContext, LockedInodePath inodePath, AlluxioURI ufsPath,
       MountOptions options) throws InvalidPathException, FileAlreadyExistsException,
@@ -2624,8 +2541,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   /**
    * @param entry the entry to use
-   * @throws FileAlreadyExistsException if the mount point already exists
-   * @throws InvalidPathException if an invalid path is encountered
    */
   private void mountFromEntry(AddMountPointEntry entry)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
@@ -2647,8 +2562,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param mountId the mount id
    * @param replayed whether the operation is a result of replaying the journal
    * @param options the mount options (may be updated)
-   * @throws FileAlreadyExistsException if the mount point already exists
-   * @throws InvalidPathException if an invalid path is encountered
    */
   private void mountInternal(LockedInodePath inodePath, AlluxioURI ufsPath, long mountId,
       boolean replayed, MountOptions options)
@@ -2657,7 +2570,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // Adding the mount point will not create the UFS instance and thus not connect to UFS
     mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
-            .setShared(options.isShared()).setUserSpecifiedConf(options.getProperties()));
+            .setShared(options.isShared()).setMountSpecificConf(options.getProperties()));
     try {
       if (!replayed) {
         try (CloseableResource<UnderFileSystem> ufsResource =
@@ -2725,8 +2638,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param rpcContext the rpc context
    * @param inodePath the Alluxio path to unmount, must be a mount point
-   * @throws InvalidPathException if the given path is not a mount point
-   * @throws FileDoesNotExistException if the path to be mounted does not exist
    */
   private void unmountAndJournal(RpcContext rpcContext, LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException, IOException {
@@ -2997,9 +2908,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rootRequired indicates whether it requires to be the superuser
    * @param ownerRequired indicates whether it requires to be the owner of this path
    * @param options attributes to be set, see {@link SetAttributeOptions}
-   * @throws InvalidPathException if the given path is invalid
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws AccessControlException if permission checking fails
    */
   private void setAttributeInternal(RpcContext rpcContext, LockedInodePath inodePath,
       boolean rootRequired, boolean ownerRequired, SetAttributeOptions options)
@@ -3311,9 +3219,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param updateUfs whether to update the UFS with the attribute change
    * @param opTimeMs the operation time (in milliseconds)
    * @param options the method options
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws InvalidPathException if the file path corresponding to the file id is invalid
-   * @throws AccessControlException if failed to set permission
    */
   private void setAttributeSingleFile(RpcContext rpcContext, LockedInodePath inodePath,
       boolean updateUfs, long opTimeMs, SetAttributeOptions options)
@@ -3443,7 +3348,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param ufsPath the ufs path
    * @param ufsMode the ufs mode
-   * @throws InvalidPathException if path is not used by any mount point
    */
   private void updateUfsModeAndJournal(RpcContext rpcContext, AlluxioURI ufsPath,
       UnderFileSystem.UfsMode ufsMode) throws InvalidPathException {
@@ -3454,7 +3358,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * Update ufs mode from journal entry.
    *
    * @param entry the update ufs mode journal entry
-   * @throws InvalidPathException if the path is not used by any mount point
    */
   private void updateUfsModeFromEntry(File.UpdateUfsModeEntry entry) throws InvalidPathException {
     String ufsPath = entry.getUfsPath();
@@ -3472,7 +3375,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param alluxioPath the Alluxio path
    * @param opType the operation type
-   * @throws AccessControlException if the specified operation is not allowed
    */
   private void checkUfsMode(AlluxioURI alluxioPath, OperationType opType)
       throws AccessControlException, InvalidPathException {
@@ -3645,8 +3547,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param dstPath the destination path of this command
    * @param srcInode the source inode of this command
    * @return newly-created {@link FileSystemMasterAuditContext} instance
-   * @throws AccessControlException if {@link AuthenticatedClientUser#getClientUser} finds that
-   *         the thread-local user is null. Normally this should not happen.
    */
   private FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
       @Nullable AlluxioURI dstPath, @Nullable InodeView srcInode) throws AccessControlException {

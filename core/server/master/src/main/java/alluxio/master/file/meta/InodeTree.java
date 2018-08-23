@@ -775,9 +775,21 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
         if (directoryOptions.isPersisted()) {
           // Do not journal the persist entry, since a creation entry will be journaled instead.
-          // TODO(david): remove this call to syncPersistDirectory to improve performance
-          // of recursive ls.
-          syncPersistNewDirectory(newDir);
+          if (options.isMetadataLoad()) {
+            // if we are creating the file as a result of loading metadata, the newDir is already
+            // persisted, and we got the permissions info from the ufs.
+            newDir.setOwner(options.getOwner())
+                .setGroup(options.getGroup())
+                .setMode(options.getMode().toShort());
+
+            Long lastModificationTime = options.getOperationTimeMs();
+            if (lastModificationTime != null) {
+              newDir.setLastModificationTimeMs(lastModificationTime, true);
+            }
+            newDir.setPersistenceState(PersistenceState.PERSISTED);
+          } else {
+            syncPersistNewDirectory(newDir);
+          }
         }
         newInode = newDir;
       } else if (options instanceof CreateFileOptions) {
