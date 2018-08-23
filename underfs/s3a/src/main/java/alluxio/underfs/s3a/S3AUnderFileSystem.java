@@ -20,6 +20,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -35,6 +36,7 @@ import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.internal.Mimetypes;
+import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
@@ -62,6 +64,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -223,6 +226,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
     transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
     transferManager.setConfiguration(transferConf);
+
+    abortMultiPartUpload(transferManager, bucketName, conf);
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
         service, transferManager, conf, streamingUploadEnbaled);
   }
@@ -309,7 +314,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     if (mStreamingUploadEnabled) {
-      return new S3AFastOutputStream(mBucketName, key, mClient, mExecutor);
+      return new S3ALowLevelOutputStream(mBucketName, key, mClient, mExecutor);
     }
     return new S3AOutputStream(mBucketName, key, mManager);
   }
@@ -381,6 +386,27 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       }
     }
     return null;
+  }
+
+  /**
+   * Aborts all intermediate multipart uploads older than clean age.
+   *
+   * @param manager a transfer manager
+   * @param bucketName the bucket to abort
+   * @param conf the under filesystem configuration
+   */
+  private static void abortMultiPartUpload(TransferManager manager, String bucketName,
+      UnderFileSystemConfiguration conf) {
+    if (!conf.containsKey(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED)
+        || !conf.getValue(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED).equals("true")) {
+      return;
+    }
+    long cleanAge = conf.containsKey(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS) ?
+        Math.max(FormatUtils.parseTimeSize(conf.getValue(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS)), 0)
+        : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS.getDefaultValue());
+    Date cleanDate = new Date(new Date().getTime() - cleanAge);
+    manager.abortMultipartUploads(bucketName, cleanDate);
+    LOG.debug("Cleaned all intermediate multipart uploads of bucket {} older than {}.", bucketName, cleanDate);
   }
 
   // Get next chunk of listing result.

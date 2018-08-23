@@ -715,6 +715,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED =
+      new Builder(Name.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether or not to clean existing multipart uploads that may not "
+              + "have been completed/aborted correctly. If enabled, when our filesystem is "
+              + "instantiated, all the old intermediate multipart uploads will be cleaned. "
+              + "This may impact other ongoing upload operations, so should be used sparingly.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS =
+      new Builder(Name.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS)
+          .setDefaultValue("1day")
+          .setDescription("Clean all the multipart uploads older than this age.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.underfs.s3a.consistency.timeout.ms"})
@@ -3134,11 +3151,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
     public static final String UNDERFS_S3A_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3a.bulk.delete.enabled";
-    public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
+    public static final String UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED =
+        "alluxio.underfs.s3a.clean.existing.multipart.enabled";
+    public static final String UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS =
+        "alluxio.underfs.s3a.clean.existing.multipart.age.ms";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout";
     public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
         "alluxio.underfs.s3a.directory.suffix";
+    public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
     public static final String UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
         "alluxio.underfs.s3a.list.objects.v1";
     public static final String UNDERFS_S3A_REQUEST_TIMEOUT_MS =
