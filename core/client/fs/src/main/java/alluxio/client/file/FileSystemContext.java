@@ -488,9 +488,13 @@ public final class FileSystemContext implements Closeable {
    * thread so that we can exit early if the heartbeat is taking too long.
    */
   private final class MetricsMasterSyncShutDownHook extends Thread {
-    private final Thread mLastHeartbeatThread = new Thread() {
-      @Override
-      public void run() {
+    private final Thread mLastHeartbeatThread;
+
+    /**
+     * Creates a new metrics master shutdown hook.
+     */
+    public MetricsMasterSyncShutDownHook() {
+      mLastHeartbeatThread = new Thread(() -> {
         if (mClientMasterSync != null) {
           try {
             mClientMasterSync.heartbeat();
@@ -498,8 +502,9 @@ public final class FileSystemContext implements Closeable {
             return;
           }
         }
-      }
-    };
+      });
+      mLastHeartbeatThread.setDaemon(true);
+    }
 
     @Override
     public void run() {
