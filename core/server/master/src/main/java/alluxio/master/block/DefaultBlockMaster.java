@@ -67,7 +67,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jersey.repackaged.com.google.common.base.Preconditions;
-
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,9 +93,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.Nullable;
 
 /**
  * This block master manages the metadata for all the blocks and block workers in Alluxio.
@@ -746,7 +745,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         worker.updateLastUpdatedTimeMs();
         mWorkers.add(worker);
         workers.remove(worker);
-        if (workers ==  mLostWorkers) {
+        if (workers == mLostWorkers) {
           for (Consumer<Address> function : mLostWorkerFoundListeners) {
             function.accept(new Address(worker.getWorkerAddress().getHost(),
                   worker.getWorkerAddress().getRpcPort()));
