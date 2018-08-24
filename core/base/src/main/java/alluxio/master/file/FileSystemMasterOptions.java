@@ -11,6 +11,7 @@
 
 package alluxio.master.file;
 
+import alluxio.file.options.CheckConsistencyOptions;
 import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
@@ -22,11 +23,14 @@ import alluxio.file.options.LoadMetadataOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAttributeOptions;
+import alluxio.file.options.SyncMetadataOptions;
 
 /**
  * The interface for file system master default options.
  */
 public interface FileSystemMasterOptions {
+  CheckConsistencyOptions getCheckConsistencyOptions();
+
   CommonOptions getCommonOptions();
 
   CompleteFileOptions getCompleteFileOptions();
@@ -48,4 +52,6 @@ public interface FileSystemMasterOptions {
   RenameOptions getRenameOptions();
 
   SetAttributeOptions getSetAttributeOptions();
+
+  SyncMetadataOptions getSyncMetadataOptions();
 }

@@ -11,6 +11,7 @@
 
 package alluxio.master.file;
 
+import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CommonOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -22,11 +23,17 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.file.options.SyncMetadataOptions;
 
 /**
  * The file system class to set default options.
  */
 public final class DefaultFileSystemMasterOptions implements FileSystemMasterOptions {
+
+  @Override
+  public CheckConsistencyOptions getCheckConsistencyOptions() {
+    return CheckConsistencyOptions.defaults();
+  }
 
   @Override
   public CommonOptions getCommonOptions() {
@@ -81,5 +88,10 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   @Override
   public SetAttributeOptions getSetAttributeOptions() {
     return SetAttributeOptions.defaults();
+  }
+
+  @Override
+  public SyncMetadataOptions getSyncMetadataOptions() {
+    return SyncMetadataOptions.defaults();
   }
 }
