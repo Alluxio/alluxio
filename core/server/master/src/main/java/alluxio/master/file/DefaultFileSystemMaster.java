@@ -83,7 +83,6 @@ import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
-import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.DeleteMountPointEntry;
 import alluxio.proto.journal.File.NewBlockEntry;
@@ -394,7 +393,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
     if (mDirectoryIdGenerator.replayJournalEntryFromJournal(entry)
-        || mInodeTree.replayJournalEntryFromJournal(entry)) {
+        || mInodeTree.replayJournalEntryFromJournal(entry)
+        || mUfsManager.replayJournalEntryFromJournal(entry)) {
       return;
     } else if (entry.hasReinitializeFile() || entry.hasLineage() || entry.hasLineageIdGenerator()
         || entry.hasDeleteLineage()) {
@@ -407,12 +407,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     } else if (entry.hasDeleteMountPoint()) {
       unmountFromEntry(entry.getDeleteMountPoint());
-    } else if (entry.hasUpdateUfsMode()) {
-      try {
-        updateUfsModeFromEntry(entry.getUpdateUfsMode());
-      } catch (AlluxioException e) {
-        throw new RuntimeException(e);
-      }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -3331,43 +3325,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
-      throws InvalidPathException, InvalidArgumentException, UnavailableException,
+      throws InvalidPathException, UnavailableException,
       AccessControlException {
     // TODO(adit): Create new fsadmin audit context
     try (RpcContext rpcContext = createRpcContext();
         FileSystemMasterAuditContext auditContext =
             createAuditContext("updateUfsMode", ufsPath, null, null)) {
-      updateUfsModeAndJournal(rpcContext, ufsPath, ufsMode);
+      mUfsManager.setUfsMode(rpcContext, ufsPath, ufsMode);
       auditContext.setSucceeded(true);
     }
-  }
-
-  /**
-   * Update the ufs mode for path and create a journal entry.
-   *
-   * @param rpcContext the rpc context
-   * @param ufsPath the ufs path
-   * @param ufsMode the ufs mode
-   */
-  private void updateUfsModeAndJournal(RpcContext rpcContext, AlluxioURI ufsPath,
-      UnderFileSystem.UfsMode ufsMode) throws InvalidPathException {
-    updateUfsModeInternal(ufsPath, ufsMode, rpcContext);
-  }
-
-  /**
-   * Update ufs mode from journal entry.
-   *
-   * @param entry the update ufs mode journal entry
-   */
-  private void updateUfsModeFromEntry(File.UpdateUfsModeEntry entry) throws InvalidPathException {
-    String ufsPath = entry.getUfsPath();
-    UnderFileSystem.UfsMode ufsMode = UnderFileSystem.UfsMode.valueOf(entry.getUfsMode().name());
-    updateUfsModeInternal(new AlluxioURI(ufsPath), ufsMode, RpcContext.NOOP);
-  }
-
-  private void updateUfsModeInternal(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode,
-      RpcContext rpcContext) throws InvalidPathException {
-    mUfsManager.setUfsMode(ufsPath, ufsMode, rpcContext);
   }
 
   /**
