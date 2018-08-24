@@ -20,7 +20,7 @@
   <artifactId>alluxio-core-base</artifactId>
   <packaging>jar</packaging>
   <name>Alluxio Core - Base module</name>
-  <description>Base shared b/w all Alluxio core modules</description>
+  <description>API definition for all Alluxio Services</description>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
