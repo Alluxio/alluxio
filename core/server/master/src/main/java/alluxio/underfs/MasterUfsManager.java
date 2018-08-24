@@ -60,8 +60,8 @@ public final class MasterUfsManager extends AbstractUfsManager
   }
 
   @Override
-  public synchronized void addMount(long mountId, AlluxioURI ufsUri,
-      UnderFileSystemConfiguration ufsConf) {
+  public synchronized void addMount(long mountId, final AlluxioURI ufsUri,
+      final UnderFileSystemConfiguration ufsConf) {
     super.addMount(mountId, ufsUri, ufsConf);
     String root = ufsUri.getRootPath();
     mUfsRoots.add(root);
