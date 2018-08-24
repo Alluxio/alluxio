@@ -73,9 +73,6 @@ public abstract class AbstractClient implements Client {
    */
   protected long mServiceVersion;
 
-  /** Handler to the transport provider according to the authentication type. */
-  protected final TransportProvider mTransportProvider;
-
   private final Subject mParentSubject;
 
   /**
@@ -101,7 +98,6 @@ public abstract class AbstractClient implements Client {
     mParentSubject = subject;
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
-    mTransportProvider = TransportProvider.Factory.create();
   }
 
   /**
@@ -177,6 +173,7 @@ public abstract class AbstractClient implements Client {
   /**
    * Connects with the remote.
    */
+  @Override
   public synchronized void connect() throws AlluxioStatusException {
     if (mConnected) {
       return;
@@ -204,7 +201,7 @@ public abstract class AbstractClient implements Client {
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         // The wrapper transport
         TTransport clientTransport =
-            mTransportProvider.getClientTransport(mParentSubject, mAddress);
+            TransportProvider.Factory.create().getClientTransport(mParentSubject, mAddress);
         mProtocol = ThriftUtils.createThriftProtocol(clientTransport, getServiceName());
         mProtocol.getTransport().open();
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
