@@ -65,9 +65,7 @@ import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import jersey.repackaged.com.google.common.base.Preconditions;
 
 import org.apache.thrift.TProcessor;
@@ -98,6 +96,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.Nullable;
 
 /**
  * This block master manages the metadata for all the blocks and block workers in Alluxio.
@@ -176,7 +175,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
-  /** Worker is not visualable until after registered. */
+  /** Worker is not visualable until registration completes. */
   private final IndexedSet<MasterWorkerInfo> mTempWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
@@ -696,7 +695,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     return ret;
   }
 
-  private MasterWorkerInfo lookupWorker(WorkerNetAddress workerNetAddress) {
+  /**
+   * Find a worker which is considered lost or just gets its id.
+   * @param workerNetAddress the address used to find a worker
+   * @return a {@link MasterWorkerInfo} which is presented in master but not registered,
+   *         or null if not worker is found.
+   */
+  @Nullable
+  private MasterWorkerInfo findUnregisteredWorker(WorkerNetAddress workerNetAddress) {
     for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
       if (worker != null) {
@@ -706,7 +712,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     return null;
   }
 
-  private MasterWorkerInfo lookupWorker(long workerId) {
+  /**
+   * Find a worker which is considered lost or just gets its id.
+   * @param workerId the id used to find a worker
+   * @return a {@link MasterWorkerInfo} which is presented in master but not registered,
+   *         or null if not worker is found.
+   */
+  @Nullable
+  private MasterWorkerInfo findUnregisteredWorker(long workerId) {
     for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker != null) {
@@ -716,7 +729,13 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     return null;
   }
 
-  private MasterWorkerInfo moveWorker(long workerId) {
+  /**
+   * Re-register a lost worker or complete registration after getting a worker id.
+   *
+   * @param workerId the worker id to register
+   */
+  @Nullable
+  private MasterWorkerInfo registerWorkerInternal(long workerId) {
     for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker == null) {
@@ -734,8 +753,6 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
           }
           LOG.warn("A lost worker {} has requested its old id {}.",
               worker.getWorkerAddress(), worker.getId());
-        } else {
-          LOG.info("=== move worker {}:{}", worker.getId(), worker.getWorkerAddress());
         }
       }
 
@@ -755,14 +772,13 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       return oldWorkerId;
     }
 
-    existingWorker = lookupWorker(workerNetAddress);
+    existingWorker = findUnregisteredWorker(workerNetAddress);
     if (existingWorker != null) {
       return existingWorker.getId();
     }
 
     // Generate a new worker id.
     long workerId = IdUtils.getRandomNonNegativeLong();
-    //while (!mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
     while (!mTempWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
       workerId = IdUtils.getRandomNonNegativeLong();
     }
@@ -780,7 +796,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
 
     if (worker == null) {
-      worker = lookupWorker(workerId);
+      worker = findUnregisteredWorker(workerId);
     }
 
     if (worker == null) {
@@ -813,7 +829,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       }
     }
 
-    moveWorker(workerId);
+    registerWorkerInternal(workerId);
 
     LOG.info("registerWorker(): {}", worker);
   }
