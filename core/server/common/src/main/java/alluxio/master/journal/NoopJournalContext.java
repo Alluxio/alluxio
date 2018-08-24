@@ -25,7 +25,7 @@ public final class NoopJournalContext implements JournalContext {
   /**
    * Constructs the {@link NoopJournalContext}.
    */
-  public NoopJournalContext() {
+  private NoopJournalContext() {
     // Do nothing
   }
 

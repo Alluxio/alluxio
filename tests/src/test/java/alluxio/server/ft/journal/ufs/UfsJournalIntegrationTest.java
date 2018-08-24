@@ -39,9 +39,7 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.master.MasterTestUtils;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -471,33 +469,6 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
       Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/a" + k)) != IdUtils.INVALID_FILE_ID);
     }
     registry.stop();
-  }
-
-  /**
-   * Tests the situation where a checkpoint mount entry is replayed by a standby master.
-   */
-  @Test
-  public void mountEntryCheckpoint() throws Exception {
-    final AlluxioURI mountUri = new AlluxioURI("/local_mnt/");
-    final AlluxioURI ufsUri = new AlluxioURI(mTestFolder.newFolder("test_ufs").getAbsolutePath());
-
-    // Create a mount point, which will journal a mount entry.
-    mFileSystem.mount(mountUri, ufsUri);
-    mLocalAlluxioCluster.stopFS();
-
-    // Start a leader master with a mount entry.
-    MasterTestUtils.createLeaderFileSystemMasterFromJournal().stop();
-
-    // Start a standby master, which will replay the mount entry from the journal.
-    MasterRegistry registry = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
-    final FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
-    try {
-      CommonUtils.waitFor("journal checkpoint replay",
-          () -> fsMaster.getMountTable().containsKey(mountUri.toString()),
-          WaitForOptions.defaults().setTimeoutMs(60 * Constants.SECOND_MS));
-    } finally {
-      registry.stop();
-    }
   }
 
   /**
