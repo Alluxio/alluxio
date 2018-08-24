@@ -11,8 +11,10 @@
 
 package alluxio.underfs.hdfs;
 
+import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
 
+import alluxio.security.authorization.DefaultAccessControlList;
 import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
@@ -32,7 +34,8 @@ public interface HdfsAclProvider {
    * @throws IOException if ACL is supported but cannot be retrieved
    */
   @Nullable
-  AccessControlList getAcl(FileSystem hdfs, String path) throws IOException;
+  Pair<AccessControlList, DefaultAccessControlList> getAcl(FileSystem hdfs, String path)
+      throws IOException;
 
   /**
    * Sets the ACL for an hdfs path.

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
@@ -79,7 +80,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public AccessControlList getAcl(String path) throws IOException {
+  public Pair<AccessControlList, DefaultAccessControlList> getAcl(String path) throws IOException {
     return null;
   }
 
@@ -90,13 +91,15 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public String getFingerprint(String path) {
+    // TODO (yuzhu): include default ACL in the fingerprint
     try {
       UfsStatus status = getStatus(path);
-      AccessControlList acl = getAcl(path);
-      if (acl == null || !acl.hasExtended()) {
+      Pair<AccessControlList, DefaultAccessControlList> aclPair = getAcl(path);
+
+      if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
         return Fingerprint.create(getUnderFSType(), status).serialize();
       } else {
-        return Fingerprint.create(getUnderFSType(), status, acl).serialize();
+        return Fingerprint.create(getUnderFSType(), status, aclPair.getFirst()).serialize();
       }
 
     } catch (Exception e) {

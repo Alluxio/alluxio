@@ -11,8 +11,10 @@
 
 package alluxio.underfs.hdfs.acl;
 
+import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.hdfs.HdfsAclProvider;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -40,19 +42,25 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
   private static final Logger LOG = LoggerFactory.getLogger(SupportedHdfsAclProvider.class);
 
   @Override
-  public AccessControlList getAcl(FileSystem hdfs, String path) throws IOException {
+  public Pair<AccessControlList, DefaultAccessControlList> getAcl(FileSystem hdfs, String path)
+      throws IOException {
     AclStatus hdfsAcl;
+    Path filePath = new Path(path);
+    boolean isDir = hdfs.isDirectory(filePath);
     try {
-      hdfsAcl = hdfs.getAclStatus(new Path(path));
+      hdfsAcl = hdfs.getAclStatus(filePath);
     } catch (AclException e) {
       // When dfs.namenode.acls.enabled is false, getAclStatus throws AclException.
       return null;
     }
     AccessControlList acl = new AccessControlList();
+    DefaultAccessControlList defaultAcl = new DefaultAccessControlList();
+
     acl.setOwningUser(hdfsAcl.getOwner());
     acl.setOwningGroup(hdfsAcl.getGroup());
+    defaultAcl.setOwningUser(hdfsAcl.getOwner());
+    defaultAcl.setOwningGroup(hdfsAcl.getGroup());
     for (AclEntry entry : hdfsAcl.getEntries()) {
-      // TODO(chen): handle the case where the entry is for default ACL in a directory.
       alluxio.security.authorization.AclEntry.Builder builder =
           new alluxio.security.authorization.AclEntry.Builder();
       builder.setType(getAclEntryType(entry));
@@ -65,9 +73,19 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
       } else if (permission.implies(FsAction.EXECUTE)) {
         builder.addAction(AclAction.EXECUTE);
       }
-      acl.setEntry(builder.build());
+      if (entry.getScope().equals(AclEntryScope.ACCESS)) {
+        acl.setEntry(builder.build());
+      } else {
+        // default ACL, must be a directory
+        defaultAcl.setEntry(builder.build());
+      }
     }
-    return acl;
+    if (isDir) {
+      return new Pair<>(acl, defaultAcl);
+    } else {
+      // a null defaultACL indicates this is a file
+      return new Pair<>(acl, null);
+    }
   }
 
   @Override

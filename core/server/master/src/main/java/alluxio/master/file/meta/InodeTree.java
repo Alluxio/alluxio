@@ -667,13 +667,11 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
         // if the parent has default ACL, copy that default ACL as the new directory's default
         // and access acl.
-        if (!options.isMetadataLoad()) {
-          DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
-          if (!dAcl.isEmpty()) {
-            Pair<AccessControlList, DefaultAccessControlList> pair = dAcl.generateChildDirACL();
-            newDir.setInternalAcl(pair.getFirst());
-            newDir.setDefaultACL(pair.getSecond());
-          }
+        DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+        if (!dAcl.isEmpty()) {
+          Pair<AccessControlList, DefaultAccessControlList> pair = dAcl.generateChildDirACL();
+          newDir.setInternalAcl(pair.getFirst());
+          newDir.setDefaultACL(pair.getSecond());
         }
 
         if (mState.applyAndJournal(rpcContext, newDir)) {

@@ -11,6 +11,8 @@
 
 package alluxio.master.file.options;
 
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.underfs.UfsStatus;
@@ -18,8 +20,10 @@ import alluxio.util.SecurityUtils;
 import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.List;
 
 /**
  * Method options for creating a directory.
@@ -28,6 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOptions> {
   private boolean mAllowExists;
   private UfsStatus mUfsStatus;
+  private List<AclEntry> mDefaultAcl;
 
   /**
    * @return the default {@link CreateDirectoryOptions}
@@ -77,6 +82,15 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
    */
   public boolean isAllowExists() {
     return mAllowExists;
+  }
+
+  public List<AclEntry> getDefaultAcl() {
+    return mDefaultAcl;
+  }
+
+  public CreateDirectoryOptions setDefaultAcl(List<AclEntry> defaultAcl) {
+    mDefaultAcl = ImmutableList.copyOf(defaultAcl);
+    return getThis();
   }
 
   /**
@@ -136,4 +150,6 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     return toStringHelper().add("allowExists", mAllowExists)
         .add("ufsStatus", mUfsStatus).toString();
   }
+
+
 }

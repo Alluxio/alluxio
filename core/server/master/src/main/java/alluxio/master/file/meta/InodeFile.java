@@ -109,7 +109,7 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
   }
 
   @Override
-  public void setDefaultACL(DefaultAccessControlList acl) throws UnsupportedOperationException {
+  public InodeFile setDefaultACL(DefaultAccessControlList acl) throws UnsupportedOperationException {
     throw new UnsupportedOperationException("setDefaultACL: File does not have default ACL");
   }
 

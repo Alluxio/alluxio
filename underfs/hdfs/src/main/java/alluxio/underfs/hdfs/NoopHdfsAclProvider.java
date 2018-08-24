@@ -11,8 +11,10 @@
 
 package alluxio.underfs.hdfs;
 
+import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
 
+import alluxio.security.authorization.DefaultAccessControlList;
 import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
@@ -22,7 +24,7 @@ import java.io.IOException;
  */
 public class NoopHdfsAclProvider implements HdfsAclProvider {
   @Override
-  public AccessControlList getAcl(FileSystem hdfs, String path) throws IOException {
+  public Pair<AccessControlList, DefaultAccessControlList> getAcl(FileSystem hdfs, String path) throws IOException {
     return null;
   }
 
