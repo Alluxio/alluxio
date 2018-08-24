@@ -23,6 +23,7 @@ import alluxio.master.backcompat.ops.PersistDirectory;
 import alluxio.master.backcompat.ops.PersistFile;
 import alluxio.master.backcompat.ops.Rename;
 import alluxio.master.backcompat.ops.SetAcl;
+import alluxio.master.backcompat.ops.UpdateUfsMode;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.security.LoginUser;
@@ -61,7 +62,8 @@ public final class BackwardsCompatibilityJournalGenerator {
           new PersistFile(),
           new PersistDirectory(),
           new Rename(),
-          new SetAcl()
+          new SetAcl(),
+          new UpdateUfsMode()
       ).build();
 
   @Parameter(required = true, names = {"-o", "--outputDirectory"},
