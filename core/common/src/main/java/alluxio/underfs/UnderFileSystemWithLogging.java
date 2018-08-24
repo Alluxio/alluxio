@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.metrics.CommonMetrics;
@@ -21,6 +22,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -208,10 +210,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public AccessControlList getAclPair(String path) throws IOException, UnimplementedException {
-    return call(new UfsCallable<AccessControlList>() {
+  public Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path)
+      throws IOException, UnimplementedException {
+    return call(new UfsCallable<Pair<AccessControlList, DefaultAccessControlList>>() {
       @Override
-      public AccessControlList call() throws IOException {
+      public Pair<AccessControlList, DefaultAccessControlList> call() throws IOException {
         return mUnderFileSystem.getAclPair(path);
       }
 

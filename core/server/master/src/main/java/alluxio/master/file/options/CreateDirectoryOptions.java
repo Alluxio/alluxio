@@ -23,6 +23,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -74,6 +75,7 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     mAllowExists = false;
     mMode.applyDirectoryUMask();
     mUfsStatus = null;
+    mDefaultAcl = Collections.emptyList();
   }
 
   /**
