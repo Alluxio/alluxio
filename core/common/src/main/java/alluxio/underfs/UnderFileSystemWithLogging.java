@@ -20,6 +20,7 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -207,11 +208,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public AccessControlList getAcl(String path) throws IOException, UnimplementedException {
+  public AccessControlList getAclPair(String path) throws IOException, UnimplementedException {
     return call(new UfsCallable<AccessControlList>() {
       @Override
       public AccessControlList call() throws IOException {
-        return mUnderFileSystem.getAcl(path);
+        return mUnderFileSystem.getAclPair(path);
       }
 
       @Override
@@ -551,17 +552,17 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public void setAcl(String path, AccessControlList acl) throws IOException {
+  public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
     call(new UfsCallable<Void>() {
       @Override
       public Void call() throws IOException {
-        mUnderFileSystem.setAcl(path, acl);
+        mUnderFileSystem.setAclEntries(path, aclEntries);
         return null;
       }
 
       @Override
       public String toString() {
-        return String.format("SetAcl: path=%s, ACL=%s", path, acl);
+        return String.format("SetAcl: path=%s, ACL=%s", path, aclEntries);
       }
     });
   }

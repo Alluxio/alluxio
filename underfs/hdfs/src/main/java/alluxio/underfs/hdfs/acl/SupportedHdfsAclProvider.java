@@ -89,11 +89,12 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
   }
 
   @Override
-  public void setAcl(FileSystem hdfs, String path, AccessControlList acl) throws IOException {
+  public void setAclEntries(FileSystem hdfs, String path,
+      List<alluxio.security.authorization.AclEntry> aclEntries) throws IOException {
     // convert AccessControlList into hdfsAcl
     List<AclEntry> aclSpecs = new ArrayList<>();
 
-    for (alluxio.security.authorization.AclEntry entry : acl.getEntries()) {
+    for (alluxio.security.authorization.AclEntry entry : aclEntries) {
       AclEntry hdfsAclEntry = getHdfsAclEntry(entry);
       aclSpecs.add(hdfsAclEntry);
     }

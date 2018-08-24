@@ -2311,7 +2311,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       ufsLength = ufsStatus.getContentLength();
 
       if (isAclEnabled()) {
-        Pair<AccessControlList, DefaultAccessControlList> aclPair = ufs.getAcl(ufsUri.toString());
+        Pair<AccessControlList, DefaultAccessControlList> aclPair = ufs.getAclPair(ufsUri.toString());
         if (aclPair != null) {
           acl = aclPair.getFirst();
           // DefaultACL should be null, because it is a file
@@ -2403,7 +2403,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         ufsStatus = ufs.getDirectoryStatus(ufsUri.toString());
       }
       Pair<AccessControlList, DefaultAccessControlList> aclPair =
-          ufs.getAcl(ufsUri.toString());
+          ufs.getAclPair(ufsUri.toString());
       if (aclPair != null) {
         acl = aclPair.getFirst();
         defaultAcl = aclPair.getSecond();
@@ -2727,11 +2727,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
       } else {
         try {
-          ufs.setAcl(ufsUri, inode.getACL());
+          List<AclEntry> entries = inode.getACL().getEntries();
           if (inode.isDirectory()) {
             InodeDirectoryView inodeDirectory = (InodeDirectoryView) inode;
-            ufs.setAcl(ufsUri, inodeDirectory.getDefaultACL());
+            entries.addAll(inodeDirectory.getDefaultACL().getEntries());
           }
+          ufs.setAclEntries(ufsUri, entries);
         } catch (IOException e) {
           throw new AccessControlException("Could not setAcl for UFS file: " + ufsUri);
         }
