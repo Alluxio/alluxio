@@ -815,7 +815,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } else {
         checkLoadMetadataOptions(listStatusOptions.getLoadMetadataType(), inodePath.getUri());
       }
-
+      LOG.info("loadMetadata called");
       loadMetadataIfNotExist(rpcContext, inodePath, loadMetadataOptions);
       ensureFullPathAndUpdateCache(inodePath);
       inode = inodePath.getInode();
@@ -2228,8 +2228,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         isFile = ufs.isFile(ufsUri.toString());
       }
       if (isFile) {
+        LOG.info("load metadata for file {}", inodePath.getUri().toString());
         loadFileMetadataInternal(rpcContext, inodePath, resolution, options);
       } else {
+        LOG.info("load metadata for dir {}", inodePath.getUri().toString());
         loadDirectoryMetadata(rpcContext, inodePath, options);
         InodeDirectoryView inode = (InodeDirectoryView) inodePath.getInode();
 
@@ -2241,8 +2243,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             listOptions.setRecursive(false);
           }
           UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
+
           Arrays.sort(children, Comparator.comparing(UfsStatus::getName));
 
+          for (UfsStatus childStatus : children) {
+            LOG.info("child {}", childStatus.getName());
+          }
           for (UfsStatus childStatus : children) {
             if (PathUtils.isTemporaryFileName(childStatus.getName())) {
               continue;
@@ -2274,7 +2280,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
     } catch (IOException e) {
-      LOG.debug("Failed to loadMetadata: inodePath={}, options={}.", inodePath.getUri(),
+      LOG.info("Failed to loadMetadata: inodePath={}, options={}.", inodePath.getUri(),
           options, e);
       throw e;
     }
@@ -2469,7 +2475,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (!inodeExists || loadDirectChildren) {
       try {
         loadMetadataInternal(rpcContext, inodePath, options);
-      } catch (Exception e) {
+      } catch (IOException | InvalidPathException | FileDoesNotExistException | BlockInfoException
+          | FileAlreadyCompletedException | InvalidFileSizeException |AccessControlException e) {
         // NOTE, this may be expected when client tries to get info (e.g. exists()) for a file
         // existing neither in Alluxio nor UFS.
         LOG.debug("Failed to load metadata for path from UFS: {}", inodePath.getUri());

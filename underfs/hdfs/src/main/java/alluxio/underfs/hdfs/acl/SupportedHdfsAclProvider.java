@@ -64,7 +64,7 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
       alluxio.security.authorization.AclEntry.Builder builder =
           new alluxio.security.authorization.AclEntry.Builder();
       builder.setType(getAclEntryType(entry));
-      builder.setSubject(entry.getName());
+      builder.setSubject(entry.getName() == null ? "" : entry.getName());
       FsAction permission = entry.getPermission();
       if (permission.implies(FsAction.READ)) {
         builder.addAction(AclAction.READ);
@@ -152,10 +152,12 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
       throws IOException {
     switch (entry.getType()) {
       case USER:
-        return entry.getName().isEmpty() ? alluxio.security.authorization.AclEntryType.OWNING_USER
+        return entry.getName() == null || entry.getName().isEmpty()
+            ? alluxio.security.authorization.AclEntryType.OWNING_USER
             : alluxio.security.authorization.AclEntryType.NAMED_USER;
       case GROUP:
-        return entry.getName().isEmpty() ? alluxio.security.authorization.AclEntryType.OWNING_GROUP
+        return entry.getName() == null || entry.getName().isEmpty()
+            ? alluxio.security.authorization.AclEntryType.OWNING_GROUP
             : alluxio.security.authorization.AclEntryType.NAMED_GROUP;
       case MASK:
         return alluxio.security.authorization.AclEntryType.MASK;

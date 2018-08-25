@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -253,7 +254,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
+    LOG.info("setAclEntry {}", path);
     mHdfsAclProvider.setAclEntries(getFs(), path, aclEntries);
+    LOG.info("setAclEntry over {}", path);
   }
 
   @Override
