@@ -12,7 +12,6 @@
 package alluxio.master.file.options;
 
 import alluxio.security.authorization.AclEntry;
-import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.underfs.UfsStatus;
@@ -86,10 +85,18 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     return mAllowExists;
   }
 
+  /**
+   * @return the default ACL in the form of a list of default ACL Entries
+   */
   public List<AclEntry> getDefaultAcl() {
     return mDefaultAcl;
   }
 
+  /**
+   * Sets the default ACL in the option.
+   * @param defaultAcl a list of default ACL Entries
+   * @return the updated options object
+   */
   public CreateDirectoryOptions setDefaultAcl(List<AclEntry> defaultAcl) {
     mDefaultAcl = ImmutableList.copyOf(defaultAcl);
     return getThis();
@@ -152,6 +159,4 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     return toStringHelper().add("allowExists", mAllowExists)
         .add("ufsStatus", mUfsStatus).toString();
   }
-
-
 }

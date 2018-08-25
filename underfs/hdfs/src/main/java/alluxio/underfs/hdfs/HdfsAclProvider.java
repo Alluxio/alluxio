@@ -13,9 +13,9 @@ package alluxio.underfs.hdfs;
 
 import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
-
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
+
 import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;

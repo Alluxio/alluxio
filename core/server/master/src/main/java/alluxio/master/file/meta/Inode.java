@@ -402,6 +402,7 @@ public abstract class Inode<T> implements InodeView {
   /**
    * @param acl set the default ACL associated with this inode
    * @throws UnsupportedOperationException if the inode is a file
+   * @return the updated object
    */
   public abstract T setDefaultACL(DefaultAccessControlList acl)
       throws UnsupportedOperationException;

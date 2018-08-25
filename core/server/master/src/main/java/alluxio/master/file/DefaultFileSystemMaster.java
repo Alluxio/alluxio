@@ -2317,7 +2317,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       ufsLength = ufsStatus.getContentLength();
 
       if (isAclEnabled()) {
-        Pair<AccessControlList, DefaultAccessControlList> aclPair = ufs.getAclPair(ufsUri.toString());
+        Pair<AccessControlList, DefaultAccessControlList> aclPair
+            = ufs.getAclPair(ufsUri.toString());
         if (aclPair != null) {
           acl = aclPair.getFirst();
           // DefaultACL should be null, because it is a file
@@ -2476,7 +2477,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       try {
         loadMetadataInternal(rpcContext, inodePath, options);
       } catch (IOException | InvalidPathException | FileDoesNotExistException | BlockInfoException
-          | FileAlreadyCompletedException | InvalidFileSizeException |AccessControlException e) {
+          | FileAlreadyCompletedException | InvalidFileSizeException | AccessControlException e) {
         // NOTE, this may be expected when client tries to get info (e.g. exists()) for a file
         // existing neither in Alluxio nor UFS.
         LOG.debug("Failed to load metadata for path from UFS: {}", inodePath.getUri());

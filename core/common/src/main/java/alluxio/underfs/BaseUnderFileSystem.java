@@ -81,7 +81,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path) throws IOException {
+  public Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path)
+      throws IOException {
     return null;
   }
 
@@ -92,7 +93,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public String getFingerprint(String path) {
-    // TODO (yuzhu): include default ACL in the fingerprint
+    // TODO(yuzhu): include default ACL in the fingerprint
     try {
       UfsStatus status = getStatus(path);
       Pair<AccessControlList, DefaultAccessControlList> aclPair = getAclPair(path);

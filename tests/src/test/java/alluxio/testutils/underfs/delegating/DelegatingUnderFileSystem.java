@@ -92,7 +92,8 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path) throws IOException {
+  public Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path)
+      throws IOException {
     return mUfs.getAclPair(path);
   }
 
