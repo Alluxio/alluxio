@@ -11,6 +11,8 @@
 
 package alluxio.underfs.gcs;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
@@ -22,7 +24,6 @@ import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 
