@@ -2735,7 +2735,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
       } else {
         try {
-          List<AclEntry> entries = inode.getACL().getEntries();
+          List<AclEntry> entries = new ArrayList<>();
+          entries.addAll(inode.getACL().getEntries());
           if (inode.isDirectory()) {
             InodeDirectoryView inodeDirectory = (InodeDirectoryView) inode;
             entries.addAll(inodeDirectory.getDefaultACL().getEntries());
