@@ -10,7 +10,7 @@
  */
 
 package alluxio.worker.block;
-
+import static org.mockito.Mockito.verify;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
@@ -27,7 +27,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Matchers;
-import org.mockito.Mockito;
 
 import java.io.Closeable;
 import java.util.HashMap;
@@ -88,9 +87,9 @@ public class SpaceReserverTest {
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
       // 400 * 0.2 = 80
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "MEM");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "MEM");
       // 400 * 0.2 + 1000 * 0.3 = 380
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 380L, "HDD");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 380L, "HDD");
     }
   }
 
@@ -132,11 +131,11 @@ public class SpaceReserverTest {
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
       // 1000 * 0.4 + 200 * 0.3 + 100 * 0.2 = 480
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 480L, "HDD");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 480L, "HDD");
       // 200 * 0.3 + 100 * 0.2 = 80
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "SSD");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "SSD");
       // 100 * 0.2 = 20
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
     }
   }
 
@@ -178,13 +177,13 @@ public class SpaceReserverTest {
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
       // 1000 * 0.4 + 200 * 0.3 + 100 * 0.2 = 480
-      Mockito.verify(blockWorker, Mockito.never()).freeSpace(
+      verify(blockWorker, Mockito.never()).freeSpace(
           Matchers.eq(Sessions.MIGRATE_DATA_SESSION_ID), Matchers.anyLong(), Matchers.eq("HDD"));
       // 200 * 0.3 + 100 * 0.2 = 80
-      Mockito.verify(blockWorker, Mockito.never()).freeSpace(
+      verify(blockWorker, Mockito.never()).freeSpace(
           Matchers.eq(Sessions.MIGRATE_DATA_SESSION_ID), Matchers.anyLong(), Matchers.eq("SSD"));
       // 100 * 0.2 = 20
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
     }
   }
 
@@ -225,12 +224,12 @@ public class SpaceReserverTest {
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
       // 1000 * 0.1 + 200 = 300
-      Mockito.verify(blockWorker, Mockito.never()).freeSpace(
+      verify(blockWorker, Mockito.never()).freeSpace(
           Matchers.eq(Sessions.MIGRATE_DATA_SESSION_ID), Matchers.anyLong(), Matchers.eq("HDD"));
       // 200 * 0.8 + 100 * 0.7 = 230 -> 200
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 200L, "SSD");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 200L, "SSD");
       // 100 * 0.7 = 70
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 70L, "MEM");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 70L, "MEM");
     }
   }
 }
