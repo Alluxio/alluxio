@@ -18,20 +18,27 @@ import alluxio.RuntimeConstants;
 import alluxio.ServiceUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.ChannelType;
+import alluxio.network.thrift.BootstrapServerTransport;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
+import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.WebServer;
 import alluxio.web.WorkerWebServer;
+import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 
-import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.apache.thrift.TMultiplexedProcessor;
@@ -49,8 +56,10 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -60,6 +69,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class AlluxioWorkerProcess implements WorkerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerProcess.class);
+
+  private final TieredIdentity mTieredIdentitiy;
 
   /** Server for data requests and responses. */
   private DataServer mDataServer;
@@ -71,6 +82,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private boolean mIsServingRPC = false;
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
+  private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
+      MetricsSystem.METRIC_REGISTRY);
 
   /** The worker registry. */
   private WorkerRegistry mRegistry;
@@ -96,10 +109,14 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** The manager for all ufs. */
   private UfsManager mUfsManager;
 
+  /** The jvm monitor.*/
+  private JvmPauseMonitor mJvmPauseMonitor;
+
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
    */
-  AlluxioWorkerProcess() {
+  AlluxioWorkerProcess(TieredIdentity tieredIdentity) {
+    mTieredIdentitiy = tieredIdentity;
     try {
       mStartTimeMs = System.currentTimeMillis();
       mUfsManager = new WorkerUfsManager();
@@ -132,8 +149,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // Setup Thrift server
       mTransportProvider = TransportProvider.Factory.create();
       mThriftServerSocket = createThriftServerSocket();
-      int rpcPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
-      String rpcHost = NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getInetAddress()
+      int rpcPort = ThriftUtils.getThriftPort(mThriftServerSocket);
+      String rpcHost = ThriftUtils.getThriftSocket(mThriftServerSocket).getInetAddress()
           .getHostAddress();
       mRpcAddress = new InetSocketAddress(rpcHost, rpcPort);
       mThriftServer = createThriftServer();
@@ -142,12 +159,19 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mDataServer = DataServer.Factory
           .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
 
+      // Setup domain socket data server
       if (isDomainSocketEnabled()) {
         String domainSocketPath =
             Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+        if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
+          domainSocketPath =
+              PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
+        }
         LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
         mDomainSocketDataServer =
             DataServer.Factory.create(new DomainSocketAddress(domainSocketPath), this);
+        // Share domain socket so that clients can access it.
+        FileUtils.changeLocalFileToFullPermission(domainSocketPath);
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -222,7 +246,14 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     // Start serving the web server, this will not block.
     mWebServer.addHandler(mMetricsServlet.getHandler());
+    mWebServer.addHandler(mPMetricsServlet.getHandler());
     mWebServer.start();
+
+    // Start monitor jvm
+    if (Configuration.getBoolean(PropertyKey.WORKER_JVM_MONITOR_ENABLED)) {
+      mJvmPauseMonitor = new JvmPauseMonitor();
+      mJvmPauseMonitor.start();
+    }
 
     mIsServingRPC = true;
 
@@ -243,6 +274,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   public void stop() throws Exception {
     if (mIsServingRPC) {
       stopServing();
+      if (mJvmPauseMonitor != null) {
+        mJvmPauseMonitor.stop();
+      }
       stopWorkers();
       mIsServingRPC = false;
     }
@@ -295,16 +329,17 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
 
     // Return a TTransportFactory based on the authentication type
-    TTransportFactory tTransportFactory;
+    TTransportFactory transportFactory;
     try {
       String serverName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC);
-      tTransportFactory = mTransportProvider.getServerTransportFactory(serverName);
+      transportFactory = new BootstrapServerTransport.Factory(mTransportProvider
+          .getServerTransportFactory(serverName));
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
     TThreadPoolServer.Args args = new TThreadPoolServer.Args(mThriftServerSocket)
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
-        .transportFactory(tTransportFactory)
+        .transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
     if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
       args.stopTimeoutVal = 0;
@@ -331,20 +366,24 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    * @return true if domain socket is enabled
    */
   private boolean isDomainSocketEnabled() {
-    return Configuration.getEnum(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.class)
-        == ChannelType.EPOLL && !Configuration
-        .get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS).isEmpty();
+    return NettyUtils.WORKER_CHANNEL_TYPE == ChannelType.EPOLL
+        && !Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS).isEmpty();
   }
 
   @Override
-  public void waitForReady() {
-    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return mThriftServer.isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
-            && mWebServer.getServer().isRunning();
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
+  public boolean waitForReady(int timeoutMs) {
+    try {
+      CommonUtils.waitFor(this + " to start",
+          () -> mThriftServer.isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
+              && mWebServer.getServer().isRunning(),
+          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 
   @Override
@@ -354,7 +393,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         .setRpcPort(mRpcAddress.getPort())
         .setDataPort(getDataLocalPort())
         .setDomainSocketPath(getDataDomainSocketPath())
-        .setWebPort(mWebServer.getLocalPort());
+        .setWebPort(mWebServer.getLocalPort())
+        .setTieredIdentity(mTieredIdentitiy);
   }
 
   @Override

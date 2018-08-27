@@ -14,7 +14,8 @@ package alluxio.cli.extensions.command;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.cli.AbstractCommand;
+import alluxio.cli.Command;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.extensions.ExtensionsShellUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
@@ -24,6 +25,7 @@ import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Install a new extension.
  */
 @ThreadSafe
-public final class InstallCommand extends AbstractCommand {
+public final class InstallCommand implements Command {
   private static final Logger LOG = LoggerFactory.getLogger(InstallCommand.class);
 
   /**
@@ -45,10 +47,6 @@ public final class InstallCommand extends AbstractCommand {
   @Override
   public String getCommandName() {
     return "install";
-  }
-
-  protected int getNumOfArgs() {
-    return 1;
   }
 
   @Override
@@ -65,12 +63,20 @@ public final class InstallCommand extends AbstractCommand {
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
     String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
+    File dir = new File(extensionsDir);
+    if (!dir.exists() && !dir.mkdirs()) {
+      System.err.println("Failed to create extensions directory " + extensionsDir);
+      return -1;
+    }
     List<String> failedHosts = new ArrayList<>();
     for (String host : ExtensionsShellUtils.getServerHostnames()) {
       try {
         LOG.info("Attempting to install extension on host {}", host);
+        // Parent folder on target host
+        String targetUriParent =
+            extensionsDir.endsWith("/") ? extensionsDir : extensionsDir.concat("/");
         String rsyncCmd = String.format("rsync -e \"ssh %s\" -az %s %s:%s",
-            ShellUtils.COMMON_SSH_OPTS, uri, host, extensionsDir);
+            ShellUtils.COMMON_SSH_OPTS, uri, host, targetUriParent);
         LOG.debug("Executing: {}", rsyncCmd);
         String output = ShellUtils.execCommand("bash", "-c", rsyncCmd);
         LOG.debug("Succeeded w/ output: {}", output);
@@ -91,9 +97,9 @@ public final class InstallCommand extends AbstractCommand {
   }
 
   @Override
-  protected void validateArgs(String... args) throws InvalidArgumentException {
-    super.validateArgs(args);
-
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    String[] args = cl.getArgs();
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
     if (args[0] == null) {
       throw new InvalidArgumentException(
           ExceptionMessage.INVALID_ARGS_NULL.getMessage(getCommandName()));

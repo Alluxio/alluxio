@@ -1,3 +1,5 @@
+alluxio.user.app.id:
+  'The custom id to use for labeling this client''s info, such as metrics. If unset, a random long will be used. This value is displayed in the client logs on initialization. Note that using the same app id will cause client info to be aggregated, so different applications must set their own ids or leave this value unset to use a randomly generated id.'
 alluxio.user.block.master.client.threads:
   'The number of threads used by a block master client pool to talk to the block master.'
 alluxio.user.block.remote.read.buffer.size.bytes:
@@ -12,8 +14,12 @@ alluxio.user.block.worker.client.pool.gc.threshold:
   'A block worker client is closed if it has been idle for more than this threshold.'
 alluxio.user.block.worker.client.pool.size.max:
   'The maximum number of block worker clients cached in the block worker client pool.'
+alluxio.user.block.worker.client.read.retry:
+  'The maximum number of workers to retry before the client gives up on  reading a block'
 alluxio.user.block.worker.client.threads:
   'The number of threads used by a block worker client pool for heartbeating to a worker. Increase this value if worker failures affect client connections to healthy workers.'
+alluxio.user.conf.cluster.default.enabled:
+  'When this property is true, an Alluxio client will load the default values of configuration properties set by Alluxio master.'
 alluxio.user.date.format.pattern:
   'Display formatted date in cli command and web UI by given date format pattern.'
 alluxio.user.failed.space.request.limits:
@@ -21,15 +27,25 @@ alluxio.user.failed.space.request.limits:
 alluxio.user.file.buffer.bytes:
   'The size of the file buffer to use for file system reads/writes.'
 alluxio.user.file.cache.partially.read.block:
-  'When read type is CACHE_PROMOTE or CACHE and this property is set to true, the entire block will be cached by Alluxio space even if the client only reads a part of this block.'
+  'This property is deprecated as of 1.7 and has no effect. Use the read type to control caching behavior.'
 alluxio.user.file.copyfromlocal.write.location.policy.class:
   'The default location policy for choosing workers for writing a file''s blocks using copyFromLocal command.'
+alluxio.user.file.create.ttl:
+  'Time to live for files created by a user, no ttl by default.'
+alluxio.user.file.create.ttl.action:
+  'When file''s ttl is expired, the action performs on it. DELETE by default'
 alluxio.user.file.delete.unchecked:
   'Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.'
+alluxio.user.file.load.ttl:
+  'Time to live for files loaded from UFS by a user, no ttl by default.'
+alluxio.user.file.load.ttl.action:
+  'When file''s ttl is expired, the action performs on it. FREE by default'
 alluxio.user.file.master.client.threads:
   'The number of threads used by a file master client to talk to the file master.'
 alluxio.user.file.metadata.load.type:
-  'The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist in Alluxio, metadata can be loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. `Always` will always access UFS to see if the path exists in the UFS. `Never` will never consult the UFS. `Once` will access the UFS the "first" time (according to a cache), but not after that.'
+  'The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist in Alluxio, metadata can be loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. `Always` will always access UFS to see if the path exists in the UFS. `Never` will never consult the UFS. `Once` will access the UFS the "first" time (according to a cache), but not after that. This parameter is ignored if a metadata sync is performed, via the parameter "alluxio.user.file.metadata.sync.interval"'
+alluxio.user.file.metadata.sync.interval:
+  'The interval for syncing UFS metadata before invoking an operation on a path. -1 means no sync will occur. 0 means Alluxio will always sync the metadata of the path before an operation. If you specify a time interval, Alluxio will (best effort) not re-sync a path within that time interval. Syncing the metadata for a path must interact with the UFS, so it is an expensive operation. If a sync is performed for an operation, the configuration of "alluxio.user.file.metadata.load.type" will be ignored.'
 alluxio.user.file.passive.cache.enabled:
   'Whether to cache files to local Alluxio workers when the files are read from remote workers (not UFS).'
 alluxio.user.file.readtype.default:
@@ -49,17 +65,17 @@ alluxio.user.file.writetype.default:
 alluxio.user.heartbeat.interval:
   'The interval between Alluxio workers'' heartbeats.'
 alluxio.user.hostname:
-  'The hostname to use for the client.'
-alluxio.user.lineage.enabled:
-  'Flag to enable lineage feature.'
-alluxio.user.lineage.master.client.threads:
-  'The number of threads used by a lineage master client to talk to the lineage master.'
+  'The hostname to use for the client. Note: this property is deprecated. set alluxio.locality.node instead'
 alluxio.user.local.reader.packet.size.bytes:
   'When a client reads from a local worker, the maximum data packet size.'
 alluxio.user.local.writer.packet.size.bytes:
   'When a client writes to a local worker, the maximum data packet size.'
+alluxio.user.metrics.collection.enabled:
+  'Enable collecting the client-side metrics and hearbeat them to master'
+alluxio.user.metrics.heartbeat.interval:
+  'The time period of client master hearbeat to send the client-side metrics.'
 alluxio.user.network.netty.channel:
-  'Type of netty channels.'
+  'Type of netty channels. If EPOLL is not available, this will automatically fall back to NIO.'
 alluxio.user.network.netty.channel.pool.disabled:
   'Disable netty channel pool. This should be turned on if the client version is >= 1.3.0 but server version is <= 1.2.x.'
 alluxio.user.network.netty.channel.pool.gc.threshold:
@@ -80,10 +96,14 @@ alluxio.user.network.netty.writer.close.timeout:
   'The timeout to close a netty writer client.'
 alluxio.user.network.netty.writer.packet.size.bytes:
   'When a client writes to a remote worker, the maximum packet size.'
+alluxio.user.network.socket.timeout:
+  'The time out of a socket created by a user to connect to the master.'
 alluxio.user.rpc.retry.base.sleep:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the base time in the exponential backoff.'
+alluxio.user.rpc.retry.max.duration:
+  'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum duration to retry for before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.'
 alluxio.user.rpc.retry.max.num.retry:
-  'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum number of retries.'
+  'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum number of retries. This property has been deprecated by time-based retry using: alluxio.user.rpc.retry.max.duration'
 alluxio.user.rpc.retry.max.sleep:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum wait time in the backoff.'
 alluxio.user.short.circuit.enabled:
@@ -91,13 +111,13 @@ alluxio.user.short.circuit.enabled:
 alluxio.user.ufs.block.read.concurrency.max:
   'The maximum concurrent readers for one UFS block on one Block Worker.'
 alluxio.user.ufs.block.read.location.policy:
-  'The policy block workers follow for reading UFS blocks.'
+  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Builtin choices: [<a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.file.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstPolicy.html">alluxio.client.file.policy.LocalFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/MostAvailableFirstPolicy.html">alluxio.client.file.policy.MostAvailableFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/RoundRobinPolicy.html">alluxio.client.file.policy.RoundRobinPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/SpecificHostPolicy.html">alluxio.client.file.policy.SpecificHostPolicy</a>].'
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
   'When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.'
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
-  'Size of the read buffer when reading from the ufs through the Alluxio worker. Each read request will fetch at least this many bytes, unless the read reaches the end of the file.'
+  'Size of the read buffer when reading from the UFS through the Alluxio worker. Each read request will fetch at least this many bytes, unless the read reaches the end of the file.'
 alluxio.user.ufs.delegation.write.buffer.size.bytes:
-  'Size of the write buffer when writing to the ufs through the Alluxio worker. Each write request will write at least this many bytes, unless the write is at the end of the file.'
+  'Size of the write buffer when writing to the UFS through the Alluxio worker. Each write request will write at least this many bytes, unless the write is at the end of the file.'
 alluxio.user.ufs.file.reader.class:
   'Selects networking stack to run the client with for reading from under file system through a worker''s data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileReader` (remote read using netty) is valid.'
 alluxio.user.ufs.file.writer.class:

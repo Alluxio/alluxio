@@ -51,7 +51,6 @@ public interface MasterProcess extends Process {
   /**
    * @param clazz the class of the master to get
    * @param <T> the type of the master to get
-
    * @return the given master
    */
   <T extends Master> T getMaster(Class<T> clazz);
@@ -75,6 +74,11 @@ public interface MasterProcess extends Process {
    * @return the master's web address, or null if the web server hasn't been started yet
    */
   InetSocketAddress getWebAddress();
+
+  /**
+   * @return true if Alluxio is running in safe mode, false otherwise
+   */
+  boolean isInSafeMode();
 
   /**
    * @return true if the system is the leader (serving the rpc server), false otherwise

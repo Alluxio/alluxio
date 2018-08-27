@@ -11,6 +11,7 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Constants;
 import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
@@ -18,7 +19,10 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
+import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
@@ -26,6 +30,7 @@ import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -33,20 +38,23 @@ import javax.annotation.concurrent.NotThreadSafe;
  * locked ({@link #lockRead()} or {@link #lockWrite()}) before methods are called.
  */
 @NotThreadSafe
-public final class InodeDirectory extends Inode<InodeDirectory> {
-  private static final IndexDefinition<Inode<?>> NAME_INDEX = new IndexDefinition<Inode<?>>(true) {
-    @Override
-    public Object getFieldValue(Inode<?> o) {
-      return o.getName();
-    }
-  };
+public final class InodeDirectory extends Inode<InodeDirectory> implements InodeDirectoryView {
+  private static final IndexDefinition<Inode<?>, String> NAME_INDEX =
+      new IndexDefinition<Inode<?>, String>(true) {
+        @Override
+        public String getFieldValue(Inode<?> o) {
+          return o.getName();
+        }
+      };
 
   /** Use UniqueFieldIndex directly for name index rather than using IndexedSet. */
-  private final FieldIndex<Inode<?>> mChildren = new UniqueFieldIndex<>(NAME_INDEX);
+  private final FieldIndex<Inode<?>, String> mChildren = new UniqueFieldIndex<>(NAME_INDEX);
 
   private boolean mMountPoint;
 
   private boolean mDirectChildrenLoaded;
+
+  private DefaultAccessControlList mDefaultAcl;
 
   /**
    * Creates a new instance of {@link InodeDirectory}.
@@ -57,6 +65,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     super(id, true);
     mMountPoint = false;
     mDirectChildrenLoaded = false;
+    mDefaultAcl = new DefaultAccessControlList(mAcl);
   }
 
   @Override
@@ -74,21 +83,14 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     return mChildren.add(child);
   }
 
-  /**
-   * @param name the name of the child
-   * @return the inode with the given name, or null if there is no child with that name
-   */
-  public Inode<?> getChild(String name) {
+  @Override
+  public InodeView getChild(String name) {
     return mChildren.getFirst(name);
   }
 
-  /**
-   * @param name the name of the child
-   * @param lockList the lock list to add the lock to
-   * @return the read-locked inode with the given name, or null if there is no such child
-   * @throws InvalidPathException if the path to the child is invalid
-   */
-  public Inode<?> getChildReadLock(String name, InodeLockList lockList) throws
+  @Override
+  @Nullable
+  public InodeView getChildReadLock(String name, InodeLockList lockList) throws
       InvalidPathException {
     while (true) {
       Inode child = mChildren.getFirst(name);
@@ -105,13 +107,9 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     }
   }
 
-  /**
-   * @param name the name of the child
-   * @param lockList the lock list to add the lock to
-   * @return the write-locked inode with the given name, or null if there is no such child
-   * @throws InvalidPathException if the path to the child is invalid
-   */
-  public Inode<?> getChildWriteLock(String name, InodeLockList lockList) throws
+  @Override
+  @Nullable
+  public InodeView getChildWriteLock(String name, InodeLockList lockList) throws
       InvalidPathException {
     while (true) {
       Inode child = mChildren.getFirst(name);
@@ -128,16 +126,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     }
   }
 
-  /**
-   * @return an unmodifiable set of the children inodes
-   */
-  public Set<Inode<?>> getChildren() {
+  @Override
+  public Set<InodeView> getChildren() {
     return ImmutableSet.copyOf(mChildren.iterator());
   }
 
-  /**
-   * @return the ids of the children
-   */
+  @Override
   public Set<Long> getChildrenIds() {
     Set<Long> ret = new HashSet<>(mChildren.size());
     for (Inode<?> child : mChildren) {
@@ -146,25 +140,40 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     return ret;
   }
 
-  /**
-   * @return the number of children in the directory
-   */
+  @Override
   public int getNumberOfChildren() {
     return mChildren.size();
   }
 
-  /**
-   * @return true if the inode is a mount point, false otherwise
-   */
+  @Override
   public boolean isMountPoint() {
     return mMountPoint;
   }
 
-  /**
-   * @return true if we have loaded all the direct children's metadata once
-   */
+  @Override
   public synchronized boolean isDirectChildrenLoaded() {
     return mDirectChildrenLoaded;
+  }
+
+  @Override
+  public synchronized boolean areDescendantsLoaded() {
+    if (!isDirectChildrenLoaded()) {
+      return false;
+    }
+    for (InodeView inode : getChildren()) {
+      if (inode.isDirectory()) {
+        InodeDirectory inodeDirectory = (InodeDirectory) inode;
+        if (!inodeDirectory.areDescendantsLoaded()) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  @Override
+  public DefaultAccessControlList getDefaultACL() {
+    return mDefaultAcl;
   }
 
   /**
@@ -206,6 +215,11 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     return getThis();
   }
 
+  @Override
+  public void setDefaultACL(DefaultAccessControlList acl) {
+    mDefaultAcl = acl;
+  }
+
   /**
    * Generates client file info for a folder.
    *
@@ -234,7 +248,28 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setMode(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(isMountPoint());
+    ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
+    ret.setAcl(mAcl);
+    ret.setDefaultAcl(mDefaultAcl);
     return ret;
+  }
+
+  /**
+   * Updates this inode directory's state from the given entry.
+   *
+   * @param entry the entry
+   */
+  public void updateFromEntry(UpdateInodeDirectoryEntry entry) {
+    if (entry.hasDefaultAcl()) {
+      setDefaultACL(
+          (DefaultAccessControlList) DefaultAccessControlList.fromProtoBuf(entry.getDefaultAcl()));
+    }
+    if (entry.hasDirectChildrenLoaded()) {
+      setDirectChildrenLoaded(entry.getDirectChildrenLoaded());
+    }
+    if (entry.hasMountPoint()) {
+      setMountPoint(entry.getMountPoint());
+    }
   }
 
   @Override
@@ -249,20 +284,36 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
-    return new InodeDirectory(entry.getId())
+    // If journal entry has no mode set, set default mode for backwards-compatibility.
+    InodeDirectory ret = new InodeDirectory(entry.getId())
         .setCreationTimeMs(entry.getCreationTimeMs())
         .setName(entry.getName())
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
         .setLastModificationTimeMs(entry.getLastModificationTimeMs(), true)
-        .setOwner(entry.getOwner())
-        .setGroup(entry.getGroup())
-        .setMode((short) entry.getMode())
         .setMountPoint(entry.getMountPoint())
         .setTtl(entry.getTtl())
         .setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()))
         .setDirectChildrenLoaded(entry.getDirectChildrenLoaded());
+    if (entry.hasAcl()) {
+      ret.mAcl = AccessControlList.fromProtoBuf(entry.getAcl());
+    } else {
+      // Backward compatibility.
+      AccessControlList acl = new AccessControlList();
+      acl.setOwningUser(entry.getOwner());
+      acl.setOwningGroup(entry.getGroup());
+      short mode = entry.hasMode() ? (short) entry.getMode() : Constants.DEFAULT_FILE_SYSTEM_MODE;
+      acl.setMode(mode);
+      ret.mAcl = acl;
+    }
+    if (entry.hasDefaultAcl()) {
+      ret.mDefaultAcl = (DefaultAccessControlList) AccessControlList
+          .fromProtoBuf(entry.getDefaultAcl());
+    } else {
+      ret.mDefaultAcl = new DefaultAccessControlList();
+    }
+    return ret;
   }
 
   /**
@@ -284,6 +335,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setOwner(options.getOwner())
         .setGroup(options.getGroup())
         .setMode(options.getMode().toShort())
+        .setAcl(options.getAcl())
         .setMountPoint(options.isMountPoint());
   }
 
@@ -301,7 +353,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
-        .setOwner(getOwner()).setGroup(getGroup()).setMode(getMode())
+        .setAcl(AccessControlList.toProtoBuf(mAcl))
+        .setDefaultAcl(AccessControlList.toProtoBuf(mDefaultAcl))
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }

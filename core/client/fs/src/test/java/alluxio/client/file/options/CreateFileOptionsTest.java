@@ -11,7 +11,6 @@
 
 package alluxio.client.file.options;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -19,6 +18,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.security.authorization.Mode;
+import alluxio.test.util.CommonUtils;
 import alluxio.thrift.CreateFileTOptions;
 import alluxio.wire.TtlAction;
 
@@ -113,13 +113,11 @@ public final class CreateFileOptionsTest {
     Assert.assertEquals(blockSize, thriftOptions.getBlockSizeBytes());
     Assert.assertEquals(recursive, thriftOptions.isRecursive());
     Assert.assertEquals(writeType.isThrough(), thriftOptions.isPersisted());
-    Assert.assertEquals(ttl, thriftOptions.getTtl());
-    Assert.assertEquals(alluxio.thrift.TTtlAction.Free, thriftOptions.getTtlAction());
     Assert.assertEquals(mode.toShort(), thriftOptions.getMode());
   }
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateFileOptions.class);
+    CommonUtils.testEquals(CreateFileOptions.class);
   }
 }

@@ -108,6 +108,13 @@ public final class ProtoMessage {
   }
 
   /**
+   * @param request the async cache request
+   */
+  public ProtoMessage(Protocol.AsyncCacheRequest request) {
+    mMessage = request;
+  }
+
+  /**
    * @param heartbeat the heartbeat
    */
   public ProtoMessage(Protocol.Heartbeat heartbeat) {
@@ -283,6 +290,21 @@ public final class ProtoMessage {
    */
   public boolean isLocalBlockCompleteRequest() {
     return mMessage instanceof Protocol.LocalBlockCompleteRequest;
+  }
+
+  /**
+   * @return an AsyncCacheRequest object if the message is of the same type
+   */
+  public Protocol.AsyncCacheRequest asAsyncCacheRequest() {
+    Preconditions.checkState(isAsyncCacheRequest());
+    return (Protocol.AsyncCacheRequest) mMessage;
+  }
+
+  /**
+   * @return true if the message is of type AsyncCacheRequest
+   */
+  public boolean isAsyncCacheRequest() {
+    return mMessage instanceof Protocol.AsyncCacheRequest;
   }
 
   /**

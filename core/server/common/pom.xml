@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-core-server</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>1.7.0-SNAPSHOT</version>
+    <version>1.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-server-common</artifactId>
   <packaging>jar</packaging>
@@ -25,9 +25,7 @@
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <license.header.path>${project.parent.parent.parent.basedir}/build/license/</license.header.path>
-    <checkstyle.path>${project.parent.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
-    <findbugs.path>${project.parent.parent.parent.basedir}/build/findbugs/</findbugs.path>
+    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
   </properties>
 
   <dependencies>
@@ -57,12 +55,28 @@
       <artifactId>metrics-json</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.prometheus</groupId>
+      <artifactId>simpleclient</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.prometheus</groupId>
+      <artifactId>simpleclient_servlet</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.prometheus</groupId>
+      <artifactId>simpleclient_dropwizard</artifactId>
+    </dependency>
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.ws.rs</groupId>
       <artifactId>javax.ws.rs-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

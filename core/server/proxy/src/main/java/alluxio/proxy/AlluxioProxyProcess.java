@@ -21,7 +21,6 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.ProxyWebServer;
 import alluxio.web.WebServer;
 
-import com.google.common.base.Function;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -33,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -94,10 +94,9 @@ public final class AlluxioProxyProcess implements ProxyProcess {
   }
 
   @Override
-  public void waitForReady() {
-    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
+  public boolean waitForReady(int timeoutMs) {
+    try {
+      CommonUtils.waitFor(this + " to start", () -> {
         if (mWebServer == null || !mWebServer.getServer().isRunning()) {
           return false;
         }
@@ -117,8 +116,14 @@ public final class AlluxioProxyProcess implements ProxyProcess {
           LOG.debug("Exception: ", e);
           return false;
         }
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
+      }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 
   @Override

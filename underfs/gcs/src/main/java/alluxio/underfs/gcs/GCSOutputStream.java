@@ -11,6 +11,7 @@
 
 package alluxio.underfs.gcs;
 
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -77,7 +78,7 @@ public final class GCSOutputStream extends OutputStream {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
-    mFile = new File(PathUtils.concatPath("/tmp", UUID.randomUUID()));
+    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
     try {
       mHash = MessageDigest.getInstance("MD5");
       mLocalOutputStream =
@@ -120,7 +121,7 @@ public final class GCSOutputStream extends OutputStream {
       obj.setBucketName(mBucketName);
       obj.setDataInputFile(mFile);
       obj.setContentLength(mFile.length());
-      obj.setContentEncoding(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
+      obj.setContentType(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
       if (mHash != null) {
         obj.setMd5Hash(mHash.digest());
       } else {

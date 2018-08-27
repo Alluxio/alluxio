@@ -20,6 +20,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -30,8 +31,8 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -64,12 +65,11 @@ public final class FileDataManager {
   /** The files being persisted, keyed by fileId,
    * and the inner map tracks the block id to lock id. */
   @GuardedBy("mLock")
-  // the file being persisted,
   private final Map<Long, Map<Long, Long>> mPersistingInProgressFiles;
 
-  /** The file are persisted, but not sent back to master for confirmation yet. */
+  /** A map from file id to its ufs fingerprint. */
   @GuardedBy("mLock")
-  private final Set<Long> mPersistedFiles;
+  private final Map<Long, String> mPersistedUfsFingerprints;
 
   private final Object mLock = new Object();
 
@@ -77,6 +77,17 @@ public final class FileDataManager {
   private final RateLimiter mPersistenceRateLimiter;
   /** The manager for all ufs. */
   private final UfsManager mUfsManager;
+  /** Factory for creating filesystems. */
+  private final Supplier<FileSystem> mFileSystemFactory;
+  private final ChannelCopier mChannelCopier;
+
+  interface ChannelCopier {
+    /**
+     * @param r the channel to read from
+     * @param w the channel to write to
+     */
+    void copy(ReadableByteChannel r, WritableByteChannel w) throws IOException;
+  }
 
   /**
    * Creates a new instance of {@link FileDataManager}.
@@ -87,11 +98,29 @@ public final class FileDataManager {
    */
   public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter,
       UfsManager ufsManager) {
+    this(blockWorker, persistenceRateLimiter, ufsManager, () -> FileSystem.Factory.get(),
+        (r, w) -> BufferUtils.fastCopy(r, w));
+  }
+
+  /**
+   * Creates a new instance of {@link FileDataManager}.
+   *
+   * @param blockWorker the block worker handle
+   * @param persistenceRateLimiter a per worker rate limiter to throttle async persistence
+   * @param ufsManager the ufs manager
+   * @param fileSystemFactory factory for creating file systems
+   * @param channelCopier method to use for copying between channels
+   */
+  @VisibleForTesting
+  FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter,
+      UfsManager ufsManager, Supplier<FileSystem> fileSystemFactory, ChannelCopier channelCopier) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker, "blockWorker");
     mPersistingInProgressFiles = new HashMap<>();
-    mPersistedFiles = new HashSet<>();
+    mPersistedUfsFingerprints = new HashMap<>();
     mPersistenceRateLimiter = persistenceRateLimiter;
     mUfsManager = ufsManager;
+    mFileSystemFactory = fileSystemFactory;
+    mChannelCopier = channelCopier;
   }
 
   /**
@@ -102,7 +131,7 @@ public final class FileDataManager {
    */
   private boolean isFilePersisting(long fileId) {
     synchronized (mLock) {
-      return mPersistedFiles.contains(fileId);
+      return mPersistingInProgressFiles.containsKey(fileId);
     }
   }
 
@@ -118,9 +147,10 @@ public final class FileDataManager {
     }
 
     try {
-      if (fileExistsInUfs(fileId)) {
+      String ufsFingerprint = ufsFingerprint(fileId);
+      if (ufsFingerprint != null) {
         // mark as persisted
-        addPersistedFile(fileId);
+        addPersistedFile(fileId, ufsFingerprint);
         return false;
       }
     } catch (Exception e) {
@@ -139,7 +169,7 @@ public final class FileDataManager {
    */
   public boolean isFilePersisted(long fileId) {
     synchronized (mLock) {
-      return mPersistedFiles.contains(fileId);
+      return mPersistedUfsFingerprints.containsKey(fileId);
     }
   }
 
@@ -147,24 +177,28 @@ public final class FileDataManager {
    * Adds a file as persisted.
    *
    * @param fileId the file id
+   * @param ufsFingerprint the ufs fingerprint of the persisted file
    */
-  private void addPersistedFile(long fileId) {
+  private void addPersistedFile(long fileId, String ufsFingerprint) {
     synchronized (mLock) {
-      mPersistedFiles.add(fileId);
+      mPersistedUfsFingerprints.put(fileId, ufsFingerprint);
     }
   }
 
   /**
-   * Checks if the given file exists in the under storage system.
+   * Returns the ufs fingerprint of the given file, or null if the file doesn't exist.
    *
    * @param fileId the file id
-   * @return true if the file exists in under storage system, false otherwise
+   * @return the ufs fingerprint of the file if it exists, null otherwise
    */
-  private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
+  private synchronized String ufsFingerprint(long fileId) throws IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
-    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
-    return ufs.isFile(dstPath);
+    try (CloseableResource<UnderFileSystem> ufsResource =
+        mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      return ufs.isFile(dstPath) ? ufs.getFingerprint(dstPath) : null;
+    }
   }
 
   /**
@@ -227,63 +261,66 @@ public final class FileDataManager {
       }
     }
 
-    String dstPath = prepareUfsFilePath(fileId);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
-    OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
-        .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
-        .setMode(new Mode((short) fileInfo.getMode())));
-    final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
+    try (CloseableResource<UnderFileSystem> ufsResource =
+        mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      String dstPath = prepareUfsFilePath(fileInfo, ufs);
+      OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
+          .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
+          .setMode(new Mode((short) fileInfo.getMode())));
+      final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
+      List<Throwable> errors = new ArrayList<>();
+      try {
+        for (long blockId : blockIds) {
+          long lockId = blockIdToLockId.get(blockId);
 
-    List<Throwable> errors = new ArrayList<>();
-    try {
-      for (long blockId : blockIds) {
-        long lockId = blockIdToLockId.get(blockId);
+          if (Configuration.getBoolean(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
+            BlockMeta blockMeta =
+                mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
+            mPersistenceRateLimiter.acquire((int) blockMeta.getBlockSize());
+          }
 
-        if (Configuration.getBoolean(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
-          BlockMeta blockMeta =
-              mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
-          mPersistenceRateLimiter.acquire((int) blockMeta.getBlockSize());
+          // obtain block reader
+          BlockReader reader =
+              mBlockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
+
+          // write content out
+          ReadableByteChannel inputChannel = reader.getChannel();
+          mChannelCopier.copy(inputChannel, outputChannel);
+          reader.close();
+        }
+      } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
+        errors.add(e);
+      } finally {
+        // make sure all the locks are released
+        for (long lockId : blockIdToLockId.values()) {
+          try {
+            mBlockWorker.unlockBlock(lockId);
+          } catch (BlockDoesNotExistException e) {
+            errors.add(e);
+          }
         }
 
-        // obtain block reader
-        BlockReader reader =
-            mBlockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
-
-        // write content out
-        ReadableByteChannel inputChannel = reader.getChannel();
-        BufferUtils.fastCopy(inputChannel, outputChannel);
-        reader.close();
-      }
-    } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
-      errors.add(e);
-    } finally {
-      // make sure all the locks are released
-      for (long lockId : blockIdToLockId.values()) {
-        try {
-          mBlockWorker.unlockBlock(lockId);
-        } catch (BlockDoesNotExistException e) {
-          errors.add(e);
+        // Process any errors
+        if (!errors.isEmpty()) {
+          StringBuilder errorStr = new StringBuilder();
+          errorStr.append("the blocks of file").append(fileId).append(" are failed to persist\n");
+          for (Throwable e : errors) {
+            errorStr.append(e).append('\n');
+          }
+          throw new IOException(errorStr.toString());
         }
       }
 
-      // Process any errors
-      if (!errors.isEmpty()) {
-        StringBuilder errorStr = new StringBuilder();
-        errorStr.append("the blocks of file").append(fileId).append(" are failed to persist\n");
-        for (Throwable e : errors) {
-          errorStr.append(e).append('\n');
-        }
-        throw new IOException(errorStr.toString());
+      outputStream.flush();
+      outputChannel.close();
+      outputStream.close();
+      String ufsFingerprint = ufs.getFingerprint(dstPath);
+      synchronized (mLock) {
+        mPersistingInProgressFiles.remove(fileId);
+        mPersistedUfsFingerprints.put(fileId, ufsFingerprint);
       }
-    }
-
-    outputStream.flush();
-    outputChannel.close();
-    outputStream.close();
-    synchronized (mLock) {
-      mPersistingInProgressFiles.remove(fileId);
-      mPersistedFiles.add(fileId);
     }
   }
 
@@ -291,37 +328,79 @@ public final class FileDataManager {
    * Prepares the destination file path of the given file id. Also creates the parent folder if it
    * does not exist.
    *
-   * @param fileId the file id
+   * @param fileInfo the file info
+   * @param ufs the {@link UnderFileSystem} instance
    * @return the path for persistence
    */
-  private String prepareUfsFilePath(long fileId) throws AlluxioException, IOException {
-    FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
+  private String prepareUfsFilePath(FileInfo fileInfo, UnderFileSystem ufs)
+      throws AlluxioException, IOException {
     AlluxioURI alluxioPath = new AlluxioURI(fileInfo.getPath());
-    FileSystem fs = FileSystem.Factory.get();
+    FileSystem fs = mFileSystemFactory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
     UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     return ufsPath;
   }
 
   /**
-   * @return the persisted file
+   * @return information about persisted files
    */
-  public List<Long> getPersistedFiles() {
+  public PersistedFilesInfo getPersistedFileInfos() {
     synchronized (mLock) {
-      return ImmutableList.copyOf(mPersistedFiles);
+      return new PersistedFilesInfo(mPersistedUfsFingerprints);
     }
   }
 
   /**
-   * Clears the given persisted files stored in {@link #mPersistedFiles}.
+   * Clears the given persisted files stored in {@link #mPersistedUfsFingerprints}.
    *
    * @param persistedFiles the list of persisted files to clear
    */
   public void clearPersistedFiles(List<Long> persistedFiles) {
     synchronized (mLock) {
-      mPersistedFiles.removeAll(persistedFiles);
+      for (long persistedId : persistedFiles) {
+        mPersistedUfsFingerprints.remove(persistedId);
+      }
+    }
+  }
+
+  /**
+   * Information about persisted files.
+   */
+  public static class PersistedFilesInfo {
+    private List<Long> mIdList;
+    private List<String> mUfsFingerprintList;
+
+    private PersistedFilesInfo(Map<Long, String> persistedMap) {
+      mIdList = new ArrayList<>(persistedMap.size());
+      mUfsFingerprintList = new ArrayList<>(persistedMap.size());
+      for (Map.Entry<Long, String> entry : persistedMap.entrySet()) {
+        mIdList.add(entry.getKey());
+        mUfsFingerprintList.add(entry.getValue());
+      }
+    }
+
+    /**
+     * @param idList list of file ids of persisted files
+     * @param ufsFingerprintList list of ufs fingerprints of persisted files
+     */
+    public PersistedFilesInfo(List<Long> idList, List<String> ufsFingerprintList) {
+      mIdList = idList;
+      mUfsFingerprintList = ufsFingerprintList;
+    }
+
+    /**
+     * @return a list of file ids of persisted files
+     */
+    public List<Long> idList() {
+      return mIdList;
+    }
+
+    /**
+     * @return list of ufs fingerprints of persisted files
+     */
+    public List<String> ufsFingerprintList() {
+      return mUfsFingerprintList;
     }
   }
 }

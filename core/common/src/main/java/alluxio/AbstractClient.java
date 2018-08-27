@@ -17,26 +17,31 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
-import alluxio.exception.status.UnimplementedException;
-import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.metrics.CommonMetrics;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
+import alluxio.security.LoginUser;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.util.SecurityUtils;
 
+import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.regex.Pattern;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
@@ -49,21 +54,10 @@ import javax.security.auth.Subject;
 public abstract class AbstractClient implements Client {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
 
-  /** The pattern of exception message when client and server transport frame sizes do not match. */
-  private static final Pattern FRAME_SIZE_EXCEPTION_PATTERN =
-      Pattern.compile("Frame size \\((\\d+)\\) larger than max length");
+  private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
-  private static final int BASE_SLEEP_MS =
-      (int) Configuration.getMs(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
-  private static final int MAX_SLEEP_MS =
-      (int) Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
-
-  /** The number of times to retry a particular RPC. */
-  protected static final int RPC_MAX_NUM_RETRY =
-      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY);
-
-  protected InetSocketAddress mAddress = null;
-  protected TProtocol mProtocol = null;
+  protected InetSocketAddress mAddress;
+  protected TProtocol mProtocol;
 
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
@@ -79,9 +73,6 @@ public abstract class AbstractClient implements Client {
    */
   protected long mServiceVersion;
 
-  /** Handler to the transport provider according to the authentication type. */
-  protected final TransportProvider mTransportProvider;
-
   private final Subject mParentSubject;
 
   /**
@@ -91,10 +82,22 @@ public abstract class AbstractClient implements Client {
    * @param address the address
    */
   public AbstractClient(Subject subject, InetSocketAddress address) {
+    this(subject, address, RetryUtils::defaultClientRetry);
+  }
+
+  /**
+   * Creates a new client base.
+   *
+   * @param subject the parent subject, set to null if not present
+   * @param address the address
+   * @param retryPolicySupplier factory for retry policies to be used when performing RPCs
+   */
+  public AbstractClient(Subject subject, InetSocketAddress address,
+      Supplier<RetryPolicy> retryPolicySupplier) {
     mAddress = address;
-    mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
-    mTransportProvider = TransportProvider.Factory.create();
     mParentSubject = subject;
+    mRetryPolicySupplier = retryPolicySupplier;
+    mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
   }
 
   /**
@@ -141,6 +144,17 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
+   * This method is called before the connection is connected. Implementations should add any
+   * additional operations before the connection is connected.
+   */
+  protected void beforeConnect() throws IOException {
+    // Bootstrap once for clients
+    if (!isConnected()) {
+      Configuration.loadClusterDefault(mAddress);
+    }
+  }
+
+  /**
    * This method is called after the connection is disconnected. Implementations should clean up any
    * additional state created for the connection.
    */
@@ -159,46 +173,44 @@ public abstract class AbstractClient implements Client {
   /**
    * Connects with the remote.
    */
-  public synchronized void connect() throws IOException {
+  @Override
+  public synchronized void connect() throws AlluxioStatusException {
     if (mConnected) {
       return;
     }
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    RetryPolicy retryPolicy =
-        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
-    while (true) {
+    RetryPolicy retryPolicy = mRetryPolicySupplier.get();
+    while (retryPolicy.attempt()) {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
       }
-      // Re-query the address in each loop iteration in case it has changed (e.g. master failover).
-      mAddress = getAddress();
-      LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
-          RuntimeConstants.VERSION, getServiceName(), mAddress);
-
-      TProtocol binaryProtocol =
-          new TBinaryProtocol(mTransportProvider.getClientTransport(mParentSubject, mAddress));
-      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
+      // Re-query the address in each loop iteration in case it has changed (e.g. master
+      // failover).
       try {
+        mAddress = getAddress();
+      } catch (UnavailableException e) {
+        LOG.warn("Failed to determine {} rpc address ({}): {}",
+            getServiceName(), retryPolicy.getAttemptCount(), e.toString());
+        continue;
+      }
+      try {
+        beforeConnect();
+        LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
+            RuntimeConstants.VERSION, getServiceName(), mAddress);
+        // The wrapper transport
+        TTransport clientTransport =
+            TransportProvider.Factory.create().getClientTransport(mParentSubject, mAddress);
+        mProtocol = ThriftUtils.createThriftProtocol(clientTransport, getServiceName());
         mProtocol.getTransport().open();
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
         mConnected = true;
         afterConnect();
         checkVersion(getClient(), getServiceVersion());
         return;
-      } catch (IOException e) {
-        if (e.getMessage() != null && FRAME_SIZE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
-          // See an error like "Frame size (67108864) larger than max length (16777216)!",
-          // pointing to the helper page.
-          String message = String.format("Failed to connect with %s @ %s: %s. "
-              + "This exception may be caused by incorrect network configuration. "
-              + "Please consult %s for common solutions to address this problem.",
-              getServiceName(), mAddress, e.getMessage(), RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
-          throw new UnimplementedException(message, e);
-        }
-      } catch (TTransportException e) {
-        LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getRetryCount(),
+      } catch (IOException | TTransportException e) {
+        LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         if (e.getCause() instanceof java.net.SocketTimeoutException) {
           // Do not retry if socket timeout.
@@ -208,14 +220,15 @@ public abstract class AbstractClient implements Client {
           throw new UnavailableException(message, e);
         }
       }
-      // TODO(peis): Consider closing the connection here as well.
-      if (!retryPolicy.attemptRetry()) {
-        break;
-      }
     }
     // Reaching here indicates that we did not successfully connect.
+    if (mAddress == null) {
+      throw new UnavailableException(
+          String.format("Failed to determine address for %s after %s attempts", getServiceName(),
+              retryPolicy.getAttemptCount()));
+    }
     throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
-        getServiceName(), mAddress, retryPolicy.getRetryCount()));
+        getServiceName(), mAddress, retryPolicy.getAttemptCount()));
   }
 
   /**
@@ -280,11 +293,43 @@ public abstract class AbstractClient implements Client {
    * @param <V> type of return value of the RPC call
    * @return the return value of the RPC call
    */
-  protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws IOException {
-    RetryPolicy retryPolicy =
-        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
-    while (!mClosed) {
-      Exception ex;
+  protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws AlluxioStatusException {
+    return retryRPCInternal(rpc, () -> null);
+  }
+
+  /**
+   * Tries to execute an RPC defined as a {@link RpcCallable}. Metrics will be recorded based on
+   * the provided rpc name.
+   *
+   * If a {@link UnavailableException} occurs, a reconnection will be tried through
+   * {@link #connect()} and the action will be re-executed.
+   *
+   * @param rpc the RPC call to be executed
+   * @param rpcName the human readable name of the RPC call
+   * @param <V> type of return value of the RPC call
+   * @return the return value of the RPC call
+   */
+  protected synchronized <V> V retryRPC(RpcCallable<V> rpc, String rpcName)
+      throws AlluxioStatusException {
+    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(rpcName)).time()) {
+      return retryRPCInternal(rpc, () -> {
+        MetricsSystem.counter(getQualifiedRetryMetricName(rpcName)).inc();
+        return null;
+      });
+    } catch (Exception e) {
+      MetricsSystem.counter(getQualifiedFailureMetricName(rpcName)).inc();
+      throw e;
+    }
+  }
+
+  private synchronized <V> V retryRPCInternal(RpcCallable<V> rpc, Supplier<Void> onRetry)
+      throws AlluxioStatusException {
+    RetryPolicy retryPolicy = mRetryPolicySupplier.get();
+    Exception ex = null;
+    while (retryPolicy.attempt()) {
+      if (mClosed) {
+        throw new FailedPreconditionException("Client is closed");
+      }
       connect();
       try {
         return rpc.call();
@@ -298,14 +343,35 @@ public abstract class AbstractClient implements Client {
       } catch (TException e) {
         ex = e;
       }
+      LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
+      onRetry.get();
       disconnect();
-      if (retryPolicy.attemptRetry()) {
-        LOG.warn("RPC failed with {}. Retrying.", ex.toString());
-      } else {
-        throw new UnavailableException(
-            "Failed after " + retryPolicy.getRetryCount() + " retries: " + ex.toString(), ex);
-      }
     }
-    throw new FailedPreconditionException("Client is closed");
+    throw new UnavailableException("Failed after " + retryPolicy.getAttemptCount()
+        + " attempts: " + ex.toString(), ex);
+  }
+
+  // TODO(calvin): General tag logic should be in getMetricName
+  private String getQualifiedMetricName(String metricName) {
+    try {
+      if (SecurityUtils.isAuthenticationEnabled() && LoginUser.get() != null) {
+        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER, LoginUser.get()
+            .getName());
+      } else {
+        return metricName;
+      }
+    } catch (IOException e) {
+      return metricName;
+    }
+  }
+
+  // TODO(calvin): This should not be in this class
+  private String getQualifiedRetryMetricName(String metricName) {
+    return getQualifiedMetricName(metricName + "Retries");
+  }
+
+  // TODO(calvin): This should not be in this class
+  private String getQualifiedFailureMetricName(String metricName) {
+    return getQualifiedMetricName(metricName + "Failures");
   }
 }

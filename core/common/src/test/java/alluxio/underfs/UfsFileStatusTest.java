@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import alluxio.util.CommonUtils;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,17 +28,20 @@ public final class UfsFileStatusTest {
   @Test
   public void fields() {
     Random random = new Random();
+    String contentHash = CommonUtils.randomAlphaNumString(10);
     long contentLength = random.nextLong();
     long lastModifiedTimeMs = random.nextLong();
     short mode = 077;
     UfsFileStatus status =
-        new UfsFileStatus("name", contentLength, lastModifiedTimeMs, "owner", "group", mode);
+        new UfsFileStatus("name", contentHash, contentLength, lastModifiedTimeMs, "owner", "group",
+            mode);
 
     Assert.assertEquals("name", status.getName());
+    Assert.assertEquals(contentHash, status.getContentHash());
     Assert.assertEquals(contentLength, status.getContentLength());
     Assert.assertEquals(false, status.isDirectory());
     Assert.assertEquals(true, status.isFile());
-    Assert.assertEquals(lastModifiedTimeMs, status.getLastModifiedTime());
+    Assert.assertEquals(lastModifiedTimeMs, (long) status.getLastModifiedTime());
     Assert.assertEquals("owner", status.getOwner());
     Assert.assertEquals("group", status.getGroup());
     Assert.assertEquals(mode, status.getMode());
@@ -48,11 +53,13 @@ public final class UfsFileStatusTest {
   @Test
   public void copy() {
     Random random = new Random();
+    String contentHash = CommonUtils.randomAlphaNumString(10);
     long contentLength = random.nextLong();
     long lastModifiedTimeMs = random.nextLong();
     short mode = 077;
     UfsFileStatus statusToCopy =
-        new UfsFileStatus("name", contentLength, lastModifiedTimeMs, "owner", "group", mode);
+        new UfsFileStatus("name", contentHash, contentLength, lastModifiedTimeMs, "owner", "group",
+            mode);
     UfsFileStatus status = new UfsFileStatus(statusToCopy);
     Assert.assertEquals(statusToCopy, status);
   }

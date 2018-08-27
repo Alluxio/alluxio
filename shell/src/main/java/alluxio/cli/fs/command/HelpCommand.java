@@ -12,9 +12,10 @@
 package alluxio.cli.fs.command;
 
 import alluxio.cli.Command;
+import alluxio.cli.CommandUtils;
+import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
-import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.exception.status.InvalidArgumentException;
 
 import jline.TerminalFactory;
@@ -26,6 +27,7 @@ import java.io.PrintWriter;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -45,7 +47,12 @@ public final class HelpCommand extends AbstractFileSystemCommand {
   public static void printCommandInfo(Command command, PrintWriter pw) {
     String description =
         String.format("%s: %s", command.getCommandName(), command.getDescription());
-    int width = TerminalFactory.get().getWidth();
+    int width = 80;
+    try {
+      width = TerminalFactory.get().getWidth();
+    } catch (Exception e) {
+      // In case the terminal factory failed to decide terminal type, use default width
+    }
 
     HELP_FORMATTER.printWrapped(pw, width, description);
     HELP_FORMATTER.printUsage(pw, width, command.getUsage());
@@ -94,7 +101,7 @@ public final class HelpCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "help <command>";
+    return "help [<command>]";
   }
 
   @Override
@@ -104,11 +111,7 @@ public final class HelpCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-  }
-
-  @Override
-  protected int getNumOfArgs() {
-    return 1;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoMoreThan(this, cl, 1);
   }
 }

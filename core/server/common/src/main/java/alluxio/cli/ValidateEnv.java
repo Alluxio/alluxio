@@ -12,21 +12,34 @@
 package alluxio.cli;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.cli.validation.ClusterConfConsistencyValidationTask;
+import alluxio.cli.validation.HdfsValidationTask;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
 import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
+import alluxio.cli.validation.SecureHdfsValidationTask;
 import alluxio.cli.validation.StorageSpaceValidationTask;
 import alluxio.cli.validation.SshValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
+import alluxio.cli.validation.UfsSuperUserValidationTask;
 import alluxio.cli.validation.UserLimitValidationTask;
 import alluxio.cli.validation.Utils;
 import alluxio.cli.validation.ValidationTask;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.TreeMap;
@@ -36,134 +49,165 @@ import java.util.Map;
 /**
  * Utility for checking Alluxio environment.
  */
+// TODO(yanqin): decouple ValidationTask implementations for easier dependency management
 public final class ValidateEnv {
-  private static final String USAGE = "USAGE: validateEnv TARGET [NAME]\n\n"
+  private static final String USAGE = "validateEnv COMMAND [NAME] [OPTIONS]\n\n"
       + "Validate environment for Alluxio.\n\n"
-      + "TARGET can be one of the following values:\n"
+      + "COMMAND can be one of the following values:\n"
       + "local:   run all validation tasks on local\n"
       + "master:  run master validation tasks on local\n"
       + "worker:  run worker validation tasks on local\n"
       + "all:     run corresponding validation tasks on all master nodes and worker nodes\n"
       + "masters: run master validation tasks on all master nodes\n"
       + "workers: run worker validation tasks on all worker nodes\n\n"
+      + "list:    list all validation tasks\n\n"
+      + "For all commands except list:\n"
       + "NAME can be any task full name or prefix.\n"
       + "When NAME is given, only tasks with name starts with the prefix will run.\n"
       + "For example, specifying NAME \"master\" or \"ma\" will run both tasks named "
       + "\"master.rpc.port.available\" and \"master.web.port.available\" but not "
       + "\"worker.rpc.port.available\".\n"
-      + "If NAME is not given, all tasks for the given TARGET will run.\n";
+      + "If NAME is not given, all tasks for the given TARGET will run.\n\n"
+      + "OPTIONS can be a list of command line options. Each option has the"
+      + " format \"-<optionName> [optionValue]\"\n";
+
+  private static final Options OPTIONS = new Options();
 
   private static final Map<ValidationTask, String> TASKS = new HashMap<>();
+  private static final Map<String, String> TASK_DESCRIPTIONS = new HashMap<>();
 
   private static final String ALLUXIO_MASTER_CLASS = "alluxio.master.AlluxioMaster";
   private static final String ALLUXIO_WORKER_CLASS = "alluxio.worker.AlluxioWorker";
   private static final String ALLUXIO_PROXY_CLASS = "alluxio.proxy.AlluxioProxy";
 
-  // port availability validations
-  private static final ValidationTask MASTER_RPC_VALIDATION_TASK = registerTask(
-      "master.rpc.port.available",
-      new PortAvailabilityValidationTask(ServiceType.MASTER_RPC, ALLUXIO_MASTER_CLASS));
-  private static final ValidationTask MASTER_WEB_VALIDATION_TASK = registerTask(
-      "master.web.port.available",
-      new PortAvailabilityValidationTask(ServiceType.MASTER_WEB, ALLUXIO_MASTER_CLASS));
-  private static final ValidationTask WORKER_DATA_VALIDATION_TASK = registerTask(
-      "worker.data.port.available",
-      new PortAvailabilityValidationTask(ServiceType.WORKER_DATA, ALLUXIO_WORKER_CLASS));
-  private static final ValidationTask WORKER_RPC_VALIDATION_TASK = registerTask(
-      "worker.rpc.port.available",
-      new PortAvailabilityValidationTask(ServiceType.WORKER_RPC, ALLUXIO_WORKER_CLASS));
-  private static final ValidationTask WORKER_WEB_VALIDATION_TASK = registerTask(
-      "worker.web.port.available",
-      new PortAvailabilityValidationTask(ServiceType.WORKER_WEB, ALLUXIO_WORKER_CLASS));
-  private static final ValidationTask PROXY_WEB_VALIDATION_TASK = registerTask(
-      "proxy.web.port.available",
-      new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS));
+  private static final List<ValidationTask> COMMON_TASKS = new ArrayList<>();
+  private static final List<ValidationTask> CLUSTER_TASKS = new ArrayList<>();
+  private static final List<ValidationTask> MASTER_TASKS = new ArrayList<>();
+  private static final List<ValidationTask> WORKER_TASKS = new ArrayList<>();
 
-  // ssh validations
-  private static final ValidationTask SSH_TO_MASTERS_VALIDATION_TASK = registerTask(
-      "ssh.masters.reachable",
-      new SshValidationTask("masters"));
-  private static final ValidationTask SSH_TO_WORKERS_VALIDATION_TASK = registerTask(
-      "ssh.workers.reachable",
-      new SshValidationTask("workers"));
+  static {
+    // HDFS configuration validations
+    registerTask("ufs.hdfs.config.parity",
+        "validate HDFS-related configurations",
+        new HdfsValidationTask(), COMMON_TASKS);
 
-  // UFS validations
-  private static final ValidationTask UFS_ROOT_VALIDATION_TASK = registerTask(
-      "ufs.root.accessible",
-      new UfsDirectoryValidationTask());
+    // port availability validations
+    registerTask("master.rpc.port.available",
+        "validate master RPC port is available",
+        new PortAvailabilityValidationTask(ServiceType.MASTER_RPC, ALLUXIO_MASTER_CLASS),
+        MASTER_TASKS);
+    registerTask("master.web.port.available",
+        "validate master web port is available",
+        new PortAvailabilityValidationTask(ServiceType.MASTER_WEB, ALLUXIO_MASTER_CLASS),
+        MASTER_TASKS);
+    registerTask("worker.data.port.available",
+        "validate worker data port is available",
+        new PortAvailabilityValidationTask(ServiceType.WORKER_DATA, ALLUXIO_WORKER_CLASS),
+        WORKER_TASKS);
+    registerTask("worker.rpc.port.available",
+        "validate worker RPC port is available",
+        new PortAvailabilityValidationTask(ServiceType.WORKER_RPC, ALLUXIO_WORKER_CLASS),
+        WORKER_TASKS);
+    registerTask("worker.web.port.available",
+        "validate worker web port is available",
+        new PortAvailabilityValidationTask(ServiceType.WORKER_WEB, ALLUXIO_WORKER_CLASS),
+        WORKER_TASKS);
+    registerTask("proxy.web.port.available",
+        "validate proxy web port is available",
+        new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS),
+        COMMON_TASKS);
 
-  // RAM disk validations
-  private static final ValidationTask WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK = registerTask(
-      "worker.ramdisk.mount.privilege", new RamDiskMountPrivilegeValidationTask());
+    // security configuration validations
+    registerTask("master.ufs.hdfs.security.kerberos",
+        "validate kerberos security configurations for masters",
+        new SecureHdfsValidationTask("master"), MASTER_TASKS);
+    registerTask("worker.ufs.hdfs.security.kerberos",
+        "validate kerberos security configurations for workers",
+        new SecureHdfsValidationTask("worker"), WORKER_TASKS);
 
-  // User limit validations
-  private static final ValidationTask ULIMIT_OPEN_FILES_VALIDATION_TASK = registerTask(
-      "ulimit.nofile",
-      UserLimitValidationTask.createOpenFilesLimitValidationTask());
+    // ssh validations
+    registerTask("ssh.masters.reachable",
+        "validate SSH port on masters are reachable",
+        new SshValidationTask("masters"), COMMON_TASKS);
+    registerTask("ssh.workers.reachable",
+        "validate SSH port on workers are reachable",
+        new SshValidationTask("workers"), COMMON_TASKS);
 
-  private static final ValidationTask ULIMIT_USER_PROCS_VALIDATION_TASK = registerTask(
-      "ulimit.nproc",
-      UserLimitValidationTask.createUserProcessesLimitValidationTask());
+    // UFS validations
+    registerTask("ufs.root.accessible",
+        "validate root under file system location is accessible",
+        new UfsDirectoryValidationTask(), COMMON_TASKS);
+    registerTask("ufs.root.superuser",
+        "validate Alluxio has super user privilege on root under file system",
+        new UfsSuperUserValidationTask(), COMMON_TASKS);
 
-  // space validations
-  private static final ValidationTask WORKER_STORAGE_SPACE_VALIDATION_TASK = registerTask(
-      "worker.storage.space",
-      new StorageSpaceValidationTask());
+    // RAM disk validations
+    registerTask("worker.ramdisk.mount.privilege",
+        "validate user has the correct privilege to mount ramdisk",
+        new RamDiskMountPrivilegeValidationTask(), WORKER_TASKS);
+
+    // User limit validations
+    registerTask("ulimit.nofile",
+        "validate ulimit for number of open files is set appropriately",
+        UserLimitValidationTask.createOpenFilesLimitValidationTask(), COMMON_TASKS);
+
+    registerTask("ulimit.nproc",
+        "validate ulimit for number of processes is set appropriately",
+        UserLimitValidationTask.createUserProcessesLimitValidationTask(), COMMON_TASKS);
+
+    // space validations
+    registerTask("worker.storage.space",
+        "validate tiered storage locations have enough space",
+        new StorageSpaceValidationTask(), WORKER_TASKS);
+    registerTask("cluster.conf.consistent",
+        "validate configuration consistency across the cluster",
+        new ClusterConfConsistencyValidationTask(), CLUSTER_TASKS);
+  }
 
   private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
       initializeTargetTasks();
 
   private static Map<String, Collection<ValidationTask>> initializeTargetTasks() {
     Map<String, Collection<ValidationTask>> targetMap = new TreeMap<>();
-    ValidationTask[] commonTasks = {
-        PROXY_WEB_VALIDATION_TASK,
-        SSH_TO_MASTERS_VALIDATION_TASK,
-        SSH_TO_WORKERS_VALIDATION_TASK,
-        UFS_ROOT_VALIDATION_TASK,
-        ULIMIT_OPEN_FILES_VALIDATION_TASK,
-        ULIMIT_USER_PROCS_VALIDATION_TASK
-    };
-    ValidationTask[] masterTasks = {
-        MASTER_RPC_VALIDATION_TASK,
-        MASTER_WEB_VALIDATION_TASK
-    };
-    ValidationTask[] workerTasks = {
-        WORKER_DATA_VALIDATION_TASK,
-        WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK,
-        WORKER_RPC_VALIDATION_TASK,
-        WORKER_STORAGE_SPACE_VALIDATION_TASK,
-        WORKER_WEB_VALIDATION_TASK
-    };
-
-    targetMap.put("master", Arrays.asList(
-        ArrayUtils.addAll(commonTasks, masterTasks)));
-    targetMap.put("worker", Arrays.asList(
-        ArrayUtils.addAll(commonTasks, workerTasks)));
+    List<ValidationTask> allMasterTasks = new ArrayList<>(COMMON_TASKS);
+    allMasterTasks.addAll(MASTER_TASKS);
+    targetMap.put("master", allMasterTasks);
+    List<ValidationTask> allWorkerTasks = new ArrayList<>(COMMON_TASKS);
+    allWorkerTasks.addAll(WORKER_TASKS);
+    targetMap.put("worker", allWorkerTasks);
     targetMap.put("local", TASKS.keySet());
+    targetMap.put("cluster", new ArrayList<>(CLUSTER_TASKS));
     return targetMap;
   }
 
-  private static ValidationTask registerTask(String name, ValidationTask task) {
+  private static ValidationTask registerTask(String name, String description, ValidationTask task,
+      List<ValidationTask> tasks) {
     TASKS.put(task, name);
+    TASK_DESCRIPTIONS.put(name, description);
+    tasks.add(task);
+    List<Option> optList = task.getOptionList();
+    synchronized (ValidateEnv.class) {
+      optList.forEach(opt -> OPTIONS.addOption(opt));
+    }
     return task;
   }
 
-  private static boolean validateRemote(List<String> nodes, String target, String name)
-      throws InterruptedException {
+  private static boolean validateRemote(List<String> nodes, String target, String name,
+      CommandLine cmd) throws InterruptedException {
     if (nodes == null) {
       return false;
     }
 
     boolean success = true;
     for (String node : nodes) {
-      success &= validateRemote(node, target, name);
+      success &= validateRemote(node, target, name, cmd);
     }
 
     return success;
   }
 
   // validates environment on remote node
-  private static boolean validateRemote(String node, String target, String name)
+  private static boolean validateRemote(String node, String target, String name, CommandLine cmd)
       throws InterruptedException {
     System.out.format("Validating %s environment on %s...%n", target, node);
     if (!Utils.isAddressReachable(node, 22)) {
@@ -171,9 +215,12 @@ public final class ValidateEnv {
       return false;
     }
 
+    // args is not null.
+    String argStr = String.join(" ", cmd.getArgs());
     String homeDir = Configuration.get(PropertyKey.HOME);
     String remoteCommand = String.format(
-        "%s/bin/alluxio validateEnv %s %s", homeDir, target, name == null ? "" : name);
+        "%s/bin/alluxio validateEnv %s %s %s",
+        homeDir, target, name == null ? "" : name, argStr);
     String localCommand = String.format(
         "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
         node, remoteCommand);
@@ -193,47 +240,114 @@ public final class ValidateEnv {
   }
 
   // runs validation tasks in local environment
-  private static boolean validateLocal(String target, String name) throws InterruptedException {
+  private static boolean validateLocal(String target, String name, CommandLine cmd)
+      throws InterruptedException {
     int validationCount = 0;
-    int failureCount = 0;
+    Map<ValidationTask.TaskResult, Integer> results = new HashMap<>();
+    Map<String, String> optionsMap = new HashMap<>();
+    for (Option opt : cmd.getOptions()) {
+      optionsMap.put(opt.getOpt(), opt.getValue());
+    }
     Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
-    for (ValidationTask task : tasks) {
+    System.out.format("Validating %s environment...%n", target);
+    for (ValidationTask task: tasks) {
       String taskName = TASKS.get(task);
       if (name != null && !taskName.startsWith(name)) {
         continue;
       }
-
-      System.out.format("Validating %s...", taskName);
-      if (task.validate()) {
-        System.out.println("OK");
-      } else {
-        System.out.println("Failed");
-        failureCount++;
+      System.out.format("Validating %s...%n", taskName);
+      ValidationTask.TaskResult result = task.validate(optionsMap);
+      results.put(result, results.getOrDefault(result, 0) + 1);
+      switch (result) {
+        case OK:
+          System.out.print(Constants.ANSI_GREEN);
+          break;
+        case WARNING:
+          System.out.print(Constants.ANSI_YELLOW);
+          break;
+        case FAILED:
+          System.out.print(Constants.ANSI_RED);
+          break;
+        case SKIPPED:
+          System.out.print(Constants.ANSI_PURPLE);
+          break;
+        default:
+          break;
       }
-
+      System.out.print(result.name());
+      System.out.println(Constants.ANSI_RESET);
       validationCount++;
     }
-
-    if (failureCount > 0) {
-      System.err.format("Validation failed. Total failures: %d.%n", failureCount);
-      return false;
+    if (results.containsKey(ValidationTask.TaskResult.FAILED)) {
+      System.err.format("%d failures ", results.get(ValidationTask.TaskResult.FAILED));
     }
-
+    if (results.containsKey(ValidationTask.TaskResult.WARNING)) {
+      System.err.format("%d warnings ", results.get(ValidationTask.TaskResult.WARNING));
+    }
+    if (results.containsKey(ValidationTask.TaskResult.SKIPPED)) {
+      System.err.format("%d skipped ", results.get(ValidationTask.TaskResult.SKIPPED));
+    }
+    System.err.println();
     if (validationCount == 0) {
       System.err.format("No validation task matched name \"%s\".%n", name);
       return false;
     }
-
+    if (results.containsKey(ValidationTask.TaskResult.FAILED)) {
+      return false;
+    }
     System.out.println("Validation succeeded.");
-    return false;
+    return true;
   }
 
-  private static boolean validateWorkers(String name) throws InterruptedException {
-    return validateRemote(Utils.readNodeList("workers"), "worker", name);
+  private static boolean validateWorkers(String name, CommandLine cmd) throws InterruptedException {
+    return validateRemote(Utils.readNodeList("workers"), "worker", name, cmd);
   }
 
-  private static boolean validateMasters(String name) throws InterruptedException {
-    return validateRemote(Utils.readNodeList("masters"), "master", name);
+  private static boolean validateMasters(String name, CommandLine cmd) throws InterruptedException {
+    return validateRemote(Utils.readNodeList("masters"), "master", name, cmd);
+  }
+
+  private static void printTasks(String target) {
+    System.out.format("The following tasks are available to run on %s:%n", target);
+    Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
+    for (ValidationTask task: tasks) {
+      String taskName = TASKS.get(task);
+      System.out.printf("%s: %s%n", taskName, TASK_DESCRIPTIONS.get(taskName));
+    }
+    System.out.println();
+  }
+
+  private static void printTasks() {
+    printTasks("master");
+    printTasks("worker");
+    printTasks("cluster");
+  }
+
+  private static int runTasks(String target, String name, CommandLine cmd)
+      throws InterruptedException {
+    boolean success;
+    switch (target) {
+      case "local":
+      case "worker":
+      case "master":
+        success = validateLocal(target, name, cmd);
+        break;
+      case "all":
+        success = validateMasters(name, cmd);
+        success = validateWorkers(name, cmd) && success;
+        success = validateLocal("cluster", name, cmd) && success;
+        break;
+      case "workers":
+        success = validateWorkers(name, cmd);
+        break;
+      case "masters":
+        success = validateMasters(name, cmd);
+        break;
+      default:
+        printHelp("Invalid target.");
+        return -2;
+    }
+    return success ? 0 : -1;
   }
 
   /**
@@ -243,52 +357,48 @@ public final class ValidateEnv {
    */
   public static void printHelp(String message) {
     System.err.println(message);
-    System.out.print(USAGE);
+    HelpFormatter formatter = new HelpFormatter();
+    formatter.printHelp(USAGE, OPTIONS, true);
   }
 
   /**
    * Validates environment.
    *
-   * @param args list of arguments
+   * @param argv list of arguments
    * @return 0 on success, -1 on validation failures, -2 on invalid arguments
    */
-  public static int validate(String... args) throws InterruptedException {
-    if (args.length < 1) {
+  public static int validate(String... argv) throws InterruptedException {
+    if (argv.length < 1) {
       printHelp("Target not specified.");
       return -2;
     }
-
-    if (args.length > 2) {
-      printHelp("More arguments than expected.");
-      return -2;
+    String command = argv[0];
+    String name = null;
+    String[] args;
+    int argsLength = 0;
+    // Find all non-option command line arguments.
+    while (argsLength < argv.length && !argv[argsLength].startsWith("-")) {
+      argsLength++;
+    }
+    if (argsLength > 1) {
+      name = argv[1];
+      args = Arrays.copyOfRange(argv, 2, argv.length);
+    } else {
+      args = Arrays.copyOfRange(argv, 1, argv.length);
     }
 
-    String target = args[0];
-    String name = args.length > 1 ? args[1] : null;
-
-    boolean success;
-    switch (target) {
-      case "local":
-      case "worker":
-      case "master":
-        success = validateLocal(target, name);
-        break;
-      case "all":
-        success = validateMasters(name);
-        success = validateWorkers(name) && success;
-        break;
-      case "workers":
-        success = validateWorkers(name);
-        break;
-      case "masters":
-        success = validateMasters(name);
-        break;
-      default:
-        printHelp("Invalid target.");
-        return -2;
+    CommandLine cmd;
+    try {
+      cmd = parseArgsAndOptions(OPTIONS, args);
+    } catch (InvalidArgumentException e) {
+      System.err.format("Invalid argument: %s.%n", e.getMessage());
+      return -1;
     }
-
-    return success ? 0 : -1;
+    if (command != null && command.equals("list")) {
+      printTasks();
+      return 0;
+    }
+    return runTasks(command, name, cmd);
   }
 
   /**
@@ -298,6 +408,31 @@ public final class ValidateEnv {
    */
   public static void main(String[] args) throws InterruptedException {
     System.exit(validate(args));
+  }
+
+  /**
+   * Parses the command line arguments and options in {@code args}.
+   *
+   * After successful execution of this method, command line arguments can be
+   * retrieved by invoking {@link CommandLine#getArgs()}, and options can be
+   * retrieved by calling {@link CommandLine#getOptions()}.
+   *
+   * @param args command line arguments to parse
+   * @return {@link CommandLine} object representing the parsing result
+   * @throws InvalidArgumentException if command line contains invalid argument(s)
+   */
+  private static CommandLine parseArgsAndOptions(Options options, String... args)
+      throws InvalidArgumentException {
+    CommandLineParser parser = new DefaultParser();
+    CommandLine cmd;
+
+    try {
+      cmd = parser.parse(options, args);
+    } catch (ParseException e) {
+      throw new InvalidArgumentException(
+          "Failed to parse args for validateEnv", e);
+    }
+    return cmd;
   }
 
   private ValidateEnv() {} // prevents instantiation

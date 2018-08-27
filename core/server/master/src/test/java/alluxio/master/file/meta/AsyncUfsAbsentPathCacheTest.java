@@ -12,7 +12,9 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -20,7 +22,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.base.Function;
 import com.google.common.io.Files;
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,7 +51,8 @@ public class AsyncUfsAbsentPathCacheTest {
   public void before() throws Exception {
     mLocalUfsPath = Files.createTempDir().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
-    mMountTable = new MountTable(mUfsManager);
+    mMountTable = new MountTable(mUfsManager,
+        new MountInfo(new AlluxioURI("/"), new AlluxioURI("/ufs"), 1, MountOptions.defaults()));
     mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
 
     mMountId = IdUtils.getRandomNonNegativeLong();
@@ -58,8 +60,9 @@ public class AsyncUfsAbsentPathCacheTest {
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
             .setShared(options.isShared())
-            .setUserSpecifiedConf(Collections.<String, String>emptyMap()));
-    mMountTable.add(new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), mMountId, options);
+            .setMountSpecificConf(Collections.<String, String>emptyMap()));
+    mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
+        new AlluxioURI(mLocalUfsPath), mMountId, options);
   }
 
   @Test
@@ -155,7 +158,7 @@ public class AsyncUfsAbsentPathCacheTest {
     checkAbsentPaths(new AlluxioURI(alluxioBase + "/c"));
 
     // Unmount
-    Assert.assertTrue(mMountTable.delete(new AlluxioURI("/mnt")));
+    Assert.assertTrue(mMountTable.delete(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt")));
 
     // Re-mount the same ufs
     long newMountId = IdUtils.getRandomNonNegativeLong();
@@ -163,8 +166,9 @@ public class AsyncUfsAbsentPathCacheTest {
     mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
             .setShared(options.isShared())
-            .setUserSpecifiedConf(Collections.<String, String>emptyMap()));
-    mMountTable.add(new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), newMountId, options);
+            .setMountSpecificConf(Collections.<String, String>emptyMap()));
+    mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
+        new AlluxioURI(mLocalUfsPath), newMountId, options);
 
     // The cache should not contain any paths now.
     Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d")));
@@ -199,35 +203,21 @@ public class AsyncUfsAbsentPathCacheTest {
   private void addAbsent(AlluxioURI path) throws Exception {
     final ThreadPoolExecutor pool = Whitebox.getInternalState(mUfsAbsentPathCache, "mPool");
     final long initialTasks = pool.getCompletedTaskCount();
-    mUfsAbsentPathCache.process(path);
+    mUfsAbsentPathCache.process(path, Collections.emptyList());
     // Wait until the async task is completed.
-    CommonUtils
-        .waitFor("path (" + path + ") to be added to absent cache", new Function<Void, Boolean>() {
-          @Override
-          public Boolean apply(Void input) {
-            if (pool.getCompletedTaskCount() == initialTasks) {
-              return false;
-            }
-            return true;
-          }
-        }, WaitForOptions.defaults().setTimeoutMs(10000));
+    CommonUtils.waitFor("path (" + path + ") to be added to absent cache",
+        () -> pool.getCompletedTaskCount() != initialTasks,
+        WaitForOptions.defaults().setTimeoutMs(10000));
   }
 
   private void removeAbsent(AlluxioURI path) throws Exception {
     final ThreadPoolExecutor pool = Whitebox.getInternalState(mUfsAbsentPathCache, "mPool");
     final long initialTasks = pool.getCompletedTaskCount();
-    mUfsAbsentPathCache.process(path);
+    mUfsAbsentPathCache.process(path, Collections.emptyList());
     // Wait until the async task is completed.
     CommonUtils.waitFor("path (" + path + ") to be removed from absent cache",
-        new Function<Void, Boolean>() {
-          @Override
-          public Boolean apply(Void input) {
-            if (pool.getCompletedTaskCount() == initialTasks) {
-              return false;
-            }
-            return true;
-          }
-        }, WaitForOptions.defaults().setTimeoutMs(10000));
+        () -> pool.getCompletedTaskCount() != initialTasks,
+        WaitForOptions.defaults().setTimeoutMs(10000));
   }
 
   /**

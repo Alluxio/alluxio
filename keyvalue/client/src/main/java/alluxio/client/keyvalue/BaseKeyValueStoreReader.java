@@ -70,7 +70,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   @Override
   @Nullable
   public ByteBuffer get(ByteBuffer key) throws IOException, AlluxioException {
-    Preconditions.checkNotNull(key);
+    Preconditions.checkNotNull(key, "key");
     int left = 0;
     int right = mPartitions.size();
     while (left < right) {

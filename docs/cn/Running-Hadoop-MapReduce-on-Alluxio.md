@@ -14,32 +14,22 @@ priority: 1
 ## 初始化设置
 
 该文档的先决条件包括：
-－ 你已安装了[Java](Java-Setup.html)。
-－ 你已经按照这些文档建立了一个Alluxio集群：[本地模式](Running-Alluxio-Locally.html)或[集群](Running-Alluxio-on-a-Cluster.html)。
-－ 为了运行一些简单的map-reduce实例，我们也推荐你下载根据你的hadoop版本对应的[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1)，或者如果你正在使用Hadoop 1，下载这个[examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1)。
+- 你已安装了[Java](Java-Setup.html)。
+- 你已经按照这些文档建立了一个Alluxio集群：[本地模式](Running-Alluxio-Locally.html)或[集群](Running-Alluxio-on-a-Cluster.html)。
+- 为了运行一些简单的map-reduce实例，我们也推荐你下载根据你的hadoop版本对应的[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1)，或者如果你正在使用Hadoop 1，下载这个[examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1)。
 
 ## 编译Alluxio客户端
 
-为了使MapReduce应用可以与Alluxio进行通信，你需要将Alluxio Client的Jar包包含在MapReduce的classpaths中。我们建议你从Alluxio [download page](http://www.alluxio.org/download) 下载压缩包。Alluxio Client的Jar包可以在`{{site.ALLUXIO_CLIENT_JAR_PATH_HADOOP}}`路径中找到。
+为了使MapReduce应用可以与Alluxio进行通信，你需要将Alluxio Client的Jar包包含在MapReduce的classpaths中。我们建议你从Alluxio [download page](http://www.alluxio.org/download) 下载压缩包。
 
 同时，高级用户可以选择使用源代码来编译生成Alluxio Client的Jar包。
-你可以在Alluxio目录下运行以下命令：
+你可以运行以下命令[here](Building-Alluxio-From-Source.html#compute-framework-support)。
 
-```bash
-$ mvn install -P<HADOOP_PROFILE> -DskipTests
-```
-
-对于不同的Hadoop发行版本，可用的Hadoop配置文件包括“hadoop-1”，“hadoop-2.2”，“hadoop-2.3”...“hadoop-2.8”。你也可以进一步设置一个特定的Hadoop发行版本进行编译，比如：
-
-```bash
-$ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
-```
-
-编译成功后，新的Alluxio客户端Jar包可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中发现; 文档后续部分将会用到这个jar文件。
+新的Alluxio客户端Jar包可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中发现。
 
 ## 配置Hadoop
 
-将以下三个属性添加到Hadoop的安装目录下的`conf`目录中的`core-site.xml`文件中：
+将以下两个属性添加到Hadoop的安装目录下的`core-site.xml`文件中：
 
 ```xml
 <property>
@@ -54,7 +44,7 @@ $ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 </property>
 ```
 
-该配置让你的MapReduce作用在输入和输出文件中通过Alluxio scheme（比如`alluxio://`）来识别URIs。
+该配置让你的MapReduce作用在输入和输出文件中通过Alluxio scheme `alluxio://` 来识别URIs。
 
 其次, 在`conf`目录中`hadoop-env.sh`文件中修改`$HADOOP_CLASSPATH`：
 
@@ -66,21 +56,41 @@ $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 
 ## 分发Alluxio客户端Jar包
 
-为了让MapRedude应用可以在Alluxio上读写文件，Alluxio客户端Jar包必须被分发到不同节点的应用相应的classpaths中。
+为了让MapRedude应用在Alluxio上读写文件，Alluxio客户端Jar包必须被分发到不同节点的应用相应的classpaths中。
 
 [如何从Cloudera上加入第三方库](http://blog.cloudera.com/blog/2011/01/how-to-include-third-party-libraries-in-your-map-reduce-job/)这篇文档介绍了分发Jar包的多种方式。文档中建议通过使用命令行的`-libjars`选项，使用分布式缓存来分发Alluxio客户端Jar包。另一种分发客户端Jar包的方式就是手动将其分发到Hadoop节点上。下面就是这两种主流方法的介绍：
 
 1.**使用-libjars命令行选项**
+
 你可以在使用`hadoop jar ...`的时候加入-libjars命令行选项，指定`{{site.ALLUXIO_CLIENT_JAR_PATH}}`为`-libjars`的参数。这条命令会把该Jar包放到Hadoop的DistributedCache中，使所有节点都可以访问到。例如，下面的命令就是将Alluxio客户端Jar包添加到`-libjars`选项中。
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
+$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
+```
+
+有时候，你还需要设置环境变量`HADOOP_CLASSPATH`，让Alluxio客户端在运行hadoop jar命令时创建的客户端JVM可以使用jar包：
+
+```bash
+$  export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 2.**手动将Client Jar包分发到所有节点**
+
 为了在每个节点安装Alluxio,将客户端jar包`{{site.ALLUXIO_CLIENT_JAR_PATH}}`置于每个MapReduce节点的`$HADOOP_HOME/lib`（由于版本不同也可能是`$HADOOP_HOME/share/hadoop/common/lib`），然后重新启动Hadoop。
 另一种选择，在你的Hadoop部署中，把这个jar包添加到`mapreduce.application.classpath`系统属性，确保jar包在classpath上。
 为了在每个节点上安装Alluxio，将客户端Jar包`mapreduce.application.classpath`，该方法要注意的是所有Jar包必须再次安装，因为每个Jar包都更新到了最新版本。另一方面，当该Jar包已经在每个节点上的时候，就没有必要使用`-libjars`命令行选项了。
+
+## 检查MapReduce与Alluxio的集成(支持Hadoop 2.X)
+
+在Alluxio上运行MapReduce之前，你需要确认你的配置已经正确设置集成了Alluxio。MapReduce集成检查器可以帮助你确认。
+
+当你运行Hadoop集群(或单机运行)时，你可以在Alluxio项目目录运行以下命令：
+
+```bash
+$ integration/checker/bin/alluxio-checker.sh mapreduce 
+```
+
+你可以使用`-h`来显示关于这个命令的有用信息。这条命令将报告潜在的问题，可能会阻碍你在Alluxio上运行MapReduce。
 
 ## 在本地模式的Alluxio上运行Hadoop wordcount
 
@@ -95,7 +105,7 @@ $ bin/start-all.sh
 以本地模式启动Alluxio：
 
 ```bash
-$ bin/alluxio-start.sh local
+$ bin/alluxio-start.sh local SudoMount
 ```
 
 你可以在Alluxio中加入两个简单的文件来运行wordcount。在你的Alluxio目录中运行：
@@ -109,7 +119,7 @@ $ bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
 现在我们运行一个用于wordcount的MapReduce作业。
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
+$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
 ```
 
 作业完成后，wordcount的结果将存在Alluxio的`/wordcount/output`目录下。你可以通过运行如下命令来查看结果文件：

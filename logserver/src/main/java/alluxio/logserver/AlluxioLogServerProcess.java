@@ -20,19 +20,23 @@ import alluxio.util.WaitForOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import javax.annotation.concurrent.GuardedBy;
 
 /**
- * A centralized log server for Alluxio
+ * A centralized log server for Alluxio.
  *
  * Alluxio masters and workers generate logs and store the logs in local storage.
  * {@link AlluxioLogServerProcess} allows masters and workers to "push" their logs to a
@@ -48,10 +52,12 @@ public class AlluxioLogServerProcess implements Process {
   private static final long THREAD_KEEP_ALIVE_TIME_MS = 60000;
 
   private final String mBaseLogsDir;
-  private int mPort;
+  private final int mPort;
   private ServerSocket mServerSocket;
   private final int mMinNumberOfThreads;
   private final int mMaxNumberOfThreads;
+  @GuardedBy("mClientSockets")
+  private final Set<Socket> mClientSockets = new HashSet<>();
   private ExecutorService mThreadPool;
   private volatile boolean mStopped;
 
@@ -98,11 +104,20 @@ public class AlluxioLogServerProcess implements Process {
         }
       }
       String clientAddress = client.getInetAddress().getHostAddress();
+      LOG.info("Starting thread to read logs from {}", clientAddress);
       AlluxioLog4jSocketNode clientSocketNode = new AlluxioLog4jSocketNode(mBaseLogsDir, client);
+      synchronized (mClientSockets) {
+        mClientSockets.add(client);
+      }
       try {
-        mThreadPool.execute(clientSocketNode);
+        CompletableFuture.runAsync(clientSocketNode, mThreadPool)
+            .whenComplete((r, e) -> {
+              synchronized (mClientSockets) {
+                mClientSockets.remove(client);
+              }
+            });
       } catch (RejectedExecutionException e) {
-        // Alluxio log clients (master, secondary master, proxy and workers establish
+        // Alluxio log clients (master, secondary master, proxy and workers) establish
         // long-living connections with the log server. Therefore, if the log server cannot
         // find a thread to service a log client, it is very likely due to low number of
         // worker threads. If retry fails, then it makes sense just to let system throw
@@ -132,11 +147,22 @@ public class AlluxioLogServerProcess implements Process {
       try {
         mServerSocket.close();
       } catch (IOException e) {
-        LOG.warn("Exception in closing server socket.", e);
+        LOG.warn("Exception in closing server socket: {}", e);
       }
     }
-
-    mThreadPool.shutdown();
+    mThreadPool.shutdownNow();
+    // Close all client sockets so that their serving threads can stop. We shut down the threadpool
+    // before closing the sockets so that no new socket threads will be created after we try to
+    // close them all.
+    synchronized (mClientSockets) {
+      for (Socket socket : mClientSockets) {
+        try {
+          socket.close();
+        } catch (IOException e) {
+          LOG.warn("Exception in closing client socket: {}", e);
+        }
+      }
+    }
     boolean ret = mThreadPool.awaitTermination(THREAD_KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS);
     if (ret) {
       LOG.info("All worker threads have terminated.");
@@ -146,12 +172,16 @@ public class AlluxioLogServerProcess implements Process {
   }
 
   @Override
-  public void waitForReady() {
-    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return mStopped == false;
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
+  public boolean waitForReady(int timeoutMs) {
+    try {
+      CommonUtils.waitFor(this + " to start", () -> mStopped == false,
+          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 }

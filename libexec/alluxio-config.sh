@@ -27,12 +27,16 @@ this="${config_bin}/${script}"
 
 # This will set the default installation for a tarball installation while os distributors can
 # set system installation locations.
-VERSION=1.7.0-SNAPSHOT
+VERSION=1.9.0-SNAPSHOT
 ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
 ALLUXIO_LOGS_DIR="${ALLUXIO_LOGS_DIR:-${ALLUXIO_HOME}/logs}"
+
+if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
+  . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
+fi
 
 if [[ -z "$(which java)" ]]; then
   echo "Cannot find the 'java' command."
@@ -41,10 +45,6 @@ fi
 
 JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
-
-if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
-  . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
-fi
 
 if [[ -n "${ALLUXIO_MASTER_ADDRESS}" ]]; then
   echo "ALLUXIO_MASTER_ADDRESS is deprecated since version 1.1 and will be remove in version 2.0."

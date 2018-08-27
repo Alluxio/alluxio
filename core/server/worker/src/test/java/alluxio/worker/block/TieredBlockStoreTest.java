@@ -12,17 +12,30 @@
 package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
+import alluxio.test.util.ConcurrencyUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
+import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.evictor.Evictor;
+import alluxio.worker.block.evictor.Evictor.Mode;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -33,9 +46,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Unit tests for {@link TieredBlockStore}.
@@ -70,6 +86,8 @@ public final class TieredBlockStoreTest {
    */
   @Before
   public void before() throws Exception {
+    ConfigurationTestUtils.resetConfiguration();
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, "false");
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
     mBlockStore = new TieredBlockStore();
@@ -302,6 +320,57 @@ public final class TieredBlockStoreTest {
   }
 
   /**
+   * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
+   */
+  @Test
+  public void freeSpaceMoreThanCapacity() throws Exception {
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    // this call works because the space is freed in a best-effort way to move BLOCK_ID1 out
+    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes() * 2,
+        mTestDir1.toBlockStoreLocation());
+    // Expect BLOCK_ID1 to be moved out of mTestDir1
+    assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
+    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
+    assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
+  }
+
+  /**
+   * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
+   */
+  @Test
+  public void freeSpaceThreadSafe() throws Exception {
+    int threadAmount = 10;
+    List<Runnable> runnables = new ArrayList<>();
+    Evictor evictor = mock(Evictor.class);
+    when(
+        evictor.freeSpaceWithView(any(Long.class), any(BlockStoreLocation.class),
+            any(BlockMetadataManagerView.class), any(Mode.class)))
+        .thenAnswer((InvocationOnMock invocation) -> {
+          CommonUtils.sleepMs(20);
+          return new EvictionPlan(new ArrayList<>(), new ArrayList<>());
+        }
+      );
+    Field field = mBlockStore.getClass().getDeclaredField("mEvictor");
+    field.setAccessible(true);
+    field.set(mBlockStore,
+        evictor);
+    for (int i = 0; i < threadAmount; i++) {
+      runnables.add(() -> {
+        try {
+          mBlockStore.freeSpace(SESSION_ID1, 0, new BlockStoreLocation("MEM", 0));
+        } catch (Exception e) {
+          fail();
+        }
+      });
+    }
+    RetryPolicy retry = new CountingRetry(threadAmount);
+    while (retry.attempt()) {
+      ConcurrencyUtils.assertConcurrent(runnables, threadAmount);
+    }
+  }
+
+  /**
    * Tests the {@link TieredBlockStore#requestSpace(long, long, long)} method.
    */
   @Test
@@ -356,7 +425,9 @@ public final class TieredBlockStoreTest {
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
+    mThrown.expectMessage(
+        ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(mTestDir1.getCapacityBytes(),
+            mTestDir1.toBlockStoreLocation().tierAlias()));
     mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
         mTestDir1.getCapacityBytes());
 
@@ -386,7 +457,8 @@ public final class TieredBlockStoreTest {
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
+    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
+        BLOCK_SIZE, mTestDir2.toBlockStoreLocation().tierAlias()));
     mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
 
     // Expect createBlockMeta to succeed after unlocking this block.
@@ -410,9 +482,10 @@ public final class TieredBlockStoreTest {
     // session1 locks a block first
     long lockId = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
 
-    // Expect an exception as no eviction plan is feasible
+    // Expect an empty eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
+    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
+        mTestDir1.getCapacityBytes(), mTestDir1.toBlockStoreLocation().tierAlias()));
     mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
         mTestDir1.toBlockStoreLocation());
 

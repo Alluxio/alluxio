@@ -32,7 +32,7 @@ public final class ConfigurationTestUtils {
    * while any object may be using the {@link Configuration}.
    */
   public static void resetConfiguration() {
-    Configuration.init();
+    Configuration.reset();
   }
 
   /**
@@ -79,6 +79,7 @@ public final class ConfigurationTestUtils {
 
     conf.put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1KB");
     conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
+    conf.put(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64");
     conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
     conf.put(PropertyKey.MASTER_WORKER_THREADS_MIN, "1");
     conf.put(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
@@ -93,6 +94,9 @@ public final class ConfigurationTestUtils {
     // To keep tests fast, we should do more retries with a lower max wait time.
     conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "60");
     conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms");
+
+    // Do not engage safe mode by default since the worker is connected when test starts.
+    conf.put(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, "0sec");
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
@@ -117,6 +121,7 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
     return conf;
   }
 

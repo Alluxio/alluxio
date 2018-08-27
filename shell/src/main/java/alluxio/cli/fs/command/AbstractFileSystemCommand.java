@@ -11,21 +11,73 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.cli.AbstractCommand;
+import alluxio.AlluxioURI;
+import alluxio.cli.Command;
+import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
+
+import com.google.common.base.Joiner;
+import org.apache.commons.cli.CommandLine;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
- * The base class for all the FileSystem {@link Command} classes. It provides a place to hold the
- * {@link FileSystem} client.
+ * The base class for all the FileSystem {@link alluxio.cli.Command} classes.
+ * It provides a place to hold the {@link FileSystem} client.
  */
 @ThreadSafe
-public abstract class AbstractFileSystemCommand extends AbstractCommand {
+public abstract class AbstractFileSystemCommand implements Command {
 
   protected FileSystem mFileSystem;
 
   protected AbstractFileSystemCommand(FileSystem fs) {
     mFileSystem = fs;
+  }
+
+  /**
+   * Run the command for a particular URI that does not contain wildcard in its path.
+   *
+   * @param plainPath an AlluxioURI that does not contain wildcard
+   * @param cl object containing the original commandLine
+   * @throws AlluxioException
+   * @throws IOException
+   */
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
+  }
+
+  /**
+   * Run the command for a particular URI that may contain wildcard in its path.
+   *
+   * @param wildCardPath an AlluxioURI that may or may not contain a wildcard
+   * @param cl object containing the original commandLine
+   * @throws AlluxioException
+   * @throws IOException
+   */
+  protected void runWildCardCmd(AlluxioURI wildCardPath, CommandLine cl) throws IOException {
+    List<AlluxioURI> paths = FileSystemShellUtils.getAlluxioURIs(mFileSystem, wildCardPath);
+    if (paths.size() == 0) { // A unified sanity check on the paths
+      throw new IOException(wildCardPath + " does not exist.");
+    }
+    paths.sort(Comparator.comparing(AlluxioURI::getPath));
+
+    List<String> errorMessages = new ArrayList<>();
+    for (AlluxioURI path : paths) {
+      try {
+        runPlainPath(path, cl);
+      } catch (AlluxioException | IOException e) {
+        errorMessages.add(e.getMessage() != null ? e.getMessage() : e.toString());
+      }
+    }
+
+    if (errorMessages.size() != 0) {
+      throw new IOException(Joiner.on('\n').join(errorMessages));
+    }
+
   }
 }

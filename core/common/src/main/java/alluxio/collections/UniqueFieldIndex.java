@@ -11,11 +11,10 @@
 
 package alluxio.collections;
 
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
-
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -24,25 +23,26 @@ import javax.annotation.concurrent.ThreadSafe;
  * where each index value only maps to one object.
  *
  * @param <T> type of objects in this index
+ * @param <V> type of the field used for indexing
  */
 @ThreadSafe
-public class UniqueFieldIndex<T> implements FieldIndex<T> {
-  private final IndexDefinition<T> mIndexDefinition;
-  private final ConcurrentHashMapV8<Object, T> mIndexMap;
+public class UniqueFieldIndex<T, V> implements FieldIndex<T, V> {
+  private final IndexDefinition<T, V> mIndexDefinition;
+  private final ConcurrentHashMap<V, T> mIndexMap;
 
   /**
    * Constructs a new {@link UniqueFieldIndex} instance.
    *
    * @param indexDefinition definition of index
    */
-  public UniqueFieldIndex(IndexDefinition<T> indexDefinition) {
-    mIndexMap = new ConcurrentHashMapV8<>(8, 0.95f, 8);
+  public UniqueFieldIndex(IndexDefinition<T, V> indexDefinition) {
+    mIndexMap = new ConcurrentHashMap<>(8, 0.95f, 8);
     mIndexDefinition = indexDefinition;
   }
 
   @Override
   public boolean add(T object) {
-    Object fieldValue = mIndexDefinition.getFieldValue(object);
+    V fieldValue = mIndexDefinition.getFieldValue(object);
     T previousObject = mIndexMap.putIfAbsent(fieldValue, object);
 
     if (previousObject != null && previousObject != object) {
@@ -53,7 +53,7 @@ public class UniqueFieldIndex<T> implements FieldIndex<T> {
 
   @Override
   public boolean remove(T object) {
-    Object fieldValue = mIndexDefinition.getFieldValue(object);
+    V fieldValue = mIndexDefinition.getFieldValue(object);
     return mIndexMap.remove(fieldValue, object);
   }
 
@@ -63,13 +63,13 @@ public class UniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public boolean containsField(Object fieldValue) {
+  public boolean containsField(V fieldValue) {
     return mIndexMap.containsKey(fieldValue);
   }
 
   @Override
   public boolean containsObject(T object) {
-    Object fieldValue = mIndexDefinition.getFieldValue(object);
+    V fieldValue = mIndexDefinition.getFieldValue(object);
     T res = mIndexMap.get(fieldValue);
     if (res == null) {
       return false;
@@ -78,7 +78,7 @@ public class UniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public Set<T> getByField(Object value) {
+  public Set<T> getByField(V value) {
     T res = mIndexMap.get(value);
     if (res != null) {
       return Collections.singleton(res);
@@ -87,7 +87,7 @@ public class UniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public T getFirst(Object value) {
+  public T getFirst(V value) {
     return mIndexMap.get(value);
   }
 

@@ -8,7 +8,7 @@ title: Java Setup
 
 ## Mac OSX
 
-1.  Download the latest Java JDK from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+1.  Download the Java JDK 8 or later from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 2.  From either the Downloads window of the browser, or from the file browser, double click the .dmg file to launch it.
 3.  A Finder window appears containing an icon of an open box and the name of the .pkg file. Double click the package icon to launch the **Install** app.
 4.  The Install app displays the **Introduction** window. Click **Continue**.
@@ -18,10 +18,10 @@ title: Java Setup
 
 ## Linux
 
-1.  Download the latest Java JDK from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+1.  Download the Java JDK 8 or later from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 2.  Change directory to the location where you would like the JDK to be installed. Move the .tar.gz archive binary to the current directory.
 3.  Unpack the tarball and install the JDK.
 
 {% include Java-Setup/install-jdk-linux.md %}
 
-4.  The Java Development Kit files are installed in a directory called `jdk1.7.0_` in the current directory. Delete the .tar.gz file if you want to save disk space.
+4.  The Java Development Kit files are installed in a directory called `jdk1.8.0_` in the current directory. Delete the .tar.gz file if you want to save disk space.

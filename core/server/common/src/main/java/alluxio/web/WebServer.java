@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -32,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -81,7 +82,7 @@ public abstract class WebServer {
     try {
       mServerConnector.open();
     } catch (IOException e) {
-      Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
 
     System.setProperty("org.apache.jasper.compiler.disablejsr199", "false");
@@ -90,6 +91,17 @@ public abstract class WebServer {
     mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
     File warPath = new File(Configuration.get(PropertyKey.WEB_RESOURCES));
     mWebAppContext.setWar(warPath.getAbsolutePath());
+    String webTempPath = Configuration.get(PropertyKey.WEB_TEMP_PATH);
+    LOG.info("Using temporary directory {} for web server resources", webTempPath);
+    if (!Files.exists(Paths.get(webTempPath))) {
+      try {
+        Files.createDirectories(Paths.get(webTempPath));
+      } catch (IOException e) {
+        LOG.error("Failed to create temporary directory {} for web server: {}", webTempPath, e);
+      }
+    }
+
+    mWebAppContext.setAttribute(WebAppContext.BASETEMPDIR, webTempPath);
 
     // Set the ContainerIncludeJarPattern so that jetty examines these
     // container-path jars for tlds, web-fragments etc.
@@ -172,7 +184,7 @@ public abstract class WebServer {
       mServer.start();
       LOG.info("{} started @ {}", mServiceName, mAddress);
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 }

@@ -43,6 +43,7 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
   private final Closer mCloser;
   /** Length of the stream. If unknown, set to Long.MAX_VALUE. */
   private final long mLength;
+  private final WorkerNetAddress mAddress;
   private ByteBuf mCurrentPacket = null;
 
   private final List<PacketWriter> mPacketWriters;
@@ -62,7 +63,7 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
       WorkerNetAddress address, OutStreamOptions options) throws IOException {
     PacketWriter packetWriter =
         PacketWriter.Factory.create(context, blockId, blockSize, address, options);
-    return new BlockOutStream(packetWriter, blockSize);
+    return new BlockOutStream(packetWriter, blockSize, address);
   }
 
   /**
@@ -70,10 +71,12 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
    *
    * @param packetWriter the packet writer
    * @param length the length of the stream
+   * @param address the Alluxio worker address
    */
-  protected BlockOutStream(PacketWriter packetWriter, long length) {
+  protected BlockOutStream(PacketWriter packetWriter, long length, WorkerNetAddress address) {
     mCloser = Closer.create();
     mLength = length;
+    mAddress = address;
     mPacketWriters = new ArrayList<>(1);
     mPacketWriters.add(packetWriter);
     mCloser.register(packetWriter);
@@ -168,6 +171,13 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
       mClosed = true;
       mCloser.close();
     }
+  }
+
+  /**
+   * @return the worker address for this stream
+   */
+  public WorkerNetAddress getAddress() {
+    return mAddress;
   }
 
   /**

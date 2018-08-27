@@ -14,6 +14,7 @@ package alluxio.mesos;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.conf.Source.Type;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 
@@ -30,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -260,14 +260,13 @@ public class AlluxioScheduler implements Scheduler {
     }
   }
 
-  /**
-   * @return the content that should be pasted into an alluxio-site.properties file to recreate the
-   *         current configuration
-   */
   private String createAlluxioSiteProperties() {
     StringBuilder siteProperties = new StringBuilder();
-    for (Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      siteProperties.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
+    for (PropertyKey key : Configuration.keySet()) {
+      if (Configuration.isSet(key)
+          && Configuration.getSource(key).getType() != Type.DEFAULT) {
+        siteProperties.append(String.format("%s=%s%n", key.getName(), Configuration.get(key)));
+      }
     }
     return siteProperties.toString();
   }
@@ -420,12 +419,12 @@ public class AlluxioScheduler implements Scheduler {
   }
 
   private static boolean installJavaFromUrl() {
-    return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_JDK_URL) && !Configuration
+    return Configuration.isSet(PropertyKey.INTEGRATION_MESOS_JDK_URL) && !Configuration
         .get(PropertyKey.INTEGRATION_MESOS_JDK_URL).equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
   }
 
   private static boolean installAlluxioFromUrl() {
-    return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
+    return Configuration.isSet(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
         && !Configuration.get(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
             .equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
   }

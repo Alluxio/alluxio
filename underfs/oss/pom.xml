@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>1.7.0-SNAPSHOT</version>
+    <version>1.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-oss</artifactId>
   <name>Alluxio Under File System - Aliyun OSS</name>
@@ -24,9 +24,7 @@
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
-    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
-    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+    <build.path>${project.parent.parent.basedir}/build</build.path>
   </properties>
 
   <dependencies>
@@ -34,11 +32,6 @@
     <dependency>
       <groupId>com.aliyun.oss</groupId>
       <artifactId>aliyun-sdk-oss</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -109,8 +102,8 @@
         <artifactId>maven-shade-plugin</artifactId>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
       </plugin>
     </plugins>
   </build>

@@ -14,7 +14,6 @@ package alluxio.client.file.options;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
@@ -134,6 +133,6 @@ public class OutStreamOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(OutStreamOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(OutStreamOptions.class);
   }
 }

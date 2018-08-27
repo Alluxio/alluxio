@@ -22,6 +22,8 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -36,13 +38,17 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
+import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.file.options.WorkerHeartbeatOptions;
+import alluxio.security.authorization.AclEntry;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.UfsInfo;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.TtlAction;
+import alluxio.wire.SetAclAction;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
@@ -69,11 +75,11 @@ public interface FileSystemMaster extends Master {
    * @return the file id for a given path, or -1 if there is no file at that path
    * @throws AccessControlException if permission checking fails
    */
-  long getFileId(AlluxioURI path) throws AccessControlException;
+  long getFileId(AlluxioURI path) throws AccessControlException, UnavailableException;
 
   /**
    * Returns the {@link FileInfo} for a given file id. This method is not user-facing but supposed
-   * to be called by other internal servers (e.g., block workers, lineage master, web UI).
+   * to be called by other internal servers (e.g., block workers, web UI).
    *
    * @param fileId the file id to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file
@@ -82,7 +88,7 @@ public interface FileSystemMaster extends Master {
    */
   // TODO(binfan): Add permission checking for internal APIs
   FileInfo getFileInfo(long fileId)
-      throws FileDoesNotExistException, AccessControlException;
+      throws FileDoesNotExistException, AccessControlException, UnavailableException;
 
   /**
    * Returns the {@link FileInfo} for a given path.
@@ -97,10 +103,11 @@ public interface FileSystemMaster extends Master {
    * @throws AccessControlException if permission checking fails
    */
   FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException;
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnavailableException, IOException;
 
   /**
-   * Returns the persistence state for a file id. This method is used by the lineage master.
+   * Returns the persistence state for a file id.
    *
    * @param fileId the file id
    * @return the {@link PersistenceState} for the given file id
@@ -125,7 +132,8 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidPathException if the path is invalid
    */
   List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException;
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException,
+      UnavailableException, IOException;
 
   /**
    * @return a read-only view of the file system master
@@ -161,7 +169,8 @@ public interface FileSystemMaster extends Master {
    */
   void completeFile(AlluxioURI path, CompleteFileOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException;
+      InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException,
+      UnavailableException;
 
   /**
    * Creates a file (not a directory) for a given path.
@@ -183,25 +192,10 @@ public interface FileSystemMaster extends Master {
       BlockInfoException, IOException, FileDoesNotExistException;
 
   /**
-   * Reinitializes the blocks of an existing open file.
-   *
-   * @param path the path to the file
-   * @param blockSizeBytes the new block size
-   * @param ttl the ttl
-   * @param ttlAction action to take after Ttl expiry
-   * @return the file id
-   * @throws InvalidPathException if the path is invalid
-   * @throws FileDoesNotExistException if the path does not exist
-   */
-  // Used by lineage master
-  long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl, TtlAction ttlAction)
-      throws InvalidPathException, FileDoesNotExistException;
-
-  /**
    * Gets a new block id for the next block of a given file to write to.
    * <p>
-   * This operation requires users to have WRITE permission on the path as
-   * this API is called when creating a new block for a file.
+   * This operation requires users to have WRITE permission on the path as this API is called when
+   * creating a new block for a file.
    *
    * @param path the path of the file to get the next block id for
    * @return the next block id for the given file
@@ -209,8 +203,8 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidPathException if the given path is not valid
    * @throws AccessControlException if permission checking fails
    */
-  long getNewBlockIdForFile(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException;
+  long getNewBlockIdForFile(AlluxioURI path) throws FileDoesNotExistException, InvalidPathException,
+      AccessControlException, UnavailableException;
 
   /**
    * @return a copy of the current mount table
@@ -256,17 +250,18 @@ public interface FileSystemMaster extends Master {
    * @throws AccessControlException if permission checking fails
    */
   List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException;
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnavailableException;
 
   /**
    * @return absolute paths of all in-Alluxio files
    */
-  List<AlluxioURI> getInAlluxioFiles();
+  List<AlluxioURI> getInAlluxioFiles() throws UnavailableException;
 
   /**
    * @return absolute paths of all in-memory files
    */
-  List<AlluxioURI> getInMemoryFiles();
+  List<AlluxioURI> getInMemoryFiles() throws UnavailableException;
 
   /**
    * Creates a directory for a given path.
@@ -323,7 +318,7 @@ public interface FileSystemMaster extends Master {
   // into RuntimeException on the client.
   void free(AlluxioURI path, FreeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      UnexpectedAlluxioException;
+      UnexpectedAlluxioException, IOException;
 
   /**
    * Gets the path of a file with the given id.
@@ -332,7 +327,6 @@ public interface FileSystemMaster extends Master {
    * @return the path of the file
    * @throws FileDoesNotExistException raise if the file does not exist
    */
-  // Currently used by Lineage Master
   // TODO(binfan): Add permission checking for internal APIs
   AlluxioURI getPath(long fileId) throws FileDoesNotExistException;
 
@@ -361,16 +355,6 @@ public interface FileSystemMaster extends Master {
    * @return all the files lost on the workers
    */
   List<Long> getLostFiles();
-
-  /**
-   * Reports a file as lost.
-   *
-   * @param fileId the id of the file
-   * @throws FileDoesNotExistException if the file does not exist
-   */
-  // Currently used by Lineage Master
-  // TODO(binfan): Add permission checking for internal APIs
-  void reportLostFile(long fileId) throws FileDoesNotExistException;
 
   /**
    * Loads metadata for the object identified by the given path from UFS into Alluxio.
@@ -426,19 +410,19 @@ public interface FileSystemMaster extends Master {
       IOException, AccessControlException;
 
   /**
-   * Resets a file. It first free the whole file, and then reinitializes it.
+   * Sets the ACL for a path.
    *
-   * @param fileId the id of the file
+   * @param path the path to set attribute for
+   * @param action the set action to perform
+   * @param entries the list of ACL entries for setting ACL
+   * @param options the options for setting ACL
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid for the id of the file
-   * @throws UnexpectedAlluxioException if the file or directory can not be freed
+   * @throws InvalidPathException if the given path is invalid
    */
-  // Currently used by Lineage Master
-  // TODO(binfan): Add permission checking for internal APIs
-  void resetFile(long fileId)
-      throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException;
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException,
+      IOException;
 
   /**
    * Sets the file attribute.
@@ -462,7 +446,28 @@ public interface FileSystemMaster extends Master {
    *
    * @param path the path of the file for persistence
    */
-  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException;
+  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, UnavailableException;
+
+  /**
+   * Update the operation mode for the given ufs path under one or more mount points.
+   *
+   * @param ufsPath the physical ufs path
+   * @param ufsMode the ufs operation mode
+   * @throws InvalidPathException if ufs path is not used by any mount point
+   * @throws InvalidArgumentException if arguments for the method are invalid
+   */
+  void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
+      throws InvalidPathException, InvalidArgumentException, UnavailableException,
+      AccessControlException;
+
+  /**
+   * Checks the integrity of the inodes with respect to the blocks of the system.
+   *
+   * @param repair if true, will attempt to repair the state of the system when inconsistencies are
+   *               discovered
+   * @throws UnavailableException if the repair attempt fails
+   */
+  void validateInodeBlocks(boolean repair) throws UnavailableException;
 
   /**
    * Instructs a worker to persist the files.
@@ -471,17 +476,18 @@ public interface FileSystemMaster extends Master {
    *
    * @param workerId the id of the worker that heartbeats
    * @param persistedFiles the files that persisted on the worker
+   * @param options the method options
    * @return the command for persisting the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if permission checking fails
    */
-  FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      IOException;
+  FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
+      WorkerHeartbeatOptions options)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
 
   /**
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
    */
-  List<WorkerInfo> getWorkerInfoList();
+  List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
 }

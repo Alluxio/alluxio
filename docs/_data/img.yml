@@ -1,3 +1,5 @@
+fuse:
+  ../img/fuse.png
 glyphicons-halflings:
   ../img/glyphicons-halflings.png
 glyphicons-halflings-white:
@@ -8,6 +10,10 @@ logo-white:
   ../img/logo-white.png
 screenshot_browseFileSystem:
   ../img/screenshot_browseFileSystem.png
+screenshot_configuration_checker_masterlogs:
+  ../img/screenshot_configuration_checker_masterlogs.png
+screenshot_configuration_checker_webui:
+  ../img/screenshot_configuration_checker_webui.png
 screenshot_datalocality_sparkwebui:
   ../img/screenshot_datalocality_sparkwebui.png
 screenshot_datalocality_tasklocality:

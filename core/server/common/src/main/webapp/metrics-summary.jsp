@@ -18,6 +18,163 @@
     <div class="accordion-group">
       <div class="accordion-heading">
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+          <h4>Total IO Size</h4>
+        </a>
+      </div>
+      <div id="data4" class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <table class="table">
+            <tbody>
+              <tr>
+                <th>Short-circuit Read</th>
+                <th><%= request.getAttribute("totalBytesReadLocal") %></th>
+                <th>From Remote Instances</th>
+                <th><%= request.getAttribute("totalBytesReadRemote") %></th>
+              </tr>
+              <tr>
+                <th>Under Filesystem Read</th>
+                <th><%= request.getAttribute("totalBytesReadUfs") %></th>
+              </tr>
+              <tr>
+                <th>Alluxio Write</th>
+                <th><%= request.getAttribute("totalBytesWrittenAlluxio") %></th>
+                <th>Under Filesystem Write</th>
+                <th><%= request.getAttribute("totalBytesWrittenUfs") %></th>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row-fluid">
+  <div class="accordion span14" id="accordion4">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+          <h4>Total IO Throughput (Last Minute)</h4>
+        </a>
+      </div>
+      <div id="data4" class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <table class="table">
+            <tbody>
+              <tr>
+                <th>Short-circuit Read</th>
+                <th><%= request.getAttribute("totalBytesReadLocalThroughput") %></th>
+                <th>From Remote Instances</th>
+                <th><%= request.getAttribute("totalBytesReadRemoteThroughput") %></th>
+              </tr>
+              <tr>
+                <th>Under Filesystem Read</th>
+                <th><%= request.getAttribute("totalBytesReadUfsThroughput") %></th>
+              </tr>
+              <tr>
+                <th>Alluxio Write</th>
+                <th><%= request.getAttribute("totalBytesWrittenAlluxioThroughput") %></th>			  
+                <th>Under Filesystem Write</th>
+                <th><%= request.getAttribute("totalBytesWrittenUfsThroughput") %></th>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row-fluid">
+  <div class="accordion span14" id="accordion4">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+          <h4>Cache Hit Rate (Percentage) </h4>
+        </a>
+      </div>
+      <div id="data4" class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <table class="table">
+            <tbody>
+              <tr>
+                <th>Alluxio Local</th>
+                <th><%= request.getAttribute("cacheHitLocal") %></th>
+                <th>Alluxio Remote</th>
+                <th><%= request.getAttribute("cacheHitRemote") %></th>
+              </tr>
+              <tr>
+                <th>Miss</th>
+                <th><%= request.getAttribute("cacheMiss") %></th>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row-fluid">
+  <div class="accordion span14" id="accordion4">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+          <h4>Mounted Under FileSystem Read </h4>
+        </a>
+      </div>      
+      <div id="data4" class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <table class="table">
+            <tbody>
+              <tr>
+                <th>Under FileSystem</th>
+                <th>Size</th> 
+              </tr>
+              <% for(Map.Entry<String, String> entry: ((Map<String,String>) request.getAttribute("ufsReadSize")).entrySet()) { %>
+                <tr>
+                  <th><%= entry.getKey() %></th>
+                  <th><%= entry.getValue() %></th> 
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row-fluid">
+  <div class="accordion span14" id="accordion4">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+          <h4>Mounted Under FileSystem Write </h4>
+        </a>
+      </div>      
+      <div id="data4" class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <table class="table">
+            <tbody>
+              <tr>
+                <th>Under FileSystem</th>
+                <th>Size</th> 
+              </tr>
+              <% for(Map.Entry<String, String> entry: ((Map<String,String>) request.getAttribute("ufsWriteSize")).entrySet()) { %>
+                <tr>
+                  <th><%= entry.getKey() %></th>
+                  <th><%= entry.getValue() %></th> 
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row-fluid">
+  <div class="accordion span14" id="accordion4">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
           <h4>Logical Operations</h4>
         </a>
       </div>
@@ -118,8 +275,12 @@
                 <th><%= request.getAttribute("RenamePathOps") %></th>
               </tr>
               <tr>
-                <th>SetAttribute Operations</th>
-                <th><%= request.getAttribute("SetAttributeOps") %></th>
+                 <th>SetAcl Operations</th>
+                 <th><%= request.getAttribute("SetAclOps") %></th>
+                 <th>SetAttribute Operations</th>
+                 <th><%= request.getAttribute("SetAttributeOps") %></th>
+              </tr>
+              <tr>
                 <th>Unmount Operations</th>
                 <th><%= request.getAttribute("UnmountOps") %></th>
               </tr>
@@ -130,3 +291,30 @@
     </div>
   </div>
 </div>
+<% for(Map.Entry<String, Map<String, Long>> entry: ((Map<String,Map<String, Long>>) request.getAttribute("ufsOps")).entrySet()) { %>
+  <div class="row-fluid">
+    <div class="accordion span14" id="accordion4">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+            <h4>Under FileSystem Operations of <%= entry.getKey() %> </h4>
+          </a>
+        </div>            
+        <div id="data4" class="accordion-body collapse in">
+          <div class="accordion-inner">
+            <table class="table">
+              <tbody>                
+                <% for(Map.Entry<String, Long> inner_entry: entry.getValue().entrySet()) { %>
+                  <tr>
+                    <th><%= inner_entry.getKey() %></th>
+                    <th><%= inner_entry.getValue() %></th> 
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% } %>

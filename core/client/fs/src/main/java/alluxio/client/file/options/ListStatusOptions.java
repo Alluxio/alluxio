@@ -15,7 +15,9 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.ListStatusTOptions;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
+import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -30,7 +32,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
 public final class ListStatusOptions {
+  private CommonOptions mCommonOptions;
   private LoadMetadataType mLoadMetadataType;
+  private boolean mRecursive;
 
   /**
    * @return the default {@link ListStatusOptions}
@@ -40,8 +44,20 @@ public final class ListStatusOptions {
   }
 
   private ListStatusOptions() {
+    mCommonOptions = CommonOptions.defaults()
+        .setTtl(Configuration.getMs(PropertyKey.USER_FILE_LOAD_TTL))
+        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_LOAD_TTL_ACTION,
+            TtlAction.class));
     mLoadMetadataType =
         Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class);
+    mRecursive = false;
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -53,11 +69,37 @@ public final class ListStatusOptions {
   }
 
   /**
+   * @return whether the command should recursively list the status of the underlying
+   *         directories.
+   */
+  public boolean isRecursive() {
+    return mRecursive;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public ListStatusOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
+  }
+
+  /**
    * @param loadMetadataType the loadMetataType
    * @return the updated options
    */
   public ListStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
     mLoadMetadataType = loadMetadataType;
+    return this;
+  }
+
+  /**
+   * @param recursive recursive or not
+   * @return the updated options object
+   */
+  public ListStatusOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
     return this;
   }
 
@@ -70,18 +112,22 @@ public final class ListStatusOptions {
       return false;
     }
     ListStatusOptions that = (ListStatusOptions) o;
-    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
+    return Objects.equal(mCommonOptions, that.mCommonOptions)
+        && Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
+        && Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType);
+    return Objects.hashCode(mCommonOptions, mLoadMetadataType, mRecursive);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
+        .add("recursive", mRecursive)
         .toString();
   }
 
@@ -94,6 +140,8 @@ public final class ListStatusOptions {
         mLoadMetadataType == LoadMetadataType.Once || mLoadMetadataType == LoadMetadataType.Always);
 
     options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
+    options.setCommonOptions(mCommonOptions.toThrift());
+    options.setRecursive(mRecursive);
     return options;
   }
 }

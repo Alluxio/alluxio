@@ -20,10 +20,16 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
+import alluxio.master.journal.JournalEntryReplayable;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
+import alluxio.proto.journal.File.DeleteMountPointEntry;
+import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal;
+import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -34,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +48,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -50,7 +59,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class is used for keeping track of Alluxio mount points.
  */
 @ThreadSafe
-public final class MountTable implements JournalEntryIterable {
+public final class MountTable implements JournalEntryIterable, JournalEntryReplayable {
   private static final Logger LOG = LoggerFactory.getLogger(MountTable.class);
 
   public static final String ROOT = "/";
@@ -58,9 +67,9 @@ public final class MountTable implements JournalEntryIterable {
   private final Lock mReadLock;
   private final Lock mWriteLock;
 
-  /** Maps from Alluxio path string, to {@link MountInfo}. */
-  @GuardedBy("mLock")
-  private final Map<String, MountInfo> mMountTable;
+  /** Mount table state that is preserved across restarts. */
+  @GuardedBy("mReadLock,mWriteLock")
+  private final State mState;
 
   /** The manager of all ufs. */
   private final UfsManager mUfsManager;
@@ -69,10 +78,10 @@ public final class MountTable implements JournalEntryIterable {
    * Creates a new instance of {@link MountTable}.
    *
    * @param ufsManager the UFS manager
+   * @param rootMountInfo root mount info
    */
-  public MountTable(UfsManager ufsManager) {
-    final int initialCapacity = 10;
-    mMountTable = new HashMap<>(initialCapacity);
+  public MountTable(UfsManager ufsManager, MountInfo rootMountInfo) {
+    mState = new State(rootMountInfo);
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
@@ -81,7 +90,7 @@ public final class MountTable implements JournalEntryIterable {
 
   @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    final Iterator<Map.Entry<String, MountInfo>> it = mMountTable.entrySet().iterator();
+    final Iterator<Map.Entry<String, MountInfo>> it = mState.getMountTable().entrySet().iterator();
     return new Iterator<Journal.JournalEntry>() {
       /** mEntry is always set to the next non-root mount point if exists. */
       private Map.Entry<String, MountInfo> mEntry = null;
@@ -124,8 +133,9 @@ public final class MountTable implements JournalEntryIterable {
 
         AddMountPointEntry addMountPoint =
             AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath)
-                .setUfsPath(info.getUfsUri().toString()).setReadOnly(info.getOptions().isReadOnly())
-                .addAllProperties(protoProperties).setShared(info.getOptions().isShared()).build();
+                .setMountId(info.getMountId()).setUfsPath(info.getUfsUri().toString())
+                .setReadOnly(info.getOptions().isReadOnly()).addAllProperties(protoProperties)
+                .setShared(info.getOptions().isShared()).build();
         return Journal.JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build();
       }
 
@@ -140,6 +150,7 @@ public final class MountTable implements JournalEntryIterable {
    * Mounts the given UFS path at the given Alluxio path. The Alluxio path should not be nested
    * under an existing mount point.
    *
+   * @param journalContext the journal context
    * @param alluxioUri an Alluxio path URI
    * @param ufsUri a UFS path URI
    * @param mountId the mount id
@@ -147,20 +158,20 @@ public final class MountTable implements JournalEntryIterable {
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public void add(AlluxioURI alluxioUri, AlluxioURI ufsUri, long mountId, MountOptions options)
-      throws FileAlreadyExistsException, InvalidPathException {
-    String alluxioPath = alluxioUri.getPath();
+  public void add(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri, AlluxioURI ufsUri,
+      long mountId, MountOptions options) throws FileAlreadyExistsException, InvalidPathException {
+    String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
 
     try (LockResource r = new LockResource(mWriteLock)) {
-      if (mMountTable.containsKey(alluxioPath)) {
+      if (mState.getMountTable().containsKey(alluxioPath)) {
         throw new FileAlreadyExistsException(
             ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
       }
       // Check all non-root mount points, to check if they're a prefix of the alluxioPath we're
       // trying to mount. Also make sure that the ufs path we're trying to mount is not a prefix
       // or suffix of any existing mount path.
-      for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
+      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String mountedAlluxioPath = entry.getKey();
         AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
         if (!mountedAlluxioPath.equals(ROOT)
@@ -169,10 +180,9 @@ public final class MountTable implements JournalEntryIterable {
               mountedAlluxioPath, alluxioPath));
         }
         if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
-            && (ufsUri.getAuthority() == null || ufsUri.getAuthority()
-            .equals(mountedUfsUri.getAuthority()))) {
-          String ufsPath = ufsUri.getPath();
-          String mountedUfsPath = mountedUfsUri.getPath();
+            && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
+          String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
+          String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
           if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
             throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
                 .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
@@ -183,32 +193,38 @@ public final class MountTable implements JournalEntryIterable {
           }
         }
       }
-      mMountTable
-          .put(alluxioPath, new MountInfo(new AlluxioURI(alluxioPath), ufsUri, mountId, options));
+      mState.applyAndJournal(journalContext, AddMountPointEntry.newBuilder()
+          .addAllProperties(options.getProperties().entrySet().stream()
+              .map(entry -> StringPairEntry.newBuilder()
+                  .setKey(entry.getKey()).setValue(entry.getValue()).build())
+              .collect(Collectors.toList()))
+          .setAlluxioPath(alluxioPath)
+          .setMountId(mountId)
+          .setReadOnly(options.isReadOnly())
+          .setShared(options.isShared())
+          .setUfsPath(ufsUri.toString())
+          .build());
     }
   }
 
   /**
    * Clears all the mount points except the root.
    */
-  public void clear() {
+  public void reset() {
     LOG.info("Clearing mount table (except the root).");
     try (LockResource r = new LockResource(mWriteLock)) {
-      MountInfo mountInfo = mMountTable.get(ROOT);
-      mMountTable.clear();
-      if (mountInfo != null) {
-        mMountTable.put(ROOT, mountInfo);
-      }
+      mState.reset();
     }
   }
 
   /**
    * Unmounts the given Alluxio path. The path should match an existing mount point.
    *
+   * @param journalContext journal context
    * @param uri an Alluxio path URI
    * @return whether the operation succeeded or not
    */
-  public boolean delete(AlluxioURI uri) {
+  public boolean delete(Supplier<JournalContext> journalContext, AlluxioURI uri) {
     String path = uri.getPath();
     LOG.info("Unmounting {}", path);
     if (path.equals(ROOT)) {
@@ -217,9 +233,10 @@ public final class MountTable implements JournalEntryIterable {
     }
 
     try (LockResource r = new LockResource(mWriteLock)) {
-      if (mMountTable.containsKey(path)) {
-        mUfsManager.removeMount(mMountTable.get(path).getMountId());
-        mMountTable.remove(path);
+      if (mState.getMountTable().containsKey(path)) {
+        mUfsManager.removeMount(mState.getMountTable().get(path).getMountId());
+        mState.applyAndJournal(journalContext,
+            DeleteMountPointEntry.newBuilder().setAlluxioPath(path).build());
         return true;
       }
       LOG.warn("Mount point {} does not exist.", path);
@@ -236,17 +253,15 @@ public final class MountTable implements JournalEntryIterable {
    */
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
-    String mountPoint = null;
 
     try (LockResource r = new LockResource(mReadLock)) {
-      for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
+      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String alluxioPath = entry.getKey();
-        if (PathUtils.hasPrefix(path, alluxioPath)
-            && (mountPoint == null || PathUtils.hasPrefix(alluxioPath, mountPoint))) {
-          mountPoint = alluxioPath;
+        if (!alluxioPath.equals(ROOT) && PathUtils.hasPrefix(path, alluxioPath)) {
+          return alluxioPath;
         }
       }
-      return mountPoint;
+      return mState.getMountTable().containsKey(ROOT) ? ROOT : null;
     }
   }
 
@@ -258,8 +273,26 @@ public final class MountTable implements JournalEntryIterable {
    */
   public Map<String, MountInfo> getMountTable() {
     try (LockResource r = new LockResource(mReadLock)) {
-      return new HashMap<>(mMountTable);
+      return new HashMap<>(mState.getMountTable());
     }
+  }
+
+  /**
+   * @param uri the Alluxio uri to check
+   * @return true if the specified uri is mount point, or has a descendant which is a mount point
+   */
+  public boolean containsMountPoint(AlluxioURI uri) throws InvalidPathException {
+    String path = uri.getPath();
+
+    try (LockResource r = new LockResource(mReadLock)) {
+      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
+        String mountPath = entry.getKey();
+        if (PathUtils.hasPrefix(mountPath, path)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
@@ -268,7 +301,7 @@ public final class MountTable implements JournalEntryIterable {
    */
   public boolean isMountPoint(AlluxioURI uri) {
     try (LockResource r = new LockResource(mReadLock)) {
-      return mMountTable.containsKey(uri.getPath());
+      return mState.getMountTable().containsKey(uri.getPath());
     }
   }
 
@@ -288,18 +321,23 @@ public final class MountTable implements JournalEntryIterable {
       // This will re-acquire the read lock, but that is allowed.
       String mountPoint = getMountPoint(uri);
       if (mountPoint != null) {
-        MountInfo info = mMountTable.get(mountPoint);
+        MountInfo info = mState.getMountTable().get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
-        UnderFileSystem ufs;
+        UfsManager.UfsClient ufsClient;
+        AlluxioURI resolvedUri;
         try {
-          ufs = mUfsManager.get(info.getMountId()).getUfs();
+          ufsClient = mUfsManager.get(info.getMountId());
+          try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
+            UnderFileSystem ufs = ufsResource.get();
+            resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
+          }
         } catch (NotFoundException | UnavailableException e) {
           throw new RuntimeException(
               String.format("No UFS information for %s for mount Id %d, we should never reach here",
                   uri, info.getMountId()), e);
         }
-        AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
-        return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getMountId());
+        return new Resolution(resolvedUri, ufsClient, info.getOptions().isShared(),
+            info.getMountId());
       }
       // TODO(binfan): throw exception as we should never reach here
       return new Resolution(uri, null, false, IdUtils.INVALID_MOUNT_ID);
@@ -319,7 +357,7 @@ public final class MountTable implements JournalEntryIterable {
     try (LockResource r = new LockResource(mReadLock)) {
       // This will re-acquire the read lock, but that is allowed.
       String mountPoint = getMountPoint(alluxioUri);
-      MountInfo mountInfo = mMountTable.get(mountPoint);
+      MountInfo mountInfo = mState.getMountTable().get(mountPoint);
       if (mountInfo.getOptions().isReadOnly()) {
         throw new AccessControlException(ExceptionMessage.MOUNT_READONLY, alluxioUri, mountPoint);
       }
@@ -333,7 +371,7 @@ public final class MountTable implements JournalEntryIterable {
   @Nullable
   public MountInfo getMountInfo(long mountId) {
     try (LockResource r = new LockResource(mReadLock)) {
-      for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
+      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         if (entry.getValue().getMountId() == mountId) {
           return entry.getValue();
         }
@@ -342,19 +380,24 @@ public final class MountTable implements JournalEntryIterable {
     return null;
   }
 
+  @Override
+  public boolean replayJournalEntryFromJournal(JournalEntry entry) {
+    return mState.replayJournalEntryFromJournal(entry);
+  }
+
   /**
    * This class represents a UFS path after resolution. The UFS URI and the {@link UnderFileSystem}
    * for the UFS path are available.
    */
   public final class Resolution {
     private final AlluxioURI mUri;
-    private final UnderFileSystem mUfs;
+    private final UfsManager.UfsClient mUfsClient;
     private final boolean mShared;
     private final long mMountId;
 
-    private Resolution(AlluxioURI uri, UnderFileSystem ufs, boolean shared, long mountId) {
+    private Resolution(AlluxioURI uri, UfsManager.UfsClient ufs, boolean shared, long mountId) {
       mUri = uri;
-      mUfs = ufs;
+      mUfsClient = ufs;
       mShared = shared;
       mMountId = mountId;
     }
@@ -367,10 +410,10 @@ public final class MountTable implements JournalEntryIterable {
     }
 
     /**
-     * @return the {@link UnderFileSystem} instance
+     * @return the {@link UnderFileSystem} closeable resource
      */
-    public UnderFileSystem getUfs() {
-      return mUfs;
+    public CloseableResource<UnderFileSystem> acquireUfsResource() {
+      return mUfsClient.acquireUfsResource();
     }
 
     /**
@@ -385,6 +428,82 @@ public final class MountTable implements JournalEntryIterable {
      */
     public long getMountId() {
       return mMountId;
+    }
+  }
+
+  /**
+   * Persistent mount table state. replayJournalEntryFromJournal should only be called during
+   * journal replay. To modify the mount table, create a journal entry and call one of the
+   * applyAndJournal methods.
+   */
+  public static final class State implements JournalEntryReplayable {
+    /** Maps from Alluxio path string, to {@link MountInfo}. */
+    private final Map<String, MountInfo> mMountTable;
+
+    /**
+     * @return an unmodifiable view of the mount table
+     */
+    public Map<String, MountInfo> getMountTable() {
+      return Collections.unmodifiableMap(mMountTable);
+    }
+
+    /**
+     * @param mountInfo root mount info
+     */
+    public State(MountInfo mountInfo) {
+      mMountTable = new HashMap<>(10);
+      mMountTable.put(MountTable.ROOT, mountInfo);
+    }
+
+    @Override
+    public boolean replayJournalEntryFromJournal(JournalEntry entry) {
+      if (entry.hasAddMountPoint()) {
+        apply(entry.getAddMountPoint());
+      } else if (entry.hasDeleteMountPoint()) {
+        apply(entry.getDeleteMountPoint());
+      } else {
+        return false;
+      }
+      return true;
+    }
+
+    /**
+     * @param context journal context
+     * @param entry add mount point entry
+     */
+    public void applyAndJournal(Supplier<JournalContext> context, AddMountPointEntry entry) {
+      apply(entry);
+      context.get().append(JournalEntry.newBuilder().setAddMountPoint(entry).build());
+    }
+
+    /**
+     * @param context journal context
+     * @param entry delete mount point entry
+     */
+    public void applyAndJournal(Supplier<JournalContext> context, DeleteMountPointEntry entry) {
+      apply(entry);
+      context.get().append(JournalEntry.newBuilder().setDeleteMountPoint(entry).build());
+    }
+
+    private void apply(AddMountPointEntry entry) {
+      MountInfo mountInfo = new MountInfo(new AlluxioURI(entry.getAlluxioPath()),
+          new AlluxioURI(entry.getUfsPath()), entry.getMountId(), new MountOptions(entry));
+      mMountTable.put(entry.getAlluxioPath(), mountInfo);
+    }
+
+    private void apply(DeleteMountPointEntry entry) {
+      mMountTable.remove(entry.getAlluxioPath());
+    }
+
+    /**
+     * Resets the mount table state.
+     */
+    public void reset() {
+      MountInfo mountInfo = mMountTable.get(ROOT);
+      mMountTable.clear();
+      if (mountInfo != null) {
+        mMountTable.put(ROOT, mountInfo);
+      }
     }
   }
 }

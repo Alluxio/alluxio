@@ -20,13 +20,14 @@ priority: 4
 
 安装AWS Vagrant插件：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/install-aws-vagrant-plugin.md %}
+```bash
+$ vagrant plugin install vagrant-aws
+$ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
+```
 
 **安装Alluxio**
 
-下载Alluxio到本地，并解压：
-
-{% include Common-Commands/download-alluxio.md %}
+下载[Alluxio](https://alluxio.org/download)到本地，并解压。
 
 **安装python库依赖**
 
@@ -38,7 +39,9 @@ priority: 4
 
 另外，你可以选择手动安装[pip](https://pip.pypa.io/en/latest/installing/)，之后进入`deploy/vagrant`目录，运行：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/install-pip.md %}
+```bash
+$ sudo pip install -r pip-req.txt
+```
 
 
 ## 启动集群
@@ -54,15 +57,21 @@ priority: 4
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)。确保将私钥文件的
 权限设置成只对你可读。
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/generate-key-pairs.md %}
+```bash
+$ chmod 400 <your key pair>.pem
+```
+
 
 复制`deploy/vagrant/conf/ec2.yml.template`到`deploy/vagrant/conf/ec2.yml`：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/copy-ec2-yml.md %}
+```bash
+$ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
+```
+
 
 在`deploy/vagrant/conf/ec2.yml`配置文件中，将`Keypair`设置为你的keypair名，`Key_Path`设置成pem key路径。
 
-在`deploy/vagrant/conf/ufs.yml`配置文件中，将`Type`的值设置为`hadoop`，或者指定一个`S3 bucket`给`Bucket`字段。
+在`deploy/vagrant/conf/ufs.yml`配置文件中，将`Type`的值设置为`hadoop2`，或者指定一个`S3 bucket`给`Bucket`字段。
 
 在`deploy/vagrant/conf/alluxio.yml`配置文件中，将`Masters`设置为你想要的AlluxioMasters的数量，在容错
 模式下，`Masters`的值应该大于1。
@@ -72,20 +81,28 @@ Vagrant脚本默认会在[该区域(**us-east-1**)和可用区域(**us-east-1b**
 
 现在你可以以Hadoop2.4.1为底层文件系统，在us-east-1b下启动Alluxio集群了，在`deploy/vagrant`目录下运行：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/launch-cluster.md %}
+```bash
+$ ./create <number of machines> aws
+```
+
 
 注意`<number of machines>`的值应该大于等于`deploy/vagrant/conf/alluxio.yml`配置文件中设置的`Masters`的值。
 
 集群中每个节点都运行一个Alluxio worker，每个master节点都运行一个Alluxio master，而leader为这些master节
 点中的其中之一。
 
-# 访问集群
+## 访问集群
 
 **通过Web UI访问**
 
 命令`./create <number of machines> aws`运行成功后，在shell中会输出类似下面的三条语句：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/shell-output.md %}
+```bash
+>>> Master public IP for Alluxio is xxx, visit xxx:19999 for Alluxio web UI<<<
+>>> Master public IP for other softwares is xxx <<<
+>>> visit default port of the web UI of what you deployed <<<
+```
+
 
 第一行为Alluxio master leader的公共IP。
 
@@ -111,37 +128,53 @@ worker进程。
 
 通过ssh登陆一个节点，运行：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/ssh.md %}
+```bash
+$ vagrant ssh <node name>
+```
 
 例如，通过以下命令可以登陆`AlluxioMaster`节点：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/ssh-AlluxioMaster.md %}
+```bash
+$ vagrant ssh AlluxioMaster
+```
 
 所有的软件都安装在根目录下，例如Alluxio安装在`/alluxio`，Hadoop安装在`/hadoop`，Zookeeper安装在`/zookeeper`。
 
 在leader节点上，可以对Alluxio运行测试检测其健康状态：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/runTests.md %}
+```bash
+$ /alluxio/bin/alluxio runTests
+```
+
 
 在所有测试完成后，再次访问Alluxio的web UI `http://{MASTER_IP}:19999`，在导航栏中点击
 `Browse`，你应该能看到测试过程中写入到Alluxio的文件。
 
 通过ssh可以登陆到当前Alluxio master leader，并查找AlluxioMaster进程的进程ID：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/jps.md %}
+```bash
+$ jps | grep AlluxioMaster
+```
 
 然后将该leader进程终止掉：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/kill-leader.md %}
+```bash
+$ kill -9 <leader pid found via the above command>
+```
 
 接着，为了找到新的leader，通过ssh登陆到`AlluxioMaster`节点，该节点上运行着
 [zookeeper](http://zookeeper.apache.org/)，然后运行zookeeper client：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/zookeeper-client.md %}
+```bash
+$ /zookeeper/bin/zkCli.sh
+```
 
 在zookeeper client终端中，运行以下命令查看当前leader：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/see-leader.md %}
+```bash
+$ ls /leader
+```
+
 
 该命令的输出结果应当包含了当前的leader，由于新的leader要通过选举确定，可能要等待一会。你可以在
 [AWS web console](https://console.aws.amazon.com/console/home?region=us-east-1)中通过该leader的名称
@@ -152,12 +185,17 @@ worker进程。
 
 在集群中的某个节点上，可以通过ssh免密码登陆到集群中的其他节点：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/ssh-other-node.md %}
+```bash
+$ ssh AlluxioWorker1
+```
 
 ## 撤销集群
 
 在`deploy/vagrant`目录下运行：
 
-{% include Running-Alluxio-Fault-Tolerant-on-EC2/destroy.md %}
+```bash
+$ ./destroy
+```
+
 
 从而撤销之前创建的集群。一次只能创建一个集群。当该命令成功执行后，EC2实例将终止运行。

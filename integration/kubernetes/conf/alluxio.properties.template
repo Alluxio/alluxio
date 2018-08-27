@@ -1,0 +1,27 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+ALLUXIO_MASTER_HOSTNAME=alluxio-master
+ALLUXIO_MASTER_JOURNAL_FOLDER=/journal
+ALLUXIO_UNDERFS_ADDRESS=<under_storage_address>
+ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain
+ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true
+ALLUXIO_WORKER_MEMORY_SIZE=1GB
+
+ALLUXIO_MASTER_PORT=19998
+ALLUXIO_MASTER_WEB_PORT=19999
+ALLUXIO_WORKER_PORT=29998
+ALLUXIO_WORKER_DATA_PORT=29999
+ALLUXIO_WORKER_WEB_PORT=29996
+
+# If using S3A
+# AWS_ACCESSKEYID=<s3a_access_key>
+# AWS_SECRETKEY=<s3a_secret_key>

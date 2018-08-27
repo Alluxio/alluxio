@@ -27,7 +27,7 @@ During this guide, you will:
 **[Required]** In this documentation, we will use AWS S3 as the example Alluxio under file system.
 Please make sure you have an [AWS account with an access key id and secret access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys),
 so you will be able to use S3 in this guide. If you don't have an S3 account, you can also use an existing HDFS cluster as the under
-file system. The [Set up a distributed storage as UFS](#setupufs) section will be slightly different.
+file system. The [Set up a distributed storage as UFS](#set-up-a-distributed-storage-as-ufs) section will be slightly different.
 
 **Note**  This guide is meant for you to quickly start interacting with an Alluxio system in a distributed environment.
 If you are interested in running a larger scale example which highlights the performance benefits of Alluxio,
@@ -40,7 +40,7 @@ Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-wit
 For the following quick start guide, you will need:
 
 * 3-node Linux cluster
-* [Java 7 or newer](Java-Setup.html)
+* [Java 8 or newer](Java-Setup.html)
 * AWS account and keys
 
 ### Set up SSH (Linux)
@@ -50,22 +50,22 @@ Please make sure on all the nodes, ssh is enabled.
 Optionally, setting up password-less ssh
 will make distributed copy and configuration easier. In this doc, we use the example of manual
 downloading and starting Alluxio on multiple nodes, for demo purpose only. The manual process here
-can be much simplified and automated using `CopyDir` or Ansible scripts. Please refer to this [doc](Running-Alluxio-on-a-Cluster.html]
-and [Running-Alluxio-on-EC2](Running-Alluxio-on-EC2.html] for the alternatives.
+can be much simplified and automated using `./bin/alluxio copyDir` or Ansible scripts. Please refer to this [doc](Running-Alluxio-on-a-Cluster.html)
+and [Running-Alluxio-on-EC2](Running-Alluxio-on-EC2.html) for the alternatives.
 
 ## Download Alluxio
 
-First, [download the Alluxio release](http://www.alluxio.org/download) locally. You can
+First, download the Alluxio release locally. You can
 download the latest {{site.ALLUXIO_RELEASED_VERSION}} release pre-built for various versions of
 Hadoop from the [Alluxio download page](http://www.alluxio.org/download).
 
 Second, `scp` the release tarball to all the Linux nodes. Feel free to use scriptable way (such as Ansible)
 to distribute the tarball and automate the following process on multiple machines. In this documentation,
 manual commands are shown and most of them should be executed on all the nodes. The raw commands are described
-to help user understand how Alluxio components are started individually.
+to help users understand how Alluxio components are started individually.
 
-Next, you can unpack the download with the following commands on all the nodes. Your file name may be different
-depending on which pre-built binaries you have downloaded.
+Next, unpack the download with the following commands on all the nodes. Your file name may be different
+depending on which of the pre-built binaries you have downloaded.
 
 ```bash
 $ tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
@@ -73,7 +73,7 @@ $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 ```
 
 This will create a directory `alluxio-{{site.ALLUXIO_RELEASED_VERSION}}` with all of the Alluxio
-source files and Java binaries.
+scripts and binaries.
 
 ## Configure Alluxio
 
@@ -88,10 +88,10 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 Update `alluxio.master.hostname` in `conf/alluxio-site.properties` to the hostname of the machine
 you plan to run Alluxio Master on. Let's name it Alluxio Master node, and assume its hostname is
-**ALLUXIO_MASTER_HOSTNAME**.
+**${ALLUXIO_MASTER_HOSTNAME}**.
 
 ```bash
-$ echo "alluxio.master.hostname=ALLUXIO_MASTER_HOSTNAME" >> conf/alluxio-site.properties
+$ echo "alluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}" >> conf/alluxio-site.properties
 ```
 
 ### Configure for AWS
@@ -104,8 +104,8 @@ your AWS access information to the Alluxio configuration by adding the keys to t
 `conf/alluxio-site.properties` file. The following commands will update the configuration.
 
 ```bash
-$ echo "aws.accessKeyId=AWS_ACCESS_KEY_ID" >> conf/alluxio-site.properties
-$ echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
+$ echo "aws.accessKeyId=${AWS_ACCESS_KEY_ID}" >> conf/alluxio-site.properties
+$ echo "aws.secretKey=${AWS_SECRET_ACCESS_KEY}" >> conf/alluxio-site.properties
 ```
 
 You will have to replace **AWS_ACCESS_KEY_ID** with your AWS access key id, and
@@ -118,20 +118,20 @@ Before starting Alluxio, you might want to make sure that your system environmen
 Alluxio services. You can run the following command to validate environment on each node:
 
 ```bash
-$ ./bin/alluxio validateEnv
+$ sudo bin/alluxio validateEnv local
 ```
 
 You can also make the command run only specific validation tasks. For example,
 
 ```bash
-$ ./bin/alluxio validateEnv ulimit
+$ sudo bin/alluxio validateEnv local ulimit
 ```
 
 Will only run validation tasks that check your system resource limits, on the specific node.
 
 You can check out [this page](Developer-Tips.html) for detailed usage information regarding this command.
 
-## <a name="setupufs"></a> Set up a distributed storage as UFS
+## Set up a distributed storage as UFS
 
 The [local Getting-Started guide](Getting-Started.html) shows the steps of how to start Alluxio with default local file system.
 In a distributed cluster, Alluxio requires a distributed storage system as under file system.
@@ -163,7 +163,7 @@ Next, we will format Alluxio in preparation for starting Alluxio. The following 
 the Alluxio journal on the master node.
 
 ```bash
-$ ./bin/alluxio format
+$ bin/alluxio format
 ```
 
 Now, we can start Alluxio! In this doc, we will start one Alluxio Master and two Alluxio Workers.
@@ -171,7 +171,7 @@ Now, we can start Alluxio! In this doc, we will start one Alluxio Master and two
 On one of the nodes (naming it Master Node), run the following command to start Alluxio Master:
 
 ```bash
-$ ./bin/alluxio-start.sh master
+$ bin/alluxio-start.sh master
 ```
 
 Congratulations! Alluxio master is now up and running! You can visit
@@ -181,21 +181,21 @@ On the other two nodes (naming them Worker1 and Worker2, respectively), run the 
  Alluxio worker:
 
 ```bash
-$ ./bin/alluxio-start.sh worker
+$ bin/alluxio-start.sh worker SudoMount
 ```
 
 In a few seconds, Alluxio workers will register with the Alluxio master.
-You can visit http://ALLUXIO_WORKER1_HOSTNAME:30000 to see the status of the Alluxio worker.
+You can visit http://ALLUXIO_WORKER_HOSTNAME:30000 to see the status of an Alluxio worker.
 
 ## Use the Alluxio Shell
 
 Now that Alluxio is running, we can examine the Alluxio file system with the
 [Alluxio shell](Command-Line-Interface.html). The Alluxio shell enables many command-line operations
-to interact with Alluxio. You can ssh to the Alluxio Master node and invoke the Alluxio shell with
+to interact with Alluxio. You can invoke the Alluxio shell from any of the nodes with
 the following command:
 
 ```bash
-$ ./bin/alluxio fs
+$ bin/alluxio fs
 ```
 
 This will print out the available Alluxio command-line operations.
@@ -203,14 +203,14 @@ This will print out the available Alluxio command-line operations.
 For example, you can list files in Alluxio with the `ls` command. To list all files in the root directory, use the following command:
 
 ```bash
-$ ./bin/alluxio fs ls /
+$ bin/alluxio fs ls /
 ```
 
-Unfortunately, we do not have any files in Alluxio. We can solve that by copying a file into
+Currently, we do not have any files in Alluxio. We can solve that by copying a file into
 Alluxio. The `copyFromLocal` shell command is used to copy a local file into Alluxio.
 
 ```bash
-$ ./bin/alluxio fs copyFromLocal LICENSE /LICENSE
+$ bin/alluxio fs copyFromLocal LICENSE /LICENSE
 Copied LICENSE to /LICENSE
 ```
 
@@ -218,8 +218,8 @@ After copying the `LICENSE` file, we should be able to see it in Alluxio. List t
 Alluxio with the command:
 
 ```bash
-$ ./bin/alluxio fs ls /
-drwxr-xr-x   ubuntu    ubuntu    26.22KB   09-22-2017 09:30:08:781  In Memory      /LICENSE
+$ bin/alluxio fs ls /
+-rw-r--r--   ubuntu    ubuntu    26.22KB   NOT_PERSISTED 09-22-2017 09:30:08:781  100%      /LICENSE
 ```
 
 The output shows the file that exists in Alluxio, as well as some other useful information, like the
@@ -229,7 +229,7 @@ You can view the contents of the file through the Alluxio shell. The `cat` comma
 the contents of the file.
 
 ```bash
-$ ./bin/alluxio fs cat /LICENSE
+$ bin/alluxio fs cat /LICENSE
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -245,7 +245,7 @@ By default, Alluxio will write data only into Alluxio space, not to the UFS. How
 Alluxio to persist the file from Alluxio space to the UFS. The shell command `persist` will do just that.
 
 ```bash
-$ ./bin/alluxio fs persist /LICENSE
+$ bin/alluxio fs persist /LICENSE
 persisted file /LICENSE with size 26847
 ```
 
@@ -256,14 +256,14 @@ see the LICENSE file as well as other useful information. Here, the **Persistenc
 shows the file as **PERSISTED**.
 
 ## [Bonus] Run a Hadoop MapReduce job on Alluxio cluster
-Please refer to this [doc](Running-Hadoop-MapReduce-on-Alluxio.md) for how to install Hadoop MapReduce on this cluster,
+Please refer to this [doc](Running-Hadoop-MapReduce-on-Alluxio.html) for how to install Hadoop MapReduce on this cluster,
 and run a Hadoop MapReduce job on the installed Alluxio cluster.
 
 Please make sure all the environment and configuration are set up on all the nodes.
 
 ## [Bonus] Run a Spark job on Alluxio cluster
 
-Please refer to this [doc](Running-Spark-on-Alluxio.md) for how to install Apache Spark on this cluster,
+Please refer to this [doc](Running-Spark-on-Alluxio.html) for how to install Apache Spark on this cluster,
 and run a sample Spark job on the installed Alluxio cluster.
 
 Please make sure all the environment and configuration are set up on all the nodes.
@@ -276,26 +276,26 @@ the following command:
 On master node:
 
 ```bash
-$ ./bin/alluxio-stop.sh master
+$ bin/alluxio-stop.sh master
 ```
 
 On worker nodes:
 
 ```bash
-# ./bin/alluxio-stop.sh worker
+$ bin/alluxio-stop.sh worker
 ```
 
 ## Tips
 If you want to save the manual steps to ssh and configure on all the nodes, and you can also start
 Alluxio just from the master node. Set up password-less ssh on the server nodes, and follow the
-instructions in this [doc](Running-Alluxio-on-a-Cluster.html). There you can start Alluxio on a cluster
-in a more scalable and convenient way, by leveraging `alluxio/conf/workers`, `copyDir` and `./bin/alluxio-start.sh all`.
+instructions in this [doc](Running-Alluxio-on-a-Cluster.html). There you can manage Alluxio on a cluster
+in a more scalable and convenient way, by leveraging `alluxio/conf/workers`, `copyDir` and `bin/alluxio-start.sh all`.
 
 ## Conclusion
 
 Congratulations on completing the quick start guide for Alluxio on a cluster! You have successfully downloaded
 and installed Alluxio on a small Linux cluster, and performed some basic interactions via the Alluxio
-shell. This was a simple example on how to get started with Alluxio cluster.
+shell. This was a simple example on how to get started with an Alluxio cluster.
 
 There are several next steps available. You can learn more about the various features of Alluxio in
 our documentation. You can also deploy Alluxio in your environment, mount your existing
@@ -310,12 +310,10 @@ Alluxio can be deployed in many different environments.
 * [Alluxio Standalone on a Cluster](Running-Alluxio-on-a-Cluster.html)
 * [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
 * [Alluxio on Docker](Running-Alluxio-On-Docker.html)
-* [Alluxio Standalone with Fault Tolerance](Running-Alluxio-Fault-Tolerant.html)
 * [Alluxio on EC2](Running-Alluxio-on-EC2.html)
 * [Alluxio on GCE](Running-Alluxio-on-GCE.html)
 * [Alluxio with Mesos on EC2](Running-Alluxio-on-Mesos.html)
 * [Alluxio with Fault Tolerance on EC2](Running-Alluxio-Fault-Tolerant-on-EC2.html)
-* [Alluxio with YARN on EC2](Running-Alluxio-on-EC2-Yarn.html)
 * [Alluxio YARN Integration](Running-Alluxio-Yarn-Integration.html)
 * [Alluxio Standalone with YARN](Running-Alluxio-Yarn-Standalone.html)
 

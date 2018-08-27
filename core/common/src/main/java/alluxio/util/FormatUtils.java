@@ -200,14 +200,14 @@ public final class FormatUtils {
   }
 
   /**
-   * Regular expression pattern to separate digits and letters in a string.
+   * Regular expression pattern to separate digits (negative sign allowed) and letters in a string.
    */
-  private static final Pattern SEP_DIGIT_LETTER = Pattern.compile("([0-9]*)([a-zA-Z]*)");
+  private static final Pattern SEP_DIGIT_LETTER = Pattern.compile("([-]?[0-9]*)([a-zA-Z]*)");
 
   /**
-   * Parses a String size to Milliseconds.
+   * Parses a String size to Milliseconds. Supports negative numbers.
    *
-   * @param timeSize the size of a time, e.g. 1M, 5H, 10D
+   * @param timeSize the size of a time, e.g. 1M, 5H, 10D, -1
    * @return the time size in milliseconds
    */
   public static long parseTimeSize(String timeSize) {
@@ -220,21 +220,26 @@ public final class FormatUtils {
       size = m.group(2);
     }
     double douTime = Double.parseDouble(time);
+    long sign = 1;
+    if (douTime < 0) {
+      sign = -1;
+      douTime = -douTime;
+    }
     size = size.toLowerCase();
     if (size.isEmpty() || size.equalsIgnoreCase("ms")
         || size.equalsIgnoreCase("millisecond")) {
-      return (long) (douTime + alpha);
+      return sign * (long) (douTime + alpha);
     } else if (size.equalsIgnoreCase("s") || size.equalsIgnoreCase("sec")
         || size.equalsIgnoreCase("second")) {
-      return (long) (douTime * Constants.SECOND + alpha);
+      return sign * (long) (douTime * Constants.SECOND + alpha);
     } else if (size.equalsIgnoreCase("m") || size.equalsIgnoreCase("min")
         || size.equalsIgnoreCase("minute")) {
-      return (long) (douTime * Constants.MINUTE + alpha);
+      return sign * (long) (douTime * Constants.MINUTE + alpha);
     } else if (size.equalsIgnoreCase("h") || size.equalsIgnoreCase("hr")
         || size.equalsIgnoreCase("hour")) {
-      return (long) (douTime * Constants.HOUR + alpha);
+      return sign * (long) (douTime * Constants.HOUR + alpha);
     } else if (size.equalsIgnoreCase("d") || size.equalsIgnoreCase("day")) {
-      return (long) (douTime * Constants.DAY + alpha);
+      return sign * (long) (douTime * Constants.DAY + alpha);
     } else {
       throw new IllegalArgumentException("Fail to parse " + timeSize + " to milliseconds");
     }
@@ -245,9 +250,10 @@ public final class FormatUtils {
    *
    * @param mode file mode
    * @param directory if the mode corresponds to a directory
+   * @param hasExtended true if extended acls exist
    * @return human-readable version of the given mode
    */
-  public static String formatMode(short mode, boolean directory) {
+  public static String formatMode(short mode, boolean directory, boolean hasExtended) {
     StringBuilder str = new StringBuilder();
     if (directory) {
       str.append("d");
@@ -255,6 +261,9 @@ public final class FormatUtils {
       str.append("-");
     }
     str.append(new Mode(mode).toString());
+    if (hasExtended) {
+      str.append("+");
+    }
     return str.toString();
   }
 

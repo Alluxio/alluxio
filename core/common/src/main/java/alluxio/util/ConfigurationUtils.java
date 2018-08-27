@@ -11,9 +11,14 @@
 
 package alluxio.util;
 
+import static java.util.stream.Collectors.toList;
+
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.ConfigProperty;
+import alluxio.wire.Scope;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +27,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.List;
 import java.util.Properties;
+
+import javax.annotation.Nullable;
 
 /**
  * Utilities for working with Alluxio configurations.
@@ -33,60 +42,64 @@ public final class ConfigurationUtils {
   private ConfigurationUtils() {} // prevent instantiation
 
   /**
-   * Loads properties from resource. This method will search Classpath for the properties file with
-   * the given resourceName.
+   * Loads properties from a resource.
    *
-   * @param resourceName filename of the properties file
+   * @param resource url of the properties file
    * @return a set of properties on success, or null if failed
    */
-  public static Properties loadPropertiesFromResource(String resourceName) {
-    Properties properties = new Properties();
-
-    InputStream inputStream =
-        Configuration.class.getClassLoader().getResourceAsStream(resourceName);
-    if (inputStream == null) {
-      return null;
-    }
-
-    try {
-      properties.load(inputStream);
+  @Nullable
+  public static Properties loadPropertiesFromResource(URL resource) {
+    try (InputStream stream = resource.openStream()) {
+      return loadProperties(stream);
     } catch (IOException e) {
-      LOG.warn("Unable to load default Alluxio properties file {} : {}", resourceName,
-          e.getMessage());
+      LOG.warn("Failed to read properties from {}: {}", resource, e.toString());
       return null;
     }
-    return properties;
   }
 
   /**
-   * Loads properties from the given file. This method will search Classpath for the properties
-   * file.
+   * Loads properties from the given file.
    *
    * @param filePath the absolute path of the file to load properties
    * @return a set of properties on success, or null if failed
    */
+  @Nullable
   public static Properties loadPropertiesFromFile(String filePath) {
-    Properties properties = new Properties();
-
     try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
-      properties.load(fileInputStream);
+      return loadProperties(fileInputStream);
     } catch (FileNotFoundException e) {
       return null;
     } catch (IOException e) {
-      LOG.warn("Unable to load properties file {} : {}", filePath, e.getMessage());
+      LOG.warn("Failed to close property input stream from {}: {}", filePath, e.toString());
+      return null;
+    }
+  }
+
+  /**
+   * @param stream the stream to read properties from
+   * @return a properties object populated from the stream
+   */
+  @Nullable
+  public static Properties loadProperties(InputStream stream) {
+    Properties properties = new Properties();
+    try {
+      properties.load(stream);
+    } catch (IOException e) {
+      LOG.warn("Unable to load properties: {}", e.toString());
       return null;
     }
     return properties;
   }
 
   /**
-   * Searches the given properties file from a list of paths as well as the classpath.
+   * Searches the given properties file from a list of paths.
    *
    * @param propertiesFile the file to load properties
    * @param confPathList a list of paths to search the propertiesFile
-   * @return loaded properties on success, or null if failed
+   * @return the site properties file on success search, or null if failed
    */
-  public static Properties searchPropertiesFile(String propertiesFile,
+  @Nullable
+  public static String searchPropertiesFile(String propertiesFile,
       String[] confPathList) {
     if (propertiesFile == null || confPathList == null) {
       return null;
@@ -96,11 +109,10 @@ public final class ConfigurationUtils {
       Properties properties = loadPropertiesFromFile(file);
       if (properties != null) {
         // If a site conf is successfully loaded, stop trying different paths.
-        LOG.info("Configuration file {} loaded.", file);
-        return properties;
+        return file;
       }
     }
-    return loadPropertiesFromResource(propertiesFile);
+    return null;
   }
 
   /**
@@ -109,7 +121,34 @@ public final class ConfigurationUtils {
    */
   public static boolean masterHostConfigured() {
     boolean usingZk = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
-        && Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS);
-    return Configuration.containsKey(PropertyKey.MASTER_HOSTNAME) || usingZk;
+        && Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
+    return Configuration.isSet(PropertyKey.MASTER_HOSTNAME) || usingZk;
+  }
+
+  /**
+   * Gets all global configuration properties filtered by the specified scope.
+   *
+   * @param scope the scope to filter by
+   * @return the properties
+   */
+  public static List<ConfigProperty> getConfiguration(Scope scope) {
+    ConfigurationValueOptions useRawDisplayValue =
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true);
+    return Configuration.keySet().stream()
+        .filter(key -> key.getScope().contains(scope))
+        .filter(key -> key.isValid(key.getName()))
+        .map(key -> new ConfigProperty()
+            .setName(key.getName())
+            .setSource(Configuration.getSource(key).toString()).setValue(
+                Configuration.isSet(key) ? Configuration.get(key, useRawDisplayValue) : null))
+        .collect(toList());
+  }
+
+  /**
+   * @param value the value or null (value is not set)
+   * @return the value or "(no value set)" when the value is not set
+   */
+  public static String valueAsString(String value) {
+    return value == null ? "(no value set)" : value;
   }
 }

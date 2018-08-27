@@ -15,7 +15,7 @@ como o sistema de armazenamento inferior.
 ## Configuração Inicial
 
 Primeiro, os binários do Alluxio devem estar na sua máquina. Você pode
-[compilar o Alluxio](Building-Alluxio-Master-Branch.html) ou
+[compilar o Alluxio](Building-Alluxio-From-Source.html) ou
 [baixar os binários localmente](Running-Alluxio-Locally.html).
 
 Depois, se você ainda não tiver efetuado, crie o arquivo de configuração a partir do modelo:

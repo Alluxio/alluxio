@@ -264,7 +264,9 @@ public final class NettyPacketWriter implements PacketWriter {
                 mChannel.close();
               }
             });
-            throw new UnavailableException(mPacketWriteException);
+            throw new UnavailableException(
+                "Failed to write data packet due to " + mPacketWriteException.getMessage(),
+                mPacketWriteException);
           }
           if (!mDoneOrFailed.await(CLOSE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             closeFuture = mChannel.eventLoop().submit(new Runnable() {
@@ -357,7 +359,7 @@ public final class NettyPacketWriter implements PacketWriter {
    */
   @GuardedBy("mLock")
   private void updateException(Throwable e) {
-    if (mPacketWriteException == null) {
+    if (mPacketWriteException == null || mPacketWriteException == e) {
       mPacketWriteException = e;
     } else {
       mPacketWriteException.addSuppressed(e);

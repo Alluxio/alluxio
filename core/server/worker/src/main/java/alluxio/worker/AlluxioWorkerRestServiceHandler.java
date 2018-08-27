@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.ConfigurationValueOptions;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
@@ -34,7 +34,6 @@ import com.qmino.miredot.annotations.ReturnType;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -140,12 +139,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   @Deprecated
   public Response getConfiguration() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, String>>() {
-      @Override
-      public Map<String, String> call() throws Exception {
-        return getConfigurationInternal(true);
-      }
-    });
+    return RestUtils.call(() -> getConfigurationInternal(true));
   }
 
   /**
@@ -159,12 +153,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return mWorkerProcess.getRpcAddress().toString();
-      }
-    });
+    return RestUtils.call(() -> mWorkerProcess.getRpcAddress().toString());
   }
 
   /**
@@ -178,12 +167,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getCapacityBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mStoreMeta.getCapacityBytes();
-      }
-    });
+    return RestUtils.call(() -> mStoreMeta.getCapacityBytes());
   }
 
   /**
@@ -264,12 +248,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.util.List<java.lang.String>>")
   @Deprecated
   public Response getDirectoryPathsOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, List<String>>>() {
-      @Override
-      public Map<String, List<String>> call() throws Exception {
-        return getTierPathsInternal();
-      }
-    });
+    return RestUtils.call(() -> getTierPathsInternal());
   }
 
   /**
@@ -283,12 +262,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return RuntimeConstants.VERSION;
-      }
-    });
+    return RestUtils.call(() -> RuntimeConstants.VERSION);
   }
 
   /**
@@ -302,12 +276,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getStartTimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mWorkerProcess.getStartTimeMs();
-      }
-    });
+    return RestUtils.call(() -> mWorkerProcess.getStartTimeMs());
   }
 
   /**
@@ -321,12 +290,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mWorkerProcess.getUptimeMs();
-      }
-    });
+    return RestUtils.call(() -> mWorkerProcess.getUptimeMs());
   }
 
   /**
@@ -340,12 +304,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getMetrics() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
-      @Override
-      public Map<String, Long> call() throws Exception {
-        return getMetricsInternal();
-      }
-    });
+    return RestUtils.call(() -> getMetricsInternal());
   }
 
   private Capacity getCapacityInternal() {
@@ -354,19 +313,8 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    Set<Map.Entry<String, String>> properties = Configuration.toMap().entrySet();
-    SortedMap<String, String> configuration = new TreeMap<>();
-    for (Map.Entry<String, String> entry : properties) {
-      String key = entry.getKey();
-      if (PropertyKey.isValid(key)) {
-        if (raw) {
-          configuration.put(key, entry.getValue());
-        } else {
-          configuration.put(key, Configuration.get(PropertyKey.fromString(key)));
-        }
-      }
-    }
-    return configuration;
+    return new TreeMap<>(Configuration.toMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 
   private Map<String, Long> getMetricsInternal() {
@@ -378,7 +326,7 @@ public final class AlluxioWorkerRestServiceHandler {
     // Only the gauge for cached blocks is retrieved here, other gauges are statistics of
     // free/used spaces, those statistics can be gotten via other REST apis.
     String blocksCachedProperty =
-        MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
+        MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
     @SuppressWarnings("unchecked")
     Gauge<Integer> blocksCached =
         (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);

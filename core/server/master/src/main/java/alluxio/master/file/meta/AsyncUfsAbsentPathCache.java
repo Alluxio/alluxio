@@ -16,20 +16,22 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -55,7 +57,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   /** The mount table. */
   private final MountTable mMountTable;
   /** Paths currently being processed. This is used to prevent duplicate processing. */
-  private final ConcurrentHashMapV8<String, PathLock> mCurrentPaths;
+  private final ConcurrentHashMap<String, PathLock> mCurrentPaths;
   /** Cache of paths which are absent in the ufs. */
   private final Cache<String, Long> mCache;
   /** A thread pool for the async tasks. */
@@ -71,7 +73,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
    */
   public AsyncUfsAbsentPathCache(MountTable mountTable, int numThreads) {
     mMountTable = mountTable;
-    mCurrentPaths = new ConcurrentHashMapV8<>(8, 0.95f, 8);
+    mCurrentPaths = new ConcurrentHashMap<>(8, 0.95f, 8);
     mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).build();
     mThreads = numThreads;
 
@@ -82,8 +84,8 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public void process(AlluxioURI path) {
-    mPool.submit(new ProcessPathTask(path));
+  public void process(AlluxioURI path, List<InodeView> prefixInodes) {
+    mPool.submit(new ProcessPathTask(path, prefixInodes));
   }
 
   @Override
@@ -98,7 +100,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
     // since the locks are not being used in this code path, there could be a race between this
     // invalidating thread, and a processing of the path from the thread pool. To avoid the race,
     // this invalidating thread must set the intention to invalidate before invalidating.
-    for (AlluxioURI alluxioUri : getNestedPaths(path, mountInfo)) {
+    for (AlluxioURI alluxioUri : getNestedPaths(path, mountInfo.getAlluxioUri().getDepth())) {
       PathLock pathLock = mCurrentPaths.get(alluxioUri.getPath());
       if (pathLock != null) {
         pathLock.setInvalidate();
@@ -163,8 +165,12 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
           return false;
         }
 
-        UnderFileSystem ufs = resolution.getUfs();
-        if (ufs.exists(resolution.getUri().toString())) {
+        boolean existsInUfs;
+        try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+          UnderFileSystem ufs = ufsResource.get();
+          existsInUfs = ufs.exists(resolution.getUri().toString());
+        }
+        if (existsInUfs) {
           // This ufs path exists. Remove the cache entry.
           mCache.invalidate(alluxioUri.getPath());
         } else {
@@ -214,29 +220,24 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   /**
-   * Returns a sequence of Alluxio paths for a specified path, starting from the base of the
-   * mount point, to the specified path.
+   * Returns a sequence of Alluxio paths for a specified path, starting from the path component at
+   * a specific index, to the specified path.
    *
    * @param alluxioUri the Alluxio path to get the nested paths for
-   * @param mountInfo the mount info for this Alluxio path
-   * @return a list of nested paths from the mount base to the given path
+   * @param startComponentIndex the index to the starting path component,
+   *        root directory has index 0
+   * @return a list of nested paths from the starting component to the given path
    */
-  private List<AlluxioURI> getNestedPaths(AlluxioURI alluxioUri, MountInfo mountInfo) {
+  private List<AlluxioURI> getNestedPaths(AlluxioURI alluxioUri, int startComponentIndex) {
     try {
       String[] fullComponents = PathUtils.getPathComponents(alluxioUri.getPath());
-      // create a uri of the base of the mount point.
-      AlluxioURI mountBaseUri = mountInfo.getAlluxioUri();
-      int mountBaseDepth = mountBaseUri.getDepth();
-
-      List<AlluxioURI> components = new ArrayList<>(fullComponents.length - mountBaseDepth);
-      for (int i = 0; i < fullComponents.length; i++) {
-        if (i > 0 && i <= mountBaseDepth) {
-          // Do not include components before the base of the mount point.
-          // However, include the first component, since that will be the actual mount point base.
-          continue;
-        }
-        mountBaseUri = mountBaseUri.join(fullComponents[i]);
-        components.add(mountBaseUri);
+      String[] baseComponents = Arrays.copyOfRange(fullComponents, 0, startComponentIndex);
+      AlluxioURI uri = new AlluxioURI(
+          PathUtils.concatPath(AlluxioURI.SEPARATOR, baseComponents));
+      List<AlluxioURI> components = new ArrayList<>(fullComponents.length - startComponentIndex);
+      for (int i = startComponentIndex; i < fullComponents.length; i++) {
+        uri = uri.join(fullComponents[i]);
+        components.add(uri);
       }
       return components;
     } catch (InvalidPathException e) {
@@ -290,12 +291,15 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
    */
   private final class ProcessPathTask implements Runnable {
     private final AlluxioURI mPath;
+    private final List<InodeView> mPrefixInodes;
 
     /**
      * @param path the path to add
+     * @param prefixInodes the existing inodes for the path prefix
      */
-    private ProcessPathTask(AlluxioURI path) {
+    private ProcessPathTask(AlluxioURI path, List<InodeView> prefixInodes) {
       mPath = path;
+      mPrefixInodes = prefixInodes;
     }
 
     @Override
@@ -304,7 +308,18 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
       if (mountInfo == null) {
         return;
       }
-      for (AlluxioURI alluxioUri : getNestedPaths(mPath, mountInfo)) {
+
+      // baseIndex should be the index of the first non-persisted inode under the mount point.
+      int baseIndex = mountInfo.getAlluxioUri().getDepth();
+      while (baseIndex < mPrefixInodes.size()) {
+        if (mPrefixInodes.get(baseIndex).isPersisted()) {
+          baseIndex++;
+        } else {
+          break;
+        }
+      }
+
+      for (AlluxioURI alluxioUri : getNestedPaths(mPath, baseIndex)) {
         if (!processSinglePath(alluxioUri, mountInfo)) {
           break;
         }

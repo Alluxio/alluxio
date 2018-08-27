@@ -11,7 +11,7 @@
 
 package alluxio.underfs.options;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -53,6 +53,6 @@ public final class ListOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(ListOptions.class);
+    CommonUtils.testEquals(ListOptions.class);
   }
 }

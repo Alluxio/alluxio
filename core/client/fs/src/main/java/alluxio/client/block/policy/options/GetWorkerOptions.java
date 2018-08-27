@@ -25,6 +25,7 @@ import java.util.List;
 @PublicApi
 public final class GetWorkerOptions {
   private List<BlockWorkerInfo> mBlockWorkerInfos;
+  // TODO(calvin): Replace with BlockInfo
   private long mBlockId;
   private long mBlockSize;
 

@@ -13,6 +13,8 @@ package alluxio.master.journal.ufs;
 
 import alluxio.underfs.UfsStatus;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,7 +26,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class provides a snapshot of everything in the journal and some utility methods.
  */
 @ThreadSafe
-final class UfsJournalSnapshot {
+@VisibleForTesting
+public final class UfsJournalSnapshot {
   /** The committed checkpoints. */
   private final List<UfsJournalFile> mCheckpoints;
   /** The journal edit logs including the incomplete log. */
@@ -122,9 +125,11 @@ final class UfsJournalSnapshot {
   /**
    * Gets the current log (the incomplete log) that is being written to.
    *
+   * @param journal the journal
    * @return the current log
    */
-  static UfsJournalFile getCurrentLog(UfsJournal journal) throws IOException {
+  @VisibleForTesting
+  public static UfsJournalFile getCurrentLog(UfsJournal journal) throws IOException {
     List<UfsJournalFile> logs = new ArrayList<>();
     UfsStatus[] statuses = journal.getUfs().listStatus(journal.getLogDir().toString());
     if (statuses != null) {
