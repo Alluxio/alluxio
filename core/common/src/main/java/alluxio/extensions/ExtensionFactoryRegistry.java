@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -129,7 +130,7 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>, S> {
    * @param conf configuration of the extension
    * @return list of factories that support the given path which may be an empty list
    */
-  public List<T> findAll(String path, S conf) {
+  public List<T> findAll(String path, @Nullable S conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<T> factories = new ArrayList<>(mFactories);
