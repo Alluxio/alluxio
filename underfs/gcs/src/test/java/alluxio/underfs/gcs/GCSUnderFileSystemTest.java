@@ -22,7 +22,7 @@ import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
-import static org.mockito.Mockito;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 
@@ -46,7 +46,7 @@ public class GCSUnderFileSystemTest {
    */
   @Before
   public void before() throws InterruptedException, ServiceException {
-    mClient = mock(GoogleStorageService.class);
+    mClient = Mockito.mock(GoogleStorageService.class);
 
     mGCSUnderFileSystem = new GCSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
         BUCKET_MODE, ACCOUNT_OWNER, UnderFileSystemConfiguration.defaults());
@@ -57,7 +57,7 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException, ServiceException {
-    when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
+    Mockito.when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
@@ -71,7 +71,7 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void deleteRecursiveOnServiceException() throws IOException, ServiceException {
-    when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
+    Mockito.when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
@@ -85,7 +85,7 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void renameOnServiceException() throws IOException, ServiceException {
-    when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
+    Mockito.when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
