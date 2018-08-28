@@ -144,5 +144,47 @@ public final class RpcUtilsNew {
     T call() throws AlluxioException, IOException;
   }
 
+    /**
+   * An interface representing a netty RPC callable.
+   *
+   * @param <T> the return type of the callable
+   */
+  public interface NettyRPCCallable<T> {
+    /**
+     * The RPC implementation.
+     *
+     * @return the return value from the RPC
+     */
+    T call() throws Exception;
+
+    /**
+     * Handles exception.
+     *
+     * @param throwable the exception
+     */
+    void exceptionCaught(Throwable throwable);
+  }
+
+  /**
+   * Handles a netty RPC callable with logging.
+   *
+   * @param logger the logger
+   * @param callable the netty RPC callable
+   * @param <T> the return type
+   * @return the rpc result
+   */
+  public static <T> T nettyRPCAndLog(Logger logger, NettyRPCCallable<T> callable) {
+    logger.debug("Enter: {}", callable);
+    try {
+      T result = callable.call();
+      logger.debug("Exit (OK): {}", callable);
+      return result;
+    } catch (Exception e) {
+      logger.debug("Exit (Error): {}, Error={}", callable, e.getMessage());
+      callable.exceptionCaught(e);
+    }
+    return null;
+  }
+
   private RpcUtilsNew() {} // prevent instantiation
 }
