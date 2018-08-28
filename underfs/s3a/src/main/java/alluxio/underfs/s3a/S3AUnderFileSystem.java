@@ -99,7 +99,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /** Transfer Manager for efficient I/O to S3. */
   private final TransferManager mManager;
 
-  /** Enabled streaming upload. */
+  /** Whether the streaming upload is enabled. */
   private final boolean mStreamingUploadEnabled;
 
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */

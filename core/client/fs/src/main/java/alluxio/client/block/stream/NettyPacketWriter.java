@@ -113,7 +113,7 @@ public final class NettyPacketWriter implements PacketWriter {
   /** This condition is met if there is nothing in the netty buffer. */
   private final Condition mBufferEmptyOrFailed = mLock.newCondition();
 
-  /** flush() should not be called before write. */
+  /** Flush should not be called before write. */
   private boolean mWrote = false;
 
   /**

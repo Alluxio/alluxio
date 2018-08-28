@@ -729,7 +729,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "have been completed/aborted correctly. If enabled, all the old intermediate "
               + "multipart uploads in all non readonly S3 mount points will be cleaned. "
               + "This may impact other ongoing upload operations, so should be used sparingly.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_INTERVAL =
@@ -2666,7 +2666,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_FLUSH_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_FLUSH_TIMEOUT_MS)
-          .setDefaultValue("1day")
+          .setDefaultValue("12hour")
           .setDescription("The timeout to wait for flush to finish in a netty writer.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)

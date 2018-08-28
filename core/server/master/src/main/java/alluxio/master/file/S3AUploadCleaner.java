@@ -132,7 +132,7 @@ final class S3AUploadCleaner implements HeartbeatExecutor {
    */
   private static AWSCredentialsProvider createAwsCredentialsProvider(
       Map<String, String> properties) {
-    // Set the aws credential system properties based on Alluxio properties, if they are set;
+    // Set the aws credential system properties based on mount point properties, if they are set;
     // otherwise, use the default credential provider.
     if (properties.containsKey(PropertyKey.S3A_ACCESS_KEY.getName())
         && properties.containsKey(PropertyKey.S3A_SECRET_KEY.getName())) {

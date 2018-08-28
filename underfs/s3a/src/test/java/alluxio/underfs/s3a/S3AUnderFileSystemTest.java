@@ -22,8 +22,8 @@ import alluxio.underfs.options.DeleteOptions;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
@@ -132,7 +132,7 @@ public class S3AUnderFileSystemTest {
           S3AUnderFileSystem.createAwsCredentialsProvider(ufsConf);
       Assert.assertEquals("key1", credentialsProvider.getCredentials().getAWSAccessKeyId());
       Assert.assertEquals("key2", credentialsProvider.getCredentials().getAWSSecretKey());
-      Assert.assertTrue(credentialsProvider instanceof StaticCredentialsProvider);
+      Assert.assertTrue(credentialsProvider instanceof AWSStaticCredentialsProvider);
     }
   }
 
