@@ -11,28 +11,30 @@
 
 package alluxio.fuse;
 
-import static jnr.constants.platform.OpenFlags.O_RDONLY;
-import static jnr.constants.platform.OpenFlags.O_WRONLY;
-
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.security.authorization.Mode;
+import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import jnr.constants.platform.OpenFlags;
 import jnr.ffi.Pointer;
+import jnr.ffi.types.gid_t;
 import jnr.ffi.types.mode_t;
 import jnr.ffi.types.off_t;
 import jnr.ffi.types.size_t;
+import jnr.ffi.types.uid_t;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
@@ -40,6 +42,7 @@ import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
+import ru.serce.jnrfuse.struct.Timespec;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -60,7 +63,9 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
 
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
-  private static final long[] UID_AND_GID = AlluxioFuseUtils.getUidAndGid();
+  private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+  private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
+  private final boolean mIsShellGroupMapping;
 
   private final FileSystem mFileSystem;
   // base path within Alluxio namespace that is used for FUSE operations
@@ -89,12 +94,75 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     mOpenFiles = new HashMap<>();
 
     final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
+    mIsShellGroupMapping = ShellBasedUnixGroupsMapping.class.getName()
+        .equals(Configuration.get(PropertyKey.SECURITY_GROUP_MAPPING_CLASS));
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
 
     Preconditions.checkArgument(mAlluxioRootPath.isAbsolute(),
         "alluxio root path should be absolute");
+  }
+
+  /**
+   * Changes the mode of an Alluxio file.
+   *
+   * @param path the path of the file
+   * @param mode the mode to change to
+   * @return 0 on success, a negative value on error
+   */
+  @Override
+  public int chmod(String path, @mode_t long mode) {
+    AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+
+    SetAttributeOptions options = SetAttributeOptions.defaults().setMode(new Mode((short) mode));
+    try {
+      mFileSystem.setAttribute(uri, options);
+    } catch (IOException | AlluxioException e) {
+      LOG.error("Exception on {} of changing mode to {}", path, mode, e);
+      return -ErrorCodes.EIO();
+    }
+
+    return 0;
+  }
+
+  /**
+   * Changes the owner of an Alluxio file.
+   *
+   * This operation only works when the group mapping service is shelled based and the user is
+   * registered in unix. Otherwise it errors as not implemented. This is because the input uid and
+   * gid must match the user and group in Unix.
+   */
+  @Override
+  public int chown(String path, @uid_t long uid, @gid_t long gid) {
+    if (!mIsShellGroupMapping) {
+      LOG.info("Cannot change the owner of path {} because the group mapping is not shell based",
+          path);
+      // not supported if the group mapping is not shell based
+      return -ErrorCodes.ENOSYS();
+    }
+    try {
+      String userName = AlluxioFuseUtils.getUserName(uid);
+      String groupName = AlluxioFuseUtils.getGroupName(uid);
+      if (userName.isEmpty()) {
+        LOG.error("Failed to get user name from uid {}", uid);
+        return -ErrorCodes.EFAULT();
+      }
+      if (groupName.isEmpty()) {
+        LOG.error("Failed to get group name from uid {}", uid);
+        return -ErrorCodes.EFAULT();
+      }
+      SetAttributeOptions options =
+          SetAttributeOptions.defaults().setGroup(groupName).setOwner(userName);
+      final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+      LOG.info("Change owner and group of file {} to {}:{}", path, userName, groupName);
+
+      mFileSystem.setAttribute(uri, options);
+    } catch (IOException | AlluxioException e) {
+      LOG.error("Exception on {}", path, e);
+      return -ErrorCodes.EIO();
+    }
+    return 0;
   }
 
   /**
@@ -107,29 +175,19 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int create(String path, @mode_t long mode, FuseFileInfo fi) {
-    // mode is ignored in alluxio-fuse
-    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
-    // (see {@code man 2 open} for the structure of the flags bitfield)
-    // File creation flags are the last two bits of flags
+    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     final int flags = fi.flags.get();
-    LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), turi);
-    final int openFlag = flags & 3;
-    if (openFlag != O_WRONLY.intValue()) {
-      OpenFlags flag = OpenFlags.valueOf(openFlag);
-      LOG.error("Passed a {} flag to create(). Files can only be created in O_WRONLY mode ({})",
-          flag.toString(), path);
-      return -ErrorCodes.EACCES();
-    }
+    LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
     try {
       synchronized (mOpenFiles) {
         if (mOpenFiles.size() >= MAX_OPEN_FILES) {
-          LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})",
-              turi, MAX_OPEN_FILES);
+          LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})", uri,
+              MAX_OPEN_FILES);
           return -ErrorCodes.EMFILE();
         }
 
-        final OpenFileEntry ofe = new OpenFileEntry(null, mFileSystem.createFile(turi));
+        final OpenFileEntry ofe = new OpenFileEntry(null, mFileSystem.createFile(uri));
         LOG.debug("Alluxio OutStream created for {}", path);
         mOpenFiles.put(mNextOpenFileId, ofe);
         fi.fh.set(mNextOpenFileId);
@@ -137,16 +195,15 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
       }
-      LOG.debug("{} created and opened in O_WRONLY mode", path);
-
+      LOG.debug("{} created and opened", path);
     } catch (FileAlreadyExistsException e) {
-      LOG.debug("File {} already exists", turi, e);
+      LOG.debug("File {} already exists", uri, e);
       return -ErrorCodes.EEXIST();
     } catch (IOException e) {
-      LOG.error("IOException on {}", path, e);
+      LOG.error("IOException on  {}", uri, e);
       return -ErrorCodes.EIO();
     } catch (AlluxioException e) {
-      LOG.error("AlluxioException on {}", path, e);
+      LOG.error("AlluxioException on {}", uri, e);
       return -ErrorCodes.EFAULT();
     } catch (Throwable e) {
       LOG.error("Unexpected exception on {}", path, e);
@@ -181,6 +238,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       try {
         oe.getOut().flush();
       } catch (IOException e) {
+        LOG.error("IOException on  {}", path, e);
         return -ErrorCodes.EIO();
       }
     } else {
@@ -211,24 +269,28 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       //keeps only the "residual" nanoseconds not caputred in
       // citme_sec
       final long ctime_nsec = (status.getLastModificationTimeMs() % 1000) * 1000;
+
       stat.st_ctim.tv_sec.set(ctime_sec);
       stat.st_ctim.tv_nsec.set(ctime_nsec);
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      // TODO(andreareale): understand how to map FileInfo#getOwner()
-      // and FileInfo#getGroup() to UIDs and GIDs of the node
-      // where alluxio-fuse is mounted.
-      // While this is not done, just use uid and gid of the user
-      // running alluxio-fuse.
-      stat.st_uid.set(UID_AND_GID[0]);
-      stat.st_gid.set(UID_AND_GID[1]);
-
-      final int mode;
-      if (status.isFolder()) {
-        mode = FileStat.S_IFDIR;
+      // for shell-based group mapping, use the uid and gid of the corresponding user registered in
+      // unix; otherwise use uid and gid of the user running alluxio-fuse
+      if (mIsShellGroupMapping) {
+        String owner = status.getOwner();
+        stat.st_uid.set(AlluxioFuseUtils.getUid(owner));
+        stat.st_gid.set(AlluxioFuseUtils.getGid(owner));
       } else {
-        mode = FileStat.S_IFREG;
+        stat.st_uid.set(UID);
+        stat.st_gid.set(GID);
+      }
+
+      int mode = status.getMode();
+      if (status.isFolder()) {
+        mode |= FileStat.S_IFDIR;
+      } else {
+        mode |= FileStat.S_IFREG;
       }
       stat.st_mode.set(mode);
 
@@ -296,9 +358,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   /**
    * Opens an existing file for reading.
    *
-   * Note that the open mode <i>must</i> be
-   * O_RDONLY, otherwise the open will fail. This is due to
-   * the Alluxio "write-once/read-many-times" file model.
+   * Note that the opening an existing file would fail, because of Alluxio's write-once semantics.
    *
    * @param path the FS path of the file to open
    * @param fi FileInfo data structure kept by FUSE
@@ -306,33 +366,29 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int open(String path, FuseFileInfo fi) {
-    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     // (see {@code man 2 open} for the structure of the flags bitfield)
     // File creation flags are the last two bits of flags
     final int flags = fi.flags.get();
-    LOG.trace("open({}, 0x{}) [Alluxio: {}]", path, Integer.toHexString(flags), turi);
+    LOG.trace("open({}, 0x{}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
-    if ((flags & 3) != O_RDONLY.intValue()) {
-      LOG.error("Files can only be opened in O_RDONLY mode ({})", path);
-      return -ErrorCodes.EACCES();
-    }
     try {
-      if (!mFileSystem.exists(turi)) {
-        LOG.error("File {} does not exist", turi);
+      if (!mFileSystem.exists(uri)) {
+        LOG.error("File {} does not exist", uri);
         return -ErrorCodes.ENOENT();
       }
-      final URIStatus status = mFileSystem.getStatus(turi);
+      final URIStatus status = mFileSystem.getStatus(uri);
       if (status.isFolder()) {
-        LOG.error("File {} is a directory", turi);
+        LOG.error("File {} is a directory", uri);
         return -ErrorCodes.EISDIR();
       }
 
       synchronized (mOpenFiles) {
         if (mOpenFiles.size() == MAX_OPEN_FILES) {
-          LOG.error("Cannot open {}: too many open files", turi);
+          LOG.error("Cannot open {}: too many open files", uri);
           return ErrorCodes.EMFILE();
         }
-        final OpenFileEntry ofe = new OpenFileEntry(mFileSystem.openFile(turi), null);
+        final OpenFileEntry ofe = new OpenFileEntry(mFileSystem.openFile(uri), null);
         mOpenFiles.put(mNextOpenFileId, ofe);
         fi.fh.set(mNextOpenFileId);
 
@@ -525,9 +581,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       if (!mFileSystem.exists(oldUri)) {
         LOG.error("File {} does not exist", oldPath);
         return -ErrorCodes.ENOENT();
-      } else {
-        mFileSystem.rename(oldUri, newUri);
       }
+      if (mFileSystem.exists(newUri)) {
+        LOG.error("File {} already exists, please delete the destination file first", newPath);
+        return -ErrorCodes.EEXIST();
+      }
+      mFileSystem.rename(oldUri, newUri);
     } catch (FileDoesNotExistException e) {
       LOG.debug("File {} does not exist", oldPath);
       return -ErrorCodes.ENOENT();
@@ -558,6 +617,32 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
+   * Changes the size of a file. This operation would not succeed because of Alluxio's write-once
+   * model.
+   */
+  @Override
+  public int truncate(String path, long size) {
+    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    try {
+      if (!mFileSystem.exists(uri)) {
+        LOG.error("File {} does not exist", uri);
+        return -ErrorCodes.ENOENT();
+      }
+    } catch (IOException e) {
+      LOG.error("IOException encountered at path {}", path, e);
+      return -ErrorCodes.EIO();
+    } catch (AlluxioException e) {
+      LOG.error("AlluxioException encountered at path {}", path, e);
+      return -ErrorCodes.EFAULT();
+    } catch (Throwable e) {
+      LOG.error("Unexpected exception at path {}", path, e);
+      return -ErrorCodes.EFAULT();
+    }
+    LOG.error("File {} exists and cannot be overwritten. Please delete the file first", uri);
+    return -ErrorCodes.EEXIST();
+  }
+
+  /**
    * Deletes a file from the FS.
    *
    * @param path the FS path of the file
@@ -570,12 +655,23 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Writes a buffer to an open Alluxio file.
+   * Alluxio does not have access time, and the file is created only once. So this operation is a
+   * no-op.
+   */
+  @Override
+  public int utimens(String path, Timespec[] timespec) {
+    return 0;
+  }
+
+  /**
+   * Writes a buffer to an open Alluxio file. Random write is not supported, so the offset argument
+   * is ignored. Also, due to an issue in OSXFUSE that may write the same content at a offset
+   * multiple times, the write also checks that the subsequent write of the same offset is ignored.
    *
    * @param buf The buffer with source data
-   * @param size How much data to write from the buffer. The maximum accepted size
-   *             for writes is {@link Integer#MAX_VALUE}. Note that current FUSE
-   *             implementation will anyway call write with at most 128K writes
+   * @param size How much data to write from the buffer. The maximum accepted size for writes is
+   *        {@link Integer#MAX_VALUE}. Note that current FUSE implementation will anyway call write
+   *        with at most 128K writes
    * @param offset The offset where to write in the file (IGNORED)
    * @param fi FileInfo data structure kept by FUSE
    * @return number of bytes written on success, a negative value on error
@@ -600,14 +696,21 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     }
 
     if (oe.getOut() == null) {
-      LOG.error("{} was not open for writing", path);
-      return -ErrorCodes.EBADFD();
+      LOG.error("{} already exists in Alluxio and cannot be overwritten."
+          + " Please delete this file first.", path);
+      return -ErrorCodes.EEXIST();
+    }
+
+    if (offset < oe.getWriteOffset()) {
+      // no op
+      return sz;
     }
 
     try {
       final byte[] dest = new byte[sz];
       buf.get(0, dest, 0, sz);
       oe.getOut().write(dest);
+      oe.setWriteOffset(offset + size);
     } catch (IOException e) {
       LOG.error("IOException while writing to {}.", path, e);
       return -ErrorCodes.EIO();
@@ -645,6 +748,9 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     } catch (IOException e) {
       LOG.error("IOException on {}", path, e);
       return -ErrorCodes.EIO();
+    } catch (DirectoryNotEmptyException e) {
+      LOG.error("{} is not empty", path, e);
+      return -ErrorCodes.ENOTEMPTY();
     } catch (AlluxioException e) {
       LOG.error("AlluxioException on {}", path, e);
       return -ErrorCodes.EFAULT();
@@ -666,7 +772,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   /**
    * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
    */
-  private class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
+  private final class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
 
     /**
      * Constructs a new {@link PathCacheLoader}.

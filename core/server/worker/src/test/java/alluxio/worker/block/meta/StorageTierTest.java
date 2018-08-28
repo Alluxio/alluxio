@@ -145,4 +145,15 @@ public class StorageTierTest {
     mThrown.expectMessage(PreconditionMessage.ERR_TIER_QUOTA_BLANK.toString());
     mTier = StorageTier.newStorageTier("MEM");
   }
+
+  @Test
+  public void tolerantFailureInStorageDir() throws Exception {
+    PropertyKey tierDirPathConf =
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0);
+    Configuration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
+    mTier = StorageTier.newStorageTier("MEM");
+    List<StorageDir> dirs = mTier.getStorageDirs();
+    Assert.assertEquals(1, dirs.size());
+    Assert.assertEquals(mTestDirPath1, dirs.get(0).getDirPath());
+  }
 }

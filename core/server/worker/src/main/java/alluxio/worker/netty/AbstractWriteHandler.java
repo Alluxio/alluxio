@@ -24,6 +24,7 @@ import alluxio.resource.LockResource;
 import alluxio.util.network.NettyUtils;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
@@ -145,17 +146,22 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         initRequestContext(mContext);
       }
 
-      // Validate the write request.
-      validateWriteRequest(writeRequest, msg.getPayloadDataBuffer());
-
-      // If we have seen an error, return early and release the data. This can only
-      // happen for those mis-behaving clients who first sends some invalid requests, then
-      // then some random data. It can leak memory if we do not release buffers here.
+      // If we have seen an error, return early and release the data. This can
+      // happen for (1) those mis-behaving clients who first sends some invalid requests, then
+      // then some random data, or (2) asynchronous requests arrive after the previous request fails
+      // and triggers abortion. It can leak memory if we do not release buffers here.
       if (mContext.getError() != null) {
         if (msg.getPayloadDataBuffer() != null) {
           msg.getPayloadDataBuffer().release();
         }
+        LOG.warn("Ignore the request {} due to the error {} on context", mContext.getRequest(),
+            mContext.getError());
         return;
+      } else {
+        // Validate the write request. The validation is performed only when no error is in the
+        // context in order to prevent excessive logging on the subsequent arrived asynchronous
+        // requests after a previous request fails and triggers the abortion
+        validateWriteRequest(writeRequest, msg.getPayloadDataBuffer());
       }
 
       ByteBuf buf;
@@ -287,7 +293,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
           writeBuf(mContext, mChannel, buf, mContext.getPosToWrite());
           incrementMetrics(readableBytes);
         } catch (Exception e) {
-          LOG.warn("Failed to write packet: {}", e.getMessage());
+          LOG.error("Failed to write packet for request {}", mContext.getRequest(), e);
           Throwables.propagateIfPossible(e);
           pushAbortPacket(mChannel,
               new Error(AlluxioStatusException.fromCheckedException(e), true));
@@ -465,7 +471,10 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
    */
   private void incrementMetrics(long bytesWritten) {
     Counter counter = mContext.getCounter();
-    Preconditions.checkState(counter != null);
+    Meter meter = mContext.getMeter();
+    Preconditions.checkState(counter != null, "counter");
+    Preconditions.checkState(meter != null, "meter");
     counter.inc(bytesWritten);
+    meter.mark(bytesWritten);
   }
 }

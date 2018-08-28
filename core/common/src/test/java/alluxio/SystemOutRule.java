@@ -12,7 +12,6 @@
 package alluxio;
 
 import java.io.OutputStream;
-import java.io.PrintStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -23,26 +22,22 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class SystemOutRule extends AbstractResourceRule {
-  private final OutputStream mOutputStream;
-  private PrintStream mNewOutput;
-  private PrintStream mOldOutput;
+  private RedirectOutputRule mRedirectOutputRule;
 
   /**
    * @param outputStream the output stream to set as output
    */
   public SystemOutRule(OutputStream outputStream) {
-    mOutputStream = outputStream;
+    mRedirectOutputRule = new RedirectOutputRule(System.out, outputStream, System::setOut);
   }
 
   @Override
   protected void before() throws Exception {
-    mNewOutput = new PrintStream(mOutputStream);
-    mOldOutput = System.out;
-    System.setOut(mNewOutput);
+    mRedirectOutputRule.before();
   }
 
   @Override
   protected void after() {
-    System.setOut(mOldOutput);
+    mRedirectOutputRule.after();
   }
 }

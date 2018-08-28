@@ -12,7 +12,6 @@
 package alluxio.client.file.options;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
@@ -22,7 +21,7 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateFileTOptions;
 import alluxio.util.CommonUtils;
-import alluxio.wire.ThriftUtils;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -40,11 +39,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
 public final class CreateFileOptions {
+  private CommonOptions mCommonOptions;
   private boolean mRecursive;
   private FileWriteLocationPolicy mLocationPolicy;
   private long mBlockSizeBytes;
-  private long mTtl;
-  private TtlAction mTtlAction;
   private Mode mMode;
   private int mWriteTier;
   private WriteType mWriteType;
@@ -57,20 +55,25 @@ public final class CreateFileOptions {
   }
 
   private CreateFileOptions() {
+    mCommonOptions = CommonOptions.defaults()
+        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
+        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION,
+            TtlAction.class));
     mRecursive = true;
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    try {
-      mLocationPolicy =
-          CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
-              PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
-    } catch (Exception e) {
-      throw Throwables.propagate(e);
-    }
+    mLocationPolicy =
+        CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
+            PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-    mTtl = Constants.NO_TTL;
-    mTtlAction = TtlAction.DELETE;
     mMode = Mode.defaults().applyFileUMask();
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -100,14 +103,14 @@ public final class CreateFileOptions {
    *         should be kept around before it is automatically deleted
    */
   public long getTtl() {
-    return mTtl;
+    return getCommonOptions().getTtl();
   }
 
   /**
    * @return the {@link TtlAction}
    */
   public TtlAction getTtlAction() {
-    return mTtlAction;
+    return getCommonOptions().getTtlAction();
   }
 
   /**
@@ -136,6 +139,15 @@ public final class CreateFileOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public CreateFileOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -198,7 +210,7 @@ public final class CreateFileOptions {
    * @return the updated options object
    */
   public CreateFileOptions setTtl(long ttl) {
-    mTtl = ttl;
+    getCommonOptions().setTtl(ttl);
     return this;
   }
 
@@ -207,7 +219,7 @@ public final class CreateFileOptions {
    * @return the updated options object
    */
   public CreateFileOptions setTtlAction(TtlAction ttlAction) {
-    mTtlAction = ttlAction;
+    getCommonOptions().setTtlAction(ttlAction);
     return this;
   }
 
@@ -238,8 +250,6 @@ public final class CreateFileOptions {
         .setBlockSizeBytes(mBlockSizeBytes)
         .setLocationPolicy(mLocationPolicy)
         .setMode(mMode)
-        .setTtl(mTtl)
-        .setTtlAction(mTtlAction)
         .setWriteTier(mWriteTier)
         .setWriteType(mWriteType);
   }
@@ -254,30 +264,29 @@ public final class CreateFileOptions {
     }
     CreateFileOptions that = (CreateFileOptions) o;
     return Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mMode, that.mMode)
-        && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlAction, that.mTtlAction)
         && mWriteTier == that.mWriteTier
         && Objects.equal(mWriteType, that.mWriteType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mTtl,
-        mTtlAction, mWriteTier, mWriteType);
+    return Objects
+        .hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mWriteTier,
+            mWriteType, mCommonOptions);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("recursive", mRecursive)
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("locationPolicy", mLocationPolicy)
         .add("mode", mMode)
-        .add("ttl", mTtl)
-        .add("ttlAction", mTtlAction)
         .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
         .toString();
@@ -291,11 +300,10 @@ public final class CreateFileOptions {
     options.setBlockSizeBytes(mBlockSizeBytes);
     options.setPersisted(mWriteType.isThrough());
     options.setRecursive(mRecursive);
-    options.setTtl(mTtl);
-    options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
     if (mMode != null) {
       options.setMode(mMode.toShort());
     }
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

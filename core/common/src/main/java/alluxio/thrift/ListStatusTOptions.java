@@ -40,6 +40,8 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
 
   private static final org.apache.thrift.protocol.TField LOAD_DIRECT_CHILDREN_FIELD_DESC = new org.apache.thrift.protocol.TField("loadDirectChildren", org.apache.thrift.protocol.TType.BOOL, (short)1);
   private static final org.apache.thrift.protocol.TField LOAD_METADATA_TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("loadMetadataType", org.apache.thrift.protocol.TType.I32, (short)2);
+  private static final org.apache.thrift.protocol.TField COMMON_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("commonOptions", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+  private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)4);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -49,6 +51,8 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
 
   private boolean loadDirectChildren; // optional
   private LoadMetadataTType loadMetadataType; // optional
+  private FileSystemMasterCommonTOptions commonOptions; // optional
+  private boolean recursive; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -57,7 +61,9 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
      * 
      * @see LoadMetadataTType
      */
-    LOAD_METADATA_TYPE((short)2, "loadMetadataType");
+    LOAD_METADATA_TYPE((short)2, "loadMetadataType"),
+    COMMON_OPTIONS((short)3, "commonOptions"),
+    RECURSIVE((short)4, "recursive");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -76,6 +82,10 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
           return LOAD_DIRECT_CHILDREN;
         case 2: // LOAD_METADATA_TYPE
           return LOAD_METADATA_TYPE;
+        case 3: // COMMON_OPTIONS
+          return COMMON_OPTIONS;
+        case 4: // RECURSIVE
+          return RECURSIVE;
         default:
           return null;
       }
@@ -117,8 +127,9 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
 
   // isset id assignments
   private static final int __LOADDIRECTCHILDREN_ISSET_ID = 0;
+  private static final int __RECURSIVE_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.LOAD_DIRECT_CHILDREN,_Fields.LOAD_METADATA_TYPE};
+  private static final _Fields optionals[] = {_Fields.LOAD_DIRECT_CHILDREN,_Fields.LOAD_METADATA_TYPE,_Fields.COMMON_OPTIONS,_Fields.RECURSIVE};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -126,6 +137,10 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.LOAD_METADATA_TYPE, new org.apache.thrift.meta_data.FieldMetaData("loadMetadataType", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, LoadMetadataTType.class)));
+    tmpMap.put(_Fields.COMMON_OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("commonOptions", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemMasterCommonTOptions.class)));
+    tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ListStatusTOptions.class, metaDataMap);
   }
@@ -142,6 +157,10 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
     if (other.isSetLoadMetadataType()) {
       this.loadMetadataType = other.loadMetadataType;
     }
+    if (other.isSetCommonOptions()) {
+      this.commonOptions = new FileSystemMasterCommonTOptions(other.commonOptions);
+    }
+    this.recursive = other.recursive;
   }
 
   public ListStatusTOptions deepCopy() {
@@ -153,6 +172,9 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
     setLoadDirectChildrenIsSet(false);
     this.loadDirectChildren = false;
     this.loadMetadataType = null;
+    this.commonOptions = null;
+    setRecursiveIsSet(false);
+    this.recursive = false;
   }
 
   public boolean isLoadDirectChildren() {
@@ -210,6 +232,53 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
     }
   }
 
+  public FileSystemMasterCommonTOptions getCommonOptions() {
+    return this.commonOptions;
+  }
+
+  public ListStatusTOptions setCommonOptions(FileSystemMasterCommonTOptions commonOptions) {
+    this.commonOptions = commonOptions;
+    return this;
+  }
+
+  public void unsetCommonOptions() {
+    this.commonOptions = null;
+  }
+
+  /** Returns true if field commonOptions is set (has been assigned a value) and false otherwise */
+  public boolean isSetCommonOptions() {
+    return this.commonOptions != null;
+  }
+
+  public void setCommonOptionsIsSet(boolean value) {
+    if (!value) {
+      this.commonOptions = null;
+    }
+  }
+
+  public boolean isRecursive() {
+    return this.recursive;
+  }
+
+  public ListStatusTOptions setRecursive(boolean recursive) {
+    this.recursive = recursive;
+    setRecursiveIsSet(true);
+    return this;
+  }
+
+  public void unsetRecursive() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
+  }
+
+  /** Returns true if field recursive is set (has been assigned a value) and false otherwise */
+  public boolean isSetRecursive() {
+    return EncodingUtils.testBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
+  }
+
+  public void setRecursiveIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RECURSIVE_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case LOAD_DIRECT_CHILDREN:
@@ -228,6 +297,22 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
       }
       break;
 
+    case COMMON_OPTIONS:
+      if (value == null) {
+        unsetCommonOptions();
+      } else {
+        setCommonOptions((FileSystemMasterCommonTOptions)value);
+      }
+      break;
+
+    case RECURSIVE:
+      if (value == null) {
+        unsetRecursive();
+      } else {
+        setRecursive((Boolean)value);
+      }
+      break;
+
     }
   }
 
@@ -238,6 +323,12 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
 
     case LOAD_METADATA_TYPE:
       return getLoadMetadataType();
+
+    case COMMON_OPTIONS:
+      return getCommonOptions();
+
+    case RECURSIVE:
+      return isRecursive();
 
     }
     throw new IllegalStateException();
@@ -254,6 +345,10 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
       return isSetLoadDirectChildren();
     case LOAD_METADATA_TYPE:
       return isSetLoadMetadataType();
+    case COMMON_OPTIONS:
+      return isSetCommonOptions();
+    case RECURSIVE:
+      return isSetRecursive();
     }
     throw new IllegalStateException();
   }
@@ -289,6 +384,24 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
         return false;
     }
 
+    boolean this_present_commonOptions = true && this.isSetCommonOptions();
+    boolean that_present_commonOptions = true && that.isSetCommonOptions();
+    if (this_present_commonOptions || that_present_commonOptions) {
+      if (!(this_present_commonOptions && that_present_commonOptions))
+        return false;
+      if (!this.commonOptions.equals(that.commonOptions))
+        return false;
+    }
+
+    boolean this_present_recursive = true && this.isSetRecursive();
+    boolean that_present_recursive = true && that.isSetRecursive();
+    if (this_present_recursive || that_present_recursive) {
+      if (!(this_present_recursive && that_present_recursive))
+        return false;
+      if (this.recursive != that.recursive)
+        return false;
+    }
+
     return true;
   }
 
@@ -305,6 +418,16 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
     list.add(present_loadMetadataType);
     if (present_loadMetadataType)
       list.add(loadMetadataType.getValue());
+
+    boolean present_commonOptions = true && (isSetCommonOptions());
+    list.add(present_commonOptions);
+    if (present_commonOptions)
+      list.add(commonOptions);
+
+    boolean present_recursive = true && (isSetRecursive());
+    list.add(present_recursive);
+    if (present_recursive)
+      list.add(recursive);
 
     return list.hashCode();
   }
@@ -333,6 +456,26 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
     }
     if (isSetLoadMetadataType()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.loadMetadataType, other.loadMetadataType);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetCommonOptions()).compareTo(other.isSetCommonOptions());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCommonOptions()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.commonOptions, other.commonOptions);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetRecursive()).compareTo(other.isSetRecursive());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetRecursive()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.recursive, other.recursive);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -372,6 +515,22 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
       }
       first = false;
     }
+    if (isSetCommonOptions()) {
+      if (!first) sb.append(", ");
+      sb.append("commonOptions:");
+      if (this.commonOptions == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.commonOptions);
+      }
+      first = false;
+    }
+    if (isSetRecursive()) {
+      if (!first) sb.append(", ");
+      sb.append("recursive:");
+      sb.append(this.recursive);
+      first = false;
+    }
     sb.append(")");
     return sb.toString();
   }
@@ -379,6 +538,9 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (commonOptions != null) {
+      commonOptions.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -433,6 +595,23 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 3: // COMMON_OPTIONS
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.commonOptions = new FileSystemMasterCommonTOptions();
+              struct.commonOptions.read(iprot);
+              struct.setCommonOptionsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 4: // RECURSIVE
+            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+              struct.recursive = iprot.readBool();
+              struct.setRecursiveIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -460,6 +639,18 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
           oprot.writeFieldEnd();
         }
       }
+      if (struct.commonOptions != null) {
+        if (struct.isSetCommonOptions()) {
+          oprot.writeFieldBegin(COMMON_OPTIONS_FIELD_DESC);
+          struct.commonOptions.write(oprot);
+          oprot.writeFieldEnd();
+        }
+      }
+      if (struct.isSetRecursive()) {
+        oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
+        oprot.writeBool(struct.recursive);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -484,19 +675,31 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
       if (struct.isSetLoadMetadataType()) {
         optionals.set(1);
       }
-      oprot.writeBitSet(optionals, 2);
+      if (struct.isSetCommonOptions()) {
+        optionals.set(2);
+      }
+      if (struct.isSetRecursive()) {
+        optionals.set(3);
+      }
+      oprot.writeBitSet(optionals, 4);
       if (struct.isSetLoadDirectChildren()) {
         oprot.writeBool(struct.loadDirectChildren);
       }
       if (struct.isSetLoadMetadataType()) {
         oprot.writeI32(struct.loadMetadataType.getValue());
       }
+      if (struct.isSetCommonOptions()) {
+        struct.commonOptions.write(oprot);
+      }
+      if (struct.isSetRecursive()) {
+        oprot.writeBool(struct.recursive);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ListStatusTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(2);
+      BitSet incoming = iprot.readBitSet(4);
       if (incoming.get(0)) {
         struct.loadDirectChildren = iprot.readBool();
         struct.setLoadDirectChildrenIsSet(true);
@@ -504,6 +707,15 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
       if (incoming.get(1)) {
         struct.loadMetadataType = alluxio.thrift.LoadMetadataTType.findByValue(iprot.readI32());
         struct.setLoadMetadataTypeIsSet(true);
+      }
+      if (incoming.get(2)) {
+        struct.commonOptions = new FileSystemMasterCommonTOptions();
+        struct.commonOptions.read(iprot);
+        struct.setCommonOptionsIsSet(true);
+      }
+      if (incoming.get(3)) {
+        struct.recursive = iprot.readBool();
+        struct.setRecursiveIsSet(true);
       }
     }
   }

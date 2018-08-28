@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -20,6 +21,7 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -42,25 +44,32 @@ public final class ChecksumCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(plainPath);
+    if (status.isFolder()) {
+      throw new FileDoesNotExistException(
+          ExceptionMessage.PATH_MUST_BE_FILE.getMessage(plainPath.getPath()));
+    }
+
+    String str = calculateChecksum(plainPath);
+    System.out.println("md5sum: " + str + "\n");
+  }
+
+  @Override
   public String getCommandName() {
     return "checksum";
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioURI loc = new AlluxioURI(args[0]);
-    URIStatus status = mFileSystem.getStatus(loc);
-    if (status.isFolder()) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(args[0]));
-    }
-    String str = calculateChecksum(loc);
-    System.out.println("md5sum: " + str);
+    runWildCardCmd(new AlluxioURI(args[0]), cl);
     return 0;
   }
 

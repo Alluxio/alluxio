@@ -11,7 +11,7 @@
 
 package alluxio.util;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,7 +45,7 @@ public final class WaitForOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(WaitForOptions.class);
+    CommonUtils.testEquals(WaitForOptions.class);
   }
 
 }

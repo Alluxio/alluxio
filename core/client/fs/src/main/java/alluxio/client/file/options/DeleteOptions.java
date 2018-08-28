@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.DeleteTOptions;
+import alluxio.wire.CommonOptions;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -29,6 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
 public final class DeleteOptions {
+  private CommonOptions mCommonOptions;
   private boolean mRecursive;
   private boolean mAlluxioOnly;
   private boolean mUnchecked;
@@ -41,12 +43,19 @@ public final class DeleteOptions {
   }
 
   private DeleteOptions() {
+    mCommonOptions = CommonOptions.defaults();
     mRecursive = false;
     mAlluxioOnly = false;
     mUnchecked =
         Configuration.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED);
   }
 
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
+  }
   /**
    * @return the recursive flag value; if the object to be deleted is a directory, the flag
    *         specifies whether the directory content should be recursively deleted as well
@@ -68,6 +77,15 @@ public final class DeleteOptions {
    */
   public boolean isUnchecked() {
     return mUnchecked;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public DeleteOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -109,18 +127,20 @@ public final class DeleteOptions {
     }
     DeleteOptions that = (DeleteOptions) o;
     return Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mAlluxioOnly, that.mAlluxioOnly)
         && Objects.equal(mUnchecked, that.mUnchecked);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mAlluxioOnly, mUnchecked);
+    return Objects.hashCode(mRecursive, mAlluxioOnly, mUnchecked, mCommonOptions);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("recursive", mRecursive)
         .add("alluxioOnly", mAlluxioOnly)
         .add("unchecked", mUnchecked)
@@ -135,6 +155,7 @@ public final class DeleteOptions {
     options.setRecursive(mRecursive);
     options.setAlluxioOnly(mAlluxioOnly);
     options.setUnchecked(mUnchecked);
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

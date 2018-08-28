@@ -208,6 +208,15 @@ For example, `getCapacityBytes` can be used to verify if your cluster is set up 
 
 {% include Command-Line-Interface/getCapacityBytes.md %}
 
+### getfacl
+The `getfacl` command returns the ACL entries for a specified file or directory.
+
+For example, `getfacl` can be used to verify that an ACL is changed successfully after a call to `setfacl`.
+
+```bash
+$ ./bin/alluxio fs getfacl /testdir/testfile
+```
+
 ### getUsedBytes
 
 The `getUsedBytes` command returns the number of used bytes in Alluxio.
@@ -278,12 +287,14 @@ size are loaded this way and no data transfer occurs.
 Options:
 
 * `-d` option lists the directories as plain files. For example, `ls -d /` shows the atrributes
-of root directory
+of root directory.
 * `-f` option forces loading metadata for immediate children in a directory. By default, it loads
 metadata only at the first time at which a directory is listed.
 * `-h` option displays file sizes in human-readable formats.
-* `-p` option lists all pinned files
+* `-p` option lists all pinned files.
 * `-R` option also recursively lists child directories, displaying the entire subtree starting from the input path.
+* `--sort` sorts the result by the given option. Possible values: `size|creationTime|inMemoryPercentage|lastModificationTime|path`
+* `-r` reverses the sorting order.
 
 For example, `ls` can be used to browse the file system.
 
@@ -344,14 +355,6 @@ For example, `pin` can be used to manually ensure performance if the administrat
 
 {% include Command-Line-Interface/pin.md %}
 
-### report
-
-The `report` command marks a file as lost to the Alluxio master. This command should only be used with files created using the [Lineage API](Lineage-API.html). Marking a file as lost will cause the master to schedule a recomputation job to regenerate the file.
-
-For example, `report` can be used to force recomputation of a file.
-
-{% include Command-Line-Interface/report.md %}
-
 ### rm
 
 The `rm` command removes a file from Alluxio space and the under storage system. The file will be unavailable immediately after this command returns, but the actual data may be deleted a while later.
@@ -361,6 +364,22 @@ Add `-R` option will delete all contents of the directory and then the directory
 For example, `rm` can be used to remove temporary files which are no longer needed.
 
 {% include Command-Line-Interface/rm2.md %}
+
+### setfacl
+
+The `setfacl` command modifies the access control list associated with a specified file or directory. 
+
+The`-R` option will apply operations to all files and directories recursively.
+The `-m` option will modify the ACL by adding/overwriting new entries.
+The `-x` option will remove specific ACL entries.
+The `-b` option will remove all ACL entries, except for the base entries.
+The `-k` option will remove all the default ACL entries.
+
+For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`. 
+
+```bash
+$ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
+```
 
 ### setTtl
 

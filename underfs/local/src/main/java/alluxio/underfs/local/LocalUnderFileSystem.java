@@ -29,6 +29,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -174,7 +175,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     PosixFileAttributes attr =
         Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
     return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
-        FileUtils.translatePosixPermissionToMode(attr.permissions()));
+        FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
   }
 
   @Override
@@ -196,8 +197,11 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     File file = new File(tpath);
     PosixFileAttributes attr =
         Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
-    return new UfsFileStatus(path, file.length(), file.lastModified(), attr.owner().getName(),
-        attr.group().getName(), FileUtils.translatePosixPermissionToMode(attr.permissions()));
+    String contentHash =
+        UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
+    return new UfsFileStatus(path, contentHash, file.length(),
+        file.lastModified(), attr.owner().getName(), attr.group().getName(),
+        FileUtils.translatePosixPermissionToMode(attr.permissions()));
   }
 
   @Override
@@ -214,6 +218,25 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
       default:
         throw new IOException("Unknown space type: " + type);
     }
+  }
+
+  @Override
+  public UfsStatus getStatus(String path) throws IOException {
+    String tpath = stripPath(path);
+    File file = new File(tpath);
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
+    if (file.isFile()) {
+      // Return file status.
+      String contentHash =
+          UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
+      return new UfsFileStatus(path, contentHash, file.length(), file.lastModified(),
+          attr.owner().getName(), attr.group().getName(),
+          FileUtils.translatePosixPermissionToMode(attr.permissions()));
+    }
+    // Return directory status.
+    return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
+        FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
   }
 
   @Override
@@ -246,9 +269,11 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         UfsStatus retStatus;
         if (f.isDirectory()) {
           retStatus = new UfsDirectoryStatus(f.getName(), attr.owner().getName(),
-              attr.group().getName(), mode);
+              attr.group().getName(), mode, f.lastModified());
         } else {
-          retStatus = new UfsFileStatus(f.getName(), f.length(), f.lastModified(),
+          String contentHash =
+              UnderFileSystemUtils.approximateContentHash(f.length(), f.lastModified());
+          retStatus = new UfsFileStatus(f.getName(), contentHash, f.length(), f.lastModified(),
               attr.owner().getName(), attr.group().getName(), mode);
         }
         rtn[i++] = retStatus;

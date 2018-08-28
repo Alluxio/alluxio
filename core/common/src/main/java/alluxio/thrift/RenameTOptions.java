@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, RenameTOptions._Fields>, java.io.Serializable, Cloneable, Comparable<RenameTOptions> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("RenameTOptions");
 
+  private static final org.apache.thrift.protocol.TField COMMON_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("commonOptions", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -45,10 +46,11 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
     schemes.put(TupleScheme.class, new RenameTOptionsTupleSchemeFactory());
   }
 
+  private FileSystemMasterCommonTOptions commonOptions; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+    COMMON_OPTIONS((short)1, "commonOptions");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -63,6 +65,8 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
+        case 1: // COMMON_OPTIONS
+          return COMMON_OPTIONS;
         default:
           return null;
       }
@@ -101,9 +105,14 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
       return _fieldName;
     }
   }
+
+  // isset id assignments
+  private static final _Fields optionals[] = {_Fields.COMMON_OPTIONS};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.COMMON_OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("commonOptions", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemMasterCommonTOptions.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RenameTOptions.class, metaDataMap);
   }
@@ -115,6 +124,9 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
    * Performs a deep copy on <i>other</i>.
    */
   public RenameTOptions(RenameTOptions other) {
+    if (other.isSetCommonOptions()) {
+      this.commonOptions = new FileSystemMasterCommonTOptions(other.commonOptions);
+    }
   }
 
   public RenameTOptions deepCopy() {
@@ -123,15 +135,51 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
 
   @Override
   public void clear() {
+    this.commonOptions = null;
+  }
+
+  public FileSystemMasterCommonTOptions getCommonOptions() {
+    return this.commonOptions;
+  }
+
+  public RenameTOptions setCommonOptions(FileSystemMasterCommonTOptions commonOptions) {
+    this.commonOptions = commonOptions;
+    return this;
+  }
+
+  public void unsetCommonOptions() {
+    this.commonOptions = null;
+  }
+
+  /** Returns true if field commonOptions is set (has been assigned a value) and false otherwise */
+  public boolean isSetCommonOptions() {
+    return this.commonOptions != null;
+  }
+
+  public void setCommonOptionsIsSet(boolean value) {
+    if (!value) {
+      this.commonOptions = null;
+    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
+    case COMMON_OPTIONS:
+      if (value == null) {
+        unsetCommonOptions();
+      } else {
+        setCommonOptions((FileSystemMasterCommonTOptions)value);
+      }
+      break;
+
     }
   }
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
+    case COMMON_OPTIONS:
+      return getCommonOptions();
+
     }
     throw new IllegalStateException();
   }
@@ -143,6 +191,8 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
     }
 
     switch (field) {
+    case COMMON_OPTIONS:
+      return isSetCommonOptions();
     }
     throw new IllegalStateException();
   }
@@ -160,12 +210,26 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
     if (that == null)
       return false;
 
+    boolean this_present_commonOptions = true && this.isSetCommonOptions();
+    boolean that_present_commonOptions = true && that.isSetCommonOptions();
+    if (this_present_commonOptions || that_present_commonOptions) {
+      if (!(this_present_commonOptions && that_present_commonOptions))
+        return false;
+      if (!this.commonOptions.equals(that.commonOptions))
+        return false;
+    }
+
     return true;
   }
 
   @Override
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
+
+    boolean present_commonOptions = true && (isSetCommonOptions());
+    list.add(present_commonOptions);
+    if (present_commonOptions)
+      list.add(commonOptions);
 
     return list.hashCode();
   }
@@ -178,6 +242,16 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
 
     int lastComparison = 0;
 
+    lastComparison = Boolean.valueOf(isSetCommonOptions()).compareTo(other.isSetCommonOptions());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCommonOptions()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.commonOptions, other.commonOptions);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -198,6 +272,15 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
     StringBuilder sb = new StringBuilder("RenameTOptions(");
     boolean first = true;
 
+    if (isSetCommonOptions()) {
+      sb.append("commonOptions:");
+      if (this.commonOptions == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.commonOptions);
+      }
+      first = false;
+    }
     sb.append(")");
     return sb.toString();
   }
@@ -205,6 +288,9 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (commonOptions != null) {
+      commonOptions.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -241,6 +327,15 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
           break;
         }
         switch (schemeField.id) {
+          case 1: // COMMON_OPTIONS
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.commonOptions = new FileSystemMasterCommonTOptions();
+              struct.commonOptions.read(iprot);
+              struct.setCommonOptionsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -256,6 +351,13 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (struct.commonOptions != null) {
+        if (struct.isSetCommonOptions()) {
+          oprot.writeFieldBegin(COMMON_OPTIONS_FIELD_DESC);
+          struct.commonOptions.write(oprot);
+          oprot.writeFieldEnd();
+        }
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -273,11 +375,25 @@ public class RenameTOptions implements org.apache.thrift.TBase<RenameTOptions, R
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, RenameTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
+      BitSet optionals = new BitSet();
+      if (struct.isSetCommonOptions()) {
+        optionals.set(0);
+      }
+      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetCommonOptions()) {
+        struct.commonOptions.write(oprot);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, RenameTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
+      BitSet incoming = iprot.readBitSet(1);
+      if (incoming.get(0)) {
+        struct.commonOptions = new FileSystemMasterCommonTOptions();
+        struct.commonOptions.read(iprot);
+        struct.setCommonOptionsIsSet(true);
+      }
     }
   }
 

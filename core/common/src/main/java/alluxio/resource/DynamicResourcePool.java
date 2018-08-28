@@ -12,20 +12,20 @@
 package alluxio.resource;
 
 import alluxio.Constants;
-import alluxio.clock.Clock;
 import alluxio.clock.SystemClock;
 
 import com.google.common.base.Preconditions;
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -219,8 +219,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   // put/delete operations are guarded by "mLock" so that we can control its size to be within
   // a [min, max] range. mLock is reused for simplicity. A separate lock can be used if we see
   // any performance overhead.
-  private final ConcurrentHashMapV8<T, ResourceInternal<T>> mResources =
-      new ConcurrentHashMapV8<>(32);
+  private final ConcurrentHashMap<T, ResourceInternal<T>> mResources =
+      new ConcurrentHashMap<>(32);
 
   // Thread to scan mAvailableResources to close those resources that are old.
   private ScheduledExecutorService mExecutor;
@@ -333,7 +333,9 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         }
         long currTimeMs = mClock.millis();
         try {
-          if (currTimeMs >= endTimeMs || !mNotEmpty
+          // one should use t1-t0<0, not t1<t0, because of the possibility of numerical overflow.
+          // For further detail see: https://docs.oracle.com/javase/8/docs/api/java/lang/System.html
+          if (endTimeMs - currTimeMs <= 0 || !mNotEmpty
               .await(endTimeMs - currTimeMs, TimeUnit.MILLISECONDS)) {
             throw new TimeoutException("Acquire resource times out.");
           }
@@ -457,7 +459,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   }
 
   /**
-   * Check whether the resource is healthy. If not retry. When this called, the resource
+   * Checks whether the resource is healthy. If not retry. When this called, the resource
    * is not in mAvailableResources.
    *
    * @param resource the resource to check

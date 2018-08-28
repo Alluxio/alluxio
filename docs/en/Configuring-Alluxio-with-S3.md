@@ -15,7 +15,7 @@ under storage system. Alluxio recognizes the s3a:// scheme and uses the aws-sdk 
 ## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-Master-Branch.html), or
+[compile Alluxio](Building-Alluxio-From-Source.html), or
 [download the binaries locally](Running-Alluxio-Locally.html).
 
 Also, in preparation for using S3 with Alluxio, create a bucket (or use an existing bucket). You
@@ -49,20 +49,24 @@ alluxio.underfs.address=s3a://S3_BUCKET/S3_DIRECTORY
 
 Next, you need to specify the AWS credentials for S3 access.
 
-You can specify credentials in 4 ways, from highest to lowest priority:
+You can specify credentials in different ways, from highest to lowest priority:
 
+Priority
+* aws.accessKeyId and aws.secretKey specified as mount options
+* aws.accessKeyId and aws.secretKey specified as Java system properties
+* aws.accessKeyId and aws.secretKey in Alluxio site properties
 * Environment Variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (either is acceptable) and
-`AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (either is acceptable)
-* System Properties `aws.accessKeyId` and `aws.secretKey`
+`AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (either is acceptable) on the Alluxio servers
 * Profile file containing credentials at `~/.aws/credentials`
 * AWS Instance profile credentials, if you are using an EC2 instance
 
+When using an AWS Instance profile as the credential provider:
+* Create an [IAM Role](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) with access to the mounted bucket
+* Create an [Instance profile](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#ec2-instance-profile) as a container for the defined IAM Role
+* Launch an EC2 instance using the created profile
+
 See [Amazon's documentation](http://docs.aws.amazon.com/java-sdk/latest/developer-guide/credentials.html#id6)
 for more details.
-
-Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
-details about setting configuration parameters can be found in
-[Configuration Settings](Configuration-Settings.html#environment-variables).
 
 After these changes, Alluxio should be configured to work with S3 as its under storage system, and
 you can try [Running Alluxio Locally with S3](#running-alluxio-locally-with-s3).
@@ -216,5 +220,5 @@ If you want to share the S3 mount point with other users in Alluxio namespace, y
 
 ### Permission change
 
-In addition, chown/chgrp/chmod to Alluxio directories and files do NOT propagate to the underlying
+`chown`, `chgrp`, and `chmod` of Alluxio directories and files do NOT propagate to the underlying
 S3 buckets nor objects.

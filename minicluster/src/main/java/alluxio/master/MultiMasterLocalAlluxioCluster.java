@@ -16,20 +16,21 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.zookeeper.RestartableTestingServer;
 
-import com.google.common.base.Function;
 import com.google.common.base.Throwables;
-import org.apache.curator.test.TestingServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -40,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   private static final Logger LOG = LoggerFactory.getLogger(MultiMasterLocalAlluxioCluster.class);
 
-  private TestingServer mCuratorServer = null;
+  private RestartableTestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
 
   private final List<LocalAlluxioMaster> mMasters = new ArrayList<>();
@@ -58,12 +59,13 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @param numMasters the number of masters to run
    * @param numWorkers the number of workers to run
    */
-  MultiMasterLocalAlluxioCluster(int numMasters, int numWorkers) {
+  public MultiMasterLocalAlluxioCluster(int numMasters, int numWorkers) {
     super(numWorkers);
     mNumOfMasters = numMasters;
 
     try {
-      mCuratorServer = new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
+      mCuratorServer =
+          new RestartableTestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
       LOG.info("Started testing zookeeper: {}", mCuratorServer.getConnectString());
     } catch (Exception e) {
       throw Throwables.propagate(e);
@@ -73,6 +75,11 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   @Override
   public synchronized FileSystem getClient() throws IOException {
     return getLocalAlluxioMaster().getClient();
+  }
+
+  @Override
+  public FileSystem getClient(FileSystemContext context) throws IOException {
+    return getLocalAlluxioMaster().getClient(context);
   }
 
   /**
@@ -154,13 +161,23 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    *
    * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
    */
-  public void waitForNewMaster(int timeoutMs) {
-    CommonUtils.waitFor("the new leader master to start", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return getLeaderIndex() != -1;
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+  public void waitForNewMaster(int timeoutMs) throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("the new leader master to start", () -> getLeaderIndex() != -1,
+        WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+  }
+
+  /**
+   * Stops the cluster's Zookeeper service.
+   */
+  public void stopZk() throws Exception {
+    mCuratorServer.stop();
+  }
+
+  /**
+   * Restarts the cluster's Zookeeper service. It must first be stopped with {@link #stopZk()}.
+   */
+  public void restartZk() throws Exception {
+    mCuratorServer.restart();
   }
 
   @Override

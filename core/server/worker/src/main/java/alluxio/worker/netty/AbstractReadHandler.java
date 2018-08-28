@@ -23,6 +23,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -250,8 +251,10 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    */
   private void incrementMetrics(long bytesRead) {
     Counter counter = mContext.getCounter();
+    Meter meter = mContext.getMeter();
     Preconditions.checkState(counter != null);
     counter.inc(bytesRead);
+    meter.mark(bytesRead);
   }
 
   /**

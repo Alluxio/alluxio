@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.util.ThreadFactoryUtils;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -31,28 +32,34 @@ final class NettyExecutors {
   private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
   private static final int THREADS_MIN = 4;
 
+  public static final ExecutorService ASYNC_CACHE_MANAGER_EXECUTOR =
+      new ThreadPoolExecutor(THREADS_MIN,
+          Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX),
+          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(512),
+          ThreadFactoryUtils.build("AsyncCacheManagerExecutor-%d", true));
+
   public static final ExecutorService BLOCK_READER_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(),
+          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockPacketReaderExecutor-%d", true));
 
   public static final ExecutorService BLOCK_WRITER_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(),
+          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockPacketWriterExecutor-%d", true));
 
   public static final ExecutorService FILE_WRITER_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(),
+          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("FilePacketWriterExecutor-%d", true));
 
   public static final ExecutorService RPC_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_RPC_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(),
+          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockOpenExecutor-%d", true));
 
   /**

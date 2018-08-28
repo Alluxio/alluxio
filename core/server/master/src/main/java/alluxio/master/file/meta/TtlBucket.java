@@ -28,7 +28,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class TtlBucket implements Comparable<TtlBucket> {
-  /** The time interval of this bucket is the same as ttl checker's interval. */
+  /**
+   * The time interval of this bucket is the same as ttl checker's interval.
+   *
+   * This field is intentionally not final so that tests can change the value.
+   */
   private static long sTtlIntervalMs =
       Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS);
   /**
@@ -37,7 +41,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   private final long mTtlIntervalStartTimeMs;
   /** A set of Inode whose ttl value is in the range of this bucket's interval. */
-  private final ConcurrentHashSet<Inode<?>> mInodes;
+  private final ConcurrentHashSet<InodeView> mInodes;
 
   /**
    * Creates a new instance of {@link TtlBucket}.
@@ -75,7 +79,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * @return the set of all inodes in the bucket backed by the internal set, changes made to the
    *         returned set will be shown in the internal set, and vice versa
    */
-  public Set<Inode<?>> getInodes() {
+  public Set<InodeView> getInodes() {
     return mInodes;
   }
 
@@ -84,7 +88,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    *
    * @param inode the inode to be added
    */
-  public void addInode(Inode<?> inode) {
+  public void addInode(InodeView inode) {
     mInodes.add(inode);
   }
 
@@ -93,7 +97,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    *
    * @param inode the inode to be removed
    */
-  public void removeInode(Inode<?> inode) {
+  public void removeInode(InodeView inode) {
     mInodes.remove(inode);
   }
 

@@ -10,13 +10,13 @@ priority: 0
 {:toc}
 
 This guide describes how to configure Alluxio with [Minio](https://minio.io/) as the
-under storage system. Alluxio natively provides the s3a:// scheme (recommended for better performance). You can
+under storage system. Alluxio natively provides the `s3a://` scheme (recommended for better performance). You can
 use this scheme to connect Alluxio with Minio server.
 
 ## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-Master-Branch.html), or
+[compile Alluxio](Building-Alluxio-From-Source.html), or
 [download the binaries locally](Running-Alluxio-Locally.html).
 
 ## Setup Minio

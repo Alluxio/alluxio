@@ -12,7 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Prints the file's contents to the console.
  */
 @ThreadSafe
-public final class CatCommand extends WithWildCardPathCommand {
+public final class CatCommand extends AbstractFileSystemCommand {
 
   /**
    * @param fs the filesystem of Alluxio
@@ -47,13 +47,14 @@ public final class CatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
 
     if (status.isFolder()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    OpenFileOptions options = OpenFileOptions.defaults();
     byte[] buf = new byte[512];
     try (FileInStream is = mFileSystem.openFile(path, options)) {
       int read = is.read(buf);
@@ -75,10 +76,15 @@ public final class CatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length < 1) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-          .getMessage(getCommandName(), 1, args.length));
-    }
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+  }
+
+  @Override
+  public int run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
+    runWildCardCmd(new AlluxioURI(args[0]), cl);
+
+    return 0;
   }
 }

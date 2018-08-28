@@ -12,62 +12,34 @@
 package alluxio.master.journal;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Base implementation for journal systems.
  */
+@ThreadSafe
 public abstract class AbstractJournalSystem implements JournalSystem {
-  private volatile Mode mMode = Mode.SECONDARY;
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractJournalSystem.class);
+
   private boolean mRunning = false;
 
   @Override
-  public void start() throws InterruptedException, IOException {
-    Preconditions.checkState(!isRunning(), "Journal is already running");
+  public synchronized void start() throws InterruptedException, IOException {
+    Preconditions.checkState(!mRunning, "Journal is already running");
     startInternal();
     mRunning = true;
   }
 
   @Override
-  public void stop() throws InterruptedException, IOException {
-    Preconditions.checkState(isRunning(), "Journal is not running");
+  public synchronized void stop() throws InterruptedException, IOException {
+    Preconditions.checkState(mRunning, "Journal is not running");
     mRunning = false;
     stopInternal();
-  }
-
-  @Override
-  public void setMode(Mode mode) {
-    Preconditions.checkState(isRunning(),
-        "Cannot change journal system mode while it is not running");
-    if (mMode.equals(mode)) {
-      return;
-    }
-    switch (mode) {
-      case PRIMARY:
-        gainPrimacy();
-        break;
-      case SECONDARY:
-        losePrimacy();
-        break;
-      default:
-        throw new IllegalStateException("Unrecognized mode: " + mode);
-    }
-    mMode = mode;
-  }
-
-  /**
-   * @return the current mode for the journal system
-   */
-  protected Mode getMode() {
-    return mMode;
-  }
-
-  /**
-   * @return whether the journal system is currently running
-   */
-  protected boolean isRunning() {
-    return mRunning;
   }
 
   /**
@@ -79,14 +51,4 @@ public abstract class AbstractJournalSystem implements JournalSystem {
    * Stops the journal system.
    */
   protected abstract void stopInternal() throws InterruptedException, IOException;
-
-  /**
-   * Transition the journal from secondary to primary mode.
-   */
-  protected abstract void gainPrimacy();
-
-  /**
-   * Transition the journal from primary to secondary mode.
-   */
-  protected abstract void losePrimacy();
 }

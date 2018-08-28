@@ -12,7 +12,9 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.collections.Pair;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
@@ -21,13 +23,17 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 import javax.annotation.Nullable;
@@ -38,6 +44,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class BaseUnderFileSystem implements UnderFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(BaseUnderFileSystem.class);
+
   /** The UFS {@link AlluxioURI} used to create this {@link BaseUnderFileSystem}. */
   protected final AlluxioURI mUri;
 
@@ -71,7 +79,54 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public AccessControlList getAcl(String path) throws IOException {
+    return null;
+  }
+
+  @Override
+  public void setAcl(String path, AccessControlList acl) throws IOException{
+    // Noop here by default
+  }
+
+  @Override
+  public String getFingerprint(String path) {
+    try {
+      UfsStatus status = getStatus(path);
+      AccessControlList acl = getAcl(path);
+      if (acl == null || !acl.hasExtended()) {
+        return Fingerprint.create(getUnderFSType(), status).serialize();
+      } else {
+        return Fingerprint.create(getUnderFSType(), status, acl).serialize();
+      }
+
+    } catch (Exception e) {
+      // In certain scenarios, it is expected that the UFS path does not exist.
+      LOG.debug("Failed fingerprint. path: {} error: {}", path, e.toString());
+      return Constants.INVALID_UFS_FINGERPRINT;
+    }
+  }
+
+  @Override
+  public UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState) {
+    UfsMode ufsMode = physicalUfsState.get(mUri.getRootPath());
+    if (ufsMode != null) {
+      return ufsMode;
+    }
+    return UfsMode.READ_WRITE;
+  }
+
+  @Override
+  public List<String> getPhysicalStores() {
+    return new ArrayList<>(Arrays.asList(mUri.getRootPath()));
+  }
+
+  @Override
   public boolean isObjectStorage() {
+    return false;
+  }
+
+  @Override
+  public boolean isSeekable() {
     return false;
   }
 
@@ -126,8 +181,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
-    return new AlluxioURI(ufsBaseUri.getScheme(), ufsBaseUri.getAuthority(),
-        PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath), ufsBaseUri.getQueryMap());
+    return new AlluxioURI(ufsBaseUri, PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath),
+        false);
   }
 
   /**

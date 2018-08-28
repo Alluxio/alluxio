@@ -11,7 +11,7 @@
 
 package alluxio.client.file.options;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,6 +29,6 @@ public final class RenameOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(RenameOptions.class);
+    CommonUtils.testEquals(RenameOptions.class);
   }
 }

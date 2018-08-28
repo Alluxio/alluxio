@@ -11,6 +11,8 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.wire.WorkerNetAddress;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -30,7 +32,7 @@ public class TestBlockOutStream extends BlockOutStream {
    * @param blockSize the block size
    */
   public TestBlockOutStream(ByteBuffer data, long blockSize) {
-    super(new TestPacketWriter(data), blockSize);
+    super(new TestPacketWriter(data), blockSize, new WorkerNetAddress());
     mData = data;
     mClosed = false;
     mCanceled = false;

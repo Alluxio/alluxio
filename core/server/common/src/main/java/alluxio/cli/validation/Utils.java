@@ -13,7 +13,12 @@ package alluxio.cli.validation;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.util.ShellUtils;
+import alluxio.util.UnixMountInfo;
 
+import com.google.common.base.Optional;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
@@ -27,8 +32,11 @@ import java.util.List;
  * Utilities for validating Alluxio environment.
  */
 public final class Utils {
+  private static final String LINE_SEPARATOR = System.getProperty("line.separator").toString();
+
   /**
    * Validates whether a network address is reachable.
+   *
    * @param hostname host name of the network address
    * @param port port of the network address
    * @return whether the network address is reachable
@@ -43,6 +51,7 @@ public final class Utils {
 
   /**
    * Checks whether an Alluxio service is running.
+   *
    * @param className class name of the Alluxio service
    * @return whether the Alluxio service is running
    */
@@ -89,6 +98,101 @@ public final class Utils {
     }
 
     return nodes;
+  }
+
+  /**
+   * Checks whether a path is the mounting point of a RAM disk volume.
+   *
+   * @param path  a string represents the path to be checked
+   * @param fsTypes an array of strings represents expected file system type
+   * @return true if the path is the mounting point of volume with one of the given fsTypes,
+   *         false otherwise
+   * @throws IOException if the function fails to get the mount information of the system
+   */
+  public static boolean isMountingPoint(String path, String[] fsTypes) throws IOException {
+    List<UnixMountInfo> infoList = ShellUtils.getUnixMountInfo();
+    for (UnixMountInfo info : infoList) {
+      Optional<String> mountPoint = info.getMountPoint();
+      Optional<String> fsType = info.getFsType();
+      if (mountPoint.isPresent() && mountPoint.get().equals(path) && fsType.isPresent()) {
+        for (String expectedType : fsTypes) {
+          if (fsType.get().equalsIgnoreCase(expectedType)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Executes a command in another process and check for its execution result.
+   *
+   * @param args array representation of the command to execute
+   * @return {@link ProcessExecutionResult} including the process's exit value, output and error
+   */
+  public static ProcessExecutionResult getResultFromProcess(String[] args) {
+    try {
+      Process process = Runtime.getRuntime().exec(args);
+      StringBuilder outputSb = new StringBuilder();
+      try (BufferedReader processOutputReader = new BufferedReader(
+          new InputStreamReader(process.getInputStream()))) {
+        String line;
+        while ((line = processOutputReader.readLine()) != null) {
+          outputSb.append(line);
+          outputSb.append(LINE_SEPARATOR);
+        }
+      }
+      StringBuilder errorSb = new StringBuilder();
+      try (BufferedReader processErrorReader = new BufferedReader(
+          new InputStreamReader(process.getErrorStream()))) {
+        String line;
+        while ((line = processErrorReader.readLine()) != null) {
+          errorSb.append(line);
+          errorSb.append(LINE_SEPARATOR);
+        }
+      }
+      process.waitFor();
+      return new ProcessExecutionResult(process.exitValue(), outputSb.toString().trim(),
+          errorSb.toString().trim());
+    } catch (IOException e) {
+      System.err.println("Failed to execute command.");
+      return new ProcessExecutionResult(1, "", e.getMessage());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      System.err.println("Interrupted.");
+      return new ProcessExecutionResult(1, "", e.getMessage());
+    }
+  }
+
+  /**
+   * Class representing the return value of process execution.
+   */
+  static class ProcessExecutionResult {
+    /** The exit value of the process. */
+    private final int mExitValue;
+    /** The output of the process. */
+    private final String mOutput;
+    /** The error of the process. */
+    private final String mError;
+
+    public ProcessExecutionResult(int val, String output, String error) {
+      mExitValue = val;
+      mOutput = output;
+      mError = error;
+    }
+
+    public int getExitValue() {
+      return mExitValue;
+    }
+
+    public String getOutput() {
+      return mOutput;
+    }
+
+    public String getError() {
+      return mError;
+    }
   }
 
   private Utils() {} // prevents instantiation

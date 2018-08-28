@@ -10,14 +10,26 @@ alluxio.fuse.debug.enabled:
   'Run FUSE in debug mode, and have the fuse process log every FS request.'
 alluxio.fuse.fs.name:
   'The FUSE file system name.'
-alluxio.fuse.fs.root:
-  'The Alluxio path mounted to the FUSE file system root.'
 alluxio.fuse.maxwrite.bytes:
   'Maximum granularity of write operations, capped by the kernel to 128KB max (as of Linux 3.16.0).'
-alluxio.fuse.mount.default:
-  'Mount path in the local file system for the FUSE.'
 alluxio.home:
   'Alluxio installation directory.'
+alluxio.jvm.monitor.info.threshold:
+  'Extra sleep time longer than this threshold, log INFO.'
+alluxio.jvm.monitor.sleep.interval:
+  'The time for the JVM monitor thread to sleep.'
+alluxio.jvm.monitor.warn.threshold:
+  'Extra sleep time longer than this threshold, log WARN.'
+alluxio.locality.compare.node.ip:
+  'Whether try to resolve the node IP address for locality checking'
+alluxio.locality.node:
+  'Value to use for determining node locality'
+alluxio.locality.order:
+  'Ordering of locality tiers'
+alluxio.locality.rack:
+  'Value to use for determining rack locality'
+alluxio.locality.script:
+  'A script to determine tiered identity for locality checking'
 alluxio.logger.type:
   'The type of logger.'
 alluxio.logs.dir:
@@ -58,6 +70,8 @@ alluxio.site.conf.dir:
   'Comma-separated search path for alluxio-site.properties. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.test.mode:
   'Flag used only during tests to allow special behavior.'
+alluxio.tmp.dirs:
+  'The path(s) to store Alluxio temporary files, use commas as delimiters. If multiple paths are specified, one will be selected at random per temporary file. Currently, only files to be uploaded to object stores are stored in these paths.'
 alluxio.underfs.address:
   'Alluxio directory in the under file system.'
 alluxio.underfs.allow.set.owner.failure:
@@ -65,7 +79,7 @@ alluxio.underfs.allow.set.owner.failure:
 alluxio.underfs.gcs.owner.id.to.username.mapping:
   'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format "id1=user1;id2=user2". The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the "Owners" one.'
 alluxio.underfs.hdfs.configuration:
-  'Location of the hdfs configuration file.'
+  'Location of the HDFS configuration file.'
 alluxio.underfs.hdfs.impl:
   'The implementation class of the HDFS as the under storage system.'
 alluxio.underfs.hdfs.prefixes:
@@ -76,6 +90,12 @@ alluxio.underfs.listing.length:
   'The maximum number of directory entries to list in a single query to under file system. If the total number of entries is greater than the specified length, multiple queries will be issued.'
 alluxio.underfs.object.store.mount.shared.publicly:
   'Whether or not to share object storage under storage system mounted point with all Alluxio users. Note that this configuration has no effect on HDFS nor local UFS.'
+alluxio.underfs.object.store.read.retry.base.sleep:
+  'Block reads from an object store automatically retry for transient errors with an exponential backoff. This property determines the base time in the exponential backoff.'
+alluxio.underfs.object.store.read.retry.max.num:
+  'Block reads from  an object store automatically retry for transient errors with an exponential backoff. This property determines the maximum number of retries.'
+alluxio.underfs.object.store.read.retry.max.sleep:
+  'Block reads from an object store automatically retry for transient errors with an exponential backoff. This property determines the maximum wait time in the backoff.'
 alluxio.underfs.object.store.service.threads:
   'The number of threads in executor pool for parallel object store UFS operations.'
 alluxio.underfs.oss.connection.max:
@@ -120,8 +140,8 @@ alluxio.underfs.s3a.signer.algorithm:
   'The signature algorithm which should be used to sign requests to the s3 service. This is optional, and if not set, the client will automatically determine it. For interacting with an S3 endpoint which only supports v2 signatures, set this to "S3SignerType".'
 alluxio.underfs.s3a.socket.timeout:
   'Length of the socket timeout when communicating with S3.'
-alluxio.version:
-  'Version of Alluxio. User should never modify this property.'
+alluxio.web.file.info.enabled:
+  'Whether detailed file information are enabled for the web UI.'
 alluxio.web.resources:
   'Path to the web application resources.'
 alluxio.web.threads:

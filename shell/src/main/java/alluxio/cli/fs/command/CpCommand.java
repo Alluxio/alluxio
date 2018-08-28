@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -29,6 +29,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.cli.fs.FileSystemShellUtils;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -77,8 +78,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 2;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 2);
   }
 
   @Override
@@ -251,11 +252,16 @@ public final class CpCommand extends AbstractFileSystemCommand {
   private void copyFile(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
     try (Closer closer = Closer.create()) {
-      OpenFileOptions openFileOptions = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      OpenFileOptions openFileOptions = OpenFileOptions.defaults();
       FileInStream is = closer.register(mFileSystem.openFile(srcPath, openFileOptions));
       CreateFileOptions createFileOptions = CreateFileOptions.defaults();
       FileOutStream os = closer.register(mFileSystem.createFile(dstPath, createFileOptions));
-      IOUtils.copy(is, os);
+      try {
+        IOUtils.copy(is, os);
+      } catch (Exception e) {
+        os.cancel();
+        throw e;
+      }
       System.out.println("Copied " + srcPath + " to " + dstPath);
     }
   }
@@ -398,14 +404,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
       FileOutStream os = null;
       try (Closer closer = Closer.create()) {
         FileWriteLocationPolicy locationPolicy;
-        try {
-          locationPolicy =
-              CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
-                  PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY), new Class[] {},
-                  new Object[] {});
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
+        locationPolicy = CommonUtils.createNewClassInstance(
+            Configuration.<FileWriteLocationPolicy>getClass(
+                PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY),
+            new Class[] {}, new Object[] {});
         os = closer.register(mFileSystem.createFile(dstPath,
             CreateFileOptions.defaults().setLocationPolicy(locationPolicy)));
         FileInputStream in = closer.register(new FileInputStream(src));
@@ -564,7 +566,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
     File tmpDst = new File(outputFile.getPath() + randomSuffix);
 
     try (Closer closer = Closer.create()) {
-      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      OpenFileOptions options = OpenFileOptions.defaults();
       FileInStream is = closer.register(mFileSystem.openFile(srcPath, options));
       FileOutputStream out = closer.register(new FileOutputStream(tmpDst));
       byte[] buf = new byte[64 * Constants.MB];

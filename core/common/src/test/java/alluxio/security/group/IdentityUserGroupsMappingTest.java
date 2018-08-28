@@ -11,9 +11,11 @@
 
 package alluxio.security.group;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -30,9 +32,9 @@ public final class IdentityUserGroupsMappingTest {
 
     GroupMappingService groups = new IdentityUserGroupsMapping();
 
-    Assert.assertNotNull(groups);
-    Assert.assertNotNull(groups.getGroups(userName));
-    Assert.assertEquals(groups.getGroups(userName).size(), 1);
-    Assert.assertEquals(groups.getGroups(userName).get(0), userName);
+    assertNotNull(groups);
+    assertNotNull(groups.getGroups(userName));
+    assertEquals(groups.getGroups(userName).size(), 1);
+    assertEquals(groups.getGroups(userName).get(0), userName);
   }
 }

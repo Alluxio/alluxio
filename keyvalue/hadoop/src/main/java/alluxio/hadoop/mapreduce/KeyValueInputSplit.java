@@ -67,7 +67,7 @@ final class KeyValueInputSplit extends InputSplit implements Writable {
   @Override
   public String[] getLocations() throws IOException {
     try {
-      List<BlockWorkerInfo> workersInfo = mBlockStore.getWorkerInfoList();
+      List<BlockWorkerInfo> workersInfo = mBlockStore.getEligibleWorkers();
       int workersInfoSize = workersInfo.size();
       String[] locations = new String[workersInfoSize];
       for (int i = 0; i < workersInfoSize; i++) {

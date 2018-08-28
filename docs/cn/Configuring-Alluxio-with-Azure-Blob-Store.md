@@ -1,10 +1,9 @@
-
 ---
-layout： global
-title： 在Azure Blob Store上配置Alluxio
-nickname： Alluxio使用Azure Blob Store
-group： Under Store
-priority： 0
+layout: global
+title: Configuring Alluxio with Azure Blob Store
+nickname: Alluxio使用Azure Blob Store
+group: Under Store
+priority: 0
 ---
 
 * 内容列表
@@ -15,9 +14,9 @@ priority： 0
 ## 初始步骤
 
 为了在多台机器上运行一个Alluxio集群，你必须在每台机器上部署Alluxio的二进制文件。
-你可以[从Alluxio源码编译二进制文件](Building-Alluxio-Master-Branch.html)，或者[直接下载已经编译好的Alluxio二进制文件](Running-Alluxio-Locally.html)。
+你可以[从Alluxio源码编译二进制文件](Building-Alluxio-From-Source.html)，或者[直接下载已经编译好的Alluxio二进制文件](Running-Alluxio-Locally.html)。
 
-而且，为了在Alluxio上使用Azure Blob Store，在你的Azure storage帐户上创建一个新的container或者使用一个已有的container。你应该注意你在这个container里准备使用的目录,你可以在这个容器里面创建一个目录，或者使用一个已有的目录。鉴于这篇文章的目的，我们将Azure storage帐户名取名为`AZURE_ACCOUNT`，将帐户里的容器取名为`AZURE_CONTAINER`并将该container里面的目录称为`AZURE_DIRECTORY`。更多关于Azure storage帐户的信息，请看[这里](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)。
+而且，为了在Alluxio上使用Azure Blob Store，在你的Azure storage帐户上创建一个新的container或者使用一个已有的container。你应该注意你在这个container里准备使用的目录,你可以在这个容器里面创建一个目录，或者使用一个已有的目录。鉴于这篇文章的目的，我们将Azure storage帐户名取名为`<AZURE_ACCOUNT>`，将帐户里的容器取名为`<AZURE_CONTAINER>`并将该container里面的目录称为`<AZURE_DIRECTORY>`。更多关于Azure storage帐户的信息，请看[这里](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)。
 
 
 ## 配置Alluxio
@@ -33,24 +32,24 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 首先修改`conf / alluxio-site.properties`来指定underfs address：
 
 ```
-alluxio.underfs.address=wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/
+alluxio.underfs.address=wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
-其次，将以下属性添加到`conf/alluxio-site.properties`来指定Azure account证书：
+其次，将以下属性添加到`conf/alluxio-site.properties`来指定根挂载点的Azure account证书：
 
 ```
-fs.azure.account.key.AZURE_ACCOUNT.blob.core.windows.net=<YOUR ACCESS KEY>
+alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
 ```
 
 ### 嵌套挂载
  Azure blob store位置可以挂载在Alluxio命名空间中的嵌套目录中，以便统一访问到多个底层存储系统。Alluxio的[Command Line Interface](Command-Line-Interface.html)可以用于此目的。
 
 ```bash
-$ ./bin/alluxio fs mount --option fs.azure.account.key.AZURE_ACCOUNT.blob.core.windows.net=<AZURE_ACCESS_KEY>\
-  /mnt/azure wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/
+$ ./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\
+  /mnt/azure wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
-完成这些修改后，Alluxio应该已经配置好以使用Azure Blob Store作为底层存储系统，你可以试着使用它本地运行Alluxio。
+完成这些修改后，Alluxio应该已经配置好以使用Azure Blob Store作为底层存储系统，你可以使用它本地运行Alluxio。
 
 ## 使用Azure Blob Store本地运行Alluxio
 
@@ -69,10 +68,10 @@ $ ./bin/alluxio-start.sh local
 $ ./bin/alluxio runTests
 ```
 
-运行成功后，你可以访问你的容器AZURE_CONTAINER，确认其中包含了由Alluxio创建的文件和目录。该测试中，创建的文件名应该像下面这样：
+运行成功后，你可以访问你的容器`<AZURE_CONTAINER>`，确认其中包含了由Alluxio创建的文件和目录。该测试中，创建的文件名应该像下面这样：
 
 ```
-AZURE_DIRECTORY/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
+<AZURE_CONTAINER>/<AZURE_DIRECTORY>/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
 ```
 
 若要停止Alluxio，你可以运行以下命令:

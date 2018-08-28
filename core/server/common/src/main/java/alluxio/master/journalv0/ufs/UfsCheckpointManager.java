@@ -15,7 +15,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,7 +117,7 @@ public final class UfsCheckpointManager {
         }
       }
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -146,7 +145,7 @@ public final class UfsCheckpointManager {
       mWriter.deleteCompletedLogs();
       UnderFileSystemUtils.deleteFileIfExists(mUfs, mBackupCheckpoint.toString());
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 }

@@ -34,7 +34,7 @@ public final class MultiProcessClusterTest {
 
   @Test
   public void simpleCluster() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder()
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.MULTI_PROCESS_SIMPLE_CLUSTER)
         .setClusterName("simpleCluster")
         .setNumMasters(1)
         .setNumWorkers(1)
@@ -51,7 +51,7 @@ public final class MultiProcessClusterTest {
 
   @Test
   public void zookeeper() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder()
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.MULTI_PROCESS_ZOOKEEPER)
         .setClusterName("zookeeper")
         .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setNumMasters(3)
@@ -79,8 +79,12 @@ public final class MultiProcessClusterTest {
       } catch (Exception e) {
         // This can indicate that the worker hasn't connected yet, so we must delete and retry.
         if (System.currentTimeMillis() < timeoutMs) {
-          if (fs.exists(new AlluxioURI(testFile))) {
-            fs.delete(new AlluxioURI(testFile));
+          try {
+            if (fs.exists(new AlluxioURI(testFile))) {
+              fs.delete(new AlluxioURI(testFile));
+            }
+          } catch (Exception ee) {
+            // the cleanup can still fail because master is not ready. simply ignore the exception.
           }
         } else {
           fail(String.format("Timed out trying to create a file. Latest exception: %s",

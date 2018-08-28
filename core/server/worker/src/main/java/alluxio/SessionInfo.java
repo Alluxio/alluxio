@@ -24,7 +24,7 @@ public class SessionInfo {
   private final long mSessionId;
 
   private long mLastHeartbeatMs;
-  private int mSessionTimeoutMs;
+  private final int mSessionTimeoutMs;
 
   /**
    * Creates a new instance of {@link SessionInfo}.

@@ -16,8 +16,8 @@ priority: 3
 ## 初始步骤
 
 要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。
-你可以或者[下载二进制包](http://www.alluxio.org/download)和对应版本的Hadoop(推荐)，
-或者[从源码编译Alluxio](building-Alluxio-Master-Branch.html)(高级用户)。
+你可以或者[下载对应hadoop版本的预编译二进制包](http://www.alluxio.org/download)(推荐)，
+或者[从源码编译Alluxio](Building-Alluxio-From-Source.html)(高级用户)。
 
 注意，当从源码编译Alluxio时，默认预编译的Alluxio服务器二进制包适用于HDFS `2.2.0`。若使用其他版本的Hadoop，需要指定正确的Hadoop配置文件，然后在你的Alluxio目录下运行一下命令：
 
@@ -33,7 +33,7 @@ $ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 ```
 
 这会将为Apache Hadoop 2.7.1编译Alluxio。
-请访问[Building Alluxio Master Branch](Building-Alluxio-Master-Branch.html#distro-support)以获取更多关于支持其它版本的信息。
+请访问[Building Alluxio Master Branch](Building-Alluxio-From-Source.html#distro-support)以获取更多关于支持其它版本的信息。
 
 如果一切正常，在`assembly/server/target`目录中应当能看到`alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`文件并且使用该jar文件即可运行Alluxio Master和Worker。
 
@@ -59,23 +59,23 @@ alluxio.underfs.address=hdfs://NAMENODE:PORT
 
 ### Kerberos配置
 
-可选配置项，你可以为自定义的Kerberos配置设置jvm级别的系统属性：`java.security.krb5.realm`和`java.security.krb5.kdc`。这些Kerberos配置将Java库路由到指定的Kerberos域和KDC服务器地址。如果两者都设置为空，Kerberos库将尊从机器上的默认Kerberos配置。例如：
+可选配置项，你可以为自定义的Kerberos配置设置jvm级别的系统属性：`java.security.krb5.realm`和`java.security.krb5.kdc`。这些Kerberos配置将Java库路由到指定的Kerberos域和KDC服务器地址。如果两者都设置为空，Kerberos库将遵从机器上的默认Kerberos配置。例如：
 
-* 如果你使用的是Hadoop，你可以将这两项配置添加到`{HADOOP_CONF_DIR}/hadoop-env.sh`文件的`HADOOP_OPTS`配置项。
+* 如果你使用的是Hadoop，你可以将这两项配置添加到`${HADOOP_CONF_DIR}/hadoop-env.sh`文件的`HADOOP_OPTS`配置项。
 
 ```bash
 $ export HADOOP_OPTS="$HADOOP_OPTS -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
-* 如果你使用的是Spark，你可以将这两项配置添加到`{SPARK_CONF_DIR}/spark-env.sh`文件的`SPARK_JAVA_OPTS`配置项。
+* 如果你使用的是Spark，你可以将这两项配置添加到`${SPARK_CONF_DIR}/spark-env.sh`文件的`SPARK_JAVA_OPTS`配置项。
 
-```properties
+```bash
 SPARK_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
 * 如果你使用的是Alluxio Shell，你可以将这两项配置添加到`conf/alluxio-env.sh`文件的`ALLUXIO_JAVA_OPTS`配置项。
 
-```properties
+```bash
 ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
@@ -89,8 +89,6 @@ alluxio.master.principal=hdfs/<_HOST>@<REALM>
 alluxio.worker.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
 alluxio.worker.principal=hdfs/<_HOST>@<REALM>
 ```
-
-或者，这些配置项可以在`conf/alluxio-env.sh`文件中设置。更多有关配置参数的设置可以参考[Configuration Settings](Configuration-Settings.html)。
 
 ## 使用安全认证模式下的HDFS在本地运行Alluxio
 
@@ -117,7 +115,7 @@ $ bin/alluxio-start.sh local
 $ bin/alluxio runTests
 ```
 
-为了这个测试能成功运行，你需要保证Alluxio cli登入的用户对挂载到Alluxio的HDFS目录有读/写的访问权限。默认情况下，登入的用户是当前主机OS的用户。要改变默认配置，可以设置`./conf/alluxio-site.properties`文件中的`alluxio.security.login.username`的值为想要的用户名。
+为了这个测试能成功运行，你需要保证Alluxio cli登入的用户对挂载到Alluxio的HDFS目录有读/写的访问权限。默认情况下，登入的用户是当前主机OS的用户。要改变默认配置，可以设置`./conf/alluxio-site.properties`文件中的`alluxio.security.login.username`的值为想要的用户名。HDFS目录在`alluxio.underfs.address`属性里声明。
 
 运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像这样：`/default_tests_files/Basic_CACHE_THROUGH`。
 

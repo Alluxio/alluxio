@@ -5,38 +5,92 @@ group: Features
 priority: 1
 ---
 
-* 内容列表
+* Table of Contents
 {:toc}
 
-本页面介绍Alluxio的配置项，并提供了在不同环境下的推荐配置。
+可以通过设置受支持的[configuration properties](Configuration-Properties.html)的值来配置Alluxio。了解用户如何定制应用程序
+(例如，Spark或MapReduce作业)与Alluxio交互，参见[如何配置引用应用程序](#configure-applications);要了解冲浪者管理员如何定制冲浪者服务，请参见[如何配置Alluxio集群](#configure-alluxio-cluster)。
 
-## Alluxio配置
+# 配置应用 {#application-settings}
 
-Alluxio在运行时期会加载三种类型的配置源：
+自定义应用程序作业如何与Alluxio服务交互是面向不同应用程序的。这里我们为一些常见的应用程序提供建议。
 
-1. [应用配置](#application-settings)，这类配置是跟具体应用相关的，并且在每次运行一个应用（例如一个Spark作业）时都需要对其进行配置。
-2. [环境变量](#environment-variables)，这是用于设置基本属性从而管理Alluxio服务器以及运行Alluxio shell命令最简单快速的方式。注意，通过环境变量设置的配置项可能不会被应用加载。
-3. [属性文件](#property-files)，这是自定义[Alluxio支持的配置属性](#appendix)最一般的方法，通过这些属性文件设置的配置项可以被Alluxio服务器以及应用加载。
+## Alluxio Shell 命令
 
-加载配置属性值的优先级从高到低依次为：应用配置（如果有），环境变量，属性文件以及默认值。
+在`fs` 命令和子命令之前(例如，`copyFromLocal`)，可以将JVM系统属性 `-Dproperty=value`放入到命令行中，以指定引用属性。例如，下面的Alluxio shell命令在将文件复制到Alluxio时将写入类型设置为`CACHE_THROUGH`:
 
-### 应用配置 {#application-settings}
+```bash
+$ bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLocal README.md /README.md
+```
 
-Alluxio shell用户可以通过在命令行中添加`-Dkey=property`来指定某一个Alluxio配置项，例如
+## Spark 作业
+ 
+ Spark用户可以通过对Spark executor的`spark.executor.extraJavaOptions`和Spark drivers的`spark.driver.extraJavaOptions`
+ 添加`"-Dproperty=value"`向Spark job传递JVM环境参数。例如，当提交Spark jobs时设置向Alluxio写入方式为`CACHE_THROUGH`
 
-{% include Configuration-Settings/specify-conf.md %}
+```bash
+$ spark-submit \
+--conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
+--conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
+...
+```
 
-Spark用户可以在`conf/spark-env.sh`中将`"-Dkey=property"`添加到`${SPARK_DAEMON_JAVA_OPTS}`中，或者添加到`spark.executor.extraJavaOptions`（对于Spark executors）以及`spark.driver.extraJavaOptions`（对于Spark drivers）。
+在Spark shell中可以这样实现:
 
-Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配置项传递给Alluxio：
+```scala
+val conf = new SparkConf()
+    .set("spark.driver.extraJavaOptions", "-Dalluxio.user.file.writetype.default=CACHE_THROUGH")
+    .set("spark.executor.extraJavaOptions", "-Dalluxio.user.file.writetype.default=CACHE_THROUGH")
+val sc = new SparkContext(conf)
+```
 
-{% include Configuration-Settings/hadoop-specify-conf.md %}
+## Hadoop MapReduce 作业
 
-注意，这类配置是跟具体应用相关的，并且在每次运行一个应用或者命令（例如一个Spark作业）时都需要对其进行配置。
+Hadoop MapReduce用户可以在`hadoop jar`或“`yarn jar`命令后添加`"-Dproperty=value"`。
+属性将被传播到这个作业的所有任务中。例如,下面的
+MapReduce任务中设置wordcount集写入Alluxio类型为`CACHE_THROUGH`：
 
-### 环境变量 {#environment-variables}
+```bash
+$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
+-Dalluxio.user.file.writetype.default=CACHE_THROUGH \
+-libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
+<INPUT FILES> <OUTPUT DIRECTORY>
+```
 
-有许多常用的Alluxio配置项可以通过以下的环境变量进行配置：
+# 配置Alluxio集群
+
+## 使用 Site-Property 文件 (推荐) {#property-files}
+
+Alluxio管理员可以创建和定制属性文件`alluxio-site.properties`来配置一个Alluxio集群。
+如果该文件不存在，可以从模板文件`${ALLUXIO_HOME}/conf`:中创建:
+
+```bash
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+确保在启动集群之前该文件上被分发到每个Alluxio节点(master和worker)的`${ALLUXIO_HOME}/conf` 下
+
+## 使用集群默认
+
+从v1.8开始，每个Alluxio客户端都可以使用从master节点获取的集群范围的配置值初始化其配置。
+具体来说，当不同的客户端应用程序(如Alluxio Shell命令、Spark作业或MapReduce作业)连接到一个Alluxio服务时，
+它们将使用master节点提供的默认值初始化自己的Alluxio配置属性，这些默认值是基于master节点的`${ALLUXIO_HOME}/conf/alluxio-site.properties`属性文件。因此，集群管理员可以放置客户端设置(例如，`alluxio.user.*`)或网络传输设置(如`alluxio.security.authentication.type`)在master节点的`${ALLUXIO_HOME}/conf/alluxio-site.properties`。
+它将被分布并成为集群范围内的默认值，用于新的Aluxio客户端。
+
+例如，一个常见的Alluxio属性`alluxio.user.file.writetype.default` 是设置写方式为默认的
+`MUST_CACHE` ，只写到Alluxio空间。在一个Alluxio集群中
+如果首选的是数据持久性的部署，所有的作业都需要写到UFS和Alluxio，那么就可以使用Alluxio v1.8或更高版本的admin命令来简单地添加`alluxio.user.file.writetype.default=CACHE_THROUGH` 到master端`${ALLUXIO_HOME}/conf/alluxio-site.properties`。重新启动集群后，所有新的作业都将自动将属性`alluxio.user.file.writetype.default`设置为`CACHE_THROUGH` 
+
+客户端仍然可以忽略或覆盖集群范围内的默认值，通过指定属性`alluxio.user.conf.cluster.default.enabled=false`，
+以更改加载集群范围内的默认值，或者遵循前面描述的方法[为应用程序配置文件](Configuration-Settings.html#configure-applications)覆盖相同的属性。
+
+>注意到，在v1.8之前，`${ALLUXIO_HOME}/conf/alluxio-site.properties`属性的文件只被加载Alluxio服务器
+>进程，并将被应用程序通过Alluxio客户端与Alluxio服务交互所忽略，
+>除非`${ALLUXIO_HOME}/conf`在应用程序的类路径中。
+
+## 使用环境变量 {#environment-variables}
+
+Alluxio通过环境变量来支持一些常用的配置设置，包括:
 
 <table class="table table-striped">
 <tr><th>环境变量</th><th>意义</th></tr>
@@ -104,130 +158,54 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
 
 例如，如果你希望将Alluxio master运行在`localhost`上，其底层存储系统HDFS的namenode也运行在`localhost`上，并且在7001端口启用Java远程调试，可以使用：
 
-{% include Configuration-Settings/more-conf.md %}
+```bash
+$ export ALLUXIO_MASTER_HOSTNAME="localhost"
+$ export ALLUXIO_UNDERFS_ADDRESS="hdfs://localhost:9000"
+$ export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"
+```
 
 用户可以通过shell命令或者`conf/alluxio-env.sh`设置这些环境变量。如果该文件不存在，可以通过运行以下命令令Alluxio自动生成`conf/alluxio-env.sh`文件：
 
-{% include Common-Commands/bootstrapConf.md %}
+```bash
+$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
+```
 
-除此之外，还可以运行以下命令从我们提供的一个模板文件中生成它：
+# 配置资源
 
-{% include Common-Commands/copy-alluxio-env.md %}
+Alluxio属性可以在多个资源中配置。在这种情况下，它的最终值由列表中最早的资源配置决定:
 
-注意，`conf/alluxio-env.sh`是在你[启动Alluxio系统](Running-Alluxio-Locally.html)或者[运行Alluxio命令](Command-Line-Interface.html)时被加载，而不是被应用加载。
+1. [JVM系统参数 (i.e., `-Dproperty=key`)](http://docs.oracle.com/javase/jndi/tutorial/beyond/env/source.html#SYS)
+2. [环境变量](#use-environment-variables)
+3. [参数配置文件](#use-site-property-files-recommended). 当Alluxio集群启动时, 每一个Alluxio服务端进程（包括master和worke） 在目录`${HOME}/.alluxio/`, `/etc/alluxio/` and `${ALLUXIO_HOME}/conf`下顺序读取 `alluxio-site.properties`
+ , 当 `alluxio-site.properties` 文件被找到，将跳过剩余路径的查找.
+4. [集群默认值](#use-cluster-default). Alluxio客户端可以根据master节点提供的集群范围的默认配置初始化其配置。
 
-### 属性文件 {#property-files}
+如果没有为属性找到上面用户指定的配置，那么会回到它的[默认属性值](Configuration-Properties.html)。
 
-除了以上这些提供基本设置的环境变量之外，Alluxio还为用户提供了一种更一般的方式，即通过属性文件来自定义所有支持的配置项。对于每个Alluxio部署站点，Alluxio服务器以及应用客户端都可以通过`alluxio-site.properties`文件覆盖默认属性值。在启动时，Alluxio会检查是否存在属性配置文件，如果存在，便会加载这些文件，并覆盖默认的属性值。启动程序将依次在`${HOME}/.alluxio/`，`/etc/alluxio/`（可以通过更改`alluxio.site.conf.dir`的默认值进行自定义）以及运行Alluxio的Java虚拟机的classpath中搜索该属性文件。
+要检查特定配置属性的值及其值的来源，用户可以使用以下命令行:
 
-举个例子，用户可以复制`${ALLUXIO_HOME}/conf`目录下的属性模板保存到`${HOME}/.alluxio/`目录下，并且根据用户需求来调整配置属性的值。
+```bash
+$ bin/alluxio getConf alluxio.worker.port
+29998
+$ bin/alluxio getConf --source alluxio.worker.port
+DEFAULT
+```
 
-{% include Common-Commands/copy-alluxio-site-properties.md %}
+列出所有配置属性的来源:
 
-注意，一旦设置了，这些属性文件的配置项将在Alluxio服务器以及使用Alluxio客户端的作业中共享。
+```bash
+$ bin/alluxio getConf --source
+alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
+alluxio.debug=false (DEFAULT)
+...
+```
 
-## 附录 {#appendix}
+用户还可以指定`--master`选项来通过master节点列出所有的集群默认配置属性
+。注意，使用`--master`选项 `getConf`将查询master，因此需要主节点运行;没有`--master` 选项，此命令只检查本地配置。
 
-所有Alluxio配置属性都属于以下六类之一：
-[共有配置项](#common-configuration)（由Master和Worker共享），
-[Master配置项](#master-configuration)，[Worker配置项](#worker-configuration)，
-[用户配置项](#user-configuration)，[集群管理配置项](#cluster-management)（用于在诸如Mesos和YARN的集群管理器上运行Alluxio）
-以及[安全性配置项](#security-configuration)（由Master，Worker和用户共享）。
-
-### 共有配置项 {#common-configuration}
-
-共有配置项包含了不同组件共享的常量。
-
-<table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
-{% for item in site.data.table.common-configuration %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.common-configuration[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
-
-### Master配置项 {#master-configuration}
-
-Master配置项指定master节点的信息，例如地址和端口号。
-
-<table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
-{% for item in site.data.table.master-configuration %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.master-configuration[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
-
-### Worker配置项 {#worker-configuration}
-
-Worker配置项指定worker节点的信息，例如地址和端口号。
-
-<table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
-{% for item in site.data.table.worker-configuration %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.worker-configuration[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
-
-
-### 用户配置项 {#user-configuration}
-
-用户配置项指定了文件系统访问的相关信息。
-
-<table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
-{% for item in site.data.table.user-configuration %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.user-configuration[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
-
-### 集群管理配置项 {#cluster-management}
-
-如果使用诸如Mesos和YARN的集群管理器运行Alluxio，还有额外的配置项。
-
-<table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
-{% for item in site.data.table.cluster-management %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.cluster-management[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
-
-### 安全性配置项 {#security-configuration}
-
-安全性配置项指定了安全性相关的信息，如安全认证和文件权限。
-安全认证相关的配置同时适用于master、worker和用户。
-文件权限相关的配置只对master起作用。
-更多安全性相关的信息详见[安全性](Security.html)页面。
-
-<table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
-{% for item in site.data.table.security-configuration %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.security-configuration[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
-
-### 配置多宿主网络 {#configure-multihomed-networks}
-
-Alluxio提供了一种使用多宿主网络的方式。如果你有多个NIC，并且想让Alluxio master监听所有的NIC，那么你可以将`alluxio.master.bind.host`设置为`0.0.0.0`，这样Alluxio client就可以通过任何一个NIC访问到master。其他以`bind.host`结尾的配置项也是类似的。
+```bash
+$ bin/alluxio getConf --master --source
+alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
+alluxio.debug=false (DEFAULT)
+...
+```

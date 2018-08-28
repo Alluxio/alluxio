@@ -29,10 +29,27 @@ Therefore, the configuration of Alluxio is done mostly in HBase configuration fi
 
 ### Set property in `hbase-site.xml`
 
-You need to add the following three properties to `hbase-site.xml` in your HBase installation `conf` directory
-(make sure these properties are configured in all HBase cluster nodes):
-
+Change the `hbase.rootdir` property in `conf/hbase-site.xml`:
 > You do not need to create the `/hbase` directory in Alluxio, HBase will do this for you.
+
+```xml
+<property>
+  <name>hbase.rootdir</name>
+  <value>alluxio://master_hostname:port/hbase</value>
+</property>
+```
+
+When Alluxio is running in fault tolerant mode, change the Alluxio URI to include Zookeeper information.
+
+```xml
+<property>
+  <name>hbase.rootdir</name>
+  <value>alluxio://zk@zookeeper_hostname1:2181,zookeeper_hostname2:2181,zookeeper_hostname3:2181/hbase</value>
+</property>
+```
+
+Add the following two properties to the same file `hbase-site.xml`.
+(make sure these three properties are configured in all HBase cluster nodes):
 
 ```xml
 <property>
@@ -43,25 +60,21 @@ You need to add the following three properties to `hbase-site.xml` in your HBase
   <name>fs.AbstractFileSystem.alluxio.impl</name>
   <value>alluxio.hadoop.AlluxioFileSystem</value>
 </property>
-<property>
-  <name>hbase.rootdir</name>
-  <value>alluxio://master_hostname:port/hbase</value>
-</property>
 ```
 
 ## Distribute the Alluxio Client jar
 
-We need to make the Alluxio client `jar` file available to HBase, because it contains the configured
+We need to make the Alluxio client jar file available to HBase, because it contains the configured
 `alluxio.hadoop.FileSystem` class.
 We recommend you to download the tarball from
 Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can choose to compile this client jar from the source code
-by following Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
+by following the instructions [here](Building-Alluxio-From-Source.html#compute-framework-support).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 There are two ways to achieve that:
 
-- Put the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase.
+- Copy the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase.
 - Specify the location of the jar file in the `$HBASE_CLASSPATH` environment variable (make sure it's available
 on all cluster nodes). For example:
 
@@ -89,12 +102,12 @@ Start HBase:
 $ ${HBASE_HOME}/bin/start-hbase.sh
 ```
 
-Visit HBase Web UI at `http://<hostname>:16010` to confirm that HBase is running on Alluxio
+Visit HBase Web UI at `http://<HBASE_MASTER_HOSTNAME>:16010` to confirm that HBase is running on Alluxio
 (check the `HBase Root Directory` attribute):
 
 ![HBaseRootDirectory]({{site.data.img.screenshot_start_hbase_webui}})
 
-And visit Alluxio Web UI at `http://<hostname>:19999`, click `Browse` and you can see the files HBase stores
+And visit Alluxio Web UI at `http://<ALLUXIO_MASTER_HOSTNAME>:19999`, click `Browse` and you can see the files HBase stores
 on Alluxio, including data and WALs:
 
 ![HBaseRootDirectoryOnAlluxio]({{site.data.img.screenshot_start_hbase_alluxio_webui}})

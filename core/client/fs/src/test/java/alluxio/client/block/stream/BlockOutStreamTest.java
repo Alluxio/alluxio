@@ -11,6 +11,8 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.wire.WorkerNetAddress;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,7 +28,7 @@ public class BlockOutStreamTest {
   @Test
   public void packetWriteException() throws Exception {
     PacketWriter writer = new FailingTestPacketWriter(ByteBuffer.allocate(PACKET_SIZE));
-    BlockOutStream bos = new BlockOutStream(writer, PACKET_SIZE);
+    BlockOutStream bos = new BlockOutStream(writer, PACKET_SIZE, new WorkerNetAddress());
     try {
       bos.write(new byte[PACKET_SIZE]);
       Assert.fail("Expected write to throw an exception.");

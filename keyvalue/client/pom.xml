@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-keyvalue</artifactId>
-    <version>1.7.0-SNAPSHOT</version>
+    <version>1.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-keyvalue-client</artifactId>
   <name>Alluxio Key Value - Client</name>
@@ -24,9 +24,7 @@
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
-    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
-    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+    <build.path>${project.parent.parent.basedir}/build</build.path>
     <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
     <shading.prefix>alluxio.keyvalue.client</shading.prefix>
   </properties>

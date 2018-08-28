@@ -11,25 +11,29 @@
 
 package alluxio.util.network;
 
-import alluxio.AlluxioURI;
+import alluxio.AlluxioConfiguration;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.status.UnauthenticatedException;
+import alluxio.network.thrift.ThriftUtils;
+import alluxio.security.authentication.TransportProvider;
+import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.unix.DomainSocketAddress;
-import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
@@ -55,6 +59,7 @@ public final class NetworkAddressUtils {
   public static final boolean WINDOWS = OSUtils.isWindows();
 
   private static String sLocalHost;
+  private static String sLocalHostMetricName;
   private static String sLocalIP;
 
   private NetworkAddressUtils() {}
@@ -195,7 +200,65 @@ public final class NetworkAddressUtils {
    *         communicate with service.
    */
   public static InetSocketAddress getConnectAddress(ServiceType service) {
-    return new InetSocketAddress(getConnectHost(service), getPort(service));
+    return getConnectAddress(service, Configuration.global());
+  }
+
+  /**
+   * Helper method to get the {@link InetSocketAddress} address for client to communicate with the
+   * service.
+   *
+   * @param service the service name used to connect
+   * @param conf the configuration to use for looking up the connect address
+   * @return the service address that a client (typically outside the service machine) uses to
+   *         communicate with service.
+   */
+  public static InetSocketAddress getConnectAddress(ServiceType service,
+      AlluxioConfiguration conf) {
+    return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
+  }
+
+  /**
+   * Provides an externally resolvable hostname for client to communicate with the service. If the
+   * hostname is not explicitly specified, Alluxio will try to use the bind host. If the bind host
+   * is wildcard, Alluxio will automatically determine an appropriate hostname from local machine.
+   * The various possibilities shown in the following table:
+   * <table>
+   * <caption>Hostname Scenarios</caption> <thead>
+   * <tr>
+   * <th>Specified Hostname</th>
+   * <th>Specified Bind Host</th>
+   * <th>Returned Connect Host</th>
+   * </tr>
+   * </thead> <tbody>
+   * <tr>
+   * <td>hostname</td>
+   * <td>hostname</td>
+   * <td>hostname</td>
+   * </tr>
+   * <tr>
+   * <td>not defined</td>
+   * <td>hostname</td>
+   * <td>hostname</td>
+   * </tr>
+   * <tr>
+   * <td>hostname</td>
+   * <td>0.0.0.0 or not defined</td>
+   * <td>hostname</td>
+   * </tr>
+   * <tr>
+   * <td>not defined</td>
+   * <td>0.0.0.0 or not defined</td>
+   * <td>localhost</td>
+   * </tr>
+   * </tbody>
+   * </table>
+   *
+   * @param service Service type used to connect
+   * @return the externally resolvable hostname that the client can use to communicate with the
+   *         service.
+   */
+  public static String getConnectHost(ServiceType service) {
+    return getConnectHost(service, Configuration.global());
   }
 
   /**
@@ -237,18 +300,19 @@ public final class NetworkAddressUtils {
    * </table>
    *
    * @param service Service type used to connect
+   * @param conf configuration
    * @return the externally resolvable hostname that the client can use to communicate with the
    *         service.
    */
-  public static String getConnectHost(ServiceType service) {
-    if (Configuration.containsKey(service.mHostNameKey)) {
-      String connectHost = Configuration.get(service.mHostNameKey);
+  public static String getConnectHost(ServiceType service, AlluxioConfiguration conf) {
+    if (conf.isSet(service.mHostNameKey)) {
+      String connectHost = conf.get(service.mHostNameKey);
       if (!connectHost.isEmpty() && !connectHost.equals(WILDCARD_ADDRESS)) {
         return connectHost;
       }
     }
-    if (Configuration.containsKey(service.mBindHostKey)) {
-      String bindHost = Configuration.get(service.mBindHostKey);
+    if (conf.isSet(service.mBindHostKey)) {
+      String bindHost = conf.get(service.mBindHostKey);
       if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
         return bindHost;
       }
@@ -264,7 +328,19 @@ public final class NetworkAddressUtils {
    * @return the service port number
    */
   public static int getPort(ServiceType service) {
-    return Configuration.getInt(service.mPortKey);
+    return getPort(service, Configuration.global());
+  }
+
+  /**
+   * Gets the port number on a given service type. If user defined port number is not explicitly
+   * specified, Alluxio will use the default service port.
+   *
+   * @param service Service type used to connect
+   * @param config configuration
+   * @return the service port number
+   */
+  public static int getPort(ServiceType service, AlluxioConfiguration config) {
+    return config.getInt(service.mPortKey);
   }
 
   /**
@@ -293,7 +369,7 @@ public final class NetworkAddressUtils {
    * @return the bind hostname
    */
   public static String getBindHost(ServiceType service) {
-    if (Configuration.containsKey(service.mBindHostKey) && !Configuration.get(service.mBindHostKey)
+    if (Configuration.isSet(service.mBindHostKey) && !Configuration.get(service.mBindHostKey)
         .isEmpty()) {
       return Configuration.get(service.mBindHostKey);
     } else {
@@ -308,8 +384,36 @@ public final class NetworkAddressUtils {
    * @return the local hostname for the client
    */
   public static String getClientHostName() {
-    if (Configuration.containsKey(PropertyKey.USER_HOSTNAME)) {
+    if (Configuration.isSet(PropertyKey.USER_HOSTNAME)) {
       return Configuration.get(PropertyKey.USER_HOSTNAME);
+    }
+    return getLocalHostName();
+  }
+
+  /**
+   * Gets a local node name from configuration if it is available, falling back on localhost lookup.
+   *
+   * @return the local node name
+   */
+  public static String getLocalNodeName() {
+    switch (CommonUtils.PROCESS_TYPE.get()) {
+      case CLIENT:
+        if (Configuration.isSet(PropertyKey.USER_HOSTNAME)) {
+          return Configuration.get(PropertyKey.USER_HOSTNAME);
+        }
+        break;
+      case MASTER:
+        if (Configuration.isSet(PropertyKey.MASTER_HOSTNAME)) {
+          return Configuration.get(PropertyKey.MASTER_HOSTNAME);
+        }
+        break;
+      case WORKER:
+        if (Configuration.isSet(PropertyKey.WORKER_HOSTNAME)) {
+          return Configuration.get(PropertyKey.WORKER_HOSTNAME);
+        }
+        break;
+      default:
+        break;
     }
     return getLocalHostName();
   }
@@ -346,6 +450,20 @@ public final class NetworkAddressUtils {
     } catch (UnknownHostException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Gets a local hostname for the host this JVM is running on with '.' replaced with '_' for
+   * metrics usage.
+   *
+   * @return the metrics system friendly local host name
+   */
+  public static synchronized String getLocalHostMetricName() {
+    if (sLocalHostMetricName != null) {
+      return sLocalHostMetricName;
+    }
+    sLocalHostMetricName = getLocalHostName().replace('.', '_');
+    return sLocalHostMetricName;
   }
 
   /**
@@ -455,30 +573,6 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Replaces and resolves the hostname in a given address or path string.
-   *
-   * @param path an address or path string, e.g., "hdfs://host:port/dir", "file:///dir", "/dir"
-   * @return an address or path string with hostname resolved, or the original path intact if no
-   *         hostname is embedded, or null if the given path is null or empty.
-   * @throws UnknownHostException if the hostname cannot be resolved
-   */
-  @Nullable
-  public static AlluxioURI replaceHostName(AlluxioURI path) throws UnknownHostException {
-    if (path == null) {
-      return null;
-    }
-
-    if (path.hasAuthority()) {
-      String authority = resolveHostName(path.getHost());
-      if (path.getPort() != -1) {
-        authority += ":" + path.getPort();
-      }
-      return new AlluxioURI(path.getScheme(), authority, path.getPath(), path.getQueryMap());
-    }
-    return path;
-  }
-
-  /**
    * Resolves a given hostname by a canonical hostname. When a hostname alias (e.g., those specified
    * in /etc/hosts) is given, the alias may not be resolvable on other hosts in a cluster unless the
    * same alias is defined there. In this situation, loadufs would break.
@@ -494,6 +588,20 @@ public final class NetworkAddressUtils {
     }
 
     return InetAddress.getByName(hostname).getCanonicalHostName();
+  }
+
+  /**
+   * Resolves a given hostname IP address.
+   *
+   * @param hostname the input hostname, which could be an alias
+   * @return the hostname IP address
+   * @throws UnknownHostException if the given hostname cannot be resolved
+   */
+  public static String resolveIpAddress(String hostname) throws UnknownHostException {
+    Preconditions.checkNotNull(hostname, "hostname");
+    Preconditions.checkArgument(!hostname.isEmpty(),
+            "Cannot resolve IP address for empty hostname");
+    return InetAddress.getByName(hostname).getHostAddress();
   }
 
   /**
@@ -518,36 +626,6 @@ public final class NetworkAddressUtils {
    */
   public static String getFqdnHost(WorkerNetAddress addr) throws UnknownHostException {
     return resolveHostName(addr.getHost());
-  }
-
-  /**
-   * Gets the port for the underline socket. This function calls
-   * {@link #getThriftSocket(org.apache.thrift.transport.TServerSocket)}, so reflection will be used
-   * to get the port.
-   *
-   * @param thriftSocket the underline socket
-   * @return the thrift port for the underline socket
-   * @see #getThriftSocket(org.apache.thrift.transport.TServerSocket)
-   */
-  public static int getThriftPort(TServerSocket thriftSocket) {
-    return getThriftSocket(thriftSocket).getLocalPort();
-  }
-
-  /**
-   * Extracts the port from the thrift socket. As of thrift 0.9, the internal socket used is not
-   * exposed in the API, so this function will use reflection to get access to it.
-   *
-   * @param thriftSocket the underline thrift socket
-   * @return the server socket
-   */
-  public static ServerSocket getThriftSocket(final TServerSocket thriftSocket) {
-    try {
-      Field field = TServerSocket.class.getDeclaredField("serverSocket_");
-      field.setAccessible(true);
-      return (ServerSocket) field.get(thriftSocket);
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   /**
@@ -598,4 +676,30 @@ public final class NetworkAddressUtils {
     return address;
   }
 
+  /**
+   * Test if the input address is serving an Alluxio service. This method make use of the
+   * Thrift protocol for performing service communication.
+   *
+   * @param address the network address to ping
+   * @param serviceName the Alluxio service name
+   * @throws UnauthenticatedException If the user is not authenticated
+   * @throws ConnectionFailedException If there is a protocol transport error
+   */
+  public static void pingService(InetSocketAddress address, String serviceName)
+          throws UnauthenticatedException, ConnectionFailedException {
+    Preconditions.checkNotNull(address, "address");
+    Preconditions.checkNotNull(serviceName, "serviceName");
+    Preconditions.checkArgument(!serviceName.isEmpty(),
+            "Cannot resolve for empty service name");
+    try {
+      TransportProvider transportProvider = TransportProvider.Factory.create();
+      TProtocol protocol =
+          ThriftUtils.createThriftProtocol(transportProvider.getClientTransport(address),
+              serviceName);
+      protocol.getTransport().open();
+      protocol.getTransport().close();
+    } catch (TTransportException e) {
+      throw new ConnectionFailedException(e.getMessage());
+    }
+  }
 }

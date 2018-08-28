@@ -49,7 +49,8 @@ public final class CustomAuthenticationProviderTest {
   public void classNotProvider() {
     String notProviderClass = CustomAuthenticationProviderTest.class.getName();
     mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage(notProviderClass + " instantiate failed :");
+    mThrown.expectMessage("alluxio.security.authentication.CustomAuthenticationProviderTest "
+        + "cannot be cast to alluxio.security.authentication.AuthenticationProvider");
     new CustomAuthenticationProvider(notProviderClass);
   }
 

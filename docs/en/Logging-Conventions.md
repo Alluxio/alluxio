@@ -1,55 +1,27 @@
 ---
 layout: global
-title: Logging Conventions
-nickname: Logging Conventions
+title: Logging Configuration
+nickname: Logging Configuration
 group: Resources
+priority: 3
 ---
 
 * Table of Contents
 {:toc}
 
-This page summarizes Alluxio's logging conventions and includes tips for modifying Alluxio's log4j
+This page summarizes Alluxio's logging system and includes tips for modifying Alluxio's log4j
 properties file to best suit deployment needs.
-
-## Logging Conventions
-
-Alluxio utilizes log levels in the following ways:
-
-Error Level Logging
-
-* Error level logs indicate system level problems which cannot be recovered from.
-* Error level logs are always accompanied by a stack trace.
-
-Warn Level Logging
-
-* Warn level logs indicate a logical mismatch between user intended behavior and Alluxio behavior.
-* Warn level logs are accompanied by an exception message.
-* The associated stack trace may be found in debug level logs.
-
-Info Level Logging
-
-* Info level logs record important system state changes.
-* Exception messages and stack traces are never associated with info level logs.
-
-Debug Level Logging
-
-* Debug level logs include detailed information for various aspects of the Alluxio system.
-* Control flow logging (Alluxio system enter and exit calls) is done in debug level logs.
-
-Trace Level Logging
-
-* Trace level logs are not used in Alluxio.
-
-## Configuration
 
 Alluxio's logging behavior can be fully configured through the `log4j.properties` file found in the
 `conf` folder.
+
+## Alluxio Logs
 
 By default, Alluxio logs to files in the `logs` directory which can be modified by setting the
 `alluxio.logs.dir` system property. Each Alluxio process (Master, Worker, Clients, FUSE, Proxy)
 logs to a different file.
 
-### Remote Logging
+## Enable Remote Logging
 
 By default, Alluxio processes log to local files. In certain environments, it is more reliable to
 log to a central machine. Alluxio supports using Log4J's
@@ -121,7 +93,7 @@ This is an example of using remote logging with Alluxio, users are encouraged to
 appenders and configuration options provided by Log4J or 3rd parties to create a logging solution
 best suited for their use case.
 
-### Dynamically change the log level when Alluxio server is running
+## Change Alluxio Server-side Logging Level at Runtime
 
 Alluxio shell comes with a `logLevel` command that allows you to get or change the log level of a particular class on specific
 instances.
@@ -130,13 +102,33 @@ The synax is `alluxio logLevel --logName=NAME [--target=<master|worker|host:port
 indicates the logger's name, and `target` lists the Alluxio masters or workers to set. If parameter `level` is provided the command
 changes the logger level, otherwise it gets and displays the current logger level.
 
-For example, this command sets the class `foo.Bar`'s logger level to DEBUG on master as well as a worker at `192.168.100.100:30000`.
+For example, this command sets the class `alluxio.heartbeat.HeartbeatContext`'s logger level to DEBUG on master as well as a worker at `192.168.100.100:30000`.
 
 ```bash
-alluxio logLevel --loggerName=foo.Bar --target=master,192.168.100.100:30000 --level=DEBUG
+alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=master,192.168.100.100:30000 --level=DEBUG
 ```
 
-And the following command gets all workers' log level on class `foo.Bar`
+And the following command gets all workers' log level on class `alluxio.heartbeat.HeartbeatContext`
 ```bash
-alluxio logLevel --loggerName=foo.Bar --target=workers
+alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
+```
+
+## Change Client-side Logging Level
+
+Often it's useful to change the logLevel of the Alluxio client running in the compute framework (e.g. Spark, Presto) process, and save it to a file for debugging. To achieve this, you can pass the following Java options to the compute
+framework process.
+
+For example, the options `-Dalluxio.logs.dir=/var/alluxio/ -Dalluxio.logger.type=USER_LOGGER -Dlog4j.configuration=/tmp/
+alluxio/conf/log4j.properties` will instruct Alluxio client to use the log4j configuration in the Alluxio's conf path and
+output the log to a file `user_USER_NAME.log` at the path `/var/alluxio/`, where `USER_NAME` is the user that starts the client program. If the client is not on the same machine where Alluxio is installed, you can make a copy of the file in `conf/log4j.properties` to the client machine, and pass its path to the option `log4j.configuration`. If you do not want to override the application's `log4j.properties` path, alternatively you can append the followings to its `log4j.properties` file:
+
+```
+# Appender for Alluxio User
+log4j.rootLogger=INFO, ${alluxio.logger.type}
+log4j.appender.USER_LOGGER=org.apache.log4j.RollingFileAppender
+log4j.appender.USER_LOGGER.File=${alluxio.logs.dir}/user_${user.name}.log
+log4j.appender.USER_LOGGER.MaxFileSize=10MB
+log4j.appender.USER_LOGGER.MaxBackupIndex=10
+log4j.appender.USER_LOGGER.layout=org.apache.log4j.PatternLayout
+log4j.appender.USER_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 ```

@@ -43,7 +43,7 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
      */
     public static KeyValuePartitionReader create(AlluxioURI uri)
         throws AlluxioException, IOException {
-      Preconditions.checkNotNull(uri);
+      Preconditions.checkNotNull(uri, "uri");
       FileSystem fs = FileSystem.Factory.get();
       List<Long> blockIds = fs.getStatus(uri).getBlockIds();
       // Each partition file should only contain one block.

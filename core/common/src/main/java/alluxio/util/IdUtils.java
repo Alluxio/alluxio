@@ -91,4 +91,11 @@ public final class IdUtils {
   public static long createMountId() {
     return getRandomNonNegativeLong();
   }
+
+  /**
+   * @return app suffixed by a positive random long
+   */
+  public static String createFileSystemContextId() {
+    return "app-" + Math.abs(sRandom.nextLong());
+  }
 }

@@ -19,7 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Represents the metadata of a block in Alluxio managed storage.
  */
 @ThreadSafe
-public final class BlockMeta extends AbstractBlockMeta {
+public class BlockMeta extends AbstractBlockMeta {
   private final long mBlockSize;
 
   /**

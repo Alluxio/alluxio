@@ -14,6 +14,8 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.annotation.PublicApi;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -39,6 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Alluxio stores data into an under layer file system. Any file system implementing this interface
  * can be a valid under layer file system
  */
+@PublicApi
 @ThreadSafe
 // TODO(adit); API calls should use a URI instead of a String wherever appropriate
 public interface UnderFileSystem extends Closeable {
@@ -84,7 +87,8 @@ public interface UnderFileSystem extends Closeable {
      */
     public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
       // Try to obtain the appropriate factory
-      List<UnderFileSystemFactory> factories = UnderFileSystemFactoryRegistry.findAll(path);
+      List<UnderFileSystemFactory> factories =
+          UnderFileSystemFactoryRegistry.findAll(path, ufsConf);
       if (factories.isEmpty()) {
         throw new IllegalArgumentException("No Under File System Factory found for: " + path);
       }
@@ -98,7 +102,7 @@ public interface UnderFileSystem extends Closeable {
           // when creation is done.
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(factory.create(path, ufsConf));
+          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf));
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
@@ -130,7 +134,7 @@ public interface UnderFileSystem extends Closeable {
       Map<String, String> ufsConf =
           Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
       return create(ufsRoot, UnderFileSystemConfiguration.defaults().setReadOnly(readOnly)
-          .setShared(shared).setUserSpecifiedConf(ufsConf));
+          .setShared(shared).setMountSpecificConf(ufsConf));
     }
   }
 
@@ -171,9 +175,14 @@ public interface UnderFileSystem extends Closeable {
   }
 
   /**
-   * Closes this under file system.
+   * Operation mode for under storage. During maintenance the operation mode may be changed to
+   * NO_ACCESS or READ_ONLY.
    */
-  void close() throws IOException;
+  enum UfsMode {
+    NO_ACCESS,
+    READ_ONLY,
+    READ_WRITE
+  }
 
   /**
    * Takes any necessary actions required to establish a connection to the under file system from
@@ -252,6 +261,15 @@ public interface UnderFileSystem extends Closeable {
   boolean exists(String path) throws IOException;
 
   /**
+   * Gets the access control list of a file or directory in under file system.
+   *
+   * @param path the path to the file or directory
+   * @return the access control list, or null if ACL is unsupported or disabled
+   * @throws IOException if ACL is supported and enabled but cannot be retrieved
+   */
+  AccessControlList getAcl(String path) throws IOException;
+
+  /**
    * Gets the block size of a file in under file system, in bytes.
    *
    * @param path the file name
@@ -260,9 +278,10 @@ public interface UnderFileSystem extends Closeable {
   long getBlockSizeByte(String path) throws IOException;
 
   /**
-   * Gets the directory status.
+   * Gets the directory status. The caller must already know the path is a directory. This method
+   * will throw an exception if the path exists, but is a file.
    *
-   * @param path the file name
+   * @param path the path to the directory
    * @return the directory status
    */
   UfsDirectoryStatus getDirectoryStatus(String path) throws IOException;
@@ -285,12 +304,46 @@ public interface UnderFileSystem extends Closeable {
   List<String> getFileLocations(String path, FileLocationOptions options) throws IOException;
 
   /**
-   * Gets the file status.
+   * Gets the file status. The caller must already know the path is a file. This method will
+   * throw an exception if the path exists, but is a directory.
    *
-   * @param path the file name
+   * @param path the path to the file
    * @return the file status
    */
   UfsFileStatus getFileStatus(String path) throws IOException;
+
+  /**
+   * Computes and returns a fingerprint for the path. The fingerprint is used to determine if two
+   * UFS files are identical. The fingerprint must be deterministic, and must not change if a
+   * file is only renamed (identical content and permissions). Returns
+   * {@link alluxio.Constants#INVALID_UFS_FINGERPRINT} if there is any error.
+   *
+   * @param path the path to compute the fingerprint for
+   * @return the string representing the fingerprint
+   */
+  String getFingerprint(String path);
+
+  /**
+   * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method is used
+   * to determine the operation mode based on the physical UFS operation modes. For example, if this
+   * {@link UnderFileSystem} is composed of physical UFS hdfs://ns1/ and hdfs://ns2/ with read
+   * operations split b/w the two, with physicalUfsState{hdfs://ns1/:NO_ACCESS,
+   * hdfs://ns2/:READ_WRITE} this method can return READ_ONLY to allow reads to proceed from
+   * hdfs://ns2/.
+   *
+   * @param physicalUfsState the state of physical UFSs for this {@link UnderFileSystem}; keys are
+   *        expected to be normalized (ending with /)
+   * @return the desired operation mode for this UFS
+   */
+  UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState);
+
+  /**
+   * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method
+   * returns all underlying physical stores; normalized with only scheme and authority.
+   *
+   * @return physical UFSs this {@link UnderFileSystem} is composed of
+   */
+  List<String> getPhysicalStores();
 
   /**
    * Queries the under file system about the space of the indicated path (e.g., space left, space
@@ -301,6 +354,15 @@ public interface UnderFileSystem extends Closeable {
    * @return The space in bytes
    */
   long getSpace(String path, SpaceType type) throws IOException;
+
+  /**
+   * Gets the file or directory status. The caller does not need to know if the path is a file or
+   * directory. This method will determine the path type, and will return the appropriate status.
+   *
+   * @param path the path to get the status
+   * @return the file or directory status
+   */
+  UfsStatus getStatus(String path) throws IOException;
 
   /**
    * Returns the name of the under filesystem implementation.
@@ -331,6 +393,15 @@ public interface UnderFileSystem extends Closeable {
    * @return true if under storage is an object store, false otherwise
    */
   boolean isObjectStorage();
+
+  /**
+   * Denotes if the under storage supports seeking. Note, the under file system subclass that
+   * returns true for this method should return the input stream extending
+   * {@link SeekableUnderFileInputStream} in the {@link #open(String, OpenOptions)} method.
+   *
+   * @return true if under storage is seekable, false otherwise
+   */
+  boolean isSeekable();
 
   /**
    * Returns an array of statuses of the files and directories in the directory denoted by this
@@ -441,6 +512,15 @@ public interface UnderFileSystem extends Closeable {
    * @return the UFS {@link AlluxioURI} representing the Alluxio path
    */
   AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath);
+
+  /**
+   * Sets the access control list of a file or directory in under file system.
+   * if the ufs does not support acls, this is a noop.
+   *
+   * @param path the path to the file or directory
+   * @param acl the access control list
+   */
+  void setAcl(String path, AccessControlList acl) throws IOException;
 
   /**
    * Changes posix file mode.

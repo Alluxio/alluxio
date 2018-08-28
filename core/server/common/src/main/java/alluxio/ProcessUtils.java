@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,16 +32,47 @@ public final class ProcessUtils {
       process.start();
       LOG.info("Stopping {}.", process);
       System.exit(0);
-    } catch (Exception e) {
-      LOG.error("Uncaught exception while running {}, stopping it and exiting.", process, e);
+    } catch (Throwable t) {
+      LOG.error("Uncaught exception while running {}, stopping it and exiting.", process, t);
       try {
         process.stop();
-      } catch (Exception e2) {
+      } catch (Throwable t2) {
         // continue to exit
-        LOG.error("Uncaught exception while stopping {}, simply exiting.", process, e2);
+        LOG.error("Uncaught exception while stopping {}, simply exiting.", process, t2);
       }
       System.exit(-1);
     }
+  }
+
+  /**
+   * Logs a fatal error and then exits the system.
+   *
+   * @param logger the logger to log to
+   * @param format the error message format string
+   * @param args args for the format string
+   */
+  public static void fatalError(Logger logger, String format, Object... args) {
+    fatalError(logger, null, format, args);
+  }
+
+  /**
+   * Logs a fatal error and then exits the system.
+   *
+   * @param logger the logger to log to
+   * @param t the throwable causing the fatal error
+   * @param format the error message format string
+   * @param args args for the format string
+   */
+  public static void fatalError(Logger logger, Throwable t, String format, Object... args) {
+    String message = String.format("Fatal error: " + format, args);
+    if (t != null) {
+      message += "\n" + ExceptionUtils.getStackTrace(t);
+    }
+    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+      throw new RuntimeException(message);
+    }
+    logger.error(message);
+    System.exit(-1);
   }
 
   /**
@@ -53,17 +85,13 @@ public final class ProcessUtils {
    * @param process the data structure representing the process to terminate
    */
   public static void stopProcessOnShutdown(final Process process) {
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        try {
-          process.stop();
-        } catch (Exception e) {
-          LOG.error("Failed to shutdown process.", e);
-          System.exit(0);
-        }
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      try {
+        process.stop();
+      } catch (Throwable t) {
+        LOG.error("Failed to stop process", t);
       }
-    });
+    }, "alluxio-process-shutdown-hook"));
   }
 
   private ProcessUtils() {} // prevent instantiation

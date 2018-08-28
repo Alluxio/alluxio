@@ -21,7 +21,8 @@ USAGE="Usage: alluxio-stop.sh [-h] [component]
 Where component is one of:
   all               \tStop all masters, proxies, and workers.
   local             \tStop all processes locally.
-  master            \tStop local master.
+  master            \tStop local primary master.
+  secondary_master  \tStop local secondary master.
   masters           \tStop masters on master nodes.
   proxy             \tStop local proxy.
   proxies           \tStop proxies on master and worker nodes.
@@ -82,6 +83,11 @@ case "${WHAT}" in
     ;;
   master)
     stop_master
+    ;;
+  secondary_master)
+    ALLUXIO_MASTER_SECONDARY=true
+    stop_master
+    ALLUXIO_MASTER_SECONDARY=false
     ;;
   masters)
     stop_masters

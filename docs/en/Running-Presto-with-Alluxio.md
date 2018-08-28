@@ -6,19 +6,22 @@ group: Frameworks
 priority: 2
 ---
 
+* Table of Contents
+{:toc}
+
 This guide describes how to run [Presto](https://prestodb.io/) with Alluxio, so
 that you can easily use Presto to query Hive tables stored in Alluxio's tiered storage.
 
-# Prerequisites
+## Prerequisites
 
 The prerequisite for this part is that you have [Java](Java-Setup.html). And the Java version must use Java 8 Update 60 or higher (8u60+), 64-bit.
 Alluxio cluster should also be set up in accordance to these guides for either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
-Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(This doc uses presto-0.170). Also, please complete Hive setup using
+Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(This doc uses presto-0.191). Also, please complete Hive setup using
 [Hive On Alluxio](Running-Hive-with-Alluxio.html)
 
-# Configuration
+## Configuration
 
 Presto gets the database and table metadata information from Hive Metastore. At the same time,
 the file system location of table data is obtained from the table's metadata entries. So you need to configure
@@ -26,7 +29,7 @@ the file system location of table data is obtained from the table's metadata ent
 you need to add the Hadoop conf files (core-site.xml,hdfs-site.xml), and use `hive.config.resources` in
 file `/<PATH_TO_PRESTO>/etc/catalog/hive.properties` to point to the file's location for every Presto worker.
 
-#### Configure `core-site.xml`
+### Configure `core-site.xml`
 
 You need to add the following configuration items to the `core-site.xml` configured in `hive.properties`:
 
@@ -66,7 +69,7 @@ propagated to Alluxio.
 </configuration>
 ```
 
-#### Configure additional Alluxio properties
+### Configure additional Alluxio properties
 
 Similar to above, add additional Alluxio properties to `core-site.xml` of Hadoop configuration in Hadoop directory on each node.
  For example, change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
@@ -78,26 +81,31 @@ Similar to above, add additional Alluxio properties to `core-site.xml` of Hadoop
 </property>
 ```
 
-Alternatively, you can also append the path to [`alluxio-site.properties`](Configuration-Settings.html) to Presto's JVM config at `etc/jvm.config` under Presto folder. The advantage of this approach is to have all the Alluxio properties set within the same file of `alluxio-site.properties`.
+Alternatively, you can also append the conf path (i.e. `/<PATH_TO_ALLUXIO>/conf`) containing [`alluxio-site.properties`](Configuration-Settings.html) to Presto's JVM config at `etc/jvm.config` under Presto folder. The advantage of this approach is to have all the Alluxio properties set within the same file of `alluxio-site.properties`.
 
 ```bash
 ...
--Xbootclasspath/p:<path-to-alluxio-site-properties>
+-Xbootclasspath/p:<path-to-alluxio-conf>
 ```
 
-Also, it's recommended to increase `alluxio.user.network.netty.timeout.ms` to a bigger value (e.g. 10 mins) to avoid the timeout
+Also, it's recommended to increase `alluxio.user.network.netty.timeout` to a bigger value (e.g. `10min`) to avoid the timeout
  failure when reading large files from remote worker.
 
-#### Increase `hive.max-split-size`
+### Enable `hive.force-local-scheduling`
+
+It is recommended to collocate Presto with Alluxio so that Presto workers can read data locally. An important option to enable in Presto is `hive.force-local-scheduling`, which forces splits to be 
+scheduled on the same node as the Alluxio worker serving the split data. By default, `hive.force-local-scheduling` in Presto is set to false, and Presto will not attempt to schedule the work on the same machine as the Alluxio worker node.
+
+### Increase `hive.max-split-size`
 
 Presto's Hive integration uses the config [`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html) to control the parallelism of the query. It's recommended to set this size no less than Alluxio's block size to avoid the read contention within the same block.
 
-# Distribute the Alluxio Client Jar
+## Distribute the Alluxio Client Jar
 
 We recommend you to download the tarball from
 Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can choose to compile this client jar from the source code
-by following Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
+by following the instructions [here](Building-Alluxio-From-Source.html#compute-framework-support).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 Distribute the Alluxio client jar to all worker nodes in Presto:
@@ -105,7 +113,9 @@ Distribute the Alluxio client jar to all worker nodes in Presto:
 `$PRESTO_HOME/plugin/hive-hadoop2/`
 (For different versions of Hadoop, put the appropriate folder), And restart the process of coordinator and worker.
 
-# Presto cli examples
+## Presto cli examples
+
+Configure Alluxio as the default filesystem of Hive by following the instructions [here](Running-Hive-with-Alluxio.html#2-use-alluxio-as-the-default-filesystem).
 
 Create a table in Hive and load a file in local path into Hive:
 
@@ -132,9 +142,34 @@ View Alluxio WebUI at `http://master_hostname:19999` and you can see the directo
 
 Alternatively, you can follow the [instructions](Running-Hive-with-Alluxio.html#create-new-tables-from-files-in-alluxio) to create the tables from existing files in Alluxio.
 
-Next, using a single query:
+Next, start your Hive metastore service. Hive metastore listens on port 9083 by default.
+
+```bash
+$ /<PATH_TO_HIVE>/bin/hive --service metastore
 ```
-/home/path/presto/presto-cli-0.170-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
+
+The following is an example of the Presto configuration `/<PATH_TO_PRESTO>/etc/catalog/hive.properties` :
+
+```properties
+connector.name=hive-hadoop2
+hive.metastore.uri=thrift://localhost:9083
+hive.config.resources=/<PATH_TO_HADOOP>/etc/hadoop/core-site.xml,/<PATH_TO_HADOOP>/etc/hadoop/hdfs-site.xml
+```
+
+Start your Presto server. Presto server runs on port 8080 by default:
+
+```bash
+$ /<PATH_TO_PRESTO>/bin/launcher run
+```
+
+Follow [Presto CLI guidence](https://prestodb.io/docs/current/installation/cli.html) to download the `presto-cli-<PRESTO_VERSION>-executable.jar`,
+rename it to `presto`, and make it executable with `chmod +x` 
+(sometimes the executable `presto` exists in `/<PATH_TO_PRESTO>/bin/presto` and you can use it directly).
+
+Run a single query similar to:
+
+```bash
+$ ./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
 ```
 
 And you can see the query results from console:
