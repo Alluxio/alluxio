@@ -11,6 +11,11 @@
 
 package alluxio.worker.block;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
@@ -33,8 +38,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for {@link SpaceReserver}.
