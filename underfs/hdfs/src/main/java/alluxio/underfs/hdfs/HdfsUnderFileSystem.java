@@ -254,9 +254,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
-    LOG.info("setAclEntry {}", path);
     mHdfsAclProvider.setAclEntries(getFs(), path, aclEntries);
-    LOG.info("setAclEntry over {}", path);
   }
 
   @Override
