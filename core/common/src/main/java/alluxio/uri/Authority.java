@@ -23,7 +23,8 @@ import java.util.regex.Pattern;
  */
 public interface Authority extends Comparable<Authority>, Serializable {
   Logger LOG = LoggerFactory.getLogger(Authority.class);
-  Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@(.*)");
+  Pattern SINGLE_MASTER_AUTH = Pattern.compile("^([^:,;]+):(\\d+)$");
+  Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@([^:,;]+:\\d+([,;][^:,;]+:\\d+)*)$");
 
   /**
    * Gets the Authority object from the input string.
@@ -36,13 +37,14 @@ public interface Authority extends Comparable<Authority>, Serializable {
       return NoAuthority.INSTANCE;
     }
     Matcher matcher = ZOOKEEPER_AUTH.matcher(authority);
-    if (matcher.find()) {
+    if (matcher.matches()) {
       return new ZookeeperAuthority(authority,
           matcher.group(1).replaceAll(";", ","));
     } else {
-      String[] strArr = authority.split(":");
-      if (strArr.length == 2) {
-        return new SingleMasterAuthority(authority, strArr[0], Integer.parseInt(strArr[1]));
+      matcher = SINGLE_MASTER_AUTH.matcher(authority);
+      if (matcher.matches()) {
+        return new SingleMasterAuthority(authority,
+            matcher.group(1), Integer.parseInt(matcher.group(2)));
       } else {
         return new UnknownAuthority(authority);
       }
