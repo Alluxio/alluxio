@@ -24,9 +24,10 @@ public class AuthorityTest {
   @Test
   public void authorityFromStringTest() {
     assertTrue(Authority.fromString("localhost:19998") instanceof SingleMasterAuthority);
+    assertTrue(Authority.fromString("127.0.0.1:19998") instanceof SingleMasterAuthority);
 
-    assertTrue(Authority.fromString("zk@host:port") instanceof ZookeeperAuthority);
-    assertTrue(Authority.fromString("zk@host1:2181,host2:2181,host3:2181")
+    assertTrue(Authority.fromString("zk@host:2181") instanceof ZookeeperAuthority);
+    assertTrue(Authority.fromString("zk@host1:2181,127.0.0.2:2181,12.43.214.53:2181")
         instanceof ZookeeperAuthority);
     assertTrue(Authority.fromString("zk@host1:2181;host2:2181;host3:2181")
         instanceof ZookeeperAuthority);
@@ -35,8 +36,21 @@ public class AuthorityTest {
     assertTrue(Authority.fromString(null) instanceof NoAuthority);
 
     assertTrue(Authority.fromString("localhost") instanceof UnknownAuthority);
-    assertTrue(Authority.fromString("localhost:19998:8080") instanceof UnknownAuthority);
+    assertTrue(Authority.fromString("f3,321:sad") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("localhost:") instanceof UnknownAuthority);
+    assertTrue(Authority.fromString("127.0.0.1:19998,") instanceof UnknownAuthority);
+    assertTrue(Authority.fromString("localhost:19998:8080") instanceof UnknownAuthority);
+    assertTrue(Authority.fromString("localhost:asdsad") instanceof UnknownAuthority);
+
+    assertTrue(Authority.fromString("zk@") instanceof UnknownAuthority);
+    assertTrue(Authority.fromString("zk@;") instanceof UnknownAuthority);
+    assertTrue(Authority.fromString("zk@localhost") instanceof UnknownAuthority);
+    assertTrue(Authority.fromString("zk@127.0.0.1:port") instanceof UnknownAuthority);
+    assertTrue(Authority.fromString("zk@127.0.0.1:2181,") instanceof UnknownAuthority);
+    assertTrue(Authority.fromString("zk@127.0.0.1:2181,localhost") instanceof UnknownAuthority);
+
+    assertTrue(Authority.fromString(",,,") instanceof UnknownAuthority);
+    assertTrue(Authority.fromString(";;;") instanceof UnknownAuthority);
   }
 
   @Test
@@ -50,13 +64,14 @@ public class AuthorityTest {
 
   @Test
   public void zookeeperAuthorityTest() {
-    ZookeeperAuthority authority = (ZookeeperAuthority) Authority.fromString("zk@host:port");
-    assertEquals("zk@host:port", authority.toString());
-    assertEquals("host:port", authority.getZookeeperAddress());
+    ZookeeperAuthority authority = (ZookeeperAuthority) Authority.fromString("zk@host:2181");
+    assertEquals("zk@host:2181", authority.toString());
+    assertEquals("host:2181", authority.getZookeeperAddress());
 
-    authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181,host2:2181,host3:2181");
-    assertEquals("zk@host1:2181,host2:2181,host3:2181", authority.toString());
-    assertEquals("host1:2181,host2:2181,host3:2181", authority.getZookeeperAddress());
+    authority = (ZookeeperAuthority) Authority
+        .fromString("zk@127.0.0.1:2181,127.0.0.2:2181,127.0.0.3:2181");
+    assertEquals("zk@127.0.0.1:2181,127.0.0.2:2181,127.0.0.3:2181", authority.toString());
+    assertEquals("127.0.0.1:2181,127.0.0.2:2181,127.0.0.3:2181", authority.getZookeeperAddress());
 
     authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181;host2:2181;host3:2181");
     assertEquals("zk@host1:2181;host2:2181;host3:2181", authority.toString());
