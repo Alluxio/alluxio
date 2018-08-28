@@ -11,14 +11,6 @@
 
 package alluxio.exception.status;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.channels.ClosedChannelException;
-import java.nio.file.attribute.UserPrincipalNotFoundException;
-
-import com.google.common.base.Preconditions;
-
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -39,6 +31,14 @@ import alluxio.exception.LineageDoesNotExistException;
 import alluxio.exception.NoWorkerException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
+
+import com.google.common.base.Preconditions;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.channels.ClosedChannelException;
+import java.nio.file.attribute.UserPrincipalNotFoundException;
 
 /**
  * An exception thrown by Alluxio. {@link #getStatus()} can be used to determine the represented
