@@ -58,8 +58,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * [Experimental] A stream for writing a file into S3 using streaming upload.
  * The data will be persisted to a temporary directory on the local disk
- * and upload when buffered data reaches the partition size. The data
- * transfer is done using a S3 low-level multipart upload API.
+ * and uploaded when the buffered data reaches the partition size. The data
+ * transfer is done using an S3 low-level multipart upload API.
  */
 @NotThreadSafe
 public class S3ALowLevelOutputStream extends OutputStream {
@@ -67,6 +67,11 @@ public class S3ALowLevelOutputStream extends OutputStream {
 
   private static final boolean SSE_ENABLED =
       Configuration.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED);
+
+  /**
+   * Only parts bigger than 5MB could be uploaded through multipart upload,
+   * except the last part.
+   */
   private static final long UPLOAD_THRESHOLD = 5 * Constants.MB;
 
   /** Bucket name of the Alluxio S3 bucket. */
@@ -81,7 +86,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
   /** Key of the file when it is uploaded to S3. */
   private final String mKey;
 
-  /** Allowed size of the buffer file. */
+  /** Allowed size of the partition. */
   private final long mPartitionSize;
 
   /** Pre-allocated byte buffer for writing single characters. */
@@ -93,14 +98,8 @@ public class S3ALowLevelOutputStream extends OutputStream {
   /** The retry policy of this multipart upload. */
   private final RetryPolicy mRetryPolicy = new CountingRetry(5);
 
-  /** The upload id of this multipart upload. */
-  private String mUploadId;
-
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
   private boolean mClosed = false;
-
-  /** The MD5 hash of the file. */
-  private MessageDigest mHash;
 
   /**
    * The local file that will be uploaded when reaches the partition size
@@ -108,11 +107,17 @@ public class S3ALowLevelOutputStream extends OutputStream {
    */
   private File mFile;
 
+  /** Store the future of tags. */
+  private List<ListenableFuture<PartETag>> mFutureTags = new ArrayList<>();
+
+  /** The MD5 hash of the file. */
+  private MessageDigest mHash;
+
   /** The output stream to a local file where the file will be buffered. */
   private OutputStream mLocalOutputStream;
 
-  /** Store the future of tags. */
-  private List<ListenableFuture<PartETag>> mFutureTags = new ArrayList<>();
+  /** When the offset reaches the partition size, we upload the temp file. */
+  private long mOffset;
 
   /**
    * Give each upload request an unique and continuous id
@@ -120,8 +125,8 @@ public class S3ALowLevelOutputStream extends OutputStream {
    */
   private AtomicInteger mPartNumber;
 
-  /** When the offset reaches the partition size, we upload the temp file. */
-  private long mOffset;
+  /** The upload id of this multipart upload. */
+  private String mUploadId;
 
   /**
    * Constructs a new stream for writing a file.
@@ -135,12 +140,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
       ExecutorService executor) {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "
         + "not be null or empty.");
-    // Partition size should be at least 5 MB, since S3 low-level multipart upload does not
-    // accept intermediate part smaller than 5 MB.
-    long partSize = Configuration.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE);
-    mPartitionSize = partSize < 5 * Constants.MB ? 5 * Constants.MB : partSize;
     mBucketName = bucketName;
-    mKey = key;
     mClient = s3Client;
     mExecutor = MoreExecutors.listeningDecorator(executor);
     try {
@@ -149,32 +149,12 @@ public class S3ALowLevelOutputStream extends OutputStream {
       LOG.warn("Algorithm not available for MD5 hash.", e);
       mHash = null;
     }
-
-    // Generate the object metadata by setting server side encryption, md5 checksum,
-    // and encoding as octet stream since no assumptions are made about the file type
-    ObjectMetadata meta = new ObjectMetadata();
-    if (SSE_ENABLED) {
-      meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
-    }
-    if (mHash != null) {
-      meta.setContentMD5(new String(Base64.encode(mHash.digest())));
-    }
-    meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
-
-    InitiateMultipartUploadRequest initRequest =
-        new InitiateMultipartUploadRequest(mBucketName, mKey).withObjectMetadata(meta);
-    do {
-      try {
-        mUploadId = s3Client.initiateMultipartUpload(initRequest).getUploadId();
-        break;
-      } catch (Exception e) {
-        LOG.warn("Unable to init multipart upload " + e);
-      }
-    } while (mRetryPolicy.attempt());
-
+    mKey = key;
+    // Partition size should be at least 5 MB, since S3 low-level multipart upload does not
+    // accept intermediate part smaller than 5 MB.
+    long partSize = Configuration.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE);
+    mPartitionSize = partSize < 5 * Constants.MB ? 5 * Constants.MB : partSize;
     mPartNumber = new AtomicInteger(1);
-    LOG.debug("Multi-part upload initiated. bucket={}, key={}, uploadId={}, partitionSize={}.",
-        mBucketName, mKey, mUploadId, mPartitionSize);
   }
 
   @Override
@@ -190,11 +170,11 @@ public class S3ALowLevelOutputStream extends OutputStream {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
+    if (mUploadId == null) {
+      initMultiPartUpload();
+    }
     if (b == null || len == 0) {
       return;
-    } else if ((off < 0) || (off > b.length) || (len < 0)
-        || ((off + len) > b.length) || ((off + len) < 0)) {
-      throw new IndexOutOfBoundsException();
     }
     if (mFile == null) {
       initNewFile();
@@ -222,7 +202,6 @@ public class S3ALowLevelOutputStream extends OutputStream {
       uploadPart();
     }
     waitForAllPartsUpload();
-    LOG.info("flush() : get tags {}", mTags);
     mFutureTags = new ArrayList<>();
   }
 
@@ -247,27 +226,59 @@ public class S3ALowLevelOutputStream extends OutputStream {
       }
 
       waitForAllPartsUpload();
-
-      CompleteMultipartUploadRequest compRequest = new CompleteMultipartUploadRequest(mBucketName,
-          mKey, mUploadId, mTags);
-      do {
-        try {
-          mClient.completeMultipartUpload(compRequest);
-          break;
-        } catch (Exception e) {
-          LOG.warn("Unable to complete multipart upload " + e);
-        }
-      } while (mRetryPolicy.attempt());
-
-      LOG.debug("Completed multipart upload. partNum={}, bucketName={}, key={}.",
-          mTags.size(), mBucketName, mKey);
+      completeMultiPartUpload();
     } catch (Exception e) {
-      LOG.error("Failed to upload {}: {}", getUploadPath(), e.toString());
+      LOG.error("Failed to upload {}: {}", mKey, e.toString());
       throw new IOException(e);
     }
-
     // Set the closed flag, close can be retried until mFile.delete is called successfully
     mClosed = true;
+  }
+
+  /**
+   * Initializes multipart upload.
+   */
+  private void initMultiPartUpload() throws IOException {
+    // Generate the object metadata by setting server side encryption, md5 checksum,
+    // and encoding as octet stream since no assumptions are made about the file type
+    ObjectMetadata meta = new ObjectMetadata();
+    if (SSE_ENABLED) {
+      meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+    }
+    if (mHash != null) {
+      meta.setContentMD5(new String(Base64.encode(mHash.digest())));
+    }
+    meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
+
+    AmazonClientException lastException;
+    InitiateMultipartUploadRequest initRequest =
+        new InitiateMultipartUploadRequest(mBucketName, mKey).withObjectMetadata(meta);
+    do {
+      try {
+        mUploadId = mClient.initiateMultipartUpload(initRequest).getUploadId();
+        return;
+      } catch (AmazonClientException e) {
+        lastException = e;
+      }
+    } while (mRetryPolicy.attempt());
+    // This point is only reached if the operation failed more
+    // than the allowed retry count
+    throw new IOException("Unable to init multipart upload to " + mKey, lastException);
+  }
+
+  /**
+   * Creates a new temp file to write to.
+   */
+  private void initNewFile() throws IOException {
+    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
+    if (mHash != null) {
+      mLocalOutputStream =
+          new BufferedOutputStream(new DigestOutputStream(new FileOutputStream(mFile), mHash));
+    } else {
+      mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
+    }
+    mOffset = 0;
+    LOG.debug("Init new temp file @ {}", mFile.getPath());
   }
 
   /**
@@ -299,53 +310,28 @@ public class S3ALowLevelOutputStream extends OutputStream {
     ListenableFuture<PartETag> futureTag =
         mExecutor.submit((Callable) () -> {
           PartETag partETag;
+          AmazonClientException previousException;
           try {
-            partETag = mClient.uploadPart(request).getPartETag();
-            LOG.debug("Completed upload of part {} and get ETag {}", partNumber,
-                partETag.getETag());
-            return partETag;
+            do {
+              try {
+                partETag = mClient.uploadPart(request).getPartETag();
+                return partETag;
+              } catch (AmazonClientException e) {
+                previousException = e;
+              }
+            } while (mRetryPolicy.attempt());
           } finally {
             // Delete the uploaded file
-            file.delete();
+            if (!mFile.delete()) {
+              LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
+            }
           }
+          throw new IOException("Fail to upload part " + partNumber + " to " + mKey,
+              previousException);
         });
     mFutureTags.add(futureTag);
     LOG.debug("Submit upload part request. partNum={}, file={}, fileSize={}.",
         partNumber, file.getPath(), file.length());
-  }
-
-  /**
-   * Creates a new temp file to write to.
-   */
-  private void initNewFile() throws IOException {
-    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
-    if (mHash != null) {
-      mLocalOutputStream =
-          new BufferedOutputStream(new DigestOutputStream(new FileOutputStream(mFile), mHash));
-    } else {
-      mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
-    }
-    mOffset = 0;
-    LOG.debug("Init new temp file @ {}", mFile.getPath());
-  }
-
-  /**
-   * Aborts multipart upload.
-   */
-  private void abortMultiPartUpload() {
-    LOG.warn("Aborting multi-part upload with id '{}'", mUploadId);
-    do {
-      try {
-        mClient.abortMultipartUpload(new AbortMultipartUploadRequest(mBucketName,
-            mKey, mUploadId));
-        return;
-      } catch (AmazonClientException e) {
-        // Ignore the exception and keep retrying
-      }
-    } while (mRetryPolicy.attempt());
-    // This point is only reached if the operation failed more
-    // than the allowed retry count
-    LOG.warn("Unable to abort multipart upload with id '{}'.", mUploadId);
   }
 
   /**
@@ -361,19 +347,57 @@ public class S3ALowLevelOutputStream extends OutputStream {
         future.cancel(true);
       }
       abortMultiPartUpload();
-      throw new IOException("Part upload failed in multi-part upload with "
-          + "id '" + mUploadId + "':" + e);
+      throw new IOException("Part upload failed in multipart upload with "
+          + "id '" + mUploadId + "' to" + mKey, e);
     } catch (InterruptedException e) {
-      LOG.warn("Interrupted object upload:" + e);
+      LOG.warn("Interrupted object upload.", e);
       Thread.currentThread().interrupt();
     }
-    LOG.debug("All upload requests finished.");
+    LOG.debug("All current upload requests '{}' have been finished.", mTags);
   }
 
   /**
-   * @return the path in S3 to upload the file to
+   * Completes multipart upload.
    */
-  protected String getUploadPath() {
-    return mKey;
+  private void completeMultiPartUpload() throws IOException {
+    AmazonClientException lastException;
+    CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(mBucketName,
+        mKey, mUploadId, mTags);
+    do {
+      try {
+        mClient.completeMultipartUpload(completeRequest);
+        return;
+      } catch (AmazonClientException e) {
+        lastException = e;
+      }
+    } while (mRetryPolicy.attempt());
+    // This point is only reached if the operation failed more
+    // than the allowed retry count
+    throw new IOException("Unable to complete multipart upload with id '"
+        + mUploadId + "' to " + mKey, lastException);
+  }
+
+  /**
+   * Aborts multipart upload.
+   */
+  private void abortMultiPartUpload() {
+    AmazonClientException lastException;
+    do {
+      try {
+        mClient.abortMultipartUpload(new AbortMultipartUploadRequest(mBucketName,
+            mKey, mUploadId));
+        LOG.warn("Aborted multipart upload with id '{}' to {}", mUploadId, mBucketName);
+        return;
+      } catch (AmazonClientException e) {
+        lastException = e;
+      }
+    } while (mRetryPolicy.attempt());
+    // This point is only reached if the operation failed more
+    // than the allowed retry count
+    LOG.warn("Unable to abort multipart upload with bucket '{}' and id '{}'. "
+        + "You may need to enable the periodical cleaning by setting property {}"
+        + "to be true.", mBucketName, mUploadId,
+        PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_ENABLED.getName(),
+        lastException);
   }
 }

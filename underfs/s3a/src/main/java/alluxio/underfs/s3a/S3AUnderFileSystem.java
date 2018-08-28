@@ -20,7 +20,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -30,9 +29,9 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.internal.Mimetypes;
@@ -49,7 +48,7 @@ import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.util.Base64;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
@@ -63,7 +62,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -132,7 +130,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // otherwise, use the default credential provider.
     if (conf.isSet(PropertyKey.S3A_ACCESS_KEY)
         && conf.isSet(PropertyKey.S3A_SECRET_KEY)) {
-      return new StaticCredentialsProvider(new BasicAWSCredentials(
+      return new AWSStaticCredentialsProvider(new BasicAWSCredentials(
           conf.get(PropertyKey.S3A_ACCESS_KEY), conf.get(PropertyKey.S3A_SECRET_KEY)));
     }
     // Checks, in order, env variables, system properties, profile file, and instance profile.
@@ -220,13 +218,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         .fixedThreadPoolExecutorServiceFactory("alluxio-s3-transfer-manager-worker",
             numTransferThreads).create();
 
-    TransferManager transferManager = new TransferManager(amazonS3Client, service);
+    TransferManager transferManager = TransferManagerBuilder.standard()
+        .withS3Client(amazonS3Client).withExecutorFactory(() -> service)
+        .withMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD)
+        .build();
 
-    TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
-    transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
-    transferManager.setConfiguration(transferConf);
-
-    abortMultiPartUpload(transferManager, bucketName, conf);
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
         service, transferManager, conf, streamingUploadEnabled);
   }
@@ -414,29 +410,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       throw new IOException(e);
     }
     return result;
-  }
-
-  /**
-   * Aborts all intermediate multipart uploads older than clean age.
-   *
-   * @param manager a transfer manager
-   * @param bucketName the bucket to abort
-   * @param conf the under filesystem configuration
-   */
-  private static void abortMultiPartUpload(TransferManager manager, String bucketName,
-      UnderFileSystemConfiguration conf) {
-    if (!conf.isSet(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED)
-        || !conf.getBoolean(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED)) {
-      return;
-    }
-    long cleanAge = conf.isSet(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS)
-        ? Math.max(conf.getMs(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS), 0)
-        : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS
-        .getDefaultValue());
-    Date cleanDate = new Date(new Date().getTime() - cleanAge);
-    manager.abortMultipartUploads(bucketName, cleanDate);
-    LOG.debug("Cleaned all intermediate multipart uploads of bucket {} older than {}.",
-        bucketName, cleanDate);
   }
 
   /**

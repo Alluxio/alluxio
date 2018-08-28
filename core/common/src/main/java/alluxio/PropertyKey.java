@@ -715,22 +715,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED =
-      new Builder(Name.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED)
+  public static final PropertyKey UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+      new Builder(Name.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+          .setDefaultValue("1day")
+          .setDescription("Clean all the intermediate multipart uploads older than this age.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_ENABLED =
+      new Builder(Name.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether or not to clean existing multipart uploads that may not "
-              + "have been completed/aborted correctly. If enabled, when our filesystem is "
-              + "instantiated, all the old intermediate multipart uploads will be cleaned. "
+              + "have been completed/aborted correctly. If enabled, all the old intermediate "
+              + "multipart uploads in all non readonly S3 mount points will be cleaned. "
               + "This may impact other ongoing upload operations, so should be used sparingly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
+          .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS =
-      new Builder(Name.UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS)
+  public static final PropertyKey UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_INTERVAL =
+      new Builder(Name.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_INTERVAL)
           .setDefaultValue("1day")
-          .setDescription("Clean all the multipart uploads older than this age.")
+          .setDescription("The interval for periodically cleaning "
+              + "all the intermediate multipart uploads .")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS)
@@ -3190,10 +3198,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
     public static final String UNDERFS_S3A_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3a.bulk.delete.enabled";
-    public static final String UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_ENABLED =
-        "alluxio.underfs.s3a.clean.existing.multipart.enabled";
-    public static final String UNDERFS_S3A_CLEAN_EXISTING_MULTIPART_AGE_MS =
-        "alluxio.underfs.s3a.clean.existing.multipart.age.ms";
+    public static final String UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+        "alluxio.underfs.s3a.intermediate.upload.clean.age";
+    public static final String UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_ENABLED =
+        "alluxio.underfs.s3a.intermediate.upload.enabled";
+    public static final String UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_INTERVAL =
+        "alluxio.underfs.s3a.intermediate.upload.interval";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout";
     public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
