@@ -22,6 +22,7 @@ import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
@@ -585,7 +586,7 @@ public final class CommonUtils {
    * @param response the response
    */
   public static void unwrapResponse(Protocol.Response response) throws AlluxioStatusException {
-    Status status = StatusUtils.fromProto(response.getStatus());
+    Status status = ProtoUtils.fromProto(response.getStatus());
     if (status != Status.OK) {
       throw AlluxioStatusException.from(status, response.getMessage());
     }
@@ -599,7 +600,7 @@ public final class CommonUtils {
    */
   public static void unwrapResponseFrom(Protocol.Response response, Channel channel)
       throws AlluxioStatusException {
-    Status status = StatusUtils.fromProto(response.getStatus());
+    Status status = ProtoUtils.fromProto(response.getStatus());
     if (status != Status.OK) {
       throw AlluxioStatusException.from(status, String
           .format("Channel to %s: %s", channel.remoteAddress(), response.getMessage()));
