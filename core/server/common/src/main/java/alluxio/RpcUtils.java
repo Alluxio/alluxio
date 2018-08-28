@@ -62,11 +62,13 @@ public final class RpcUtils {
       if (logAnyFailure && !logger.isDebugEnabled()) {
         logger.warn("{}, Error={}", callable, e.getMessage());
       }
-      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
+//      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (RuntimeException e) {
       logger.error("Exit (Error): {}", callable, e);
-      throw new InternalException(e).toThrift();
+//      throw new InternalException(e).toThrift();
     }
+    // TODO(adit): remove me
+    return null;
   }
 
   /**
@@ -106,17 +108,19 @@ public final class RpcUtils {
       if (logAnyFailure && !logger.isDebugEnabled()) {
         logger.warn("{}, Error={}", callable, e.getMessage());
       }
-      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
+//      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (IOException e) {
       logger.debug("Exit (Error): {}", callable, e);
       if (logAnyFailure && !logger.isDebugEnabled()) {
         logger.warn("{}, Error={}", callable, e.getMessage());
       }
-      throw AlluxioStatusException.fromIOException(e).toThrift();
+//      throw AlluxioStatusException.fromIOException(e).toThrift();
     } catch (RuntimeException e) {
       logger.error("Exit (Error): {}", callable, e);
-      throw new InternalException(e).toThrift();
+//      throw new InternalException(e).toThrift();
     }
+    // TODO(adit): remove me
+    return null;
   }
 
   /**

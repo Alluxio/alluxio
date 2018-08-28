@@ -308,12 +308,12 @@ public abstract class AbstractClient implements Client {
       try {
         return rpc.call();
       } catch (AlluxioTException e) {
-        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
-        if (se.getStatus() == Status.UNAVAILABLE) {
-          ex = se;
-        } else {
-          throw se;
-        }
+//        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
+//        if (se.getStatus() == Status.UNAVAILABLE) {
+//          ex = se;
+//        } else {
+//          throw se;
+//        }
       } catch (TException e) {
         ex = e;
       }
