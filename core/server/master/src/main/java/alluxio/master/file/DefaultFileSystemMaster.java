@@ -83,13 +83,9 @@ import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
-import alluxio.proto.journal.File;
-import alluxio.proto.journal.File.AddMountPointEntry;
-import alluxio.proto.journal.File.DeleteMountPointEntry;
 import alluxio.proto.journal.File.NewBlockEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAclEntry;
-import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry.Builder;
@@ -353,7 +349,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mBlockMaster = blockMaster;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = new MasterUfsManager();
-    mMountTable = new MountTable(mUfsManager);
+    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
 
     // TODO(gene): Handle default config value for whitelist.
@@ -367,6 +363,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
+  }
+
+  private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
+    try (CloseableResource<UnderFileSystem> resource = ufsManager.getRoot().acquireUfsResource()) {
+      String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      boolean shared = resource.get().isObjectStorage()
+          && Configuration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
+      Map<String, String> rootUfsConf =
+          Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+      MountOptions mountOptions =
+          MountOptions.defaults().setShared(shared).setProperties(rootUfsConf);
+      return new MountInfo(new AlluxioURI(MountTable.ROOT),
+          new AlluxioURI(rootUfsUri), IdUtils.ROOT_MOUNT_ID, mountOptions);
+    }
   }
 
   @Override
@@ -394,25 +404,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
     if (mDirectoryIdGenerator.replayJournalEntryFromJournal(entry)
-        || mInodeTree.replayJournalEntryFromJournal(entry)) {
+        || mInodeTree.replayJournalEntryFromJournal(entry)
+        || mMountTable.replayJournalEntryFromJournal(entry)
+        || mUfsManager.replayJournalEntryFromJournal(entry)) {
       return;
     } else if (entry.hasReinitializeFile() || entry.hasLineage() || entry.hasLineageIdGenerator()
         || entry.hasDeleteLineage()) {
       // lineage is no longer supported, fall through
-    } else if (entry.hasAddMountPoint()) {
-      try {
-        mountFromEntry(entry.getAddMountPoint());
-      } catch (FileAlreadyExistsException | InvalidPathException e) {
-        throw new RuntimeException(e);
-      }
-    } else if (entry.hasDeleteMountPoint()) {
-      unmountFromEntry(entry.getDeleteMountPoint());
-    } else if (entry.hasUpdateUfsMode()) {
-      try {
-        updateUfsModeFromEntry(entry.getUpdateUfsMode());
-      } catch (AlluxioException e) {
-        throw new RuntimeException(e);
-      }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -421,27 +419,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void resetState() {
     mInodeTree.reset();
-    String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    Map<String, String> rootUfsConf =
-        Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-    mMountTable.clear();
-    // Initialize the root mount if it doesn't exist yet.
-    if (!mMountTable.isMountPoint(new AlluxioURI(MountTable.ROOT))) {
-      try (CloseableResource<UnderFileSystem> ufsResource =
-          mUfsManager.getRoot().acquireUfsResource()) {
-        // The root mount is a part of the file system master's initial state. The mounting is not
-        // journaled, so the root will be re-mounted based on configuration whenever the master
-        // starts.
-        long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
-        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
-            MountOptions.defaults()
-                .setShared(ufsResource.get().isObjectStorage() && Configuration
-                    .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
-                .setProperties(rootUfsConf));
-      } catch (FileAlreadyExistsException | InvalidPathException e) {
-        throw new IllegalStateException(e);
-      }
-    }
+    mMountTable.reset();
   }
 
   @Override
@@ -483,6 +461,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
 
+      // Initialize the ufs manager from the mount table.
+      for (String key : mMountTable.getMountTable().keySet()) {
+        if (key.equals(MountTable.ROOT)) {
+          continue;
+        }
+        MountInfo mountInfo = mMountTable.getMountTable().get(key);
+        UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults()
+            .setMountSpecificConf(mountInfo.getOptions().getProperties());
+        mUfsManager.addMount(mountInfo.getMountId(), new AlluxioURI(key), ufsConf);
+      }
       // Startup Checks and Periodic Threads.
       if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
         validateInodeBlocks(true);
@@ -1430,7 +1418,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           // If this is a mount point, we have deleted all the children and can unmount it
           // TODO(calvin): Add tests (ALLUXIO-1831)
           if (mMountTable.isMountPoint(alluxioUriToDelete)) {
-            unmountInternal(alluxioUriToDelete);
+            mMountTable.delete(rpcContext, alluxioUriToDelete);
           } else {
             if (!deleteOptions.isAlluxioOnly()) {
               try {
@@ -2490,7 +2478,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Possible ufs sync.
       syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE);
 
-      mountAndJournal(rpcContext, inodePath, ufsPath, options);
+      mountInternal(rpcContext, inodePath, ufsPath, options);
       auditContext.setSucceeded(true);
       Metrics.PATHS_MOUNTED.inc();
     }
@@ -2498,15 +2486,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   /**
    * Mounts a UFS path onto an Alluxio path.
-   * <p>
-   * Writes to the journal.
    *
    * @param rpcContext the rpc context
    * @param inodePath the Alluxio path to mount to
    * @param ufsPath the UFS path to mount
    * @param options the mount options
    */
-  private void mountAndJournal(RpcContext rpcContext, LockedInodePath inodePath, AlluxioURI ufsPath,
+  private void mountInternal(RpcContext rpcContext, LockedInodePath inodePath, AlluxioURI ufsPath,
       MountOptions options) throws InvalidPathException, FileAlreadyExistsException,
       FileDoesNotExistException, IOException, AccessControlException {
     // Check that the Alluxio Path does not exist
@@ -2516,7 +2502,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
     long mountId = IdUtils.createMountId();
-    mountInternal(inodePath, ufsPath, mountId, false /* not replayed */, options);
+    mountInternal(rpcContext, inodePath, ufsPath, mountId, options);
     boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
@@ -2525,37 +2511,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       loadMetadataSucceeded = true;
     } finally {
       if (!loadMetadataSucceeded) {
-        unmountInternal(inodePath.getUri());
+        mMountTable.delete(rpcContext, inodePath.getUri());
       }
-    }
-
-    // For proto, build a list of String pairs representing the properties map.
-    Map<String, String> properties = options.getProperties();
-    List<StringPairEntry> protoProperties = new ArrayList<>(properties.size());
-    for (Map.Entry<String, String> entry : properties.entrySet()) {
-      protoProperties.add(
-          StringPairEntry.newBuilder().setKey(entry.getKey()).setValue(entry.getValue()).build());
-    }
-
-    AddMountPointEntry addMountPoint =
-        AddMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString())
-            .setUfsPath(ufsPath.toString()).setMountId(mountId)
-            .setReadOnly(options.isReadOnly())
-            .addAllProperties(protoProperties).setShared(options.isShared()).build();
-    rpcContext.journal(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
-  }
-
-  /**
-   * @param entry the entry to use
-   */
-  private void mountFromEntry(AddMountPointEntry entry)
-      throws FileAlreadyExistsException, InvalidPathException, IOException {
-    AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
-    AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
-    try (LockedInodePath inodePath = mInodeTree
-        .lockInodePath(alluxioURI, InodeTree.LockMode.WRITE)) {
-      mountInternal(inodePath, ufsURI, entry.getMountId(), true /* replayed */,
-          new MountOptions(entry));
     }
   }
 
@@ -2563,14 +2520,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * Updates the mount table with the specified mount point. The mount options may be updated during
    * this method.
    *
+   * @param journalContext the journal context
    * @param inodePath the Alluxio mount point
    * @param ufsPath the UFS endpoint to mount
    * @param mountId the mount id
-   * @param replayed whether the operation is a result of replaying the journal
    * @param options the mount options (may be updated)
    */
-  private void mountInternal(LockedInodePath inodePath, AlluxioURI ufsPath, long mountId,
-      boolean replayed, MountOptions options)
+  private void mountInternal(Supplier<JournalContext> journalContext, LockedInodePath inodePath,
+      AlluxioURI ufsPath, long mountId, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
     // Adding the mount point will not create the UFS instance and thus not connect to UFS
@@ -2578,31 +2535,29 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
             .setShared(options.isShared()).setMountSpecificConf(options.getProperties()));
     try {
-      if (!replayed) {
-        try (CloseableResource<UnderFileSystem> ufsResource =
-            mUfsManager.get(mountId).acquireUfsResource()) {
-          UnderFileSystem ufs = ufsResource.get();
-          ufs.connectFromMaster(
-              NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
-          // Check that the ufsPath exists and is a directory
-          if (!ufs.isDirectory(ufsPath.toString())) {
-            throw new IOException(
-                ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
-          }
-        }
-        // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
-        String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-        UnderFileSystem defaultUfs = UnderFileSystem.Factory.createForRoot();
-        String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
-        if (defaultUfs.exists(shadowPath)) {
+      try (CloseableResource<UnderFileSystem> ufsResource =
+          mUfsManager.get(mountId).acquireUfsResource()) {
+        UnderFileSystem ufs = ufsResource.get();
+        ufs.connectFromMaster(
+            NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
+        // Check that the ufsPath exists and is a directory
+        if (!ufs.isDirectory(ufsPath.toString())) {
           throw new IOException(
-              ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
+              ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
         }
+      }
+      // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
+      String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      UnderFileSystem defaultUfs = UnderFileSystem.Factory.createForRoot();
+      String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
+      if (defaultUfs.exists(shadowPath)) {
+        throw new IOException(
+            ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
       }
 
       // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
       // mount and no existing mount is a prefix of this mount.
-      mMountTable.add(alluxioPath, ufsPath, mountId, options);
+      mMountTable.add(journalContext, alluxioPath, ufsPath, mountId, options);
     } catch (Exception e) {
       mUfsManager.removeMount(mountId);
       throw e;
@@ -2613,7 +2568,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public void unmount(AlluxioURI alluxioPath) throws FileDoesNotExistException,
       InvalidPathException, IOException, AccessControlException {
     Metrics.UNMOUNT_OPS.inc();
-    List<InodeView> deletedInodes;
     // Unmount should lock the parent to remove the child inode.
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
@@ -2626,7 +2580,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         auditContext.setAllowed(false);
         throw e;
       }
-      unmountAndJournal(rpcContext, inodePath);
+      unmountInternal(rpcContext, inodePath);
       auditContext.setSucceeded(true);
       Metrics.PATHS_UNMOUNTED.inc();
     }
@@ -2634,8 +2588,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   /**
    * Unmounts a UFS path previously mounted onto an Alluxio path.
-   * <p>
-   * Writes to the journal.
    *
    * This method does not delete blocks. Instead, it adds the to the passed-in block deletion
    * context so that the blocks can be deleted after the inode deletion journal entry has been
@@ -2645,9 +2597,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param inodePath the Alluxio path to unmount, must be a mount point
    */
-  private void unmountAndJournal(RpcContext rpcContext, LockedInodePath inodePath)
+  private void unmountInternal(RpcContext rpcContext, LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException, IOException {
-    if (!unmountInternal(inodePath.getUri())) {
+    if (!mMountTable.delete(rpcContext, inodePath.getUri())) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point and not root.");
     }
@@ -2663,27 +2615,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               + "is true.",
           e.getClass()));
     }
-    DeleteMountPointEntry deleteMountPoint =
-        DeleteMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString()).build();
-    rpcContext.journal(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build());
-  }
-
-  /**
-   * @param entry the entry to use
-   */
-  private void unmountFromEntry(DeleteMountPointEntry entry) {
-    AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
-    if (!unmountInternal(alluxioURI)) {
-      LOG.error("Failed to unmount {}", alluxioURI);
-    }
-  }
-
-  /**
-   * @param uri the Alluxio mount point to remove from the mount table
-   * @return true if successful, false otherwise
-   */
-  private boolean unmountInternal(AlluxioURI uri) {
-    return mMountTable.delete(uri);
   }
 
   @Override
@@ -3337,43 +3268,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
-      throws InvalidPathException, InvalidArgumentException, UnavailableException,
+      throws InvalidPathException, UnavailableException,
       AccessControlException {
     // TODO(adit): Create new fsadmin audit context
     try (RpcContext rpcContext = createRpcContext();
         FileSystemMasterAuditContext auditContext =
             createAuditContext("updateUfsMode", ufsPath, null, null)) {
-      updateUfsModeAndJournal(rpcContext, ufsPath, ufsMode);
+      mUfsManager.setUfsMode(rpcContext, ufsPath, ufsMode);
       auditContext.setSucceeded(true);
     }
-  }
-
-  /**
-   * Update the ufs mode for path and create a journal entry.
-   *
-   * @param rpcContext the rpc context
-   * @param ufsPath the ufs path
-   * @param ufsMode the ufs mode
-   */
-  private void updateUfsModeAndJournal(RpcContext rpcContext, AlluxioURI ufsPath,
-      UnderFileSystem.UfsMode ufsMode) throws InvalidPathException {
-    updateUfsModeInternal(ufsPath, ufsMode, rpcContext);
-  }
-
-  /**
-   * Update ufs mode from journal entry.
-   *
-   * @param entry the update ufs mode journal entry
-   */
-  private void updateUfsModeFromEntry(File.UpdateUfsModeEntry entry) throws InvalidPathException {
-    String ufsPath = entry.getUfsPath();
-    UnderFileSystem.UfsMode ufsMode = UnderFileSystem.UfsMode.valueOf(entry.getUfsMode().name());
-    updateUfsModeInternal(new AlluxioURI(ufsPath), ufsMode, RpcContext.NOOP);
-  }
-
-  private void updateUfsModeInternal(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode,
-      RpcContext rpcContext) throws InvalidPathException {
-    mUfsManager.setUfsMode(ufsPath, ufsMode, rpcContext);
   }
 
   /**

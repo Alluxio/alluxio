@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class holds information about a mount point.
  */
 @ThreadSafe
-public final class MountInfo {
+public class MountInfo {
   private final AlluxioURI mAlluxioUri;
   private final AlluxioURI mUfsUri;
   private final MountOptions mOptions;
