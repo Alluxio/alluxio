@@ -152,8 +152,8 @@ public class S3ALowLevelOutputStream extends OutputStream {
     mKey = key;
     // Partition size should be at least 5 MB, since S3 low-level multipart upload does not
     // accept intermediate part smaller than 5 MB.
-    long partSize = Configuration.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE);
-    mPartitionSize = partSize < 5 * Constants.MB ? 5 * Constants.MB : partSize;
+    mPartitionSize = Math.min(UPLOAD_THRESHOLD,
+        Configuration.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE));
     mPartNumber = new AtomicInteger(1);
   }
 
@@ -197,7 +197,9 @@ public class S3ALowLevelOutputStream extends OutputStream {
     // because Fuse release() method which calls close() is async.
     // In flush(), we upload the current writing file if it is bigger than 5 MB,
     // and wait for all current upload to complete.
-    mLocalOutputStream.flush();
+    if (mLocalOutputStream != null) {
+      mLocalOutputStream.flush();
+    }
     if (mOffset > UPLOAD_THRESHOLD) {
       uploadPart();
     }
@@ -222,7 +224,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
             .withFile(mFile)
             .withPartSize(mFile.length());
         uploadRequest.setLastPart(true);
-        execUpload(uploadRequest, mFile, partNumber);
+        execUpload(uploadRequest);
       }
 
       waitForAllPartsUpload();
@@ -246,7 +248,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
       meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
     }
     if (mHash != null) {
-      meta.setContentMD5(new String(Base64.encode(mHash.digest())));
+      meta.setContentMD5(Base64.encodeAsString(mHash.digest()));
     }
     meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
 
@@ -300,13 +302,16 @@ public class S3ALowLevelOutputStream extends OutputStream {
         .withPartNumber(partNumber)
         .withFile(newFileToUpload)
         .withPartSize(newFileToUpload.length());
-    execUpload(uploadRequest, newFileToUpload, partNumber);
+    execUpload(uploadRequest);
   }
 
   /**
    * Executes the upload part request.
+   *
+   * @param request the upload part request
    */
-  private void execUpload(UploadPartRequest request, File file, int partNumber) {
+  private void execUpload(UploadPartRequest request) {
+    File file = request.getFile();
     ListenableFuture<PartETag> futureTag =
         mExecutor.submit((Callable) () -> {
           PartETag partETag;
@@ -326,12 +331,12 @@ public class S3ALowLevelOutputStream extends OutputStream {
               LOG.error("Failed to delete temporary file @ {}", file.getPath());
             }
           }
-          throw new IOException("Fail to upload part " + partNumber + " to " + mKey,
-              lastException);
+          throw new IOException("Fail to upload part " + request.getPartNumber()
+              + " to " + request.getKey(), lastException);
         });
     mFutureTags.add(futureTag);
-    LOG.debug("Submit upload part request. key={}, partNum={}, file={}, fileSize={}.",
-        mKey, partNumber, file.getPath(), file.length());
+    LOG.debug("Submit upload part request. key={}, partNum={}, file={}, fileSize={}, lastPart={}.",
+        mKey, request.getPartNumber(), file.getPath(), file.length(), request.isLastPart());
   }
 
   /**
@@ -343,14 +348,14 @@ public class S3ALowLevelOutputStream extends OutputStream {
     } catch (ExecutionException e) {
       // No recover ways so that we need to cancel all the upload tasks
       // and abort the multipart upload
-      for (ListenableFuture<PartETag> future : mFutureTags) {
-        future.cancel(true);
-      }
+      Futures.allAsList(mFutureTags).cancel(true);
       abortMultiPartUpload();
       throw new IOException("Part upload failed in multipart upload with "
           + "id '" + mUploadId + "' to " + mKey, e);
     } catch (InterruptedException e) {
       LOG.warn("Interrupted object upload.", e);
+      Futures.allAsList(mFutureTags).cancel(true);
+      abortMultiPartUpload();
       Thread.currentThread().interrupt();
     }
     LOG.debug("Uploaded {} partitions of id '{}' to {}.", mTags.size(), mUploadId, mKey);
@@ -398,9 +403,9 @@ public class S3ALowLevelOutputStream extends OutputStream {
     // This point is only reached if the operation failed more
     // than the allowed retry count
     LOG.warn("Unable to abort multipart upload for key '{}' and id '{}' to bucket {}. "
-        + "You may need to enable the periodical cleaning by setting property {}"
+        + "You may need to enable the periodical cleanup by setting property {}"
         + "to be true.", mKey, mUploadId, mBucketName,
-        PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_ENABLED.getName(),
+        PropertyKey.UNDERFS_CLEANUP_ENABLED.getName(),
         lastException);
   }
 }

@@ -20,6 +20,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -62,6 +63,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -236,7 +238,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @param executor the executor for executing upload tasks
    * @param transferManager Transfer Manager for efficient I/O to S3
    * @param conf configuration for this S3A ufs
-   * @param streamingUploadEnabled whether streaming uplaod is enabled
+   * @param streamingUploadEnabled whether streaming upload is enabled
    */
   protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3Client amazonS3Client, String bucketName,
       ExecutorService executor, TransferManager transferManager, UnderFileSystemConfiguration conf,
@@ -262,6 +264,16 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   // Setting S3 mode via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setMode(String path, short mode) throws IOException {}
+
+  @Override
+  public void cleanup() {
+    long cleanAge = mConf.isSet(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+        ? mConf.getMs(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+        : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE
+        .getDefaultValue());
+    Date cleanBefore = new Date(new Date().getTime() - cleanAge);
+    mManager.abortMultipartUploads(mBucketName, cleanBefore);
+  }
 
   @Override
   protected boolean copyObject(String src, String dst) {

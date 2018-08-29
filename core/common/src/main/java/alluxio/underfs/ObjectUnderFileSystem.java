@@ -221,6 +221,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  public void cleanup() throws IOException {
+  }
+
+  @Override
   public void close() throws IOException {
   }
 
