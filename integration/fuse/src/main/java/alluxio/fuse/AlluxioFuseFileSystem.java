@@ -66,7 +66,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
 
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
-  private static final int MAX_OPEN_WAITTIME = 5000;
+  private static final int MAX_OPEN_WAITTIME_MS = 5000;
   private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
   private final boolean mIsShellGroupMapping;
@@ -785,7 +785,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
-      }, WaitForOptions.defaults().setTimeoutMs(MAX_OPEN_WAITTIME));
+      }, WaitForOptions.defaults().setTimeoutMs(MAX_OPEN_WAITTIME_MS));
       return true;
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
