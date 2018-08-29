@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.Status;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -106,6 +107,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
    * visible across both netty and I/O threads, meanwhile no atomicity of operation is assumed;
    */
   private volatile T mContext;
+  /** Record flushed to avoid duplicate initialize the context. */
+  private boolean mFlushed;
 
   /**
    * Creates an instance of {@link AbstractWriteHandler}.
@@ -139,7 +142,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         isNewContextCreated = true;
       }
       // Only initialize (open the writers) if this is the first packet in the block/file.
-      if (writeRequest.getOffset() == 0) {
+      if (writeRequest.getOffset() == 0 && !mFlushed) {
         // Expected state: context equals null as this handler is new for request, or the previous
         // context is not active (done / cancel / abort). Otherwise, notify the client an illegal
         // state. Note that, we reset the context before validation msg as validation may require to
@@ -172,6 +175,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
       } else if (writeRequest.getCancel()) {
         buf = CANCEL;
       } else if (writeRequest.getFlush()) {
+        mFlushed = true;
         buf = FLUSH;
       } else {
         DataBuffer dataBuffer = msg.getPayloadDataBuffer();
@@ -293,11 +297,13 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
 
         if (buf == FLUSH) {
           try {
-            flushRequest(mContext, mChannel);
+            if (mContext.getPosToWrite() != 0) {
+              flushRequest(mContext, mChannel);
+            }
             replyFlush();
             continue;
           } catch (Exception e) {
-            LOG.error("Failed to flush with error {}.", e);
+            LOG.error("Failed to flush for write request {}", mContext.getRequest(), e);
             Throwables.propagateIfPossible(e);
             pushAbortPacket(mChannel,
                 new Error(AlluxioStatusException.fromCheckedException(e), true));
@@ -420,10 +426,11 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
     }
 
     /**
-     * Writes a flushed response to the channel.
+     * Writes a response to signify the successful flush of the write request.
      */
     private void replyFlush() {
-      mChannel.writeAndFlush(RPCProtoMessage.createOkResponse(null));
+      mChannel.writeAndFlush(RPCProtoMessage.createResponse(Status.OK, "FLUSHED", null))
+          .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }
   }
 

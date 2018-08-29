@@ -310,28 +310,28 @@ public class S3ALowLevelOutputStream extends OutputStream {
     ListenableFuture<PartETag> futureTag =
         mExecutor.submit((Callable) () -> {
           PartETag partETag;
-          AmazonClientException previousException;
+          AmazonClientException lastException;
           try {
             do {
               try {
                 partETag = mClient.uploadPart(request).getPartETag();
                 return partETag;
               } catch (AmazonClientException e) {
-                previousException = e;
+                lastException = e;
               }
             } while (mRetryPolicy.attempt());
           } finally {
-            // Delete the uploaded file
-            if (!mFile.delete()) {
-              LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
+            // Delete the uploaded or failed to upload file
+            if (!file.delete()) {
+              LOG.error("Failed to delete temporary file @ {}", file.getPath());
             }
           }
           throw new IOException("Fail to upload part " + partNumber + " to " + mKey,
-              previousException);
+              lastException);
         });
     mFutureTags.add(futureTag);
-    LOG.debug("Submit upload part request. partNum={}, file={}, fileSize={}.",
-        partNumber, file.getPath(), file.length());
+    LOG.debug("Submit upload part request. key={}, partNum={}, file={}, fileSize={}.",
+        mKey, partNumber, file.getPath(), file.length());
   }
 
   /**
@@ -348,12 +348,12 @@ public class S3ALowLevelOutputStream extends OutputStream {
       }
       abortMultiPartUpload();
       throw new IOException("Part upload failed in multipart upload with "
-          + "id '" + mUploadId + "' to" + mKey, e);
+          + "id '" + mUploadId + "' to " + mKey, e);
     } catch (InterruptedException e) {
       LOG.warn("Interrupted object upload.", e);
       Thread.currentThread().interrupt();
     }
-    LOG.debug("All current upload requests '{}' have been finished.", mTags);
+    LOG.debug("Uploaded {} partitions of id '{}' to {}.", mTags.size(), mUploadId, mKey);
   }
 
   /**
@@ -366,6 +366,8 @@ public class S3ALowLevelOutputStream extends OutputStream {
     do {
       try {
         mClient.completeMultipartUpload(completeRequest);
+        LOG.debug("Completed multipart upload for key {} and id '{}' with {} partitions.",
+            mKey, mUploadId, mTags.size());
         return;
       } catch (AmazonClientException e) {
         lastException = e;
@@ -386,7 +388,8 @@ public class S3ALowLevelOutputStream extends OutputStream {
       try {
         mClient.abortMultipartUpload(new AbortMultipartUploadRequest(mBucketName,
             mKey, mUploadId));
-        LOG.warn("Aborted multipart upload with id '{}' to {}", mUploadId, mBucketName);
+        LOG.warn("Aborted multipart upload for key {} and id '{}' to bucket {}",
+            mKey, mUploadId, mBucketName);
         return;
       } catch (AmazonClientException e) {
         lastException = e;
@@ -394,9 +397,9 @@ public class S3ALowLevelOutputStream extends OutputStream {
     } while (mRetryPolicy.attempt());
     // This point is only reached if the operation failed more
     // than the allowed retry count
-    LOG.warn("Unable to abort multipart upload with bucket '{}' and id '{}'. "
+    LOG.warn("Unable to abort multipart upload for key '{}' and id '{}' to bucket {}. "
         + "You may need to enable the periodical cleaning by setting property {}"
-        + "to be true.", mBucketName, mUploadId,
+        + "to be true.", mKey, mUploadId, mBucketName,
         PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_ENABLED.getName(),
         lastException);
   }

@@ -500,12 +500,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
         mAsyncAuditLogWriter.start();
       }
-      if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_ENABLED)) {
-        getExecutorService().submit(
-            new HeartbeatThread(HeartbeatContext.MASTER_S3A_INTERMEDIATE_UPLOAD_CLEAN,
-              new S3AUploadCleaner(this), (int) Configuration
-                .getMs(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_INTERVAL)));
-      }
     }
   }
 
