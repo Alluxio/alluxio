@@ -4,19 +4,18 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.FileSystemMasterCommonPOptions}
+ * Protobuf type {@code alluxio.grpc.GetUfsInfoPResponse}
  */
-public  final class FileSystemMasterCommonPOptions extends
+public  final class GetUfsInfoPResponse extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.FileSystemMasterCommonPOptions)
-    FileSystemMasterCommonPOptionsOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.GetUfsInfoPResponse)
+    GetUfsInfoPResponseOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use FileSystemMasterCommonPOptions.newBuilder() to construct.
-  private FileSystemMasterCommonPOptions(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use GetUfsInfoPResponse.newBuilder() to construct.
+  private GetUfsInfoPResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private FileSystemMasterCommonPOptions() {
-    syncIntervalMs_ = 0L;
+  private GetUfsInfoPResponse() {
   }
 
   @java.lang.Override
@@ -24,7 +23,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private FileSystemMasterCommonPOptions(
+  private GetUfsInfoPResponse(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -50,9 +49,17 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
-          case 8: {
+          case 10: {
+            alluxio.grpc.UfsInfo.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000001) == 0x00000001)) {
+              subBuilder = ufsInfo_.toBuilder();
+            }
+            ufsInfo_ = input.readMessage(alluxio.grpc.UfsInfo.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(ufsInfo_);
+              ufsInfo_ = subBuilder.buildPartial();
+            }
             bitField0_ |= 0x00000001;
-            syncIntervalMs_ = input.readInt64();
             break;
           }
         }
@@ -69,30 +76,36 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_descriptor;
+    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetUfsInfoPResponse_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_fieldAccessorTable
+    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetUfsInfoPResponse_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.FileSystemMasterCommonPOptions.class, alluxio.grpc.FileSystemMasterCommonPOptions.Builder.class);
+            alluxio.grpc.GetUfsInfoPResponse.class, alluxio.grpc.GetUfsInfoPResponse.Builder.class);
   }
 
   private int bitField0_;
-  public static final int SYNCINTERVALMS_FIELD_NUMBER = 1;
-  private long syncIntervalMs_;
+  public static final int UFSINFO_FIELD_NUMBER = 1;
+  private alluxio.grpc.UfsInfo ufsInfo_;
   /**
-   * <code>optional int64 syncIntervalMs = 1;</code>
+   * <code>optional .alluxio.grpc.UfsInfo ufsInfo = 1;</code>
    */
-  public boolean hasSyncIntervalMs() {
+  public boolean hasUfsInfo() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional int64 syncIntervalMs = 1;</code>
+   * <code>optional .alluxio.grpc.UfsInfo ufsInfo = 1;</code>
    */
-  public long getSyncIntervalMs() {
-    return syncIntervalMs_;
+  public alluxio.grpc.UfsInfo getUfsInfo() {
+    return ufsInfo_ == null ? alluxio.grpc.UfsInfo.getDefaultInstance() : ufsInfo_;
+  }
+  /**
+   * <code>optional .alluxio.grpc.UfsInfo ufsInfo = 1;</code>
+   */
+  public alluxio.grpc.UfsInfoOrBuilder getUfsInfoOrBuilder() {
+    return ufsInfo_ == null ? alluxio.grpc.UfsInfo.getDefaultInstance() : ufsInfo_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -108,7 +121,7 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeInt64(1, syncIntervalMs_);
+      output.writeMessage(1, getUfsInfo());
     }
     unknownFields.writeTo(output);
   }
@@ -120,7 +133,7 @@ private static final long serialVersionUID = 0L;
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(1, syncIntervalMs_);
+        .computeMessageSize(1, getUfsInfo());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -132,16 +145,16 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.FileSystemMasterCommonPOptions)) {
+    if (!(obj instanceof alluxio.grpc.GetUfsInfoPResponse)) {
       return super.equals(obj);
     }
-    alluxio.grpc.FileSystemMasterCommonPOptions other = (alluxio.grpc.FileSystemMasterCommonPOptions) obj;
+    alluxio.grpc.GetUfsInfoPResponse other = (alluxio.grpc.GetUfsInfoPResponse) obj;
 
     boolean result = true;
-    result = result && (hasSyncIntervalMs() == other.hasSyncIntervalMs());
-    if (hasSyncIntervalMs()) {
-      result = result && (getSyncIntervalMs()
-          == other.getSyncIntervalMs());
+    result = result && (hasUfsInfo() == other.hasUfsInfo());
+    if (hasUfsInfo()) {
+      result = result && getUfsInfo()
+          .equals(other.getUfsInfo());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -154,79 +167,78 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasSyncIntervalMs()) {
-      hash = (37 * hash) + SYNCINTERVALMS_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getSyncIntervalMs());
+    if (hasUfsInfo()) {
+      hash = (37 * hash) + UFSINFO_FIELD_NUMBER;
+      hash = (53 * hash) + getUfsInfo().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetUfsInfoPResponse parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetUfsInfoPResponse parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetUfsInfoPResponse parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetUfsInfoPResponse parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(byte[] data)
+  public static alluxio.grpc.GetUfsInfoPResponse parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetUfsInfoPResponse parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.GetUfsInfoPResponse parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetUfsInfoPResponse parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.GetUfsInfoPResponse parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseDelimitedFrom(
+  public static alluxio.grpc.GetUfsInfoPResponse parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetUfsInfoPResponse parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetUfsInfoPResponse parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -238,7 +250,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.FileSystemMasterCommonPOptions prototype) {
+  public static Builder newBuilder(alluxio.grpc.GetUfsInfoPResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -253,25 +265,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.FileSystemMasterCommonPOptions}
+   * Protobuf type {@code alluxio.grpc.GetUfsInfoPResponse}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.FileSystemMasterCommonPOptions)
-      alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.GetUfsInfoPResponse)
+      alluxio.grpc.GetUfsInfoPResponseOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_descriptor;
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetUfsInfoPResponse_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_fieldAccessorTable
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetUfsInfoPResponse_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.FileSystemMasterCommonPOptions.class, alluxio.grpc.FileSystemMasterCommonPOptions.Builder.class);
+              alluxio.grpc.GetUfsInfoPResponse.class, alluxio.grpc.GetUfsInfoPResponse.Builder.class);
     }
 
-    // Construct using alluxio.grpc.FileSystemMasterCommonPOptions.newBuilder()
+    // Construct using alluxio.grpc.GetUfsInfoPResponse.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -284,40 +296,49 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getUfsInfoFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
-      syncIntervalMs_ = 0L;
+      if (ufsInfoBuilder_ == null) {
+        ufsInfo_ = null;
+      } else {
+        ufsInfoBuilder_.clear();
+      }
       bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_descriptor;
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetUfsInfoPResponse_descriptor;
     }
 
-    public alluxio.grpc.FileSystemMasterCommonPOptions getDefaultInstanceForType() {
-      return alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance();
+    public alluxio.grpc.GetUfsInfoPResponse getDefaultInstanceForType() {
+      return alluxio.grpc.GetUfsInfoPResponse.getDefaultInstance();
     }
 
-    public alluxio.grpc.FileSystemMasterCommonPOptions build() {
-      alluxio.grpc.FileSystemMasterCommonPOptions result = buildPartial();
+    public alluxio.grpc.GetUfsInfoPResponse build() {
+      alluxio.grpc.GetUfsInfoPResponse result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.FileSystemMasterCommonPOptions buildPartial() {
-      alluxio.grpc.FileSystemMasterCommonPOptions result = new alluxio.grpc.FileSystemMasterCommonPOptions(this);
+    public alluxio.grpc.GetUfsInfoPResponse buildPartial() {
+      alluxio.grpc.GetUfsInfoPResponse result = new alluxio.grpc.GetUfsInfoPResponse(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.syncIntervalMs_ = syncIntervalMs_;
+      if (ufsInfoBuilder_ == null) {
+        result.ufsInfo_ = ufsInfo_;
+      } else {
+        result.ufsInfo_ = ufsInfoBuilder_.build();
+      }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -350,18 +371,18 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.FileSystemMasterCommonPOptions) {
-        return mergeFrom((alluxio.grpc.FileSystemMasterCommonPOptions)other);
+      if (other instanceof alluxio.grpc.GetUfsInfoPResponse) {
+        return mergeFrom((alluxio.grpc.GetUfsInfoPResponse)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.FileSystemMasterCommonPOptions other) {
-      if (other == alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance()) return this;
-      if (other.hasSyncIntervalMs()) {
-        setSyncIntervalMs(other.getSyncIntervalMs());
+    public Builder mergeFrom(alluxio.grpc.GetUfsInfoPResponse other) {
+      if (other == alluxio.grpc.GetUfsInfoPResponse.getDefaultInstance()) return this;
+      if (other.hasUfsInfo()) {
+        mergeUfsInfo(other.getUfsInfo());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -376,11 +397,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.FileSystemMasterCommonPOptions parsedMessage = null;
+      alluxio.grpc.GetUfsInfoPResponse parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.FileSystemMasterCommonPOptions) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.GetUfsInfoPResponse) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -391,36 +412,122 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private long syncIntervalMs_ ;
+    private alluxio.grpc.UfsInfo ufsInfo_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.UfsInfo, alluxio.grpc.UfsInfo.Builder, alluxio.grpc.UfsInfoOrBuilder> ufsInfoBuilder_;
     /**
-     * <code>optional int64 syncIntervalMs = 1;</code>
+     * <code>optional .alluxio.grpc.UfsInfo ufsInfo = 1;</code>
      */
-    public boolean hasSyncIntervalMs() {
+    public boolean hasUfsInfo() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int64 syncIntervalMs = 1;</code>
+     * <code>optional .alluxio.grpc.UfsInfo ufsInfo = 1;</code>
      */
-    public long getSyncIntervalMs() {
-      return syncIntervalMs_;
+    public alluxio.grpc.UfsInfo getUfsInfo() {
+      if (ufsInfoBuilder_ == null) {
+        return ufsInfo_ == null ? alluxio.grpc.UfsInfo.getDefaultInstance() : ufsInfo_;
+      } else {
+        return ufsInfoBuilder_.getMessage();
+      }
     }
     /**
-     * <code>optional int64 syncIntervalMs = 1;</code>
+     * <code>optional .alluxio.grpc.UfsInfo ufsInfo = 1;</code>
      */
-    public Builder setSyncIntervalMs(long value) {
+    public Builder setUfsInfo(alluxio.grpc.UfsInfo value) {
+      if (ufsInfoBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ufsInfo_ = value;
+        onChanged();
+      } else {
+        ufsInfoBuilder_.setMessage(value);
+      }
       bitField0_ |= 0x00000001;
-      syncIntervalMs_ = value;
-      onChanged();
       return this;
     }
     /**
-     * <code>optional int64 syncIntervalMs = 1;</code>
+     * <code>optional .alluxio.grpc.UfsInfo ufsInfo = 1;</code>
      */
-    public Builder clearSyncIntervalMs() {
-      bitField0_ = (bitField0_ & ~0x00000001);
-      syncIntervalMs_ = 0L;
-      onChanged();
+    public Builder setUfsInfo(
+        alluxio.grpc.UfsInfo.Builder builderForValue) {
+      if (ufsInfoBuilder_ == null) {
+        ufsInfo_ = builderForValue.build();
+        onChanged();
+      } else {
+        ufsInfoBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000001;
       return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.UfsInfo ufsInfo = 1;</code>
+     */
+    public Builder mergeUfsInfo(alluxio.grpc.UfsInfo value) {
+      if (ufsInfoBuilder_ == null) {
+        if (((bitField0_ & 0x00000001) == 0x00000001) &&
+            ufsInfo_ != null &&
+            ufsInfo_ != alluxio.grpc.UfsInfo.getDefaultInstance()) {
+          ufsInfo_ =
+            alluxio.grpc.UfsInfo.newBuilder(ufsInfo_).mergeFrom(value).buildPartial();
+        } else {
+          ufsInfo_ = value;
+        }
+        onChanged();
+      } else {
+        ufsInfoBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000001;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.UfsInfo ufsInfo = 1;</code>
+     */
+    public Builder clearUfsInfo() {
+      if (ufsInfoBuilder_ == null) {
+        ufsInfo_ = null;
+        onChanged();
+      } else {
+        ufsInfoBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000001);
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.UfsInfo ufsInfo = 1;</code>
+     */
+    public alluxio.grpc.UfsInfo.Builder getUfsInfoBuilder() {
+      bitField0_ |= 0x00000001;
+      onChanged();
+      return getUfsInfoFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.UfsInfo ufsInfo = 1;</code>
+     */
+    public alluxio.grpc.UfsInfoOrBuilder getUfsInfoOrBuilder() {
+      if (ufsInfoBuilder_ != null) {
+        return ufsInfoBuilder_.getMessageOrBuilder();
+      } else {
+        return ufsInfo_ == null ?
+            alluxio.grpc.UfsInfo.getDefaultInstance() : ufsInfo_;
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.UfsInfo ufsInfo = 1;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.UfsInfo, alluxio.grpc.UfsInfo.Builder, alluxio.grpc.UfsInfoOrBuilder> 
+        getUfsInfoFieldBuilder() {
+      if (ufsInfoBuilder_ == null) {
+        ufsInfoBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.UfsInfo, alluxio.grpc.UfsInfo.Builder, alluxio.grpc.UfsInfoOrBuilder>(
+                getUfsInfo(),
+                getParentForChildren(),
+                isClean());
+        ufsInfo_ = null;
+      }
+      return ufsInfoBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -433,39 +540,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.FileSystemMasterCommonPOptions)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.GetUfsInfoPResponse)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.FileSystemMasterCommonPOptions)
-  private static final alluxio.grpc.FileSystemMasterCommonPOptions DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.GetUfsInfoPResponse)
+  private static final alluxio.grpc.GetUfsInfoPResponse DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.FileSystemMasterCommonPOptions();
+    DEFAULT_INSTANCE = new alluxio.grpc.GetUfsInfoPResponse();
   }
 
-  public static alluxio.grpc.FileSystemMasterCommonPOptions getDefaultInstance() {
+  public static alluxio.grpc.GetUfsInfoPResponse getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<FileSystemMasterCommonPOptions>
-      PARSER = new com.google.protobuf.AbstractParser<FileSystemMasterCommonPOptions>() {
-    public FileSystemMasterCommonPOptions parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<GetUfsInfoPResponse>
+      PARSER = new com.google.protobuf.AbstractParser<GetUfsInfoPResponse>() {
+    public GetUfsInfoPResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new FileSystemMasterCommonPOptions(input, extensionRegistry);
+      return new GetUfsInfoPResponse(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<FileSystemMasterCommonPOptions> parser() {
+  public static com.google.protobuf.Parser<GetUfsInfoPResponse> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<FileSystemMasterCommonPOptions> getParserForType() {
+  public com.google.protobuf.Parser<GetUfsInfoPResponse> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.FileSystemMasterCommonPOptions getDefaultInstanceForType() {
+  public alluxio.grpc.GetUfsInfoPResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

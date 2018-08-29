@@ -4,18 +4,18 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.GetStatusPRequest}
+ * Protobuf type {@code alluxio.grpc.DeletePRequest}
  */
-public  final class GetStatusPRequest extends
+public  final class DeletePRequest extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.GetStatusPRequest)
-    GetStatusPRequestOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.DeletePRequest)
+    DeletePRequestOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use GetStatusPRequest.newBuilder() to construct.
-  private GetStatusPRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use DeletePRequest.newBuilder() to construct.
+  private DeletePRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private GetStatusPRequest() {
+  private DeletePRequest() {
     path_ = "";
   }
 
@@ -24,7 +24,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private GetStatusPRequest(
+  private DeletePRequest(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -57,11 +57,11 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 18: {
-            alluxio.grpc.GetStatusPOptions.Builder subBuilder = null;
+            alluxio.grpc.DeletePOptions.Builder subBuilder = null;
             if (((bitField0_ & 0x00000002) == 0x00000002)) {
               subBuilder = options_.toBuilder();
             }
-            options_ = input.readMessage(alluxio.grpc.GetStatusPOptions.PARSER, extensionRegistry);
+            options_ = input.readMessage(alluxio.grpc.DeletePOptions.PARSER, extensionRegistry);
             if (subBuilder != null) {
               subBuilder.mergeFrom(options_);
               options_ = subBuilder.buildPartial();
@@ -83,14 +83,14 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetStatusPRequest_descriptor;
+    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_DeletePRequest_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetStatusPRequest_fieldAccessorTable
+    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_DeletePRequest_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.GetStatusPRequest.class, alluxio.grpc.GetStatusPRequest.Builder.class);
+            alluxio.grpc.DeletePRequest.class, alluxio.grpc.DeletePRequest.Builder.class);
   }
 
   private int bitField0_;
@@ -149,24 +149,24 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int OPTIONS_FIELD_NUMBER = 2;
-  private alluxio.grpc.GetStatusPOptions options_;
+  private alluxio.grpc.DeletePOptions options_;
   /**
-   * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+   * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
    */
   public boolean hasOptions() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+   * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
    */
-  public alluxio.grpc.GetStatusPOptions getOptions() {
-    return options_ == null ? alluxio.grpc.GetStatusPOptions.getDefaultInstance() : options_;
+  public alluxio.grpc.DeletePOptions getOptions() {
+    return options_ == null ? alluxio.grpc.DeletePOptions.getDefaultInstance() : options_;
   }
   /**
-   * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+   * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
    */
-  public alluxio.grpc.GetStatusPOptionsOrBuilder getOptionsOrBuilder() {
-    return options_ == null ? alluxio.grpc.GetStatusPOptions.getDefaultInstance() : options_;
+  public alluxio.grpc.DeletePOptionsOrBuilder getOptionsOrBuilder() {
+    return options_ == null ? alluxio.grpc.DeletePOptions.getDefaultInstance() : options_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -212,10 +212,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.GetStatusPRequest)) {
+    if (!(obj instanceof alluxio.grpc.DeletePRequest)) {
       return super.equals(obj);
     }
-    alluxio.grpc.GetStatusPRequest other = (alluxio.grpc.GetStatusPRequest) obj;
+    alluxio.grpc.DeletePRequest other = (alluxio.grpc.DeletePRequest) obj;
 
     boolean result = true;
     result = result && (hasPath() == other.hasPath());
@@ -252,69 +252,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static alluxio.grpc.GetStatusPRequest parseFrom(
+  public static alluxio.grpc.DeletePRequest parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.GetStatusPRequest parseFrom(
+  public static alluxio.grpc.DeletePRequest parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.GetStatusPRequest parseFrom(
+  public static alluxio.grpc.DeletePRequest parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.GetStatusPRequest parseFrom(
+  public static alluxio.grpc.DeletePRequest parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.GetStatusPRequest parseFrom(byte[] data)
+  public static alluxio.grpc.DeletePRequest parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.GetStatusPRequest parseFrom(
+  public static alluxio.grpc.DeletePRequest parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.GetStatusPRequest parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.DeletePRequest parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.GetStatusPRequest parseFrom(
+  public static alluxio.grpc.DeletePRequest parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.GetStatusPRequest parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.DeletePRequest parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.GetStatusPRequest parseDelimitedFrom(
+  public static alluxio.grpc.DeletePRequest parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.GetStatusPRequest parseFrom(
+  public static alluxio.grpc.DeletePRequest parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.GetStatusPRequest parseFrom(
+  public static alluxio.grpc.DeletePRequest parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -326,7 +326,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.GetStatusPRequest prototype) {
+  public static Builder newBuilder(alluxio.grpc.DeletePRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -341,25 +341,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.GetStatusPRequest}
+   * Protobuf type {@code alluxio.grpc.DeletePRequest}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.GetStatusPRequest)
-      alluxio.grpc.GetStatusPRequestOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.DeletePRequest)
+      alluxio.grpc.DeletePRequestOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetStatusPRequest_descriptor;
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_DeletePRequest_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetStatusPRequest_fieldAccessorTable
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_DeletePRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.GetStatusPRequest.class, alluxio.grpc.GetStatusPRequest.Builder.class);
+              alluxio.grpc.DeletePRequest.class, alluxio.grpc.DeletePRequest.Builder.class);
     }
 
-    // Construct using alluxio.grpc.GetStatusPRequest.newBuilder()
+    // Construct using alluxio.grpc.DeletePRequest.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -390,23 +390,23 @@ private static final long serialVersionUID = 0L;
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetStatusPRequest_descriptor;
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_DeletePRequest_descriptor;
     }
 
-    public alluxio.grpc.GetStatusPRequest getDefaultInstanceForType() {
-      return alluxio.grpc.GetStatusPRequest.getDefaultInstance();
+    public alluxio.grpc.DeletePRequest getDefaultInstanceForType() {
+      return alluxio.grpc.DeletePRequest.getDefaultInstance();
     }
 
-    public alluxio.grpc.GetStatusPRequest build() {
-      alluxio.grpc.GetStatusPRequest result = buildPartial();
+    public alluxio.grpc.DeletePRequest build() {
+      alluxio.grpc.DeletePRequest result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.GetStatusPRequest buildPartial() {
-      alluxio.grpc.GetStatusPRequest result = new alluxio.grpc.GetStatusPRequest(this);
+    public alluxio.grpc.DeletePRequest buildPartial() {
+      alluxio.grpc.DeletePRequest result = new alluxio.grpc.DeletePRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
@@ -453,16 +453,16 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.GetStatusPRequest) {
-        return mergeFrom((alluxio.grpc.GetStatusPRequest)other);
+      if (other instanceof alluxio.grpc.DeletePRequest) {
+        return mergeFrom((alluxio.grpc.DeletePRequest)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.GetStatusPRequest other) {
-      if (other == alluxio.grpc.GetStatusPRequest.getDefaultInstance()) return this;
+    public Builder mergeFrom(alluxio.grpc.DeletePRequest other) {
+      if (other == alluxio.grpc.DeletePRequest.getDefaultInstance()) return this;
       if (other.hasPath()) {
         bitField0_ |= 0x00000001;
         path_ = other.path_;
@@ -484,11 +484,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.GetStatusPRequest parsedMessage = null;
+      alluxio.grpc.DeletePRequest parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.GetStatusPRequest) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.DeletePRequest) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -599,29 +599,29 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.GetStatusPOptions options_ = null;
+    private alluxio.grpc.DeletePOptions options_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.GetStatusPOptions, alluxio.grpc.GetStatusPOptions.Builder, alluxio.grpc.GetStatusPOptionsOrBuilder> optionsBuilder_;
+        alluxio.grpc.DeletePOptions, alluxio.grpc.DeletePOptions.Builder, alluxio.grpc.DeletePOptionsOrBuilder> optionsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+     * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
      */
     public boolean hasOptions() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+     * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
      */
-    public alluxio.grpc.GetStatusPOptions getOptions() {
+    public alluxio.grpc.DeletePOptions getOptions() {
       if (optionsBuilder_ == null) {
-        return options_ == null ? alluxio.grpc.GetStatusPOptions.getDefaultInstance() : options_;
+        return options_ == null ? alluxio.grpc.DeletePOptions.getDefaultInstance() : options_;
       } else {
         return optionsBuilder_.getMessage();
       }
     }
     /**
-     * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+     * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
      */
-    public Builder setOptions(alluxio.grpc.GetStatusPOptions value) {
+    public Builder setOptions(alluxio.grpc.DeletePOptions value) {
       if (optionsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -635,10 +635,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+     * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
      */
     public Builder setOptions(
-        alluxio.grpc.GetStatusPOptions.Builder builderForValue) {
+        alluxio.grpc.DeletePOptions.Builder builderForValue) {
       if (optionsBuilder_ == null) {
         options_ = builderForValue.build();
         onChanged();
@@ -649,15 +649,15 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+     * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
      */
-    public Builder mergeOptions(alluxio.grpc.GetStatusPOptions value) {
+    public Builder mergeOptions(alluxio.grpc.DeletePOptions value) {
       if (optionsBuilder_ == null) {
         if (((bitField0_ & 0x00000002) == 0x00000002) &&
             options_ != null &&
-            options_ != alluxio.grpc.GetStatusPOptions.getDefaultInstance()) {
+            options_ != alluxio.grpc.DeletePOptions.getDefaultInstance()) {
           options_ =
-            alluxio.grpc.GetStatusPOptions.newBuilder(options_).mergeFrom(value).buildPartial();
+            alluxio.grpc.DeletePOptions.newBuilder(options_).mergeFrom(value).buildPartial();
         } else {
           options_ = value;
         }
@@ -669,7 +669,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+     * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
      */
     public Builder clearOptions() {
       if (optionsBuilder_ == null) {
@@ -682,33 +682,33 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+     * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
      */
-    public alluxio.grpc.GetStatusPOptions.Builder getOptionsBuilder() {
+    public alluxio.grpc.DeletePOptions.Builder getOptionsBuilder() {
       bitField0_ |= 0x00000002;
       onChanged();
       return getOptionsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+     * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
      */
-    public alluxio.grpc.GetStatusPOptionsOrBuilder getOptionsOrBuilder() {
+    public alluxio.grpc.DeletePOptionsOrBuilder getOptionsOrBuilder() {
       if (optionsBuilder_ != null) {
         return optionsBuilder_.getMessageOrBuilder();
       } else {
         return options_ == null ?
-            alluxio.grpc.GetStatusPOptions.getDefaultInstance() : options_;
+            alluxio.grpc.DeletePOptions.getDefaultInstance() : options_;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+     * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.GetStatusPOptions, alluxio.grpc.GetStatusPOptions.Builder, alluxio.grpc.GetStatusPOptionsOrBuilder> 
+        alluxio.grpc.DeletePOptions, alluxio.grpc.DeletePOptions.Builder, alluxio.grpc.DeletePOptionsOrBuilder> 
         getOptionsFieldBuilder() {
       if (optionsBuilder_ == null) {
         optionsBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            alluxio.grpc.GetStatusPOptions, alluxio.grpc.GetStatusPOptions.Builder, alluxio.grpc.GetStatusPOptionsOrBuilder>(
+            alluxio.grpc.DeletePOptions, alluxio.grpc.DeletePOptions.Builder, alluxio.grpc.DeletePOptionsOrBuilder>(
                 getOptions(),
                 getParentForChildren(),
                 isClean());
@@ -727,39 +727,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.GetStatusPRequest)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.DeletePRequest)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.GetStatusPRequest)
-  private static final alluxio.grpc.GetStatusPRequest DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.DeletePRequest)
+  private static final alluxio.grpc.DeletePRequest DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.GetStatusPRequest();
+    DEFAULT_INSTANCE = new alluxio.grpc.DeletePRequest();
   }
 
-  public static alluxio.grpc.GetStatusPRequest getDefaultInstance() {
+  public static alluxio.grpc.DeletePRequest getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<GetStatusPRequest>
-      PARSER = new com.google.protobuf.AbstractParser<GetStatusPRequest>() {
-    public GetStatusPRequest parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<DeletePRequest>
+      PARSER = new com.google.protobuf.AbstractParser<DeletePRequest>() {
+    public DeletePRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new GetStatusPRequest(input, extensionRegistry);
+      return new DeletePRequest(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<GetStatusPRequest> parser() {
+  public static com.google.protobuf.Parser<DeletePRequest> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<GetStatusPRequest> getParserForType() {
+  public com.google.protobuf.Parser<DeletePRequest> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.GetStatusPRequest getDefaultInstanceForType() {
+  public alluxio.grpc.DeletePRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

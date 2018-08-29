@@ -3,8 +3,8 @@
 
 package alluxio.grpc;
 
-public interface GetStatusPRequestOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:alluxio.grpc.GetStatusPRequest)
+public interface DeletePRequestOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:alluxio.grpc.DeletePRequest)
     com.google.protobuf.MessageOrBuilder {
 
   /**
@@ -34,15 +34,15 @@ public interface GetStatusPRequestOrBuilder extends
       getPathBytes();
 
   /**
-   * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+   * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
    */
   boolean hasOptions();
   /**
-   * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+   * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
    */
-  alluxio.grpc.GetStatusPOptions getOptions();
+  alluxio.grpc.DeletePOptions getOptions();
   /**
-   * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+   * <code>optional .alluxio.grpc.DeletePOptions options = 2;</code>
    */
-  alluxio.grpc.GetStatusPOptionsOrBuilder getOptionsOrBuilder();
+  alluxio.grpc.DeletePOptionsOrBuilder getOptionsOrBuilder();
 }

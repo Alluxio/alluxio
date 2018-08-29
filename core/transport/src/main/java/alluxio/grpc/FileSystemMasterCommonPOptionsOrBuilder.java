@@ -15,6 +15,4 @@ public interface FileSystemMasterCommonPOptionsOrBuilder extends
    * <code>optional int64 syncIntervalMs = 1;</code>
    */
   long getSyncIntervalMs();
-
-  public alluxio.grpc.FileSystemMasterCommonPOptions.OptionalSyncIntervalMsCase getOptionalSyncIntervalMsCase();
 }

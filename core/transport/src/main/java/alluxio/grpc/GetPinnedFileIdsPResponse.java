@@ -4,19 +4,19 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.FileSystemMasterCommonPOptions}
+ * Protobuf type {@code alluxio.grpc.GetPinnedFileIdsPResponse}
  */
-public  final class FileSystemMasterCommonPOptions extends
+public  final class GetPinnedFileIdsPResponse extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.FileSystemMasterCommonPOptions)
-    FileSystemMasterCommonPOptionsOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.GetPinnedFileIdsPResponse)
+    GetPinnedFileIdsPResponseOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use FileSystemMasterCommonPOptions.newBuilder() to construct.
-  private FileSystemMasterCommonPOptions(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use GetPinnedFileIdsPResponse.newBuilder() to construct.
+  private GetPinnedFileIdsPResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private FileSystemMasterCommonPOptions() {
-    syncIntervalMs_ = 0L;
+  private GetPinnedFileIdsPResponse() {
+    pinnedFileIds_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -24,7 +24,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private FileSystemMasterCommonPOptions(
+  private GetPinnedFileIdsPResponse(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -51,8 +51,24 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 8: {
-            bitField0_ |= 0x00000001;
-            syncIntervalMs_ = input.readInt64();
+            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              pinnedFileIds_ = new java.util.ArrayList<java.lang.Long>();
+              mutable_bitField0_ |= 0x00000001;
+            }
+            pinnedFileIds_.add(input.readInt64());
+            break;
+          }
+          case 10: {
+            int length = input.readRawVarint32();
+            int limit = input.pushLimit(length);
+            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
+              pinnedFileIds_ = new java.util.ArrayList<java.lang.Long>();
+              mutable_bitField0_ |= 0x00000001;
+            }
+            while (input.getBytesUntilLimit() > 0) {
+              pinnedFileIds_.add(input.readInt64());
+            }
+            input.popLimit(limit);
             break;
           }
         }
@@ -63,36 +79,57 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
+      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        pinnedFileIds_ = java.util.Collections.unmodifiableList(pinnedFileIds_);
+      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_descriptor;
+    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetPinnedFileIdsPResponse_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_fieldAccessorTable
+    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetPinnedFileIdsPResponse_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.FileSystemMasterCommonPOptions.class, alluxio.grpc.FileSystemMasterCommonPOptions.Builder.class);
+            alluxio.grpc.GetPinnedFileIdsPResponse.class, alluxio.grpc.GetPinnedFileIdsPResponse.Builder.class);
   }
 
-  private int bitField0_;
-  public static final int SYNCINTERVALMS_FIELD_NUMBER = 1;
-  private long syncIntervalMs_;
+  public static final int PINNEDFILEIDS_FIELD_NUMBER = 1;
+  private java.util.List<java.lang.Long> pinnedFileIds_;
   /**
-   * <code>optional int64 syncIntervalMs = 1;</code>
+   * <pre>
+   * TODO(adit): set replacement?
+   * </pre>
+   *
+   * <code>repeated int64 pinnedFileIds = 1;</code>
    */
-  public boolean hasSyncIntervalMs() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+  public java.util.List<java.lang.Long>
+      getPinnedFileIdsList() {
+    return pinnedFileIds_;
   }
   /**
-   * <code>optional int64 syncIntervalMs = 1;</code>
+   * <pre>
+   * TODO(adit): set replacement?
+   * </pre>
+   *
+   * <code>repeated int64 pinnedFileIds = 1;</code>
    */
-  public long getSyncIntervalMs() {
-    return syncIntervalMs_;
+  public int getPinnedFileIdsCount() {
+    return pinnedFileIds_.size();
+  }
+  /**
+   * <pre>
+   * TODO(adit): set replacement?
+   * </pre>
+   *
+   * <code>repeated int64 pinnedFileIds = 1;</code>
+   */
+  public long getPinnedFileIds(int index) {
+    return pinnedFileIds_.get(index);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -107,8 +144,8 @@ private static final long serialVersionUID = 0L;
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeInt64(1, syncIntervalMs_);
+    for (int i = 0; i < pinnedFileIds_.size(); i++) {
+      output.writeInt64(1, pinnedFileIds_.get(i));
     }
     unknownFields.writeTo(output);
   }
@@ -118,9 +155,14 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(1, syncIntervalMs_);
+    {
+      int dataSize = 0;
+      for (int i = 0; i < pinnedFileIds_.size(); i++) {
+        dataSize += com.google.protobuf.CodedOutputStream
+          .computeInt64SizeNoTag(pinnedFileIds_.get(i));
+      }
+      size += dataSize;
+      size += 1 * getPinnedFileIdsList().size();
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -132,17 +174,14 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.FileSystemMasterCommonPOptions)) {
+    if (!(obj instanceof alluxio.grpc.GetPinnedFileIdsPResponse)) {
       return super.equals(obj);
     }
-    alluxio.grpc.FileSystemMasterCommonPOptions other = (alluxio.grpc.FileSystemMasterCommonPOptions) obj;
+    alluxio.grpc.GetPinnedFileIdsPResponse other = (alluxio.grpc.GetPinnedFileIdsPResponse) obj;
 
     boolean result = true;
-    result = result && (hasSyncIntervalMs() == other.hasSyncIntervalMs());
-    if (hasSyncIntervalMs()) {
-      result = result && (getSyncIntervalMs()
-          == other.getSyncIntervalMs());
-    }
+    result = result && getPinnedFileIdsList()
+        .equals(other.getPinnedFileIdsList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -154,79 +193,78 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasSyncIntervalMs()) {
-      hash = (37 * hash) + SYNCINTERVALMS_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getSyncIntervalMs());
+    if (getPinnedFileIdsCount() > 0) {
+      hash = (37 * hash) + PINNEDFILEIDS_FIELD_NUMBER;
+      hash = (53 * hash) + getPinnedFileIdsList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetPinnedFileIdsPResponse parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetPinnedFileIdsPResponse parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetPinnedFileIdsPResponse parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetPinnedFileIdsPResponse parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(byte[] data)
+  public static alluxio.grpc.GetPinnedFileIdsPResponse parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetPinnedFileIdsPResponse parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.GetPinnedFileIdsPResponse parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetPinnedFileIdsPResponse parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.GetPinnedFileIdsPResponse parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseDelimitedFrom(
+  public static alluxio.grpc.GetPinnedFileIdsPResponse parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetPinnedFileIdsPResponse parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.GetPinnedFileIdsPResponse parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -238,7 +276,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.FileSystemMasterCommonPOptions prototype) {
+  public static Builder newBuilder(alluxio.grpc.GetPinnedFileIdsPResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -253,25 +291,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.FileSystemMasterCommonPOptions}
+   * Protobuf type {@code alluxio.grpc.GetPinnedFileIdsPResponse}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.FileSystemMasterCommonPOptions)
-      alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.GetPinnedFileIdsPResponse)
+      alluxio.grpc.GetPinnedFileIdsPResponseOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_descriptor;
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetPinnedFileIdsPResponse_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_fieldAccessorTable
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetPinnedFileIdsPResponse_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.FileSystemMasterCommonPOptions.class, alluxio.grpc.FileSystemMasterCommonPOptions.Builder.class);
+              alluxio.grpc.GetPinnedFileIdsPResponse.class, alluxio.grpc.GetPinnedFileIdsPResponse.Builder.class);
     }
 
-    // Construct using alluxio.grpc.FileSystemMasterCommonPOptions.newBuilder()
+    // Construct using alluxio.grpc.GetPinnedFileIdsPResponse.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -288,37 +326,36 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      syncIntervalMs_ = 0L;
+      pinnedFileIds_ = java.util.Collections.emptyList();
       bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_descriptor;
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetPinnedFileIdsPResponse_descriptor;
     }
 
-    public alluxio.grpc.FileSystemMasterCommonPOptions getDefaultInstanceForType() {
-      return alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance();
+    public alluxio.grpc.GetPinnedFileIdsPResponse getDefaultInstanceForType() {
+      return alluxio.grpc.GetPinnedFileIdsPResponse.getDefaultInstance();
     }
 
-    public alluxio.grpc.FileSystemMasterCommonPOptions build() {
-      alluxio.grpc.FileSystemMasterCommonPOptions result = buildPartial();
+    public alluxio.grpc.GetPinnedFileIdsPResponse build() {
+      alluxio.grpc.GetPinnedFileIdsPResponse result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.FileSystemMasterCommonPOptions buildPartial() {
-      alluxio.grpc.FileSystemMasterCommonPOptions result = new alluxio.grpc.FileSystemMasterCommonPOptions(this);
+    public alluxio.grpc.GetPinnedFileIdsPResponse buildPartial() {
+      alluxio.grpc.GetPinnedFileIdsPResponse result = new alluxio.grpc.GetPinnedFileIdsPResponse(this);
       int from_bitField0_ = bitField0_;
-      int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-        to_bitField0_ |= 0x00000001;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        pinnedFileIds_ = java.util.Collections.unmodifiableList(pinnedFileIds_);
+        bitField0_ = (bitField0_ & ~0x00000001);
       }
-      result.syncIntervalMs_ = syncIntervalMs_;
-      result.bitField0_ = to_bitField0_;
+      result.pinnedFileIds_ = pinnedFileIds_;
       onBuilt();
       return result;
     }
@@ -350,18 +387,25 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.FileSystemMasterCommonPOptions) {
-        return mergeFrom((alluxio.grpc.FileSystemMasterCommonPOptions)other);
+      if (other instanceof alluxio.grpc.GetPinnedFileIdsPResponse) {
+        return mergeFrom((alluxio.grpc.GetPinnedFileIdsPResponse)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.FileSystemMasterCommonPOptions other) {
-      if (other == alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance()) return this;
-      if (other.hasSyncIntervalMs()) {
-        setSyncIntervalMs(other.getSyncIntervalMs());
+    public Builder mergeFrom(alluxio.grpc.GetPinnedFileIdsPResponse other) {
+      if (other == alluxio.grpc.GetPinnedFileIdsPResponse.getDefaultInstance()) return this;
+      if (!other.pinnedFileIds_.isEmpty()) {
+        if (pinnedFileIds_.isEmpty()) {
+          pinnedFileIds_ = other.pinnedFileIds_;
+          bitField0_ = (bitField0_ & ~0x00000001);
+        } else {
+          ensurePinnedFileIdsIsMutable();
+          pinnedFileIds_.addAll(other.pinnedFileIds_);
+        }
+        onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -376,11 +420,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.FileSystemMasterCommonPOptions parsedMessage = null;
+      alluxio.grpc.GetPinnedFileIdsPResponse parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.FileSystemMasterCommonPOptions) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.GetPinnedFileIdsPResponse) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -391,34 +435,96 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private long syncIntervalMs_ ;
-    /**
-     * <code>optional int64 syncIntervalMs = 1;</code>
-     */
-    public boolean hasSyncIntervalMs() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+    private java.util.List<java.lang.Long> pinnedFileIds_ = java.util.Collections.emptyList();
+    private void ensurePinnedFileIdsIsMutable() {
+      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        pinnedFileIds_ = new java.util.ArrayList<java.lang.Long>(pinnedFileIds_);
+        bitField0_ |= 0x00000001;
+       }
     }
     /**
-     * <code>optional int64 syncIntervalMs = 1;</code>
+     * <pre>
+     * TODO(adit): set replacement?
+     * </pre>
+     *
+     * <code>repeated int64 pinnedFileIds = 1;</code>
      */
-    public long getSyncIntervalMs() {
-      return syncIntervalMs_;
+    public java.util.List<java.lang.Long>
+        getPinnedFileIdsList() {
+      return java.util.Collections.unmodifiableList(pinnedFileIds_);
     }
     /**
-     * <code>optional int64 syncIntervalMs = 1;</code>
+     * <pre>
+     * TODO(adit): set replacement?
+     * </pre>
+     *
+     * <code>repeated int64 pinnedFileIds = 1;</code>
      */
-    public Builder setSyncIntervalMs(long value) {
-      bitField0_ |= 0x00000001;
-      syncIntervalMs_ = value;
+    public int getPinnedFileIdsCount() {
+      return pinnedFileIds_.size();
+    }
+    /**
+     * <pre>
+     * TODO(adit): set replacement?
+     * </pre>
+     *
+     * <code>repeated int64 pinnedFileIds = 1;</code>
+     */
+    public long getPinnedFileIds(int index) {
+      return pinnedFileIds_.get(index);
+    }
+    /**
+     * <pre>
+     * TODO(adit): set replacement?
+     * </pre>
+     *
+     * <code>repeated int64 pinnedFileIds = 1;</code>
+     */
+    public Builder setPinnedFileIds(
+        int index, long value) {
+      ensurePinnedFileIdsIsMutable();
+      pinnedFileIds_.set(index, value);
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 syncIntervalMs = 1;</code>
+     * <pre>
+     * TODO(adit): set replacement?
+     * </pre>
+     *
+     * <code>repeated int64 pinnedFileIds = 1;</code>
      */
-    public Builder clearSyncIntervalMs() {
+    public Builder addPinnedFileIds(long value) {
+      ensurePinnedFileIdsIsMutable();
+      pinnedFileIds_.add(value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * TODO(adit): set replacement?
+     * </pre>
+     *
+     * <code>repeated int64 pinnedFileIds = 1;</code>
+     */
+    public Builder addAllPinnedFileIds(
+        java.lang.Iterable<? extends java.lang.Long> values) {
+      ensurePinnedFileIdsIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, pinnedFileIds_);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * TODO(adit): set replacement?
+     * </pre>
+     *
+     * <code>repeated int64 pinnedFileIds = 1;</code>
+     */
+    public Builder clearPinnedFileIds() {
+      pinnedFileIds_ = java.util.Collections.emptyList();
       bitField0_ = (bitField0_ & ~0x00000001);
-      syncIntervalMs_ = 0L;
       onChanged();
       return this;
     }
@@ -433,39 +539,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.FileSystemMasterCommonPOptions)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.GetPinnedFileIdsPResponse)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.FileSystemMasterCommonPOptions)
-  private static final alluxio.grpc.FileSystemMasterCommonPOptions DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.GetPinnedFileIdsPResponse)
+  private static final alluxio.grpc.GetPinnedFileIdsPResponse DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.FileSystemMasterCommonPOptions();
+    DEFAULT_INSTANCE = new alluxio.grpc.GetPinnedFileIdsPResponse();
   }
 
-  public static alluxio.grpc.FileSystemMasterCommonPOptions getDefaultInstance() {
+  public static alluxio.grpc.GetPinnedFileIdsPResponse getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<FileSystemMasterCommonPOptions>
-      PARSER = new com.google.protobuf.AbstractParser<FileSystemMasterCommonPOptions>() {
-    public FileSystemMasterCommonPOptions parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<GetPinnedFileIdsPResponse>
+      PARSER = new com.google.protobuf.AbstractParser<GetPinnedFileIdsPResponse>() {
+    public GetPinnedFileIdsPResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new FileSystemMasterCommonPOptions(input, extensionRegistry);
+      return new GetPinnedFileIdsPResponse(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<FileSystemMasterCommonPOptions> parser() {
+  public static com.google.protobuf.Parser<GetPinnedFileIdsPResponse> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<FileSystemMasterCommonPOptions> getParserForType() {
+  public com.google.protobuf.Parser<GetPinnedFileIdsPResponse> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.FileSystemMasterCommonPOptions getDefaultInstanceForType() {
+  public alluxio.grpc.GetPinnedFileIdsPResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

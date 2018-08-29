@@ -3,8 +3,8 @@
 
 package alluxio.grpc;
 
-public interface GetStatusPRequestOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:alluxio.grpc.GetStatusPRequest)
+public interface FreePRequestOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:alluxio.grpc.FreePRequest)
     com.google.protobuf.MessageOrBuilder {
 
   /**
@@ -34,15 +34,15 @@ public interface GetStatusPRequestOrBuilder extends
       getPathBytes();
 
   /**
-   * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+   * <code>optional .alluxio.grpc.FreePOptions options = 2;</code>
    */
   boolean hasOptions();
   /**
-   * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+   * <code>optional .alluxio.grpc.FreePOptions options = 2;</code>
    */
-  alluxio.grpc.GetStatusPOptions getOptions();
+  alluxio.grpc.FreePOptions getOptions();
   /**
-   * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+   * <code>optional .alluxio.grpc.FreePOptions options = 2;</code>
    */
-  alluxio.grpc.GetStatusPOptionsOrBuilder getOptionsOrBuilder();
+  alluxio.grpc.FreePOptionsOrBuilder getOptionsOrBuilder();
 }

@@ -4,19 +4,19 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.FileSystemMasterCommonPOptions}
+ * Protobuf type {@code alluxio.grpc.UpdateUfsModePOptions}
  */
-public  final class FileSystemMasterCommonPOptions extends
+public  final class UpdateUfsModePOptions extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.FileSystemMasterCommonPOptions)
-    FileSystemMasterCommonPOptionsOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.UpdateUfsModePOptions)
+    UpdateUfsModePOptionsOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use FileSystemMasterCommonPOptions.newBuilder() to construct.
-  private FileSystemMasterCommonPOptions(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use UpdateUfsModePOptions.newBuilder() to construct.
+  private UpdateUfsModePOptions(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private FileSystemMasterCommonPOptions() {
-    syncIntervalMs_ = 0L;
+  private UpdateUfsModePOptions() {
+    ufsMode_ = 1;
   }
 
   @java.lang.Override
@@ -24,7 +24,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private FileSystemMasterCommonPOptions(
+  private UpdateUfsModePOptions(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -51,8 +51,14 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 8: {
-            bitField0_ |= 0x00000001;
-            syncIntervalMs_ = input.readInt64();
+            int rawValue = input.readEnum();
+            alluxio.grpc.UfsMode value = alluxio.grpc.UfsMode.valueOf(rawValue);
+            if (value == null) {
+              unknownFields.mergeVarintField(1, rawValue);
+            } else {
+              bitField0_ |= 0x00000001;
+              ufsMode_ = rawValue;
+            }
             break;
           }
         }
@@ -69,30 +75,31 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_descriptor;
+    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_UpdateUfsModePOptions_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_fieldAccessorTable
+    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_UpdateUfsModePOptions_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.FileSystemMasterCommonPOptions.class, alluxio.grpc.FileSystemMasterCommonPOptions.Builder.class);
+            alluxio.grpc.UpdateUfsModePOptions.class, alluxio.grpc.UpdateUfsModePOptions.Builder.class);
   }
 
   private int bitField0_;
-  public static final int SYNCINTERVALMS_FIELD_NUMBER = 1;
-  private long syncIntervalMs_;
+  public static final int UFSMODE_FIELD_NUMBER = 1;
+  private int ufsMode_;
   /**
-   * <code>optional int64 syncIntervalMs = 1;</code>
+   * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
    */
-  public boolean hasSyncIntervalMs() {
+  public boolean hasUfsMode() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional int64 syncIntervalMs = 1;</code>
+   * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
    */
-  public long getSyncIntervalMs() {
-    return syncIntervalMs_;
+  public alluxio.grpc.UfsMode getUfsMode() {
+    alluxio.grpc.UfsMode result = alluxio.grpc.UfsMode.valueOf(ufsMode_);
+    return result == null ? alluxio.grpc.UfsMode.NoAccess : result;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -108,7 +115,7 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeInt64(1, syncIntervalMs_);
+      output.writeEnum(1, ufsMode_);
     }
     unknownFields.writeTo(output);
   }
@@ -120,7 +127,7 @@ private static final long serialVersionUID = 0L;
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(1, syncIntervalMs_);
+        .computeEnumSize(1, ufsMode_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -132,16 +139,15 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.FileSystemMasterCommonPOptions)) {
+    if (!(obj instanceof alluxio.grpc.UpdateUfsModePOptions)) {
       return super.equals(obj);
     }
-    alluxio.grpc.FileSystemMasterCommonPOptions other = (alluxio.grpc.FileSystemMasterCommonPOptions) obj;
+    alluxio.grpc.UpdateUfsModePOptions other = (alluxio.grpc.UpdateUfsModePOptions) obj;
 
     boolean result = true;
-    result = result && (hasSyncIntervalMs() == other.hasSyncIntervalMs());
-    if (hasSyncIntervalMs()) {
-      result = result && (getSyncIntervalMs()
-          == other.getSyncIntervalMs());
+    result = result && (hasUfsMode() == other.hasUfsMode());
+    if (hasUfsMode()) {
+      result = result && ufsMode_ == other.ufsMode_;
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -154,79 +160,78 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasSyncIntervalMs()) {
-      hash = (37 * hash) + SYNCINTERVALMS_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getSyncIntervalMs());
+    if (hasUfsMode()) {
+      hash = (37 * hash) + UFSMODE_FIELD_NUMBER;
+      hash = (53 * hash) + ufsMode_;
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.UpdateUfsModePOptions parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.UpdateUfsModePOptions parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.UpdateUfsModePOptions parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.UpdateUfsModePOptions parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(byte[] data)
+  public static alluxio.grpc.UpdateUfsModePOptions parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.UpdateUfsModePOptions parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.UpdateUfsModePOptions parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.UpdateUfsModePOptions parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.UpdateUfsModePOptions parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseDelimitedFrom(
+  public static alluxio.grpc.UpdateUfsModePOptions parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.UpdateUfsModePOptions parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileSystemMasterCommonPOptions parseFrom(
+  public static alluxio.grpc.UpdateUfsModePOptions parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -238,7 +243,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.FileSystemMasterCommonPOptions prototype) {
+  public static Builder newBuilder(alluxio.grpc.UpdateUfsModePOptions prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -253,25 +258,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.FileSystemMasterCommonPOptions}
+   * Protobuf type {@code alluxio.grpc.UpdateUfsModePOptions}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.FileSystemMasterCommonPOptions)
-      alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.UpdateUfsModePOptions)
+      alluxio.grpc.UpdateUfsModePOptionsOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_descriptor;
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_UpdateUfsModePOptions_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_fieldAccessorTable
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_UpdateUfsModePOptions_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.FileSystemMasterCommonPOptions.class, alluxio.grpc.FileSystemMasterCommonPOptions.Builder.class);
+              alluxio.grpc.UpdateUfsModePOptions.class, alluxio.grpc.UpdateUfsModePOptions.Builder.class);
     }
 
-    // Construct using alluxio.grpc.FileSystemMasterCommonPOptions.newBuilder()
+    // Construct using alluxio.grpc.UpdateUfsModePOptions.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -288,36 +293,36 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      syncIntervalMs_ = 0L;
+      ufsMode_ = 1;
       bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_FileSystemMasterCommonPOptions_descriptor;
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_UpdateUfsModePOptions_descriptor;
     }
 
-    public alluxio.grpc.FileSystemMasterCommonPOptions getDefaultInstanceForType() {
-      return alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance();
+    public alluxio.grpc.UpdateUfsModePOptions getDefaultInstanceForType() {
+      return alluxio.grpc.UpdateUfsModePOptions.getDefaultInstance();
     }
 
-    public alluxio.grpc.FileSystemMasterCommonPOptions build() {
-      alluxio.grpc.FileSystemMasterCommonPOptions result = buildPartial();
+    public alluxio.grpc.UpdateUfsModePOptions build() {
+      alluxio.grpc.UpdateUfsModePOptions result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.FileSystemMasterCommonPOptions buildPartial() {
-      alluxio.grpc.FileSystemMasterCommonPOptions result = new alluxio.grpc.FileSystemMasterCommonPOptions(this);
+    public alluxio.grpc.UpdateUfsModePOptions buildPartial() {
+      alluxio.grpc.UpdateUfsModePOptions result = new alluxio.grpc.UpdateUfsModePOptions(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.syncIntervalMs_ = syncIntervalMs_;
+      result.ufsMode_ = ufsMode_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -350,18 +355,18 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.FileSystemMasterCommonPOptions) {
-        return mergeFrom((alluxio.grpc.FileSystemMasterCommonPOptions)other);
+      if (other instanceof alluxio.grpc.UpdateUfsModePOptions) {
+        return mergeFrom((alluxio.grpc.UpdateUfsModePOptions)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.FileSystemMasterCommonPOptions other) {
-      if (other == alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance()) return this;
-      if (other.hasSyncIntervalMs()) {
-        setSyncIntervalMs(other.getSyncIntervalMs());
+    public Builder mergeFrom(alluxio.grpc.UpdateUfsModePOptions other) {
+      if (other == alluxio.grpc.UpdateUfsModePOptions.getDefaultInstance()) return this;
+      if (other.hasUfsMode()) {
+        setUfsMode(other.getUfsMode());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -376,11 +381,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.FileSystemMasterCommonPOptions parsedMessage = null;
+      alluxio.grpc.UpdateUfsModePOptions parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.FileSystemMasterCommonPOptions) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.UpdateUfsModePOptions) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -391,34 +396,38 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private long syncIntervalMs_ ;
+    private int ufsMode_ = 1;
     /**
-     * <code>optional int64 syncIntervalMs = 1;</code>
+     * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
      */
-    public boolean hasSyncIntervalMs() {
+    public boolean hasUfsMode() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int64 syncIntervalMs = 1;</code>
+     * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
      */
-    public long getSyncIntervalMs() {
-      return syncIntervalMs_;
+    public alluxio.grpc.UfsMode getUfsMode() {
+      alluxio.grpc.UfsMode result = alluxio.grpc.UfsMode.valueOf(ufsMode_);
+      return result == null ? alluxio.grpc.UfsMode.NoAccess : result;
     }
     /**
-     * <code>optional int64 syncIntervalMs = 1;</code>
+     * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
      */
-    public Builder setSyncIntervalMs(long value) {
+    public Builder setUfsMode(alluxio.grpc.UfsMode value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       bitField0_ |= 0x00000001;
-      syncIntervalMs_ = value;
+      ufsMode_ = value.getNumber();
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 syncIntervalMs = 1;</code>
+     * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
      */
-    public Builder clearSyncIntervalMs() {
+    public Builder clearUfsMode() {
       bitField0_ = (bitField0_ & ~0x00000001);
-      syncIntervalMs_ = 0L;
+      ufsMode_ = 1;
       onChanged();
       return this;
     }
@@ -433,39 +442,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.FileSystemMasterCommonPOptions)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.UpdateUfsModePOptions)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.FileSystemMasterCommonPOptions)
-  private static final alluxio.grpc.FileSystemMasterCommonPOptions DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.UpdateUfsModePOptions)
+  private static final alluxio.grpc.UpdateUfsModePOptions DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.FileSystemMasterCommonPOptions();
+    DEFAULT_INSTANCE = new alluxio.grpc.UpdateUfsModePOptions();
   }
 
-  public static alluxio.grpc.FileSystemMasterCommonPOptions getDefaultInstance() {
+  public static alluxio.grpc.UpdateUfsModePOptions getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<FileSystemMasterCommonPOptions>
-      PARSER = new com.google.protobuf.AbstractParser<FileSystemMasterCommonPOptions>() {
-    public FileSystemMasterCommonPOptions parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<UpdateUfsModePOptions>
+      PARSER = new com.google.protobuf.AbstractParser<UpdateUfsModePOptions>() {
+    public UpdateUfsModePOptions parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new FileSystemMasterCommonPOptions(input, extensionRegistry);
+      return new UpdateUfsModePOptions(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<FileSystemMasterCommonPOptions> parser() {
+  public static com.google.protobuf.Parser<UpdateUfsModePOptions> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<FileSystemMasterCommonPOptions> getParserForType() {
+  public com.google.protobuf.Parser<UpdateUfsModePOptions> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.FileSystemMasterCommonPOptions getDefaultInstanceForType() {
+  public alluxio.grpc.UpdateUfsModePOptions getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

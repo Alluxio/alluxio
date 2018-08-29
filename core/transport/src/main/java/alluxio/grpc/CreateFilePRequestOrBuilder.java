@@ -3,13 +3,13 @@
 
 package alluxio.grpc;
 
-public interface GetStatusPRequestOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:alluxio.grpc.GetStatusPRequest)
+public interface CreateFilePRequestOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:alluxio.grpc.CreateFilePRequest)
     com.google.protobuf.MessageOrBuilder {
 
   /**
    * <pre>
-   ** the path of the file or directory 
+   ** the path of the file 
    * </pre>
    *
    * <code>optional string path = 1;</code>
@@ -17,7 +17,7 @@ public interface GetStatusPRequestOrBuilder extends
   boolean hasPath();
   /**
    * <pre>
-   ** the path of the file or directory 
+   ** the path of the file 
    * </pre>
    *
    * <code>optional string path = 1;</code>
@@ -25,7 +25,7 @@ public interface GetStatusPRequestOrBuilder extends
   java.lang.String getPath();
   /**
    * <pre>
-   ** the path of the file or directory 
+   ** the path of the file 
    * </pre>
    *
    * <code>optional string path = 1;</code>
@@ -34,15 +34,15 @@ public interface GetStatusPRequestOrBuilder extends
       getPathBytes();
 
   /**
-   * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+   * <code>optional .alluxio.grpc.CreateFilePOptions options = 2;</code>
    */
   boolean hasOptions();
   /**
-   * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+   * <code>optional .alluxio.grpc.CreateFilePOptions options = 2;</code>
    */
-  alluxio.grpc.GetStatusPOptions getOptions();
+  alluxio.grpc.CreateFilePOptions getOptions();
   /**
-   * <code>optional .alluxio.grpc.GetStatusPOptions options = 2;</code>
+   * <code>optional .alluxio.grpc.CreateFilePOptions options = 2;</code>
    */
-  alluxio.grpc.GetStatusPOptionsOrBuilder getOptionsOrBuilder();
+  alluxio.grpc.CreateFilePOptionsOrBuilder getOptionsOrBuilder();
 }
