@@ -39,6 +39,11 @@ enum TtlAction {
   FREE = 1;   // Free the file after TTL expires.
 }
 
+message Command {
+  optional CommandType commandType = 1;
+  repeated int64 data = 2;
+}
+
 message LocalityTier {
   optional string tierName = 1;
   optional string value = 2;
@@ -58,4 +63,21 @@ message WorkerNetAddress {
   optional int32 webPort = 4;
   optional string domainSocketPath = 5;
   optional TieredIdentity tieredIdentity = 6;
+}
+
+message GetServiceVersionPResponse {
+  optional int64 version = 1;
+}
+
+message GetServiceVersionPOptions {
+  optional string serviceType = 1;
+}
+
+service AlluxioService {
+
+  /**
+   * Returns the version of the master service.
+   * NOTE: The version should be updated every time a backwards incompatible API change occurs.
+   */
+  rpc getServiceVersion(GetServiceVersionPOptions) returns (GetServiceVersionPResponse);
 }
