@@ -147,8 +147,9 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     }
 
     @Override
-    protected void flushRequest(BlockWriteRequestContext context, Channel channel)
-        throws Exception {}
+    protected void flushRequest(BlockWriteRequestContext context)
+        throws Exception {
+    }
 
     @Override
     protected void writeBuf(BlockWriteRequestContext context, Channel channel, ByteBuf buf,

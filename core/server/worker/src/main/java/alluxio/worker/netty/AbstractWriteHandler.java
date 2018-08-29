@@ -298,7 +298,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         if (buf == FLUSH) {
           try {
             if (mContext.getPosToWrite() != 0) {
-              flushRequest(mContext, mChannel);
+              // Flush should only happen after write
+              flushRequest(mContext);
             }
             replyFlush();
             continue;
@@ -372,12 +373,11 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
     protected abstract void cleanupRequest(T context) throws Exception;
 
     /**
-     * Flushes the buffered data.
+     * Flushes the buffered data. Flush should only happen after write.
      *
      * @param context context of the request to complete
-     * @param channel netty channel
      */
-    protected abstract void flushRequest(T context, Channel channel) throws Exception;
+    protected abstract void flushRequest(T context) throws Exception;
 
     /**
      * Writes the buffer.
@@ -426,7 +426,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
     }
 
     /**
-     * Writes a response to signify the successful flush of the write request.
+     * Writes a response to signify the successful flush.
      */
     private void replyFlush() {
       mChannel.writeAndFlush(RPCProtoMessage.createResponse(Status.OK, "FLUSHED", null))

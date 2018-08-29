@@ -212,6 +212,8 @@ public class S3ALowLevelOutputStream extends OutputStream {
     if (mClosed) {
       return;
     }
+    // Set the closed flag, we never retry close() even if exception occurs
+    mClosed = true;
     try {
       if (mFile != null) {
         mLocalOutputStream.close();
@@ -233,8 +235,6 @@ public class S3ALowLevelOutputStream extends OutputStream {
       LOG.error("Failed to upload {}: {}", mKey, e.toString());
       throw new IOException(e);
     }
-    // Set the closed flag, close can be retried until mFile.delete is called successfully
-    mClosed = true;
   }
 
   /**
