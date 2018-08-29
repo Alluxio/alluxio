@@ -30,7 +30,7 @@ message CompleteFilePOptions {
 }
 message CompleteFilePResponse {}
 message CompleteFilePRequest {
-  /** the path of the file */,
+  /** the path of the file */
   optional string path = 1;
   optional CompleteFilePOptions options = 2;
 }
@@ -64,7 +64,7 @@ message CreateFilePOptions {
 }
 message CreateFilePResponse {}
 message CreateFilePRequest {
-  /** the path of the file */,
+  /** the path of the file */
   optional string path = 1;
   optional CreateFilePOptions options = 2;
 }
@@ -110,7 +110,7 @@ message GetNewBlockIdForFilePResponse {
   optional int64 id = 1;
 }
 message GetNewBlockIdForFilePRequest {
-  /** the path of the file */,
+  /** the path of the file */
   optional string path = 1;
   optional GetNewBlockIdForFilePOptions options = 2;
 }
