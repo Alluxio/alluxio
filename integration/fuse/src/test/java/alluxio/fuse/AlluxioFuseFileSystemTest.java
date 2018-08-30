@@ -165,15 +165,33 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
-  public void open() throws Exception {
+  public void openWithoutDelay() throws Exception {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    FileInfo fi = new FileInfo();
-    fi.setFolder(false);
-    URIStatus status = new URIStatus(fi);
+    setUpOpenMock(expectedPath);
 
-    when(mFileSystem.exists(expectedPath)).thenReturn(true);
-    when(mFileSystem.getStatus(expectedPath)).thenReturn(status);
-    mFileInfo.flags.set(O_RDONLY.intValue());
+    mFuseFs.open("/foo/bar", mFileInfo);
+    verify(mFileSystem).exists(expectedPath);
+    verify(mFileSystem).getStatus(expectedPath);
+    verify(mFileSystem).openFile(expectedPath);
+  }
+
+  @Test
+  public void incompleteFileCannotOpen() throws Exception {
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    FileInfo fi = setUpOpenMock(expectedPath);
+    fi.setCompleted(false);
+
+    mFuseFs.open("/foo/bar", mFileInfo);
+    verify(mFileSystem).exists(expectedPath);
+    verify(mFileSystem, atLeast(100)).getStatus(expectedPath);
+    verify(mFileSystem, never()).openFile(expectedPath);
+  }
+
+  @Test
+  public void openWithDelay() throws Exception {
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    FileInfo fi = setUpOpenMock(expectedPath);
+    fi.setCompleted(false);
 
     // Use another thread to open file so that
     // we could change the file status when opening it
@@ -194,13 +212,7 @@ public class AlluxioFuseFileSystemTest {
   public void read() throws Exception {
     // mocks set-up
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    FileInfo fi = new FileInfo();
-    fi.setFolder(false);
-    fi.setCompleted(true);
-    URIStatus status = new URIStatus(fi);
-
-    when(mFileSystem.exists(expectedPath)).thenReturn(true);
-    when(mFileSystem.getStatus(expectedPath)).thenReturn(status);
+    setUpOpenMock(expectedPath);
 
     FileInStream fakeInStream = mock(FileInStream.class);
     when(fakeInStream.read(any(byte[].class), anyInt(), anyInt())).then(new Answer<Integer>() {
@@ -300,5 +312,22 @@ public class AlluxioFuseFileSystemTest {
     final Runtime runtime = Runtime.getSystemRuntime();
     final Pointer pt = runtime.getMemoryManager().allocateTemporary(36, true);
     return FuseFileInfo.of(pt);
+  }
+
+  /**
+   * Sets up mock for open() operation.
+   *
+   * @param uri the path to run operations on
+   * @return the file information
+   */
+  private FileInfo setUpOpenMock(AlluxioURI uri) throws Exception {
+    FileInfo fi = new FileInfo();
+    fi.setCompleted(true);
+    fi.setFolder(false);
+    URIStatus status = new URIStatus(fi);
+
+    when(mFileSystem.exists(uri)).thenReturn(true);
+    when(mFileSystem.getStatus(uri)).thenReturn(status);
+    return fi;
   }
 }
