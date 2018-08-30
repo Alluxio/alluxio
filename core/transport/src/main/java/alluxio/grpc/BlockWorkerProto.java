@@ -173,83 +173,82 @@ public final class BlockWorkerProto {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\022block_worker.proto\022\014alluxio.grpc\032\014comm" +
-      "on.proto\"\025\n\023AccessBlockPOptions\"\026\n\024Acces" +
-      "sBlockPResponse\"Z\n\023AccessBlockPRequest\022\017" +
-      "\n\007blockId\030\001 \001(\003\0222\n\007options\030\002 \001(\0132!.allux" +
-      "io.grpc.AccessBlockPOptions\"\024\n\022CacheBloc" +
-      "kPOptions\"\025\n\023CacheBlockPResponse\"k\n\022Cach" +
-      "eBlockPRequest\022\021\n\tsessionId\030\001 \001(\003\022\017\n\007blo" +
-      "ckId\030\002 \001(\003\0221\n\007options\030\003 \001(\0132 .alluxio.gr" +
-      "pc.CacheBlockPOptions\"\025\n\023CancelBlockPOpt" +
-      "ions\"\026\n\024CancelBlockPResponse\"m\n\023CancelBl" +
-      "ockPRequest\022\021\n\tsessionId\030\001 \001(\003\022\017\n\007blockI" +
-      "d\030\002 \001(\003\0222\n\007options\030\003 \001(\0132!.alluxio.grpc." +
-      "CancelBlockPOptions\"w\n\021LockBlockPOptions" +
-      "\022\017\n\007ufsPath\030\001 \001(\t\022\016\n\006offset\030\002 \001(\003\022\021\n\tblo" +
-      "ckSize\030\003 \001(\003\022\035\n\025maxUfsReadConcurrency\030\004 " +
-      "\001(\005\022\017\n\007mountId\030\005 \001(\003\"o\n\022LockBlockPRespon" +
-      "se\022\016\n\006lockId\030\001 \001(\003\022\021\n\tblockPath\030\002 \001(\t\0226\n" +
-      "\017lockBlockStatus\030\003 \001(\0162\035.alluxio.grpc.Lo" +
-      "ckBlockStatus\"i\n\021LockBlockPRequest\022\017\n\007bl" +
-      "ockId\030\001 \001(\003\022\021\n\tsessionId\030\002 \001(\003\0220\n\007option" +
-      "s\030\003 \001(\0132\037.alluxio.grpc.LockBlockPOptions" +
-      "\"\026\n\024PromoteBlockPOptions\")\n\025PromoteBlock" +
-      "PResponse\022\020\n\010promoted\030\001 \001(\010\"\\\n\024PromoteBl" +
-      "ockPRequest\022\017\n\007blockId\030\001 \001(\003\0223\n\007options\030" +
-      "\002 \001(\0132\".alluxio.grpc.PromoteBlockPOption" +
-      "s\"\025\n\023RemoveBlockPOptions\"\026\n\024RemoveBlockP" +
-      "Response\"Z\n\023RemoveBlockPRequest\022\017\n\007block" +
-      "Id\030\001 \001(\003\0222\n\007options\030\002 \001(\0132!.alluxio.grpc" +
-      ".RemoveBlockPOptions\"\036\n\034RequestBlockLoca" +
-      "tionPOptions\"1\n\035RequestBlockLocationPRes" +
-      "ponse\022\020\n\010location\030\001 \001(\t\"\250\001\n\034RequestBlock" +
-      "LocationPRequest\022\021\n\tsessionId\030\001 \001(\003\022\017\n\007b" +
-      "lockId\030\002 \001(\003\022\024\n\014initialBytes\030\003 \001(\003\022\021\n\twr" +
-      "iteTier\030\004 \001(\005\022;\n\007options\030\005 \001(\0132*.alluxio" +
-      ".grpc.RequestBlockLocationPOptions\"\026\n\024Re" +
-      "questSpacePOptions\"(\n\025RequestSpacePRespo" +
-      "nse\022\017\n\007success\030\001 \001(\010\"\205\001\n\024RequestSpacePRe" +
-      "quest\022\021\n\tsessionId\030\001 \001(\003\022\017\n\007blockId\030\002 \001(" +
-      "\003\022\024\n\014requestBytes\030\003 \001(\003\0223\n\007options\030\004 \001(\013" +
-      "2\".alluxio.grpc.RequestSpacePOptions\"\037\n\035" +
-      "SessionBlockHeartbeatPOptions\" \n\036Session" +
-      "BlockHeartbeatPResponse\"\201\001\n\035SessionBlock" +
-      "HeartbeatPRequest\022\021\n\tsessionId\030\001 \001(\003\022\017\n\007" +
-      "metrics\030\002 \003(\003\022<\n\007options\030\003 \001(\0132+.alluxio" +
-      ".grpc.SessionBlockHeartbeatPOptions\"\025\n\023U" +
-      "nlockBlockPOptions\"\'\n\024UnlockBlockPRespon" +
-      "se\022\017\n\007success\030\001 \001(\010\"m\n\023UnlockBlockPReque" +
-      "st\022\017\n\007blockId\030\001 \001(\003\022\021\n\tsessionId\030\002 \001(\003\0222" +
-      "\n\007options\030\003 \001(\0132!.alluxio.grpc.UnlockBlo" +
-      "ckPOptions*_\n\017LockBlockStatus\022\030\n\024ALLUXIO" +
-      "_BLOCK_LOCKED\020\001\022\026\n\022UFS_TOKEN_ACQUIRED\020\002\022" +
-      "\032\n\026UFS_TOKEN_NOT_ACQUIRED\020\0032\254\007\n\030BlockWor" +
-      "kerClientService\022T\n\013accessBlock\022!.alluxi" +
-      "o.grpc.AccessBlockPRequest\032\".alluxio.grp" +
-      "c.AccessBlockPResponse\022Q\n\ncacheBlock\022 .a" +
-      "lluxio.grpc.CacheBlockPRequest\032!.alluxio" +
-      ".grpc.CacheBlockPResponse\022T\n\013CancelBlock" +
-      "\022!.alluxio.grpc.CancelBlockPRequest\032\".al" +
-      "luxio.grpc.CancelBlockPResponse\022N\n\tLockB" +
-      "lock\022\037.alluxio.grpc.LockBlockPRequest\032 ." +
-      "alluxio.grpc.LockBlockPResponse\022W\n\014Promo" +
-      "teBlock\022\".alluxio.grpc.PromoteBlockPRequ" +
-      "est\032#.alluxio.grpc.PromoteBlockPResponse" +
-      "\022T\n\013RemoveBlock\022!.alluxio.grpc.RemoveBlo" +
-      "ckPRequest\032\".alluxio.grpc.RemoveBlockPRe" +
-      "sponse\022o\n\024RequestBlockLocation\022*.alluxio" +
-      ".grpc.RequestBlockLocationPRequest\032+.all" +
-      "uxio.grpc.RequestBlockLocationPResponse\022" +
-      "W\n\014RequestSpace\022\".alluxio.grpc.RequestSp" +
-      "acePRequest\032#.alluxio.grpc.RequestSpaceP" +
-      "Response\022r\n\025SessionBlockHeartbeat\022+.allu" +
-      "xio.grpc.SessionBlockHeartbeatPRequest\032," +
-      ".alluxio.grpc.SessionBlockHeartbeatPResp" +
-      "onse\022T\n\013UnlockBlock\022!.alluxio.grpc.Unloc" +
-      "kBlockPRequest\032\".alluxio.grpc.UnlockBloc" +
-      "kPResponseB\"\n\014alluxio.grpcB\020BlockWorkerP" +
-      "rotoP\001"
+      "\n\022block_worker.proto\022\014alluxio.grpc\"\025\n\023Ac" +
+      "cessBlockPOptions\"\026\n\024AccessBlockPRespons" +
+      "e\"Z\n\023AccessBlockPRequest\022\017\n\007blockId\030\001 \001(" +
+      "\003\0222\n\007options\030\002 \001(\0132!.alluxio.grpc.Access" +
+      "BlockPOptions\"\024\n\022CacheBlockPOptions\"\025\n\023C" +
+      "acheBlockPResponse\"k\n\022CacheBlockPRequest" +
+      "\022\021\n\tsessionId\030\001 \001(\003\022\017\n\007blockId\030\002 \001(\003\0221\n\007" +
+      "options\030\003 \001(\0132 .alluxio.grpc.CacheBlockP" +
+      "Options\"\025\n\023CancelBlockPOptions\"\026\n\024Cancel" +
+      "BlockPResponse\"m\n\023CancelBlockPRequest\022\021\n" +
+      "\tsessionId\030\001 \001(\003\022\017\n\007blockId\030\002 \001(\003\0222\n\007opt" +
+      "ions\030\003 \001(\0132!.alluxio.grpc.CancelBlockPOp" +
+      "tions\"w\n\021LockBlockPOptions\022\017\n\007ufsPath\030\001 " +
+      "\001(\t\022\016\n\006offset\030\002 \001(\003\022\021\n\tblockSize\030\003 \001(\003\022\035" +
+      "\n\025maxUfsReadConcurrency\030\004 \001(\005\022\017\n\007mountId" +
+      "\030\005 \001(\003\"o\n\022LockBlockPResponse\022\016\n\006lockId\030\001" +
+      " \001(\003\022\021\n\tblockPath\030\002 \001(\t\0226\n\017lockBlockStat" +
+      "us\030\003 \001(\0162\035.alluxio.grpc.LockBlockStatus\"" +
+      "i\n\021LockBlockPRequest\022\017\n\007blockId\030\001 \001(\003\022\021\n" +
+      "\tsessionId\030\002 \001(\003\0220\n\007options\030\003 \001(\0132\037.allu" +
+      "xio.grpc.LockBlockPOptions\"\026\n\024PromoteBlo" +
+      "ckPOptions\")\n\025PromoteBlockPResponse\022\020\n\010p" +
+      "romoted\030\001 \001(\010\"\\\n\024PromoteBlockPRequest\022\017\n" +
+      "\007blockId\030\001 \001(\003\0223\n\007options\030\002 \001(\0132\".alluxi" +
+      "o.grpc.PromoteBlockPOptions\"\025\n\023RemoveBlo" +
+      "ckPOptions\"\026\n\024RemoveBlockPResponse\"Z\n\023Re" +
+      "moveBlockPRequest\022\017\n\007blockId\030\001 \001(\003\0222\n\007op" +
+      "tions\030\002 \001(\0132!.alluxio.grpc.RemoveBlockPO" +
+      "ptions\"\036\n\034RequestBlockLocationPOptions\"1" +
+      "\n\035RequestBlockLocationPResponse\022\020\n\010locat" +
+      "ion\030\001 \001(\t\"\250\001\n\034RequestBlockLocationPReque" +
+      "st\022\021\n\tsessionId\030\001 \001(\003\022\017\n\007blockId\030\002 \001(\003\022\024" +
+      "\n\014initialBytes\030\003 \001(\003\022\021\n\twriteTier\030\004 \001(\005\022" +
+      ";\n\007options\030\005 \001(\0132*.alluxio.grpc.RequestB" +
+      "lockLocationPOptions\"\026\n\024RequestSpacePOpt" +
+      "ions\"(\n\025RequestSpacePResponse\022\017\n\007success" +
+      "\030\001 \001(\010\"\205\001\n\024RequestSpacePRequest\022\021\n\tsessi" +
+      "onId\030\001 \001(\003\022\017\n\007blockId\030\002 \001(\003\022\024\n\014requestBy" +
+      "tes\030\003 \001(\003\0223\n\007options\030\004 \001(\0132\".alluxio.grp" +
+      "c.RequestSpacePOptions\"\037\n\035SessionBlockHe" +
+      "artbeatPOptions\" \n\036SessionBlockHeartbeat" +
+      "PResponse\"\201\001\n\035SessionBlockHeartbeatPRequ" +
+      "est\022\021\n\tsessionId\030\001 \001(\003\022\017\n\007metrics\030\002 \003(\003\022" +
+      "<\n\007options\030\003 \001(\0132+.alluxio.grpc.SessionB" +
+      "lockHeartbeatPOptions\"\025\n\023UnlockBlockPOpt" +
+      "ions\"\'\n\024UnlockBlockPResponse\022\017\n\007success\030" +
+      "\001 \001(\010\"m\n\023UnlockBlockPRequest\022\017\n\007blockId\030" +
+      "\001 \001(\003\022\021\n\tsessionId\030\002 \001(\003\0222\n\007options\030\003 \001(" +
+      "\0132!.alluxio.grpc.UnlockBlockPOptions*_\n\017" +
+      "LockBlockStatus\022\030\n\024ALLUXIO_BLOCK_LOCKED\020" +
+      "\001\022\026\n\022UFS_TOKEN_ACQUIRED\020\002\022\032\n\026UFS_TOKEN_N" +
+      "OT_ACQUIRED\020\0032\254\007\n\030BlockWorkerClientServi" +
+      "ce\022T\n\013accessBlock\022!.alluxio.grpc.AccessB" +
+      "lockPRequest\032\".alluxio.grpc.AccessBlockP" +
+      "Response\022Q\n\ncacheBlock\022 .alluxio.grpc.Ca" +
+      "cheBlockPRequest\032!.alluxio.grpc.CacheBlo" +
+      "ckPResponse\022T\n\013CancelBlock\022!.alluxio.grp" +
+      "c.CancelBlockPRequest\032\".alluxio.grpc.Can" +
+      "celBlockPResponse\022N\n\tLockBlock\022\037.alluxio" +
+      ".grpc.LockBlockPRequest\032 .alluxio.grpc.L" +
+      "ockBlockPResponse\022W\n\014PromoteBlock\022\".allu" +
+      "xio.grpc.PromoteBlockPRequest\032#.alluxio." +
+      "grpc.PromoteBlockPResponse\022T\n\013RemoveBloc" +
+      "k\022!.alluxio.grpc.RemoveBlockPRequest\032\".a" +
+      "lluxio.grpc.RemoveBlockPResponse\022o\n\024Requ" +
+      "estBlockLocation\022*.alluxio.grpc.RequestB" +
+      "lockLocationPRequest\032+.alluxio.grpc.Requ" +
+      "estBlockLocationPResponse\022W\n\014RequestSpac" +
+      "e\022\".alluxio.grpc.RequestSpacePRequest\032#." +
+      "alluxio.grpc.RequestSpacePResponse\022r\n\025Se" +
+      "ssionBlockHeartbeat\022+.alluxio.grpc.Sessi" +
+      "onBlockHeartbeatPRequest\032,.alluxio.grpc." +
+      "SessionBlockHeartbeatPResponse\022T\n\013Unlock" +
+      "Block\022!.alluxio.grpc.UnlockBlockPRequest" +
+      "\032\".alluxio.grpc.UnlockBlockPResponseB\"\n\014" +
+      "alluxio.grpcB\020BlockWorkerProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -262,7 +261,6 @@ public final class BlockWorkerProto {
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          alluxio.grpc.CommonProto.getDescriptor(),
         }, assigner);
     internal_static_alluxio_grpc_AccessBlockPOptions_descriptor =
       getDescriptor().getMessageTypes().get(0);
@@ -444,7 +442,6 @@ public final class BlockWorkerProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_UnlockBlockPRequest_descriptor,
         new java.lang.String[] { "BlockId", "SessionId", "Options", });
-    alluxio.grpc.CommonProto.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

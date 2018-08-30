@@ -365,43 +365,6 @@ public final class FileSystemMasterServiceGrpc {
      return getListStatusMethod;
   }
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getLoadMetadataMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.LoadMetadataPRequest,
-      alluxio.grpc.LoadMetadataPResponse> METHOD_LOAD_METADATA = getLoadMetadataMethodHelper();
-
-  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.LoadMetadataPRequest,
-      alluxio.grpc.LoadMetadataPResponse> getLoadMetadataMethod;
-
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  public static io.grpc.MethodDescriptor<alluxio.grpc.LoadMetadataPRequest,
-      alluxio.grpc.LoadMetadataPResponse> getLoadMetadataMethod() {
-    return getLoadMetadataMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.LoadMetadataPRequest,
-      alluxio.grpc.LoadMetadataPResponse> getLoadMetadataMethodHelper() {
-    io.grpc.MethodDescriptor<alluxio.grpc.LoadMetadataPRequest, alluxio.grpc.LoadMetadataPResponse> getLoadMetadataMethod;
-    if ((getLoadMetadataMethod = FileSystemMasterServiceGrpc.getLoadMetadataMethod) == null) {
-      synchronized (FileSystemMasterServiceGrpc.class) {
-        if ((getLoadMetadataMethod = FileSystemMasterServiceGrpc.getLoadMetadataMethod) == null) {
-          FileSystemMasterServiceGrpc.getLoadMetadataMethod = getLoadMetadataMethod = 
-              io.grpc.MethodDescriptor.<alluxio.grpc.LoadMetadataPRequest, alluxio.grpc.LoadMetadataPResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.FileSystemMasterService", "LoadMetadata"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.LoadMetadataPRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.LoadMetadataPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterServiceMethodDescriptorSupplier("LoadMetadata"))
-                  .build();
-          }
-        }
-     }
-     return getLoadMetadataMethod;
-  }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
   @java.lang.Deprecated // Use {@link #getMountMethod()} instead. 
   public static final io.grpc.MethodDescriptor<alluxio.grpc.MountPRequest,
       alluxio.grpc.MountPResponse> METHOD_MOUNT = getMountMethodHelper();
@@ -796,18 +759,6 @@ public final class FileSystemMasterServiceGrpc {
     /**
      * <pre>
      **
-     * Loads metadata for the object identified by the given Alluxio path from UFS into Alluxio.
-     * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
-     * </pre>
-     */
-    public void loadMetadata(alluxio.grpc.LoadMetadataPRequest request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.LoadMetadataPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getLoadMetadataMethodHelper(), responseObserver);
-    }
-
-    /**
-     * <pre>
-     **
      * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
      * path. The path should not exist and should not be nested under any existing mount point.
      * </pre>
@@ -951,13 +902,6 @@ public final class FileSystemMasterServiceGrpc {
                 alluxio.grpc.ListStatusPRequest,
                 alluxio.grpc.ListStatusPResponse>(
                   this, METHODID_LIST_STATUS)))
-          .addMethod(
-            getLoadMetadataMethodHelper(),
-            asyncUnaryCall(
-              new MethodHandlers<
-                alluxio.grpc.LoadMetadataPRequest,
-                alluxio.grpc.LoadMetadataPResponse>(
-                  this, METHODID_LOAD_METADATA)))
           .addMethod(
             getMountMethodHelper(),
             asyncUnaryCall(
@@ -1141,19 +1085,6 @@ public final class FileSystemMasterServiceGrpc {
         io.grpc.stub.StreamObserver<alluxio.grpc.ListStatusPResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getListStatusMethodHelper(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     * <pre>
-     **
-     * Loads metadata for the object identified by the given Alluxio path from UFS into Alluxio.
-     * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
-     * </pre>
-     */
-    public void loadMetadata(alluxio.grpc.LoadMetadataPRequest request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.LoadMetadataPResponse> responseObserver) {
-      asyncUnaryCall(
-          getChannel().newCall(getLoadMetadataMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -1366,18 +1297,6 @@ public final class FileSystemMasterServiceGrpc {
     public alluxio.grpc.ListStatusPResponse listStatus(alluxio.grpc.ListStatusPRequest request) {
       return blockingUnaryCall(
           getChannel(), getListStatusMethodHelper(), getCallOptions(), request);
-    }
-
-    /**
-     * <pre>
-     **
-     * Loads metadata for the object identified by the given Alluxio path from UFS into Alluxio.
-     * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
-     * </pre>
-     */
-    public alluxio.grpc.LoadMetadataPResponse loadMetadata(alluxio.grpc.LoadMetadataPRequest request) {
-      return blockingUnaryCall(
-          getChannel(), getLoadMetadataMethodHelper(), getCallOptions(), request);
     }
 
     /**
@@ -1597,19 +1516,6 @@ public final class FileSystemMasterServiceGrpc {
     /**
      * <pre>
      **
-     * Loads metadata for the object identified by the given Alluxio path from UFS into Alluxio.
-     * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
-     * </pre>
-     */
-    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.LoadMetadataPResponse> loadMetadata(
-        alluxio.grpc.LoadMetadataPRequest request) {
-      return futureUnaryCall(
-          getChannel().newCall(getLoadMetadataMethodHelper(), getCallOptions()), request);
-    }
-
-    /**
-     * <pre>
-     **
      * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
      * path. The path should not exist and should not be nested under any existing mount point.
      * </pre>
@@ -1705,14 +1611,13 @@ public final class FileSystemMasterServiceGrpc {
   private static final int METHODID_GET_NEW_BLOCK_ID_FOR_FILE = 6;
   private static final int METHODID_GET_STATUS = 7;
   private static final int METHODID_LIST_STATUS = 8;
-  private static final int METHODID_LOAD_METADATA = 9;
-  private static final int METHODID_MOUNT = 10;
-  private static final int METHODID_REMOVE = 11;
-  private static final int METHODID_RENAME = 12;
-  private static final int METHODID_SCHEDULE_ASYNC_PERSISTENCE = 13;
-  private static final int METHODID_SET_ATTRIBUTE = 14;
-  private static final int METHODID_UNMOUNT = 15;
-  private static final int METHODID_UPDATE_UFS_MODE = 16;
+  private static final int METHODID_MOUNT = 9;
+  private static final int METHODID_REMOVE = 10;
+  private static final int METHODID_RENAME = 11;
+  private static final int METHODID_SCHEDULE_ASYNC_PERSISTENCE = 12;
+  private static final int METHODID_SET_ATTRIBUTE = 13;
+  private static final int METHODID_UNMOUNT = 14;
+  private static final int METHODID_UPDATE_UFS_MODE = 15;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -1766,10 +1671,6 @@ public final class FileSystemMasterServiceGrpc {
         case METHODID_LIST_STATUS:
           serviceImpl.listStatus((alluxio.grpc.ListStatusPRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.ListStatusPResponse>) responseObserver);
-          break;
-        case METHODID_LOAD_METADATA:
-          serviceImpl.loadMetadata((alluxio.grpc.LoadMetadataPRequest) request,
-              (io.grpc.stub.StreamObserver<alluxio.grpc.LoadMetadataPResponse>) responseObserver);
           break;
         case METHODID_MOUNT:
           serviceImpl.mount((alluxio.grpc.MountPRequest) request,
@@ -1869,7 +1770,6 @@ public final class FileSystemMasterServiceGrpc {
               .addMethod(getGetNewBlockIdForFileMethodHelper())
               .addMethod(getGetStatusMethodHelper())
               .addMethod(getListStatusMethodHelper())
-              .addMethod(getLoadMetadataMethodHelper())
               .addMethod(getMountMethodHelper())
               .addMethod(getRemoveMethodHelper())
               .addMethod(getRenameMethodHelper())

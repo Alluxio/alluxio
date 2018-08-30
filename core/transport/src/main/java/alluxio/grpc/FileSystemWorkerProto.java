@@ -114,53 +114,53 @@ public final class FileSystemWorkerProto {
   static {
     java.lang.String[] descriptorData = {
       "\n\030file_system_worker.proto\022\014alluxio.grpc" +
-      "\032\014common.proto\"\027\n\025CancelUfsFilePOptions\"" +
-      "\030\n\026CancelUfsFilePResponse\"w\n\025CancelUfsFi" +
-      "lePRequest\022\021\n\tsessionId\030\001 \001(\003\022\025\n\rtempUfs" +
-      "FileId\030\002 \001(\003\0224\n\007options\030\003 \001(\0132#.alluxio." +
-      "grpc.CancelUfsFilePOptions\"\026\n\024CloseUfsFi" +
-      "lePOptions\"\027\n\025CloseUfsFilePResponse\"u\n\024C" +
-      "loseUfsFilePRequest\022\021\n\tsessionId\030\001 \001(\003\022\025" +
-      "\n\rtempUfsFileId\030\002 \001(\003\0223\n\007options\030\003 \001(\0132\"" +
-      ".alluxio.grpc.CloseUfsFilePOptions\"E\n\027Co" +
-      "mpleteUfsFilePOptions\022\r\n\005owner\030\001 \001(\t\022\r\n\005" +
-      "group\030\002 \001(\t\022\014\n\004mode\030\003 \001(\005\"%\n\027CompleteUfs" +
-      "FilePReponse\022\n\n\002id\030\001 \001(\003\"{\n\027CompleteUfsF" +
-      "ilePRequest\022\021\n\tsessionId\030\001 \001(\003\022\025\n\rtempUf" +
-      "sFileId\030\002 \001(\003\0226\n\007options\030\003 \001(\0132%.alluxio" +
-      ".grpc.CompleteUfsFilePOptions\"C\n\025CreateU" +
-      "fsFilePOptions\022\r\n\005owner\030\001 \001(\t\022\r\n\005group\030\002" +
-      " \001(\t\022\014\n\004mode\030\003 \001(\005\"$\n\026CreateUfsFilePResp" +
-      "onse\022\n\n\002id\030\001 \001(\003\"q\n\025CreateUfsFilePReques" +
-      "t\022\021\n\tsessionId\030\001 \001(\003\022\017\n\007ufsPath\030\002 \001(\t\0224\n" +
-      "\007options\030\003 \001(\0132#.alluxio.grpc.CreateUfsF" +
-      "ilePOptions\"\025\n\023OpenUfsFilePOptions\"\"\n\024Op" +
-      "enUfsFilePResponse\022\n\n\002id\030\001 \001(\003\"m\n\023OpenUf" +
-      "sFilePRequest\022\021\n\tsessionId\030\001 \001(\003\022\017\n\007ufsP" +
-      "ath\030\002 \001(\t\0222\n\007options\030\003 \001(\0132!.alluxio.grp" +
-      "c.OpenUfsFilePOptions\"$\n\"SessionFileSyst" +
-      "emHeartbeatPOptions\"%\n#SessionFileSystem" +
-      "HeartbeatPResponse\"\213\001\n\"SessionFileSystem" +
-      "HeartbeatPRequest\022\021\n\tsessionId\030\001 \001(\003\022\017\n\007" +
-      "metrics\030\002 \003(\003\022A\n\007options\030\003 \001(\01320.alluxio" +
-      ".grpc.SessionFileSystemHeartbeatPOptions" +
-      "2\353\004\n\035FileSystemWorkerClientService\022Z\n\rCa" +
-      "ncelUfsFile\022#.alluxio.grpc.CancelUfsFile" +
-      "PRequest\032$.alluxio.grpc.CancelUfsFilePRe" +
-      "sponse\022W\n\014CloseUfsFile\022\".alluxio.grpc.Cl" +
-      "oseUfsFilePRequest\032#.alluxio.grpc.CloseU" +
-      "fsFilePResponse\022_\n\017CompleteUfsFile\022%.all" +
-      "uxio.grpc.CompleteUfsFilePRequest\032%.allu" +
-      "xio.grpc.CompleteUfsFilePReponse\022Z\n\rCrea" +
-      "teUfsFile\022#.alluxio.grpc.CreateUfsFilePR" +
-      "equest\032$.alluxio.grpc.CreateUfsFilePResp" +
-      "onse\022T\n\013OpenUfsFile\022!.alluxio.grpc.OpenU" +
-      "fsFilePRequest\032\".alluxio.grpc.OpenUfsFil" +
-      "ePResponse\022\201\001\n\032SessionFileSystemHeartbea" +
-      "t\0220.alluxio.grpc.SessionFileSystemHeartb" +
-      "eatPRequest\0321.alluxio.grpc.SessionFileSy" +
-      "stemHeartbeatPResponseB\'\n\014alluxio.grpcB\025" +
-      "FileSystemWorkerProtoP\001"
+      "\"\027\n\025CancelUfsFilePOptions\"\030\n\026CancelUfsFi" +
+      "lePResponse\"w\n\025CancelUfsFilePRequest\022\021\n\t" +
+      "sessionId\030\001 \001(\003\022\025\n\rtempUfsFileId\030\002 \001(\003\0224" +
+      "\n\007options\030\003 \001(\0132#.alluxio.grpc.CancelUfs" +
+      "FilePOptions\"\026\n\024CloseUfsFilePOptions\"\027\n\025" +
+      "CloseUfsFilePResponse\"u\n\024CloseUfsFilePRe" +
+      "quest\022\021\n\tsessionId\030\001 \001(\003\022\025\n\rtempUfsFileI" +
+      "d\030\002 \001(\003\0223\n\007options\030\003 \001(\0132\".alluxio.grpc." +
+      "CloseUfsFilePOptions\"E\n\027CompleteUfsFileP" +
+      "Options\022\r\n\005owner\030\001 \001(\t\022\r\n\005group\030\002 \001(\t\022\014\n" +
+      "\004mode\030\003 \001(\005\"%\n\027CompleteUfsFilePReponse\022\n" +
+      "\n\002id\030\001 \001(\003\"{\n\027CompleteUfsFilePRequest\022\021\n" +
+      "\tsessionId\030\001 \001(\003\022\025\n\rtempUfsFileId\030\002 \001(\003\022" +
+      "6\n\007options\030\003 \001(\0132%.alluxio.grpc.Complete" +
+      "UfsFilePOptions\"C\n\025CreateUfsFilePOptions" +
+      "\022\r\n\005owner\030\001 \001(\t\022\r\n\005group\030\002 \001(\t\022\014\n\004mode\030\003" +
+      " \001(\005\"$\n\026CreateUfsFilePResponse\022\n\n\002id\030\001 \001" +
+      "(\003\"q\n\025CreateUfsFilePRequest\022\021\n\tsessionId" +
+      "\030\001 \001(\003\022\017\n\007ufsPath\030\002 \001(\t\0224\n\007options\030\003 \001(\013" +
+      "2#.alluxio.grpc.CreateUfsFilePOptions\"\025\n" +
+      "\023OpenUfsFilePOptions\"\"\n\024OpenUfsFilePResp" +
+      "onse\022\n\n\002id\030\001 \001(\003\"m\n\023OpenUfsFilePRequest\022" +
+      "\021\n\tsessionId\030\001 \001(\003\022\017\n\007ufsPath\030\002 \001(\t\0222\n\007o" +
+      "ptions\030\003 \001(\0132!.alluxio.grpc.OpenUfsFileP" +
+      "Options\"$\n\"SessionFileSystemHeartbeatPOp" +
+      "tions\"%\n#SessionFileSystemHeartbeatPResp" +
+      "onse\"\213\001\n\"SessionFileSystemHeartbeatPRequ" +
+      "est\022\021\n\tsessionId\030\001 \001(\003\022\017\n\007metrics\030\002 \003(\003\022" +
+      "A\n\007options\030\003 \001(\01320.alluxio.grpc.SessionF" +
+      "ileSystemHeartbeatPOptions2\353\004\n\035FileSyste" +
+      "mWorkerClientService\022Z\n\rCancelUfsFile\022#." +
+      "alluxio.grpc.CancelUfsFilePRequest\032$.all" +
+      "uxio.grpc.CancelUfsFilePResponse\022W\n\014Clos" +
+      "eUfsFile\022\".alluxio.grpc.CloseUfsFilePReq" +
+      "uest\032#.alluxio.grpc.CloseUfsFilePRespons" +
+      "e\022_\n\017CompleteUfsFile\022%.alluxio.grpc.Comp" +
+      "leteUfsFilePRequest\032%.alluxio.grpc.Compl" +
+      "eteUfsFilePReponse\022Z\n\rCreateUfsFile\022#.al" +
+      "luxio.grpc.CreateUfsFilePRequest\032$.allux" +
+      "io.grpc.CreateUfsFilePResponse\022T\n\013OpenUf" +
+      "sFile\022!.alluxio.grpc.OpenUfsFilePRequest" +
+      "\032\".alluxio.grpc.OpenUfsFilePResponse\022\201\001\n" +
+      "\032SessionFileSystemHeartbeat\0220.alluxio.gr" +
+      "pc.SessionFileSystemHeartbeatPRequest\0321." +
+      "alluxio.grpc.SessionFileSystemHeartbeatP" +
+      "ResponseB\'\n\014alluxio.grpcB\025FileSystemWork" +
+      "erProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -173,7 +173,6 @@ public final class FileSystemWorkerProto {
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          alluxio.grpc.CommonProto.getDescriptor(),
         }, assigner);
     internal_static_alluxio_grpc_CancelUfsFilePOptions_descriptor =
       getDescriptor().getMessageTypes().get(0);
@@ -283,7 +282,6 @@ public final class FileSystemWorkerProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_SessionFileSystemHeartbeatPRequest_descriptor,
         new java.lang.String[] { "SessionId", "Metrics", "Options", });
-    alluxio.grpc.CommonProto.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)
