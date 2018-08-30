@@ -24,6 +24,8 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -50,6 +52,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -63,6 +66,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
 
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
+  private static final int MAX_OPEN_WAITTIME_MS = 5000;
   private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
   private final boolean mIsShellGroupMapping;
@@ -381,6 +385,11 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       if (status.isFolder()) {
         LOG.error("File {} is a directory", uri);
         return -ErrorCodes.EISDIR();
+      }
+
+      if (!status.isCompleted() && !waitForFileCompleted(uri)) {
+        LOG.error("File {} has not completed", uri);
+        return -ErrorCodes.EFAULT();
       }
 
       synchronized (mOpenFiles) {
@@ -760,6 +769,30 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     }
 
     return 0;
+  }
+
+  /**
+   * Waits for the file to complete before opening it.
+   *
+   * @param uri the file path to check
+   * @return whether the file is completed or not
+   */
+  private boolean waitForFileCompleted(AlluxioURI uri) {
+    try {
+      CommonUtils.waitFor("file completed", () -> {
+        try {
+          return mFileSystem.getStatus(uri).isCompleted();
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(MAX_OPEN_WAITTIME_MS));
+      return true;
+    } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException te) {
+      return false;
+    }
   }
 
   /**
