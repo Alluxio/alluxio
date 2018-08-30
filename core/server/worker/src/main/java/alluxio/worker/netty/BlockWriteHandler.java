@@ -147,11 +147,6 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     }
 
     @Override
-    protected void flushRequest(BlockWriteRequestContext context)
-        throws Exception {
-    }
-
-    @Override
     protected void writeBuf(BlockWriteRequestContext context, Channel channel, ByteBuf buf,
         long pos) throws Exception {
       Preconditions.checkState(context != null);
