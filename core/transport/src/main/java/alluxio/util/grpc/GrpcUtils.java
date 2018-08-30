@@ -124,14 +124,14 @@ public final class GrpcUtils {
       options.setTtl(pOptions.getTtl());
       options.setTtlAction(fromProto(pOptions.getTtlAction()));
       // TODO(adit): implement auth
-//      if (SecurityUtils.isAuthenticationEnabled()) {
-//        mOwner = SecurityUtils.getOwnerFromThriftClient();
-//        mGroup = SecurityUtils.getGroupFromThriftClient();
-//      }
+      // if (SecurityUtils.isAuthenticationEnabled()) {
+      // mOwner = SecurityUtils.getOwnerFromThriftClient();
+      // mGroup = SecurityUtils.getGroupFromThriftClient();
+      // }
       if (pOptions.hasMode()) {
         options.setMode(new Mode((short) pOptions.getMode()));
-//      } else {
-//        mMode.applyDirectoryUMask();
+        // } else {
+        // mMode.applyDirectoryUMask();
       }
     }
     return options;
@@ -153,14 +153,14 @@ public final class GrpcUtils {
       options.setTtl(pOptions.getTtl());
       options.setTtlAction(fromProto(pOptions.getTtlAction()));
       // TODO(adit): implement auth
-//      if (SecurityUtils.isAuthenticationEnabled()) {
-//        mOwner = SecurityUtils.getOwnerFromThriftClient();
-//        mGroup = SecurityUtils.getGroupFromThriftClient();
-//      }
+      // if (SecurityUtils.isAuthenticationEnabled()) {
+      // mOwner = SecurityUtils.getOwnerFromThriftClient();
+      // mGroup = SecurityUtils.getGroupFromThriftClient();
+      // }
       if (pOptions.hasMode()) {
         options.setMode(new Mode((short) pOptions.getMode()));
-//      } else {
-//        mMode.applyFileUMask();
+        // } else {
+        // mMode.applyFileUMask();
       }
     }
     return options;
@@ -386,7 +386,7 @@ public final class GrpcUtils {
     fileInfo.setMode(filePInfo.getMode());
     fileInfo.setPersistenceState(filePInfo.getPersistenceState());
     fileInfo.setMountPoint(filePInfo.getMountPoint());
-    List<FileBlockInfo> fileBlockInfos =  new ArrayList<>();
+    List<FileBlockInfo> fileBlockInfos = new ArrayList<>();
     for (alluxio.grpc.FileBlockInfo fileBlockInfo : filePInfo.getFileBlockInfosList()) {
       fileBlockInfos.add(fromProto(fileBlockInfo));
     }
@@ -467,10 +467,32 @@ public final class GrpcUtils {
   }
 
   /**
-   * Converts a wire type to a proto type.
+   * Converts wire type to proto type.
    */
-  public static alluxio.grpc.MountPointInfo toProto(MountPointInfo fileInfo) {
-    return null;
+  public static alluxio.grpc.BlockInfo toProto(BlockInfo blockInfo) {
+    List<alluxio.grpc.BlockLocation> locations = new ArrayList<>();
+    for (BlockLocation location : blockInfo.getLocations()) {
+      locations.add(toProto(location));
+    }
+    return alluxio.grpc.BlockInfo.newBuilder().setBlockId(blockInfo.getBlockId())
+        .setLength(blockInfo.getLength()).addAllLocations(locations).build();
+  }
+
+  /**
+   * Converts wire type to proto type.
+   */
+  public static alluxio.grpc.BlockLocation toProto(BlockLocation blockLocation) {
+    return alluxio.grpc.BlockLocation.newBuilder().setWorkerId(blockLocation.getWorkerId())
+        .setWorkerAddress(toProto(blockLocation.getWorkerAddress()))
+        .setTierAlias(blockLocation.getTierAlias()).build();
+  }
+
+  /**
+   * Converts options to proto type.
+   */
+  public static FileSystemMasterCommonPOptions toProto(CommonOptions options) {
+    return FileSystemMasterCommonPOptions.newBuilder()
+        .setSyncIntervalMs(options.getSyncIntervalMs()).build();
   }
 
   /**
@@ -513,6 +535,66 @@ public final class GrpcUtils {
 
   /**
    * Converts wire type to proto type.
+   */
+  public static alluxio.grpc.FileBlockInfo toProto(FileBlockInfo fileBlockInfo) {
+    List<alluxio.grpc.WorkerNetAddress> ufsLocations = new ArrayList<>();
+    for (String ufsLocation : fileBlockInfo.getUfsLocations()) {
+      HostAndPort address = HostAndPort.fromString(ufsLocation);
+      ufsLocations.add(alluxio.grpc.WorkerNetAddress.newBuilder().setHost(address.getHostText())
+          .setDataPort(address.getPortOrDefault(-1)).build());
+    }
+    return alluxio.grpc.FileBlockInfo.newBuilder()
+        .setBlockInfo(toProto(fileBlockInfo.getBlockInfo())).setOffset(fileBlockInfo.getOffset())
+        .addAllUfsLocations(ufsLocations).addAllUfsStringLocations(fileBlockInfo.getUfsLocations())
+        .build();
+  }
+
+  /**
+   * Converts options to proto type.
+   */
+  public static GetStatusPOptions toProto(GetStatusOptions options) {
+    return GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(toProto(options.getLoadMetadataType()))
+        .setCommonOptions(toProto(options.getCommonOptions())).build();
+  }
+
+  /**
+   * Converts options to proto type.
+   *
+   * @param loadMetadataType the {@link LoadMetadataType}
+   * @return the proto representation of this enum
+   */
+  public static LoadMetadataPType toProto(LoadMetadataType loadMetadataType) {
+    return LoadMetadataPType.forNumber(loadMetadataType.getValue());
+  }
+
+  /**
+   * Converts wire type to proto type.
+   */
+  public static alluxio.grpc.LocalityTier toProto(TieredIdentity.LocalityTier localityTier) {
+    return alluxio.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName())
+        .setValue(localityTier.getValue()).build();
+  }
+
+  /**
+   * Converts a wire type to a proto type.
+   */
+  public static alluxio.grpc.MountPointInfo toProto(MountPointInfo fileInfo) {
+    return null;
+  }
+
+  /**
+   * Converts wire type to proto type.
+   */
+  public static alluxio.grpc.TieredIdentity toProto(TieredIdentity tieredIdentity) {
+    return alluxio.grpc.TieredIdentity.newBuilder()
+        .addAllTiers(
+            tieredIdentity.getTiers().stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
+        .build();
+  }
+
+  /**
+   * Converts wire type to proto type.
    *
    * @param ttlAction {@link TtlAction}
    * @return {@link TTtlAction} equivalent
@@ -534,43 +616,6 @@ public final class GrpcUtils {
   /**
    * Converts wire type to proto type.
    */
-  public static alluxio.grpc.FileBlockInfo toProto(FileBlockInfo fileBlockInfo) {
-    List<alluxio.grpc.WorkerNetAddress> ufsLocations = new ArrayList<>();
-    for (String ufsLocation : fileBlockInfo.getUfsLocations()) {
-      HostAndPort address = HostAndPort.fromString(ufsLocation);
-      ufsLocations.add(alluxio.grpc.WorkerNetAddress.newBuilder().setHost(address.getHostText())
-          .setDataPort(address.getPortOrDefault(-1)).build());
-    }
-    return alluxio.grpc.FileBlockInfo.newBuilder()
-        .setBlockInfo(toProto(fileBlockInfo.getBlockInfo())).setOffset(fileBlockInfo.getOffset())
-        .addAllUfsLocations(ufsLocations).addAllUfsStringLocations(fileBlockInfo.getUfsLocations())
-        .build();
-  }
-
-  /**
-   * Converts wire type to proto type.
-   */
-  public static alluxio.grpc.BlockInfo toProto(BlockInfo blockInfo) {
-    List<alluxio.grpc.BlockLocation> locations = new ArrayList<>();
-    for (BlockLocation location : blockInfo.getLocations()) {
-      locations.add(toProto(location));
-    }
-    return alluxio.grpc.BlockInfo.newBuilder().setBlockId(blockInfo.getBlockId())
-        .setLength(blockInfo.getLength()).addAllLocations(locations).build();
-  }
-
-  /**
-   * Converts wire type to proto type.
-   */
-  public static alluxio.grpc.BlockLocation toProto(BlockLocation blockLocation) {
-    return alluxio.grpc.BlockLocation.newBuilder().setWorkerId(blockLocation.getWorkerId())
-        .setWorkerAddress(toProto(blockLocation.getWorkerAddress()))
-        .setTierAlias(blockLocation.getTierAlias()).build();
-  }
-
-  /**
-   * Converts wire type to proto type.
-   */
   public static alluxio.grpc.WorkerNetAddress toProto(WorkerNetAddress workerNetAddress) {
     alluxio.grpc.WorkerNetAddress.Builder address = alluxio.grpc.WorkerNetAddress.newBuilder()
         .setHost(workerNetAddress.getHost()).setRpcPort(workerNetAddress.getRpcPort())
@@ -580,51 +625,6 @@ public final class GrpcUtils {
       address.setTieredIdentity(toProto(workerNetAddress.getTieredIdentity()));
     }
     return address.build();
-  }
-
-  /**
-   * Converts wire type to proto type.
-   */
-  public static alluxio.grpc.TieredIdentity toProto(TieredIdentity tieredIdentity) {
-    return alluxio.grpc.TieredIdentity.newBuilder()
-        .addAllTiers(
-            tieredIdentity.getTiers().stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
-        .build();
-  }
-
-  /**
-   * Converts wire type to proto type.
-   */
-  public static alluxio.grpc.LocalityTier toProto(TieredIdentity.LocalityTier localityTier) {
-    return alluxio.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName())
-        .setValue(localityTier.getValue()).build();
-  }
-
-  /**
-   * Converts options to proto type.
-   */
-  public static GetStatusPOptions toProto(GetStatusOptions options) {
-    return GetStatusPOptions.newBuilder()
-        .setLoadMetadataType(toProto(options.getLoadMetadataType()))
-        .setCommonOptions(toProto(options.getCommonOptions())).build();
-  }
-
-  /**
-   * Converts options to proto type.
-   */
-  public static FileSystemMasterCommonPOptions toProto(CommonOptions options) {
-    return FileSystemMasterCommonPOptions.newBuilder()
-        .setSyncIntervalMs(options.getSyncIntervalMs()).build();
-  }
-
-  /**
-   * Converts options to proto type.
-   *
-   * @param loadMetadataType the {@link LoadMetadataType}
-   * @return the proto representation of this enum
-   */
-  public static LoadMetadataPType toProto(LoadMetadataType loadMetadataType) {
-    return LoadMetadataPType.forNumber(loadMetadataType.getValue());
   }
 }
 
