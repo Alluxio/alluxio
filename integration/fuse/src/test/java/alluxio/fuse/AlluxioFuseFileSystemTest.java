@@ -17,7 +17,9 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.times;
@@ -164,7 +166,6 @@ public class AlluxioFuseFileSystemTest {
 
   @Test
   public void open() throws Exception {
-    // mocks set-up
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     FileInfo fi = new FileInfo();
     fi.setFolder(false);
@@ -174,9 +175,18 @@ public class AlluxioFuseFileSystemTest {
     when(mFileSystem.getStatus(expectedPath)).thenReturn(status);
     mFileInfo.flags.set(O_RDONLY.intValue());
 
-    // actual test
-    mFuseFs.open("/foo/bar", mFileInfo);
+    // Use another thread to open file so that
+    // we could change the file status when opening it
+    Thread t = new Thread(() -> mFuseFs.open("/foo/bar", mFileInfo));
+    t.start();
+    Thread.sleep(1000);
+    // If the file exists but is not completed, we will wait for the file to complete
     verify(mFileSystem).exists(expectedPath);
+    verify(mFileSystem, atLeast(10)).getStatus(expectedPath);
+    verify(mFileSystem, never()).openFile(expectedPath);
+
+    fi.setCompleted(true);
+    t.join();
     verify(mFileSystem).openFile(expectedPath);
   }
 
@@ -186,6 +196,7 @@ public class AlluxioFuseFileSystemTest {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     FileInfo fi = new FileInfo();
     fi.setFolder(false);
+    fi.setCompleted(true);
     URIStatus status = new URIStatus(fi);
 
     when(mFileSystem.exists(expectedPath)).thenReturn(true);
