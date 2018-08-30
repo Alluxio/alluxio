@@ -12,11 +12,13 @@
 package alluxio.util.grpc;
 
 import alluxio.file.options.CheckConsistencyOptions;
+import alluxio.file.options.CommonOptions;
 import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.FreeOptions;
+import alluxio.file.options.GetStatusOptions;
 import alluxio.file.options.ListStatusOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
@@ -31,12 +33,10 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.master.file.FileSystemMasterOptions;
-import alluxio.file.options.CommonOptions;
-import alluxio.file.options.GetStatusOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
@@ -64,43 +64,123 @@ public final class GrpcUtils {
 
   private GrpcUtils() {} // prevent instantiation
 
-  public static CheckConsistencyOptions fromProto(FileSystemMasterOptions masterOptions, CheckConsistencyPOptions pInfo) {
+  /**
+   * Converts from proto type to options.
+   */
+  public static CheckConsistencyOptions fromProto(FileSystemMasterOptions masterOptions, CheckConsistencyPOptions pOptions) {
     return null;
   }
 
-  public static CompleteFileOptions fromProto(FileSystemMasterOptions masterOptions, CompleteFilePOptions pInfo) {
+  /**
+   * Converts from proto type to options.
+   */
+  public static CommonOptions fromProto(FileSystemMasterOptions masterOptions,
+      FileSystemMasterCommonPOptions pOptions) {
+    CommonOptions options = masterOptions.getCommonOptions();
+    if (pOptions != null) {
+      if (pOptions.hasSyncIntervalMs()) {
+        options.setSyncIntervalMs(pOptions.getSyncIntervalMs());
+      }
+    }
+    return options;
+  }
+
+  /**
+   * Converts from proto type to options.
+   */
+  public static CompleteFileOptions fromProto(FileSystemMasterOptions masterOptions, CompleteFilePOptions pOptions) {
     return null;
   }
 
-  public static CreateDirectoryOptions fromProto(FileSystemMasterOptions masterOptions, CreateDirectoryPOptions pInfo) {
+  /**
+   * Converts from proto type to options.
+   */
+  public static CreateDirectoryOptions fromProto(FileSystemMasterOptions masterOptions, CreateDirectoryPOptions pOptions) {
     return null;
   }
 
-  public static CreateFileOptions fromProto(FileSystemMasterOptions masterOptions, CreateFilePOptions pInfo) {
+  /**
+   * Converts from proto type to options.
+   */
+  public static CreateFileOptions fromProto(FileSystemMasterOptions masterOptions, CreateFilePOptions pOptions) {
     return null;
   }
 
-  public static FreeOptions fromProto(FileSystemMasterOptions masterOptions, FreePOptions pInfo) {
+  /**
+   * Converts from proto type to options.
+   */
+  public static FreeOptions fromProto(FileSystemMasterOptions masterOptions, FreePOptions pOptions) {
     return null;
   }
 
-  public static ListStatusOptions fromProto(FileSystemMasterOptions masterOptions, ListStatusPOptions pInfo) {
+  /**
+   * Converts from proto type to options.
+   */
+  public static GetStatusOptions fromProto(FileSystemMasterOptions masterOptions, GetStatusPOptions pOptions) {
+    GetStatusOptions options = masterOptions.getGetStatusOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+      if (pOptions.hasLoadMetadataType()) {
+        options.setLoadMetadataType(fromProto(pOptions.getLoadMetadataType()));
+      }
+    }
+    return options;
+  }
+
+  /**
+   * Converts from proto type to options.
+   */
+  public static ListStatusOptions fromProto(FileSystemMasterOptions masterOptions, ListStatusPOptions pOptions) {
     return null;
   }
 
-  public static MountOptions fromProto(FileSystemMasterOptions masterOptions, MountPOptions pInfo) {
+  /**
+   * Converts from proto type to options.
+   *
+   * @param loadMetadataTType the proto representation of loadMetadataType
+   * @return the {@link LoadMetadataType}
+   */
+  @Nullable
+  public static LoadMetadataType fromProto(LoadMetadataPType loadMetadataPType) {
+    switch (loadMetadataPType) {
+      case NEVER:
+        return LoadMetadataType.Never;
+      case ONCE:
+        return LoadMetadataType.Once;
+      case ALWAYS:
+        return LoadMetadataType.Always;
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Converts from proto type to options.
+   */
+  public static MountOptions fromProto(FileSystemMasterOptions masterOptions, MountPOptions pOptions) {
     return null;
   }
 
-  public static DeleteOptions fromProto(FileSystemMasterOptions masterOptions, DeletePOptions pInfo) {
+  /**
+   * Converts from proto type to options.
+   */
+  public static DeleteOptions fromProto(FileSystemMasterOptions masterOptions, DeletePOptions pOptions) {
     return null;
   }
 
-  public static RenameOptions fromProto(FileSystemMasterOptions masterOptions, RenamePOptions pInfo) {
+  /**
+   * Converts from proto type to options.
+   */
+  public static RenameOptions fromProto(FileSystemMasterOptions masterOptions, RenamePOptions pOptions) {
     return null;
   }
 
-  public static SetAttributeOptions fromProto(FileSystemMasterOptions masterOptions, SetAttributePOptions pInfo) {
+  /**
+   * Converts from proto type to options.
+   */
+  public static SetAttributeOptions fromProto(FileSystemMasterOptions masterOptions, SetAttributePOptions pOptions) {
     return null;
   }
 
@@ -166,6 +246,9 @@ public final class GrpcUtils {
     }
   }
 
+  /**
+   * Converts a wire type to a proto type.
+   */
   public static alluxio.grpc.MountPointInfo toProto(MountPointInfo fileInfo) {
     return null;
   }
@@ -310,22 +393,6 @@ public final class GrpcUtils {
   }
 
   /**
-   * Converts from proto type to options.
-   */
-  public static GetStatusOptions fromProto(FileSystemMasterOptions masterOptions, GetStatusPOptions pOptions) {
-    GetStatusOptions options = masterOptions.getGetStatusOptions();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
-      }
-      if (pOptions.hasLoadMetadataType()) {
-        options.setLoadMetadataType(fromProto(pOptions.getLoadMetadataType()));
-      }
-    }
-    return options;
-  }
-
-  /**
    * Converts options to proto type.
    */
   public static GetStatusPOptions toProto(GetStatusOptions options) {
@@ -336,46 +403,12 @@ public final class GrpcUtils {
   }
 
   /**
-   * Converts from proto type to options.
-   */
-  public static CommonOptions fromProto(FileSystemMasterOptions masterOptions,
-      FileSystemMasterCommonPOptions pOptions) {
-    CommonOptions options = masterOptions.getCommonOptions();
-    if (pOptions != null) {
-      if (pOptions.hasSyncIntervalMs()) {
-        options.setSyncIntervalMs(pOptions.getSyncIntervalMs());
-      }
-    }
-    return options;
-  }
-
-  /**
    * Converts options to proto type.
    */
   public static FileSystemMasterCommonPOptions toProto(CommonOptions options) {
     return FileSystemMasterCommonPOptions.newBuilder()
         .setSyncIntervalMs(options.getSyncIntervalMs())
         .build();
-  }
-
-  /**
-   * Converts from proto type to options.
-   *
-   * @param loadMetadataTType the proto representation of loadMetadataType
-   * @return the {@link LoadMetadataType}
-   */
-  @Nullable
-  public static LoadMetadataType fromProto(LoadMetadataPType loadMetadataPType) {
-    switch (loadMetadataPType) {
-      case NEVER:
-        return LoadMetadataType.Never;
-      case ONCE:
-        return LoadMetadataType.Once;
-      case ALWAYS:
-        return LoadMetadataType.Always;
-      default:
-        return null;
-    }
   }
 
   /**
