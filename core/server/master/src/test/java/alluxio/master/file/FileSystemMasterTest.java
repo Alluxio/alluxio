@@ -1982,6 +1982,9 @@ public final class FileSystemMasterTest {
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat2);
+
+    mThrown.expect(BlockInfoException.class);
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId));
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2032,6 +2035,9 @@ public final class FileSystemMasterTest {
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+
+    mThrown.expect(BlockInfoException.class);
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId));
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2066,6 +2072,9 @@ public final class FileSystemMasterTest {
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat3);
+
+    mThrown.expect(BlockInfoException.class);
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId));
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2118,6 +2127,9 @@ public final class FileSystemMasterTest {
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+
+    mThrown.expect(BlockInfoException.class);
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId));
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 

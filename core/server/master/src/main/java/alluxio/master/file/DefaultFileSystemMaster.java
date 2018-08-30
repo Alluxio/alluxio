@@ -2098,8 +2098,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         closer.register(descedant);
       }
       descendants.add(inodePath);
-      for (int i = descendants.size() - 1; i >= 0; i--) {
-        LockedInodePath descedant = descendants.get(i);
+      for (LockedInodePath descedant : descendants) {
         InodeView freeInode = descedant.getInodeOrNull();
 
         if (freeInode != null && freeInode.isFile()) {
