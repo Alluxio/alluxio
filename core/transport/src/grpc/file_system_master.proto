@@ -390,13 +390,6 @@ service FileSystemMasterService {
   rpc ListStatus(ListStatusPRequest) returns (ListStatusPResponse);
 
   /**
-   * Loads metadata for the object identified by the given Alluxio path from UFS into Alluxio.
-   *
-   * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
-   */
-  rpc LoadMetadata(LoadMetadataPRequest) returns (LoadMetadataPResponse);
-
-  /**
    * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
    * path. The path should not exist and should not be nested under any existing mount point.
    */

@@ -11,6 +11,26 @@
 
 package alluxio.util.grpc;
 
+import alluxio.file.options.CheckConsistencyOptions;
+import alluxio.file.options.CompleteFileOptions;
+import alluxio.file.options.CreateDirectoryOptions;
+import alluxio.file.options.CreateFileOptions;
+import alluxio.file.options.DeleteOptions;
+import alluxio.file.options.FreeOptions;
+import alluxio.file.options.ListStatusOptions;
+import alluxio.file.options.MountOptions;
+import alluxio.file.options.RenameOptions;
+import alluxio.file.options.SetAttributeOptions;
+import alluxio.grpc.CheckConsistencyPOptions;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.file.options.CommonOptions;
 import alluxio.file.options.GetStatusOptions;
@@ -22,6 +42,7 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerNetAddress;
@@ -42,6 +63,46 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class GrpcUtils {
 
   private GrpcUtils() {} // prevent instantiation
+
+  public static CheckConsistencyOptions fromProto(FileSystemMasterOptions masterOptions, CheckConsistencyPOptions pInfo) {
+    return null;
+  }
+
+  public static CompleteFileOptions fromProto(FileSystemMasterOptions masterOptions, CompleteFilePOptions pInfo) {
+    return null;
+  }
+
+  public static CreateDirectoryOptions fromProto(FileSystemMasterOptions masterOptions, CreateDirectoryPOptions pInfo) {
+    return null;
+  }
+
+  public static CreateFileOptions fromProto(FileSystemMasterOptions masterOptions, CreateFilePOptions pInfo) {
+    return null;
+  }
+
+  public static FreeOptions fromProto(FileSystemMasterOptions masterOptions, FreePOptions pInfo) {
+    return null;
+  }
+
+  public static ListStatusOptions fromProto(FileSystemMasterOptions masterOptions, ListStatusPOptions pInfo) {
+    return null;
+  }
+
+  public static MountOptions fromProto(FileSystemMasterOptions masterOptions, MountPOptions pInfo) {
+    return null;
+  }
+
+  public static DeleteOptions fromProto(FileSystemMasterOptions masterOptions, DeletePOptions pInfo) {
+    return null;
+  }
+
+  public static RenameOptions fromProto(FileSystemMasterOptions masterOptions, RenamePOptions pInfo) {
+    return null;
+  }
+
+  public static SetAttributeOptions fromProto(FileSystemMasterOptions masterOptions, SetAttributePOptions pInfo) {
+    return null;
+  }
 
   /**
    * Converts a proto type to a wire type.
@@ -103,6 +164,10 @@ public final class GrpcUtils {
       default:
         throw new IllegalStateException("Unrecognized proto ttl action: " + tTtlAction);
     }
+  }
+
+  public static alluxio.grpc.MountPointInfo toProto(MountPointInfo fileInfo) {
+    return null;
   }
 
   /**
