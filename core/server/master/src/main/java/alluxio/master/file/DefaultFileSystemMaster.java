@@ -2098,7 +2098,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         closer.register(descedant);
       }
       descendants.add(inodePath);
-      for (LockedInodePath descedant : descendants) {
+      for (int i = descendants.size() - 1; i >= 0; i--) {
+        LockedInodePath descedant = descendants.get(i);
         InodeView freeInode = descedant.getInodeOrNull();
 
         if (freeInode != null && freeInode.isFile()) {
@@ -2119,6 +2120,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFileView) freeInode).getBlockIds(), false /* delete */);
         }
+        mInodeTree.deleteInode(rpcContext, descedant, opTimeMs);
       }
     } finally {
       closer.close();
