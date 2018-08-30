@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
@@ -59,20 +60,18 @@ import alluxio.grpc.UnmountPResponse;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
-import alluxio.underfs.UfsMode;
-import alluxio.util.RpcUtilsNew;
-import alluxio.exception.AlluxioException;
 import alluxio.grpc.FileSystemMasterServiceGrpc;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPResponse;
+import alluxio.underfs.UfsMode;
+import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.MountPointInfo;
 
+import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.ArrayList;
