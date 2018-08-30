@@ -11,7 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.thrift.ListStatusTOptions;
 import alluxio.wire.LoadMetadataType;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -33,23 +32,4 @@ public class ListStatusOptions extends alluxio.file.options.ListStatusOptions {
     mCommonOptions = CommonOptions.defaults();
     mLoadMetadataType = LoadMetadataType.Once;
   }
-
-  /**
-   * Create an instance of {@link ListStatusOptions} from a {@link ListStatusTOptions}.
-   *
-   * @param options the thrift representation of list status options
-   */
-//  public ListStatusOptions(ListStatusTOptions options) {
-//    this();
-//    if (options != null) {
-//      if (options.isSetCommonOptions()) {
-//        mCommonOptions = new CommonOptions(options.getCommonOptions());
-//      }
-//      if (options.isSetLoadMetadataType()) {
-//        mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
-//      } else if (!options.isLoadDirectChildren()) {
-//        mLoadMetadataType = LoadMetadataType.Never;
-//      }
-//    }
-//  }
 }

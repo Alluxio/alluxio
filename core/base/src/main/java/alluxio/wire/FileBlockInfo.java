@@ -40,24 +40,6 @@ public final class FileBlockInfo implements Serializable {
    */
   public FileBlockInfo() {}
 
-//  /**
-//   * Creates a new instance of {@link FileBlockInfo} from a proto representation.
-//   *
-//   * @param fileBlockInfo the proto representation of a file block information
-//   */
-//  protected FileBlockInfo(alluxio.grpc.FileBlockInfo fileBlockInfo) {
-//    mBlockInfo = new BlockInfo(fileBlockInfo.getBlockInfo());
-//    mOffset = fileBlockInfo.getOffset();
-//    if (fileBlockInfo.getUfsStringLocationsCount() != 0) {
-//      mUfsLocations = new ArrayList<>(fileBlockInfo.getUfsStringLocationsList());
-//    } else if (fileBlockInfo.getUfsLocationsCount() != 0) {
-//      for (alluxio.grpc.WorkerNetAddress address : fileBlockInfo.getUfsLocationsList()) {
-//        mUfsLocations
-//            .add(HostAndPort.fromParts(address.getHost(), address.getDataPort()).toString());
-//      }
-//    }
-//  }
-
   /**
    * @return the block info
    */

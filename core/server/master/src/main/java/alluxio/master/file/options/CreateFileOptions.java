@@ -32,35 +32,6 @@ public final class CreateFileOptions extends alluxio.file.options.CreateFileOpti
     return new CreateFileOptions();
   }
 
-  /**
-   * Constructs an instance of {@link CreateFileOptions} from {@link CreateFileTOptions}. The option
-   * of permission is constructed with the username obtained from thrift transport.
-   *
-   * @param options the {@link CreateFileTOptions} to use
-   */
-//  public CreateFileOptions(CreateFileTOptions options) {
-//    this();
-//    if (options != null) {
-//      if (options.isSetCommonOptions()) {
-//        mCommonOptions = new CommonOptions(options.getCommonOptions());
-//      }
-//      mBlockSizeBytes = options.getBlockSizeBytes();
-//      mPersisted = options.isPersisted();
-//      mRecursive = options.isRecursive();
-//      mTtl = options.getTtl();
-//      mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
-//      if (SecurityUtils.isAuthenticationEnabled()) {
-//        mOwner = SecurityUtils.getOwnerFromThriftClient();
-//        mGroup = SecurityUtils.getGroupFromThriftClient();
-//      }
-//      if (options.isSetMode()) {
-//        mMode = new Mode(options.getMode());
-//      } else {
-//        mMode.applyFileUMask();
-//      }
-//    }
-//  }
-
   private CreateFileOptions() {
     super();
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);

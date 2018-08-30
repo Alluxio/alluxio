@@ -11,8 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.thrift.FreeTOptions;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -33,20 +31,4 @@ public final class FreeOptions extends alluxio.file.options.FreeOptions {
     mForced = false;
     mRecursive = false;
   }
-
-  /**
-   * Creates an instance of {@link FreeOptions} from a {@link FreeTOptions}.
-   *
-   * @param options the thrift representation of free options
-   */
-//  public FreeOptions(FreeTOptions options) {
-//    this();
-//    if (options != null) {
-//      if (options.isSetCommonOptions()) {
-//        mCommonOptions = new CommonOptions(options.getCommonOptions());
-//      }
-//      mForced = options.isForced();
-//      mRecursive = options.isRecursive();
-//    }
-//  }
 }

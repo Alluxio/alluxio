@@ -11,8 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.thrift.DeleteTOptions;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -26,21 +24,6 @@ public final class DeleteOptions extends alluxio.file.options.DeleteOptions {
   public static DeleteOptions defaults() {
     return new DeleteOptions();
   }
-
-  /**
-   * @param options the {@link DeleteTOptions} to use
-   */
-//  public DeleteOptions(DeleteTOptions options) {
-//    this();
-//    if (options != null) {
-//      if (options.isSetCommonOptions()) {
-//        mCommonOptions = new CommonOptions(options.getCommonOptions());
-//      }
-//      mRecursive = options.isRecursive();
-//      mAlluxioOnly = options.isAlluxioOnly();
-//      mUnchecked = options.isUnchecked();
-//    }
-//  }
 
   private DeleteOptions() {
     super();

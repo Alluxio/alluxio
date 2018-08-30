@@ -39,29 +39,6 @@ public final class MountOptions extends alluxio.file.options.MountOptions {
   }
 
   /**
-   * Creates a new instance of {@link MountOptions} from {@link MountTOptions}.
-   *
-   * @param options Thrift options
-   */
-//  public MountOptions(MountTOptions options) {
-//    this();
-//    if (options != null) {
-//      if (options.isSetCommonOptions()) {
-//        mCommonOptions = new CommonOptions(options.getCommonOptions());
-//      }
-//      if (options.isSetReadOnly()) {
-//        mReadOnly = options.isReadOnly();
-//      }
-//      if (options.isSetProperties()) {
-//        mProperties.putAll(options.getProperties());
-//      }
-//      if (options.isShared()) {
-//        mShared = options.isShared();
-//      }
-//    }
-//  }
-
-  /**
    * Creates a new instance of {@link MountOptions} from {@link File.AddMountPointEntry}.
    *
    * @param options Proto options

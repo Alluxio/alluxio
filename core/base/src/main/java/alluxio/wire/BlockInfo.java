@@ -39,20 +39,6 @@ public final class BlockInfo implements Serializable {
    */
   public BlockInfo() {}
 
-//  /**
-//   * Creates a new instance of {@link BlockInfo} from a proto representation.
-//   *
-//   * @param blockInfo the proto representation of a block information
-//   */
-//  protected BlockInfo(alluxio.grpc.BlockInfo blockInfo) {
-//    mBlockId = blockInfo.getBlockId();
-//    mLength = blockInfo.getLength();
-//    mLocations = new ArrayList<>();
-//    for (alluxio.grpc.BlockLocation location : blockInfo.getLocationsList()) {
-//      mLocations.add(new BlockLocation(location));
-//    }
-//  }
-
   /**
    * @return the block id
    */

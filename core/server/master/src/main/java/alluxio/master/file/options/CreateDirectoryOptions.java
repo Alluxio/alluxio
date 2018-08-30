@@ -30,36 +30,6 @@ public final class CreateDirectoryOptions extends alluxio.file.options.CreateDir
     return new CreateDirectoryOptions();
   }
 
-  /**
-   * Constructs an instance of {@link CreateDirectoryOptions} from {@link CreateDirectoryTOptions}.
-   * The option of permission is constructed with the username obtained from thrift
-   * transport.
-   *
-   * @param options the {@link CreateDirectoryTOptions} to use
-   */
-//  public CreateDirectoryOptions(CreateDirectoryTOptions options) {
-//    this();
-//    if (options != null) {
-//      if (options.isSetCommonOptions()) {
-//        mCommonOptions = new CommonOptions(options.getCommonOptions());
-//      }
-//      mAllowExists = options.isAllowExists();
-//      mPersisted = options.isPersisted();
-//      mRecursive = options.isRecursive();
-//      mTtl = options.getTtl();
-//      mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
-//      if (SecurityUtils.isAuthenticationEnabled()) {
-//        mOwner = SecurityUtils.getOwnerFromThriftClient();
-//        mGroup = SecurityUtils.getGroupFromThriftClient();
-//      }
-//      if (options.isSetMode()) {
-//        mMode = new Mode(options.getMode());
-//      } else {
-//        mMode.applyDirectoryUMask();
-//      }
-//    }
-//  }
-
   private CreateDirectoryOptions() {
     super();
     mAllowExists = false;

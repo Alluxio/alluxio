@@ -59,19 +59,6 @@ public final class TieredIdentity implements Serializable {
     return mTiers.get(i);
   }
 
-//  /**
-//   * @param tieredIdentity a Thrift tiered identity
-//   * @return the corresponding wire type tiered identity
-//   */
-//  @Nullable
-//  public static TieredIdentity fromProto(alluxio.grpc.TieredIdentity tieredIdentity) {
-//    if (tieredIdentity == null) {
-//      return null;
-//    }
-//    return new TieredIdentity(tieredIdentity.getTiersList().stream().map(LocalityTier::fromProto)
-//        .collect(Collectors.toList()));
-//  }
-
   /**
    * @param other a tiered identity to compare to
    * @return whether the top tier of this tiered identity matches the top tier of other
@@ -139,14 +126,6 @@ public final class TieredIdentity implements Serializable {
     public String getValue() {
       return mValue;
     }
-
-//    /**
-//     * @param localityTier a Thrift locality tier
-//     * @return the corresponding wire type locality tier
-//     */
-//    public static LocalityTier fromProto(alluxio.grpc.LocalityTier localityTier) {
-//      return new LocalityTier(localityTier.getTierName(), localityTier.getValue());
-//    }
 
     @Override
     public boolean equals(Object o) {

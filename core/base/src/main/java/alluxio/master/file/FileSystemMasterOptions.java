@@ -19,6 +19,7 @@ import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.FreeOptions;
 import alluxio.file.options.GetStatusOptions;
 import alluxio.file.options.CommonOptions;
+import alluxio.file.options.ListStatusOptions;
 import alluxio.file.options.LoadMetadataOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
@@ -44,6 +45,8 @@ public interface FileSystemMasterOptions {
   FreeOptions getFreeOptions();
 
   GetStatusOptions getGetStatusOptions();
+
+  ListStatusOptions getListStatusOptions();
 
   LoadMetadataOptions getLoadMetadataOptions();
 

@@ -19,6 +19,7 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.GetStatusOptions;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
@@ -68,6 +69,11 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   @Override
   public GetStatusOptions getGetStatusOptions() {
     return GetStatusOptions.defaults();
+  }
+
+  @Override
+  public ListStatusOptions getListStatusOptions() {
+    return ListStatusOptions.defaults();
   }
 
   @Override

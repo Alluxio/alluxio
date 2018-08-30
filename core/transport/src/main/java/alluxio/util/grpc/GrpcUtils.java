@@ -37,6 +37,7 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
@@ -67,8 +68,15 @@ public final class GrpcUtils {
   /**
    * Converts from proto type to options.
    */
-  public static CheckConsistencyOptions fromProto(FileSystemMasterOptions masterOptions, CheckConsistencyPOptions pOptions) {
-    return null;
+  public static CheckConsistencyOptions fromProto(FileSystemMasterOptions masterOptions,
+      CheckConsistencyPOptions pOptions) {
+    CheckConsistencyOptions options = masterOptions.getCheckConsistencyOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+    }
+    return options;
   }
 
   /**
@@ -88,35 +96,99 @@ public final class GrpcUtils {
   /**
    * Converts from proto type to options.
    */
-  public static CompleteFileOptions fromProto(FileSystemMasterOptions masterOptions, CompleteFilePOptions pOptions) {
-    return null;
+  public static CompleteFileOptions fromProto(FileSystemMasterOptions masterOptions,
+      CompleteFilePOptions pOptions) {
+    CompleteFileOptions options = masterOptions.getCompleteFileOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+      options.setUfsLength(pOptions.getUfsLength());
+    }
+    return options;
   }
 
   /**
    * Converts from proto type to options.
    */
-  public static CreateDirectoryOptions fromProto(FileSystemMasterOptions masterOptions, CreateDirectoryPOptions pOptions) {
-    return null;
+  public static CreateDirectoryOptions fromProto(FileSystemMasterOptions masterOptions,
+      CreateDirectoryPOptions pOptions) {
+    CreateDirectoryOptions options = masterOptions.getCreateDirectoryOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+      options.setAllowExists(pOptions.getAllowExist());
+      options.setPersisted(pOptions.getPersisted());
+      options.setRecursive(pOptions.getRecursive());
+      options.setTtl(pOptions.getTtl());
+      options.setTtlAction(fromProto(pOptions.getTtlAction()));
+      // TODO(adit): implement auth
+//      if (SecurityUtils.isAuthenticationEnabled()) {
+//        mOwner = SecurityUtils.getOwnerFromThriftClient();
+//        mGroup = SecurityUtils.getGroupFromThriftClient();
+//      }
+      if (pOptions.hasMode()) {
+        options.setMode(new Mode((short) pOptions.getMode()));
+//      } else {
+//        mMode.applyDirectoryUMask();
+      }
+    }
+    return options;
   }
 
   /**
    * Converts from proto type to options.
    */
-  public static CreateFileOptions fromProto(FileSystemMasterOptions masterOptions, CreateFilePOptions pOptions) {
-    return null;
+  public static CreateFileOptions fromProto(FileSystemMasterOptions masterOptions,
+      CreateFilePOptions pOptions) {
+    CreateFileOptions options = masterOptions.getCreateFileOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+      options.setBlockSizeBytes(pOptions.getBlockSizeBytes());
+      options.setPersisted(pOptions.getPersisted());
+      options.setRecursive(pOptions.getRecursive());
+      options.setTtl(pOptions.getTtl());
+      options.setTtlAction(fromProto(pOptions.getTtlAction()));
+      // TODO(adit): implement auth
+//      if (SecurityUtils.isAuthenticationEnabled()) {
+//        mOwner = SecurityUtils.getOwnerFromThriftClient();
+//        mGroup = SecurityUtils.getGroupFromThriftClient();
+//      }
+      if (pOptions.hasMode()) {
+        options.setMode(new Mode((short) pOptions.getMode()));
+//      } else {
+//        mMode.applyFileUMask();
+      }
+    }
+    return options;
+
   }
 
   /**
    * Converts from proto type to options.
    */
-  public static FreeOptions fromProto(FileSystemMasterOptions masterOptions, FreePOptions pOptions) {
-    return null;
+  public static FreeOptions fromProto(FileSystemMasterOptions masterOptions,
+      FreePOptions pOptions) {
+    FreeOptions options = masterOptions.getFreeOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+      options.setForced(pOptions.getForced());
+      options.setRecursive(pOptions.getRecursive());
+    }
+    return options;
+
   }
 
   /**
    * Converts from proto type to options.
    */
-  public static GetStatusOptions fromProto(FileSystemMasterOptions masterOptions, GetStatusPOptions pOptions) {
+  public static GetStatusOptions fromProto(FileSystemMasterOptions masterOptions,
+      GetStatusPOptions pOptions) {
     GetStatusOptions options = masterOptions.getGetStatusOptions();
     if (pOptions != null) {
       if (pOptions.hasCommonOptions()) {
@@ -132,8 +204,21 @@ public final class GrpcUtils {
   /**
    * Converts from proto type to options.
    */
-  public static ListStatusOptions fromProto(FileSystemMasterOptions masterOptions, ListStatusPOptions pOptions) {
-    return null;
+  public static ListStatusOptions fromProto(FileSystemMasterOptions masterOptions,
+      ListStatusPOptions pOptions) {
+    ListStatusOptions options = masterOptions.getListStatusOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+      if (pOptions.hasLoadMetadataType()) {
+        options.setLoadMetadataType(fromProto(pOptions.getLoadMetadataType()));
+      } else if (pOptions.hasLoadDirectChildren()) {
+        options.setLoadMetadataType(LoadMetadataType.Never);
+      }
+    }
+    return options;
+
   }
 
   /**
@@ -159,29 +244,117 @@ public final class GrpcUtils {
   /**
    * Converts from proto type to options.
    */
-  public static MountOptions fromProto(FileSystemMasterOptions masterOptions, MountPOptions pOptions) {
-    return null;
+  public static MountOptions fromProto(FileSystemMasterOptions masterOptions,
+      MountPOptions pOptions) {
+    MountOptions options = masterOptions.getMountOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+      if (pOptions.hasReadOnly()) {
+        options.setReadOnly(pOptions.getReadOnly());
+      }
+      if (pOptions.getPropertiesMap() != null) {
+        options.getProperties().putAll(pOptions.getPropertiesMap());
+      }
+      if (pOptions.getShared()) {
+        options.setShared(pOptions.getShared());
+      }
+    }
+    return options;
   }
 
   /**
    * Converts from proto type to options.
    */
-  public static DeleteOptions fromProto(FileSystemMasterOptions masterOptions, DeletePOptions pOptions) {
-    return null;
+  public static DeleteOptions fromProto(FileSystemMasterOptions masterOptions,
+      DeletePOptions pOptions) {
+    DeleteOptions options = masterOptions.getDeleteOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+      options.setRecursive(pOptions.getRecursive());
+      options.setAlluxioOnly(pOptions.getAlluxioOnly());
+      options.setUnchecked(pOptions.getUnchecked());
+    }
+    return options;
   }
 
   /**
    * Converts from proto type to options.
    */
-  public static RenameOptions fromProto(FileSystemMasterOptions masterOptions, RenamePOptions pOptions) {
-    return null;
+  public static RenameOptions fromProto(FileSystemMasterOptions masterOptions,
+      RenamePOptions pOptions) {
+    RenameOptions options = masterOptions.getRenameOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+    }
+    return options;
   }
 
   /**
    * Converts from proto type to options.
    */
-  public static SetAttributeOptions fromProto(FileSystemMasterOptions masterOptions, SetAttributePOptions pOptions) {
-    return null;
+  public static SetAttributeOptions fromProto(FileSystemMasterOptions masterOptions,
+      SetAttributePOptions pOptions) {
+    SetAttributeOptions options = masterOptions.getSetAttributeOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+      if (pOptions.hasPinned()) {
+        options.setPinned(pOptions.getPinned());
+      }
+      if (pOptions.hasTtl()) {
+        options.setTtl(pOptions.getTtl());
+      }
+      if (pOptions.hasTtlAction()) {
+        options.setTtlAction(fromProto(pOptions.getTtlAction()));
+      }
+      if (pOptions.hasPersisted()) {
+        options.setPersisted(pOptions.getPersisted());
+      }
+      if (pOptions.hasOwner()) {
+        options.setOwner(pOptions.getOwner());
+      }
+      if (pOptions.hasGroup()) {
+        options.setGroup(pOptions.getGroup());
+      }
+      if (pOptions.hasMode()) {
+        options.setMode((short) pOptions.getMode());
+      }
+      options.setRecursive(pOptions.getRecursive());
+    }
+    return options;
+  }
+
+  /**
+   * Converts a proto type to a wire type.
+   */
+  public static BlockLocation fromProto(alluxio.grpc.BlockLocation blockPLocation) {
+    BlockLocation blockLocation = new BlockLocation();
+    blockLocation.setWorkerId(blockPLocation.getWorkerId());
+    blockLocation.setWorkerAddress(fromProto(blockPLocation.getWorkerAddress()));
+    blockLocation.setTierAlias(blockPLocation.getTierAlias());
+    return blockLocation;
+  }
+
+  /**
+   * Converts a proto type to a wire type.
+   */
+  public static BlockInfo fromProto(alluxio.grpc.BlockInfo blockPInfo) {
+    BlockInfo blockInfo = new BlockInfo();
+    blockInfo.setBlockId(blockPInfo.getBlockId());
+    blockInfo.setLength(blockPInfo.getLength());
+    List<BlockLocation> blockLocations = new ArrayList<>();
+    for (alluxio.grpc.BlockLocation location : blockPInfo.getLocationsList()) {
+      blockLocations.add(fromProto(location));
+    }
+    blockInfo.setLocations(blockLocations);
+    return blockInfo;
   }
 
   /**
@@ -204,26 +377,59 @@ public final class GrpcUtils {
     fileInfo.setPinned(filePInfo.getPinned());
     fileInfo.setCacheable(filePInfo.getCacheable());
     fileInfo.setPersisted(filePInfo.getPersisted());
-    // TODO(adit): Fill in the rest
-//    mBlockIds = new ArrayList<>(filePInfo.getBlockIdsList());
-//    mLastModificationTimeMs = filePInfo.getLastModificationTimeMs();
-//    mTtl = filePInfo.getTtl();
-//    mTtlAction = GrpcUtils.fromProto(filePInfo.getTtlAction());
-//    mOwner = filePInfo.getOwner();
-//    mGroup = filePInfo.getGroup();
-//    mMode = filePInfo.getMode();
-//    mPersistenceState = filePInfo.getPersistenceState();
-//    mMountPoint = filePInfo.getMountPoint();
-//    mFileBlockInfos = new ArrayList<>();
-//      for (alluxio.grpc.FileBlockInfo fileBlockInfo : filePInfo.getFileBlockInfosList()) {
-//        mFileBlockInfos.add(new FileBlockInfo(fileBlockInfo));
-//      }
-//    mMountId = filePInfo.getMountId();
-//    mInAlluxioPercentage = filePInfo.getInAlluxioPercentage();
-//    if (filePInfo.hasUfsFingerprint()) {
-//      mUfsFingerprint = filePInfo.getUfsFingerprint();
-//    }
+    fileInfo.setBlockIds(filePInfo.getBlockIdsList());
+    fileInfo.setLastModificationTimeMs(filePInfo.getLastModificationTimeMs());
+    fileInfo.setTtl(filePInfo.getTtl());
+    fileInfo.setTtlAction(fromProto(filePInfo.getTtlAction()));
+    fileInfo.setOwner(filePInfo.getOwner());
+    fileInfo.setGroup(filePInfo.getGroup());
+    fileInfo.setMode(filePInfo.getMode());
+    fileInfo.setPersistenceState(filePInfo.getPersistenceState());
+    fileInfo.setMountPoint(filePInfo.getMountPoint());
+    List<FileBlockInfo> fileBlockInfos =  new ArrayList<>();
+    for (alluxio.grpc.FileBlockInfo fileBlockInfo : filePInfo.getFileBlockInfosList()) {
+      fileBlockInfos.add(fromProto(fileBlockInfo));
+    }
+    fileInfo.setFileBlockInfos(fileBlockInfos);
+    fileInfo.setMountId(filePInfo.getMountId());
+    fileInfo.setInAlluxioPercentage(filePInfo.getInAlluxioPercentage());
+    if (filePInfo.hasUfsFingerprint()) {
+      fileInfo.setUfsFingerprint(filePInfo.getUfsFingerprint());
+    }
     return fileInfo;
+  }
+
+  /**
+   * Converts a proto type to a wire type.
+   */
+  public static FileBlockInfo fromProto(alluxio.grpc.FileBlockInfo fileBlockPInfo) {
+    FileBlockInfo fileBlockInfo = new FileBlockInfo();
+    fileBlockInfo.setBlockInfo(fromProto(fileBlockPInfo.getBlockInfo()));
+    fileBlockInfo.setOffset(fileBlockInfo.getOffset());
+    if (fileBlockPInfo.getUfsStringLocationsCount() != 0) {
+      fileBlockInfo.setUfsLocations(new ArrayList<>(fileBlockPInfo.getUfsStringLocationsList()));
+    } else if (fileBlockPInfo.getUfsLocationsCount() != 0) {
+      for (alluxio.grpc.WorkerNetAddress address : fileBlockPInfo.getUfsLocationsList()) {
+        fileBlockInfo.getUfsLocations()
+            .add(HostAndPort.fromParts(address.getHost(), address.getDataPort()).toString());
+      }
+    }
+    return fileBlockInfo;
+  }
+
+  /**
+   * Converts a proto type to a wire type.
+   */
+  public static TieredIdentity fromProto(alluxio.grpc.TieredIdentity tieredPIdentity) {
+    return new TieredIdentity(tieredPIdentity.getTiersList().stream().map(GrpcUtils::fromProto)
+        .collect(Collectors.toList()));
+  }
+
+  /**
+   * Converts a proto type to a wire type.
+   */
+  public static TieredIdentity.LocalityTier fromProto(alluxio.grpc.LocalityTier localityPTier) {
+    return new TieredIdentity.LocalityTier(localityPTier.getTierName(), localityPTier.getValue());
   }
 
   /**
@@ -247,6 +453,20 @@ public final class GrpcUtils {
   }
 
   /**
+   * Converts a proto type to a wire type.
+   */
+  public static WorkerNetAddress fromProto(alluxio.grpc.WorkerNetAddress workerNetPAddress) {
+    WorkerNetAddress workerNetAddress = new WorkerNetAddress();
+    workerNetAddress.setHost(workerNetPAddress.getHost());
+    workerNetAddress.setRpcPort(workerNetPAddress.getRpcPort());
+    workerNetAddress.setDataPort(workerNetPAddress.getDataPort());
+    workerNetAddress.setWebPort(workerNetPAddress.getWebPort());
+    workerNetAddress.setDomainSocketPath(workerNetPAddress.getDomainSocketPath());
+    workerNetAddress.setTieredIdentity(fromProto(workerNetPAddress.getTieredIdentity()));
+    return workerNetAddress;
+  }
+
+  /**
    * Converts a wire type to a proto type.
    */
   public static alluxio.grpc.MountPointInfo toProto(MountPointInfo fileInfo) {
@@ -260,38 +480,35 @@ public final class GrpcUtils {
    * @return proto representation of the file information
    */
   public static alluxio.grpc.FileInfo toProto(FileInfo fileInfo) {
-        List<alluxio.grpc.FileBlockInfo> fileBlockInfos = new ArrayList<>();
+    List<alluxio.grpc.FileBlockInfo> fileBlockInfos = new ArrayList<>();
     for (FileBlockInfo fileBlockInfo : fileInfo.getFileBlockInfos()) {
       fileBlockInfos.add(toProto(fileBlockInfo));
     }
-    return alluxio.grpc.FileInfo.newBuilder()
-            .setFileId(fileInfo.getFileId())
-            .setName(fileInfo.getName())
-            .setPath(fileInfo.getPath())
-            .setUfsPath(fileInfo.getUfsPath())
-            // TODO(adit): fill in the rest
-//            .setLength(mLength)
-//            .setBlockSizeBytes(mBlockSizeBytes)
-//            .setCreationTimeMs(mCreationTimeMs)
-//            .setCompleted(mCompleted)
-//            .setFolder(mFolder)
-//            .setPinned(mPinned)
-//            .setCacheable(mCacheable)
-//            .setPersisted(mPersisted)
-//            .addAllBlockIds(mBlockIds)
-//            .setLastModificationTimeMs(mLastModificationTimeMs)
-//            .setTtl(mTtl)
-//            .setOwner(mOwner)
-//            .setGroup(mGroup)
-//            .setMode(mMode)
-//            .setPersistenceState(mPersistenceState)
-//            .setMountPoint(mMountPoint)
-//            .addAllFileBlockInfos(fileBlockInfos)
-//            .setTtlAction(GrpcUtils.toProto(mTtlAction))
-//            .setMountId(mMountId)
-//            .setInAlluxioPercentage(mInAlluxioPercentage)
-//            .setUfsFingerprint(mUfsFingerprint)
-            .build();
+    return alluxio.grpc.FileInfo.newBuilder().setFileId(fileInfo.getFileId())
+        .setName(fileInfo.getName()).setPath(fileInfo.getPath()).setUfsPath(fileInfo.getUfsPath())
+        // TODO(adit): fill in the rest
+        // .setLength(mLength)
+        // .setBlockSizeBytes(mBlockSizeBytes)
+        // .setCreationTimeMs(mCreationTimeMs)
+        // .setCompleted(mCompleted)
+        // .setFolder(mFolder)
+        // .setPinned(mPinned)
+        // .setCacheable(mCacheable)
+        // .setPersisted(mPersisted)
+        // .addAllBlockIds(mBlockIds)
+        // .setLastModificationTimeMs(mLastModificationTimeMs)
+        // .setTtl(mTtl)
+        // .setOwner(mOwner)
+        // .setGroup(mGroup)
+        // .setMode(mMode)
+        // .setPersistenceState(mPersistenceState)
+        // .setMountPoint(mMountPoint)
+        // .addAllFileBlockInfos(fileBlockInfos)
+        // .setTtlAction(GrpcUtils.toProto(mTtlAction))
+        // .setMountId(mMountId)
+        // .setInAlluxioPercentage(mInAlluxioPercentage)
+        // .setUfsFingerprint(mUfsFingerprint)
+        .build();
   }
 
   /**
@@ -325,47 +542,40 @@ public final class GrpcUtils {
           .setDataPort(address.getPortOrDefault(-1)).build());
     }
     return alluxio.grpc.FileBlockInfo.newBuilder()
-        .setBlockInfo(toProto(fileBlockInfo.getBlockInfo()))
-        .setOffset(fileBlockInfo.getOffset())
-        .addAllUfsLocations(ufsLocations)
-        .addAllUfsStringLocations(fileBlockInfo.getUfsLocations())
+        .setBlockInfo(toProto(fileBlockInfo.getBlockInfo())).setOffset(fileBlockInfo.getOffset())
+        .addAllUfsLocations(ufsLocations).addAllUfsStringLocations(fileBlockInfo.getUfsLocations())
         .build();
   }
 
-   /**
+  /**
    * Converts wire type to proto type.
    */
   public static alluxio.grpc.BlockInfo toProto(BlockInfo blockInfo) {
-      List<alluxio.grpc.BlockLocation> locations = new ArrayList<>();
+    List<alluxio.grpc.BlockLocation> locations = new ArrayList<>();
     for (BlockLocation location : blockInfo.getLocations()) {
       locations.add(toProto(location));
     }
-    return alluxio.grpc.BlockInfo.newBuilder().setBlockId(blockInfo.getBlockId()).setLength(blockInfo.getLength())
-        .addAllLocations(locations).build();
+    return alluxio.grpc.BlockInfo.newBuilder().setBlockId(blockInfo.getBlockId())
+        .setLength(blockInfo.getLength()).addAllLocations(locations).build();
   }
 
   /**
    * Converts wire type to proto type.
    */
   public static alluxio.grpc.BlockLocation toProto(BlockLocation blockLocation) {
-    return alluxio.grpc.BlockLocation.newBuilder()
-        .setWorkerId(blockLocation.getWorkerId())
+    return alluxio.grpc.BlockLocation.newBuilder().setWorkerId(blockLocation.getWorkerId())
         .setWorkerAddress(toProto(blockLocation.getWorkerAddress()))
-        .setTierAlias(blockLocation.getTierAlias())
-        .build();
+        .setTierAlias(blockLocation.getTierAlias()).build();
   }
-  
+
   /**
    * Converts wire type to proto type.
    */
   public static alluxio.grpc.WorkerNetAddress toProto(WorkerNetAddress workerNetAddress) {
-    alluxio.grpc.WorkerNetAddress.Builder address =
-        alluxio.grpc.WorkerNetAddress.newBuilder()
-            .setHost(workerNetAddress.getHost())
-            .setRpcPort(workerNetAddress.getRpcPort())
-            .setDataPort(workerNetAddress.getDataPort())
-            .setWebPort(workerNetAddress.getWebPort())
-            .setDomainSocketPath(workerNetAddress.getDomainSocketPath());
+    alluxio.grpc.WorkerNetAddress.Builder address = alluxio.grpc.WorkerNetAddress.newBuilder()
+        .setHost(workerNetAddress.getHost()).setRpcPort(workerNetAddress.getRpcPort())
+        .setDataPort(workerNetAddress.getDataPort()).setWebPort(workerNetAddress.getWebPort())
+        .setDomainSocketPath(workerNetAddress.getDomainSocketPath());
     if (workerNetAddress.getTieredIdentity() != null) {
       address.setTieredIdentity(toProto(workerNetAddress.getTieredIdentity()));
     }
@@ -377,8 +587,8 @@ public final class GrpcUtils {
    */
   public static alluxio.grpc.TieredIdentity toProto(TieredIdentity tieredIdentity) {
     return alluxio.grpc.TieredIdentity.newBuilder()
-        .addAllTiers(tieredIdentity.getTiers().stream().map(GrpcUtils::toProto)
-            .collect(Collectors.toList()))
+        .addAllTiers(
+            tieredIdentity.getTiers().stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
         .build();
   }
 
@@ -386,10 +596,8 @@ public final class GrpcUtils {
    * Converts wire type to proto type.
    */
   public static alluxio.grpc.LocalityTier toProto(TieredIdentity.LocalityTier localityTier) {
-      return alluxio.grpc.LocalityTier.newBuilder()
-          .setTierName(localityTier.getTierName())
-          .setValue(localityTier.getValue())
-          .build();
+    return alluxio.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName())
+        .setValue(localityTier.getValue()).build();
   }
 
   /**
@@ -398,8 +606,7 @@ public final class GrpcUtils {
   public static GetStatusPOptions toProto(GetStatusOptions options) {
     return GetStatusPOptions.newBuilder()
         .setLoadMetadataType(toProto(options.getLoadMetadataType()))
-        .setCommonOptions(toProto(options.getCommonOptions()))
-        .build();
+        .setCommonOptions(toProto(options.getCommonOptions())).build();
   }
 
   /**
@@ -407,8 +614,7 @@ public final class GrpcUtils {
    */
   public static FileSystemMasterCommonPOptions toProto(CommonOptions options) {
     return FileSystemMasterCommonPOptions.newBuilder()
-        .setSyncIntervalMs(options.getSyncIntervalMs())
-        .build();
+        .setSyncIntervalMs(options.getSyncIntervalMs()).build();
   }
 
   /**
@@ -420,6 +626,5 @@ public final class GrpcUtils {
   public static LoadMetadataPType toProto(LoadMetadataType loadMetadataType) {
     return LoadMetadataPType.forNumber(loadMetadataType.getValue());
   }
-
 }
 

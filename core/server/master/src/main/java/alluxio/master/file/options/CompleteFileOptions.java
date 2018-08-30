@@ -11,8 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.thrift.CompleteFileTOptions;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -26,21 +24,6 @@ public final class CompleteFileOptions extends alluxio.file.options.CompleteFile
   public static CompleteFileOptions defaults() {
     return new CompleteFileOptions();
   }
-
-  /**
-   * Creates a new instance of {@link CompleteFileOptions} from {@link CompleteFileTOptions}.
-   *
-   * @param options Thrift options
-   */
-//  public CompleteFileOptions(CompleteFileTOptions options) {
-//    this();
-//    if (options != null) {
-//      if (options.isSetCommonOptions()) {
-//        mCommonOptions = new CommonOptions(options.getCommonOptions());
-//      }
-//      mUfsLength = options.getUfsLength();
-//    }
-//  }
 
   private CompleteFileOptions() {
     mCommonOptions = CommonOptions.defaults();

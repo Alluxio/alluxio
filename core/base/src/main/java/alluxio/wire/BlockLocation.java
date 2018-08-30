@@ -37,17 +37,6 @@ public final class BlockLocation implements Serializable {
    */
   public BlockLocation() {}
 
-//  /**
-//   * Creates a new instance of {@link BlockLocation} from a thrift representation.
-//   *
-//   * @param blockLocation the thrift representation of a block location
-//   */
-//  protected BlockLocation(alluxio.grpc.BlockLocation blockLocation) {
-//    mWorkerId = blockLocation.getWorkerId();
-//    mWorkerAddress = new WorkerNetAddress(blockLocation.getWorkerAddress());
-//    mTierAlias = blockLocation.getTierAlias();
-//  }
-
   /**
    * @return the worker id
    */

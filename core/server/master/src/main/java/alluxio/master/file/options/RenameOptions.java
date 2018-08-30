@@ -30,16 +30,4 @@ public class RenameOptions extends alluxio.file.options.RenameOptions {
     mCommonOptions = CommonOptions.defaults();
     mOperationTimeMs = System.currentTimeMillis();
   }
-
-  /**
-   * @param options the thrift options to create from
-   */
-//  public RenameOptions(RenameTOptions options) {
-//    this();
-//    if (options != null) {
-//      if (options.isSetCommonOptions()) {
-//        mCommonOptions = new CommonOptions(options.getCommonOptions());
-//      }
-//    }
-//  }
 }

@@ -43,26 +43,6 @@ public final class WorkerNetAddress implements Serializable {
    */
   public WorkerNetAddress() {}
 
-//  /**
-//   * Creates a new instance of {@link WorkerNetAddress} from thrift representation.
-//   *
-//   * @param workerNetAddress the thrift net address
-//   */
-//  protected WorkerNetAddress(alluxio.grpc.WorkerNetAddress workerNetAddress) {
-//    mHost = workerNetAddress.getHost();
-//    mRpcPort = workerNetAddress.getRpcPort();
-//    mDataPort = workerNetAddress.getDataPort();
-//    mWebPort = workerNetAddress.getWebPort();
-//    mDomainSocketPath = workerNetAddress.getDomainSocketPath();
-//    mTieredIdentity = TieredIdentity.fromProto(workerNetAddress.getTieredIdentity());
-//    if (mTieredIdentity == null) {
-//      // This means the worker is pre-1.7.0. We handle this in post-1.7.0 clients by filling out
-//      // the tiered identity using the hostname field.
-//      mTieredIdentity =
-//          new TieredIdentity(Arrays.asList(new LocalityTier(Constants.LOCALITY_NODE, mHost)));
-//    }
-//  }
-
   /**
    * @return the host of the worker
    */

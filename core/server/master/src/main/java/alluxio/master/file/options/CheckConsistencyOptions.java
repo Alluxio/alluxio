@@ -28,19 +28,4 @@ public final class CheckConsistencyOptions extends alluxio.file.options.CheckCon
   private CheckConsistencyOptions() {
     mCommonOptions = CommonOptions.defaults();
   }
-
-  /**
-   * Constructs an instance of {@link CheckConsistencyOptions} from
-   * {@link alluxio.thrift.CheckConsistencyTOptions}.
-   *
-   * @param options the {@link alluxio.thrift.CheckConsistencyTOptions} to use
-   */
-//  public CheckConsistencyOptions(CheckConsistencyTOptions options) {
-//    this();
-//    if (options != null) {
-//      if (options.isSetCommonOptions()) {
-//        mCommonOptions = new CommonOptions(options.getCommonOptions());
-//      }
-//    }
-//  }
 }

@@ -28,29 +28,6 @@ public final class SetAttributeOptions extends alluxio.file.options.SetAttribute
     return new SetAttributeOptions();
   }
 
-  /**
-   * Constructs a new method option for setting the attributes.
-   *
-   * @param options the options for setting the attributes
-   */
-//  public SetAttributeOptions(SetAttributeTOptions options) {
-//    this();
-//    if (options != null) {
-//      if (options.isSetCommonOptions()) {
-//        mCommonOptions = new CommonOptions(options.getCommonOptions());
-//      }
-//      mPinned = options.isSetPinned() ? options.isPinned() : null;
-//      mTtl = options.isSetTtl() ? options.getTtl() : null;
-//      mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
-//      mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
-//      mOwner = options.isSetOwner() ? options.getOwner() : null;
-//      mGroup = options.isSetGroup() ? options.getGroup() : null;
-//      mMode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
-//      mRecursive = options.isRecursive();
-//      mOperationTimeMs = System.currentTimeMillis();
-//    }
-//  }
-
   private SetAttributeOptions() {
     super();
     mCommonOptions = CommonOptions.defaults();
