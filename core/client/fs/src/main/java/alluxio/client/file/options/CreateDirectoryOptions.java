@@ -15,8 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.WriteType;
-import alluxio.thrift.CreateDirectoryTOptions;
-import alluxio.wire.ThriftUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -43,6 +41,8 @@ public final class CreateDirectoryOptions extends alluxio.file.options.CreateDir
   private CreateDirectoryOptions() {
     mWriteType =
         Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    // TODO(adit):
+    mPersisted = mWriteType.isThrough();
   }
 
   /**
@@ -58,6 +58,8 @@ public final class CreateDirectoryOptions extends alluxio.file.options.CreateDir
    */
   public CreateDirectoryOptions setWriteType(WriteType writeType) {
     mWriteType = writeType;
+    // TODO(adit):
+    mPersisted = mWriteType.isThrough();
     return this;
   }
 
@@ -96,22 +98,5 @@ public final class CreateDirectoryOptions extends alluxio.file.options.CreateDir
         .add("ttlAction", mTtlAction)
         .add("writeType", mWriteType)
         .toString();
-  }
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public CreateDirectoryTOptions toThrift() {
-    CreateDirectoryTOptions options = new CreateDirectoryTOptions();
-    options.setAllowExists(mAllowExists);
-    options.setRecursive(mRecursive);
-    options.setTtl(mTtl);
-    options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
-    options.setPersisted(mWriteType.isThrough());
-    if (mMode != null) {
-      options.setMode(mMode.toShort());
-    }
-//    options.setCommonOptions(mCommonOptions.toThrift());
-    return options;
   }
 }

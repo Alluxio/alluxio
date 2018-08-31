@@ -515,14 +515,29 @@ public final class GrpcUtils {
    * Converts options to proto type.
    */
   public static CreateDirectoryPOptions toProto(CreateDirectoryOptions options) {
-    return null;
+    CreateDirectoryPOptions.Builder builder = CreateDirectoryPOptions.newBuilder()
+        .setAllowExist(options.isAllowExists()).setRecursive(options.isRecursive())
+        .setTtl(options.getTtl()).setTtlAction(toProto(options.getTtlAction()))
+        .setPersisted(options.isPersisted()).setCommonOptions(toProto(options.getCommonOptions()));
+    if (options.getMode() != null) {
+      builder.setMode(options.getMode().toShort());
+    }
+    return builder.build();
   }
 
   /**
    * Converts options to proto type.
    */
   public static CreateFilePOptions toProto(CreateFileOptions options) {
-    return null;
+    CreateFilePOptions.Builder builder =
+        CreateFilePOptions.newBuilder().setBlockSizeBytes(options.getBlockSizeBytes())
+            .setPersisted(options.isPersisted()).setRecursive(options.isRecursive())
+            .setTtl(options.getTtl()).setTtlAction(toProto(options.getTtlAction()))
+            .setCommonOptions(toProto(options.getCommonOptions()));
+    if (options.getMode() != null) {
+      builder.setMode(options.getMode().toShort());
+    }
+    return builder.build();
   }
 
   /**

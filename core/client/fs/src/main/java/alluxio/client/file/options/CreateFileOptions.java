@@ -20,11 +20,9 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.security.authorization.Mode;
-import alluxio.thrift.CreateFileTOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
 import alluxio.wire.CommonOptions;
-import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -62,6 +60,8 @@ public final class CreateFileOptions extends alluxio.file.options.CreateFileOpti
             PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    // TODO(adit):
+    mPersisted = mWriteType.isThrough();
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mMode = ModeUtils.applyFileUMask(Mode.defaults());
@@ -138,6 +138,8 @@ public final class CreateFileOptions extends alluxio.file.options.CreateFileOpti
    */
   public CreateFileOptions setWriteType(WriteType writeType) {
     mWriteType = writeType;
+    // TODO(adit):
+    mPersisted = mWriteType.isThrough();
     return this;
   }
 
@@ -195,22 +197,5 @@ public final class CreateFileOptions extends alluxio.file.options.CreateFileOpti
         .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
         .toString();
-  }
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public CreateFileTOptions toThrift() {
-    CreateFileTOptions options = new CreateFileTOptions();
-    options.setBlockSizeBytes(mBlockSizeBytes);
-    options.setPersisted(mWriteType.isThrough());
-    options.setRecursive(mRecursive);
-    options.setTtl(mTtl);
-    options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
-    if (mMode != null) {
-      options.setMode(mMode.toShort());
-    }
-//    options.setCommonOptions(mCommonOptions.toThrift());
-    return options;
   }
 }
