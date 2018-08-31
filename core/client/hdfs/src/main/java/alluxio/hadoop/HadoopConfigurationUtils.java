@@ -19,8 +19,8 @@ import alluxio.conf.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -43,7 +43,7 @@ public final class HadoopConfigurationUtils {
       AlluxioConfiguration alluxioConfiguration) {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system
     // Push Alluxio configuration to the Job configuration
-    Properties alluxioConfProperties = new Properties();
+    Map<String, String> alluxioConfProperties = new HashMap<String, String>();
     // Load any Alluxio configuration parameters existing in the Hadoop configuration.
     for (Map.Entry<String, String> entry : source) {
       String propertyName = entry.getKey();
