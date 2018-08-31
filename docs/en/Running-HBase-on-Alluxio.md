@@ -137,3 +137,23 @@ bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
 After this mapreduce job finishes, you can see a result like this:
 
 ![HBaseHadoopOutput]({{site.data.img.screenshot_hbase_hadoop_output}})
+
+## InvalidArgumentException: Offsets do not match
+
+If you see errors in HBase region server look like:
+
+```
+ERROR alluxio.client.block.stream.NettyPacketWriter: Exception is caught when writing block -1 to channel:
+alluxio.exception.status.InvalidArgumentException: Offsets do not match
+```
+
+Please add the following configuration property to `hbase-site.xml`:
+
+```xml
+<configuration>
+  <property>
+    <name>hbase.regionserver.hlog.syncer.count</name>
+    <value>1</value>
+  </property>
+</configuration>
+```
