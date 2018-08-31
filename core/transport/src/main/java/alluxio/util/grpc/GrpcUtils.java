@@ -433,6 +433,14 @@ public final class GrpcUtils {
   }
 
   /**
+   * Converts a proto type to a wire type.
+   */
+  public static MountPointInfo fromProto(alluxio.grpc.MountPointInfo mountPointPInfo) {
+    // TODO(adit)
+    return null;
+  }
+
+  /**
    * Converts proto type to wire type.
    *
    * @param tTtlAction {@link TTtlAction}
@@ -493,6 +501,42 @@ public final class GrpcUtils {
   public static FileSystemMasterCommonPOptions toProto(CommonOptions options) {
     return FileSystemMasterCommonPOptions.newBuilder()
         .setSyncIntervalMs(options.getSyncIntervalMs()).build();
+  }
+
+  /**
+   * Converts options to proto type.
+   */
+  public static CheckConsistencyPOptions toProto(CheckConsistencyOptions options) {
+    return CheckConsistencyPOptions.newBuilder()
+        .setCommonOptions(toProto(options.getCommonOptions())).build();
+  }
+
+  /**
+   * Converts options to proto type.
+   */
+  public static CreateDirectoryPOptions toProto(CreateDirectoryOptions options) {
+    return null;
+  }
+
+  /**
+   * Converts options to proto type.
+   */
+  public static CreateFilePOptions toProto(CreateFileOptions options) {
+    return null;
+  }
+
+  /**
+   * Converts options to proto type.
+   */
+  public static DeletePOptions toProto(DeleteOptions options) {
+    return null;
+  }
+
+  /**
+   * Converts options to proto type.
+   */
+  public static FreePOptions toProto(FreeOptions options) {
+    return null;
   }
 
   /**
@@ -558,6 +602,13 @@ public final class GrpcUtils {
     return GetStatusPOptions.newBuilder()
         .setLoadMetadataType(toProto(options.getLoadMetadataType()))
         .setCommonOptions(toProto(options.getCommonOptions())).build();
+  }
+
+  /**
+   * Converts options to proto type.
+   */
+  public static ListStatusPOptions toProto(ListStatusOptions options) {
+    return null;
   }
 
   /**

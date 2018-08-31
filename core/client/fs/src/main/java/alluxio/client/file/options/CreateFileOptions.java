@@ -41,14 +41,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class CreateFileOptions {
-  private CommonOptions mCommonOptions;
-  private boolean mRecursive;
+public final class CreateFileOptions extends alluxio.file.options.CreateFileOptions {
   private FileWriteLocationPolicy mLocationPolicy;
-  private long mBlockSizeBytes;
-  private long mTtl;
-  private TtlAction mTtlAction;
-  private Mode mMode;
   private int mWriteTier;
   private WriteType mWriteType;
 
@@ -74,20 +68,6 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @return the common options
-   */
-  public CommonOptions getCommonOptions() {
-    return mCommonOptions;
-  }
-
-  /**
-   * @return the block size
-   */
-  public long getBlockSizeBytes() {
-    return mBlockSizeBytes;
-  }
-
-  /**
    * @return the location policy used when storing data to Alluxio
    */
   @JsonIgnore
@@ -103,28 +83,6 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
-   *         should be kept around before it is automatically deleted
-   */
-  public long getTtl() {
-    return mTtl;
-  }
-
-  /**
-   * @return the {@link TtlAction}
-   */
-  public TtlAction getTtlAction() {
-    return mTtlAction;
-  }
-
-  /**
-   * @return the mode of the file to create
-   */
-  public Mode getMode() {
-    return mMode;
-  }
-
-  /**
    * @return the write tier
    */
   public int getWriteTier() {
@@ -136,31 +94,6 @@ public final class CreateFileOptions {
    */
   public WriteType getWriteType() {
     return mWriteType;
-  }
-
-  /**
-   * @return whether or not the recursive flag is set
-   */
-  public boolean isRecursive() {
-    return mRecursive;
-  }
-
-  /**
-   * @param options the common options
-   * @return the updated options object
-   */
-  public CreateFileOptions setCommonOptions(CommonOptions options) {
-    mCommonOptions = options;
-    return this;
-  }
-
-  /**
-   * @param blockSizeBytes the block size to use
-   * @return the updated options object
-   */
-  public CreateFileOptions setBlockSizeBytes(long blockSizeBytes) {
-    mBlockSizeBytes = blockSizeBytes;
-    return this;
   }
 
   /**
@@ -186,44 +119,6 @@ public final class CreateFileOptions {
     } catch (Exception e) {
       Throwables.propagate(e);
     }
-    return this;
-  }
-
-  /**
-   * @param mode the mode to be set
-   * @return the updated options object
-   */
-  public CreateFileOptions setMode(Mode mode) {
-    mMode = mode;
-    return this;
-  }
-
-  /**
-   * @param recursive whether or not to recursively create the file's parents
-   * @return the updated options object
-   */
-  public CreateFileOptions setRecursive(boolean recursive) {
-    mRecursive = recursive;
-    return this;
-  }
-
-  /**
-   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-   *        created file should be kept around before it is automatically deleted, no matter whether
-   *        the file is pinned
-   * @return the updated options object
-   */
-  public CreateFileOptions setTtl(long ttl) {
-    mTtl = ttl;
-    return this;
-  }
-
-  /**
-   * @param ttlAction the {@link TtlAction} to use
-   * @return the updated options object
-   */
-  public CreateFileOptions setTtlAction(TtlAction ttlAction) {
-    mTtlAction = ttlAction;
     return this;
   }
 
