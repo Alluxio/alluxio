@@ -356,12 +356,12 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startServingRPCServerNew() {
     int port = 50051;
-    ExecutorService executorService = Executors.newFixedThreadPool(4);
+    ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
-      Master master = getMaster(FileSystemMaster.class);
+      FileSystemMaster master = getMaster(FileSystemMaster.class);
       LOG.info("Starting gRPC server on port {}", port);
       mGrpcServer = GrpcServerBuilder.forPort(port)
-          .addService(new FileSystemMasterClientServiceHandler((FileSystemMaster) master))
+          .addService(new FileSystemMasterClientServiceHandler(master))
           .executor(executorService)
           .build()
           .start();
