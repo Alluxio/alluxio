@@ -12,6 +12,7 @@
 package alluxio.security.authorization;
 
 import alluxio.proto.journal.File;
+import alluxio.proto.shared.Acl;
 import alluxio.thrift.TAcl;
 import alluxio.thrift.TAclEntry;
 
@@ -392,7 +393,7 @@ public class AccessControlList implements Serializable {
    * @param acl the protobuf representation
    * @return {@link AccessControlList}
    */
-  public static AccessControlList fromProtoBuf(File.AccessControlList acl) {
+  public static AccessControlList fromProtoBuf(Acl.AccessControlList acl) {
     AccessControlList ret;
     if (acl.hasIsDefault() && acl.getIsDefault()) {
       ret = new DefaultAccessControlList();
@@ -409,7 +410,7 @@ public class AccessControlList implements Serializable {
     // true if there are any extended entries (named user or named group)
     boolean hasExtended = false;
 
-    for (File.NamedAclActions namedActions : acl.getUserActionsList()) {
+    for (Acl.NamedAclActions namedActions : acl.getUserActionsList()) {
       String name = namedActions.getName();
       AclActions actions = AclActions.fromProtoBuf(namedActions.getActions());
       AclEntry entry;
@@ -424,7 +425,7 @@ public class AccessControlList implements Serializable {
       ret.setEntry(entry);
     }
 
-    for (File.NamedAclActions namedActions : acl.getGroupActionsList()) {
+    for (Acl.NamedAclActions namedActions : acl.getGroupActionsList()) {
       String name = namedActions.getName();
       AclActions actions = AclActions.fromProtoBuf(namedActions.getActions());
       AclEntry entry;
@@ -459,17 +460,17 @@ public class AccessControlList implements Serializable {
    * @param acl {@link AccessControlList}
    * @return protobuf representation
    */
-  public static File.AccessControlList toProtoBuf(AccessControlList acl) {
-    File.AccessControlList.Builder builder = File.AccessControlList.newBuilder();
+  public static Acl.AccessControlList toProtoBuf(AccessControlList acl) {
+    Acl.AccessControlList.Builder builder = Acl.AccessControlList.newBuilder();
     builder.setOwningUser(acl.mOwningUser);
     builder.setOwningGroup(acl.mOwningGroup);
 
     // base entries
-    builder.addUserActions(File.NamedAclActions.newBuilder()
+    builder.addUserActions(Acl.NamedAclActions.newBuilder()
         .setName(OWNING_USER_KEY)
         .setActions(AclActions.toProtoBuf(acl.getOwningUserActions()))
         .build());
-    builder.addGroupActions(File.NamedAclActions.newBuilder()
+    builder.addGroupActions(Acl.NamedAclActions.newBuilder()
         .setName(OWNING_GROUP_KEY)
         .setActions(AclActions.toProtoBuf(acl.getOwningGroupActions()))
         .build());

@@ -3,6 +3,7 @@ syntax = "proto2";
 package alluxio.proto.dataserver;
 
 import "dataserver/status.proto";
+import "shared/acl.proto";
 
 // The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
 // next available id: 2
@@ -84,6 +85,7 @@ message CreateUfsFileOptions {
   optional string group = 3;
   optional int32 mode = 4;
   optional int64 mount_id = 5;
+  optional alluxio.proto.shared.AccessControlList acl = 6;
 }
 
 // The response.

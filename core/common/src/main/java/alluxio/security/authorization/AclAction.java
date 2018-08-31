@@ -12,6 +12,7 @@
 package alluxio.security.authorization;
 
 import alluxio.proto.journal.File;
+import alluxio.proto.shared.Acl;
 import alluxio.thrift.TAclAction;
 
 /**
@@ -38,7 +39,7 @@ public enum AclAction {
    * @param action the protobuf representation of {@link AclAction}
    * @return the {@link AclAction} decoded from the protobuf representation
    */
-  public static AclAction fromProtoBuf(File.AclAction action) {
+  public static AclAction fromProtoBuf(Acl.AclAction action) {
     switch (action) {
       case READ:
         return READ;
@@ -54,14 +55,14 @@ public enum AclAction {
   /**
    * @return the protobuf representation of action
    */
-  public File.AclAction toProtoBuf() {
+  public Acl.AclAction toProtoBuf() {
     switch (this) {
       case READ:
-        return File.AclAction.READ;
+        return Acl.AclAction.READ;
       case WRITE:
-        return File.AclAction.WRITE;
+        return Acl.AclAction.WRITE;
       case EXECUTE:
-        return File.AclAction.EXECUTE;
+        return Acl.AclAction.EXECUTE;
       default:
         throw new IllegalStateException("Unknown acl action: " + this);
     }

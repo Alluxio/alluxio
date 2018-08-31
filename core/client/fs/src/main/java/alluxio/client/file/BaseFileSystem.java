@@ -150,6 +150,7 @@ public class BaseFileSystem implements FileSystem {
     OutStreamOptions outStreamOptions = options.toOutStreamOptions();
     outStreamOptions.setUfsPath(status.getUfsPath());
     outStreamOptions.setMountId(status.getMountId());
+    outStreamOptions.setAcl(status.getAcl());
     try {
       return new FileOutStream(path, outStreamOptions, mFileSystemContext);
     } catch (Exception e) {

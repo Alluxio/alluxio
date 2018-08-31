@@ -12,6 +12,7 @@
 package alluxio.underfs.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 
 import com.google.common.base.Objects;
@@ -34,6 +35,7 @@ public final class CreateOptions {
   private String mOwner;
   private String mGroup;
   private Mode mMode;
+  private AccessControlList mAcl;
 
   /**
    * @return the default {@link CreateOptions}

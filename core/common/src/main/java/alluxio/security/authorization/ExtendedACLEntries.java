@@ -13,6 +13,7 @@ package alluxio.security.authorization;
 
 import alluxio.proto.journal.File;
 
+import alluxio.proto.shared.Acl;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
@@ -177,10 +178,10 @@ public class ExtendedACLEntries {
   /**
    * @return a list of the proto representation of the named users actions
    */
-  public List<File.NamedAclActions> getNamedUsersProto() {
-    List<File.NamedAclActions> actions = new ArrayList<>(mNamedUserActions.size());
+  public List<Acl.NamedAclActions> getNamedUsersProto() {
+    List<Acl.NamedAclActions> actions = new ArrayList<>(mNamedUserActions.size());
     for (Map.Entry<String, AclActions> kv : mNamedUserActions.entrySet()) {
-      File.NamedAclActions namedActions = File.NamedAclActions.newBuilder()
+      Acl.NamedAclActions namedActions = Acl.NamedAclActions.newBuilder()
           .setName(kv.getKey())
           .setActions(AclActions.toProtoBuf(kv.getValue()))
           .build();
@@ -192,10 +193,10 @@ public class ExtendedACLEntries {
   /**
    * @return a list of the proto representation of the named group actions
    */
-  public List<File.NamedAclActions> getNamedGroupsProto() {
-    List<File.NamedAclActions> actions = new ArrayList<>(mNamedGroupActions.size());
+  public List<Acl.NamedAclActions> getNamedGroupsProto() {
+    List<Acl.NamedAclActions> actions = new ArrayList<>(mNamedGroupActions.size());
     for (Map.Entry<String, AclActions> kv : mNamedGroupActions.entrySet()) {
-      File.NamedAclActions namedActions = File.NamedAclActions.newBuilder()
+      Acl.NamedAclActions namedActions = Acl.NamedAclActions.newBuilder()
           .setName(kv.getKey())
           .setActions(AclActions.toProtoBuf(kv.getValue()))
           .build();
