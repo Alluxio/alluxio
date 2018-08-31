@@ -57,7 +57,7 @@ message OpenUfsBlockOptions {
 }
 
 // The write request.
-// next available id: 8
+// next available id: 9
 message WriteRequest {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
