@@ -17,6 +17,7 @@ import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -187,6 +188,10 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       CreateOptions createOptions = CreateOptions.defaults()
           .setOwner(createUfsFileOptions.getOwner()).setGroup(createUfsFileOptions.getGroup())
           .setMode(new Mode((short) createUfsFileOptions.getMode()));
+      if (createUfsFileOptions.hasAcl()) {
+        // This acl information will be ignored by all but HDFS implementations
+        createOptions.setAcl(AccessControlList.fromProtoBuf(createUfsFileOptions.getAcl()));
+      }
       context.setOutputStream(ufs.create(request.getUfsPath(), createOptions));
       context.setCreateOptions(createOptions);
       String ufsString = MetricsSystem.escape(ufsClient.getUfsMountPointUri());
