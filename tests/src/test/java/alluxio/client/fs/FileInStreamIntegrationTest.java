@@ -332,7 +332,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   /**
    * Tests when there are multiple readers reading the same file that is in UFS.
    */
-  @Test
+  @Test(timeout = 20000)
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
           PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "10240",
