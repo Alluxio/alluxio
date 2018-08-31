@@ -14,7 +14,7 @@ package alluxio.master.file.options;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.thrift.CreateFileTOptions;
+import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
 import alluxio.wire.TtlAction;
 
@@ -34,6 +34,18 @@ public final class CreateFileOptions extends alluxio.file.options.CreateFileOpti
 
   private CreateFileOptions() {
     super();
+
+    // TODO(adit): redundant definition in CreateFileOptions
+    mCommonOptions = CommonOptions.defaults();
+    mMountPoint = false;
+    mOperationTimeMs = System.currentTimeMillis();
+    mOwner = "";
+    mGroup = "";
+    mMode = Mode.defaults();
+    mPersisted = false;
+    mRecursive = false;
+    mMetadataLoad = false;
+
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;

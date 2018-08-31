@@ -85,13 +85,13 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
+  public synchronized void connect() throws AlluxioStatusException {
+    // TODO(adit): temp workaround
+  }
+
+  @Override
   protected void afterConnect() {
     mClient = new FileSystemMasterClientService.Client(mProtocol);
-    // TODO(adit): remove me
-    mBlockingStub.getStatus(GetStatusPRequest.newBuilder()
-        .setPath("/")
-        .setOptions(GrpcUtils.toProto(GetStatusOptions.defaults()))
-        .build());
   }
 
   @Override
@@ -159,10 +159,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized URIStatus getStatus(final AlluxioURI path, final GetStatusOptions options)
       throws AlluxioStatusException {
-    // TODO(adit):
-    return null;
-//    return retryRPC(() -> new URIStatus(ThriftUtils
-//            .fromThrift(mClient.getStatus(path.getPath(), options.toThrift()).getFileInfo())));
+    return retryRPC(() -> new URIStatus(GrpcUtils
+        .fromProto(mBlockingStub.getStatus(GetStatusPRequest.newBuilder().setPath(path.getPath())
+            .setOptions(GrpcUtils.toProto(options)).build()).getFileInfo())));
   }
 
   @Override

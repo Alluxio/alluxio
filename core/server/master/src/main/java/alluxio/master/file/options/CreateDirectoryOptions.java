@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.Constants;
-import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
 import alluxio.wire.TtlAction;
 
@@ -32,6 +32,18 @@ public final class CreateDirectoryOptions extends alluxio.file.options.CreateDir
 
   private CreateDirectoryOptions() {
     super();
+
+    // TODO(adit): redundant definition in CreateFileOptions
+    mCommonOptions = CommonOptions.defaults();
+    mMountPoint = false;
+    mOperationTimeMs = System.currentTimeMillis();
+    mOwner = "";
+    mGroup = "";
+    mMode = Mode.defaults();
+    mPersisted = false;
+    mRecursive = false;
+    mMetadataLoad = false;
+
     mAllowExists = false;
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;

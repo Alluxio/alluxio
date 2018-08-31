@@ -15,7 +15,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
-import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.FileSystemMasterServiceGrpc;
 import alluxio.network.thrift.ThriftUtils;
