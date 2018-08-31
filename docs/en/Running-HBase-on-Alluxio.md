@@ -140,7 +140,7 @@ After this mapreduce job finishes, you can see a result like this:
 
 ## InvalidArgumentException: Offsets do not match
 
-If you see errors in HBase region server look like:
+If you see errors in HBase region server log look like:
 
 ```
 ERROR alluxio.client.block.stream.NettyPacketWriter: Exception is caught when writing block -1 to channel:
