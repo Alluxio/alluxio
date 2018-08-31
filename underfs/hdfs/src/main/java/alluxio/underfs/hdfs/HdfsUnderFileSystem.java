@@ -224,8 +224,13 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     while (retryPolicy.attempt()) {
       try {
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
-        return new HdfsUnderFileOutputStream(FileSystem.create(hdfs, new Path(path),
+        OutputStream outputStream = new HdfsUnderFileOutputStream(
+            FileSystem.create(hdfs, new Path(path),
             new FsPermission(options.getMode().toShort())));
+        if (options.getAcl() != null) {
+          setAcl(path, options.getAcl());
+        }
+        return outputStream;
       } catch (IOException e) {
         LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.getMessage());
         te = e;
