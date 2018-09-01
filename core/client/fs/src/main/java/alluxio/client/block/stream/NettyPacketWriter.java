@@ -244,7 +244,7 @@ public final class NettyPacketWriter implements PacketWriter {
       Thread.currentThread().interrupt();
       throw new CanceledException(e);
     }
-    if (mClosed || mEOFSent || mCancelSent) {
+    if (mEOFSent || mCancelSent) {
       return;
     }
     try (LockResource lr = new LockResource(mLock)) {
