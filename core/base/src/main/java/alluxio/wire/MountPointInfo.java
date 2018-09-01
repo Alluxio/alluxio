@@ -42,21 +42,6 @@ public class MountPointInfo implements Serializable {
    */
   public MountPointInfo() {}
 
-//  /**
-//   * Creates a new instance of {@link MountPointInfo} from thrift representation.
-//   *
-//   * @param mountPointInfo the thrift representation of a mount point information
-//   */
-//  protected MountPointInfo(alluxio.thrift.MountPointInfo mountPointInfo) {
-//    mUfsUri = mountPointInfo.getUfsUri();
-//    mUfsType = mountPointInfo.getUfsType();
-//    mUfsCapacityBytes = mountPointInfo.getUfsCapacityBytes();
-//    mUfsUsedBytes = mountPointInfo.getUfsUsedBytes();
-//    mReadOnly = mountPointInfo.isReadOnly();
-//    mProperties = new HashMap<>(mountPointInfo.getProperties());
-//    mShared = mountPointInfo.isShared();
-//  }
-
   /**
    * @return the uri of the under filesystem
    */

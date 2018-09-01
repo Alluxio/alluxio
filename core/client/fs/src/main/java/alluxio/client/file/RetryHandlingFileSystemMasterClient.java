@@ -205,7 +205,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       List<URIStatus> result = new ArrayList<>();
       for (alluxio.grpc.FileInfo fileInfo : mBlockingStub.listStatus(ListStatusPRequest.newBuilder()
           .setPath(path.getPath()).setOptions(GrpcUtils.toProto(options)).build())
-          .getFileInfoList()) {
+          .getFileInfoListList()) {
         result.add(new URIStatus(GrpcUtils.fromProto(fileInfo)));
       }
       return result;
@@ -217,7 +217,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       final MountOptions options) throws AlluxioStatusException {
     retryRPC(() -> {
       mBlockingStub.mount(MountPRequest.newBuilder().setAlluxioPath(alluxioPath.getPath())
-          .setUfsPath(ufsPath.getPath()).setOptions(GrpcUtils.fromProto(options)).build());
+          .setUfsPath(ufsPath.getPath()).setOptions(GrpcUtils.toProto(options)).build());
       return null;
     });
   }
@@ -233,7 +233,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       final RenameOptions options) throws AlluxioStatusException {
     retryRPC(() -> {
       mBlockingStub.rename(RenamePRequest.newBuilder().setPath(src.getPath())
-          .setDstPath(dst.getPath()).setOptions(GrpcUtils.fromProto(options)).build());
+          .setDstPath(dst.getPath()).setOptions(GrpcUtils.toProto(options)).build());
       return null;
     });
   }
@@ -243,7 +243,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       throws AlluxioStatusException {
     retryRPC(() -> {
       mBlockingStub.setAttribute(SetAttributePRequest.newBuilder().setPath(path.getPath())
-          .setOptions(GrpcUtils.fromProto(options)).build());
+          .setOptions(GrpcUtils.toProto(options)).build());
       return null;
     });
   }
@@ -272,7 +272,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       final UpdateUfsModeOptions options) throws AlluxioStatusException {
     retryRPC(() -> {
       mBlockingStub.updateUfsMode(UpdateUfsModePRequest.newBuilder()
-          .setUfsPath(ufsUri.getRootPath()).setOptions(GrpcUtils.fromProto(options)).build());
+          .setUfsPath(ufsUri.getRootPath()).setOptions(GrpcUtils.toProto(options)).build());
       return null;
     });
   }

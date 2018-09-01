@@ -23,6 +23,7 @@ import alluxio.file.options.ListStatusOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAttributeOptions;
+import alluxio.file.options.UpdateUfsModeOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -36,6 +37,8 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.UfsMode;
+import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockInfo;
@@ -543,15 +546,27 @@ public final class GrpcUtils {
   /**
    * Converts options to proto type.
    */
+  public static CompleteFilePOptions toProto(CompleteFileOptions options) {
+    return CompleteFilePOptions.newBuilder().setUfsLength(options.getUfsLength())
+        .setCommonOptions(toProto(options.getCommonOptions())).build();
+  }
+
+  /**
+   * Converts options to proto type.
+   */
   public static DeletePOptions toProto(DeleteOptions options) {
-    return null;
+    return DeletePOptions.newBuilder().setRecursive(options.isRecursive())
+        .setAlluxioOnly(options.isAlluxioOnly()).setUnchecked(options.isUnchecked())
+        .setCommonOptions(toProto(options.getCommonOptions())).build();
   }
 
   /**
    * Converts options to proto type.
    */
   public static FreePOptions toProto(FreeOptions options) {
-    return null;
+    return FreePOptions.newBuilder().setForced(options.isForced())
+        .setRecursive(options.isRecursive()).setCommonOptions(toProto(options.getCommonOptions()))
+        .build();
   }
 
   /**
@@ -623,7 +638,11 @@ public final class GrpcUtils {
    * Converts options to proto type.
    */
   public static ListStatusPOptions toProto(ListStatusOptions options) {
-    return null;
+    return ListStatusPOptions.newBuilder()
+        .setLoadDirectChildren(options.getLoadMetadataType() == LoadMetadataType.Once
+            || options.getLoadMetadataType() == LoadMetadataType.Always)
+        .setLoadMetadataType(toProto(options.getLoadMetadataType()))
+        .setCommonOptions(toProto(options.getCommonOptions())).build();
   }
 
   /**
@@ -645,12 +664,61 @@ public final class GrpcUtils {
   }
 
   /**
-   * Converts a wire type to a proto type.
+   * Converts wire type to proto type.
    */
-  public static alluxio.grpc.MountPointInfo toProto(MountPointInfo fileInfo) {
-    return null;
+  public static alluxio.grpc.MountPointInfo toProto(MountPointInfo info) {
+    return alluxio.grpc.MountPointInfo.newBuilder().setUfsUri(info.getUfsUri())
+        .setUfsType(info.getUfsType()).setUfsCapacityBytes(info.getUfsCapacityBytes())
+        .setReadOnly(info.getReadOnly()).putAllProperties(info.getProperties())
+        .setShared(info.getShared()).build();
   }
 
+  /**
+   * Converts a wire type to a proto type.
+   */
+  public static MountPOptions toProto(MountOptions options) {
+    MountPOptions.Builder builder = MountPOptions.newBuilder().setReadOnly(options.isReadOnly())
+        .setShared(options.isShared()).setCommonOptions(toProto(options.getCommonOptions()));
+    if (options.getProperties() != null && !options.getProperties().isEmpty()) {
+      builder.putAllProperties(options.getProperties());
+    }
+    return builder.build();
+  }
+
+  /**
+   * Converts a wire type to a proto type.
+   */
+  public static RenamePOptions toProto(RenameOptions options) {
+    return RenamePOptions.newBuilder().setCommonOptions(toProto(options.getCommonOptions()))
+        .build();
+  }
+
+  /**
+   * Converts a wire type to a proto type.
+   */
+  public static SetAttributePOptions toProto(SetAttributeOptions options) {
+    SetAttributePOptions.Builder builder =
+        SetAttributePOptions.newBuilder().setCommonOptions(toProto(options.getCommonOptions()));
+    if (options.getPinned() != null) {
+      builder.setPinned(options.getPinned());
+    }
+    if (options.getTtl() != null) {
+      builder.setTtl(options.getTtl());
+      builder.setTtlAction(toProto(options.getTtlAction()));
+    }
+    if (options.getOwner() != null) {
+      builder.setOwner(options.getOwner());
+    }
+    if (options.getGroup() != null) {
+      builder.setGroup(options.getGroup());
+    }
+    if (options.getMode() != null) {
+      builder.setMode(options.getMode());
+    }
+    builder.setRecursive(options.isRecursive());
+    return builder.build();
+  }
+  
   /**
    * Converts wire type to proto type.
    */
@@ -679,6 +747,24 @@ public final class GrpcUtils {
       default:
         throw new IllegalStateException("Unrecognized ttl action: " + ttlAction);
     }
+  }
+
+  /**
+   * Converts a wire type to a proto type.
+   */
+  public static UpdateUfsModePOptions toProto(UpdateUfsModeOptions options) {
+    UfsMode ufsMode;
+    switch (options.getUfsMode()) {
+      case NO_ACCESS:
+        ufsMode = UfsMode.NoAccess;
+        break;
+      case READ_ONLY:
+        ufsMode = UfsMode.ReadOnly;
+        break;
+      default:
+        ufsMode = UfsMode.ReadWrite;
+    }
+    return UpdateUfsModePOptions.newBuilder().setUfsMode(ufsMode).build();
   }
 
   /**
