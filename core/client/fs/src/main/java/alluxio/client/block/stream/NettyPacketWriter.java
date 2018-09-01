@@ -225,7 +225,26 @@ public final class NettyPacketWriter implements PacketWriter {
   @Override
   public void flush() throws IOException {
     mChannel.flush();
-    if (mClosed || !mEOFSent || !mCancelSent) {
+    try (LockResource lr = new LockResource(mLock)) {
+      while (true) {
+        if (mPosToWrite == mPosToQueue) {
+          break;
+        }
+        if (mPacketWriteException != null) {
+          Throwables.propagateIfPossible(mPacketWriteException, IOException.class);
+          throw AlluxioStatusException.fromCheckedException(mPacketWriteException);
+        }
+        if (!mBufferEmptyOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+          throw new DeadlineExceededException(
+              String.format("Timeout flushing to %s for request %s after %dms.",
+                  mAddress, mPartialRequest, WRITE_TIMEOUT_MS));
+        }
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new CanceledException(e);
+    }
+    if (mClosed || mEOFSent || mCancelSent) {
       return;
     }
     try (LockResource lr = new LockResource(mLock)) {
