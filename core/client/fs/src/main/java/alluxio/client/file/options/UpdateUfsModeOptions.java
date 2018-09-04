@@ -12,12 +12,10 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
-import alluxio.thrift.UpdateUfsModeTOptions;
-import alluxio.underfs.UnderFileSystem.UfsMode;
+import alluxio.underfs.UfsMode;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -27,9 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class UpdateUfsModeOptions {
-  private UfsMode mUfsMode;
-
+public final class UpdateUfsModeOptions extends alluxio.file.options.UpdateUfsModeOptions {
   /**
    * @return the default {@link UpdateUfsModeOptions}
    */
@@ -37,89 +33,7 @@ public final class UpdateUfsModeOptions {
     return new UpdateUfsModeOptions();
   }
 
-  /**
-   * Constructs a mount options from thrift options.
-   *
-   * @param options the mount options to modify
-   */
-  public UpdateUfsModeOptions(UpdateUfsModeTOptions options) {
-    if (options.isSetUfsMode()) {
-      switch (options.getUfsMode()) {
-        case NoAccess:
-          mUfsMode = UfsMode.NO_ACCESS;
-          break;
-        case ReadOnly:
-          mUfsMode = UfsMode.READ_ONLY;
-          break;
-        default:
-          mUfsMode = UfsMode.READ_WRITE;
-          break;
-      }
-    }
-  }
-
   private UpdateUfsModeOptions() {
     mUfsMode = UfsMode.READ_WRITE;
-  }
-
-  /**
-   * @return the Ufs mode
-   */
-  public UfsMode getUfsMode() {
-    return mUfsMode;
-  }
-
-  /**
-   * @param ufsMode the Ufs mode to set
-   * @return the updated option object
-   */
-  public UpdateUfsModeOptions setUfsMode(UfsMode ufsMode) {
-    mUfsMode = ufsMode;
-    return this;
-  }
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public UpdateUfsModeTOptions toThrift() {
-    UpdateUfsModeTOptions tOptions = new UpdateUfsModeTOptions();
-    switch (mUfsMode) {
-      case NO_ACCESS:
-        tOptions.setUfsMode(alluxio.thrift.UfsMode.NoAccess);
-        break;
-      case READ_ONLY:
-        tOptions.setUfsMode(alluxio.thrift.UfsMode.ReadOnly);
-        break;
-      case READ_WRITE:
-        tOptions.setUfsMode(alluxio.thrift.UfsMode.ReadWrite);
-        break;
-      default:
-        break;
-    }
-    return tOptions;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof UpdateUfsModeOptions)) {
-      return false;
-    }
-    UpdateUfsModeOptions that = (UpdateUfsModeOptions) o;
-    return Objects.equal(mUfsMode, that.mUfsMode);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(mUfsMode);
-  }
-
-  @Override
-  public String toString() {
-    return Objects.toStringHelper(this)
-        .add("ufsmode", mUfsMode)
-        .toString();
   }
 }

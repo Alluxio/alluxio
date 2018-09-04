@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.Constants;
+import alluxio.master.Master;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
@@ -48,12 +49,12 @@ public final class FileSystemMasterFactory implements MasterFactory {
   }
 
   @Override
-  public FileSystemMaster create(MasterRegistry registry, JournalSystem journalFactory,
-      SafeModeManager safeModeManager) {
+  public Master create(MasterRegistry registry, JournalSystem journalFactory,
+                       SafeModeManager safeModeManager) {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", FileSystemMaster.class.getName());
     BlockMaster blockMaster = registry.get(BlockMaster.class);
-    FileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(blockMaster,
+    DefaultFileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(blockMaster,
         new MasterContext(journalFactory, safeModeManager));
     registry.add(FileSystemMaster.class, fileSystemMaster);
     return fileSystemMaster;

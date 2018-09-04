@@ -12,7 +12,7 @@
 package alluxio.master.file.meta.options;
 
 import alluxio.AlluxioURI;
-import alluxio.master.file.options.MountOptions;
+import alluxio.file.options.MountOptions;
 import alluxio.wire.MountPointInfo;
 
 import com.google.common.base.Preconditions;

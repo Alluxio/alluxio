@@ -19,7 +19,7 @@ import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.master.MasterClientConfig;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UfsMode;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -77,16 +77,16 @@ public final class UfsCommand implements Command {
       return -1;
     }
     if (cl.hasOption(MODE_OPTION.getLongOpt())) {
-      UnderFileSystem.UfsMode mode;
+      UfsMode mode;
       switch (cl.getOptionValue(MODE_OPTION.getLongOpt())) {
         case "noAccess":
-          mode = UnderFileSystem.UfsMode.NO_ACCESS;
+          mode = UfsMode.NO_ACCESS;
           break;
         case "readOnly":
-          mode = UnderFileSystem.UfsMode.READ_ONLY;
+          mode = UfsMode.READ_ONLY;
           break;
         case "readWrite":
-          mode = UnderFileSystem.UfsMode.READ_WRITE;
+          mode = UfsMode.READ_WRITE;
           break;
         default:
           System.out.println("Unrecognized mode");

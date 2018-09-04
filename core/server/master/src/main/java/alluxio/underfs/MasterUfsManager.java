@@ -34,17 +34,17 @@ public final class MasterUfsManager extends AbstractUfsManager {
   private static final Logger LOG = LoggerFactory.getLogger(MasterUfsManager.class);
 
   /**
-   * {@link alluxio.underfs.UnderFileSystem.UfsMode} and mount ids corresponding to a physical ufs.
+   * {@link alluxio.underfs.UfsMode} and mount ids corresponding to a physical ufs.
    */
   public static class UfsState {
-    private UnderFileSystem.UfsMode mUfsMode;
+    private UfsMode mUfsMode;
     private ConcurrentHashSet<Long> mMountIds;
 
     /**
      * Construct a new instance of UfsState w/ defaults.
      */
     UfsState() {
-      mUfsMode = UnderFileSystem.UfsMode.READ_WRITE;
+      mUfsMode = UfsMode.READ_WRITE;
       mMountIds = new ConcurrentHashSet<>();
     }
 
@@ -71,7 +71,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
     /**
      * @return the physical ufs operation mode
      */
-    UnderFileSystem.UfsMode getUfsMode() {
+    UfsMode getUfsMode() {
       return mUfsMode;
     }
 
@@ -80,7 +80,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
      *
      * @param ufsMode the ufs operation mode
      */
-    void setUfsMode(UnderFileSystem.UfsMode ufsMode) {
+    void setUfsMode(UfsMode ufsMode) {
       mUfsMode = ufsMode;
     }
   }
@@ -144,8 +144,8 @@ public final class MasterUfsManager extends AbstractUfsManager {
    * @param physicalStores the physical stores for the mount resolution
    * @return the state of physical UFS for given mount resolution
    */
-  public Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState(List<String> physicalStores) {
-    Map<String, UnderFileSystem.UfsMode> ufsModeState = new HashMap<>();
+  public Map<String, UfsMode> getPhysicalUfsState(List<String> physicalStores) {
+    Map<String, UfsMode> ufsModeState = new HashMap<>();
     for (String physicalUfs : physicalStores) {
       UfsState ufsState = mPhysicalUfsToState.get(new AlluxioURI(physicalUfs).getRootPath());
       if (ufsState != null) {
@@ -162,7 +162,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
    * @param ufsMode the ufs operation mode
    * @throws InvalidPathException if no managed ufs covers the given path
    */
-  public void setUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
+  public void setUfsMode(AlluxioURI ufsPath, UfsMode ufsMode)
       throws InvalidPathException {
     LOG.info("Set ufs mode for {} to {}", ufsPath, ufsMode);
     String key = ufsPath.getRootPath();

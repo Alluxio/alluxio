@@ -22,6 +22,7 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.wire.TtlAction;
 
@@ -66,7 +67,7 @@ public final class OutStreamOptions {
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mOwner = SecurityUtils.getOwnerFromLoginModule();
     mGroup = SecurityUtils.getGroupFromLoginModule();
-    mMode = Mode.defaults().applyFileUMask();
+    mMode = ModeUtils.applyFileUMask(Mode.defaults());
     mMountId = IdUtils.INVALID_MOUNT_ID;
   }
 

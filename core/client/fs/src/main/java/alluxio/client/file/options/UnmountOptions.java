@@ -86,7 +86,7 @@ public final class UnmountOptions {
    */
   public UnmountTOptions toThrift() {
     UnmountTOptions options = new UnmountTOptions();
-    options.setCommonOptions(mCommonOptions.toThrift());
+//    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

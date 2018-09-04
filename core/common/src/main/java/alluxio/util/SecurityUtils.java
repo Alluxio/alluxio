@@ -63,11 +63,13 @@ public final class SecurityUtils {
    *         authentication is disabled
    */
   public static String getOwnerFromLoginModule() {
-    try {
-      return LoginUser.get().getName();
-    } catch (UnauthenticatedException | UnsupportedOperationException e) {
-      return "";
-    }
+    // TODO(adit):
+    return "adit.madan";
+//    try {
+//      // return LoginUser.get().getName();
+//    } catch (UnauthenticatedException | UnsupportedOperationException e) {
+//      return "";
+//    }
   }
 
   /**
@@ -75,15 +77,17 @@ public final class SecurityUtils {
    *         authentication is disabled
    */
   public static String getOwnerFromThriftClient() {
-    try {
-      User user = AuthenticatedClientUser.get();
-      if (user == null) {
-        return "";
-      }
-      return user.getName();
-    } catch (IOException e) {
-      return "";
-    }
+    // TODO(adit):
+    return "adit.madan";
+//    try {
+//      User user = AuthenticatedClientUser.get();
+//      if (user == null) {
+//        return "";
+//      }
+//      return user.getName();
+//    } catch (IOException e) {
+//      return "";
+//    }
   }
 
   /**

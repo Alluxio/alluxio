@@ -20,6 +20,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
+import alluxio.util.ModeUtils;
 import alluxio.wire.TtlAction;
 
 import org.junit.Test;
@@ -42,7 +43,7 @@ public final class CreateDirectoryOptionsTest {
     assertEquals(false, options.isAllowExists());
     assertEquals("", options.getOwner());
     assertEquals("", options.getGroup());
-    assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
+    assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults()), options.getMode());
     assertFalse(options.isPersisted());
     assertFalse(options.isRecursive());
     assertEquals(Constants.NO_TTL, options.getTtl());

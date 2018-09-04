@@ -121,7 +121,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-protobuf</artifactId>
+      <artifactId>alluxio-core-transport</artifactId>
       <version>${project.version}</version>
     </dependency>
 

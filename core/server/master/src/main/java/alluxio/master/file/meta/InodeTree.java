@@ -26,10 +26,10 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.RpcContext;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.CreatePathOptions;
-import alluxio.master.file.options.DeleteOptions;
+import alluxio.file.options.CreateFileOptions;
+import alluxio.file.options.CreatePathOptions;
+import alluxio.file.options.DeleteOptions;
+import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
@@ -156,7 +156,7 @@ public class InodeTree implements JournalEntryIterable {
     if (mRoot == null) {
       InodeDirectory root = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
           NO_PARENT, ROOT_INODE_NAME,
-          CreateDirectoryOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
+          alluxio.master.file.options.CreateDirectoryOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
       setRoot(root);
     }
   }
@@ -576,7 +576,7 @@ public class InodeTree implements JournalEntryIterable {
     // NOTE, we set the mode of missing ancestor directories to be the default value, rather
     // than inheriting the option of the final file to create, because it may not have
     // "execute" permission.
-    CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
+    CreateDirectoryOptions missingDirOptions = alluxio.master.file.options.CreateDirectoryOptions.defaults()
         .setMountPoint(false)
         .setPersisted(options.isPersisted())
         .setOperationTimeMs(options.getOperationTimeMs())

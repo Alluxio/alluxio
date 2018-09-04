@@ -20,8 +20,8 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.FileSystemMasterView;
-import alluxio.thrift.PersistFile;
 import alluxio.util.CommonUtils;
+import alluxio.wire.PersistFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

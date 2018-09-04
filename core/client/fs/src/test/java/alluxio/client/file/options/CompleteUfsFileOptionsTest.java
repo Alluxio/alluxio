@@ -18,6 +18,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.thrift.CompleteUfsFileTOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.ModeUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
@@ -48,7 +49,7 @@ public final class CompleteUfsFileOptionsTest {
     CompleteUfsFileOptions options = CompleteUfsFileOptions.defaults();
     Assert.assertEquals(TEST_USER, options.getOwner());
     Assert.assertEquals(TEST_USER, options.getGroup());
-    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
+    Assert.assertEquals(ModeUtils.applyFileUMask(Mode.defaults()), options.getMode());
   }
 
   /**

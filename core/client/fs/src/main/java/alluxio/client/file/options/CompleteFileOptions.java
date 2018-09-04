@@ -11,10 +11,7 @@
 
 package alluxio.client.file.options;
 
-import alluxio.thrift.CompleteFileTOptions;
 import alluxio.wire.CommonOptions;
-
-import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -22,10 +19,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for completing a file.
  */
 @NotThreadSafe
-public final class CompleteFileOptions {
-  private CommonOptions mCommonOptions;
-  private long mUfsLength;
-
+public final class CompleteFileOptions extends alluxio.file.options.CompleteFileOptions {
   /**
    * @return the default {@link CompleteFileOptions}
    */
@@ -36,73 +30,5 @@ public final class CompleteFileOptions {
   private CompleteFileOptions() {
     mCommonOptions = CommonOptions.defaults();
     mUfsLength = 0;
-  }
-
-  /**
-   * @return the common options
-   */
-  public CommonOptions getCommonOptions() {
-    return mCommonOptions;
-  }
-
-  /**
-   * @return the UFS file length
-   */
-  public long getUfsLength() {
-    return mUfsLength;
-  }
-
-  /**
-   * @param options the common options
-   * @return the updated options object
-   */
-  public CompleteFileOptions setCommonOptions(CommonOptions options) {
-    mCommonOptions = options;
-    return this;
-  }
-
-  /**
-   * @param ufsLength the UFS file length to use
-   * @return the updated options object
-   */
-  public CompleteFileOptions setUfsLength(long ufsLength) {
-    mUfsLength = ufsLength;
-    return this;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof CompleteFileOptions)) {
-      return false;
-    }
-    CompleteFileOptions that = (CompleteFileOptions) o;
-    return Objects.equal(mCommonOptions, that.mCommonOptions)
-        && Objects.equal(mUfsLength, that.mUfsLength);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(mCommonOptions, mUfsLength);
-  }
-
-  @Override
-  public String toString() {
-    return Objects.toStringHelper(this)
-        .add("commonOptions", mCommonOptions)
-        .add("ufsLength", mUfsLength)
-        .toString();
-  }
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public CompleteFileTOptions toThrift() {
-    CompleteFileTOptions options = new CompleteFileTOptions();
-    options.setCommonOptions(mCommonOptions.toThrift());
-    options.setUfsLength(mUfsLength);
-    return options;
   }
 }

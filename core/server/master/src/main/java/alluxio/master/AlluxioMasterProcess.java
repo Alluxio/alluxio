@@ -15,6 +15,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.FileSystemMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.metrics.MetricsSystem;
@@ -26,6 +28,8 @@ import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
+import alluxio.util.grpc.GrpcServer;
+import alluxio.util.grpc.GrpcServerBuilder;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
@@ -51,6 +55,8 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -95,6 +101,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The RPC server. */
   private TServer mThriftServer;
+  private GrpcServer mGrpcServer;
 
   /** The start time for when the master started serving the RPC server. */
   private long mStartTimeMs = -1;
@@ -304,6 +311,8 @@ public class AlluxioMasterProcess implements MasterProcess {
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC),
         NetworkAddressUtils.getPort(ServiceType.MASTER_RPC),
         NetworkAddressUtils.getPort(ServiceType.MASTER_WEB));
+    // TODO(adit): This should replace the thrift server
+    startServingRPCServerNew();
     startServingRPCServer();
     LOG.info("Alluxio master ended{}", stopMessage);
   }
@@ -338,6 +347,26 @@ public class AlluxioMasterProcess implements MasterProcess {
   private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
     for (Map.Entry<String, TProcessor> service : services.entrySet()) {
       processor.registerProcessor(service.getKey(), service.getValue());
+    }
+  }
+
+  /**
+   * Starts the gRPC server. The AlluxioMaster registers the Services of registered
+   * {@link Master}s and meta services.
+   */
+  protected void startServingRPCServerNew() {
+    int port = 50051;
+    ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
+    try {
+      FileSystemMaster master = getMaster(FileSystemMaster.class);
+      LOG.info("Starting gRPC server on port {}", port);
+      mGrpcServer = GrpcServerBuilder.forPort(port)
+          .addService(new FileSystemMasterClientServiceHandler(master))
+          .executor(executorService)
+          .build()
+          .start();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

@@ -20,7 +20,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
-import alluxio.master.file.options.GetStatusOptions;
+//import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
@@ -240,7 +240,8 @@ public final class FileSystemMasterClientRestServiceHandler {
   public Response getStatus(@QueryParam("path") final String path) {
     return RestUtils.call(() -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return mFileSystemMaster.getFileInfo(new AlluxioURI(path), GetStatusOptions.defaults());
+      return mFileSystemMaster.getFileInfo(new AlluxioURI(path), null);
+//      return mFileSystemMaster.getFileInfo(new AlluxioURI(path), GetStatusOptions.defaults());
     });
   }
 

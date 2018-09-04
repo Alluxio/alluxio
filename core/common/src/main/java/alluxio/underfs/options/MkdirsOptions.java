@@ -13,6 +13,7 @@ package alluxio.underfs.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
+import alluxio.util.ModeUtils;
 
 import com.google.common.base.Objects;
 
@@ -47,7 +48,7 @@ public final class MkdirsOptions {
     // default owner and group are null (unset)
     mOwner = null;
     mGroup = null;
-    mMode = Mode.defaults().applyDirectoryUMask();
+    mMode = ModeUtils.applyDirectoryUMask(Mode.defaults());
   }
 
   /**

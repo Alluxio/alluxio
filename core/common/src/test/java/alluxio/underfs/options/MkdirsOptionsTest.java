@@ -21,6 +21,7 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.util.CommonUtils;
+import alluxio.util.ModeUtils;
 
 import org.junit.Test;
 
@@ -43,7 +44,7 @@ public final class MkdirsOptionsTest {
     // Verify that the owner and group are not set.
     assertNull(options.getOwner());
     assertNull(options.getGroup());
-    assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
+    assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults()), options.getMode());
   }
 
   /**
@@ -65,7 +66,7 @@ public final class MkdirsOptionsTest {
     // Verify that the owner and group are not set.
     assertNull(options.getOwner());
     assertNull(options.getGroup());
-    assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
+    assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults()), options.getMode());
   }
 
   /**

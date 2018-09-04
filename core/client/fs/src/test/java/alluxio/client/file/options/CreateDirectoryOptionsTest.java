@@ -21,6 +21,7 @@ import alluxio.client.WriteType;
 import alluxio.security.authorization.Mode;
 import alluxio.test.util.CommonUtils;
 import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.util.ModeUtils;
 import alluxio.wire.TtlAction;
 
 import org.junit.Test;
@@ -42,7 +43,7 @@ public final class CreateDirectoryOptionsTest {
     assertEquals(Constants.NO_TTL, options.getTtl());
     assertEquals(TtlAction.DELETE, options.getTtlAction());
     assertEquals(mDefaultWriteType, options.getWriteType());
-    assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
+    assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults()), options.getMode());
   }
 
   /**
