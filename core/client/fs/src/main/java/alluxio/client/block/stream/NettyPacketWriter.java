@@ -12,6 +12,7 @@
 package alluxio.client.block.stream;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
@@ -228,13 +229,12 @@ public final class NettyPacketWriter implements PacketWriter {
   @Override
   public void flush() throws IOException {
     mChannel.flush();
-    long pos;
+    long pos = 0;
     try (LockResource lr = new LockResource(mLock)) {
-      while (true) {
-        if (mPosToWrite == mPosToQueue) {
-          pos = mPosToQueue;
-          break;
-        }
+      if (mPosToQueue == 0) {
+        return;
+      }
+      while (mPosToWrite != mPosToQueue) {
         if (mPacketWriteException != null) {
           Throwables.propagateIfPossible(mPacketWriteException, IOException.class);
           throw AlluxioStatusException.fromCheckedException(mPacketWriteException);
@@ -245,6 +245,7 @@ public final class NettyPacketWriter implements PacketWriter {
                   mAddress, mPartialRequest, WRITE_TIMEOUT_MS));
         }
       }
+      pos = mPosToQueue;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new CanceledException(e);
@@ -413,7 +414,7 @@ public final class NettyPacketWriter implements PacketWriter {
       }
       try (LockResource lr = new LockResource(mLock)) {
         mFlushedOrDoneOrFailed.signal();
-        if (!response.getMessage().equals("FLUSHED")) {
+        if (!response.getMessage().equals(Constants.FLUSHED_SIGNAL)) {
           mDone = true;
           mDoneOrFailed.signal();
         }

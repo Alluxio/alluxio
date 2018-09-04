@@ -12,6 +12,7 @@
 package alluxio.worker.netty;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
@@ -423,7 +424,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
      * Writes a response to signify the successful flush.
      */
     private void replyFlush() {
-      mChannel.writeAndFlush(RPCProtoMessage.createResponse(Status.OK, "FLUSHED", null))
+      mChannel.writeAndFlush(RPCProtoMessage
+          .createResponse(Status.OK, Constants.FLUSHED_SIGNAL, null))
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }
   }

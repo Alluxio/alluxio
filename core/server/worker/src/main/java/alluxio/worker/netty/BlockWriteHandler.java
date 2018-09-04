@@ -149,6 +149,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     @Override
     protected void flushRequest(BlockWriteRequestContext context)
         throws Exception {
+      // This is a no-op because block worker does not support flush currently.
     }
 
     @Override
