@@ -439,8 +439,12 @@ public final class GrpcUtils {
    * Converts a proto type to a wire type.
    */
   public static MountPointInfo fromProto(alluxio.grpc.MountPointInfo mountPointPInfo) {
-    // TODO(adit)
-    return null;
+    return new MountPointInfo().setUfsUri(mountPointPInfo.getUfsUri())
+        .setUfsType(mountPointPInfo.getUfsType())
+        .setUfsCapacityBytes(mountPointPInfo.getUfsCapacityBytes())
+        .setUfsUsedBytes(mountPointPInfo.getUfsUsedBytes())
+        .setReadOnly(mountPointPInfo.getReadOnly())
+        .setProperties(mountPointPInfo.getPropertiesMap()).setShared(mountPointPInfo.getShared());
   }
 
   /**
