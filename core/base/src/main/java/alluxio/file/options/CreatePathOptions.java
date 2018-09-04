@@ -11,9 +11,21 @@
 
 package alluxio.file.options;
 
+import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
+<<<<<<< HEAD:core/base/src/main/java/alluxio/file/options/CreatePathOptions.java
+||||||| merged common ancestors
+import alluxio.wire.CommonOptions;
+=======
+import alluxio.wire.CommonOptions;
+import alluxio.wire.TtlAction;
+>>>>>>> master:core/server/master/src/main/java/alluxio/master/file/options/CreatePathOptions.java
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+
+import java.util.Collections;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -30,11 +42,41 @@ public abstract class CreatePathOptions<T> {
   protected String mOwner;
   protected String mGroup;
   protected Mode mMode;
+  protected List<AclEntry> mAcl;
   protected boolean mPersisted;
   // TODO(peis): Rename this to mCreateAncestors.
   protected boolean mRecursive;
   protected boolean mMetadataLoad;
 
+<<<<<<< HEAD:core/base/src/main/java/alluxio/file/options/CreatePathOptions.java
+||||||| merged common ancestors
+  protected CreatePathOptions() {
+    mCommonOptions = CommonOptions.defaults();
+    mMountPoint = false;
+    mOperationTimeMs = System.currentTimeMillis();
+    mOwner = "";
+    mGroup = "";
+    mMode = Mode.defaults();
+    mPersisted = false;
+    mRecursive = false;
+    mMetadataLoad = false;
+  }
+
+=======
+  protected CreatePathOptions() {
+    mCommonOptions = CommonOptions.defaults();
+    mMountPoint = false;
+    mOperationTimeMs = System.currentTimeMillis();
+    mOwner = "";
+    mGroup = "";
+    mMode = Mode.defaults();
+    mAcl = Collections.emptyList();
+    mPersisted = false;
+    mRecursive = false;
+    mMetadataLoad = false;
+  }
+
+>>>>>>> master:core/server/master/src/main/java/alluxio/master/file/options/CreatePathOptions.java
   protected abstract T getThis();
 
   /**
@@ -80,6 +122,13 @@ public abstract class CreatePathOptions<T> {
   }
 
   /**
+   * @return an immutable list of ACL entries
+   */
+  public List<AclEntry> getAcl() {
+    return mAcl;
+  }
+
+  /**
    * @return the persisted flag; it specifies whether the object to create is persisted in UFS
    */
   public boolean isPersisted() {
@@ -99,6 +148,21 @@ public abstract class CreatePathOptions<T> {
    */
   public boolean isMetadataLoad() {
     return mMetadataLoad;
+  }
+
+  /**
+   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
+   *         should be kept around before it is automatically deleted
+   */
+  public long getTtl() {
+    return getCommonOptions().getTtl();
+  }
+
+  /**
+   * @return action {@link TtlAction} after ttl expired
+   */
+  public TtlAction getTtlAction() {
+    return getCommonOptions().getTtlAction();
   }
 
   /**
@@ -157,6 +221,17 @@ public abstract class CreatePathOptions<T> {
   }
 
   /**
+   * Sets an immutable copy of acl as the internal access control list.
+   *
+   * @param acl the ACL entries
+   * @return the updated options object
+   */
+  public T setAcl(List<AclEntry> acl) {
+    mAcl = ImmutableList.copyOf(acl);
+    return getThis();
+  }
+
+  /**
    * @param persisted the persisted flag to use; it specifies whether the object to create is
    *        persisted in UFS
    * @return the updated options object
@@ -186,6 +261,25 @@ public abstract class CreatePathOptions<T> {
     return getThis();
   }
 
+  /**
+   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *        created file should be kept around before it is automatically deleted
+   * @return the updated options object
+   */
+  public T setTtl(long ttl) {
+    getCommonOptions().setTtl(ttl);
+    return getThis();
+  }
+
+  /**
+   * @param ttlAction the {@link TtlAction}; It informs the action to take when Ttl is expired;
+   * @return the updated options object
+   */
+  public T setTtlAction(TtlAction ttlAction) {
+    getCommonOptions().setTtlAction(ttlAction);
+    return getThis();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -200,6 +294,7 @@ public abstract class CreatePathOptions<T> {
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode)
+        && Objects.equal(mAcl, that.mAcl)
         && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mMetadataLoad, that.mMetadataLoad)
@@ -209,7 +304,7 @@ public abstract class CreatePathOptions<T> {
   @Override
   public int hashCode() {
     return Objects
-        .hashCode(mMountPoint, mOwner, mGroup, mMode, mPersisted, mRecursive, mMetadataLoad,
+        .hashCode(mMountPoint, mOwner, mGroup, mMode, mAcl, mPersisted, mRecursive, mMetadataLoad,
             mOperationTimeMs, mCommonOptions);
   }
 
@@ -221,6 +316,7 @@ public abstract class CreatePathOptions<T> {
         .add("owner", mOwner)
         .add("group", mGroup)
         .add("mode", mMode)
+        .add("acl", mAcl)
         .add("persisted", mPersisted)
         .add("recursive", mRecursive)
         .add("metadataLoad", mMetadataLoad);

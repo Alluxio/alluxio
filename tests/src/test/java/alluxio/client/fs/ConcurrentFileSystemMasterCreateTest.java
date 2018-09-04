@@ -31,6 +31,7 @@ import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 import alluxio.wire.LoadMetadataType;
 
+import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Assert;
@@ -99,7 +100,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
   public void concurrentCreate() throws Exception {
     final int numThreads = CONCURRENCY_FACTOR;
     // 7 nested components to create (2 seconds each).
-    final long limitMs = 14 * SLEEP_MS * CONCURRENCY_FACTOR / 10;
+    final long limitMs = 14 * SLEEP_MS * CONCURRENCY_FACTOR / 2;
     AlluxioURI[] paths = new AlluxioURI[numThreads];
 
     for (int i = 0; i < numThreads; i++) {
@@ -122,7 +123,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
   public void concurrentCreateExistingDir() throws Exception {
     final int numThreads = CONCURRENCY_FACTOR;
     // 7 nested components to create (2 seconds each).
-    final long limitMs = 14 * SLEEP_MS * CONCURRENCY_FACTOR / 10;
+    final long limitMs = 14 * SLEEP_MS * CONCURRENCY_FACTOR / 2;
     AlluxioURI[] paths = new AlluxioURI[numThreads];
 
     // Create the existing path with CACHE_THROUGH that it will be persisted.
@@ -149,7 +150,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
   public void concurrentCreateNonPersistedDir() throws Exception {
     final int numThreads = CONCURRENCY_FACTOR;
     // 7 nested components to create (2 seconds each).
-    final long limitMs = 14 * SLEEP_MS * CONCURRENCY_FACTOR / 10;
+    final long limitMs = 14 * SLEEP_MS * CONCURRENCY_FACTOR / 2;
     AlluxioURI[] paths = new AlluxioURI[numThreads];
 
     // Create the existing path with MUST_CACHE, so subsequent creates have to persist the dirs.
@@ -269,16 +270,21 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
   private void runLoadMetadata(WriteType writeType, boolean useSinglePath, boolean createFiles,
       boolean listParentDir) throws Exception {
     int numThreads = CONCURRENCY_FACTOR;
+    int bufferFactor = CONCURRENCY_FACTOR / 2;
     // 2 nested components to create.
-    long limitMs = 2 * SLEEP_MS * 4;
+    long limitMs = 2 * SLEEP_MS * bufferFactor;
 
     int uniquePaths = useSinglePath ? 1 : numThreads;
+
+    if (writeType != WriteType.CACHE_THROUGH) {
+      // all 3 components must be synced to UFS.
+      limitMs = 3 * SLEEP_MS * bufferFactor;
+    }
 
     if (listParentDir) {
       // Loading direct children needs to load each child, so reduce the branching factor.
       uniquePaths = 10;
-//      limitMs = (2 + uniquePaths) * SLEEP_MS * 2;
-      limitMs = 2 * SLEEP_MS * 4 + uniquePaths * SLEEP_MS * 3;
+      limitMs = 2 + uniquePaths * SLEEP_MS * bufferFactor;
     }
 
     // Create UFS files outside of Alluxio.
@@ -320,8 +326,10 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
           .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.GET_FILE_INFO,
               paths, limitMs);
     }
+
     if (!errors.isEmpty()) {
-      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0)
+          + "\n" + Throwables.getStackTraceAsString(errors.get(0)));
     }
 
     ListStatusOptions listOptions = ListStatusOptions.defaults().setLoadMetadataType(

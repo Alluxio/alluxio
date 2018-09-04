@@ -153,7 +153,7 @@ public final class AppLoginModule implements LoginModule {
      * Creates a new instance of {@link AppCallbackHandler}.
      */
     public AppCallbackHandler() {
-      if (Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME)) {
+      if (Configuration.isSet(PropertyKey.SECURITY_LOGIN_USERNAME)) {
         mUserName = Configuration.get(PropertyKey.SECURITY_LOGIN_USERNAME);
       } else {
         mUserName = "";

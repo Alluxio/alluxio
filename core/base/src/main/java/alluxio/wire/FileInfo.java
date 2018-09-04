@@ -11,7 +11,12 @@
 
 package alluxio.wire;
 
+import static alluxio.util.StreamUtils.map;
+
 import alluxio.Constants;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.thrift.TAcl;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -26,6 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The file information.
  */
 @NotThreadSafe
+
 // TODO(jiri): Consolidate with URIStatus.
 public final class FileInfo implements Serializable {
   private static final long serialVersionUID = 7119966306934831779L;
@@ -56,6 +62,9 @@ public final class FileInfo implements Serializable {
   private long mMountId;
   private int mInAlluxioPercentage;
   private String mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
+
+  private AccessControlList mAcl = AccessControlList.EMPTY_ACL;
+  private DefaultAccessControlList mDefaultAcl = DefaultAccessControlList.EMPTY_DEFAULT_ACL;
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -242,6 +251,36 @@ public final class FileInfo implements Serializable {
    */
   public String getUfsFingerprint() {
     return mUfsFingerprint;
+  }
+
+  /**
+   * @return the ACL object for this file
+   */
+  public AccessControlList getAcl() {
+    return mAcl;
+  }
+
+  /**
+   * @return the default ACL object for this file
+   */
+  public DefaultAccessControlList getDefaultAcl() {
+    return mDefaultAcl;
+  }
+
+  /**
+   * @return the ACL as string entries for this file
+   */
+  public List<String> convertAclToStringEntries() {
+    // do not use getX as the name of the method, otherwise it will be used by json serialization
+    return (mAcl == null) ? new ArrayList<>() : mAcl.toStringEntries();
+  }
+
+  /**
+   * @return the default ACL as string entries for this file
+   */
+  public List<String> convertDefaultAclToStringEntries() {
+    // do not use getX as the name of the method, otherwise it will be used by json serialization
+    return (mDefaultAcl == null) ? new ArrayList<>() : mDefaultAcl.toStringEntries();
   }
 
   /**
@@ -485,6 +524,7 @@ public final class FileInfo implements Serializable {
     return this;
   }
 
+<<<<<<< HEAD:core/base/src/main/java/alluxio/wire/FileInfo.java
 //  /**
 //   * @return proto representation of the file information
 //   */
@@ -523,6 +563,107 @@ public final class FileInfo implements Serializable {
 //            .build();
 //    return info;
 //  }
+||||||| merged common ancestors
+  /**
+   * @return thrift representation of the file information
+   */
+  protected alluxio.thrift.FileInfo toThrift() {
+    List<alluxio.thrift.FileBlockInfo> fileBlockInfos = new ArrayList<>();
+    for (FileBlockInfo fileBlockInfo : mFileBlockInfos) {
+      fileBlockInfos.add(fileBlockInfo.toThrift());
+    }
+
+    alluxio.thrift.FileInfo info =
+        new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
+        mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
+        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
+        mPersistenceState, mMountPoint, fileBlockInfos, ThriftUtils.toThrift(mTtlAction), mMountId,
+        mInAlluxioPercentage, mUfsFingerprint);
+    return info;
+  }
+=======
+  /**
+   * @param acl the ACL entries to use
+   * @return the file information
+   */
+  public FileInfo setAcl(AccessControlList acl) {
+    mAcl = acl;
+    return this;
+  }
+
+  /**
+   * @param defaultAcl the ACL entries to use
+   * @return the file information
+   */
+  public FileInfo setDefaultAcl(DefaultAccessControlList defaultAcl) {
+    mDefaultAcl = defaultAcl;
+    return this;
+  }
+
+  /**
+   * @return thrift representation of the file information
+   */
+  public alluxio.thrift.FileInfo toThrift() {
+    List<alluxio.thrift.FileBlockInfo> fileBlockInfos = new ArrayList<>();
+    for (FileBlockInfo fileBlockInfo : mFileBlockInfos) {
+      fileBlockInfos.add(fileBlockInfo.toThrift());
+    }
+    TAcl tAcl = mAcl.equals(AccessControlList.EMPTY_ACL) ? null : mAcl.toThrift();
+    TAcl tDefaultAcl = mDefaultAcl.equals(DefaultAccessControlList.EMPTY_DEFAULT_ACL)
+        ? null : mDefaultAcl.toThrift();
+    alluxio.thrift.FileInfo info =
+        new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
+        mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
+        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
+        mPersistenceState, mMountPoint, fileBlockInfos, TtlAction.toThrift(mTtlAction), mMountId,
+        mInAlluxioPercentage, mUfsFingerprint, tAcl, tDefaultAcl);
+
+    return info;
+  }
+>>>>>>> master:core/common/src/main/java/alluxio/wire/FileInfo.java
+
+  /**
+   * Creates a new instance of {@link FileInfo} from thrift representation.
+   *
+   * @param info the thrift representation of a file information
+   * @return the instance
+   */
+  public static FileInfo fromThrift(alluxio.thrift.FileInfo info) {
+    return new FileInfo()
+        .setFileId(info.getFileId())
+        .setName(info.getName())
+        .setPath(info.getPath())
+        .setUfsPath(info.getUfsPath())
+        .setLength(info.getLength())
+        .setBlockSizeBytes(info.getBlockSizeBytes())
+        .setCreationTimeMs(info.getCreationTimeMs())
+        .setCompleted(info.isCompleted())
+        .setFolder(info.isFolder())
+        .setPinned(info.isPinned())
+        .setCacheable(info.isCacheable())
+        .setPersisted(info.isPersisted())
+        .setBlockIds(info.getBlockIds())
+        .setInMemoryPercentage(info.getInMemoryPercentage())
+        .setLastModificationTimeMs(info.getLastModificationTimeMs())
+        .setTtl(info.getTtl())
+        .setTtlAction(TtlAction.fromThrift(info.getTtlAction()))
+        .setOwner(info.getOwner())
+        .setGroup(info.getGroup())
+        .setMode(info.getMode())
+        .setPersistenceState(info.getPersistenceState())
+        .setMountPoint(info.isMountPoint())
+        .setFileBlockInfos(map(FileBlockInfo::fromThrift, info.getFileBlockInfos()))
+        .setMountId(info.getMountId())
+        .setInAlluxioPercentage(info.getInAlluxioPercentage())
+        .setUfsFingerprint(info.isSetUfsFingerprint() ? info.getUfsFingerprint()
+            : Constants.INVALID_UFS_FINGERPRINT)
+        .setAcl(info.isSetAcl()
+            ? (AccessControlList.fromThrift(info.getAcl()))
+            : AccessControlList.EMPTY_ACL)
+        .setDefaultAcl(info.isSetDefaultAcl()
+            ? ((DefaultAccessControlList) AccessControlList.fromThrift(info.getDefaultAcl()))
+            : DefaultAccessControlList.EMPTY_DEFAULT_ACL);
+  }
 
   @Override
   public boolean equals(Object o) {
@@ -544,7 +685,9 @@ public final class FileInfo implements Serializable {
         && mPersistenceState.equals(that.mPersistenceState) && mMountPoint == that.mMountPoint
         && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
-        && mUfsFingerprint.equals(that.mUfsFingerprint);
+        && mUfsFingerprint.equals(that.mUfsFingerprint)
+        && Objects.equal(mAcl, that.mAcl)
+        && Objects.equal(mDefaultAcl, that.mDefaultAcl);
   }
 
   @Override
@@ -553,7 +696,7 @@ public final class FileInfo implements Serializable {
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction, mInAlluxioPercentage,
-        mUfsFingerprint);
+        mUfsFingerprint, mAcl, mDefaultAcl);
   }
 
   @Override
@@ -569,6 +712,8 @@ public final class FileInfo implements Serializable {
         .add("fileBlockInfos", mFileBlockInfos)
         .add("mountId", mMountId).add("inAlluxioPercentage", mInAlluxioPercentage)
         .add("ufsFingerprint", mUfsFingerprint)
+        .add("acl", mAcl.toString())
+        .add("defaultAcl", mDefaultAcl.toString())
         .toString();
   }
 }

@@ -321,14 +321,6 @@ $ ./bin/alluxio fs help ls
 
 {% include Command-Line-Interface/pin.md %}
 
-### report
-
-`report`命令向Alluxio master标记一个文件为丢失状态。该命令应当只对使用[Lineage API](Lineage-API.html)创建的文件使用。将一个文件标记为丢失状态将导致master调度重计算作业从而重新生成该文件。
-
-使用举例：使用`report`命令可以强制重新计算生成一个文件。
-
-{% include Command-Line-Interface/report.md %}
-
 ### rm
 
 `rm`命令将一个文件从Alluxio以及底层文件系统中删除。该命令返回后该文件便立即不可获取，但实际的数据要过一段时间才被真正删除。

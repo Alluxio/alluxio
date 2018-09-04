@@ -42,7 +42,7 @@ do seu terminal digite `set -f`) ou tratando (escapando ou `escape`) o asterisco
 
 {% include Command-Line-Interface/escape.md %}
 
-Atente à dupla tratativa que ocorre devido ao `shell script`, que irá executar eventualmente um programa `java`,  
+Atente à dupla tratativa que ocorre devido ao `shell script`, que irá executar eventualmente um programa `java`,
 deve ter uma tratativa de parâmetros finais (`cat /\\*`).
 
 ## Lista de Operações
@@ -228,7 +228,7 @@ rotinas que utilizam uma estrutura de computação.
 
 ### ls
 O comando `ls` lista todos os filhos diretos de um diretório e informa: o tamanho do arquivo;
-última data de modificação; e estado do arquivo em memória. Utilizando o `ls` em apenas um arquivo, você  
+última data de modificação; e estado do arquivo em memória. Utilizando o `ls` em apenas um arquivo, você
 visualizará somente as informações deste arquivo.
 
 Adicionando a opção `-R` também lista os diretórios filhos de forma recursiva.
@@ -283,19 +283,10 @@ nenhuma carga de dados no Alluxio. Se o arquivo estiver fixado, todos os blocos 
 nunca serão expurgados por um Alluxio `worker`. Se existem vários arquivos fixados, os Alluxio `workers`
 poderão ficar com uma baixa capacidade de armazenamento e não efetuar a fixação de demais arquivos.
 
-Como exemplo, o `pin` pode ser utilizado manualmente para garantir performance, se o administrador compreender  
+Como exemplo, o `pin` pode ser utilizado manualmente para garantir performance, se o administrador compreender
 bem a sua carga de trabalho e rotinas.
 
 {% include Command-Line-Interface/pin.md %}
-
-### report
-O comando `report` marca um arquivo como perdido para o Alluxio `master`. Este comando só deve ser
-utilizado com arquivos criados utilizando a [Lineage API](Lineage-API.html). Marcando um arquivo como
-perdido, irá fazer com que o `master` agende uma rotina de computação para gerar o arquivo novamente.
-
-Como exemplo, o `report` pode ser utilizado para forçar uma rotina de computação para gerar o arquivo novamente.
-
-{% include Command-Line-Interface/report.md %}
 
 ### rm
 O comando `rm` remove um arquivo de um diretório Alluxio e do `under storage system`. O arquivo estará

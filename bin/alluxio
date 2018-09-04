@@ -175,13 +175,26 @@ function runJavaClass {
       case "${arg}" in
           -debug)
               ALLUXIO_USER_JAVA_OPTS+=" ${ALLUXIO_USER_DEBUG_JAVA_OPTS}" ;;
-          -D* | -X*)
+          -D* | -X* | -agentlib*)
               ALLUXIO_SHELL_JAVA_OPTS+=" ${arg}" ;;
           *)
               CLASS_ARGS+=("${arg}")
       esac
   done
   "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} "${CLASS_ARGS[@]}"
+}
+
+function formatJournal {
+  echo "Formatting Alluxio Master @ $(hostname -f)"
+  CLASS="alluxio.cli.Format"
+  CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+  PARAMETER="master"
+  ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+  runJavaClass "$@"
+}
+
+function formatMasters {
+  formatJournal "$@"
 }
 
 function main {
@@ -245,12 +258,7 @@ function main {
 
     ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio formatWorker
 
-    echo "Formatting Alluxio Master @ $(hostname -f)"
-    CLASS="alluxio.cli.Format"
-    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
-    PARAMETER="master"
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
-    runJavaClass "$@"
+    formatMasters
   ;;
   "formatWorker")
     echo "Formatting Alluxio Worker @ $(hostname -f)"
@@ -260,13 +268,15 @@ function main {
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
+  "formatJournal")
+    formatJournal
+  ;;
   "formatMaster")
-    echo "Formatting Alluxio Master @ $(hostname -f)"
-    CLASS="alluxio.cli.Format"
-    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
-    PARAMETER="master"
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
-    runJavaClass "$@"
+    echo "formatMaster is deprecated - use formatMasters instead"
+    formatJournal
+  ;;
+  "formatMasters")
+    formatMasters
   ;;
   "fs")
     CLASS="alluxio.cli.fs.FileSystemShell"
@@ -281,6 +291,7 @@ function main {
   "getConf")
     CLASS="alluxio.cli.GetConf"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.conf.validation.enabled=false"
     runJavaClass "$@"
   ;;
   "loadufs")
@@ -370,6 +381,7 @@ function main {
     done
   ;;
   "protoGen")
+<<<<<<< HEAD
     rm -rf ${BIN}/../core/transport/src/main/java/alluxio/proto
     for src_file in $(find ${BIN}/../core/transport/src/proto -name '*.proto' -type f); do
       protoc --java_out=${BIN}/../core/transport/src/main/java --proto_path=${BIN}/../core/transport/src/proto ${src_file}
@@ -379,6 +391,20 @@ function main {
     rm -rf ${BIN}/../core/transport/src/main/java/alluxio/grpc
     for src_file in $(find ${BIN}/../core/transport/src/grpc -name '*.proto' -type f); do
       protoc --java_out=${BIN}/../core/transport/src/main/java --proto_path=${BIN}/../core/transport/src/grpc --plugin=protoc-gen-grpc-java=${BIN}/protoc-gen-grpc-java-1.10.1-osx-x86_64.exe --grpc-java_out=${BIN}/../core/transport/src/main/java ${src_file}
+||||||| merged common ancestors
+    rm -rf ${BIN}/../core/protobuf/src/main/java/alluxio/proto
+    for src_file in $(find ${BIN}/../core/protobuf/src/proto -name '*.proto' -type f); do
+      protoc --java_out=${BIN}/../core/protobuf/src/main/java --proto_path=${BIN}/../core/protobuf/src/proto ${src_file}
+=======
+    proto_version="$(protoc --version)"
+    if ! [[ ${proto_version} == *2.5.0* ]]; then
+      echo "protoGen requires protoc version 2.5.0, but <protoc --version> returns <${proto_version}>"
+      exit 1
+    fi
+    rm -rf ${BIN}/../core/protobuf/src/main/java/alluxio/proto
+    for src_file in $(find ${BIN}/../core/protobuf/src/proto -name '*.proto' -type f); do
+      protoc --java_out=${BIN}/../core/protobuf/src/main/java --proto_path=${BIN}/../core/protobuf/src/proto ${src_file}
+>>>>>>> master
     done
   ;;
   "clearCache")

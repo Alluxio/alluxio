@@ -67,18 +67,15 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   public static OSSUnderFileSystem createInstance(AlluxioURI uri,
       UnderFileSystemConfiguration conf) throws Exception {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
-    Preconditions.checkArgument(
-        conf.containsKey(PropertyKey.OSS_ACCESS_KEY),
-        "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
-    Preconditions.checkArgument(
-        conf.containsKey(PropertyKey.OSS_SECRET_KEY),
-        "Property " + PropertyKey.OSS_SECRET_KEY + " is required to connect to OSS");
-    Preconditions.checkArgument(
-        conf.containsKey(PropertyKey.OSS_ENDPOINT_KEY),
-        "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
-    String accessId = conf.getValue(PropertyKey.OSS_ACCESS_KEY);
-    String accessKey = conf.getValue(PropertyKey.OSS_SECRET_KEY);
-    String endPoint = conf.getValue(PropertyKey.OSS_ENDPOINT_KEY);
+    Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ACCESS_KEY),
+        "Property %s is required to connect to OSS", PropertyKey.OSS_ACCESS_KEY);
+    Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_SECRET_KEY),
+        "Property %s is required to connect to OSS", PropertyKey.OSS_SECRET_KEY);
+    Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ENDPOINT_KEY),
+        "Property %s is required to connect to OSS", PropertyKey.OSS_ENDPOINT_KEY);
+    String accessId = conf.get(PropertyKey.OSS_ACCESS_KEY);
+    String accessKey = conf.get(PropertyKey.OSS_SECRET_KEY);
+    String endPoint = conf.get(PropertyKey.OSS_ENDPOINT_KEY);
 
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
     OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
@@ -116,8 +113,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected boolean copyObject(String src, String dst) {
+    LOG.debug("Copying {} to {}", src, dst);
     try {
-      LOG.info("Copying {} to {}", src, dst);
       mClient.copyObject(mBucketName, src, mBucketName, dst);
       return true;
     } catch (ServiceException e) {

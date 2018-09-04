@@ -16,6 +16,7 @@ import alluxio.Server;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
+import alluxio.resource.LockResource;
 import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.google.common.base.Preconditions;
@@ -53,8 +54,8 @@ public abstract class AbstractMaster implements Master {
   /** The clock to use for determining the time. */
   protected final Clock mClock;
 
-  /** The manager for safe mode state. */
-  protected final SafeModeManager mSafeModeManager;
+  /** The context of Alluxio masters. **/
+  protected final MasterContext mMasterContext;
 
   /**
    * @param masterContext the context for Alluxio master
@@ -66,7 +67,7 @@ public abstract class AbstractMaster implements Master {
       ExecutorServiceFactory executorServiceFactory) {
     Preconditions.checkNotNull(masterContext, "masterContext");
     mJournal = masterContext.getJournalSystem().createJournal(this);
-    mSafeModeManager = masterContext.getmSafeModeManager();
+    mMasterContext = masterContext;
     mClock = clock;
     mExecutorServiceFactory = executorServiceFactory;
   }
@@ -113,6 +114,7 @@ public abstract class AbstractMaster implements Master {
             LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
           }
         } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
           LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
         }
       } finally {
@@ -129,10 +131,13 @@ public abstract class AbstractMaster implements Master {
     return mExecutorService;
   }
 
-  /**
-   * @return new instance of {@link JournalContext}
-   */
-  protected JournalContext createJournalContext() throws UnavailableException {
-    return mJournal.createJournalContext();
+  @Override
+  public JournalContext createJournalContext() throws UnavailableException {
+    // All modifications to journaled state must happen inside of a journal context so that we can
+    // persist the state change. As a mechanism to allow for state pauses, we acquire the state
+    // change lock before entering any code paths that could modify journaled state.
+    try (LockResource l = new LockResource(mMasterContext.stateChangeLock())) {
+      return mJournal.createJournalContext();
+    }
   }
 }

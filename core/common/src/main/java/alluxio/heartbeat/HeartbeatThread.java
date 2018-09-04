@@ -74,7 +74,7 @@ public final class HeartbeatThread implements Runnable {
         mExecutor.heartbeat();
       }
     } catch (InterruptedException e) {
-      LOG.info("Hearbeat is interrupted.");
+      // Allow thread to exit.
     } catch (Exception e) {
       LOG.error("Uncaught exception in heartbeat executor, Heartbeat Thread shutting down", e);
     } finally {

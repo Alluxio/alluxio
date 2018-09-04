@@ -87,6 +87,37 @@ public final class BlockLocation implements Serializable {
     return this;
   }
 
+<<<<<<< HEAD:core/base/src/main/java/alluxio/wire/BlockLocation.java
+||||||| merged common ancestors
+  /**
+   * @return thrift representation of the block location
+   */
+  protected alluxio.thrift.BlockLocation toThrift() {
+    return new alluxio.thrift.BlockLocation(mWorkerId, mWorkerAddress.toThrift(), mTierAlias);
+  }
+
+=======
+  /**
+   * @return thrift representation of the block location
+   */
+  protected alluxio.thrift.BlockLocation toThrift() {
+    return new alluxio.thrift.BlockLocation(mWorkerId, mWorkerAddress.toThrift(), mTierAlias);
+  }
+
+  /**
+   * Creates a new instance of {@link BlockLocation} from a thrift representation.
+   *
+   * @param blockLocation the thrift representation of a block location
+   * @return the instance
+   */
+  public static BlockLocation fromThrift(alluxio.thrift.BlockLocation blockLocation) {
+    return new BlockLocation()
+        .setWorkerId(blockLocation.getWorkerId())
+        .setWorkerAddress(WorkerNetAddress.fromThrift(blockLocation.getWorkerAddress()))
+        .setTierAlias(blockLocation.getTierAlias());
+  }
+
+>>>>>>> master:core/common/src/main/java/alluxio/wire/BlockLocation.java
   @Override
   public boolean equals(Object o) {
     if (this == o) {

@@ -14,17 +14,26 @@ package alluxio.collections;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A class representing the definition of an index for this {@link IndexedSet}. Each instance of
- * this class must implement the method to define how to get the value of the field chosen as
- * the index key. Users use this indexDefinition class as the parameter in all methods of
- * {@link IndexedSet} to represent an index.
+ * A class representing an index for an {@link IndexedSet}.
  *
- * @param <T> type of objects in this {@link IndexedSet}
+ * For example, if an indexed set stores inodes, and we want to be able to look them up by their
+ * "id" field, we would define an index like so:
+ *
+ * <pre>
+ * public class IndexDefinition<Inode, Long>() {
+ *   @Override
+ *   Long getFieldValue(Inode) {
+ *     return Inode.getId();
+ *   }
+ * }
+ * </pre>
+ *
+ * @param <T> the type that this is an index for
+ * @param <V> the type of the value used for indexing
  */
 @ThreadSafe
-public abstract class IndexDefinition<T> {
+public abstract class IndexDefinition<T, V> {
   /** Whether it is a unique index. */
-  //TODO(lei): change the mIsUnique to mIndexType enum
   private final boolean mIsUnique;
 
   /**
@@ -51,5 +60,5 @@ public abstract class IndexDefinition<T> {
    * @param o the instance to get the field value from
    * @return the field value
    */
-  public abstract Object getFieldValue(T o);
+  public abstract V getFieldValue(T o);
 }

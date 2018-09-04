@@ -15,7 +15,7 @@ See the [godoc](http://godoc.org/github.com/Alluxio/alluxio-go) for detailed doc
 methods. The godoc includes examples of how to download, upload, check existence for, and list status for files in
 Alluxio.
 
-# Alluxio Proxy dependency
+## Alluxio Proxy dependency
 
 The Go client talks to Alluxio through the REST API provided by the Alluxio proxy.
 
@@ -27,12 +27,12 @@ There are performance implications of using the HTTP proxy. In particular, using
 an extra hop. For optimal performance, it is recommended to run the proxy server and an Alluxio
 worker on each compute node.
 
-# Install Go Client Library
+## Install Go Client Library
 ```bash
 $ go get -d github.com/Alluxio/alluxio-go
 ```
 
-# Example Usage
+## Example Usage
 
 If there is no Alluxio proxy running locally, replace "localhost" below with a hostname of a proxy.
 
@@ -46,8 +46,8 @@ import (
 	"strings"
 	"time"
 
-	alluxio "github.com/alluxio/alluxio-go"
-	"github.com/alluxio/alluxio-go/option"
+	alluxio "github.com/Alluxio/alluxio-go"
+	"github.com/Alluxio/alluxio-go/option"
 )
 
 func write(fs *alluxio.Client, path, s string) error {

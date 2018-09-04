@@ -234,19 +234,21 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
-  private final IndexDefinition<TestInfo> mIdIndex = new IndexDefinition<TestInfo>(true) {
-    @Override
-    public Object getFieldValue(TestInfo o) {
-      return o.getId();
-    }
-  };
+  private final IndexDefinition<TestInfo, Long> mIdIndex =
+      new IndexDefinition<TestInfo, Long>(true) {
+        @Override
+        public Long getFieldValue(TestInfo o) {
+          return o.getId();
+        }
+      };
 
-  private final IndexDefinition<TestInfo> mSizeIndex = new IndexDefinition<TestInfo>(false) {
-    @Override
-    public Object getFieldValue(TestInfo o) {
-      return o.getSize();
-    }
-  };
+  private final IndexDefinition<TestInfo, Integer> mSizeIndex =
+      new IndexDefinition<TestInfo, Integer>(false) {
+        @Override
+        public Integer getFieldValue(TestInfo o) {
+          return o.getSize();
+        }
+      };
 
   @Before
   public void before() throws Exception {

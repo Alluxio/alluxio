@@ -16,15 +16,18 @@ import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.BackupTOptions;
+import alluxio.thrift.GetConfigReportTOptions;
 import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMetricsTOptions;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.wire.BackupResponse;
+import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 import alluxio.wire.MetricValue;
-import alluxio.wire.ThriftUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -43,7 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * support for retries.
  */
 @ThreadSafe
-public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
+public class RetryHandlingMetaMasterClient extends AbstractMasterClient
     implements MetaMasterClient {
   private MetaMasterClientService.Client mClient;
 
@@ -64,7 +67,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
 
   @Override
   protected String getServiceName() {
-    return Constants.META_MASTER_SERVICE_NAME;
+    return Constants.META_MASTER_CLIENT_SERVICE_NAME;
   }
 
   @Override
@@ -78,11 +81,25 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
+  public synchronized BackupResponse backup(String targetDirectory,
+                                            boolean localFileSystem) throws IOException {
+    return retryRPC(
+        () -> BackupResponse.fromThrift(mClient.backup(new BackupTOptions()
+            .setTargetDirectory(targetDirectory).setLocalFileSystem(localFileSystem))));
+  }
+
+  @Override
+  public synchronized ConfigCheckReport getConfigReport() throws IOException {
+    return retryRPC(() -> ConfigCheckReport.fromThrift(mClient
+        .getConfigReport(new GetConfigReportTOptions()).getReport()));
+  }
+
+  @Override
   public synchronized List<ConfigProperty> getConfiguration() throws IOException {
-    return retryRPC(() -> (mClient.getConfiguration(new GetConfigurationTOptions())
+    return retryRPC(() -> mClient.getConfiguration(new GetConfigurationTOptions())
           .getConfigList().stream()
           .map(ConfigProperty::fromThrift)
-          .collect(Collectors.toList())));
+          .collect(Collectors.toList()));
   }
 
   @Override
@@ -97,7 +114,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
           thriftFields.add(field.toThrift());
         }
       }
-      return ThriftUtils.fromThrift(
+      return MasterInfo.fromThrift(
           mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
     });
   }

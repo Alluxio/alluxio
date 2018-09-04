@@ -19,7 +19,9 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.GetStatusOptions;
+import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.UfsAbsentPathCache;
@@ -31,7 +33,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.LoadMetadataType;
 
-import com.google.common.base.Function;
 import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Assert;
@@ -43,12 +44,15 @@ import org.powermock.reflect.Whitebox;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.util.List;
 
 /**
  * Tests the loading of metadata and the available options.
  */
 public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private static final long SLEEP_MS = Constants.SECOND_MS / 2;
+
+  private static final long LONG_SLEEP_MS = Constants.SECOND_MS * 2;
 
   private FileSystem mFileSystem;
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
@@ -63,7 +67,9 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
       new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
-          new SleepingUnderFileSystemOptions().setExistsMs(SLEEP_MS)));
+          new SleepingUnderFileSystemOptions()
+              .setExistsMs(SLEEP_MS)
+              .setListStatusWithOptionsMs(LONG_SLEEP_MS)));
 
   @Before
   public void before() throws Exception {
@@ -187,6 +193,30 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
   }
 
+  @Test
+  public void loadRecursive() throws Exception {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Once.toString());
+    ListStatusOptions options = ListStatusOptions.defaults().setRecursive(true);
+    for (int i = 0; i < 5; i++) {
+      for (int j = 0; j < 5; j++) {
+        new File(mLocalUfsPath + "/dir" + i + "/dir" + j + "/").mkdirs();
+        FileWriter fileWriter = new FileWriter(mLocalUfsPath
+            + "/dir" + i + "/dir" + j + "/" + "file");
+        fileWriter.write("test" + i);
+        fileWriter.close();
+      }
+    }
+    long startMs = CommonUtils.getCurrentMs();
+    List<URIStatus> list = mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
+    long durationMs = CommonUtils.getCurrentMs() - startMs;
+    // 25 files, 25 level 2 dirs, 5 level 1 dirs, 1 file and 1 dir created in before
+    Assert.assertEquals(25 * 2 + 5 + 2, list.size());
+
+    // Should load metadata once, in one recursive call
+    Assert.assertTrue("Expected to be between one and two SLEEP_MS. actual duration (ms): "
+            + durationMs, durationMs >= LONG_SLEEP_MS && durationMs <= 2 * LONG_SLEEP_MS);
+  }
+
   /**
    * Checks the get status call with the specified parameters and expectations.
    *
@@ -221,37 +251,28 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     if (!expectExists && expectLoadFromUfs) {
       // The metadata is loaded from Ufs, but the path does not exist, so it will be added to the
       // absent cache. Wait until the path shows up in the absent cache.
-      final UfsAbsentPathCache cache = Whitebox.getInternalState(
-          mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-              .getMaster(FileSystemMaster.class), "mUfsAbsentPathCache");
+      UfsAbsentPathCache cache = getUfsAbsentPathCache();
       CommonUtils.waitFor("path (" + path + ") to be added to absent cache",
-          new Function<Void, Boolean>() {
-            @Override
-            public Boolean apply(Void input) {
-              if (cache.isAbsent(new AlluxioURI(path))) {
-                return true;
-              }
-              return false;
-            }
-          }, WaitForOptions.defaults().setTimeoutMs(60000));
+          () -> cache.isAbsent(new AlluxioURI(path)),
+          WaitForOptions.defaults().setTimeoutMs(60000));
     }
 
     if (expectExists && expectLoadFromUfs) {
       // The metadata is loaded from Ufs, and the path exists, so it will be removed from the
       // absent cache. Wait until the path is removed.
-      final UfsAbsentPathCache cache = Whitebox.getInternalState(
-          mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-              .getMaster(FileSystemMaster.class), "mUfsAbsentPathCache");
-      CommonUtils.waitFor("path (" + path + ") to be removed from absent cache",
-          new Function<Void, Boolean>() {
-            @Override
-            public Boolean apply(Void input) {
-              if (cache.isAbsent(new AlluxioURI(path))) {
-                return false;
-              }
-              return true;
-            }
-          }, WaitForOptions.defaults().setTimeoutMs(60000));
+      UfsAbsentPathCache cache = getUfsAbsentPathCache();
+      CommonUtils.waitFor("path (" + path + ") to be removed from absent cache", () -> {
+        if (cache.isAbsent(new AlluxioURI(path))) {
+          return false;
+        }
+        return true;
+      }, WaitForOptions.defaults().setTimeoutMs(60000));
     }
+  }
+
+  private UfsAbsentPathCache getUfsAbsentPathCache() {
+    FileSystemMaster master = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
+        .getMasterProcess().getMaster(FileSystemMaster.class);
+    return Whitebox.getInternalState(master, "mUfsAbsentPathCache");
   }
 }

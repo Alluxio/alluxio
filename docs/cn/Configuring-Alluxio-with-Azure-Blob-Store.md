@@ -1,10 +1,9 @@
-
 ---
-layout： global
-title： 在Azure Blob Store上配置Alluxio
-nickname： Alluxio使用Azure Blob Store
-group： Under Store
-priority： 0
+layout: global
+title: Configuring Alluxio with Azure Blob Store
+nickname: Alluxio使用Azure Blob Store
+group: Under Store
+priority: 0
 ---
 
 * 内容列表
@@ -15,7 +14,7 @@ priority： 0
 ## 初始步骤
 
 为了在多台机器上运行一个Alluxio集群，你必须在每台机器上部署Alluxio的二进制文件。
-你可以[从Alluxio源码编译二进制文件](Building-Alluxio-Master-Branch.html)，或者[直接下载已经编译好的Alluxio二进制文件](Running-Alluxio-Locally.html)。
+你可以[从Alluxio源码编译二进制文件](Building-Alluxio-From-Source.html)，或者[直接下载已经编译好的Alluxio二进制文件](Running-Alluxio-Locally.html)。
 
 而且，为了在Alluxio上使用Azure Blob Store，在你的Azure storage帐户上创建一个新的container或者使用一个已有的container。你应该注意你在这个container里准备使用的目录,你可以在这个容器里面创建一个目录，或者使用一个已有的目录。鉴于这篇文章的目的，我们将Azure storage帐户名取名为`<AZURE_ACCOUNT>`，将帐户里的容器取名为`<AZURE_CONTAINER>`并将该container里面的目录称为`<AZURE_DIRECTORY>`。更多关于Azure storage帐户的信息，请看[这里](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)。
 
@@ -36,10 +35,10 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 alluxio.underfs.address=wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
-其次，将以下属性添加到`conf/alluxio-site.properties`来指定Azure account证书：
+其次，将以下属性添加到`conf/alluxio-site.properties`来指定根挂载点的Azure account证书：
 
 ```
-fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
+alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
 ```
 
 ### 嵌套挂载

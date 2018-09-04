@@ -16,15 +16,13 @@ import alluxio.util.FormatUtils;
 import alluxio.wire.MountPointInfo;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Map;
 
 /**
  * Prints under filesystem information.
  */
 public class UfsCommand {
-  private static final String LEFT_ALIGN_FORMAT = "%-60s  on  %-20s (%s, capacity=%s,"
-      + " used=%s, %sread-only, %sshared, ";
-
   private FileSystemMasterClient mFileSystemMasterClient;
 
   /**
@@ -45,7 +43,6 @@ public class UfsCommand {
     Map<String, MountPointInfo> mountTable = mFileSystemMasterClient.getMountTable();
     System.out.println("Alluxio under filesystem information: ");
     printMountInfo(mountTable);
-    // TODO(lu) add UfsSessionCount metrics information
     return 0;
   }
 
@@ -68,12 +65,30 @@ public class UfsCommand {
         usedPercentageInfo = String.format("(%s%%)", usedPercentage);
       }
 
-      System.out.format(LEFT_ALIGN_FORMAT, mountPointInfo.getUfsUri(), mMountPoint,
+      String leftAlignFormat = getAlignFormat(mountTable);
+
+      System.out.format(leftAlignFormat, mountPointInfo.getUfsUri(), mMountPoint,
           mountPointInfo.getUfsType(), FormatUtils.getSizeFromBytes(capacityBytes),
           FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo,
           mountPointInfo.getReadOnly() ? "" : "not ",
           mountPointInfo.getShared() ? "" : "not ");
       System.out.println("properties=" + mountPointInfo.getProperties() + ")");
     }
+  }
+
+  /**
+   * Gets the align format according to the longest mount point/under storage path.
+   * @param mountTable the mount table to get information from
+   * @return the align format for printing mounted info
+   */
+  private static String getAlignFormat(Map<String, MountPointInfo> mountTable) {
+    int mountPointLength = mountTable.entrySet().stream().map(w -> w.getKey().length())
+        .max(Comparator.comparing(Integer::intValue)).get();
+    int usfLength = mountTable.entrySet().stream().map(w -> w.getValue().getUfsUri().length())
+        .max(Comparator.comparing(Integer::intValue)).get();
+
+    String leftAlignFormat = "%-" + usfLength + "s  on  %-" + mountPointLength
+        + "s  (%s, capacity=%s, used=%s, %sread-only, %sshared, ";
+    return leftAlignFormat;
   }
 }

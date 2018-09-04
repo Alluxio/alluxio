@@ -30,7 +30,7 @@ For the MapReduce applications to communicate with Alluxio service, it is requir
 Alluxio client jar on their classpaths. We recommend you to download the tarball from
 Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can choose to compile this client jar from the source code
-by following the instructions [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
+by following the instructions [here](Building-Alluxio-From-Source.html#compute-framework-support).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 ## Configuring Hadoop
@@ -97,17 +97,17 @@ when the jar is already on every node, then the `-libjars` command line option i
 
 ## Check MapReduce with Alluxio integration (Supports Hadoop 2.X)
 
-Before running MapReduce on Alluxio, you might want to make sure that your configuration has been 
-setup correctly for integrating with Alluxio. The MapReduce integration checker can help you achieve this. 
+Before running MapReduce on Alluxio, you might want to make sure that your configuration has been
+setup correctly for integrating with Alluxio. The MapReduce integration checker can help you achieve this.
 
 When you have a running Hadoop cluster (or standalone), you can run the following command in the Alluxio project directory:
 
 ```bash
-$ checker/bin/alluxio-checker.sh mapreduce 
+$ integration/checker/bin/alluxio-checker.sh mapreduce
 ```
 
 You can use `-h` to display helpful information about the command.
-This command will report potential problems that might prevent you from running MapReduce on Alluxio. 
+This command will report potential problems that might prevent you from running MapReduce on Alluxio.
 
 ## Running Hadoop wordcount with Alluxio Locally
 
@@ -123,7 +123,7 @@ $ bin/start-all.sh
 Start Alluxio locally:
 
 ```bash
-$ bin/alluxio-start.sh local
+$ bin/alluxio-start.sh local SudoMount
 ```
 
 You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:
@@ -148,3 +148,6 @@ in Alluxio. You can see the resulting files by running:
 $ bin/alluxio fs ls /wordcount/output
 $ bin/alluxio fs cat /wordcount/output/part-r-00000
 ```
+
+> Tips：The previous wordcount example is also applicable to Alluxio in fault tolerant mode with Zookeeper. 
+Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).

@@ -3,6 +3,7 @@ layout: global
 title: Unit Testing Guidelines
 nickname: Unit Testing Guidelines
 group: Resources
+priority: 3
 ---
 
 * Table of Contents
@@ -76,19 +77,19 @@ public void detectLostWorker() throws Exception {
 ```
 7. Loop back to step #3 until the class's entire public API has been tested.
 
-# Conventions
+## Conventions
 1. The tests for `src/main/java/ClassName.java` should go in `src/test/java/ClassNameTest.java`
 2. Tests do not need to handle or document specific checked exceptions. Prefer to simply add `throws Exception` to the test method signature.
 3. Aim to keep tests short and simple enough that they don't require comments to understand.
 
-# Patterns to avoid
+## Patterns to avoid
 
 1. Avoid randomness. Edge cases should be handled explicitly.
 2. Avoid waiting for something by calling `Thread.sleep()`. This leads to slower unit tests and can cause flaky failures if the sleep isn't long enough.
 3. Avoid using Whitebox to mess with the internal state of objects under test. If you need to mock a dependency, change the object to take the dependency as a parameter in its constructor (see [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection))
 4. Avoid slow tests. Mock expensive dependencies and aim to keep individual test times under 100ms.
 
-# Managing Global State
+## Managing Global State
 All tests in a module run in the same JVM, so it's important to properly manage global state so that tests don't interfere with each other. Global state includes system properties, Alluxio configuration, and any static fields. Our solution to managing global state is to use JUnit's support for `@Rules`.
 
 ### Changing Alluxio configuration during tests

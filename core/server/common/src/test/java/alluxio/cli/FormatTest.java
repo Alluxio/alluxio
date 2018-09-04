@@ -12,8 +12,10 @@
 package alluxio.cli;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
@@ -30,7 +32,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.HashMap;
 
 /**
@@ -44,6 +46,7 @@ public final class FormatTest {
   @Test
   public void formatWorker() throws Exception {
     final int storageLevels = 3;
+    final String perms = "rwx------";
     String workerDataFolder;
     final File[] dirs = new File[] {
         mTemporaryFolder.newFolder("level0"),
@@ -61,6 +64,7 @@ public final class FormatTest {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
+        put(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS, perms);
       }
     }).toResource()) {
       Format.format(Format.Mode.WORKER);
@@ -68,8 +72,8 @@ public final class FormatTest {
         workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath());
         assertTrue(FileUtils.exists(dir.getPath()));
         assertTrue(FileUtils.exists(workerDataFolder));
-        assertTrue(Files.getPosixFilePermissions(Paths.get(workerDataFolder)).contains(
-            PosixFilePermission.OTHERS_EXECUTE));
+        assertEquals(PosixFilePermissions.fromString(perms), Files.getPosixFilePermissions(Paths
+            .get(workerDataFolder)));
         try (DirectoryStream<Path> directoryStream = Files
             .newDirectoryStream(Paths.get(workerDataFolder))) {
           for (Path child : directoryStream) {
@@ -102,12 +106,13 @@ public final class FormatTest {
         put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
       }
     }).toResource()) {
+      final String perms = Configuration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
       Format.format(Format.Mode.WORKER);
       for (File dir : dirs) {
         workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath());
         assertTrue(Files.isDirectory(Paths.get(workerDataFolder)));
-        assertTrue(Files.getPosixFilePermissions(Paths.get(workerDataFolder)).contains(
-            PosixFilePermission.OTHERS_EXECUTE));
+        assertEquals(PosixFilePermissions.fromString(perms), Files.getPosixFilePermissions(Paths
+            .get(workerDataFolder)));
         try (DirectoryStream<Path> directoryStream =
                  Files.newDirectoryStream(Paths.get(workerDataFolder))) {
           for (Path child : directoryStream) {

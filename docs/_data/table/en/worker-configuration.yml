@@ -5,7 +5,7 @@ alluxio.worker.bind.host:
 alluxio.worker.block.heartbeat.interval:
   'The interval between block workers'' heartbeats.'
 alluxio.worker.block.heartbeat.timeout:
-  'The timeout value of block workers'' heartbeats.'
+  'The timeout value of block workers'' heartbeats. If the worker can''t connect to master before this interval expires, the worker will exit.'
 alluxio.worker.block.master.client.pool.size:
   'The block master client pool size on the Alluxio workers.'
 alluxio.worker.block.threads.max:
@@ -16,6 +16,8 @@ alluxio.worker.data.bind.host:
   'The hostname that the Alluxio worker''s data server runs on. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
 alluxio.worker.data.folder:
   'A relative path within each storage directory used as the data folder for Alluxio worker to put data for tiered store.'
+alluxio.worker.data.folder.permissions:
+  'The permission set for the worker data folder. If short circuit is used this folder should be accessible by all users (rwxrwxrwx).'
 alluxio.worker.data.folder.tmp:
   'A relative path in alluxio.worker.data.folder used to store the temporary data for uncommitted files.'
 alluxio.worker.data.hostname:
@@ -54,6 +56,8 @@ alluxio.worker.jvm.monitor.enabled:
   'Whether to enable start JVM monitor thread on worker.'
 alluxio.worker.keytab.file:
   'Kerberos keytab file for Alluxio worker.'
+alluxio.worker.master.connect.retry.timeout:
+  'Retry period before workers give up on connecting to master'
 alluxio.worker.memory.size:
   'Memory capacity of each worker node.'
 alluxio.worker.network.netty.async.cache.manager.threads.max:
@@ -71,7 +75,7 @@ alluxio.worker.network.netty.buffer.receive:
 alluxio.worker.network.netty.buffer.send:
   'Netty socket option for SO_SNDBUF: the proposed buffer size that will be used for sends.'
 alluxio.worker.network.netty.channel:
-  'Netty channel type: NIO or EPOLL.'
+  'Netty channel type: NIO or EPOLL. If EPOLL is not available, this will automatically fall back to NIO.'
 alluxio.worker.network.netty.file.transfer:
   'When returning files to the user, select how the data is transferred; valid options are `MAPPED` (uses java MappedByteBuffer) and `TRANSFER` (uses Java FileChannel.transferTo).'
 alluxio.worker.network.netty.file.writer.threads.max:

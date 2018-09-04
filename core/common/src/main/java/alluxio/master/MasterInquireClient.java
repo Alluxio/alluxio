@@ -11,9 +11,12 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioConfiguration;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
+import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -41,6 +44,21 @@ public interface MasterInquireClient {
   List<InetSocketAddress> getMasterRpcAddresses() throws UnavailableException;
 
   /**
+   * Returns canonical connect details representing how this client connects to the master.
+   *
+   * @return the connect details
+   */
+  ConnectDetails getConnectDetails();
+
+  /**
+   * Interface for representing master inquire connect details.
+   *
+   * Connect info should be unique so that if two inquire clients have the same connect info, they
+   * connect to the same cluster.
+   */
+  interface ConnectDetails {}
+
+  /**
    * Factory for getting a master inquire client.
    */
   class Factory {
@@ -51,16 +69,39 @@ public interface MasterInquireClient {
      * @return a master inquire client
      */
     public static MasterInquireClient create() {
-      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        return ZkMasterInquireClient.getClient(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
-            Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
-            Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
+      return create(Configuration.global());
+    }
+
+    /**
+     * @param conf configuration for creating the master inquire client
+     * @return a master inquire client
+     */
+    public static MasterInquireClient create(AlluxioConfiguration conf) {
+      if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+        return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
+            conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
+            conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
       } else {
         return new SingleMasterInquireClient(
-            NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
+            NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf));
       }
     }
 
-    private Factory() {} // Not intended for instantiation.
+    /**
+     * @param conf configuration for creating the master inquire client
+     * @return the connect string represented by the configuration
+     */
+    public static ConnectDetails getConnectDetails(AlluxioConfiguration conf) {
+      if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+        return new ZkMasterConnectDetails(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
+            conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
+      } else {
+        return new SingleMasterConnectDetails(
+            NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf));
+      }
+    }
+
+    private Factory() {
+    } // Not intended for instantiation.
   }
 }

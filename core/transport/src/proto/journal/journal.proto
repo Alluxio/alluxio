@@ -15,7 +15,7 @@ import "journal/lineage.proto";
 // 2.6.0 and adding this depedency would conflict with the version of protobuf used by Hadoop 2.x
 // and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
 //
-// next available id: 31
+// next available id: 36
 message JournalEntry {
   optional int64 sequence_number = 1;
   optional AddMountPointEntry add_mount_point = 2;
@@ -28,6 +28,7 @@ message JournalEntry {
   optional CreateStoreEntry create_store = 23;
   optional DeleteBlockEntry delete_block = 29;
   optional DeleteFileEntry delete_file = 6;
+  // deprecated, lineage is no longer supported
   optional DeleteLineageEntry delete_lineage = 7;
   optional DeleteMountPointEntry delete_mount_point = 8;
   optional DeleteStoreEntry delete_store = 25;
@@ -35,13 +36,21 @@ message JournalEntry {
   optional InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 10;
   optional InodeFileEntry inode_file = 11;
   optional InodeLastModificationTimeEntry inode_last_modification_time = 12;
+  // deprecated, lineage is no longer supported
   optional LineageEntry lineage = 13;
+  // deprecated, lineage is no longer supported
   optional LineageIdGeneratorEntry lineage_id_generator = 14;
   optional MergeStoreEntry merge_store = 26;
+  optional NewBlockEntry new_block = 35;
   optional PersistDirectoryEntry persist_directory = 15;
+  // deprecated, lineage is no longer supported
   optional ReinitializeFileEntry reinitialize_file = 18;
   optional RenameEntry rename = 19;
   optional RenameStoreEntry rename_store = 28;
+  optional SetAclEntry set_acl = 31;
   optional SetAttributeEntry set_attribute = 27;
   optional UpdateUfsModeEntry update_ufs_mode = 30;
+  optional UpdateInodeEntry update_inode = 32;
+  optional UpdateInodeDirectoryEntry update_inode_directory = 33;
+  optional UpdateInodeFileEntry update_inode_file = 34;
 }

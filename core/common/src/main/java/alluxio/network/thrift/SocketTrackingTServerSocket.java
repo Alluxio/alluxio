@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Iterator;
 import java.util.Set;
@@ -45,12 +44,10 @@ public class SocketTrackingTServerSocket extends TServerSocket {
   private final ScheduledExecutorService mExecutor;
 
   /**
-   * @param bindAddr bind address for the socket
-   * @param clientTimeout timeout for client sockets from accept
+   * @param args the arguments for creating the server socket
    */
-  public SocketTrackingTServerSocket(InetSocketAddress bindAddr, int clientTimeout)
-      throws TTransportException {
-    super(bindAddr, clientTimeout);
+  public SocketTrackingTServerSocket(ServerSocketTransportArgs args) throws TTransportException {
+    super(args);
     mExecutor = Executors
         .newSingleThreadScheduledExecutor(ThreadFactoryUtils.build("socket-closer-thread", true));
     mExecutor.scheduleAtFixedRate(this::removeClosedSockets, CLEANUP_INTERVAL_MS,
@@ -72,6 +69,17 @@ public class SocketTrackingTServerSocket extends TServerSocket {
     } catch (IOException e) {
       LOG.error("Could not close client sockets", e);
     }
+    shutdownExecutor();
+  }
+
+  /**
+   * Shuts down the executor service.
+   */
+  private void shutdownExecutor() {
+    // Possible since super constructor can call close().
+    if (mExecutor == null) {
+      return;
+    }
     mExecutor.shutdownNow();
     try {
       if (!mExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
@@ -87,6 +95,10 @@ public class SocketTrackingTServerSocket extends TServerSocket {
    * Closes all socket connections that have been accepted by this server socket.
    */
   private void closeClientSockets() throws IOException {
+    // Possible since super constructor can call close().
+    if (mSockets == null) {
+      return;
+    }
     Closer closer = Closer.create();
     int count = 0;
     for (Socket s : mSockets) {

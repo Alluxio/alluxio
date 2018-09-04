@@ -35,6 +35,7 @@ public class SleepingUnderFileSystemOptionsTest {
     Assert.assertEquals(-1, defaults.getDeleteFileMs());
     Assert.assertEquals(-1, defaults.getGetBlockSizeByteMs());
     Assert.assertEquals(-1, defaults.getGetConfMs());
+    Assert.assertEquals(-1, defaults.getGetDirectoryStatusMs());
     Assert.assertEquals(-1, defaults.getGetFileLocationsMs());
     Assert.assertEquals(-1, defaults.getGetFileStatusMs());
     Assert.assertEquals(-1, defaults.getGetSpaceMs());
@@ -121,6 +122,7 @@ public class SleepingUnderFileSystemOptionsTest {
     Assert.assertEquals(sleepDeleteFileMs, defaults.getDeleteFileMs());
     Assert.assertEquals(sleepGetBlockSizeByteMs, defaults.getGetBlockSizeByteMs());
     Assert.assertEquals(sleepGetConfMs, defaults.getGetConfMs());
+    Assert.assertEquals(sleepGetDirectoryStatusMs, defaults.getGetDirectoryStatusMs());
     Assert.assertEquals(sleepGetFileLocationsMs, defaults.getGetFileLocationsMs());
     Assert.assertEquals(sleepGetFileStatusMs, defaults.getGetFileStatusMs());
     Assert.assertEquals(sleepGetSpaceMs, defaults.getGetSpaceMs());

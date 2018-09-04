@@ -15,6 +15,19 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.WriteType;
+<<<<<<< HEAD
+||||||| merged common ancestors
+import alluxio.security.authorization.Mode;
+import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.wire.CommonOptions;
+import alluxio.wire.ThriftUtils;
+import alluxio.wire.TtlAction;
+=======
+import alluxio.security.authorization.Mode;
+import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.wire.CommonOptions;
+import alluxio.wire.TtlAction;
+>>>>>>> master
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -28,7 +41,23 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
+<<<<<<< HEAD
 public final class CreateDirectoryOptions extends alluxio.file.options.CreateDirectoryOptions {
+||||||| merged common ancestors
+public final class CreateDirectoryOptions {
+  private boolean mAllowExists;
+  private CommonOptions mCommonOptions;
+  private Mode mMode;
+  private long mTtl;
+  private TtlAction mTtlAction;
+  private boolean mRecursive;
+=======
+public final class CreateDirectoryOptions {
+  private boolean mAllowExists;
+  private CommonOptions mCommonOptions;
+  private Mode mMode;
+  private boolean mRecursive;
+>>>>>>> master
   private WriteType mWriteType;
 
   /**
@@ -39,6 +68,23 @@ public final class CreateDirectoryOptions extends alluxio.file.options.CreateDir
   }
 
   private CreateDirectoryOptions() {
+<<<<<<< HEAD
+||||||| merged common ancestors
+    mCommonOptions = CommonOptions.defaults();
+    mRecursive = false;
+    mAllowExists = false;
+    mMode = Mode.defaults().applyDirectoryUMask();
+    mTtl = Constants.NO_TTL;
+    mTtlAction = TtlAction.DELETE;
+=======
+    mCommonOptions = CommonOptions.defaults()
+        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
+        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION,
+            TtlAction.class));
+    mRecursive = false;
+    mAllowExists = false;
+    mMode = Mode.defaults().applyDirectoryUMask();
+>>>>>>> master
     mWriteType =
         Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     // TODO(adit):
@@ -53,6 +99,188 @@ public final class CreateDirectoryOptions extends alluxio.file.options.CreateDir
   }
 
   /**
+<<<<<<< HEAD
+||||||| merged common ancestors
+   * @return the allowExists flag value; it specifies whether an exception should be thrown if the
+   *         directory being made already exists
+   */
+  public boolean isAllowExists() {
+    return mAllowExists;
+  }
+
+  /**
+   * @return the TTL (time to live) value; it identifies duration (in milliseconds)
+   *         the created directory should be kept around before it is automatically deleted
+   */
+  public long getTtl() {
+    return mTtl;
+  }
+
+  /**
+   * @return the {@link TtlAction}
+   */
+  public TtlAction getTtlAction() {
+    return mTtlAction;
+  }
+
+  /**
+   * @return the recursive flag value; it specifies whether parent directories should be created if
+   *         they do not already exist
+   */
+  public boolean isRecursive() {
+    return mRecursive;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
+  }
+
+  /**
+   * @param allowExists the allowExists flag value to use; it specifies whether an exception
+   *        should be thrown if the directory being made already exists.
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setAllowExists(boolean allowExists) {
+    mAllowExists = allowExists;
+    return this;
+  }
+
+  /**
+   * @param mode the mode to be set
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setMode(Mode mode) {
+    mMode = mode;
+    return this;
+  }
+
+  /**
+   * @param recursive the recursive flag value to use; it specifies whether parent directories
+   *        should be created if they do not already exist
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
+  }
+
+  /**
+   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *        created directory should be kept around before it is automatically deleted,
+   *        no matter whether the file is pinned
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setTtl(long ttl) {
+    mTtl = ttl;
+    return this;
+  }
+
+  /**
+   * @param ttlAction the {@link TtlAction} to use
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
+    return this;
+  }
+
+  /**
+=======
+   * @return the allowExists flag value; it specifies whether an exception should be thrown if the
+   *         directory being made already exists
+   */
+  public boolean isAllowExists() {
+    return mAllowExists;
+  }
+
+  /**
+   * @return the TTL (time to live) value; it identifies duration (in milliseconds)
+   *         the created directory should be kept around before it is automatically deleted
+   */
+  public long getTtl() {
+    return getCommonOptions().getTtl();
+  }
+
+  /**
+   * @return the {@link TtlAction}
+   */
+  public TtlAction getTtlAction() {
+    return getCommonOptions().getTtlAction();
+  }
+
+  /**
+   * @return the recursive flag value; it specifies whether parent directories should be created if
+   *         they do not already exist
+   */
+  public boolean isRecursive() {
+    return mRecursive;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
+  }
+
+  /**
+   * @param allowExists the allowExists flag value to use; it specifies whether an exception
+   *        should be thrown if the directory being made already exists.
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setAllowExists(boolean allowExists) {
+    mAllowExists = allowExists;
+    return this;
+  }
+
+  /**
+   * @param mode the mode to be set
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setMode(Mode mode) {
+    mMode = mode;
+    return this;
+  }
+
+  /**
+   * @param recursive the recursive flag value to use; it specifies whether parent directories
+   *        should be created if they do not already exist
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
+  }
+
+  /**
+   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *        created directory should be kept around before it is automatically deleted,
+   *        no matter whether the file is pinned
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setTtl(long ttl) {
+    getCommonOptions().setTtl(ttl);
+    return this;
+  }
+
+  /**
+   * @param ttlAction the {@link TtlAction} to use
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setTtlAction(TtlAction ttlAction) {
+    getCommonOptions().setTtlAction(ttlAction);
+    return this;
+  }
+
+  /**
+>>>>>>> master
    * @param writeType the write type to use
    * @return the updated options object
    */
@@ -76,15 +304,13 @@ public final class CreateDirectoryOptions extends alluxio.file.options.CreateDir
         && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mRecursive, that.mRecursive)
-        && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mWriteType, that.mWriteType);
   }
 
   @Override
   public int hashCode() {
     return Objects
-        .hashCode(mAllowExists, mCommonOptions, mMode, mRecursive, mTtl, mTtlAction, mWriteType);
+        .hashCode(mAllowExists, mCommonOptions, mMode, mRecursive, mWriteType);
   }
 
   @Override
@@ -94,9 +320,43 @@ public final class CreateDirectoryOptions extends alluxio.file.options.CreateDir
         .add("allowExists", mAllowExists)
         .add("mode", mMode)
         .add("recursive", mRecursive)
-        .add("ttl", mTtl)
-        .add("ttlAction", mTtlAction)
         .add("writeType", mWriteType)
         .toString();
   }
+<<<<<<< HEAD
+||||||| merged common ancestors
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public CreateDirectoryTOptions toThrift() {
+    CreateDirectoryTOptions options = new CreateDirectoryTOptions();
+    options.setAllowExists(mAllowExists);
+    options.setRecursive(mRecursive);
+    options.setTtl(mTtl);
+    options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
+    options.setPersisted(mWriteType.isThrough());
+    if (mMode != null) {
+      options.setMode(mMode.toShort());
+    }
+    options.setCommonOptions(mCommonOptions.toThrift());
+    return options;
+  }
+=======
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public CreateDirectoryTOptions toThrift() {
+    CreateDirectoryTOptions options = new CreateDirectoryTOptions();
+    options.setAllowExists(mAllowExists);
+    options.setRecursive(mRecursive);
+    options.setPersisted(mWriteType.isThrough());
+    if (mMode != null) {
+      options.setMode(mMode.toShort());
+    }
+    options.setCommonOptions(mCommonOptions.toThrift());
+    return options;
+  }
+>>>>>>> master
 }

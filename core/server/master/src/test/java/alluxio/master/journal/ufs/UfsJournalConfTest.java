@@ -32,7 +32,7 @@ public class UfsJournalConfTest {
   @Test
   public void emptyConfiguration() throws Exception {
     UnderFileSystemConfiguration conf = UfsJournal.getJournalUfsConf();
-    Assert.assertTrue(conf.getUserSpecifiedConf().isEmpty());
+    Assert.assertTrue(conf.getMountSpecificConf().isEmpty());
   }
 
   @Test
@@ -43,7 +43,7 @@ public class UfsJournalConfTest {
     String value = "10000";
     Configuration.set(key, value);
     UnderFileSystemConfiguration conf = UfsJournal.getJournalUfsConf();
-    Assert.assertEquals(value, conf.getValue(PropertyKey.UNDERFS_LISTING_LENGTH));
-    Assert.assertEquals(1, conf.getUserSpecifiedConf().size());
+    Assert.assertEquals(value, conf.get(PropertyKey.UNDERFS_LISTING_LENGTH));
+    Assert.assertEquals(1, conf.getMountSpecificConf().size());
   }
 }

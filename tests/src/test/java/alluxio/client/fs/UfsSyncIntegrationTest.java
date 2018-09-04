@@ -447,14 +447,14 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // Set initial alluxio permissions
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath(EXISTING_FILE)),
-        SetAttributeOptions.defaults().setMode(new Mode((short) 777)));
+        SetAttributeOptions.defaults().setMode(new Mode((short) 0777)));
 
     URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     String startFingerprint = status.getUfsFingerprint();
 
     // Change alluxio permissions
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath(EXISTING_FILE)),
-        SetAttributeOptions.defaults().setMode(new Mode((short) 655)));
+        SetAttributeOptions.defaults().setMode(new Mode((short) 0655)));
 
     status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     String endFingerprint = status.getUfsFingerprint();
@@ -536,7 +536,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
         ExistsOptions.defaults().setCommonOptions(SYNC_ALWAYS)));
     mFileSystem.free(new AlluxioURI("/"), FreeOptions.defaults().setRecursive(true));
     BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
-    CommonUtils.waitFor("data to be freed", (x) -> {
+    CommonUtils.waitFor("data to be freed", () -> {
       try {
         return blockClient.getUsedBytes() == 0;
       } catch (Exception e) {

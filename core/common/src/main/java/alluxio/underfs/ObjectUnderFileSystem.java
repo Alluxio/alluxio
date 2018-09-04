@@ -341,10 +341,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         try {
           result.addAll(list.get());
         } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
           // If operation was interrupted do not add to successfully deleted list
           LOG.warn("Interrupted while waiting for the result of batch delete. UFS and Alluxio "
               + "state may be inconsistent. Error: {}", e.getMessage());
-          Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
           // If operation failed to execute do not add to successfully deleted list
           LOG.warn("A batch delete failed. UFS and Alluxio state may be inconsistent. Error: {}",
@@ -574,8 +574,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
     // Rename each child in the src folder to destination/child
     for (UfsStatus child : children) {
-      String childSrcPath = PathUtils.concatPath(src, child);
-      String childDstPath = PathUtils.concatPath(dst, child);
+      String childSrcPath = PathUtils.concatPath(src, child.getName());
+      String childDstPath = PathUtils.concatPath(dst, child.getName());
       boolean success;
       if (child.isDirectory()) {
         // Recursive call
@@ -584,7 +584,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         success = renameFile(childSrcPath, childDstPath);
       }
       if (!success) {
-        LOG.error("Failed to rename path {}, aborting rename.", child);
+        LOG.error("Failed to rename path {} to {}, aborting rename.", childSrcPath, childDstPath);
         return false;
       }
     }
@@ -959,7 +959,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param path the path to strip
    * @return the path without the bucket prefix
    */
-  private String stripPrefixIfPresent(String path) {
+  protected String stripPrefixIfPresent(String path) {
     String stripedKey = CommonUtils.stripPrefixIfPresent(path,
         PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
     if (!stripedKey.equals(path)) {

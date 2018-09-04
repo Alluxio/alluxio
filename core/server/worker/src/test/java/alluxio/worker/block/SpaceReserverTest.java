@@ -11,6 +11,11 @@
 
 package alluxio.worker.block;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
@@ -27,7 +32,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Matchers;
-import org.mockito.Mockito;
 
 import java.io.Closeable;
 import java.util.HashMap;
@@ -62,11 +66,11 @@ public class SpaceReserverTest {
 
   @Test
   public void reserveCorrectAmountsOfSpace() throws Exception {
-    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
-    Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
+    BlockWorker blockWorker = mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = mock(BlockStoreMeta.class);
+    when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 400L, "HDD", 1000L);
-    Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
+    when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
 
     String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
 
@@ -88,23 +92,23 @@ public class SpaceReserverTest {
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
       // 400 * 0.2 = 80
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "MEM");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "MEM");
       // 400 * 0.2 + 1000 * 0.3 = 380
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 380L, "HDD");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 380L, "HDD");
     }
   }
 
   @Test
   public void testLowWatermark() throws Exception {
-    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
-    Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
+    BlockWorker blockWorker = mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = mock(BlockStoreMeta.class);
+    when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD",
         1000L);
     Map<String, Long> usedCapacityBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD",
         1000L);
-    Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
-    Mockito.when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
+    when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
+    when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
 
     String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
 
@@ -132,25 +136,25 @@ public class SpaceReserverTest {
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
       // 1000 * 0.4 + 200 * 0.3 + 100 * 0.2 = 480
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 480L, "HDD");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 480L, "HDD");
       // 200 * 0.3 + 100 * 0.2 = 80
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "SSD");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "SSD");
       // 100 * 0.2 = 20
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
     }
   }
 
   @Test
   public void testHighWatermark() throws Exception {
-    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
-    Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
+    BlockWorker blockWorker = mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = mock(BlockStoreMeta.class);
+    when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD",
         1000L);
     Map<String, Long> usedCapacityBytesOnTiers =
         ImmutableMap.of("MEM", 100L, "SSD", 100L, "HDD", 0L);
-    Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
-    Mockito.when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
+    when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
+    when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
 
     String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
 
@@ -178,27 +182,27 @@ public class SpaceReserverTest {
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
       // 1000 * 0.4 + 200 * 0.3 + 100 * 0.2 = 480
-      Mockito.verify(blockWorker, Mockito.never()).freeSpace(
+      verify(blockWorker, never()).freeSpace(
           Matchers.eq(Sessions.MIGRATE_DATA_SESSION_ID), Matchers.anyLong(), Matchers.eq("HDD"));
       // 200 * 0.3 + 100 * 0.2 = 80
-      Mockito.verify(blockWorker, Mockito.never()).freeSpace(
+      verify(blockWorker, never()).freeSpace(
           Matchers.eq(Sessions.MIGRATE_DATA_SESSION_ID), Matchers.anyLong(), Matchers.eq("SSD"));
       // 100 * 0.2 = 20
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
     }
   }
 
   @Test
   public void smallWatermarkValues() throws Exception {
-    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
-    Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
+    BlockWorker blockWorker = mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = mock(BlockStoreMeta.class);
+    when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers =
         ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD", 1000L);
     Map<String, Long> usedCapacityBytesOnTiers =
         ImmutableMap.of("MEM", 100L, "SSD", 100L, "HDD", 0L);
-    Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
-    Mockito.when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
+    when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
+    when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
 
     String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
     // Create two tiers named "MEM", "SSD" and "HDD" with aliases 0, 1 and 2.
@@ -225,12 +229,12 @@ public class SpaceReserverTest {
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
       // 1000 * 0.1 + 200 = 300
-      Mockito.verify(blockWorker, Mockito.never()).freeSpace(
+      verify(blockWorker, never()).freeSpace(
           Matchers.eq(Sessions.MIGRATE_DATA_SESSION_ID), Matchers.anyLong(), Matchers.eq("HDD"));
       // 200 * 0.8 + 100 * 0.7 = 230 -> 200
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 200L, "SSD");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 200L, "SSD");
       // 100 * 0.7 = 70
-      Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 70L, "MEM");
+      verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 70L, "MEM");
     }
   }
 }

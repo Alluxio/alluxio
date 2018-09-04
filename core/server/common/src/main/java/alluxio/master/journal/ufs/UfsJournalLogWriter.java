@@ -349,6 +349,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
   }
 
+  @Override
   public synchronized void close() throws IOException {
     Closer closer = Closer.create();
     if (mJournalOutputStream != null) {
@@ -375,7 +376,6 @@ final class UfsJournalLogWriter implements JournalWriter {
     private final UfsJournalFile mCurrentLog;
 
     JournalOutputStream(UfsJournalFile currentLog, OutputStream stream) throws IOException {
-      Preconditions.checkState(mUfs.exists(currentLog.getLocation().getPath()));
       mOutputStream = wrapDataOutputStream(stream);
       mCurrentLog = currentLog;
     }
@@ -447,6 +447,13 @@ final class UfsJournalLogWriter implements JournalWriter {
     } else {
       return new DataOutputStream(stream);
     }
+  }
+
+  /**
+   * @return the next sequence number to write
+   */
+  public synchronized long getNextSequenceNumber() {
+    return mNextSequenceNumber;
   }
 
   @VisibleForTesting

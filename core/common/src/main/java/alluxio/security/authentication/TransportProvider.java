@@ -84,8 +84,8 @@ public interface TransportProvider {
    * @param serverAddress the server address which clients will connect to
    * @return a TTransport for client
    */
-  TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
-      throws UnauthenticatedException;
+  TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress) throws
+      UnauthenticatedException;
 
   /**
    * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is

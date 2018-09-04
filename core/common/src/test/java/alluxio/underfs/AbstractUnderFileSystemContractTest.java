@@ -293,7 +293,7 @@ public abstract class AbstractUnderFileSystemContractTest {
 
   @Test
   public void getModTime() throws IOException {
-    long slack = 1000; // Some file systems may report nearest second.
+    long slack = 5000; // Some file systems may report nearest second.
     long start = System.currentTimeMillis();
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createTestBytesFile(testFile);

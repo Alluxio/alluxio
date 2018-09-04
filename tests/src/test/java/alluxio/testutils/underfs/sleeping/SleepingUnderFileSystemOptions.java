@@ -35,6 +35,7 @@ public class SleepingUnderFileSystemOptions {
   private long mIsDirectoryMs = -1;
   private long mIsFileMs = -1;
   private long mListStatusMs = -1;
+  private long mListStatusWithOptionsMs = -1;
   private long mMkdirsMs = -1;
   private long mOpenMs = -1;
   private long mRenameDirectoryMs = -1;
@@ -201,7 +202,7 @@ public class SleepingUnderFileSystemOptions {
    * @return the updated object
    */
   public SleepingUnderFileSystemOptions setGetDirectoryStatusMs(long getDirectoryStatusMs) {
-    mGetFileStatusMs = getDirectoryStatusMs;
+    mGetDirectoryStatusMs = getDirectoryStatusMs;
     return this;
   }
 
@@ -330,6 +331,23 @@ public class SleepingUnderFileSystemOptions {
    */
   public SleepingUnderFileSystemOptions setListStatusMs(long listStatusMs) {
     mListStatusMs = listStatusMs;
+    return this;
+  }
+
+  /**
+   * @return milliseconds to sleep before executing a list status with options call
+   */
+  public long getListStatusWithOptionsMs() {
+    return mListStatusWithOptionsMs;
+  }
+
+  /**
+   * @param listStatusWithOptionsMs milliseconds to sleep before executing a list status
+   *                                with options call
+   * @return the updated object
+   */
+  public SleepingUnderFileSystemOptions setListStatusWithOptionsMs(long listStatusWithOptionsMs) {
+    mListStatusWithOptionsMs = listStatusWithOptionsMs;
     return this;
   }
 

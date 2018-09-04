@@ -21,7 +21,7 @@ Usage: alluxio fsadmin [generic options]
  
 以UFS URI作为参数的`fsadmin ufs`子命令，参数应该是像`hdfs://<name-service>/`这样的根UFS URI，而不是`hdfs://<name-service>/<folder>`。
  
-##操作列表
+## 操作列表
  
 <table class="table table-striped">
   <tr><th>操作</th><th>语法</th><th>描述</th></tr>
@@ -34,7 +34,35 @@ Usage: alluxio fsadmin [generic options]
   {% endfor %}
 </table>
  
-##示例用例
+## 示例用例
+
+### backup(备份)
+
+`backup`命令创建Alluxio元数据的备份
+
+备份到默认备份文件夹（由`alluxio.master.backup.directory`）配置
+```
+$ ./bin/alluxio fsadmin backup
+Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
+```
+备份到下存储中的特定目录。
+```
+$ ./bin/alluxio fsadmin backup /alluxio/special_backups
+Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
+```
+备份到主主机的本地文件系统的特定目录。
+```
+$ ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
+Successfully backed up journal to file:///opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
+```
+### doctor
+
+`doctor`命令显示Alluxio错误和警告。
+
+```bash
+# shows server-side configuration errors and warnings
+$ ./bin/alluxio fsadmin doctor configuration
+```
 
 ### report
 
@@ -68,3 +96,6 @@ $ ./bin/alluxio fsadmin report ufs
 ```bash
 $ ./bin/alluxio fsadmin ufs --mode readOnly hdfs://ns
 ```
+
+`fsadmin ufs`命令接受一个UFS URI作为参数。该参数需要是一个
+UFS URI的根，类似`hdfs://<name-service>/`，而非`hdfs://<name-service>/<folder>`。

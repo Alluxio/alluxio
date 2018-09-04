@@ -11,6 +11,15 @@
 
 package alluxio.worker.block;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockingDetails;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.test.util.ConcurrencyUtils;
@@ -21,7 +30,6 @@ import alluxio.underfs.options.OpenOptions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.mockito.invocation.Invocation;
 
 import java.io.Closeable;
@@ -46,13 +54,13 @@ public final class UfsInputStreamManagerTest {
   @Before
   public void before() throws Exception {
     mSeekableInStreams = new SeekableUnderFileInputStream[mNumOfInputStreams];
-    mUfs = Mockito.mock(UnderFileSystem.class);
-    Mockito.when(mUfs.isSeekable()).thenReturn(true);
+    mUfs = mock(UnderFileSystem.class);
+    when(mUfs.isSeekable()).thenReturn(true);
     for (int i = 0; i < mNumOfInputStreams; i++) {
-      SeekableUnderFileInputStream instream = Mockito.mock(SeekableUnderFileInputStream.class);
+      SeekableUnderFileInputStream instream = mock(SeekableUnderFileInputStream.class);
       mSeekableInStreams[i] = instream;
     }
-    Mockito.when(mUfs.open(Mockito.eq(FILE_NAME), Mockito.any(OpenOptions.class))).thenReturn(
+    when(mUfs.open(eq(FILE_NAME), any(OpenOptions.class))).thenReturn(
         mSeekableInStreams[0], Arrays.copyOfRange(mSeekableInStreams, 1, mNumOfInputStreams));
     mManager = new UfsInputStreamManager();
   }
@@ -62,8 +70,8 @@ public final class UfsInputStreamManagerTest {
    */
   @Test
   public void testAcquireAndRelease() throws Exception {
-    SeekableUnderFileInputStream mockedStrem = Mockito.mock(SeekableUnderFileInputStream.class);
-    Mockito.when(mUfs.open(Mockito.eq(FILE_NAME), Mockito.any(OpenOptions.class)))
+    SeekableUnderFileInputStream mockedStrem = mock(SeekableUnderFileInputStream.class);
+    when(mUfs.open(eq(FILE_NAME), any(OpenOptions.class)))
         .thenReturn(mockedStrem).thenThrow(new IllegalStateException("Should only be called once"));
 
     // acquire a stream
@@ -77,7 +85,7 @@ public final class UfsInputStreamManagerTest {
 
     Assert.assertEquals(instream1, instream2);
     // ensure the second time the released instream is the same one but repositioned
-    Mockito.verify(mockedStrem).seek(4);
+    verify(mockedStrem).seek(4);
   }
 
   /**
@@ -89,8 +97,8 @@ public final class UfsInputStreamManagerTest {
     mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(4));
     mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(6));
     // 3 different input streams are acquired
-    Mockito.verify(mUfs, Mockito.times(3)).open(Mockito.eq(FILE_NAME),
-        Mockito.any(OpenOptions.class));
+    verify(mUfs, times(3)).open(eq(FILE_NAME),
+        any(OpenOptions.class));
   }
 
   /**
@@ -112,7 +120,7 @@ public final class UfsInputStreamManagerTest {
       Thread.sleep(10);
       // check out another stream should trigger the timeout
       mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(4));
-      Mockito.verify(mSeekableInStreams[0], Mockito.timeout(2000).times(1)).close();
+      verify(mSeekableInStreams[0], timeout(2000).times(1)).close();
     }
   }
 
@@ -151,7 +159,7 @@ public final class UfsInputStreamManagerTest {
       // Each subsequent check out per thread should be a seek operation
       int numSeek = 0;
       for (int i = 0; i < mNumOfInputStreams; i++) {
-        for (Invocation invocation : Mockito.mockingDetails(mSeekableInStreams[i])
+        for (Invocation invocation : mockingDetails(mSeekableInStreams[i])
             .getInvocations()) {
           if (invocation.getMethod().getName().equals("seek")) {
             numSeek++;
@@ -194,7 +202,7 @@ public final class UfsInputStreamManagerTest {
       }
       ConcurrencyUtils.assertConcurrent(threads, 30);
       // ensure at least one expired in stream is closed
-      Mockito.verify(mSeekableInStreams[0], Mockito.timeout(2000)).close();
+      verify(mSeekableInStreams[0], timeout(2000)).close();
     }
   }
 }

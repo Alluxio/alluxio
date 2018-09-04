@@ -17,7 +17,9 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.times;
@@ -163,20 +165,46 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
-  public void open() throws Exception {
-    // mocks set-up
+  public void openWithoutDelay() throws Exception {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    FileInfo fi = new FileInfo();
-    fi.setFolder(false);
-    URIStatus status = new URIStatus(fi);
+    setUpOpenMock(expectedPath);
 
-    when(mFileSystem.exists(expectedPath)).thenReturn(true);
-    when(mFileSystem.getStatus(expectedPath)).thenReturn(status);
-    mFileInfo.flags.set(O_RDONLY.intValue());
-
-    // actual test
     mFuseFs.open("/foo/bar", mFileInfo);
     verify(mFileSystem).exists(expectedPath);
+    verify(mFileSystem).getStatus(expectedPath);
+    verify(mFileSystem).openFile(expectedPath);
+  }
+
+  @Test
+  public void incompleteFileCannotOpen() throws Exception {
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    FileInfo fi = setUpOpenMock(expectedPath);
+    fi.setCompleted(false);
+
+    mFuseFs.open("/foo/bar", mFileInfo);
+    verify(mFileSystem).exists(expectedPath);
+    verify(mFileSystem, atLeast(100)).getStatus(expectedPath);
+    verify(mFileSystem, never()).openFile(expectedPath);
+  }
+
+  @Test
+  public void openWithDelay() throws Exception {
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    FileInfo fi = setUpOpenMock(expectedPath);
+    fi.setCompleted(false);
+
+    // Use another thread to open file so that
+    // we could change the file status when opening it
+    Thread t = new Thread(() -> mFuseFs.open("/foo/bar", mFileInfo));
+    t.start();
+    Thread.sleep(1000);
+    // If the file exists but is not completed, we will wait for the file to complete
+    verify(mFileSystem).exists(expectedPath);
+    verify(mFileSystem, atLeast(10)).getStatus(expectedPath);
+    verify(mFileSystem, never()).openFile(expectedPath);
+
+    fi.setCompleted(true);
+    t.join();
     verify(mFileSystem).openFile(expectedPath);
   }
 
@@ -184,12 +212,7 @@ public class AlluxioFuseFileSystemTest {
   public void read() throws Exception {
     // mocks set-up
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    FileInfo fi = new FileInfo();
-    fi.setFolder(false);
-    URIStatus status = new URIStatus(fi);
-
-    when(mFileSystem.exists(expectedPath)).thenReturn(true);
-    when(mFileSystem.getStatus(expectedPath)).thenReturn(status);
+    setUpOpenMock(expectedPath);
 
     FileInStream fakeInStream = mock(FileInStream.class);
     when(fakeInStream.read(any(byte[].class), anyInt(), anyInt())).then(new Answer<Integer>() {
@@ -289,5 +312,22 @@ public class AlluxioFuseFileSystemTest {
     final Runtime runtime = Runtime.getSystemRuntime();
     final Pointer pt = runtime.getMemoryManager().allocateTemporary(36, true);
     return FuseFileInfo.of(pt);
+  }
+
+  /**
+   * Sets up mock for open() operation.
+   *
+   * @param uri the path to run operations on
+   * @return the file information
+   */
+  private FileInfo setUpOpenMock(AlluxioURI uri) throws Exception {
+    FileInfo fi = new FileInfo();
+    fi.setCompleted(true);
+    fi.setFolder(false);
+    URIStatus status = new URIStatus(fi);
+
+    when(mFileSystem.exists(uri)).thenReturn(true);
+    when(mFileSystem.getStatus(uri)).thenReturn(status);
+    return fi;
   }
 }

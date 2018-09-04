@@ -14,7 +14,7 @@ This guide describes how to configure Alluxio with [Google Cloud Storage (GCS)](
 ## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-Master-Branch.html), or
+[compile Alluxio](Building-Alluxio-From-Source.html), or
 [download the binaries locally](Running-Alluxio-Locally.html).
 
 Also, in preparation for using GCS with Alluxio, create a bucket (or use an existing bucket). You

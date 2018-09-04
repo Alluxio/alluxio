@@ -46,7 +46,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class LsCommand extends AbstractFileSystemCommand {
   public static final String IN_ALLUXIO_STATE_DIR = "DIR";
   public static final String IN_ALLUXIO_STATE_FILE_FORMAT = "%d%%";
-  public static final String LS_FORMAT_PERMISSION = "%-11s";
+  // Permission: drwxrwxrwx+
+  public static final String LS_FORMAT_PERMISSION = "%-12s";
   public static final String LS_FORMAT_FILE_SIZE = "%15s";
   public static final String LS_FORMAT_LAST_MODIFIED_TIME = "%24s";
   public static final String LS_FORMAT_ALLUXIO_STATE = "%5s";
@@ -167,8 +168,12 @@ public final class LsCommand extends AbstractFileSystemCommand {
   }
 
   private void printLsString(URIStatus status, boolean hSize) {
-    System.out.print(formatLsString(hSize, SecurityUtils.isSecurityEnabled(),
-        status.isFolder(), FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
+    // detect the extended acls
+    boolean hasExtended = status.getAcl().hasExtended()
+        || !status.getDefaultAcl().isEmpty();
+
+    System.out.print(formatLsString(hSize, SecurityUtils.isSecurityEnabled(), status.isFolder(),
+        FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended),
         status.getOwner(), status.getGroup(), status.getLength(),
         status.getLastModificationTimeMs(), status.getInAlluxioPercentage(),
         status.getPersistenceState(), status.getPath()));
@@ -226,15 +231,12 @@ public final class LsCommand extends AbstractFileSystemCommand {
     if (forceLoadMetadata) {
       options.setLoadMetadataType(LoadMetadataType.Always);
     }
+    options.setRecursive(recursive);
     List<URIStatus> statuses = mFileSystem.listStatus(path, options);
     List<URIStatus> sorted = sortByFieldAndOrder(statuses, sortField, reverse);
     for (URIStatus status : sorted) {
       if (!pinnedOnly || status.isPinned()) {
         printLsString(status, hSize);
-      }
-      if (recursive && status.isFolder()) {
-        ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true,
-            forceLoadMetadata, false, hSize, pinnedOnly, sortField, reverse);
       }
     }
   }
@@ -261,7 +263,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
-        cl.hasOption("p"), cl.getOptionValue("sort", "name"), cl.hasOption("r"));
+        cl.hasOption("p"), cl.getOptionValue("sort", "path"), cl.hasOption("r"));
   }
 
   @Override
