@@ -667,7 +667,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
         // if the parent has default ACL, copy that default ACL as the new directory's default
         // and access acl, take into account of the directory's initial mode (umask)
-        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort() : newDir.getMode();
+        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+            : newDir.getMode();
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
         if (!dAcl.isEmpty()) {
           Pair<AccessControlList, DefaultAccessControlList> pair =
@@ -766,7 +767,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
         // if the parent has default ACL, copy that default ACL as the new directory's default
         // and access acl, taking into account the creation umask of the dir.
-        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort() :newDir.getMode();
+        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+            : newDir.getMode();
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
         if (!dAcl.isEmpty()) {
           Pair<AccessControlList, DefaultAccessControlList> pair =
@@ -805,7 +807,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
         // if the parent has a default ACL, copy that default ACL as the new file's access ACL.
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
-        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort() : newFile.getMode();
+        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+            : newFile.getMode();
         if (!dAcl.isEmpty()) {
           AccessControlList acl = dAcl.generateChildFileACL(mode);
           newFile.setInternalAcl(acl);
