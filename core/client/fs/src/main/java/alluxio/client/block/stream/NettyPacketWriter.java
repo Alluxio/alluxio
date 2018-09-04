@@ -404,19 +404,18 @@ public final class NettyPacketWriter implements PacketWriter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
       Preconditions.checkState(acceptMessage(msg), "Incorrect response type %s.", msg);
-      RPCProtoMessage response = (RPCProtoMessage) msg;
+      RPCProtoMessage message = (RPCProtoMessage) msg;
       // Canceled is considered a valid status and handled in the writer. We avoid creating a
       // CanceledException as an optimization.
-      if (response.getMessage().asResponse().getStatus() != PStatus.CANCELED) {
-        CommonUtils.unwrapResponseFrom(response.getMessage().asResponse(), ctx.channel());
+      Protocol.Response response = message.getMessage().asResponse();
+      if (response.getStatus() != PStatus.CANCELED) {
+        CommonUtils.unwrapResponseFrom(response, ctx.channel());
       }
       try (LockResource lr = new LockResource(mLock)) {
-        if (response.getMessage().asResponse().getMessage().equals("FLUSHED")) {
-          mFlushedOrDoneOrFailed.signal();
-        } else {
+        mFlushedOrDoneOrFailed.signal();
+        if (!response.getMessage().equals("FLUSHED")) {
           mDone = true;
           mDoneOrFailed.signal();
-          mFlushedOrDoneOrFailed.signal();
         }
       }
     }
