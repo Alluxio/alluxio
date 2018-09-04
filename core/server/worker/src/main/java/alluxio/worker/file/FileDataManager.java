@@ -31,6 +31,7 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.RateLimiter;
 import org.slf4j.Logger;
@@ -46,6 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -75,6 +77,17 @@ public final class FileDataManager {
   private final RateLimiter mPersistenceRateLimiter;
   /** The manager for all ufs. */
   private final UfsManager mUfsManager;
+  /** Factory for creating filesystems. */
+  private final Supplier<FileSystem> mFileSystemFactory;
+  private final ChannelCopier mChannelCopier;
+
+  interface ChannelCopier {
+    /**
+     * @param r the channel to read from
+     * @param w the channel to write to
+     */
+    void copy(ReadableByteChannel r, WritableByteChannel w) throws IOException;
+  }
 
   /**
    * Creates a new instance of {@link FileDataManager}.
@@ -85,11 +98,29 @@ public final class FileDataManager {
    */
   public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter,
       UfsManager ufsManager) {
+    this(blockWorker, persistenceRateLimiter, ufsManager, () -> FileSystem.Factory.get(),
+        (r, w) -> BufferUtils.fastCopy(r, w));
+  }
+
+  /**
+   * Creates a new instance of {@link FileDataManager}.
+   *
+   * @param blockWorker the block worker handle
+   * @param persistenceRateLimiter a per worker rate limiter to throttle async persistence
+   * @param ufsManager the ufs manager
+   * @param fileSystemFactory factory for creating file systems
+   * @param channelCopier method to use for copying between channels
+   */
+  @VisibleForTesting
+  FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter,
+      UfsManager ufsManager, Supplier<FileSystem> fileSystemFactory, ChannelCopier channelCopier) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker, "blockWorker");
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedUfsFingerprints = new HashMap<>();
     mPersistenceRateLimiter = persistenceRateLimiter;
     mUfsManager = ufsManager;
+    mFileSystemFactory = fileSystemFactory;
+    mChannelCopier = channelCopier;
   }
 
   /**
@@ -256,7 +287,7 @@ public final class FileDataManager {
 
           // write content out
           ReadableByteChannel inputChannel = reader.getChannel();
-          BufferUtils.fastCopy(inputChannel, outputChannel);
+          mChannelCopier.copy(inputChannel, outputChannel);
           reader.close();
         }
       } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
@@ -304,7 +335,7 @@ public final class FileDataManager {
   private String prepareUfsFilePath(FileInfo fileInfo, UnderFileSystem ufs)
       throws AlluxioException, IOException {
     AlluxioURI alluxioPath = new AlluxioURI(fileInfo.getPath());
-    FileSystem fs = FileSystem.Factory.get();
+    FileSystem fs = mFileSystemFactory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
     UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);

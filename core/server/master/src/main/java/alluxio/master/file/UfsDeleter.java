@@ -13,7 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeView;
 
 import java.io.IOException;
 
@@ -27,5 +27,5 @@ public interface UfsDeleter {
    * @param alluxioUri Alluxio path to delete
    * @param inode to delete
    */
-  void delete(AlluxioURI alluxioUri, Inode inode) throws IOException, InvalidPathException;
+  void delete(AlluxioURI alluxioUri, InodeView inode) throws IOException, InvalidPathException;
 }

@@ -2,6 +2,7 @@
 layout: global
 group: Resources
 title: Developing Under Storage Extensions
+priority: 3
 ---
 
 * Table of Contents
@@ -16,9 +17,9 @@ provides detailed instructions for developing an under storage extension. Extens
 framework to enable more under storages to work with Alluxio and makes it convenient to develop
 modules not already supported by Alluxio.
 
-# How it Works
+## How it Works
 
-## Service Discovery
+### Service Discovery
 
 Extension JARs are loaded dynamically at runtime by Alluxio servers, which enables Alluxio to talk
 to new under storage systems without requiring a restart. Alluxio servers use Java
@@ -28,13 +29,13 @@ implementations of the under storage API. Providers include implementations of t
 text file in `META_INF/services` with a single line pointing to the class implementing the said
 interface.
 
-## Dependency Management
+### Dependency Management
 
 Implementors are required to include transitive dependencies in their extension JARs. Alluxio performs
 isolated classloading for each extension JARs to avoid dependency conflicts between Alluxio servers and
 extensions.
 
-# Implementing an Under Storage Extension
+## Implementing an Under Storage Extension
 
 Building a new under storage connector involves: 
 
@@ -48,7 +49,7 @@ describe the steps involved in writing a new under storage extension. The sample
 `DummyUnderFileSystem`, uses maven as the build and dependency management tool, and forwards all
 operations to a local filesystem.
 
-## Implement the Under Storage Interface
+### Implement the Under Storage Interface
 
 The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3A Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3a) are two good examples of how to enable a storage system to serve as Alluxio's underlying storage.
 
@@ -96,7 +97,7 @@ public class DummyUnderFileSystemFactory implements UnderFileSystemFactory {
 }
 ```
 
-## Declare the Service
+### Declare the Service
 
 Create a file at `src/main/resources/META_INF/services/alluxio.underfs.UnderFileSystemFactory`
 advertising the implemented `UnderFileSystemFactory` to the ServiceLoader.
@@ -105,7 +106,7 @@ advertising the implemented `UnderFileSystemFactory` to the ServiceLoader.
 alluxio.underfs.dummy.DummyUnderFileSystemFactory
 ```
 
-## Build
+### Build
 
 Include all transitive dependencies of the extension project in the built JAR using either
 `maven-shade-plugin` or `maven-assembly`.
@@ -125,7 +126,7 @@ In addition, to avoid collisions specify scope for the dependency `alluxio-core-
 </dependencies>
 ```
 
-## Test
+### Test
 
 Extend `AbstractUnderFileSystemContractTest` to test that the defined `UnderFileSystem` adheres to
 the contract between Alluxio and an under storage module. Look at the reference implementation to

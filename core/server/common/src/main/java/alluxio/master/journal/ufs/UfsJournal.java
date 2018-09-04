@@ -112,7 +112,7 @@ public class UfsJournal implements Journal {
   protected static UnderFileSystemConfiguration getJournalUfsConf() {
     Map<String, String> ufsConf =
         Configuration.getNestedProperties(PropertyKey.MASTER_JOURNAL_UFS_OPTION);
-    return UnderFileSystemConfiguration.defaults().setUserSpecifiedConf(ufsConf);
+    return UnderFileSystemConfiguration.defaults().setMountSpecificConf(ufsConf);
   }
 
   /**
@@ -180,7 +180,7 @@ public class UfsJournal implements Journal {
     return new MasterJournalContext(mAsyncWriter);
   }
 
-  private synchronized UfsJournalLogWriter writer() throws IOException {
+  private synchronized UfsJournalLogWriter writer() {
     Preconditions.checkState(mState == State.PRIMARY,
         "Cannot write to the journal in state " + mState);
     return mWriter;
@@ -251,6 +251,13 @@ public class UfsJournal implements Journal {
   public UfsJournalCheckpointWriter getCheckpointWriter(long checkpointSequenceNumber)
       throws IOException {
     return new UfsJournalCheckpointWriter(this, checkpointSequenceNumber);
+  }
+
+  /**
+   * @return the next sequence number to write
+   */
+  public long getNextSequenceNumberToWrite() {
+    return writer().getNextSequenceNumber();
   }
 
   /**

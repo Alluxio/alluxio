@@ -70,7 +70,7 @@ public class SpaceReserver implements HeartbeatExecutor {
       long reservedSpace;
       PropertyKey tierReservedSpaceProp =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(ordinal);
-      if (Configuration.containsKey(tierReservedSpaceProp)) {
+      if (Configuration.isSet(tierReservedSpaceProp)) {
         LOG.warn("The property reserved.ratio is deprecated, use high/low watermark instead.");
         reservedSpace = (long) (tierCapacity * Configuration.getDouble(tierReservedSpaceProp));
       } else {
@@ -120,8 +120,8 @@ public class SpaceReserver implements HeartbeatExecutor {
             mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, reservedSpace, tierAlias);
           } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
               | BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
-            LOG.warn("SpaceReserver failed to free tier {} to {} bytes used for high watermarks: "
-                + "{}", tierAlias, reservedSpace, e.getMessage());
+            LOG.warn("SpaceReserver failed to free {} bytes on tier {} for high watermarks: {}",
+                reservedSpace, tierAlias, e.getMessage());
           }
         }
       } else {
@@ -129,8 +129,8 @@ public class SpaceReserver implements HeartbeatExecutor {
           mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, reservedSpace, tierAlias);
         } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
             | BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
-          LOG.warn("SpaceReserver failed to free tier {} to {} bytes used: {}", tierAlias,
-              reservedSpace, e.getMessage());
+          LOG.warn("SpaceReserver failed to free {} bytes on tier {}: {}", reservedSpace,
+              tierAlias, e.getMessage());
         }
       }
     }

@@ -1,40 +1,21 @@
 ---
 layout: global
-title: 开发者向导
-nickname: 开发者向导
+title: Alluxio开发与代码规范
+nickname: Alluxio开发与代码规范
 group: Resources
+priority: 2
 ---
 
 * 内容列表
 {:toc}
 
-感谢您对Alluxio的兴趣！我们非常感谢任何的新特性或者修复的贡献。
+> 如果您是一名新的开源贡献者，请先浏览[Alluxio开发新手指南](Contributing-Getting-Started.html)以熟悉如何向Alluxio贡献源码。
 
-## 新贡献者
+我们非常感谢您对Alluxio的关注与兴趣！特别感谢您对Alluxio开源社区作出的贡献！
 
-如果你是一个新开源贡献者，请先浏览[开始贡献源码向导](Contributing-Getting-Started.html)以熟悉如何向Alluxio贡献源码。
+## 提交代码
 
-### Alluxio初始任务
-
-新开发者可以先进行以下列出的任务，从而能够更加熟悉Alluxio：
-
-1.  [在本地运行Alluxio](Running-Alluxio-Locally.html)
-
-2.  [在集群运行Alluxio](Running-Alluxio-on-a-Cluster.html)
-
-3.  阅读[配置项设置](Configuration-Settings.html)以及[命令行接口](Command-Line-Interface.html)
-
-4.  阅读一段[代码示例](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
-
-5.  [构建Alluxio主分支](Building-Alluxio-Master-Branch.html)
-
-6.  Fork Alluxio Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO)中的issues。这里是一些未分配的[新开发者任务](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))。
-请每个新开发者最多只完成的两个New-Contributor任务。
-在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)里咨询。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
-
-### 提交代码
-
--   我们鼓励你每次尽可能提交小的、单一目的的补丁包，因为要合并一个含有许多不相干的特性的大的改动十分困难。
+-   我们鼓励你每次尽可能提交小的、单一目的的补丁包，因为要合并一个含有许多不相关的特性的大的改动十分困难。
 
 -   我们会追踪[JIRA](https://alluxio.atlassian.net/)里的issues和features，如果你还没有帐号，请先进行注册。
 
@@ -47,8 +28,6 @@ group: Resources
 ~~~~~
 [ALLUXIO-100] Implement an awesome new feature
 ~~~~~
-
--   添加一个GitHub标签表明你的修改属于Alluxio的哪个组件，如果你对此不确定，那么就选择包含最多的修改代码的那个组件（组件与根目录下的目录一一对应）。
 
 -   在pull request的描述框中，请添加该JIRA ticket的超链接。
 
@@ -66,27 +45,71 @@ group: Resources
 [DOCFIX] Improve documentation of how to contribute to Alluxio
 ~~~~~
 
-#### 测试
+## 单元测试
 
--   使用``mvn test``命令运行所有单元测试（会将本地文件系统作为底层文件系统，在HDFS模块中将HDFS 1.0.4作为底层文件系统），``mvn -Dhadoop.version=2.4.0 test``命令将HDFS 2.4.0作为HDFS模块中的底层文件系统。
+- 运行所有单元测试
 
--   要在特定的底层文件系统上运行测试，在对应的子模块目录下运行Maven命令，例如，要运行针对HDFS的测试，在``alluxio/underfs/hdfs``目录下运行``mvn test``。
+```bash
+$ cd ${ALLUXIO_HOME}
+$ mvn test
+```
 
--   对于GlusterFS环境的单元测试，可以在``alluxio/underfs/glusterfs``目录下运行`mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dalluxio.underfs.glusterfs.mounts=/vol -Dalluxio.underfs.glusterfs.volumes=testvol test`（将GlusterFS作为底层文件系统，`/vol`为一个有效GlusterFS挂载点）。
+这会使用本地文件系统作为底层文件系统。
 
--   要进行单个单元测试，运行`mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test`。
+- 运行单个单元测试
 
--   要以交互的方式快速运行某些API测试，你可能需要使用Scala shell，这在[blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding)有讨论。
+```bash
+$ mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
+```
 
--   使用不同的Hadoop版本进行测试，运行``mvn -Dhadoop.version=2.2.0 clean test``。
+- 要运行特定模块的单元测试, 在想要的子模块下执行`maven test`命令。例如，要运行HDFS UFS模块测试，执行以下命令
 
--   要进行Hadoop文件系统的契约式设计测试（用hadoop 2.6.0），运行：`mvn -PcontractTest clean test`。
+```bash
+$ mvn test -pl underfs/hdfs
+```
 
--   如果libfuse库丢失，测试将被忽略。要运行这些测试，请安装[本页]中所提到的正确的库(Mounting-Alluxio-FS-with-FUSE.html#requirements)。
+您可以指定运行模块单元测试的Hadoop版本, 我们会创建该版本的模拟HDFS服务来进行测试：
 
-#### 编码风格
+```bash
+# build and run test on HDFS under filesystem module for Hadoop 2.7.0
+$ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
+# build and run test on HDFS under filesystem module for Hadoop 3.0.0
+$ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
+```
 
--   请遵循已有代码的风格。具体地，我们使用[Google Java style](https://google.github.io/styleguide/javaguide.html)风格，但有以下不同：
+您也可以使用一个正在运行的HDFS服务来对Alluxio的HDFS 底层文件系统进行更加全面的测试：
+
+```bash
+$ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
+```
+
+- 要想日志输出到STDOUT, 在mvn命令后添加以下参数：
+
+```
+-Dtest.output.redirect=false -Dalluxio.root.logger=DEBUG,CONSOLE
+```
+
+- 要以交互的方式快速运行某些API测试，你可能需要使用Scala shell，这在
+[blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding)有详细说明。
+
+- 如果libfuse库丢失，其测试将被忽略。要运行这些测试，请安装[FUSE](Mounting-Alluxio-FS-with-FUSE.html#requirements)中所提到的正确的库。
+
+### 系统设置
+
+有时你要配置一些系统设置使得测试能在本地通过。其中之一就是`ulimit`。
+
+要使得MacOS上允许的文件数和进程数增加，运行以下命令
+
+```bash
+$ sudo launchctl limit maxfiles 32768 32768
+$ sudo launchctl limit maxproc 32768 32768
+```
+
+同时建议关闭本地Alluxio文件夹的spotlight定位服务。否则，你的Mac在单元测试时将会一直挂起来尝试重新定位文件系统。去`System Preferences > Spotlight > Privacy`，点击`+`键，浏览你本地Alluxio的目录，点击`Choose`将其添加到排除列表。
+
+## 代码风格
+
+-   请遵循已有代码的风格。具体来说我们使用[Google Java style](https://google.github.io/styleguide/javaguide.html)风格，但有以下不同：
     -  每行最多**100**个字符
     -  第三方导入被整理到一起以使得IDE格式化起来更简单
     -  类成员变量要使用`m`前缀，例如`private WorkerClient mWorkerClient;`
@@ -100,22 +123,63 @@ group: Resources
        IDEA中使用[Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546)
        - 要自动格式化**import**，在Preferences->Code Style->Java->Imports->Import中设置Layout为[该顺序](../resources/importorder.png)
        - 要自动将方法按字母顺序重新排序，可以使用[Rearranger插件](http://plugins.jetbrains.com/plugin/173)，打开Preferences，查找rearrager，去除不必要的内容，然后右击，选择"Rearrange"，代码将格式化成你需要的风格。
--   Alluxio使用SLF4J记录日志，典型用法为：
-
-{% include Contributing-to-Alluxio/slf4j.md %}
 
 -  为验证编码风格符合标准，你在提交pull request之前应该先运行[checkstyle](http://checkstyle.sourceforge.net)，并且保证没有警告：
 
-{% include Contributing-to-Alluxio/checkstyle.md %}
+```bash
+$ mvn checkstyle:checkstyle
+```
 
-#### FindBugs
+## 日志约定
+
+Alluxio使用[SLF4J](https://www.slf4j.org/)记录日志，典型用法为：
+
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public MyClass {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MyClass.class);
+
+  public void someMethod() {
+    LOG.info("Hello world");
+  }
+}
+```
+
+下面是Alluxio源码对不同类别日志的约定：
+
+* 错误级别日志（`LOG.error`）表示无法恢复的系统级问题。错误级别日志需要包括堆栈跟踪信息。
+```java
+LOG.error("Failed to do something due to an exception", e);
+```
+* 警告级别日志（`LOG.warn`）常用于描述用户预期行为与Alluxio实践行为之间的差异。警告级别日志伴有异常消息。相关的堆栈跟踪信息可能在调试级日志中记录。
+```java
+LOG.warm("Failed to do something due to {}", e.getMessage());
+```
+* 信息级别日志（`LOG.info`）记录了重要系统状态的更改信息。当有错误消息或需要记录堆栈跟踪信息时，请不要使用信息级别日志。需要注意的是，该日志级别不应该出现在频繁使用的关键路径上的程序中以避免对性能的不利影响。
+```java
+LOG.info("Master started.");
+```
+* 调试级别日志（`LOG.debug`）包括Alluxio系统各方面的详细信息。控制流日志记录（Alluxio系统的进入和退出调用）在调试级别日志中完成。调试级别日志异常通常有包含堆栈跟踪的具体信息。
+```java
+LOG.debug("Failed to connec to {} due to exception", host + ":" + port, e); // wrong
+LOG.debug("Failed to connec to {} due to exception", mAddress, e); // OK
+if (LOG.isDebugEnabled()) {
+  LOG.debug("Failed to connec to address {} due to exception", host + ":" + port, e); // OK
+}
+```
+* 跟踪级别日志（`LOG.trace`）在Alluxio中不使用。
+
+## FindBugs
 
 在提交pull request之前，对最新的代码运行
 [FindBugs](http://findbugs.sourceforge.net/)确保不出现警告：
 
 {% include Contributing-to-Alluxio/findbugs.md %}
 
-### IDE
+## IDE
 
 你可以通过运行以下命令生成Eclipse配置文件：
 
@@ -130,3 +194,49 @@ group: Resources
 如果你使用的是IntelliJ IDEA，你可能需要修改Maven profile配置中的'developer'以防止导入错误，可以通过以下方式进行：
 
     View > Tool Windows > Maven Projects
+
+## 更改Thrift RPC的定义
+
+Alluxio使用Thrift来完成客户端与服务端的RPC通信。`common/src/thrift/`目录下的`.thrift`文件，其一方面用于自动生成客户端调用RPC的Java代码，另一方面用于实现服务端的RPC。要想更改一个Thrift定义，你首先必须要[安装Thrift的编译器](https://thrift.apache.org/docs/install/)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
+
+```bash
+$ brew install thrift
+```
+
+然后重新生成Java代码，运行
+
+```bash
+$ bin/alluxio thriftGen
+```
+
+## 更改Protocol Buffer消息
+
+Alluxio使用Protocol Buffer来读写日志消息。`servers/src/proto/journal/`目录下的`.proto`文件用于为Protocol Buffer消息自动生成Java定义。如果需要修改这些消息，首先要读取[更新消息类型](https://developers.google.com/protocol-buffers/docs/proto#updating)从而保证你的修改不会破坏向后兼容性。然后请[安装protoc](https://github.com/google/protobuf#protocol-buffers---googles-data-interchange-format)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
+
+```bash
+$ brew install protobuf@2.5
+$ brew link --force protobuf@2.5
+```
+
+然后重新生成Java代码，运行
+
+```bash
+$ bin/alluxio protoGen
+```
+
+## bin/alluxio目录下的命令列表
+
+开发者所用到的大多数命令都在`bin/alluxio`目录下。下面的表格有对每条命令及其参数的说明。
+
+<table class="table table-striped">
+<tr><th>命令</th><th>参数</th><th>介绍</th></tr>
+{% for dscp in site.data.table.Developer-Tips %}
+<tr>
+  <td>{{dscp.command}}</td>
+  <td>{{dscp.args}}</td>
+  <td>{{site.data.table.cn.Developer-Tips[dscp.command]}}</td>
+</tr>
+{% endfor %}
+</table>
+
+此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`，`validateConf`和`validateEnv`命令的先决条件是你已经编译了Alluxio（见[编译Alluxio源代码](Building-Alluxio-From-Source.html)其介绍了如何手动构建Alluxio)。而`fs`，`loadufs`，`logLevel`, `runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。

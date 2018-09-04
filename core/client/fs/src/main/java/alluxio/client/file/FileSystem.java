@@ -26,24 +26,28 @@ import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
+import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
-import alluxio.client.lineage.LineageContext;
-import alluxio.client.lineage.LineageFileSystem;
+import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.SetAclAction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -65,27 +69,19 @@ public interface FileSystem {
     private Factory() {} // prevent instantiation
 
     public static FileSystem get() {
-      return get(FileSystemContext.INSTANCE);
+      return get(FileSystemContext.get());
     }
 
     public static FileSystem get(FileSystemContext context) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
-        // Store properties in tree map to keep output ordered
-        Map<String, String> keyValueSet = new TreeMap<>(Configuration.toMap());
-        for (Map.Entry<String, String> entry : keyValueSet.entrySet()) {
-          String key = entry.getKey();
-          String value = entry.getValue();
-          Configuration.Source source = Configuration.getSource(PropertyKey.fromString(key));
-          if (source == Configuration.Source.SITE_PROPERTY) {
-            LOG.debug("{}={} ({}: {})",
-                key, value, source.name(), Configuration.getSitePropertiesFile());
-          } else {
-            LOG.debug("{}={} ({})", key, value, source.name());
-          }
+        // Sort properties by name to keep output ordered.
+        List<PropertyKey> keys = new ArrayList<>(Configuration.keySet());
+        Collections.sort(keys, Comparator.comparing(PropertyKey::getName));
+        for (PropertyKey key : keys) {
+          String value = Configuration.getOrDefault(key, null);
+          Source source = Configuration.getSource(key);
+          LOG.debug("{}={} ({})", key.getName(), value, source);
         }
-      }
-      if (Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED)) {
-        return LineageFileSystem.get(context, LineageContext.INSTANCE);
       }
       return BaseFileSystem.get(context);
     }
@@ -335,6 +331,30 @@ public interface FileSystem {
    * @throws FileDoesNotExistException if the given file does not exist
    */
   void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Convenience method for {@link #setAcl(AlluxioURI, SetAclAction, List, SetAclOptions)} with
+   * default options.
+   *
+   * @param path the path to set the ACL for
+   * @param action the set action to perform
+   * @param entries the ACL entries
+   * @throws FileDoesNotExistException if the given file does not exist
+   */
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Sets the ACL for a path.
+   *
+   * @param path the path to set the ACL for
+   * @param action the set action to perform
+   * @param entries the ACL entries
+   * @param options options to associate with this operation
+   * @throws FileDoesNotExistException if the given file does not exist
+   */
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

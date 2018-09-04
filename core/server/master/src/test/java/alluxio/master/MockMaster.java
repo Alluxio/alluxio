@@ -12,7 +12,7 @@
 package alluxio.master;
 
 import alluxio.Server;
-import alluxio.master.Master;
+import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 
@@ -45,7 +45,7 @@ public final class MockMaster implements Master {
 
   @Override
   public String getName() {
-    return "FakeMaster";
+    return "MockMaster";
   }
 
   @Override
@@ -71,6 +71,11 @@ public final class MockMaster implements Master {
   @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
     return mEntries.iterator();
+  }
+
+  @Override
+  public JournalContext createJournalContext() {
+    throw new IllegalStateException("Cannot create journal contexts for MockMaster");
   }
 }
 

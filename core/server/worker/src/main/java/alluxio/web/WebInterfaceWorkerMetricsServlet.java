@@ -70,10 +70,10 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
     MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
 
     Long workerCapacityTotal = (Long) mr.getGauges()
-        .get(MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.CAPACITY_TOTAL))
+        .get(MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.CAPACITY_TOTAL))
         .getValue();
     Long workerCapacityUsed = (Long) mr.getGauges()
-        .get(MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.CAPACITY_USED))
+        .get(MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.CAPACITY_USED))
         .getValue();
 
     int workerCapacityUsedPercentage =
@@ -100,7 +100,7 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
       operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
     }
     String blockCachedProperty =
-        MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
+        MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
     operations.put(MetricsSystem.stripInstanceAndHost(blockCachedProperty),
         mr.getGauges().get(blockCachedProperty));
 

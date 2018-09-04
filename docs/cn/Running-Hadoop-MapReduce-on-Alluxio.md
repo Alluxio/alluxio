@@ -23,7 +23,7 @@ priority: 1
 为了使MapReduce应用可以与Alluxio进行通信，你需要将Alluxio Client的Jar包包含在MapReduce的classpaths中。我们建议你从Alluxio [download page](http://www.alluxio.org/download) 下载压缩包。
 
 同时，高级用户可以选择使用源代码来编译生成Alluxio Client的Jar包。
-你可以运行以下命令[here](Building-Alluxio-Master-Branch.html#compute-framework-support)。
+你可以运行以下命令[here](Building-Alluxio-From-Source.html#compute-framework-support)。
 
 新的Alluxio客户端Jar包可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中发现。
 
@@ -87,7 +87,7 @@ $  export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 当你运行Hadoop集群(或单机运行)时，你可以在Alluxio项目目录运行以下命令：
 
 ```bash
-$ checker/bin/alluxio-checker.sh mapreduce 
+$ integration/checker/bin/alluxio-checker.sh mapreduce 
 ```
 
 你可以使用`-h`来显示关于这个命令的有用信息。这条命令将报告潜在的问题，可能会阻碍你在Alluxio上运行MapReduce。
@@ -105,7 +105,7 @@ $ bin/start-all.sh
 以本地模式启动Alluxio：
 
 ```bash
-$ bin/alluxio-start.sh local
+$ bin/alluxio-start.sh local SudoMount
 ```
 
 你可以在Alluxio中加入两个简单的文件来运行wordcount。在你的Alluxio目录中运行：

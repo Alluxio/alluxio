@@ -1,3 +1,5 @@
+alluxio.user.app.id:
+  'The custom id to use for labeling this client''s info, such as metrics. If unset, a random long will be used. This value is displayed in the client logs on initialization. Note that using the same app id will cause client info to be aggregated, so different applications must set their own ids or leave this value unset to use a randomly generated id.'
 alluxio.user.block.master.client.threads:
   'The number of threads used by a block master client pool to talk to the block master.'
 alluxio.user.block.remote.read.buffer.size.bytes:
@@ -16,6 +18,8 @@ alluxio.user.block.worker.client.read.retry:
   'The maximum number of workers to retry before the client gives up on  reading a block'
 alluxio.user.block.worker.client.threads:
   'The number of threads used by a block worker client pool for heartbeating to a worker. Increase this value if worker failures affect client connections to healthy workers.'
+alluxio.user.conf.cluster.default.enabled:
+  'When this property is true, an Alluxio client will load the default values of configuration properties set by Alluxio master.'
 alluxio.user.date.format.pattern:
   'Display formatted date in cli command and web UI by given date format pattern.'
 alluxio.user.failed.space.request.limits:
@@ -26,8 +30,16 @@ alluxio.user.file.cache.partially.read.block:
   'This property is deprecated as of 1.7 and has no effect. Use the read type to control caching behavior.'
 alluxio.user.file.copyfromlocal.write.location.policy.class:
   'The default location policy for choosing workers for writing a file''s blocks using copyFromLocal command.'
+alluxio.user.file.create.ttl:
+  'Time to live for files created by a user, no ttl by default.'
+alluxio.user.file.create.ttl.action:
+  'When file''s ttl is expired, the action performs on it. DELETE by default'
 alluxio.user.file.delete.unchecked:
   'Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.'
+alluxio.user.file.load.ttl:
+  'Time to live for files loaded from UFS by a user, no ttl by default.'
+alluxio.user.file.load.ttl.action:
+  'When file''s ttl is expired, the action performs on it. FREE by default'
 alluxio.user.file.master.client.threads:
   'The number of threads used by a file master client to talk to the file master.'
 alluxio.user.file.metadata.load.type:
@@ -54,16 +66,16 @@ alluxio.user.heartbeat.interval:
   'The interval between Alluxio workers'' heartbeats.'
 alluxio.user.hostname:
   'The hostname to use for the client. Note: this property is deprecated. set alluxio.locality.node instead'
-alluxio.user.lineage.enabled:
-  'Flag to enable lineage feature.'
-alluxio.user.lineage.master.client.threads:
-  'The number of threads used by a lineage master client to talk to the lineage master.'
 alluxio.user.local.reader.packet.size.bytes:
   'When a client reads from a local worker, the maximum data packet size.'
 alluxio.user.local.writer.packet.size.bytes:
   'When a client writes to a local worker, the maximum data packet size.'
+alluxio.user.metrics.collection.enabled:
+  'Enable collecting the client-side metrics and hearbeat them to master'
+alluxio.user.metrics.heartbeat.interval:
+  'The time period of client master hearbeat to send the client-side metrics.'
 alluxio.user.network.netty.channel:
-  'Type of netty channels.'
+  'Type of netty channels. If EPOLL is not available, this will automatically fall back to NIO.'
 alluxio.user.network.netty.channel.pool.disabled:
   'Disable netty channel pool. This should be turned on if the client version is >= 1.3.0 but server version is <= 1.2.x.'
 alluxio.user.network.netty.channel.pool.gc.threshold:
@@ -84,12 +96,14 @@ alluxio.user.network.netty.writer.close.timeout:
   'The timeout to close a netty writer client.'
 alluxio.user.network.netty.writer.packet.size.bytes:
   'When a client writes to a remote worker, the maximum packet size.'
+alluxio.user.network.socket.timeout:
+  'The time out of a socket created by a user to connect to the master.'
 alluxio.user.rpc.retry.base.sleep:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the base time in the exponential backoff.'
 alluxio.user.rpc.retry.max.duration:
-  'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum duration to retry for before giving up.'
+  'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum duration to retry for before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.'
 alluxio.user.rpc.retry.max.num.retry:
-  'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum number of retries.'
+  'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum number of retries. This property has been deprecated by time-based retry using: alluxio.user.rpc.retry.max.duration'
 alluxio.user.rpc.retry.max.sleep:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum wait time in the backoff.'
 alluxio.user.short.circuit.enabled:

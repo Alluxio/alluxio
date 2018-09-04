@@ -12,14 +12,12 @@
 package alluxio.client.file.options;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.WriteType;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.wire.CommonOptions;
-import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -38,8 +36,6 @@ public final class CreateDirectoryOptions {
   private boolean mAllowExists;
   private CommonOptions mCommonOptions;
   private Mode mMode;
-  private long mTtl;
-  private TtlAction mTtlAction;
   private boolean mRecursive;
   private WriteType mWriteType;
 
@@ -51,12 +47,13 @@ public final class CreateDirectoryOptions {
   }
 
   private CreateDirectoryOptions() {
-    mCommonOptions = CommonOptions.defaults();
+    mCommonOptions = CommonOptions.defaults()
+        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
+        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION,
+            TtlAction.class));
     mRecursive = false;
     mAllowExists = false;
     mMode = Mode.defaults().applyDirectoryUMask();
-    mTtl = Constants.NO_TTL;
-    mTtlAction = TtlAction.DELETE;
     mWriteType =
         Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
   }
@@ -95,14 +92,14 @@ public final class CreateDirectoryOptions {
    *         the created directory should be kept around before it is automatically deleted
    */
   public long getTtl() {
-    return mTtl;
+    return getCommonOptions().getTtl();
   }
 
   /**
    * @return the {@link TtlAction}
    */
   public TtlAction getTtlAction() {
-    return mTtlAction;
+    return getCommonOptions().getTtlAction();
   }
 
   /**
@@ -158,7 +155,7 @@ public final class CreateDirectoryOptions {
    * @return the updated options object
    */
   public CreateDirectoryOptions setTtl(long ttl) {
-    mTtl = ttl;
+    getCommonOptions().setTtl(ttl);
     return this;
   }
 
@@ -167,7 +164,7 @@ public final class CreateDirectoryOptions {
    * @return the updated options object
    */
   public CreateDirectoryOptions setTtlAction(TtlAction ttlAction) {
-    mTtlAction = ttlAction;
+    getCommonOptions().setTtlAction(ttlAction);
     return this;
   }
 
@@ -193,15 +190,13 @@ public final class CreateDirectoryOptions {
         && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mRecursive, that.mRecursive)
-        && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mWriteType, that.mWriteType);
   }
 
   @Override
   public int hashCode() {
     return Objects
-        .hashCode(mAllowExists, mCommonOptions, mMode, mRecursive, mTtl, mTtlAction, mWriteType);
+        .hashCode(mAllowExists, mCommonOptions, mMode, mRecursive, mWriteType);
   }
 
   @Override
@@ -211,8 +206,6 @@ public final class CreateDirectoryOptions {
         .add("allowExists", mAllowExists)
         .add("mode", mMode)
         .add("recursive", mRecursive)
-        .add("ttl", mTtl)
-        .add("ttlAction", mTtlAction)
         .add("writeType", mWriteType)
         .toString();
   }
@@ -224,8 +217,6 @@ public final class CreateDirectoryOptions {
     CreateDirectoryTOptions options = new CreateDirectoryTOptions();
     options.setAllowExists(mAllowExists);
     options.setRecursive(mRecursive);
-    options.setTtl(mTtl);
-    options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
     options.setPersisted(mWriteType.isThrough());
     if (mMode != null) {
       options.setMode(mMode.toShort());

@@ -12,13 +12,10 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.AlluxioURI;
-import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.master.MasterClientConfig;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -34,8 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Update attributes for an existing mount point.
  */
 @ThreadSafe
-public final class UfsCommand implements Command {
-  private FileSystemMasterClient mMasterClient;
+public final class UfsCommand extends AbstractFsAdminCommand {
   private static final Option MODE_OPTION =
       Option.builder()
           .longOpt("mode")
@@ -45,10 +41,10 @@ public final class UfsCommand implements Command {
           .build();
 
   /**
-   * Creates a new instance of {@link UfsCommand}.
+   * @param context fsadmin command context
    */
-  public UfsCommand() {
-    mMasterClient = FileSystemMasterClient.Factory.create(MasterClientConfig.defaults());
+  public UfsCommand(Context context) {
+    super(context);
   }
 
   @Override
@@ -92,7 +88,7 @@ public final class UfsCommand implements Command {
           System.out.println("Unrecognized mode");
           return -1;
       }
-      mMasterClient.updateUfsMode(ufsUri, UpdateUfsModeOptions.defaults().setUfsMode(mode));
+      mFsClient.updateUfsMode(ufsUri, UpdateUfsModeOptions.defaults().setUfsMode(mode));
       System.out.println("Ufs mode updated");
       return 0;
     }

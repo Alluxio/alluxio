@@ -18,11 +18,11 @@ import com.google.common.base.Objects;
  */
 public final class WaitForOptions {
   static final int DEFAULT_INTERVAL = 20;
-  static final int NEVER = -1;
+  public static final int NEVER = -1;
 
-  /** Determines how often to check for completion. */
+  /** How often to check for completion. */
   private int mIntervalMs;
-  /** Determines how long to wait before giving up. */
+  /** How long to wait before giving up. */
   private int mTimeoutMs;
 
   private WaitForOptions() {}

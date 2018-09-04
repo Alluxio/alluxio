@@ -102,6 +102,10 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 	if includeYarnIntegration(hadoopVersion) {
 		args = append(args, "-Pyarn")
 	}
+	if hadoopVersion.major == 1 {
+		// checker requires hadoop 2+ to compile.
+		args = append(args, "-Dchecker.hadoop.version=2.2.0")
+	}
 	return args
 }
 
@@ -124,6 +128,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	pathsToCopy := []string{
 		"bin/alluxio",
 		"bin/alluxio-masters.sh",
+		"bin/alluxio-monitor.sh",
 		"bin/alluxio-mount.sh",
 		"bin/alluxio-start.sh",
 		"bin/alluxio-stop.sh",
@@ -136,6 +141,10 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"conf/masters",
 		"conf/metrics.properties.template",
 		"conf/workers",
+		"integration/checker/bin/alluxio-checker.sh",
+		"integration/checker/bin/hive-checker.sh",
+		"integration/checker/bin/mapreduce-checker.sh",
+		"integration/checker/bin/spark-checker.sh",
 		"integration/docker/Dockerfile",
 		"integration/docker/entrypoint.sh",
 		"integration/docker/bin/alluxio-master.sh",
@@ -162,6 +171,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		fmt.Sprintf("lib/alluxio-underfs-swift-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-wasb-%v.jar", version),
 		"libexec/alluxio-config.sh",
+		"LICENSE",
 	}
 	if includeYarnIntegration(hadoopVersion) {
 		pathsToCopy = append(pathsToCopy, []string{
@@ -226,27 +236,31 @@ func generateTarball(hadoopDistribution string) error {
 	replace("libexec/alluxio-config.sh", "assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-server-${VERSION}.jar")
 	// Update the FUSE jar path
 	replace("integration/fuse/bin/alluxio-fuse", "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "alluxio-fuse-${VERSION}.jar")
+	// Update the checker jar paths
+	for _, file := range []string{"bin/hive-checker.sh", "bin/mapreduce-checker.sh", "bin/spark-checker.sh"} {
+		replace(filepath.Join("integration/checker", file), "target/alluxio-checker-${VERSION}-jar-with-dependencies.jar", "alluxio-checker-${VERSION}.jar")
+	}
 
 	mvnArgs := getCommonMvnArgs(hadoopVersion)
 	run("compiling repo", "mvn", mvnArgs...)
 
 	tarball := strings.Replace(targetFlag, versionMarker, version, 1)
 	dstDir := strings.TrimSuffix(filepath.Base(tarball), ".tar.gz")
+	dstDir = strings.TrimSuffix(dstDir, "-bin")
 	dstPath := filepath.Join(cwd, dstDir)
 	run(fmt.Sprintf("removing any existing %v", dstPath), "rm", "-rf", dstPath)
 	fmt.Printf("Creating %s:\n", tarball)
 
-	// Create the directory for the server jar.
-	mkdir(filepath.Join(dstPath, "assembly"))
-	// Create directories for the client jar.
-	mkdir(filepath.Join(dstPath, "client"))
-	mkdir(filepath.Join(dstPath, "logs"))
-	// Create directories for the fuse connector
-	mkdir(filepath.Join(dstPath, "integration", "fuse"))
+	for _, dir := range []string{
+		"assembly", "client", "logs", "integration/fuse", "integration/checker",
+	} {
+		mkdir(filepath.Join(dstPath, dir))
+	}
 
 	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
 	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
+	run("adding Alluxio checker jar", "mv", fmt.Sprintf("integration/checker/target/alluxio-checker-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "checker", fmt.Sprintf("alluxio-checker-%v.jar", version)))
 	// Condense the webapp into a single .war file.
 	run("jarring up webapp", "jar", "-cf", filepath.Join(dstPath, webappWar), "-C", webappDir, ".")
 

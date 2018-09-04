@@ -17,6 +17,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
+import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -33,6 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class ListStatusOptions {
   private CommonOptions mCommonOptions;
   private LoadMetadataType mLoadMetadataType;
+  private boolean mRecursive;
 
   /**
    * @return the default {@link ListStatusOptions}
@@ -42,9 +44,13 @@ public final class ListStatusOptions {
   }
 
   private ListStatusOptions() {
-    mCommonOptions = CommonOptions.defaults();
+    mCommonOptions = CommonOptions.defaults()
+        .setTtl(Configuration.getMs(PropertyKey.USER_FILE_LOAD_TTL))
+        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_LOAD_TTL_ACTION,
+            TtlAction.class));
     mLoadMetadataType =
         Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class);
+    mRecursive = false;
   }
 
   /**
@@ -60,6 +66,14 @@ public final class ListStatusOptions {
    */
   public LoadMetadataType getLoadMetadataType() {
     return mLoadMetadataType;
+  }
+
+  /**
+   * @return whether the command should recursively list the status of the underlying
+   *         directories.
+   */
+  public boolean isRecursive() {
+    return mRecursive;
   }
 
   /**
@@ -80,6 +94,15 @@ public final class ListStatusOptions {
     return this;
   }
 
+  /**
+   * @param recursive recursive or not
+   * @return the updated options object
+   */
+  public ListStatusOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -90,12 +113,13 @@ public final class ListStatusOptions {
     }
     ListStatusOptions that = (ListStatusOptions) o;
     return Objects.equal(mCommonOptions, that.mCommonOptions)
-        && Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
+        && Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
+        && Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCommonOptions, mLoadMetadataType);
+    return Objects.hashCode(mCommonOptions, mLoadMetadataType, mRecursive);
   }
 
   @Override
@@ -103,6 +127,7 @@ public final class ListStatusOptions {
     return Objects.toStringHelper(this)
         .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
+        .add("recursive", mRecursive)
         .toString();
   }
 
@@ -116,6 +141,7 @@ public final class ListStatusOptions {
 
     options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
     options.setCommonOptions(mCommonOptions.toThrift());
+    options.setRecursive(mRecursive);
     return options;
   }
 }

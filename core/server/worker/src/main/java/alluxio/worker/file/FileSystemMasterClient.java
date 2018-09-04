@@ -24,7 +24,6 @@ import alluxio.thrift.GetPinnedFileIdsTOptions;
 import alluxio.thrift.GetUfsInfoTOptions;
 import alluxio.thrift.UfsInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
 
@@ -78,7 +77,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @return the file info for the given file id
    */
   public synchronized FileInfo getFileInfo(final long fileId) throws IOException {
-    return retryRPC(() -> ThriftUtils
+    return retryRPC(() -> FileInfo
         .fromThrift(mClient.getFileInfo(fileId, new GetFileInfoTOptions()).getFileInfo()));
   }
 

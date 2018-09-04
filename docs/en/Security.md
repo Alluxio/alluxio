@@ -15,11 +15,14 @@ This document describes the following security related features in Alluxio.
 Alluxio file system recognizes the user accessing the service.
 Having `SIMPLE` authentication is required to use other security features such as authorization.
 Alluxio also supports other authentication modes like `NOSASL` and `CUSTOM`.
-2. [Authorization](#authorization): If `alluxio.security.authorization.permission.enabled=true`
+1. [Authorization](#authorization): If `alluxio.security.authorization.permission.enabled=true`
 (by default), Alluxio file system will grant or deny user access based on the requesting user and
 the POSIX permission model of the files or directories to access.
 Note that, authentication cannot be `NOSASL` as authorization requires user information.
-3. [Auditing](#auditing): If `alluxio.master.audit.logging.enabled=true`, Alluxio file system
+1. [Access Control Lists](#Access-Contro-Lists): In addition to the POSIX permission model, Alluxio implements an Access Control List(ACL) model similar to those found in Linux and HDFS.
+The ACL model is more flexible and allows administrators to manage any user or group's permissions to any file system object. 
+1. [Impersonation](#impersonation): Alluxio supports user impersonation so one user can access Alluxio on the behalf of another user. This can be useful if an Alluxio client is part of a service which provides access to Alluxio for many different users.
+1. [Auditing](#auditing): If `alluxio.master.audit.logging.enabled=true`, Alluxio file system
 maintains an audit log for user accesses to file metadata.
 
 See [Security specific configuration](Configuration-Settings.html#security-configuration) for
@@ -115,8 +118,7 @@ The umask can be set by property `alluxio.security.authorization.permission.umas
 
 The owner, group, and permissions can be changed by two ways:
 
-1. User application invokes the setAttribute(...) method of `FileSystem API` or `Hadoop API`. See
-[File System API](File-System-API.html).
+1. User application invokes the `setAttribute(...)` method of `FileSystem API` or `Hadoop API`.
 2. CLI command in shell. See
 [chown](Command-Line-Interface.html#chown),
 [chgrp](Command-Line-Interface.html#chgrp),
@@ -124,6 +126,66 @@ The owner, group, and permissions can be changed by two ways:
 
 The owner can only be changed by super user.
 The group and permission can only be changed by super user and file owner.
+
+## Access Control Lists
+Posix permission model allows administrators to grant permissions to owners, owning groups and other users. 
+The permission bits model is sufficient for most cases. 
+However, to help administrators express more complicated security policies,
+Alluxio also supports Access Control Lists (ACLs).
+ACLs allow administrators to grant permissions to any user or group. 
+
+In Alluxio's ACL model, a file or directory's Access Control List consists of many ACL entries. There are two types of ACL entries, Access ACL entries and Default ACL entries. 
+
+1. Access ACL Entries:
+
+   This type of ACL entry specifies a particular user or group's permission to read, write and execute. 
+Each ACL entry consists of a type, which can be one of user, group or mask, an optional name and a permission string similar to the POSIX permission bits. 
+The following table shows the different types of ACL entries that can appear in the access ACL. 
+
+	|ACL Entry Type| Description|
+|------------------------|------------------------|
+|user:userid:permission  | Sets the access ACLs for a user. Empty userid implies the permission is for the owner of the file.|
+|group:groupid:permission| Sets the access ACLs for a group. Empty groupid implies the permission is for the owning group of the file.|
+|other::permission.      | Sets the access ACLs for all users not specified above.|
+|mask::permission        | Sets the effective rights mask.  The ACL mask indicates the maximum permissions allowed for all users other than the owner and for groups.|
+
+	Notice that ACL entries describing owner's, owning group's and other's permissions exist in the standard POSIX permission bits model already. For example, a standard POSIX permission of `755` translates into an ACL list as follows: `user::rwx, group::r-x, other::r-x`.
+These three entries are always present in every file and directory.
+When there are entries in addition to these standard entries, the ACL is considered an extended ACL. 
+
+A mask entry is automatically generated when an ACL becomes extended. 
+Unless specifically set by the user, the mask's value is adjusted to be the union of all permissions affected by the mask entry. 
+This includes all the user entries other than the owner and all the group entries. 
+	
+	For example, `user::rw-` is an ACL entry. This entry has the type `user`, with an unspecified name, which means the owner of the file. `rw-` means the owner of the file has `read` and `write` permissions but no `execute` permission. 
+Another example is a file with `group:interns:rwx` and a mask `mask::r--`. The first entry grants all permissions to the group `interns`. 
+However, because the mask is the maximum permission allowed for all groups, the `interns` group will have read-only access to the file.  
+
+2. Default ACL Entries:
+
+	Default ACLs only apply to directories. 
+Any new file or directory created within a directory with a default ACL will inherit the default ACL as its access ACL. 
+Any new directory created within a directory with a default ACL will also inherit the default ACL as its default ACL. 
+
+	Default ACLs also consists of ACL entries. These entries are similar to those found in access ACLs. 
+However, they are prefixed with a `default` keyword. 
+For example, `default:user:alluxiouser:rwx` is a valid default ACL entry, and so is `default:other::r-x`.
+
+	Now we use an example to explain how default ACL works. We have a directory called `documents`. 
+We can set its default ACL to `default:user:alluxiouser:rwx`. 
+This action does not give the user `alluxiouser` any additional permission to the directory, but the user `alluxiouser` will have full access to any new files created in the `documents` directory.
+In other words, any new files created in the `documents` directory will have an access ACL entry `user:alluxiouser:rwx`. 
+
+### Update directory and file ACL entries
+
+The ACL of a file and directory can be managed by two ways:
+
+1. User application invokes the `setFacl(...)` method of `FileSystem API` or `Hadoop API` to change the ACL and invokes the `getFacl(...)` to obtain the current ACL. 
+2. CLI command in shell. See
+[setfacl](Command-Line-Interface.html#setfacl),
+[getfacl](Command-Line-Interface.html#getfacl)
+
+The ACL of a file or directory can only be changed by super user and file/directory owner.
 
 ## Impersonation
 Alluxio supports user impersonation in order for a user to access Alluxio on the behalf of another user.
@@ -147,7 +209,7 @@ the user can impersonate any other user. Here are some examples.
 - `alluxio.master.security.impersonation.client.users=*`
     - This means the Alluxio user `client` is allowed to impersonate any user.
 
-For `alluxio.master.security.impersonation.<USERNAME>.users`, you can specify the comma-separated groups
+For `alluxio.master.security.impersonation.<USERNAME>.groups`, you can specify the comma-separated groups
 of users that the `<USERNAME>` is allowed to impersonate. The wildcard `*` can be used to indicate that
 the user can impersonate any other user. Here are some examples.
 
@@ -163,9 +225,15 @@ must be set (replace `<USERNAME>` with `alluxio_user`). Both parameters are allo
 ### Client Configuration
 If the master enables impersonation for particular users, the client must also be configured to
 impersonate other users. This is configured with the parameter: `alluxio.security.login.impersonation.username` .
-This informs the Alluxio client to connect as usual, but impersonate as a different user. If the
-Hadoop compatible Alluxio client is used, a special value of `_HDFS_USER_` can be specified to informed
-the Alluxio client to impersonate the same user as the HDFS client.
+This informs the Alluxio client to connect as usual, but impersonate as a different user. The
+parameter can set to the following values:
+
+- empty
+  - Alluxio client impersonation is not used
+- `_NONE_`
+  - Alluxio client impersonation is not used
+- `_HDFS_USER_`
+  - the Alluxio client will impersonate as the same user as the HDFS client (when using the Hadoop compatible client.)
 
 ## Auditing
 Alluxio supports audit logging to allow system administrators to track users' access to file metadata.

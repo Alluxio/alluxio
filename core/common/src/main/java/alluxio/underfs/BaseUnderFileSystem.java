@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.collections.Pair;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
@@ -78,10 +79,26 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public AccessControlList getAcl(String path) throws IOException {
+    return null;
+  }
+
+  @Override
+  public void setAcl(String path, AccessControlList acl) throws IOException{
+    // Noop here by default
+  }
+
+  @Override
   public String getFingerprint(String path) {
     try {
       UfsStatus status = getStatus(path);
-      return Fingerprint.create(getUnderFSType(), status).serialize();
+      AccessControlList acl = getAcl(path);
+      if (acl == null || !acl.hasExtended()) {
+        return Fingerprint.create(getUnderFSType(), status).serialize();
+      } else {
+        return Fingerprint.create(getUnderFSType(), status, acl).serialize();
+      }
+
     } catch (Exception e) {
       // In certain scenarios, it is expected that the UFS path does not exist.
       LOG.debug("Failed fingerprint. path: {} error: {}", path, e.toString());
@@ -164,8 +181,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
-    return new AlluxioURI(ufsBaseUri.getScheme(), ufsBaseUri.getAuthority(),
-        PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath), ufsBaseUri.getQueryMap());
+    return new AlluxioURI(ufsBaseUri, PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath),
+        false);
   }
 
   /**

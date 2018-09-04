@@ -14,6 +14,7 @@ package alluxio.hadoop;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import alluxio.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
@@ -22,21 +23,24 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.lineage.LineageContext;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterInquireClient.ConnectDetails;
+import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
+import alluxio.uri.SingleMasterAuthority;
+import alluxio.uri.ZookeeperAuthority;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -56,11 +60,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -142,7 +146,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // org.apache.hadoop.fs.FileSystem.close may check the existence of certain temp files before
     // closing
     super.close();
-    if (mContext != null && mContext != FileSystemContext.INSTANCE) {
+    if (mContext != null) {
       mContext.close();
     }
   }
@@ -458,102 +462,112 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
-    boolean masterAddIsSameAsDefault = checkMasterAddress();
+    Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
 
-    if (sInitialized && masterAddIsSameAsDefault) {
-      updateFileSystemAndContext();
-      return;
-    }
     synchronized (INIT_LOCK) {
-      // If someone has initialized the object since the last check, return
       if (sInitialized) {
-        if (masterAddIsSameAsDefault) {
-          updateFileSystemAndContext();
-          return;
-        } else {
-          LOG.warn(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
-              .getMessage(mUri.getHost() + ":" + mUri.getPort(),
-                  FileSystemContext.INSTANCE.getMasterAddress()));
-          sInitialized = false;
+        if (!connectDetailsMatch(uriConfProperties, conf)) {
+          LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS.getMessage(
+              FileSystemContext.get().getMasterInquireClient().getConnectDetails()));
+          initializeInternal(uriConfProperties, conf);
         }
+      } else {
+        initializeInternal(uriConfProperties, conf);
       }
-
-      initializeInternal(uri, conf);
+      // Must happen inside the lock so that the global filesystem context isn't changed by a
+      // concurrent call to initialize.
+      updateFileSystemAndContext();
       sInitialized = true;
     }
-
-    updateFileSystemAndContext();
   }
 
   /**
-   * Initializes the default contexts if the master address specified in the URI is different
-   * from the default one.
+   * Initializes the default contexts if the connection details specified in the URI + hadoop conf
+   * is different from the default one.
    *
-   * @param uri the uri
+   * @param uriConfProperties the configuration properties from the input uri
    * @param conf the hadoop conf
    */
-  void initializeInternal(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
+  void initializeInternal(Map<String, Object> uriConfProperties,
+      org.apache.hadoop.conf.Configuration conf) throws IOException {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
     // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
     // We assume here that all clients use the same configuration.
-    HadoopConfigurationUtils.mergeHadoopConfiguration(conf);
-    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
-    // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
-    // configuration property, so the user doesn't need to specify the authority.
-    if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-      Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
-      Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
-      Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
-      Configuration.set(PropertyKey.MASTER_RPC_PORT, uri.getPort());
-    }
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, Configuration.global());
 
-    // These must be reset to pick up the change to the master address.
-    // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
-    LineageContext.INSTANCE.reset();
-    FileSystemContext.INSTANCE.reset();
+    // Connection details in the URI has the highest priority
+    Configuration.global().merge(uriConfProperties, Source.RUNTIME);
 
-    // Try to connect to master, if it fails, the provided uri is invalid.
-    FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
-    try {
-      client.connect();
-      // Connected, initialize.
-    } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(client);
-    }
+    // This must be reset to pick up the change to the master address.
+    LOG.info("Initializing filesystem context with connect details {}",
+        Factory.getConnectDetails(Configuration.global()));
+    FileSystemContext.get().reset(Configuration.global());
   }
 
   /**
-   * Sets the file system and context.
+   * Gets the connection configuration from the input uri.
+   *
+   * @param uri a Alluxio Uri that may contain connection configuration
+   */
+  private Map<String, Object> getConfigurationFromUri(URI uri) {
+    AlluxioURI alluxioUri = new AlluxioURI(uri.toString());
+    Map<String, Object> alluxioConfProperties = new HashMap<>();
+
+    if (alluxioUri.getAuthority() instanceof ZookeeperAuthority) {
+      ZookeeperAuthority authority = (ZookeeperAuthority) alluxioUri.getAuthority();
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(),
+          authority.getZookeeperAddress());
+    } else if (alluxioUri.getAuthority() instanceof SingleMasterAuthority) {
+      SingleMasterAuthority authority = (SingleMasterAuthority) alluxioUri.getAuthority();
+      alluxioConfProperties.put(PropertyKey.MASTER_HOSTNAME.getName(), authority.getHost());
+      alluxioConfProperties.put(PropertyKey.MASTER_RPC_PORT.getName(), authority.getPort());
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
+    }
+    return alluxioConfProperties;
+  }
+
+  /**
+   * Checks whether the connect details from the uri + hadoop conf + global Alluxio conf are the
+   * same as the connect details currently being used by {@link FileSystemContext}.
+   *
+   * @param uriConfProperties the configuration properties from the input URI
+   * @param conf a hadoop conf
+   * @return whether the details match
+   */
+  private boolean connectDetailsMatch(Map<String, Object> uriConfProperties,
+      org.apache.hadoop.conf.Configuration conf) {
+    AlluxioConfiguration alluxioConf = new InstancedConfiguration(Configuration.global());
+
+    // Merge hadoop configuration into Alluxio configuration
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioConf);
+
+    // Merge connection details in URI into Alluxio configuration
+    alluxioConf.merge(uriConfProperties, Source.RUNTIME);
+
+    ConnectDetails newDetails = Factory.getConnectDetails(alluxioConf);
+    ConnectDetails oldDetails = FileSystemContext.get()
+        .getMasterInquireClient().getConnectDetails();
+
+    return newDetails.equals(oldDetails);
+  }
+
+  /**
+   * Sets the file system and context. Contexts with the same subject are shared among file systems
+   * to reduce resource usage such as the metrics heartbeat.
    */
   private void updateFileSystemAndContext() {
     Subject subject = getHadoopSubject();
     if (subject != null) {
-      mContext = FileSystemContext.create(subject);
+      LOG.debug("Using Hadoop subject: {}", subject);
+      mContext = FileSystemContext.get(subject);
       mFileSystem = FileSystem.Factory.get(mContext);
     } else {
-      mContext = FileSystemContext.INSTANCE;
-      mFileSystem = FileSystem.Factory.get();
+      LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
+      mContext = FileSystemContext.get();
+      mFileSystem = FileSystem.Factory.get(mContext);
     }
-  }
-
-  /**
-   * @return true if the master address in mUri is the same as the one in the default file
-   *         system context.
-   */
-  private boolean checkMasterAddress() {
-    InetSocketAddress masterAddress = null;
-    try {
-      masterAddress = FileSystemContext.INSTANCE.getMasterAddress();
-    } catch (UnavailableException e) {
-      LOG.warn("Failed to determine master RPC address: {}", e.toString());
-      return false;
-    }
-    boolean sameHost = masterAddress.getHostString().equals(mUri.getHost());
-    boolean samePort = masterAddress.getPort() == mUri.getPort();
-    if (sameHost && samePort) {
-      return true;
-    }
-    return false;
   }
 
   /**

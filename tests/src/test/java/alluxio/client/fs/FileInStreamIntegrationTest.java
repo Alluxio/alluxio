@@ -440,7 +440,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
     for (ReadType readType : ReadType.values()) {
       mFileSystem.free(uri);
-      CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", (input) -> {
+      CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", () -> {
         try {
           URIStatus st = mFileSystem.getStatus(uri);
           return st.getInAlluxioPercentage() == 0;
@@ -454,7 +454,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(0, status.getInAlluxioPercentage());
       is.close();
       if (readType.isCache()) {
-        CommonUtils.waitFor("First block to be cached.", (input) -> {
+        CommonUtils.waitFor("First block to be cached.", () -> {
           try {
             URIStatus st = mFileSystem.getStatus(uri);
             boolean achieved = true;
@@ -474,6 +474,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         });
       } else {
         Thread.sleep(1000);
+        status = mFileSystem.getStatus(uri);
         Assert.assertEquals(0, status.getInAlluxioPercentage());
       }
     }
@@ -486,7 +487,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
     for (ReadType readType : ReadType.values()) {
       mFileSystem.free(uri);
-      CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", (input) -> {
+      CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", () -> {
         try {
           URIStatus st = mFileSystem.getStatus(uri);
           return st.getInAlluxioPercentage() == 0;
@@ -498,10 +499,11 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       URIStatus status = mFileSystem.getStatus(uri);
       is.seek(status.getBlockSizeBytes() + 1);
       is.read();
+      status = mFileSystem.getStatus(uri);
       Assert.assertEquals(0, status.getInAlluxioPercentage());
       is.close();
       if (readType.isCache()) {
-        CommonUtils.waitFor("Second block to be cached.", (input) -> {
+        CommonUtils.waitFor("Second block to be cached.", () -> {
           try {
             URIStatus st = mFileSystem.getStatus(uri);
             boolean achieved = true;
@@ -521,6 +523,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         });
       } else {
         Thread.sleep(1000);
+        status = mFileSystem.getStatus(uri);
         Assert.assertEquals(0, status.getInAlluxioPercentage());
       }
     }
@@ -533,7 +536,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
     for (ReadType readType : ReadType.values()) {
       mFileSystem.free(uri);
-      CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", (input) -> {
+      CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", () -> {
         try {
           URIStatus st = mFileSystem.getStatus(uri);
           return st.getInAlluxioPercentage() == 0;
@@ -548,7 +551,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(0, status.getInAlluxioPercentage());
       is.positionedRead(BLOCK_SIZE / 2, new byte[1], 0, 1);
       if (readType.isCache()) {
-        CommonUtils.waitFor("First block to be cached.", (input) -> {
+        CommonUtils.waitFor("First block to be cached.", () -> {
           try {
             URIStatus st = mFileSystem.getStatus(uri);
             boolean achieved = true;
@@ -568,6 +571,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         });
       } else {
         Thread.sleep(1000);
+        status = mFileSystem.getStatus(uri);
         Assert.assertEquals(0, status.getInAlluxioPercentage());
       }
       is.close();

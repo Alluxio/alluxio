@@ -25,7 +25,6 @@ import alluxio.thrift.GetWorkerInfoListTOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
-import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
@@ -82,7 +81,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       List<WorkerInfo> result = new ArrayList<>();
       for (alluxio.thrift.WorkerInfo workerInfo : mClient
           .getWorkerInfoList(new GetWorkerInfoListTOptions()).getWorkerInfoList()) {
-        result.add(ThriftUtils.fromThrift(workerInfo));
+        result.add(WorkerInfo.fromThrift(workerInfo));
       }
       return result;
     });
@@ -95,7 +94,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       List<WorkerInfo> result = new ArrayList<>();
       for (alluxio.thrift.WorkerInfo workerInfo : mClient
           .getWorkerReport(options.toThrift()).getWorkerInfoList()) {
-        result.add(ThriftUtils.fromThrift(workerInfo));
+        result.add(WorkerInfo.fromThrift(workerInfo));
       }
       return result;
     });
@@ -109,8 +108,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    */
   public synchronized BlockInfo getBlockInfo(final long blockId) throws IOException {
     return retryRPC(() ->
-      ThriftUtils
-          .fromThrift(mClient.getBlockInfo(blockId, new GetBlockInfoTOptions()).getBlockInfo())
+      BlockInfo.fromThrift(mClient.getBlockInfo(blockId, new GetBlockInfoTOptions()).getBlockInfo())
     );
   }
 
@@ -125,9 +123,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
           thriftFields.add(field.toThrift());
         }
       }
-      return ThriftUtils.fromThrift(
-          mClient.getBlockMasterInfo(new GetBlockMasterInfoTOptions(thriftFields))
-              .getBlockMasterInfo());
+      return BlockMasterInfo.fromThrift(mClient
+          .getBlockMasterInfo(new GetBlockMasterInfoTOptions(thriftFields)).getBlockMasterInfo());
     });
   }
 

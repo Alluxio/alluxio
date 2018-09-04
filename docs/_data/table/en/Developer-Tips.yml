@@ -1,18 +1,28 @@
+extensions:
+  Manage extensions to core Alluxio
 format:
   Format Alluxio Master and all Workers. The option [-s] indicates that the command should only
   format when the underfs is local and doesn't already exist.
+formatMaster:
+  Format Alluxio master.
 formatWorker:
-  Format Alluxio Worker storage on this local node.
+  Format Alluxio Worker storage.
 bootstrapConf:
   Generate the bootstrap config file <code>alluxio-env.sh</code> with the specified
   <code>ALLUXIO_MASTER_HOSTNAME</code>, if the config file doesn't exist.
 fs:
   Interact with Alluxio in command line style for basic file system operations.
   See <a href="Command-Line-Interface.html">Command Line</a> for more information.
+fsadmin:
+  Command line tool for use by Alluxio filesystem admins.
+  See <a href="Admin-CLI.html">Fsadmin Command Line</a> for more information.
+getConf:
+  Look up a configuration key, or print all configuration.
 loadufs:
   Loads files under <code>UfsPath</code> to the given <code>AlluxioPath</code>.
-  <code>ExcludePathPrefixes</code> can be a set of prefixes which are separated by ';'.
-  The paths with a prefix in <code>ExcludePathPrefixes</code> will not be loaded.
+  This command has been deprecated since version 1.1.
+  Use the <code>alluxio fs mount &lt;AlluxioURI&gt; &lt;UfsURI&gt;</code> command followed by the
+  <code>alluxio fs ls -R &lt;AlluxioURI&gt;</code> command instead.
 logLevel:
   Dynamically changes the log level of a class on the running Alluxio server.
   Try alluxio logLevel -help to see the meaning of each argument in detail.
@@ -29,8 +39,13 @@ journalCrashTest:
 readJournal:
   Read a Alluxio journal file from stdin and write a human-readable version of it to stdout. You
   can run this on the journal file as <code>alluxio readJournal < journal/FileSystemMaster/log.out</code>.
+upgradeJournal:
+  Upgrade an Alluxio journal version 0 (Alluxio version &lt; 1.5.0) to an Alluxio journal version
+   1 (Alluxio version &gt;= 1.5.0).
 killAll:
   Kill processes whose pid or command contains the <code>WORD</code> specified by the user.
+confDocGen:
+  Generate configuration docs.
 copyDir:
   Copy the <code>PATH</code> to all worker nodes.
 clearCache:

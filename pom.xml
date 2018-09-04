@@ -14,7 +14,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>1.8.0-SNAPSHOT</version>
+  <version>1.9.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -138,9 +138,7 @@
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
-    <checkstyle.path>build/checkstyle/</checkstyle.path>
     <cxf.version>2.7.0</cxf.version>
-    <findbugs.path>build/findbugs</findbugs.path>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <gmetric4j.version>1.0.7</gmetric4j.version>
     <hadoop.version>2.2.0</hadoop.version>
@@ -150,7 +148,6 @@
     <jetty.version>9.2.16.v20160414</jetty.version>
     <junit.version>4.12</junit.version>
     <libthrift.version>0.9.3</libthrift.version>
-    <license.header.path>build/license/</license.header.path>
     <log4j.version>1.2.17</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
@@ -161,12 +158,12 @@
     <slf4j.version>1.7.2</slf4j.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
+    <surefire.excludesFile>slow-tests</surefire.excludesFile>
     <test.output.redirect>true</test.output.redirect>
   </properties>
 
   <modules>
     <module>assembly</module>
-    <module>checker</module>
     <module>core</module>
     <module>examples</module>
     <module>integration</module>
@@ -348,7 +345,7 @@
       <dependency>
         <groupId>jline</groupId>
         <artifactId>jline</artifactId>
-        <version>2.14.2</version>
+        <version>2.14.6</version>
       </dependency>
       <dependency>
         <groupId>log4j</groupId>
@@ -359,6 +356,11 @@
         <groupId>net.java.dev.jets3t</groupId>
         <artifactId>jets3t</artifactId>
         <version>0.8.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>1.16.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -955,6 +957,7 @@
           <version>2.19.1</version>
           <configuration>
             <argLine>-Djava.net.preferIPv4Stack=true</argLine>
+            <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
             <forkCount>${surefire.forkCount}</forkCount>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>
@@ -1067,7 +1070,7 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
         <configuration>
-          <excludeFilterFile>${findbugs.path}/findbugs-exclude.xml</excludeFilterFile>
+          <excludeFilterFile>${build.path}/findbugs/findbugs-exclude.xml</excludeFilterFile>
           <!--
               Enables analysis which takes more memory but finds more bugs.
               If you run out of memory, changes the value of the effort element
@@ -1094,8 +1097,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <configuration>
-          <configLocation>${checkstyle.path}alluxio_checks.xml</configLocation>
-          <suppressionsLocation>${checkstyle.path}suppressions.xml</suppressionsLocation>
+          <configLocation>${build.path}/checkstyle/alluxio_checks.xml</configLocation>
+          <suppressionsLocation>${build.path}/checkstyle/suppressions.xml</suppressionsLocation>
           <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
           <!-- Ensure generated source files are not style-checked -->
           <sourceDirectories>
@@ -1125,7 +1128,7 @@
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <configuration>
-          <header>${license.header.path}HEADER.txt</header>
+          <header>${build.path}/license/HEADER.txt</header>
           <failIfMissing>true</failIfMissing>
           <aggregate>false</aggregate>
           <excludes>
@@ -1225,6 +1228,13 @@
 
   <profiles>
     <profile>
+      <id>runAllTests</id>
+      <properties>
+        <surefire.excludesFile>no-excludes</surefire.excludesFile>
+      </properties>
+    </profile>
+
+    <profile>
       <id>contractTest</id>
       <properties>
         <hadoop.version>2.6.5</hadoop.version>
@@ -1239,58 +1249,16 @@
     </profile>
 
     <profile>
-      <id>hadoop-2.2</id>
+      <id>hadoop-2</id>
       <properties>
         <hadoop.version>2.2.0</hadoop.version>
       </properties>
     </profile>
 
     <profile>
-      <id>hadoop-2.3</id>
+      <id>hadoop-3</id>
       <properties>
-        <hadoop.version>2.3.0</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.4</id>
-      <properties>
-        <hadoop.version>2.4.1</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.5</id>
-      <properties>
-        <hadoop.version>2.5.2</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.6</id>
-      <properties>
-        <hadoop.version>2.6.5</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.7</id>
-      <properties>
-        <hadoop.version>2.7.5</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.8</id>
-      <properties>
-        <hadoop.version>2.8.3</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.9</id>
-      <properties>
-        <hadoop.version>2.9.0</hadoop.version>
+        <hadoop.version>3.0.0</hadoop.version>
       </properties>
     </profile>
 
@@ -1345,6 +1313,37 @@
             </plugin>
           </plugins>
         </pluginManagement>
+      </build>
+    </profile>
+    <profile>
+      <id>generateDocs</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>exec-maven-plugin</artifactId>
+            <groupId>org.codehaus.mojo</groupId>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>Generate documentation</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>jekyll</executable>
+                  <arguments>
+                    <argument>build</argument>
+                    <argument>--source</argument>
+                    <argument>docs</argument>
+                    <argument>--destination</argument>
+                    <argument>docs/_site</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
       </build>
     </profile>
   </profiles>

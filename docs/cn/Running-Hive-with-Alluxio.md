@@ -17,13 +17,11 @@ priority: 2
 
 接着[下载Hive](http://hive.apache.org/downloads.html)。
 
-## 配置
-
 在Hadoop MapReduce上运行Hive之前，请按照[在Alluxio上运行MapReduce](Running-Hadoop-MapReduce-on-Alluxio.html)的指示来确保MapReduce可以运行在Alluxio上。
 
 ## 配置Hive
 
-我们建议您从Alluxio[下载页面](http://www.alluxio.org/download)下载压缩包。或者，高级用户可以选择按照[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)的说明来从源码编译这个客户端jar。Alluxio客户端jar可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`找到。
+我们建议您从Alluxio[下载页面](http://www.alluxio.org/download)下载压缩包。或者，高级用户可以选择按照[这里](Building-Alluxio-From-Source.html#compute-framework-support)的说明来从源码编译这个客户端jar。Alluxio客户端jar可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`找到。
 
 在shell或`conf/hive-env.sh`中设置`HIVE_AUX_JARS_PATH`：
 
@@ -34,7 +32,7 @@ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 
 ## 在Alluxio上创建Hive表
 
-有不同的方法可以将Hive与Alluxio整合，以将Alluxio作为[内部表或外部表](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables)，新创建的表或已存在的表的存储器。Alluxio也可以作为Hive的默认文件系统。在接下来的部分我们会介绍对于这些情况如何在Alluxio上使用Hive。本文档中Hive运行在Hadoop MapReduce上。
+有不同的方法可以将Hive与Alluxio整合。这一节讨论的是如何将Alluxio作为文件系统的一员（像HDFS）来存储Hive表。这些表可以是[内部的或外部的](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables)，新创建的表或HDFS中已存在的表。[下一节](Running-Hive-with-Alluxio.html#use-alluxio-as-default-filesystem)讨论的是如何将Alluxio作为Hive的默认文件系统。在接下来的部分，文档中的Hive运行在Hadoop MapReduce上。
 *建议：接下来所有的Hive命令行例子同样适用于Hive Beeline。你可以在Beeline shell中尝试这些例子*
 
 ### 使用文件在Alluxio中创建新表
@@ -249,7 +247,7 @@ hive> select * from u_user;
 您可以在Alluxio项目目录中运行以下命令：
 
 ```bash
-$ checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
+$ integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
 ```
 
 您可以使用`-h`来显示有关该命令的有用信息。

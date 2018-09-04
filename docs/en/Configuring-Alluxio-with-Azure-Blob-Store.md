@@ -13,7 +13,7 @@ This guide describes how to configure Alluxio with [Azure Blob Store](https://az
 
 ## Initial Setup
 
-To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these machines. You can either [compile the binaries from Alluxio source code](Building-Alluxio-Master-Branch.html), or [download the precompiled binaries directly](Running-Alluxio-Locally.html).
+To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these machines. You can either [compile the binaries from Alluxio source code](Building-Alluxio-From-Source.html), or [download the precompiled binaries directly](Running-Alluxio-Locally.html).
 
 Also, in preparation for using Azure Blob Store with Alluxio, create a new container in your Azure
 storage account or use an existing container. You should also note that the directory you want to
@@ -43,10 +43,11 @@ The first modification is to specify the underfs address by modifying `conf/allu
 alluxio.underfs.address=wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
-Next, specify credentials for the Azure account by adding the following properties in `conf/alluxio-site.properties`:
+Next, specify credentials for the Azure account of the root mount point by adding the following
+properties in `conf/alluxio-site.properties`:
 
 ```
-fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
+alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
 ```
 
 ### Nested Mount

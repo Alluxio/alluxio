@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
@@ -73,8 +74,12 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
   private static final int MAX_TRY = 5;
   private static final String HDFS_USER = "";
+  /** Name of the class for the HDFS Acl provider. */
+  private static final String HDFS_ACL_PROVIDER_CLASS =
+      "alluxio.underfs.hdfs.acl.SupportedHdfsAclProvider";
 
   private final LoadingCache<String, FileSystem> mUserFs;
+  private final HdfsAclProvider mHdfsAclProvider;
   private UnderFileSystemConfiguration mUfsConf;
 
   /**
@@ -100,6 +105,26 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration hdfsConf) {
     super(ufsUri, conf);
+
+    // Create the supported HdfsAclProvider if possible.
+    HdfsAclProvider hdfsAclProvider = new NoopHdfsAclProvider();
+    try {
+      // The HDFS acl provider class may not be available, so the class must be created from a
+      // string literal.
+      Object o = Class.forName(HDFS_ACL_PROVIDER_CLASS).newInstance();
+      if (o instanceof HdfsAclProvider) {
+        hdfsAclProvider = (HdfsAclProvider) o;
+      } else {
+        LOG.warn(
+            "SupportedHdfsAclProvider is not instance of HdfsAclProvider. HDFS ACLs will not be "
+                + "supported.");
+      }
+    } catch (Exception e) {
+      // ignore
+      LOG.warn("Cannot create SupportedHdfsAclProvider. HDFS ACLs will not be supported.");
+    }
+    mHdfsAclProvider = hdfsAclProvider;
+
     mUfsConf = conf;
     Path path = new Path(ufsUri.toString());
     // UserGroupInformation.setConfiguration(hdfsConf) will trigger service loading.
@@ -146,7 +171,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
     // Load HDFS site properties from the given file and overwrite the default HDFS conf,
     // the path of this file can be passed through --option
-    for (String path : conf.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":")) {
+    for (String path : conf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":")) {
       hdfsConf.addResource(new Path(path));
     }
 
@@ -154,7 +179,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     // discover available file system implementations. However this configuration setting is
     // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
     // if present propagate it to the Hadoop configuration
-    String ufsHdfsImpl = conf.getValue(PropertyKey.UNDERFS_HDFS_IMPL);
+    String ufsHdfsImpl = conf.get(PropertyKey.UNDERFS_HDFS_IMPL);
     if (!StringUtils.isEmpty(ufsHdfsImpl)) {
       hdfsConf.set("fs.hdfs.impl", ufsHdfsImpl);
     }
@@ -165,7 +190,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         System.getProperty("fs.hdfs.impl.disable.cache", "true"));
 
     // Set all parameters passed through --option
-    for (Map.Entry<String, String> entry : conf.getUserSpecifiedConf().entrySet()) {
+    for (Map.Entry<String, String> entry : conf.getMountSpecificConf().entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
     return hdfsConf;
@@ -219,6 +244,16 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public AccessControlList getAcl(String path) throws IOException {
+    return mHdfsAclProvider.getAcl(getFs(), path);
+  }
+
+  @Override
+  public void setAcl(String path, AccessControlList acl) throws IOException {
+    mHdfsAclProvider.setAcl(getFs(), path, acl);
+  }
+
+  @Override
   public long getBlockSizeByte(String path) throws IOException {
     Path tPath = new Path(path);
     FileSystem hdfs = getFs();
@@ -249,7 +284,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       throws IOException {
     // If the user has hinted the underlying storage nodes are not co-located with Alluxio
     // workers, short circuit without querying the locations
-    if (Boolean.valueOf(mUfsConf.getValue(PropertyKey.UNDERFS_HDFS_REMOTE))) {
+    if (Boolean.valueOf(mUfsConf.get(PropertyKey.UNDERFS_HDFS_REMOTE))) {
       return null;
     }
     FileSystem hdfs = getFs();
@@ -381,12 +416,12 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public void connectFromMaster(String host) throws IOException {
-    if (!mUfsConf.containsKey(PropertyKey.MASTER_KEYTAB_KEY_FILE)
-        || !mUfsConf.containsKey(PropertyKey.MASTER_PRINCIPAL)) {
+    if (!mUfsConf.isSet(PropertyKey.MASTER_KEYTAB_KEY_FILE)
+        || !mUfsConf.isSet(PropertyKey.MASTER_PRINCIPAL)) {
       return;
     }
-    String masterKeytab = mUfsConf.getValue(PropertyKey.MASTER_KEYTAB_KEY_FILE);
-    String masterPrincipal = mUfsConf.getValue(PropertyKey.MASTER_PRINCIPAL);
+    String masterKeytab = mUfsConf.get(PropertyKey.MASTER_KEYTAB_KEY_FILE);
+    String masterPrincipal = mUfsConf.get(PropertyKey.MASTER_PRINCIPAL);
 
     login(PropertyKey.MASTER_KEYTAB_KEY_FILE, masterKeytab, PropertyKey.MASTER_PRINCIPAL,
         masterPrincipal, host);
@@ -394,12 +429,12 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public void connectFromWorker(String host) throws IOException {
-    if (!mUfsConf.containsKey(PropertyKey.WORKER_KEYTAB_FILE)
-        || !mUfsConf.containsKey(PropertyKey.WORKER_PRINCIPAL)) {
+    if (!mUfsConf.isSet(PropertyKey.WORKER_KEYTAB_FILE)
+        || !mUfsConf.isSet(PropertyKey.WORKER_PRINCIPAL)) {
       return;
     }
-    String workerKeytab = mUfsConf.getValue(PropertyKey.WORKER_KEYTAB_FILE);
-    String workerPrincipal = mUfsConf.getValue(PropertyKey.WORKER_PRINCIPAL);
+    String workerKeytab = mUfsConf.get(PropertyKey.WORKER_KEYTAB_FILE);
+    String workerPrincipal = mUfsConf.get(PropertyKey.WORKER_PRINCIPAL);
 
     login(PropertyKey.WORKER_KEYTAB_FILE, workerKeytab, PropertyKey.WORKER_PRINCIPAL,
         workerPrincipal, host);
@@ -542,7 +577,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       LOG.debug("Exception : ", e);
       LOG.warn("In order for Alluxio to modify ownership of local files, "
           + "Alluxio should be the local file system superuser.");
-      if (!Boolean.valueOf(mUfsConf.getValue(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE))) {
+      if (!Boolean.valueOf(mUfsConf.get(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE))) {
         throw e;
       } else {
         LOG.warn("Failure is ignored, which may cause permission inconsistency between "

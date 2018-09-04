@@ -21,29 +21,30 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A class representing a non-unique index. A non-unique index is
- * an index where an index value can map to one or more objects.
+ * A class representing a non-unique index. A non-unique index is an index where an index value can
+ * map to one or more objects.
  *
  * @param <T> type of objects in this index
+ * @param <V> type of the field used for indexing
  */
 @ThreadSafe
-public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
-  private final IndexDefinition<T> mIndexDefinition;
-  private final ConcurrentHashMap<Object, ConcurrentHashSet<T>> mIndexMap;
+public class NonUniqueFieldIndex<T, V> implements FieldIndex<T, V> {
+  private final IndexDefinition<T, V> mIndexDefinition;
+  private final ConcurrentHashMap<V, ConcurrentHashSet<T>> mIndexMap;
 
   /**
    * Constructs a new {@link NonUniqueFieldIndex} instance.
    *
    * @param indexDefinition definition of index
    */
-  public NonUniqueFieldIndex(IndexDefinition<T> indexDefinition) {
+  public NonUniqueFieldIndex(IndexDefinition<T, V> indexDefinition) {
     mIndexMap = new ConcurrentHashMap<>(8, 0.95f, 8);
     mIndexDefinition = indexDefinition;
   }
 
   @Override
   public boolean add(T object) {
-    Object fieldValue = mIndexDefinition.getFieldValue(object);
+    V fieldValue = mIndexDefinition.getFieldValue(object);
 
     ConcurrentHashSet<T> objSet;
 
@@ -51,7 +52,7 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
       objSet = mIndexMap.get(fieldValue);
       // If there is no object set for the current value, creates a new one.
       while (objSet == null) {
-        mIndexMap.putIfAbsent(fieldValue, new ConcurrentHashSet<T>());
+        mIndexMap.putIfAbsent(fieldValue, new ConcurrentHashSet<>());
         objSet = mIndexMap.get(fieldValue);
       }
 
@@ -70,7 +71,7 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   @Override
   public boolean remove(T object) {
     boolean res = false;
-    Object fieldValue = mIndexDefinition.getFieldValue(object);
+    V fieldValue = mIndexDefinition.getFieldValue(object);
     ConcurrentHashSet<T> objSet = mIndexMap.get(fieldValue);
     if (objSet != null) {
       synchronized (objSet) {
@@ -92,13 +93,13 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public boolean containsField(Object fieldValue) {
+  public boolean containsField(V fieldValue) {
     return mIndexMap.containsKey(fieldValue);
   }
 
   @Override
   public boolean containsObject(T object) {
-    Object fieldValue = mIndexDefinition.getFieldValue(object);
+    V fieldValue = mIndexDefinition.getFieldValue(object);
     ConcurrentHashSet<T> set = mIndexMap.get(fieldValue);
 
     if (set == null) {
@@ -108,13 +109,13 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public Set<T> getByField(Object value) {
+  public Set<T> getByField(V value) {
     Set<T> set = mIndexMap.get(value);
     return set == null ? Collections.<T>emptySet() : set;
   }
 
   @Override
-  public T getFirst(Object value) {
+  public T getFirst(V value) {
     Set<T> all = mIndexMap.get(value);
     return all == null ? null : Iterables.getFirst(all, null);
   }
