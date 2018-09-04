@@ -2470,7 +2470,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.loadMetadata(uri,
         LoadMetadataOptions.defaults().setCreateAncestors(true));
     FileInfo info = mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
-    Assert.assertTrue(info.convertAclToStringEntries().contains("user::rw-"));
+    Assert.assertTrue(info.convertAclToStringEntries().contains("user::r-x"));
 
   }
 
