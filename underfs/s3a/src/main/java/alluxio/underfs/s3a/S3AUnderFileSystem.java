@@ -54,6 +54,8 @@ import com.amazonaws.util.Base64;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +98,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private final String mBucketName;
 
   /** Executor for executing upload tasks in streaming upload. */
-  private final ExecutorService mExecutor;
+  private final ListeningExecutorService mExecutor;
 
   /** Transfer Manager for efficient I/O to S3. */
   private final TransferManager mManager;
@@ -155,6 +157,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // Set the client configuration based on Alluxio configuration values.
     ClientConfiguration clientConf = new ClientConfiguration();
 
+    // Socket timeout
+    clientConf
+        .setSocketTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+    // Set client request timeout for all requests since multipart copy is used,
+    // and copy parts can only be set with the client configuration.
+    clientConf
+        .setRequestTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
+
     // HTTP protocol
     if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED))) {
       clientConf.setProtocol(Protocol.HTTPS);
@@ -188,15 +198,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     boolean streamingUploadEnabled =
         conf.isSet(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED)
         && conf.getBoolean(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED);
-    if (!streamingUploadEnabled) {
-      // Socket timeout
-      clientConf
-          .setSocketTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
-      // Set client request timeout for all requests since multipart copy is used,
-      // and copy parts can only be set with the client configuration.
-      clientConf
-          .setRequestTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
-    }
 
     // Signer algorithm
     if (conf.isSet(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM)) {
@@ -246,7 +247,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     super(uri, conf);
     mClient = amazonS3Client;
     mBucketName = bucketName;
-    mExecutor = executor;
+    mExecutor = MoreExecutors.listeningDecorator(executor);
     mManager = transferManager;
     mConf = conf;
     mStreamingUploadEnabled = streamingUploadEnabled;

@@ -33,7 +33,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +49,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -137,12 +135,12 @@ public class S3ALowLevelOutputStream extends OutputStream {
    * @param executor a thread pool executor
    */
   public S3ALowLevelOutputStream(String bucketName, String key, AmazonS3 s3Client,
-      ExecutorService executor) {
+      ListeningExecutorService executor) {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "
         + "not be null or empty.");
     mBucketName = bucketName;
     mClient = s3Client;
-    mExecutor = MoreExecutors.listeningDecorator(executor);
+    mExecutor = executor;
     try {
       mHash = MessageDigest.getInstance("MD5");
     } catch (NoSuchAlgorithmException e) {
@@ -152,7 +150,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
     mKey = key;
     // Partition size should be at least 5 MB, since S3 low-level multipart upload does not
     // accept intermediate part smaller than 5 MB.
-    mPartitionSize = Math.min(UPLOAD_THRESHOLD,
+    mPartitionSize = Math.max(UPLOAD_THRESHOLD,
         Configuration.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE));
     mPartNumber = new AtomicInteger(1);
   }
@@ -193,6 +191,9 @@ public class S3ALowLevelOutputStream extends OutputStream {
 
   @Override
   public void flush() throws IOException {
+    if (mUploadId == null) {
+      return;
+    }
     // We try to minimize the time use to close()
     // because Fuse release() method which calls close() is async.
     // In flush(), we upload the current writing file if it is bigger than 5 MB,
@@ -204,7 +205,6 @@ public class S3ALowLevelOutputStream extends OutputStream {
       uploadPart();
     }
     waitForAllPartsUpload();
-    mFutureTags = new ArrayList<>();
   }
 
   @Override
@@ -212,8 +212,16 @@ public class S3ALowLevelOutputStream extends OutputStream {
     if (mClosed) {
       return;
     }
+
     // Set the closed flag, we never retry close() even if exception occurs
     mClosed = true;
+
+    // Multi-part upload has not been initialized
+    if (mUploadId == null) {
+      LOG.debug("S3A Streaming upload output stream closed without uploading any data.");
+      return;
+    }
+
     try {
       if (mFile != null) {
         mLocalOutputStream.close();
@@ -344,7 +352,9 @@ public class S3ALowLevelOutputStream extends OutputStream {
    */
   private void waitForAllPartsUpload() throws IOException {
     try {
-      mTags.addAll(Futures.allAsList(mFutureTags).get());
+      for (ListenableFuture<PartETag> future : mFutureTags) {
+        mTags.add(future.get());
+      }
     } catch (ExecutionException e) {
       // No recover ways so that we need to cancel all the upload tasks
       // and abort the multipart upload
@@ -358,6 +368,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
       abortMultiPartUpload();
       Thread.currentThread().interrupt();
     }
+    mFutureTags = new ArrayList<>();
     LOG.debug("Uploaded {} partitions of id '{}' to {}.", mTags.size(), mUploadId, mKey);
   }
 
