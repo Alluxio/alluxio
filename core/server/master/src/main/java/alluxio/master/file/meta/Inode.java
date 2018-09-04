@@ -415,6 +415,9 @@ public abstract class Inode<T> implements InodeView {
    * @return the updated object
    */
   public T setAcl(List<AclEntry> entries) {
+    if (entries == null || entries.isEmpty()) {
+      return getThis();
+    }
     for (AclEntry entry : entries) {
       if (entry.isDefault()) {
         getDefaultACL().setEntry(entry);

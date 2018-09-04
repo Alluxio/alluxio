@@ -15,6 +15,8 @@ import alluxio.collections.Pair;
 import alluxio.thrift.TAcl;
 
 import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +26,7 @@ import java.util.List;
  */
 public class DefaultAccessControlList extends AccessControlList {
   private static final long serialVersionUID = 8649647787531425489L;
-
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultAccessControlList.class);
   public static final DefaultAccessControlList EMPTY_DEFAULT_ACL = new DefaultAccessControlList();
 
   /**
@@ -60,27 +62,47 @@ public class DefaultAccessControlList extends AccessControlList {
 
   /**
    * create a child file 's accessACL based on the default ACL.
+   * @param mode file's initial mode based on umask
    * @return child file's access ACL
    */
-  public AccessControlList generateChildFileACL() {
+  public AccessControlList generateChildFileACL(Short mode) {
+    LOG.info("short mode {}", mode);
+    Mode defaultMode = new Mode(mode);
     AccessControlList acl = new AccessControlList();
     acl.mOwningUser = mOwningUser;
     acl.mOwningGroup = mOwningGroup;
     acl.mMode = mMode;
     if (mExtendedEntries == null) {
       acl.mExtendedEntries = null;
+      // minimal acl so we use defaultMode to filter user/group/other
+      acl.mMode = Mode.and(new Mode(mMode), defaultMode).toShort();
     } else {
+      // Rules for having extended entries, we need to modify user, mask and others'
+      // permission to be filtered by the defaultMode
       acl.mExtendedEntries = new ExtendedACLEntries(mExtendedEntries);
+
+      // mask is filtered by the group bits from the mode parameter
+      AclActions mask = acl.mExtendedEntries.getMask();
+      AclActions groupAction = new AclActions();
+      groupAction.updateByModeBits(defaultMode.getGroupBits());
+      mask.mask(groupAction);
+      // user is filtered by the user bits from the mode parameter
+      // other is filtered by the other bits from the mode parameter
+      Mode updateMode = new Mode(mMode);
+      updateMode.setOwnerBits(updateMode.getOwnerBits().and(defaultMode.getOwnerBits()));
+      updateMode.setOtherBits(updateMode.getOtherBits().and(defaultMode.getOtherBits()));
+      acl.mMode = updateMode.toShort();
     }
     return acl;
   }
 
   /**
    * Creates a child directory's access ACL and default ACL based on the default ACL.
+   * @param mode child's initial mode based on umask
    * @return child directory's access ACL and default ACL
    */
-  public Pair<AccessControlList, DefaultAccessControlList> generateChildDirACL() {
-    AccessControlList acl = generateChildFileACL();
+  public Pair<AccessControlList, DefaultAccessControlList> generateChildDirACL(Short mode) {
+    AccessControlList acl = generateChildFileACL(mode);
     DefaultAccessControlList dAcl = new DefaultAccessControlList(acl);
     dAcl.setEmpty(false);
     dAcl.mOwningUser = mOwningUser;

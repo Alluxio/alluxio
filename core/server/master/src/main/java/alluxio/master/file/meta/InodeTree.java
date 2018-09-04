@@ -666,10 +666,11 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         newDir.setPinned(currentInodeDirectory.isPinned());
 
         // if the parent has default ACL, copy that default ACL as the new directory's default
-        // and access acl.
+        // and access acl, take into account of the directory's initial mode (umask)
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
         if (!dAcl.isEmpty()) {
-          Pair<AccessControlList, DefaultAccessControlList> pair = dAcl.generateChildDirACL();
+          Pair<AccessControlList, DefaultAccessControlList> pair =
+              dAcl.generateChildDirACL(newDir.getMode());
           newDir.setInternalAcl(pair.getFirst());
           newDir.setDefaultACL(pair.getSecond());
         }
@@ -766,7 +767,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         // and access acl.
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
         if (!dAcl.isEmpty()) {
-          Pair<AccessControlList, DefaultAccessControlList> pair = dAcl.generateChildDirACL();
+          Pair<AccessControlList, DefaultAccessControlList> pair =
+              dAcl.generateChildDirACL(newDir.getMode());
           newDir.setInternalAcl(pair.getFirst());
           newDir.setDefaultACL(pair.getSecond());
         }
@@ -802,7 +804,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         // if the parent has a default ACL, copy that default ACL as the new file's access ACL.
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
         if (!dAcl.isEmpty()) {
-          AccessControlList acl = dAcl.generateChildFileACL();
+          AccessControlList acl = dAcl.generateChildFileACL(newFile.getMode());
           newFile.setInternalAcl(acl);
         }
 
