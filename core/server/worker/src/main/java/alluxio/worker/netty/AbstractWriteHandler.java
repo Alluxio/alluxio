@@ -107,8 +107,6 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
    * visible across both netty and I/O threads, meanwhile no atomicity of operation is assumed;
    */
   private volatile T mContext;
-  /** Record flushed to avoid duplicate initialize the context. */
-  private boolean mFlushed;
 
   /**
    * Creates an instance of {@link AbstractWriteHandler}.
@@ -142,7 +140,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         isNewContextCreated = true;
       }
       // Only initialize (open the writers) if this is the first packet in the block/file.
-      if (writeRequest.getOffset() == 0 && !mFlushed) {
+      if (writeRequest.getOffset() == 0) {
         // Expected state: context equals null as this handler is new for request, or the previous
         // context is not active (done / cancel / abort). Otherwise, notify the client an illegal
         // state. Note that, we reset the context before validation msg as validation may require to
@@ -175,7 +173,6 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
       } else if (writeRequest.getCancel()) {
         buf = CANCEL;
       } else if (writeRequest.getFlush()) {
-        mFlushed = true;
         buf = FLUSH;
       } else {
         DataBuffer dataBuffer = msg.getPayloadDataBuffer();
@@ -297,10 +294,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
 
         if (buf == FLUSH) {
           try {
-            if (mContext.getPosToWrite() != 0) {
-              // Flush should only happen after write
-              flushRequest(mContext);
-            }
+            flushRequest(mContext);
             replyFlush();
             continue;
           } catch (Exception e) {
