@@ -146,17 +146,19 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     }
     CreateDirectoryOptions that = (CreateDirectoryOptions) o;
     return Objects.equal(mAllowExists, that.mAllowExists)
-        && Objects.equal(mUfsStatus, that.mUfsStatus);
+        && Objects.equal(mUfsStatus, that.mUfsStatus)
+        && Objects.equal(mDefaultAcl, that.mDefaultAcl);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mAllowExists, mUfsStatus);
+    return super.hashCode() + Objects.hashCode(mAllowExists, mUfsStatus, mDefaultAcl);
   }
 
   @Override
   public String toString() {
     return toStringHelper().add("allowExists", mAllowExists)
-        .add("ufsStatus", mUfsStatus).toString();
+        .add("ufsStatus", mUfsStatus)
+        .add("defaultAcl", mDefaultAcl).toString();
   }
 }
