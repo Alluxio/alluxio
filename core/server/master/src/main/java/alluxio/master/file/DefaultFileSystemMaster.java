@@ -2381,8 +2381,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true)
         .setTtl(options.getTtl()).setTtlAction(options.getTtlAction());
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-    LOG.info("resolved path from {}", inodePath.getUri());
-    LOG.info("resolved path {}", resolution.getUri());
     UfsStatus ufsStatus = options.getUfsStatus();
     if (ufsStatus == null) {
       AlluxioURI ufsUri = resolution.getUri();
