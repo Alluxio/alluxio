@@ -229,7 +229,7 @@ public final class NettyPacketWriter implements PacketWriter {
   @Override
   public void flush() throws IOException {
     mChannel.flush();
-    long pos = 0;
+    long pos;
     try (LockResource lr = new LockResource(mLock)) {
       if (mPosToQueue == 0) {
         return;
@@ -250,7 +250,7 @@ public final class NettyPacketWriter implements PacketWriter {
       Thread.currentThread().interrupt();
       throw new CanceledException(e);
     }
-    if (mEOFSent || mCancelSent || pos == 0) {
+    if (mEOFSent || mCancelSent) {
       return;
     }
     Protocol.WriteRequest writeRequest =
@@ -406,9 +406,9 @@ public final class NettyPacketWriter implements PacketWriter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
       Preconditions.checkState(acceptMessage(msg), "Incorrect response type %s.", msg);
       RPCProtoMessage message = (RPCProtoMessage) msg;
+      Protocol.Response response = message.getMessage().asResponse();
       // Canceled is considered a valid status and handled in the writer. We avoid creating a
       // CanceledException as an optimization.
-      Protocol.Response response = message.getMessage().asResponse();
       if (response.getStatus() != PStatus.CANCELED) {
         CommonUtils.unwrapResponseFrom(response, ctx.channel());
       }
