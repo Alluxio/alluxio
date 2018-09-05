@@ -93,8 +93,8 @@ $ echo "aws.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
 $ echo "aws.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
 ```
 
-You will have to replace **<AWS_ACCESS_KEY_ID>** with your AWS access key id, and
-**<AWS_SECRET_ACCESS_KEY>** with your AWS secret access key. Now, Alluxio is fully configured for
+You will have to replace **`<AWS_ACCESS_KEY_ID>`** with your AWS access key id, and
+**`<AWS_SECRET_ACCESS_KEY>`** with your AWS secret access key. Now, Alluxio is fully configured for
 the rest of this guide.
 
 ## Validating Alluxio environment
@@ -107,7 +107,7 @@ Alluxio configuration:
 $ ./bin/alluxio validateEnv local
 ```
 
-This will report potential problems that might prevent you from starting Alluxio services locally. If
+This will report potential problems that might prevent you from starting Alluxio services locally. If you're running it for the first time, you might see an error about underFSStorage. You can ignore that for now. If
 you configured Alluxio to run in a cluster and you want to validate environment on all nodes, you
 can run the following command instead:
 
