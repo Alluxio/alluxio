@@ -11,13 +11,11 @@
 
 package alluxio.wire;
 
-import static alluxio.util.StreamUtils.map;
 
 import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.net.HostAndPort;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -92,53 +90,6 @@ public final class FileBlockInfo implements Serializable {
     return this;
   }
 
-<<<<<<< HEAD:core/base/src/main/java/alluxio/wire/FileBlockInfo.java
-||||||| merged common ancestors
-  /**
-   * @return thrift representation of the file block information
-   */
-  protected alluxio.thrift.FileBlockInfo toThrift() {
-    List<alluxio.thrift.WorkerNetAddress> ufsLocations = new ArrayList<>();
-    for (String ufsLocation : mUfsLocations) {
-      HostAndPort address = HostAndPort.fromString(ufsLocation);
-      ufsLocations.add(new alluxio.thrift.WorkerNetAddress().setHost(address.getHostText())
-          .setDataPort(address.getPortOrDefault(-1)));
-    }
-    return new alluxio.thrift.FileBlockInfo(mBlockInfo.toThrift(), mOffset, ufsLocations,
-        mUfsLocations);
-  }
-
-=======
-  /**
-   * @return thrift representation of the file block information
-   */
-  protected alluxio.thrift.FileBlockInfo toThrift() {
-    List<alluxio.thrift.WorkerNetAddress> ufsLocations = new ArrayList<>();
-    for (String ufsLocation : mUfsLocations) {
-      HostAndPort address = HostAndPort.fromString(ufsLocation);
-      ufsLocations.add(new alluxio.thrift.WorkerNetAddress().setHost(address.getHostText())
-          .setDataPort(address.getPortOrDefault(-1)));
-    }
-    return new alluxio.thrift.FileBlockInfo(mBlockInfo.toThrift(), mOffset, ufsLocations,
-        mUfsLocations);
-  }
-
-  /**
-   * Creates a new instance of {@link FileBlockInfo} from a thrift representation.
-   *
-   * @param info the thrift representation of a file block information
-   * @return the instance
-   */
-  public static FileBlockInfo fromThrift(alluxio.thrift.FileBlockInfo info) {
-    return new FileBlockInfo()
-        .setBlockInfo(BlockInfo.fromThrift(info.getBlockInfo()))
-        .setOffset(info.getOffset())
-        .setUfsLocations(info.getUfsStringLocationsSize() > 0 ? info.getUfsStringLocations()
-            : map(addr -> HostAndPort.fromParts(addr.getHost(), addr.getDataPort()).toString(),
-                info.getUfsLocations()));
-  }
-
->>>>>>> master:core/common/src/main/java/alluxio/wire/FileBlockInfo.java
   @Override
   public boolean equals(Object o) {
     if (this == o) {

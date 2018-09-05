@@ -143,65 +143,6 @@ public final class WorkerNetAddress implements Serializable {
     return this;
   }
 
-<<<<<<< HEAD:core/base/src/main/java/alluxio/wire/WorkerNetAddress.java
-||||||| merged common ancestors
-  /**
-   * @return a net address of thrift construct
-   */
-  protected alluxio.thrift.WorkerNetAddress toThrift() {
-    alluxio.thrift.WorkerNetAddress address = new alluxio.thrift.WorkerNetAddress();
-    address.setHost(mHost);
-    address.setRpcPort(mRpcPort);
-    address.setDataPort(mDataPort);
-    address.setWebPort(mWebPort);
-    address.setDomainSocketPath(mDomainSocketPath);
-    if (mTieredIdentity != null) {
-      address.setTieredIdentity(mTieredIdentity.toThrift());
-    }
-    return address;
-  }
-
-=======
-  /**
-   * @return a net address of thrift construct
-   */
-  public alluxio.thrift.WorkerNetAddress toThrift() {
-    alluxio.thrift.WorkerNetAddress address = new alluxio.thrift.WorkerNetAddress();
-    address.setHost(mHost);
-    address.setRpcPort(mRpcPort);
-    address.setDataPort(mDataPort);
-    address.setWebPort(mWebPort);
-    address.setDomainSocketPath(mDomainSocketPath);
-    if (mTieredIdentity != null) {
-      address.setTieredIdentity(mTieredIdentity.toThrift());
-    }
-    return address;
-  }
-
-  /**
-   * Creates a new instance of {@link WorkerNetAddress} from thrift representation.
-   *
-   * @param address the thrift net address
-   * @return the instance
-   */
-  public static WorkerNetAddress fromThrift(alluxio.thrift.WorkerNetAddress address) {
-    TieredIdentity tieredIdentity = TieredIdentity.fromThrift(address.getTieredIdentity());
-    if (tieredIdentity == null) {
-      // This means the worker is pre-1.7.0. We handle this in post-1.7.0 clients by filling out
-      // the tiered identity using the hostname field.
-      tieredIdentity = new TieredIdentity(
-          Arrays.asList(new LocalityTier(Constants.LOCALITY_NODE, address.getHost())));
-    }
-    return new WorkerNetAddress()
-        .setDataPort(address.getDataPort())
-        .setDomainSocketPath(address.getDomainSocketPath())
-        .setHost(address.getHost())
-        .setRpcPort(address.getRpcPort())
-        .setTieredIdentity(tieredIdentity)
-        .setWebPort(address.getWebPort());
-  }
-
->>>>>>> master:core/common/src/main/java/alluxio/wire/WorkerNetAddress.java
   @Override
   public boolean equals(Object o) {
     if (this == o) {

@@ -11,6 +11,8 @@
 
 package alluxio.util.grpc;
 
+import static alluxio.util.StreamUtils.map;
+
 import alluxio.file.options.CheckConsistencyOptions;
 import alluxio.file.options.CommonOptions;
 import alluxio.file.options.CompleteFileOptions;
@@ -352,11 +354,7 @@ public final class GrpcUtils {
     BlockInfo blockInfo = new BlockInfo();
     blockInfo.setBlockId(blockPInfo.getBlockId());
     blockInfo.setLength(blockPInfo.getLength());
-    List<BlockLocation> blockLocations = new ArrayList<>();
-    for (alluxio.grpc.BlockLocation location : blockPInfo.getLocationsList()) {
-      blockLocations.add(fromProto(location));
-    }
-    blockInfo.setLocations(blockLocations);
+    blockInfo.setLocations(map(GrpcUtils::fromProto, blockPInfo.getLocationsList()));
     return blockInfo;
   }
 
@@ -406,18 +404,13 @@ public final class GrpcUtils {
    * Converts a proto type to a wire type.
    */
   public static FileBlockInfo fromProto(alluxio.grpc.FileBlockInfo fileBlockPInfo) {
-    FileBlockInfo fileBlockInfo = new FileBlockInfo();
-    fileBlockInfo.setBlockInfo(fromProto(fileBlockPInfo.getBlockInfo()));
-    fileBlockInfo.setOffset(fileBlockInfo.getOffset());
-    if (fileBlockPInfo.getUfsStringLocationsCount() != 0) {
-      fileBlockInfo.setUfsLocations(new ArrayList<>(fileBlockPInfo.getUfsStringLocationsList()));
-    } else if (fileBlockPInfo.getUfsLocationsCount() != 0) {
-      for (alluxio.grpc.WorkerNetAddress address : fileBlockPInfo.getUfsLocationsList()) {
-        fileBlockInfo.getUfsLocations()
-            .add(HostAndPort.fromParts(address.getHost(), address.getDataPort()).toString());
-      }
-    }
-    return fileBlockInfo;
+    return new FileBlockInfo()
+        .setBlockInfo(fromProto(fileBlockPInfo.getBlockInfo()))
+        .setOffset(fileBlockPInfo.getOffset())
+        .setUfsLocations(
+            fileBlockPInfo.getUfsLocationsCount() > 0 ? fileBlockPInfo.getUfsStringLocationsList()
+                : map(addr -> HostAndPort.fromParts(addr.getHost(), addr.getDataPort()).toString(),
+                    fileBlockPInfo.getUfsLocationsList()));
   }
 
   /**
@@ -786,6 +779,6 @@ public final class GrpcUtils {
     return address.build();
   }
 
-  // TODO(adit): ACL conversions
+  // TODO(adit): ACL conversions for createpath
 }
 

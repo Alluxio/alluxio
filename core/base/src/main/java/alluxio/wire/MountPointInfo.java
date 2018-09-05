@@ -154,43 +154,6 @@ public class MountPointInfo implements Serializable {
     return this;
   }
 
-<<<<<<< HEAD:core/base/src/main/java/alluxio/wire/MountPointInfo.java
-||||||| merged common ancestors
-  /**
-   * @return thrift representation of the file information
-   */
-  protected alluxio.thrift.MountPointInfo toThrift() {
-    return new alluxio.thrift.MountPointInfo(mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes,
-        mReadOnly, mProperties, mShared);
-  }
-
-=======
-  /**
-   * @return thrift representation of the file information
-   */
-  public alluxio.thrift.MountPointInfo toThrift() {
-    return new alluxio.thrift.MountPointInfo(mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes,
-        mReadOnly, mProperties, mShared);
-  }
-
-  /**
-   * Creates a new instance of {@link MountPointInfo} from thrift representation.
-   *
-   * @param info the thrift representation of a mount point information
-   * @return the instance
-   */
-  public static MountPointInfo fromThrift(alluxio.thrift.MountPointInfo info) {
-    return new MountPointInfo()
-        .setUfsUri(info.getUfsUri())
-        .setUfsType(info.getUfsType())
-        .setUfsCapacityBytes(info.getUfsCapacityBytes())
-        .setUfsUsedBytes(info.getUfsUsedBytes())
-        .setReadOnly(info.isReadOnly())
-        .setProperties(info.getProperties())
-        .setShared(info.isShared());
-  }
-
->>>>>>> master:core/common/src/main/java/alluxio/wire/MountPointInfo.java
   @Override
   public boolean equals(Object o) {
     if (this == o) {

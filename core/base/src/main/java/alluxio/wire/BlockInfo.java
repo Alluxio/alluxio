@@ -11,8 +11,6 @@
 
 package alluxio.wire;
 
-import static alluxio.util.StreamUtils.map;
-
 import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
@@ -89,45 +87,6 @@ public final class BlockInfo implements Serializable {
     return this;
   }
 
-<<<<<<< HEAD:core/base/src/main/java/alluxio/wire/BlockInfo.java
-||||||| merged common ancestors
-  /**
-   * @return thrift representation of the block information
-   */
-  protected alluxio.thrift.BlockInfo toThrift() {
-    List<alluxio.thrift.BlockLocation> locations = new ArrayList<>();
-    for (BlockLocation location : mLocations) {
-      locations.add(location.toThrift());
-    }
-    return new alluxio.thrift.BlockInfo(mBlockId, mLength, locations);
-  }
-
-=======
-  /**
-   * @return thrift representation of the block information
-   */
-  public alluxio.thrift.BlockInfo toThrift() {
-    List<alluxio.thrift.BlockLocation> locations = new ArrayList<>();
-    for (BlockLocation location : mLocations) {
-      locations.add(location.toThrift());
-    }
-    return new alluxio.thrift.BlockInfo(mBlockId, mLength, locations);
-  }
-
-  /**
-   * Creates a new instance of {@link BlockInfo} from a thrift representation.
-   *
-   * @param blockInfo the thrift representation of a block information
-   * @return the instance
-   */
-  public static BlockInfo fromThrift(alluxio.thrift.BlockInfo blockInfo) {
-    return new BlockInfo()
-        .setBlockId(blockInfo.getBlockId())
-        .setLength(blockInfo.getLength())
-        .setLocations(map(BlockLocation::fromThrift, blockInfo.getLocations()));
-  }
-
->>>>>>> master:core/common/src/main/java/alluxio/wire/BlockInfo.java
   @Override
   public boolean equals(Object o) {
     if (this == o) {
