@@ -113,11 +113,8 @@ public final class NettyPacketWriter implements PacketWriter {
   private final Condition mBufferNotFullOrFailed = mLock.newCondition();
   /** This condition is met if there is nothing in the netty buffer. */
   private final Condition mBufferEmptyOrFailed = mLock.newCondition();
-  /**
-   * This condition is met if mPacketWriteException != null or mDone = true
-   * or flush is completed.
-   */
-  private final Condition mFlushedOrDoneOrFailed = mLock.newCondition();
+  /** This condition is met if mPacketWriteException != null or flush is completed. */
+  private final Condition mFlushedOrFailed = mLock.newCondition();
 
   /**
    * @param context the file system context
@@ -229,9 +226,8 @@ public final class NettyPacketWriter implements PacketWriter {
   @Override
   public void flush() throws IOException {
     mChannel.flush();
-    long pos;
     try (LockResource lr = new LockResource(mLock)) {
-      if (mPosToQueue == 0) {
+      if (mEOFSent || mCancelSent || mPosToQueue == 0) {
         return;
       }
       while (mPosToWrite != mPosToQueue) {
@@ -245,20 +241,11 @@ public final class NettyPacketWriter implements PacketWriter {
                   mAddress, mPartialRequest, WRITE_TIMEOUT_MS));
         }
       }
-      pos = mPosToQueue;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new CanceledException(e);
-    }
-    if (mEOFSent || mCancelSent) {
-      return;
-    }
-    Protocol.WriteRequest writeRequest =
-        mPartialRequest.toBuilder().setOffset(pos).setFlush(true).build();
-    mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
-        .addListener(new FlushListener());
-    try (LockResource lr = new LockResource(mLock)) {
-      if (!mFlushedOrDoneOrFailed.await(FLUSH_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+      Protocol.WriteRequest writeRequest =
+          mPartialRequest.toBuilder().setOffset(mPosToQueue).setFlush(true).build();
+      mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
+          .addListener(new FlushListener());
+      if (!mFlushedOrFailed.await(FLUSH_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
         throw new DeadlineExceededException(
             String.format("Timeout flush to %s for request %s after %dms.",
                 mAddress, mPartialRequest, FLUSH_TIMEOUT_MS));
@@ -413,8 +400,9 @@ public final class NettyPacketWriter implements PacketWriter {
         CommonUtils.unwrapResponseFrom(response, ctx.channel());
       }
       try (LockResource lr = new LockResource(mLock)) {
-        mFlushedOrDoneOrFailed.signal();
-        if (!response.getMessage().equals(Constants.FLUSHED_SIGNAL)) {
+        if (response.getMessage().equals(Constants.FLUSHED_SIGNAL)) {
+          mFlushedOrFailed.signal();
+        } else {
           mDone = true;
           mDoneOrFailed.signal();
         }
@@ -430,7 +418,7 @@ public final class NettyPacketWriter implements PacketWriter {
         mBufferNotFullOrFailed.signal();
         mDoneOrFailed.signal();
         mBufferEmptyOrFailed.signal();
-        mFlushedOrDoneOrFailed.signal();
+        mFlushedOrFailed.signal();
       }
       ctx.close();
     }
@@ -446,7 +434,7 @@ public final class NettyPacketWriter implements PacketWriter {
           mBufferNotFullOrFailed.signal();
           mDoneOrFailed.signal();
           mBufferEmptyOrFailed.signal();
-          mFlushedOrDoneOrFailed.signal();
+          mFlushedOrFailed.signal();
         }
       }
       ctx.fireChannelUnregistered();
@@ -494,7 +482,7 @@ public final class NettyPacketWriter implements PacketWriter {
           mDoneOrFailed.signal();
           mBufferNotFullOrFailed.signal();
           mBufferEmptyOrFailed.signal();
-          mFlushedOrDoneOrFailed.signal();
+          mFlushedOrFailed.signal();
           return;
         }
         if (mPosToWrite == mPosToQueue) {
@@ -531,7 +519,7 @@ public final class NettyPacketWriter implements PacketWriter {
           mDoneOrFailed.signal();
           mBufferNotFullOrFailed.signal();
           mBufferEmptyOrFailed.signal();
-          mFlushedOrDoneOrFailed.signal();
+          mFlushedOrFailed.signal();
         }
       }
     }
@@ -557,7 +545,7 @@ public final class NettyPacketWriter implements PacketWriter {
           mDoneOrFailed.signal();
           mBufferNotFullOrFailed.signal();
           mBufferEmptyOrFailed.signal();
-          mFlushedOrDoneOrFailed.signal();
+          mFlushedOrFailed.signal();
         }
       }
     }

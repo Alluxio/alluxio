@@ -458,7 +458,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
    * @param buf the netty byte buffer
    */
   private static void release(ByteBuf buf) {
-    if (buf != null && buf != EOF && buf != CANCEL && buf != ABORT) {
+    if (buf != null && buf != EOF && buf != CANCEL && buf != ABORT && buf != FLUSH) {
       buf.release();
     }
   }
