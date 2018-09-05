@@ -60,6 +60,8 @@ import java.util.Set;
  */
 public interface FileSystemMasterService {
 
+  FileSystemMasterOptions getMasterOptions();
+
   /**
    * @return the status of the startup consistency check and inconsistent paths if it is complete
    */
