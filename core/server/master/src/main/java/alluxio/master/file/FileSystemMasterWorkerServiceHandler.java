@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
-import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.thrift.FileSystemHeartbeatTResponse;
@@ -67,53 +66,20 @@ public final class FileSystemMasterWorkerServiceHandler
   public FileSystemHeartbeatTResponse fileSystemHeartbeat(final long workerId,
       final List<Long> persistedFiles, FileSystemHeartbeatTOptions options)
       throws AlluxioTException {
-<<<<<<< HEAD
-    return RpcUtils.call(LOG,
-        new RpcUtils.RpcCallableThrowsIOException<FileSystemHeartbeatTResponse>() {
-          @Override
-          public FileSystemHeartbeatTResponse call() throws AlluxioException, IOException {
-            return null;
-//            return new FileSystemHeartbeatTResponse(mFileSystemMaster
-//                .workerHeartbeat(workerId, persistedFiles, new WorkerHeartbeatOptions(options)));
-          }
-
-          @Override
-          public String toString() {
-            return String.format("fileSystemHeartbeat: workerId=%s, persistedFiles=%s, options=%s",
-                workerId, persistedFiles, options);
-          }
-        }
-    );
-||||||| merged common ancestors
-    return RpcUtils.call(LOG,
-        new RpcUtils.RpcCallableThrowsIOException<FileSystemHeartbeatTResponse>() {
-          @Override
-          public FileSystemHeartbeatTResponse call() throws AlluxioException, IOException {
-            return new FileSystemHeartbeatTResponse(mFileSystemMaster
-                .workerHeartbeat(workerId, persistedFiles, new WorkerHeartbeatOptions(options)));
-          }
-
-          @Override
-          public String toString() {
-            return String.format("fileSystemHeartbeat: workerId=%s, persistedFiles=%s, options=%s",
-                workerId, persistedFiles, options);
-          }
-        }
-    );
-=======
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<FileSystemHeartbeatTResponse>) () ->
-        new FileSystemHeartbeatTResponse(mFileSystemMaster.workerHeartbeat(workerId, persistedFiles,
-            new WorkerHeartbeatOptions(options))),
+        null,
+//        new FileSystemHeartbeatTResponse(mFileSystemMaster.workerHeartbeat(workerId, persistedFiles,
+//            new WorkerHeartbeatOptions(options))),
         "FileSystemHeartbeat", "workerId=%s, persistedFiles=%s, options=%s",
         workerId, persistedFiles, options);
->>>>>>> master
   }
 
   @Override
   public GetFileInfoTResponse getFileInfo(final long fileId, GetFileInfoTOptions options)
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetFileInfoTResponse>) () ->
-        new GetFileInfoTResponse(mFileSystemMaster.getFileInfo(fileId).toThrift()),
+        null,
+//        new GetFileInfoTResponse(mFileSystemMaster.getFileInfo(fileId).toThrift()),
         "GetFileInfo", "fileId=%s, options=%s", fileId, options);
   }
 
@@ -128,35 +94,9 @@ public final class FileSystemMasterWorkerServiceHandler
   @Override
   public GetUfsInfoTResponse getUfsInfo(final long mountId, GetUfsInfoTOptions options)
       throws AlluxioTException {
-<<<<<<< HEAD
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetUfsInfoTResponse>() {
-      @Override
-      public GetUfsInfoTResponse call() throws AlluxioException {
-        return null;
-//        return new GetUfsInfoTResponse(mFileSystemMaster.getUfsInfo(mountId));
-      }
-
-      @Override
-      public String toString() {
-        return String.format("getUfsInfo: mountId=%s, options=%s", mountId, options);
-      }
-    });
-||||||| merged common ancestors
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetUfsInfoTResponse>() {
-      @Override
-      public GetUfsInfoTResponse call() throws AlluxioException {
-        return new GetUfsInfoTResponse(mFileSystemMaster.getUfsInfo(mountId));
-      }
-
-      @Override
-      public String toString() {
-        return String.format("getUfsInfo: mountId=%s, options=%s", mountId, options);
-      }
-    });
-=======
     return RpcUtils.call(LOG, (RpcCallable<GetUfsInfoTResponse>) () ->
-        new GetUfsInfoTResponse(mFileSystemMaster.getUfsInfo(mountId)),
+        null,
+//        new GetUfsInfoTResponse(mFileSystemMaster.getUfsInfo(mountId)),
         "GetUfsInfo", "mountId=%s, options=%s", mountId, options);
->>>>>>> master
   }
 }

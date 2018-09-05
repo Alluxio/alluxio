@@ -12,7 +12,6 @@
 package alluxio.master.file;
 
 import alluxio.Constants;
-import alluxio.master.Master;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
@@ -46,28 +45,10 @@ public final class FileSystemMasterFactory implements MasterFactory {
   }
 
   @Override
-<<<<<<< HEAD
-  public Master create(MasterRegistry registry, JournalSystem journalFactory,
-                       SafeModeManager safeModeManager) {
-    Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
-||||||| merged common ancestors
-  public FileSystemMaster create(MasterRegistry registry, JournalSystem journalFactory,
-      SafeModeManager safeModeManager) {
-    Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
-=======
   public FileSystemMaster create(MasterRegistry registry, MasterContext context) {
->>>>>>> master
     LOG.info("Creating {} ", FileSystemMaster.class.getName());
     BlockMaster blockMaster = registry.get(BlockMaster.class);
-<<<<<<< HEAD
-    DefaultFileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(blockMaster,
-        new MasterContext(journalFactory, safeModeManager));
-||||||| merged common ancestors
-    FileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(blockMaster,
-        new MasterContext(journalFactory, safeModeManager));
-=======
     FileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(blockMaster, context);
->>>>>>> master
     registry.add(FileSystemMaster.class, fileSystemMaster);
     return fileSystemMaster;
   }

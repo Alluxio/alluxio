@@ -16,13 +16,7 @@ import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-<<<<<<< HEAD
 import alluxio.file.options.DeleteOptions;
-import alluxio.master.file.meta.Inode;
-||||||| merged common ancestors
-import alluxio.master.file.meta.Inode;
-=======
->>>>>>> master
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;

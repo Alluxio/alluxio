@@ -54,15 +54,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.Map;
-<<<<<<< HEAD
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-||||||| merged common ancestors
-=======
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
->>>>>>> master
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
