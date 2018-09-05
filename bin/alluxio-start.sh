@@ -131,8 +131,17 @@ do_mount() {
   MOUNT_FAILED=0
   case "$1" in
     Mount|SudoMount)
-      ${LAUNCHER} "${BIN}/alluxio-mount.sh" $1
-      MOUNT_FAILED=$?
+      local tier_path=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
+      is_ram_folder_mounted "${tier_path}" # 0 if already mounted
+      if [[ $? -eq 1 ]]; then
+        # Folder is not mounted as ramFS or tmpFS
+        # Do mount
+        echo "Ramdisk not detected. Mounting..."
+        ${LAUNCHER} "${BIN}/alluxio-mount.sh" $1
+        MOUNT_FAILED=$?
+      else
+        echo "Ramdisk already mounted. Skipping mounting procedure."
+      fi
       ;;
     NoMount)
       ;;
