@@ -506,6 +506,7 @@ public final class GrpcUtils {
    * Converts options to proto type.
    */
   public static FileSystemMasterCommonPOptions toProto(CommonOptions options) {
+    // TODO(adit): update options
     return FileSystemMasterCommonPOptions.newBuilder()
         .setSyncIntervalMs(options.getSyncIntervalMs()).build();
   }

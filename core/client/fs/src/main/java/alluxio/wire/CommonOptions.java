@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 
@@ -25,8 +26,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class CommonOptions extends alluxio.file.options.CommonOptions {
   private static final long serialVersionUID = -1491370184123698287L;
 
-  private long mSyncIntervalMs;
-
   /**
    * @return the default {@link alluxio.file.options.CommonOptions}
    */
@@ -36,5 +35,7 @@ public final class CommonOptions extends alluxio.file.options.CommonOptions {
 
   protected CommonOptions() {
     mSyncIntervalMs = Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+    mTtl = Constants.NO_TTL;
+    mTtlAction = TtlAction.DELETE;
   }
 }

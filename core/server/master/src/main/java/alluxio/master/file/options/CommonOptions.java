@@ -34,6 +34,8 @@ public final class CommonOptions extends alluxio.file.options.CommonOptions {
     this();
     if (options != null) {
       mSyncIntervalMs = options.mSyncIntervalMs;
+      mTtl = options.getTtl();
+      mTtlAction = options.getTtlAction();
     }
   }
 

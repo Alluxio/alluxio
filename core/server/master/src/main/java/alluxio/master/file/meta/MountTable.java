@@ -18,15 +18,9 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.file.options.MountOptions;
 import alluxio.master.file.meta.options.MountInfo;
-<<<<<<< HEAD
-||||||| merged common ancestors
-import alluxio.master.file.options.MountOptions;
-=======
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.journal.JournalContext;
->>>>>>> master
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.JournalEntryReplayable;
 import alluxio.proto.journal.File;

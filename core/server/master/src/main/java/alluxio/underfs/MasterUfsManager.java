@@ -19,7 +19,6 @@ import alluxio.master.journal.JournalEntryReplayable;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.underfs.UnderFileSystem.UfsMode;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,131 +41,14 @@ public final class MasterUfsManager extends AbstractUfsManager
     implements JournalEntryIterable, JournalEntryReplayable {
   private static final Logger LOG = LoggerFactory.getLogger(MasterUfsManager.class);
 
-<<<<<<< HEAD
-  /**
-   * {@link alluxio.underfs.UfsMode} and mount ids corresponding to a physical ufs.
-   */
-  public static class UfsState {
-    private UfsMode mUfsMode;
-    private ConcurrentHashSet<Long> mMountIds;
-||||||| merged common ancestors
-  /**
-   * {@link alluxio.underfs.UnderFileSystem.UfsMode} and mount ids corresponding to a physical ufs.
-   */
-  public static class UfsState {
-    private UnderFileSystem.UfsMode mUfsMode;
-    private ConcurrentHashSet<Long> mMountIds;
-=======
   private final State mState;
->>>>>>> master
 
-<<<<<<< HEAD
-    /**
-     * Construct a new instance of UfsState w/ defaults.
-     */
-    UfsState() {
-      mUfsMode = UfsMode.READ_WRITE;
-      mMountIds = new ConcurrentHashSet<>();
-    }
-
-    /**
-     * Add a mount id to list using physical ufs.
-     *
-     * @param mountId the mount id
-     */
-    void addMount(long mountId) {
-      mMountIds.addIfAbsent(mountId);
-    }
-||||||| merged common ancestors
-    /**
-     * Construct a new instance of UfsState w/ defaults.
-     */
-    UfsState() {
-      mUfsMode = UnderFileSystem.UfsMode.READ_WRITE;
-      mMountIds = new ConcurrentHashSet<>();
-    }
-
-    /**
-     * Add a mount id to list using physical ufs.
-     *
-     * @param mountId the mount id
-     */
-    void addMount(long mountId) {
-      mMountIds.addIfAbsent(mountId);
-    }
-=======
   /** A set of all managed ufs roots. */
   private final Set<String> mUfsRoots;
->>>>>>> master
 
-<<<<<<< HEAD
-    /**
-     * Remove mount id from list using physical ufs.
-     *
-     * @param mountId the mount id
-     * @return true, if mount list is empty
-     */
-    boolean removeMount(long mountId) {
-      mMountIds.remove(mountId);
-      return mMountIds.size() == 0;
-    }
 
-    /**
-     * @return the physical ufs operation mode
-     */
-    UfsMode getUfsMode() {
-      return mUfsMode;
-    }
-
-    /**
-     * Set the operation mode.
-     *
-     * @param ufsMode the ufs operation mode
-     */
-    void setUfsMode(UfsMode ufsMode) {
-      mUfsMode = ufsMode;
-    }
-  }
-
-  // The physical ufs state for all managed mounts
-  private ConcurrentHashMap<String, UfsState> mPhysicalUfsToState =
-      new ConcurrentHashMap<>();
-||||||| merged common ancestors
-    /**
-     * Remove mount id from list using physical ufs.
-     *
-     * @param mountId the mount id
-     * @return true, if mount list is empty
-     */
-    boolean removeMount(long mountId) {
-      mMountIds.remove(mountId);
-      return mMountIds.size() == 0;
-    }
-
-    /**
-     * @return the physical ufs operation mode
-     */
-    UnderFileSystem.UfsMode getUfsMode() {
-      return mUfsMode;
-    }
-
-    /**
-     * Set the operation mode.
-     *
-     * @param ufsMode the ufs operation mode
-     */
-    void setUfsMode(UnderFileSystem.UfsMode ufsMode) {
-      mUfsMode = ufsMode;
-    }
-  }
-
-  // The physical ufs state for all managed mounts
-  private ConcurrentHashMap<String, UfsState> mPhysicalUfsToState =
-      new ConcurrentHashMap<>();
-=======
   /** Mapping from mount ID to ufs root. */
   private final Map<Long, String> mIdToRoot;
->>>>>>> master
 
   /**
    * Constructs the instance of {@link MasterUfsManager}.
@@ -199,17 +81,9 @@ public final class MasterUfsManager extends AbstractUfsManager
    * @param physicalStores the physical stores for the mount resolution
    * @return the state of physical UFS for given mount resolution
    */
-<<<<<<< HEAD
-  public Map<String, UfsMode> getPhysicalUfsState(List<String> physicalStores) {
-    Map<String, UfsMode> ufsModeState = new HashMap<>();
-||||||| merged common ancestors
-  public Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState(List<String> physicalStores) {
-    Map<String, UnderFileSystem.UfsMode> ufsModeState = new HashMap<>();
-=======
-  public synchronized Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState(
+  public synchronized Map<String, UfsMode> getPhysicalUfsState(
       List<String> physicalStores) {
-    Map<String, UnderFileSystem.UfsMode> ufsModeState = new HashMap<>();
->>>>>>> master
+    Map<String, UfsMode> ufsModeState = new HashMap<>();
     for (String physicalUfs : physicalStores) {
       ufsModeState.put(physicalUfs, mState.getUfsMode(new AlluxioURI(physicalUfs).getRootPath()));
     }
@@ -224,16 +98,8 @@ public final class MasterUfsManager extends AbstractUfsManager
    * @param ufsMode the ufs operation mode
    * @throws InvalidPathException if no managed ufs covers the given path
    */
-<<<<<<< HEAD
-  public void setUfsMode(AlluxioURI ufsPath, UfsMode ufsMode)
-      throws InvalidPathException {
-||||||| merged common ancestors
-  public void setUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
-      throws InvalidPathException {
-=======
   public synchronized void setUfsMode(Supplier<JournalContext> journalContext, AlluxioURI ufsPath,
       UfsMode ufsMode) throws InvalidPathException {
->>>>>>> master
     LOG.info("Set ufs mode for {} to {}", ufsPath, ufsMode);
 
     String root = ufsPath.getRootPath();

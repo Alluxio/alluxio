@@ -46,10 +46,10 @@ public final class SleepUtils {
     try {
       Thread.sleep(timeMs);
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       if (logger != null) {
         logger.warn(e.getMessage(), e);
       }
-      Thread.currentThread().interrupt();
     }
   }
 

@@ -22,23 +22,12 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.RpcContext;
-<<<<<<< HEAD
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.CreatePathOptions;
 import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.CreateDirectoryOptions;
-||||||| merged common ancestors
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.CreatePathOptions;
-import alluxio.master.file.options.DeleteOptions;
-=======
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.state.InodesView;
 import alluxio.master.journal.JournalContext;
->>>>>>> master
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.JournalEntryReplayable;
 import alluxio.proto.journal.File.DeleteFileEntry;
@@ -168,17 +157,10 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     if (mState.getRoot() == null) {
       InodeDirectory root = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(context),
           NO_PARENT, ROOT_INODE_NAME,
-<<<<<<< HEAD
-          alluxio.master.file.options.CreateDirectoryOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
-      setRoot(root);
-||||||| merged common ancestors
-          CreateDirectoryOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
-      setRoot(root);
-=======
-          CreateDirectoryOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
+          alluxio.master.file.options.CreateDirectoryOptions.defaults().setOwner(owner)
+              .setGroup(group).setMode(mode));
       root.setPersistenceState(PersistenceState.PERSISTED);
       mState.applyAndJournal(context, root);
->>>>>>> master
     }
   }
 

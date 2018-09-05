@@ -13,15 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
-<<<<<<< HEAD
-import alluxio.exception.FileAlreadyCompletedException;
-import alluxio.exception.InvalidFileSizeException;
 import alluxio.file.options.CreateFileOptions;
-||||||| merged common ancestors
-import alluxio.exception.FileAlreadyCompletedException;
-import alluxio.exception.InvalidFileSizeException;
-=======
->>>>>>> master
 import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
 import alluxio.proto.journal.File.InodeFileEntry;

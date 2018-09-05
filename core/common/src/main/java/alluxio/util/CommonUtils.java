@@ -200,28 +200,8 @@ public final class CommonUtils {
    * @param timeMs sleep duration in milliseconds
    */
   public static void sleepMs(Logger logger, long timeMs) {
-<<<<<<< HEAD
     // TODO(adit): remove this wrapper
     SleepUtils.sleepMs(logger, timeMs);
-||||||| merged common ancestors
-    try {
-      Thread.sleep(timeMs);
-    } catch (InterruptedException e) {
-      if (logger != null) {
-        logger.warn(e.getMessage(), e);
-      }
-      Thread.currentThread().interrupt();
-    }
-=======
-    try {
-      Thread.sleep(timeMs);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      if (logger != null) {
-        logger.warn(e.getMessage(), e);
-      }
-    }
->>>>>>> master
   }
 
   /**

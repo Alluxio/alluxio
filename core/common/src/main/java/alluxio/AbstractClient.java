@@ -16,34 +16,21 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.UnavailableException;
-<<<<<<< HEAD
 import alluxio.grpc.FileSystemMasterServiceGrpc;
-||||||| merged common ancestors
-=======
 import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
->>>>>>> master
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.RetryPolicy;
-<<<<<<< HEAD
-import alluxio.retry.ExponentialTimeBoundedRetry;
-||||||| merged common ancestors
-=======
 import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
->>>>>>> master
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetServiceVersionTOptions;
-<<<<<<< HEAD
 import alluxio.util.grpc.GrpcChannel;
 import alluxio.util.grpc.GrpcChannelBuilder;
-||||||| merged common ancestors
-=======
 import alluxio.util.SecurityUtils;
->>>>>>> master
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
@@ -116,17 +103,11 @@ public abstract class AbstractClient implements Client {
     mParentSubject = subject;
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
-<<<<<<< HEAD
-    mTransportProvider = TransportProvider.Factory.create();
     mChannel = GrpcChannelBuilder
         .forAddress("localhost", 50051)
         .usePlaintext(true)
         .build();
     mBlockingStub = FileSystemMasterServiceGrpc.newBlockingStub(mChannel);
-||||||| merged common ancestors
-    mTransportProvider = TransportProvider.Factory.create();
-=======
->>>>>>> master
   }
 
   /**

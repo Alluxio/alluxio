@@ -16,15 +16,7 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-<<<<<<< HEAD
-import alluxio.master.MasterClientConfig;
 import alluxio.underfs.UfsMode;
-||||||| merged common ancestors
-import alluxio.master.MasterClientConfig;
-import alluxio.underfs.UnderFileSystem;
-=======
-import alluxio.underfs.UnderFileSystem;
->>>>>>> master
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
