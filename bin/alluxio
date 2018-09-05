@@ -381,7 +381,11 @@ function main {
     done
   ;;
   "protoGen")
-<<<<<<< HEAD
+    proto_version="$(protoc --version)"
+    if ! [[ ${proto_version} == *2.5.0* ]]; then
+      echo "protoGen requires protoc version 2.5.0, but <protoc --version> returns <${proto_version}>"
+      exit 1
+    fi
     rm -rf ${BIN}/../core/transport/src/main/java/alluxio/proto
     for src_file in $(find ${BIN}/../core/transport/src/proto -name '*.proto' -type f); do
       protoc --java_out=${BIN}/../core/transport/src/main/java --proto_path=${BIN}/../core/transport/src/proto ${src_file}
@@ -391,20 +395,6 @@ function main {
     rm -rf ${BIN}/../core/transport/src/main/java/alluxio/grpc
     for src_file in $(find ${BIN}/../core/transport/src/grpc -name '*.proto' -type f); do
       protoc --java_out=${BIN}/../core/transport/src/main/java --proto_path=${BIN}/../core/transport/src/grpc --plugin=protoc-gen-grpc-java=${BIN}/protoc-gen-grpc-java-1.10.1-osx-x86_64.exe --grpc-java_out=${BIN}/../core/transport/src/main/java ${src_file}
-||||||| merged common ancestors
-    rm -rf ${BIN}/../core/protobuf/src/main/java/alluxio/proto
-    for src_file in $(find ${BIN}/../core/protobuf/src/proto -name '*.proto' -type f); do
-      protoc --java_out=${BIN}/../core/protobuf/src/main/java --proto_path=${BIN}/../core/protobuf/src/proto ${src_file}
-=======
-    proto_version="$(protoc --version)"
-    if ! [[ ${proto_version} == *2.5.0* ]]; then
-      echo "protoGen requires protoc version 2.5.0, but <protoc --version> returns <${proto_version}>"
-      exit 1
-    fi
-    rm -rf ${BIN}/../core/protobuf/src/main/java/alluxio/proto
-    for src_file in $(find ${BIN}/../core/protobuf/src/proto -name '*.proto' -type f); do
-      protoc --java_out=${BIN}/../core/protobuf/src/main/java --proto_path=${BIN}/../core/protobuf/src/proto ${src_file}
->>>>>>> master
     done
   ;;
   "clearCache")
