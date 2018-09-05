@@ -21,7 +21,7 @@ ADD ${ALLUXIO_TARBALL} /opt/
 # if the tarball was remote, it needs to be untarred
 RUN cd /opt && \
     (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
-    mv alluxio-* alluxio
+    ln -s alluxio-* alluxio
 
 COPY conf /opt/alluxio/conf/
 COPY entrypoint.sh /
