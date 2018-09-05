@@ -2381,6 +2381,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true)
         .setTtl(options.getTtl()).setTtlAction(options.getTtlAction());
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+    LOG.info("resolved path from {}", inodePath.getUri());
+    LOG.info("resolved path {}", resolution.getUri());
     UfsStatus ufsStatus = options.getUfsStatus();
     if (ufsStatus == null) {
       AlluxioURI ufsUri = resolution.getUri();
@@ -2541,6 +2543,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
       // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
+      // TODO(yuzhu): check if the alluxioPath does not shadow a path in any UFS??
       String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       UnderFileSystem defaultUfs = UnderFileSystem.Factory.createForRoot();
       String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
