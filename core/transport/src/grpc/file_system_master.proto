@@ -43,9 +43,7 @@ message CreateDirectoryPOptions {
   optional bool recursive = 2;
   optional bool allowExist = 3;
   optional int32 mode = 4;
-  optional int64 ttl = 5;
-  optional grpc.TtlAction ttlAction = 6;
-  optional FileSystemMasterCommonPOptions commonOptions = 7;
+  optional FileSystemMasterCommonPOptions commonOptions = 5;
 }
 message CreateDirectoryPResponse {}
 message CreateDirectoryPRequest {
@@ -59,10 +57,8 @@ message CreateFilePOptions {
   optional int64 blockSizeBytes = 1;
   optional bool persisted = 2;
   optional bool recursive = 3;
-  optional int64 ttl = 4;
-  optional int32 mode = 5;
-  optional grpc.TtlAction ttlAction = 6;
-  optional FileSystemMasterCommonPOptions commonOptions = 7;
+  optional int32 mode = 4;
+  optional FileSystemMasterCommonPOptions commonOptions = 5;
 }
 message CreateFilePResponse {}
 message CreateFilePRequest {

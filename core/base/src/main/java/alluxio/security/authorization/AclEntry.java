@@ -11,10 +11,6 @@
 
 package alluxio.security.authorization;
 
-//import alluxio.proto.journal.File;
-//import alluxio.thrift.TAclAction;
-//import alluxio.thrift.TAclEntry;
-
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
@@ -336,36 +332,6 @@ public final class AclEntry implements Serializable {
     return builder.build();
   }
 
-//  /**
-//   * @param pEntry the proto representation
-//   * @return the {@link AclEntry} instance created from the proto representation
-//   */
-//  public static AclEntry fromProto(File.AclEntry pEntry) {
-//    AclEntry.Builder builder = new AclEntry.Builder();
-//    builder.setType(AclEntryType.fromProto(pEntry.getType()));
-//    builder.setSubject(pEntry.getSubject());
-//    builder.setIsDefault(pEntry.getIsDefault());
-//
-//    for (File.AclAction pAction : pEntry.getActionsList()) {
-//      builder.addAction(AclAction.fromProtoBuf(pAction));
-//    }
-//    return builder.build();
-//  }
-//
-//  /**
-//   * @return the proto representation of this instance
-//   */
-//  public File.AclEntry toProto() {
-//    File.AclEntry.Builder builder = File.AclEntry.newBuilder();
-//    builder.setType(mType.toProto());
-//    builder.setSubject(mSubject);
-//    builder.setIsDefault(mIsDefault);
-//    for (AclAction action : mActions.getActions()) {
-//      builder.addActions(action.toProtoBuf());
-//    }
-//    return builder.build();
-//  }
-//
 //  /**
 //   * @param tEntry the thrift representation
 //   * @return the {@link AclEntry} instance created from the thrift representation

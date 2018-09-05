@@ -208,9 +208,9 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<GetNewBlockIdForFilePResponse> responseObserver) {
     String path = request.getPath();
     GetNewBlockIdForFilePOptions options = request.getOptions();
-    RpcUtilsNew.call(LOG, new RpcUtilsNew.RpcCallable<GetNewBlockIdForFilePResponse>() {
+    RpcUtilsNew.call(LOG, new RpcUtilsNew.RpcCallableThrowsIOException<GetNewBlockIdForFilePResponse>() {
       @Override
-      public GetNewBlockIdForFilePResponse call() throws AlluxioException {
+      public GetNewBlockIdForFilePResponse call() throws AlluxioException, IOException {
         return GetNewBlockIdForFilePResponse.newBuilder()
             .setId(mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path))).build();
       }

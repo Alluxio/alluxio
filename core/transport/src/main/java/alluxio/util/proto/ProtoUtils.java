@@ -12,7 +12,12 @@
 package alluxio.util.proto;
 
 import alluxio.exception.status.Status;
+import alluxio.proto.journal.File;
 import alluxio.proto.status.Status.PStatus;
+import alluxio.security.authorization.AclAction;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.AclEntryType;
+import alluxio.wire.SetAclAction;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -61,7 +66,60 @@ public final class ProtoUtils {
     }
     return e.getMessage().equals(truncatedMessage);
   }
-    /**
+
+  /**
+   * @return the protobuf representation of action
+   */
+  public static File.AclAction toProto(AclAction aclAction) {
+    switch (aclAction) {
+      case READ:
+        return File.AclAction.READ;
+      case WRITE:
+        return File.AclAction.WRITE;
+      case EXECUTE:
+        return File.AclAction.EXECUTE;
+      default:
+        throw new IllegalStateException("Unknown acl action: " + aclAction);
+    }
+  }
+
+  /**
+   * @return the proto representation of instance
+   */
+  public static File.AclEntry toProto(AclEntry aclEntry) {
+    File.AclEntry.Builder builder = File.AclEntry.newBuilder();
+    builder.setType(toProto(aclEntry.getType()));
+    builder.setSubject(aclEntry.getSubject());
+    builder.setIsDefault(aclEntry.isDefault());
+    for (AclAction action : aclEntry.getActions().getActions()) {
+      builder.addActions(toProto(action));
+    }
+    return builder.build();
+  }
+
+  /**
+   * Converts wire type to proto type.
+   *
+   * @return {@link TSetAclAction} equivalent
+   */
+  public static File.SetAclAction toProto(SetAclAction aclAction) {
+    switch (aclAction) {
+      case REPLACE:
+        return File.SetAclAction.REPLACE;
+      case MODIFY:
+        return File.SetAclAction.MODIFY;
+      case REMOVE:
+        return File.SetAclAction.REMOVE;
+      case REMOVE_ALL:
+        return File.SetAclAction.REMOVE_ALL;
+      case REMOVE_DEFAULT:
+        return File.SetAclAction.REMOVE_DEFAULT;
+      default:
+        throw new IllegalStateException("Unrecognized set acl action: " + aclAction);
+    }
+  }
+  
+  /**
    * Converts an internal exception status to a protocol buffer type status.
    *
    * @param status the status to convert
@@ -105,6 +163,110 @@ public final class ProtoUtils {
         return PStatus.UNKNOWN;
       default:
         return PStatus.UNKNOWN;
+    }
+  }
+
+  /**
+   * @return the proto representation of enum
+   */
+  public static File.AclEntryType toProto(AclEntryType entryType) {
+    switch (entryType) {
+      case OWNING_USER:
+        return File.AclEntryType.OWNER;
+      case NAMED_USER:
+        return File.AclEntryType.NAMED_USER;
+      case OWNING_GROUP:
+        return File.AclEntryType.OWNING_GROUP;
+      case NAMED_GROUP:
+        return File.AclEntryType.NAMED_GROUP;
+      case MASK:
+        return File.AclEntryType.MASK;
+      case OTHER:
+        return File.AclEntryType.OTHER;
+      default:
+        throw new IllegalStateException("Unknown AclEntryType: " + entryType);
+    }
+  }
+
+  /**
+   * @param action the protobuf representation of {@link AclAction}
+   * @return the {@link AclAction} decoded from the protobuf representation
+   */
+  public static AclAction fromProto(File.AclAction action) {
+    switch (action) {
+      case READ:
+        return AclAction.READ;
+      case WRITE:
+        return AclAction.WRITE;
+      case EXECUTE:
+        return AclAction.EXECUTE;
+      default:
+        throw new IllegalStateException("Unknown protobuf acl action: " + action);
+    }
+  }
+
+  /**
+   * @param pEntry the proto representation
+   * @return the {@link AclEntry} instance created from the proto representation
+   */
+  public static AclEntry fromProto(File.AclEntry pEntry) {
+    AclEntry.Builder builder = new AclEntry.Builder();
+    builder.setType(fromProto(pEntry.getType()));
+    builder.setSubject(pEntry.getSubject());
+    builder.setIsDefault(pEntry.getIsDefault());
+
+    for (File.AclAction pAction : pEntry.getActionsList()) {
+      builder.addAction(fromProto(pAction));
+    }
+    return builder.build();
+  }
+
+  /**
+   * @param pAclEntryType the proto representation
+   * @return the {@link AclEntryType} created from the proto representation
+   */
+  public static AclEntryType fromProto(File.AclEntryType pAclEntryType) {
+    switch (pAclEntryType) {
+      case OWNER:
+        return AclEntryType.OWNING_USER;
+      case NAMED_USER:
+        return AclEntryType.NAMED_USER;
+      case OWNING_GROUP:
+        return AclEntryType.OWNING_GROUP;
+      case NAMED_GROUP:
+        return AclEntryType.NAMED_GROUP;
+      case MASK:
+        return AclEntryType.MASK;
+      case OTHER:
+        return AclEntryType.OTHER;
+      default:
+        throw new IllegalStateException("Unknown proto AclEntryType: " + pAclEntryType);
+    }
+  }
+
+  /**
+   * Converts proto type to wire type.
+   *
+   * @param pSetAclAction {@link TSetAclAction}
+   * @return {@link SetAclAction} equivalent
+   */
+  public static SetAclAction fromProto(File.SetAclAction pSetAclAction) {
+    if (pSetAclAction == null) {
+      throw new IllegalStateException("Null proto set acl action.");
+    }
+    switch (pSetAclAction) {
+      case REPLACE:
+        return SetAclAction.REPLACE;
+      case MODIFY:
+        return SetAclAction.MODIFY;
+      case REMOVE:
+        return SetAclAction.REMOVE;
+      case REMOVE_ALL:
+        return SetAclAction.REMOVE_ALL;
+      case REMOVE_DEFAULT:
+        return SetAclAction.REMOVE_DEFAULT;
+      default:
+        throw new IllegalStateException("Unrecognized proto set acl action: " + pSetAclAction);
     }
   }
 

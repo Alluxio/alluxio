@@ -11,9 +11,6 @@
 
 package alluxio.security.authorization;
 
-//import alluxio.proto.journal.File;
-//import alluxio.thrift.TAclAction;
-
 /**
  * Actions to be controlled in {@link AccessControlList}.
  */
@@ -34,39 +31,6 @@ public enum AclAction {
     return VALUES[ordinal];
   }
 
-//  /**
-//   * @param action the protobuf representation of {@link AclAction}
-//   * @return the {@link AclAction} decoded from the protobuf representation
-//   */
-//  public static AclAction fromProtoBuf(File.AclAction action) {
-//    switch (action) {
-//      case AclAction.READ:
-//        return READ;
-//      case AclAction.WRITE:
-//        return WRITE;
-//      case AclAction.EXECUTE:
-//        return EXECUTE;
-//      default:
-//        throw new IllegalStateException("Unknown protobuf acl action: " + action);
-//    }
-//  }
-
-//  /**
-//   * @return the protobuf representation of action
-//   */
-//  public File.AclAction toProtoBuf() {
-//    switch (this) {
-//      case READ:
-//        return File.AclAction.READ;
-//      case WRITE:
-//        return File.AclAction.WRITE;
-//      case EXECUTE:
-//        return File.AclAction.EXECUTE;
-//      default:
-//        throw new IllegalStateException("Unknown acl action: " + this);
-//    }
-//  }
-//
 //  /**
 //   * @param tAction the thrift representation
 //   * @return the {@link AclAction} created from the thrift representation

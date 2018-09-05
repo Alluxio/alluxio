@@ -36,7 +36,22 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.file.options.CommonOptions;
+import alluxio.file.options.CheckConsistencyOptions;
+import alluxio.file.options.CompleteFileOptions;
+import alluxio.file.options.CreateDirectoryOptions;
+import alluxio.file.options.CreateFileOptions;
+import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.DescendantType;
+import alluxio.file.options.FreeOptions;
+import alluxio.file.options.GetStatusOptions;
+import alluxio.file.options.ListStatusOptions;
+import alluxio.file.options.LoadMetadataOptions;
+import alluxio.file.options.MountOptions;
+import alluxio.file.options.RenameOptions;
+import alluxio.file.options.SetAclOptions;
+import alluxio.file.options.SetAttributeOptions;
+import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
@@ -66,51 +81,6 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
-<<<<<<< HEAD
-import alluxio.file.options.CheckConsistencyOptions;
-import alluxio.file.options.CompleteFileOptions;
-import alluxio.file.options.CreateDirectoryOptions;
-import alluxio.file.options.CreateFileOptions;
-import alluxio.file.options.DeleteOptions;
-import alluxio.file.options.FreeOptions;
-import alluxio.file.options.ListStatusOptions;
-import alluxio.file.options.LoadMetadataOptions;
-import alluxio.file.options.MountOptions;
-import alluxio.file.options.RenameOptions;
-import alluxio.file.options.SetAttributeOptions;
-import alluxio.file.options.WorkerHeartbeatOptions;
-||||||| merged common ancestors
-import alluxio.master.file.options.CheckConsistencyOptions;
-import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.DescendantType;
-import alluxio.master.file.options.FreeOptions;
-import alluxio.master.file.options.GetStatusOptions;
-import alluxio.master.file.options.ListStatusOptions;
-import alluxio.master.file.options.LoadMetadataOptions;
-import alluxio.master.file.options.MountOptions;
-import alluxio.master.file.options.RenameOptions;
-import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.file.options.WorkerHeartbeatOptions;
-=======
-import alluxio.master.file.options.CheckConsistencyOptions;
-import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.DescendantType;
-import alluxio.master.file.options.FreeOptions;
-import alluxio.master.file.options.GetStatusOptions;
-import alluxio.master.file.options.ListStatusOptions;
-import alluxio.master.file.options.LoadMetadataOptions;
-import alluxio.master.file.options.MountOptions;
-import alluxio.master.file.options.RenameOptions;
-import alluxio.master.file.options.SetAclOptions;
-import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.file.options.WorkerHeartbeatOptions;
->>>>>>> master
 import alluxio.master.journal.JournalContext;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
@@ -130,18 +100,11 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
-import alluxio.file.options.GetStatusOptions;
 import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.Fingerprint.Tag;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsFileStatus;
-import alluxio.wire.CommandType;
-import alluxio.wire.FileSystemCommand;
-import alluxio.wire.FileSystemCommandOptions;
-import alluxio.wire.PersistCommandOptions;
-import alluxio.wire.PersistFile;
-import alluxio.wire.UfsInfo;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
@@ -157,9 +120,15 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.proto.ProtoUtils;
+import alluxio.wire.CommandType;
+import alluxio.wire.FileSystemCommand;
+import alluxio.wire.FileSystemCommandOptions;
+import alluxio.wire.PersistCommandOptions;
+import alluxio.wire.PersistFile;
+import alluxio.wire.UfsInfo;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
-import alluxio.file.options.CommonOptions;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -214,21 +183,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
-<<<<<<< HEAD
-  private static final Set<Class<? extends Server>> DEPS =
-      ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
   private static final FileSystemMasterOptions MASTER_OPTIONS = new DefaultFileSystemMasterOptions();
 
   @Override
   public FileSystemMasterOptions getMasterOptions() {
     return MASTER_OPTIONS;
   }
-||||||| merged common ancestors
-  private static final Set<Class<? extends Server>> DEPS =
-      ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
-=======
+
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
->>>>>>> master
 
   /**
    * Locking in DefaultFileSystemMaster
@@ -420,7 +382,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       Map<String, String> rootUfsConf =
           Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
       MountOptions mountOptions =
-          MountOptions.defaults().setShared(shared).setProperties(rootUfsConf);
+          MASTER_OPTIONS.getMountOptions().setShared(shared).setProperties(rootUfsConf);
       return new MountInfo(new AlluxioURI(MountTable.ROOT),
           new AlluxioURI(rootUfsUri), IdUtils.ROOT_MOUNT_ID, mountOptions);
     }
@@ -467,53 +429,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void resetState() {
     mInodeTree.reset();
-<<<<<<< HEAD
-    String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    Map<String, String> rootUfsConf =
-        Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-    mMountTable.clear();
-    // Initialize the root mount if it doesn't exist yet.
-    if (!mMountTable.isMountPoint(new AlluxioURI(MountTable.ROOT))) {
-      try (CloseableResource<UnderFileSystem> ufsResource =
-          mUfsManager.getRoot().acquireUfsResource()) {
-        // The root mount is a part of the file system master's initial state. The mounting is not
-        // journaled, so the root will be re-mounted based on configuration whenever the master
-        // starts.
-        long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
-        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
-            MASTER_OPTIONS.getMountOptions()
-                .setShared(ufsResource.get().isObjectStorage() && Configuration
-                    .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
-                .setProperties(rootUfsConf));
-      } catch (FileAlreadyExistsException | InvalidPathException e) {
-        throw new IllegalStateException(e);
-      }
-    }
-||||||| merged common ancestors
-    String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    Map<String, String> rootUfsConf =
-        Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-    mMountTable.clear();
-    // Initialize the root mount if it doesn't exist yet.
-    if (!mMountTable.isMountPoint(new AlluxioURI(MountTable.ROOT))) {
-      try (CloseableResource<UnderFileSystem> ufsResource =
-          mUfsManager.getRoot().acquireUfsResource()) {
-        // The root mount is a part of the file system master's initial state. The mounting is not
-        // journaled, so the root will be re-mounted based on configuration whenever the master
-        // starts.
-        long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
-        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
-            MountOptions.defaults()
-                .setShared(ufsResource.get().isObjectStorage() && Configuration
-                    .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
-                .setProperties(rootUfsConf));
-      } catch (FileAlreadyExistsException | InvalidPathException e) {
-        throw new IllegalStateException(e);
-      }
-    }
-=======
     mMountTable.reset();
->>>>>>> master
   }
 
   @Override
@@ -539,15 +455,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         try (JournalContext context = createJournalContext()) {
           mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(),
               SecurityUtils.getGroupFromLoginModule(),
-<<<<<<< HEAD
-              ModeUtils.applyDirectoryUMask(Mode.createFullAccess()));
-          context.append(mInodeTree.getRoot().toJournalEntry());
-||||||| merged common ancestors
-              Mode.createFullAccess().applyDirectoryUMask());
-          context.append(mInodeTree.getRoot().toJournalEntry());
-=======
-              Mode.createFullAccess().applyDirectoryUMask(), context);
->>>>>>> master
+              ModeUtils.applyDirectoryUMask(Mode.createFullAccess()), context);
         }
       } else {
         // For backwards-compatibility:
@@ -759,16 +667,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
          LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       // This is WRITE locked, since loading metadata is possible.
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
-<<<<<<< HEAD
-      loadMetadataIfNotExistAndJournal(rpcContext, inodePath,
-          MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(true));
-||||||| merged common ancestors
-      loadMetadataIfNotExistAndJournal(rpcContext, inodePath,
-          LoadMetadataOptions.defaults().setCreateAncestors(true));
-=======
       loadMetadataIfNotExist(rpcContext, inodePath,
-          LoadMetadataOptions.defaults().setCreateAncestors(true));
->>>>>>> master
+          MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(true));
       mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
       return inodePath.getInode().getId();
     } catch (InvalidPathException | FileDoesNotExistException e) {
@@ -813,18 +713,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // otherwise load metadata.
       if (!inodePath.fullPathExists()) {
         checkLoadMetadataOptions(options.getLoadMetadataType(), inodePath.getUri());
-<<<<<<< HEAD
-        loadMetadataIfNotExistAndJournal(rpcContext, inodePath,
-            MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(true));
-||||||| merged common ancestors
-        loadMetadataIfNotExistAndJournal(rpcContext, inodePath,
-            LoadMetadataOptions.defaults().setCreateAncestors(true));
-=======
         loadMetadataIfNotExist(rpcContext, inodePath,
-            LoadMetadataOptions.defaults().setCreateAncestors(true)
-                .setTtl(options.getCommonOptions().getTtl())
-                .setTtlAction(options.getCommonOptions().getTtlAction()));
->>>>>>> master
+            MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(true).setCommonOptions(
+                MASTER_OPTIONS.getCommonOptions().setTtl(options.getCommonOptions().getTtl())
+                    .setTtlAction(options.getCommonOptions().getTtlAction())));
         ensureFullPathAndUpdateCache(inodePath);
       }
       FileInfo fileInfo = getFileInfoInternal(inodePath);
@@ -909,21 +801,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       // load metadata for 1 level of descendants, or all descendants if recursive
       LoadMetadataOptions loadMetadataOptions =
-<<<<<<< HEAD
           MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(true)
-              .setLoadDescendantType(loadDescendantType);
-      Inode<?> inode;
-||||||| merged common ancestors
-          LoadMetadataOptions.defaults().setCreateAncestors(true)
-              .setLoadDescendantType(loadDescendantType);
-      Inode<?> inode;
-=======
-          LoadMetadataOptions.defaults().setCreateAncestors(true)
               .setLoadDescendantType(loadDescendantType)
-              .setTtl(listStatusOptions.getCommonOptions().getTtl())
-              .setTtlAction(listStatusOptions.getCommonOptions().getTtlAction());
+              .setCommonOptions(MASTER_OPTIONS.getCommonOptions()
+                  .setTtl(listStatusOptions.getCommonOptions().getTtl())
+                  .setTtlAction(listStatusOptions.getCommonOptions().getTtlAction()));
       InodeView inode;
->>>>>>> master
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
         if (inode.isDirectory()
@@ -1461,90 +1344,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-<<<<<<< HEAD
-   * Deletes a given path.
-   * <p>
-   * Writes to the journal.
-   *
-   * This method does not delete blocks. Instead, it adds blocks to the blockDeletionContext so that
-   * they can be deleted after the inode deletion journal entry has been written. We cannot delete
-   * blocks earlier because the inode deletion may fail, leaving us with inode containing deleted
-   * blocks.
-   *
-   * @param rpcContext the rpc context
-   * @param inodePath the path to delete
-   * @param deleteOptions the method options
-   * @throws InvalidPathException if the path is invalid
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
-   */
-  @VisibleForTesting
-  public void deleteAndJournal(RpcContext rpcContext, LockedInodePath inodePath,
-      DeleteOptions deleteOptions)
-      throws InvalidPathException, FileDoesNotExistException, IOException,
-      DirectoryNotEmptyException {
-    long opTimeMs = System.currentTimeMillis();
-    deleteInternal(rpcContext, inodePath, false, opTimeMs, deleteOptions);
-  }
-
-  /**
-   * @param entry the entry to use
-   */
-  private void deleteFromEntry(DeleteFileEntry entry) {
-    Metrics.DELETE_PATHS_OPS.inc();
-    try (LockedInodePath inodePath =
-        mInodeTree.lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      deleteInternal(RpcContext.NOOP, inodePath, true, entry.getOpTimeMs(), MASTER_OPTIONS.getDeleteOptions()
-          .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()));
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-||||||| merged common ancestors
-   * Deletes a given path.
-   * <p>
-   * Writes to the journal.
-   *
-   * This method does not delete blocks. Instead, it adds blocks to the blockDeletionContext so that
-   * they can be deleted after the inode deletion journal entry has been written. We cannot delete
-   * blocks earlier because the inode deletion may fail, leaving us with inode containing deleted
-   * blocks.
-   *
-   * @param rpcContext the rpc context
-   * @param inodePath the path to delete
-   * @param deleteOptions the method options
-   * @throws InvalidPathException if the path is invalid
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
-   */
-  @VisibleForTesting
-  public void deleteAndJournal(RpcContext rpcContext, LockedInodePath inodePath,
-      DeleteOptions deleteOptions)
-      throws InvalidPathException, FileDoesNotExistException, IOException,
-      DirectoryNotEmptyException {
-    long opTimeMs = System.currentTimeMillis();
-    deleteInternal(rpcContext, inodePath, false, opTimeMs, deleteOptions);
-  }
-
-  /**
-   * @param entry the entry to use
-   */
-  private void deleteFromEntry(DeleteFileEntry entry) {
-    Metrics.DELETE_PATHS_OPS.inc();
-    try (LockedInodePath inodePath =
-        mInodeTree.lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      deleteInternal(RpcContext.NOOP, inodePath, true, entry.getOpTimeMs(), DeleteOptions.defaults()
-          .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()));
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-=======
->>>>>>> master
    * Implements file deletion.
    * <p>
    * This method does not delete blocks. Instead, it returns deleted inodes so that their blocks can
@@ -2224,66 +2023,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-<<<<<<< HEAD
-   * @param entry the entry to use
-   */
-  private void renameFromEntry(RenameEntry entry) {
-    Metrics.RENAME_PATH_OPS.inc();
-    // Determine the srcPath and dstPath
-    AlluxioURI srcPath;
-    try (LockedInodePath inodePath = mInodeTree
-        .lockFullInodePath(entry.getId(), InodeTree.LockMode.READ)) {
-      srcPath = inodePath.getUri();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-    AlluxioURI dstPath = new AlluxioURI(entry.getDstPath());
-
-    // Both src and dst paths should lock WRITE_PARENT, to modify the parent inodes for both paths.
-    try (InodePathPair inodePathPair = mInodeTree
-        .lockInodePathPair(srcPath, InodeTree.LockMode.WRITE_PARENT, dstPath,
-            InodeTree.LockMode.WRITE_PARENT)) {
-      LockedInodePath srcInodePath = inodePathPair.getFirst();
-      LockedInodePath dstInodePath = inodePathPair.getSecond();
-      RenameOptions options = MASTER_OPTIONS.getRenameOptions().setOperationTimeMs(entry.getOpTimeMs());
-      renameInternal(RpcContext.NOOP, srcInodePath, dstInodePath, true, options);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-||||||| merged common ancestors
-   * @param entry the entry to use
-   */
-  private void renameFromEntry(RenameEntry entry) {
-    Metrics.RENAME_PATH_OPS.inc();
-    // Determine the srcPath and dstPath
-    AlluxioURI srcPath;
-    try (LockedInodePath inodePath = mInodeTree
-        .lockFullInodePath(entry.getId(), InodeTree.LockMode.READ)) {
-      srcPath = inodePath.getUri();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-    AlluxioURI dstPath = new AlluxioURI(entry.getDstPath());
-
-    // Both src and dst paths should lock WRITE_PARENT, to modify the parent inodes for both paths.
-    try (InodePathPair inodePathPair = mInodeTree
-        .lockInodePathPair(srcPath, InodeTree.LockMode.WRITE_PARENT, dstPath,
-            InodeTree.LockMode.WRITE_PARENT)) {
-      LockedInodePath srcInodePath = inodePathPair.getFirst();
-      LockedInodePath dstInodePath = inodePathPair.getSecond();
-      RenameOptions options = RenameOptions.defaults().setOperationTimeMs(entry.getOpTimeMs());
-      renameInternal(RpcContext.NOOP, srcInodePath, dstInodePath, true, options);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-=======
->>>>>>> master
    * Propagates the persisted status to all parents of the given inode in the same mount partition.
    *
    * @param journalContext the journal context
@@ -2383,44 +2122,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
                   .getMessage(mInodeTree.getPath(freeInode)));
             }
-<<<<<<< HEAD
-            if (freeInode.isPinned()) {
-              if (!options.isForced()) {
-                throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
-                    .getMessage(mInodeTree.getPath(freeInode)));
-              }
-              // the path to inode for getPath should already be locked.
-              tempInodePath.setDescendant(freeInode, mInodeTree.getPath(freeInode));
-              SetAttributeOptions setAttributeOptions =
-                  MASTER_OPTIONS.getSetAttributeOptions().setRecursive(false).setPinned(false);
-              setAttributeInternal(tempInodePath, false, opTimeMs, setAttributeOptions);
-              journalSetAttribute(tempInodePath, opTimeMs, setAttributeOptions,
-                  rpcContext.getJournalContext());
-            }
-            // Remove corresponding blocks from workers.
-            mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
-||||||| merged common ancestors
-            if (freeInode.isPinned()) {
-              if (!options.isForced()) {
-                throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
-                    .getMessage(mInodeTree.getPath(freeInode)));
-              }
-              // the path to inode for getPath should already be locked.
-              tempInodePath.setDescendant(freeInode, mInodeTree.getPath(freeInode));
-              SetAttributeOptions setAttributeOptions =
-                  SetAttributeOptions.defaults().setRecursive(false).setPinned(false);
-              setAttributeInternal(tempInodePath, false, opTimeMs, setAttributeOptions);
-              journalSetAttribute(tempInodePath, opTimeMs, setAttributeOptions,
-                  rpcContext.getJournalContext());
-            }
-            // Remove corresponding blocks from workers.
-            mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
-=======
-
             SetAttributeOptions setAttributeOptions =
-                SetAttributeOptions.defaults().setRecursive(false).setPinned(false);
+                MASTER_OPTIONS.getSetAttributeOptions().setRecursive(false).setPinned(false);
             setAttributeSingleFile(rpcContext, descedant, true, opTimeMs, setAttributeOptions);
->>>>>>> master
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFileView) freeInode).getBlockIds(), false /* delete */);
@@ -2460,7 +2164,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     MountOptions options = info.getOptions();
     return new UfsInfo().setUri(info.getUfsUri())
-        .setMountOptions(alluxio.master.file.options.MountOptions.defaults()
+        .setMountOptions(MASTER_OPTIONS.getMountOptions()
             .setProperties(options.getProperties()).setReadOnly(options.isReadOnly())
             .setShared(options.isShared()));
   }
@@ -2565,13 +2269,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             try (LockedInodePath tempInodePath =
                 inodePath.createTempPathForChild(childStatus.getName())) {
               LoadMetadataOptions loadMetadataOptions =
-<<<<<<< HEAD
-                  MASTER_OPTIONS.getLoadMetadataOptions().setLoadDescendantType(loadDescendantType)
-||||||| merged common ancestors
-                  LoadMetadataOptions.defaults().setLoadDescendantType(loadDescendantType)
-=======
-                  LoadMetadataOptions.defaults().setLoadDescendantType(DescendantType.NONE)
->>>>>>> master
+                  MASTER_OPTIONS.getLoadMetadataOptions().setLoadDescendantType(DescendantType.NONE)
                       .setCreateAncestors(false).setUfsStatus(childStatus);
               loadMetadataInternal(rpcContext, tempInodePath, loadMetadataOptions);
 
@@ -2628,17 +2326,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // Metadata loaded from UFS has no TTL set.
     CreateFileOptions createFileOptions =
-<<<<<<< HEAD
         MASTER_OPTIONS.getCreateFileOptions().setBlockSizeBytes(ufsBlockSizeByte)
-            .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
-||||||| merged common ancestors
-        CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
-            .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
-=======
-        CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
             .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true)
-            .setTtl(options.getTtl()).setTtlAction(options.getTtlAction());
->>>>>>> master
+            .setTtl(options.getCommonOptions().getTtl())
+            .setTtlAction(options.getCommonOptions().getTtlAction());
     String ufsOwner = ufsStatus.getOwner();
     String ufsGroup = ufsStatus.getGroup();
     short ufsMode = ufsStatus.getMode();
@@ -2656,17 +2347,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     try {
-<<<<<<< HEAD
-      createFileAndJournal(rpcContext, inodePath, createFileOptions);
-      CompleteFileOptions completeOptions = MASTER_OPTIONS.getCompleteFileOptions().setUfsLength(ufsLength);
-||||||| merged common ancestors
-      createFileAndJournal(rpcContext, inodePath, createFileOptions);
-      CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength);
-=======
       createFileInternal(rpcContext, inodePath, createFileOptions);
-      CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength)
-          .setUfsStatus(ufsStatus);
->>>>>>> master
+      CompleteFileOptions completeOptions =
+          MASTER_OPTIONS.getCompleteFileOptions().setUfsLength(ufsLength).setUfsStatus(ufsStatus);
       if (ufsLastModified != null) {
         completeOptions.setOperationTimeMs(ufsLastModified);
       }
@@ -2708,7 +2391,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     CreateDirectoryOptions createDirectoryOptions = MASTER_OPTIONS.getCreateDirectoryOptions()
         .setMountPoint(mMountTable.isMountPoint(inodePath.getUri())).setPersisted(true)
         .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true)
-        .setTtl(options.getTtl()).setTtlAction(options.getTtlAction());
+        .setTtl(options.getCommonOptions().getTtl())
+        .setTtlAction(options.getCommonOptions().getTtlAction());
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
     UfsStatus ufsStatus = options.getUfsStatus();
     if (ufsStatus == null) {
@@ -2829,88 +2513,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
-<<<<<<< HEAD
-      loadDirectoryMetadataAndJournal(rpcContext, inodePath,
-          MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(false));
-||||||| merged common ancestors
-      loadDirectoryMetadataAndJournal(rpcContext, inodePath,
-          LoadMetadataOptions.defaults().setCreateAncestors(false));
-=======
       loadDirectoryMetadata(rpcContext, inodePath,
-          LoadMetadataOptions.defaults().setCreateAncestors(false));
->>>>>>> master
+          MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(false));
       loadMetadataSucceeded = true;
     } finally {
       if (!loadMetadataSucceeded) {
         mMountTable.delete(rpcContext, inodePath.getUri());
       }
     }
-<<<<<<< HEAD
-
-    // For proto, build a list of String pairs representing the properties map.
-    Map<String, String> properties = options.getProperties();
-    List<StringPairEntry> protoProperties = new ArrayList<>(properties.size());
-    for (Map.Entry<String, String> entry : properties.entrySet()) {
-      protoProperties.add(
-          StringPairEntry.newBuilder().setKey(entry.getKey()).setValue(entry.getValue()).build());
-    }
-
-    AddMountPointEntry addMountPoint =
-        AddMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString())
-            .setUfsPath(ufsPath.toString()).setMountId(mountId)
-            .setReadOnly(options.isReadOnly())
-            .addAllProperties(protoProperties).setShared(options.isShared()).build();
-    rpcContext.journal(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
-  }
-
-  /**
-   * @param entry the entry to use
-   * @throws FileAlreadyExistsException if the mount point already exists
-   * @throws InvalidPathException if an invalid path is encountered
-   */
-  private void mountFromEntry(AddMountPointEntry entry)
-      throws FileAlreadyExistsException, InvalidPathException, IOException {
-    AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
-    AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
-    try (LockedInodePath inodePath = mInodeTree
-        .lockInodePath(alluxioURI, InodeTree.LockMode.WRITE)) {
-      mountInternal(inodePath, ufsURI, entry.getMountId(), true /* replayed */,
-          new alluxio.master.file.options.MountOptions(entry));
-    }
-||||||| merged common ancestors
-
-    // For proto, build a list of String pairs representing the properties map.
-    Map<String, String> properties = options.getProperties();
-    List<StringPairEntry> protoProperties = new ArrayList<>(properties.size());
-    for (Map.Entry<String, String> entry : properties.entrySet()) {
-      protoProperties.add(
-          StringPairEntry.newBuilder().setKey(entry.getKey()).setValue(entry.getValue()).build());
-    }
-
-    AddMountPointEntry addMountPoint =
-        AddMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString())
-            .setUfsPath(ufsPath.toString()).setMountId(mountId)
-            .setReadOnly(options.isReadOnly())
-            .addAllProperties(protoProperties).setShared(options.isShared()).build();
-    rpcContext.journal(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
-  }
-
-  /**
-   * @param entry the entry to use
-   * @throws FileAlreadyExistsException if the mount point already exists
-   * @throws InvalidPathException if an invalid path is encountered
-   */
-  private void mountFromEntry(AddMountPointEntry entry)
-      throws FileAlreadyExistsException, InvalidPathException, IOException {
-    AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
-    AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
-    try (LockedInodePath inodePath = mInodeTree
-        .lockInodePath(alluxioURI, InodeTree.LockMode.WRITE)) {
-      mountInternal(inodePath, ufsURI, entry.getMountId(), true /* replayed */,
-          new MountOptions(entry));
-    }
-=======
->>>>>>> master
   }
 
   /**
@@ -3004,16 +2614,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.
       DeleteOptions deleteOptions =
-<<<<<<< HEAD
           MASTER_OPTIONS.getDeleteOptions().setRecursive(true).setAlluxioOnly(true);
-      deleteAndJournal(rpcContext, inodePath, deleteOptions);
-||||||| merged common ancestors
-          DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true);
-      deleteAndJournal(rpcContext, inodePath, deleteOptions);
-=======
-          DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true);
       deleteInternal(rpcContext, inodePath, deleteOptions);
->>>>>>> master
     } catch (DirectoryNotEmptyException e) {
       throw new RuntimeException(String.format(
           "We should never see this exception because %s should never be thrown when recursive "
@@ -3097,33 +2699,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     setAclRecursive(rpcContext, action, inodePath, entries, false, opTimeMs, options);
   }
 
-<<<<<<< HEAD
-  @Override
-  public void resetFile(long fileId)
-      throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException, UnavailableException {
-    // TODO(yupeng) check the file is not persisted
-    try (RpcContext rpcContext = createRpcContext();
-        LockedInodePath inodePath = mInodeTree
-            .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
-      // free the file first
-      InodeFile inodeFile = inodePath.getInodeFile();
-      freeAndJournal(rpcContext, inodePath, MASTER_OPTIONS.getFreeOptions().setForced(true));
-      inodeFile.reset();
-||||||| merged common ancestors
-  @Override
-  public void resetFile(long fileId)
-      throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException, UnavailableException {
-    // TODO(yupeng) check the file is not persisted
-    try (RpcContext rpcContext = createRpcContext();
-        LockedInodePath inodePath = mInodeTree
-            .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
-      // free the file first
-      InodeFile inodeFile = inodePath.getInodeFile();
-      freeAndJournal(rpcContext, inodePath, FreeOptions.defaults().setForced(true));
-      inodeFile.reset();
-=======
   private void setUfsAcl(LockedInodePath inodePath)
       throws InvalidPathException, AccessControlException {
     InodeView inode = inodePath.getInodeOrNull();
@@ -3171,8 +2746,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mInodeTree.setAcl(rpcContext, SetAclEntry.newBuilder()
         .setId(inode.getId())
         .setOpTimeMs(opTimeMs)
-        .setAction(action.toProto())
-        .addAllEntries(entries.stream().map(AclEntry::toProto).collect(Collectors.toList()))
+        .setAction(ProtoUtils.toProto(action))
+        .addAllEntries(entries.stream().map(ProtoUtils::toProto).collect(Collectors.toList()))
         .build());
 
     try {
@@ -3196,7 +2771,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           setAclSingleInode(rpcContext, action, child, entries, replay, opTimeMs);
         }
       }
->>>>>>> master
     }
   }
 
@@ -3374,13 +2948,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           // one of the mountpoint is above the original inodePath, we start loading from the
           // original inodePath. It is already locked. so we proceed to load metadata.
           try {
-<<<<<<< HEAD
-            loadMetadataAndJournal(rpcContext, inodePath, MASTER_OPTIONS.getLoadMetadataOptions()
-||||||| merged common ancestors
-            loadMetadataAndJournal(rpcContext, inodePath, LoadMetadataOptions.defaults()
-=======
-            loadMetadataInternal(rpcContext, inodePath, LoadMetadataOptions.defaults()
->>>>>>> master
+            loadMetadataInternal(rpcContext, inodePath, MASTER_OPTIONS.getLoadMetadataOptions()
                 .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
 
             mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
@@ -3391,61 +2959,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             continue;
           }
         } else {
-<<<<<<< HEAD
-          try (InodeLockList mountPointLockList =
-                   mInodeTree.lockDescendant(inodePath, lockingScheme.getMode(), mountPointUri)) {
-            if (!mountPointLockList.getInodes().isEmpty()) {
-              List<Inode<?>> inodes = mountPointLockList.getInodes();
-              // Get the last inode in the list which is an inode corresponding to the mountPoint
-              Inode<?> mountPointInode = inodes.get(inodes.size() - 1);
-
-              // Construct an locked inodepath using TempInodePathForDescendant
-              try (TempInodePathForDescendant tempInodePath =
-                       new TempInodePathForDescendant(inodePath)) {
-                tempInodePath.setDescendant(mountPointInode, mountPointUri);
-
-                try {
-                  loadMetadataAndJournal(rpcContext, tempInodePath, MASTER_OPTIONS.getLoadMetadataOptions()
-                      .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
-                } catch (Exception e) {
-                  LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
-                }
-                mUfsSyncPathCache.notifySyncedPath(mountPoint);
-              }
-||||||| merged common ancestors
-          try (InodeLockList mountPointLockList =
-                   mInodeTree.lockDescendant(inodePath, lockingScheme.getMode(), mountPointUri)) {
-            if (!mountPointLockList.getInodes().isEmpty()) {
-              List<Inode<?>> inodes = mountPointLockList.getInodes();
-              // Get the last inode in the list which is an inode corresponding to the mountPoint
-              Inode<?> mountPointInode = inodes.get(inodes.size() - 1);
-
-              // Construct an locked inodepath using TempInodePathForDescendant
-              try (TempInodePathForDescendant tempInodePath =
-                       new TempInodePathForDescendant(inodePath)) {
-                tempInodePath.setDescendant(mountPointInode, mountPointUri);
-
-                try {
-                  loadMetadataAndJournal(rpcContext, tempInodePath, LoadMetadataOptions.defaults()
-                      .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
-                } catch (Exception e) {
-                  LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
-                }
-                mUfsSyncPathCache.notifySyncedPath(mountPoint);
-              }
-=======
           try (LockedInodePath descendantPath =
                    mInodeTree.lockDescendantPath(inodePath, lockingScheme.getMode(),
                        mountPointUri)) {
             try {
-              loadMetadataInternal(rpcContext, descendantPath, LoadMetadataOptions.defaults()
+              loadMetadataInternal(rpcContext, descendantPath, MASTER_OPTIONS.getLoadMetadataOptions()
                   .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
             } catch (Exception e) {
               LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
->>>>>>> master
             }
             mUfsSyncPathCache.notifySyncedPath(mountPoint);
-
           }
         }
       } catch (InvalidPathException e) {
@@ -3739,91 +3262,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       entry.setGroup(options.getGroup());
     }
     if (modeChanged) {
-<<<<<<< HEAD
-      inode.setMode(options.getMode());
-    }
-    return persistedInodes;
-  }
-
-  /**
-   * @param entry the entry to use
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws InvalidPathException if the file path corresponding to the file id is invalid
-   * @throws AccessControlException if failed to set permission
-   */
-  private void setAttributeFromEntry(SetAttributeEntry entry)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    SetAttributeOptions options = MASTER_OPTIONS.getSetAttributeOptions();
-    if (entry.hasPinned()) {
-      options.setPinned(entry.getPinned());
-    }
-    if (entry.hasTtl()) {
-      options.setTtl(entry.getTtl());
-      options.setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()));
-    }
-    if (entry.hasPersisted()) {
-      options.setPersisted(entry.getPersisted());
-    }
-    if (entry.hasOwner()) {
-      options.setOwner(entry.getOwner());
-    }
-    if (entry.hasGroup()) {
-      options.setGroup(entry.getGroup());
-    }
-    if (entry.hasPermission()) {
-      options.setMode((short) entry.getPermission());
-    }
-    if (entry.hasUfsFingerprint()) {
-      options.setUfsFingerprint(entry.getUfsFingerprint());
-    }
-    try (LockedInodePath inodePath = mInodeTree
-        .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      setAttributeInternal(inodePath, true, entry.getOpTimeMs(), options);
-      // Intentionally not journaling the persisted inodes from setAttributeInternal
-||||||| merged common ancestors
-      inode.setMode(options.getMode());
-    }
-    return persistedInodes;
-  }
-
-  /**
-   * @param entry the entry to use
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws InvalidPathException if the file path corresponding to the file id is invalid
-   * @throws AccessControlException if failed to set permission
-   */
-  private void setAttributeFromEntry(SetAttributeEntry entry)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    SetAttributeOptions options = SetAttributeOptions.defaults();
-    if (entry.hasPinned()) {
-      options.setPinned(entry.getPinned());
-    }
-    if (entry.hasTtl()) {
-      options.setTtl(entry.getTtl());
-      options.setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()));
-    }
-    if (entry.hasPersisted()) {
-      options.setPersisted(entry.getPersisted());
-    }
-    if (entry.hasOwner()) {
-      options.setOwner(entry.getOwner());
-    }
-    if (entry.hasGroup()) {
-      options.setGroup(entry.getGroup());
-    }
-    if (entry.hasPermission()) {
-      options.setMode((short) entry.getPermission());
-    }
-    if (entry.hasUfsFingerprint()) {
-      options.setUfsFingerprint(entry.getUfsFingerprint());
-    }
-    try (LockedInodePath inodePath = mInodeTree
-        .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      setAttributeInternal(inodePath, true, entry.getOpTimeMs(), options);
-      // Intentionally not journaling the persisted inodes from setAttributeInternal
-=======
       entry.setMode(options.getMode());
->>>>>>> master
     }
     mInodeTree.updateInode(rpcContext, entry.build());
   }
@@ -3834,16 +3273,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-<<<<<<< HEAD
   public void updateUfsMode(AlluxioURI ufsPath, UfsMode ufsMode)
-      throws InvalidPathException, InvalidArgumentException, UnavailableException,
-||||||| merged common ancestors
-  public void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
-      throws InvalidPathException, InvalidArgumentException, UnavailableException,
-=======
-  public void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
       throws InvalidPathException, UnavailableException,
->>>>>>> master
       AccessControlException {
     // TODO(adit): Create new fsadmin audit context
     try (RpcContext rpcContext = createRpcContext();
@@ -3855,140 +3286,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-<<<<<<< HEAD
-   * Update the ufs mode for path and create a journal entry.
-   *
-   * @param rpcContext the rpc context
-   * @param ufsPath the ufs path
-   * @param ufsMode the ufs mode
-   * @throws InvalidPathException if path is not used by any mount point
-   * @throws InvalidArgumentException if arguments for the method are invalid
-   */
-  private void updateUfsModeAndJournal(RpcContext rpcContext, AlluxioURI ufsPath,
-      UfsMode ufsMode) throws InvalidPathException, InvalidArgumentException {
-    updateUfsModeInternal(ufsPath, ufsMode);
-    // Journal
-    File.UfsMode ufsModeEntry;
-    switch (ufsMode) {
-      case NO_ACCESS:
-        ufsModeEntry = File.UfsMode.NO_ACCESS;
-        break;
-      case READ_ONLY:
-        ufsModeEntry = File.UfsMode.READ_ONLY;
-        break;
-      case READ_WRITE:
-        ufsModeEntry = File.UfsMode.READ_WRITE;
-        break;
-      default:
-        throw new InvalidArgumentException(ExceptionMessage.INVALID_UFS_MODE.getMessage(ufsMode));
-    }
-    File.UpdateUfsModeEntry ufsEntry = File.UpdateUfsModeEntry.newBuilder()
-        .setUfsPath(ufsPath.getRootPath()).setUfsMode(ufsModeEntry).build();
-    rpcContext.journal(JournalEntry.newBuilder().setUpdateUfsMode(ufsEntry).build());
-  }
-
-  /**
-   * Update ufs mode from journal entry.
-   *
-   * @param entry the update ufs mode journal entry
-   * @throws InvalidPathException if the path is not used by any mount point
-   * @throws InvalidArgumentException if arguments for the method are invalid
-   */
-  private void updateUfsModeFromEntry(File.UpdateUfsModeEntry entry)
-      throws InvalidPathException, InvalidArgumentException {
-    String ufsPath = entry.getUfsPath();
-    UfsMode ufsMode;
-    switch (entry.getUfsMode()) {
-      case NO_ACCESS:
-        ufsMode = UfsMode.NO_ACCESS;
-        break;
-      case READ_ONLY:
-        ufsMode = UfsMode.READ_ONLY;
-        break;
-      case READ_WRITE:
-        ufsMode = UfsMode.READ_WRITE;
-        break;
-      default:
-        throw new InvalidArgumentException(
-            ExceptionMessage.INVALID_UFS_MODE.getMessage(entry.getUfsMode()));
-    }
-    updateUfsModeInternal(new AlluxioURI(ufsPath), ufsMode);
-  }
-
-  private void updateUfsModeInternal(AlluxioURI ufsPath, UfsMode ufsMode)
-      throws InvalidPathException {
-    mUfsManager.setUfsMode(ufsPath, ufsMode);
-  }
-
-  /**
-||||||| merged common ancestors
-   * Update the ufs mode for path and create a journal entry.
-   *
-   * @param rpcContext the rpc context
-   * @param ufsPath the ufs path
-   * @param ufsMode the ufs mode
-   * @throws InvalidPathException if path is not used by any mount point
-   * @throws InvalidArgumentException if arguments for the method are invalid
-   */
-  private void updateUfsModeAndJournal(RpcContext rpcContext, AlluxioURI ufsPath,
-      UnderFileSystem.UfsMode ufsMode) throws InvalidPathException, InvalidArgumentException {
-    updateUfsModeInternal(ufsPath, ufsMode);
-    // Journal
-    File.UfsMode ufsModeEntry;
-    switch (ufsMode) {
-      case NO_ACCESS:
-        ufsModeEntry = File.UfsMode.NO_ACCESS;
-        break;
-      case READ_ONLY:
-        ufsModeEntry = File.UfsMode.READ_ONLY;
-        break;
-      case READ_WRITE:
-        ufsModeEntry = File.UfsMode.READ_WRITE;
-        break;
-      default:
-        throw new InvalidArgumentException(ExceptionMessage.INVALID_UFS_MODE.getMessage(ufsMode));
-    }
-    File.UpdateUfsModeEntry ufsEntry = File.UpdateUfsModeEntry.newBuilder()
-        .setUfsPath(ufsPath.getRootPath()).setUfsMode(ufsModeEntry).build();
-    rpcContext.journal(JournalEntry.newBuilder().setUpdateUfsMode(ufsEntry).build());
-  }
-
-  /**
-   * Update ufs mode from journal entry.
-   *
-   * @param entry the update ufs mode journal entry
-   * @throws InvalidPathException if the path is not used by any mount point
-   * @throws InvalidArgumentException if arguments for the method are invalid
-   */
-  private void updateUfsModeFromEntry(File.UpdateUfsModeEntry entry)
-      throws InvalidPathException, InvalidArgumentException {
-    String ufsPath = entry.getUfsPath();
-    UnderFileSystem.UfsMode ufsMode;
-    switch (entry.getUfsMode()) {
-      case NO_ACCESS:
-        ufsMode = UnderFileSystem.UfsMode.NO_ACCESS;
-        break;
-      case READ_ONLY:
-        ufsMode = UnderFileSystem.UfsMode.READ_ONLY;
-        break;
-      case READ_WRITE:
-        ufsMode = UnderFileSystem.UfsMode.READ_WRITE;
-        break;
-      default:
-        throw new InvalidArgumentException(
-            ExceptionMessage.INVALID_UFS_MODE.getMessage(entry.getUfsMode()));
-    }
-    updateUfsModeInternal(new AlluxioURI(ufsPath), ufsMode);
-  }
-
-  private void updateUfsModeInternal(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
-      throws InvalidPathException {
-    mUfsManager.setUfsMode(ufsPath, ufsMode);
-  }
-
-  /**
-=======
->>>>>>> master
    * Check if the specified operation type is allowed to the ufs.
    *
    * @param alluxioPath the Alluxio path
