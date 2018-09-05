@@ -221,6 +221,7 @@ public final class GrpcUtils {
       } else if (pOptions.hasLoadDirectChildren()) {
         options.setLoadMetadataType(LoadMetadataType.Never);
       }
+      // TODO(adit): update recursive
     }
     return options;
 
@@ -641,6 +642,7 @@ public final class GrpcUtils {
             || options.getLoadMetadataType() == LoadMetadataType.Always)
         .setLoadMetadataType(toProto(options.getLoadMetadataType()))
         .setCommonOptions(toProto(options.getCommonOptions())).build();
+    // TODO(adit): update recursive
   }
 
   /**

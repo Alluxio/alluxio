@@ -11,6 +11,8 @@
 
 package alluxio.file.options;
 
+import alluxio.underfs.UfsStatus;
+
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -23,6 +25,7 @@ public class CompleteFileOptions {
   protected CommonOptions mCommonOptions;
   protected long mUfsLength;
   protected long mOperationTimeMs;
+  protected UfsStatus mUfsStatus;
 
   protected CompleteFileOptions() {}
 
@@ -38,6 +41,13 @@ public class CompleteFileOptions {
    */
   public long getUfsLength() {
     return mUfsLength;
+  }
+
+  /**
+   * @return the ufs status
+   */
+  public UfsStatus getUfsStatus() {
+    return mUfsStatus;
   }
 
   /**
@@ -66,6 +76,15 @@ public class CompleteFileOptions {
   }
 
   /**
+   * @param ufsStatus the ufs status to use
+   * @return the updated options object
+   */
+  public <T extends CompleteFileOptions> T setUfsStatus(UfsStatus ufsStatus) {
+    mUfsStatus = ufsStatus;
+    return (T) this;
+  }
+
+  /**
    * @param operationTimeMs the operation time to use
    * @return the updated options object
    */
@@ -85,12 +104,13 @@ public class CompleteFileOptions {
     CompleteFileOptions that = (CompleteFileOptions) o;
     return Objects.equal(mUfsLength, that.mUfsLength)
         && Objects.equal(mCommonOptions, that.mCommonOptions)
-        && mOperationTimeMs == that.mOperationTimeMs;
+        && mOperationTimeMs == that.mOperationTimeMs
+        && Objects.equal(mUfsStatus, that.mUfsStatus);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mUfsLength, mOperationTimeMs, mCommonOptions);
+    return Objects.hashCode(mUfsLength, mOperationTimeMs, mCommonOptions, mUfsStatus);
   }
 
   @Override
@@ -99,6 +119,7 @@ public class CompleteFileOptions {
         .add("commonOptions", mCommonOptions)
         .add("ufsLength", mUfsLength)
         .add("operationTimeMs", mOperationTimeMs)
+        .add("ufsStatus", mUfsStatus)
         .toString();
   }
 }

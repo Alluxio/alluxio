@@ -38,17 +38,11 @@ public final class GetStatusOptions extends alluxio.file.options.GetStatusOption
   }
 
   private GetStatusOptions() {
-<<<<<<< HEAD
     super();
-    mCommonOptions = CommonOptions.defaults();
-||||||| merged common ancestors
-    mCommonOptions = CommonOptions.defaults();
-=======
     mCommonOptions = CommonOptions.defaults()
         .setTtl(Configuration.getMs(PropertyKey.USER_FILE_LOAD_TTL))
         .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_LOAD_TTL_ACTION,
             TtlAction.class));
->>>>>>> master
     mLoadMetadataType =
         Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class);
   }

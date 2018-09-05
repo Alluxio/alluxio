@@ -24,6 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class ListStatusOptions {
   protected CommonOptions mCommonOptions;
   protected LoadMetadataType mLoadMetadataType;
+  protected boolean mRecursive;
 
   protected ListStatusOptions() {}
 
@@ -40,6 +41,13 @@ public class ListStatusOptions {
    */
   public LoadMetadataType getLoadMetadataType() {
     return mLoadMetadataType;
+  }
+
+  /**
+   * @return whether to list status recursively
+   */
+  public boolean isRecursive() {
+    return mRecursive;
   }
 
   /**
@@ -62,6 +70,17 @@ public class ListStatusOptions {
     return (T) this;
   }
 
+  /**
+   * Sets the {@link ListStatusOptions#mRecursive}.
+   *
+   * @param recursive whether to recursively list status
+   * @return the updated options
+   */
+  public <T extends ListStatusOptions> T setRecursive(boolean recursive) {
+    mRecursive = recursive;
+    return (T) this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -72,12 +91,13 @@ public class ListStatusOptions {
     }
     ListStatusOptions that = (ListStatusOptions) o;
     return Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
-        && Objects.equal(mCommonOptions, that.mCommonOptions);
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
+        && Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType, mCommonOptions);
+    return Objects.hashCode(mLoadMetadataType, mCommonOptions, mRecursive);
   }
 
   @Override
@@ -85,6 +105,7 @@ public class ListStatusOptions {
     return Objects.toStringHelper(this)
         .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
+        .add("recursive", mRecursive)
         .toString();
   }
 }
