@@ -30,17 +30,28 @@ void CreateDirectoryOptionsTest() {
   createDirectoryOptions->setRecursive(false);
   bool recursive = createDirectoryOptions->isRecursive();
   assert(recursive == false);
-  createDirectoryOptions->setWriteType(new WriteType(5));
-  WriteType* writeType = createDirectoryOptions->getWriteType();
+  WriteType* writeType = new WriteType(5);
+  createDirectoryOptions->setWriteType(writeType);
+  delete writeType;
+  writeType = createDirectoryOptions->getWriteType();
   assert(writeType->getValue() == 5);
-  createDirectoryOptions->setTtlAction(new TtlAction("FREE"));
-  TtlAction* ttlAction = createDirectoryOptions->getTtlAction();
+  TtlAction* ttlAction = new TtlAction("FREE");
+  createDirectoryOptions->setTtlAction(ttlAction);
+  delete ttlAction;
+  ttlAction = createDirectoryOptions->getTtlAction();
   assert(ttlAction->isFree() == true);
   Mode* mode = Mode::getDefaultMode();
-  mode->setOwnerBits(new Bits("---"));
+  Bits* bits = new Bits("---");
+  mode->setOwnerBits(bits);
   createDirectoryOptions->setMode(mode);
   Mode* newMode = createDirectoryOptions->getMode();
   assert(newMode->getOwnerBits()->toString().compare("---") == 0);
+  delete bits;
+  delete newMode;
+  delete mode;
+  delete ttlAction;
+  delete writeType;
+  delete createDirectoryOptions;
 }
 
 void CreateFileOptionsTest() {
@@ -57,14 +68,19 @@ void CreateFileOptionsTest() {
   assert(writeTier == 1);
   assert(ttl == 50);
   assert(recursive == true);
-  createFileOptions->setWriteType(new WriteType(3));
-  WriteType* writeType = createFileOptions->getWriteType();
+  WriteType* writeType = new WriteType(3);
+  createFileOptions->setWriteType(writeType);
+  delete writeType;
+  writeType = createFileOptions->getWriteType();
   assert(writeType->getValue() == 3);
-  createFileOptions->setTtlAction(new TtlAction("FREE"));
-  TtlAction* ttlAction = createFileOptions->getTtlAction();
+  TtlAction* ttlAction = new TtlAction("FREE");
+  createFileOptions->setTtlAction(ttlAction);
+  delete ttlAction;
+  ttlAction = createFileOptions->getTtlAction();
   assert(ttlAction->isFree() == true);
   Mode* mode = Mode::getDefaultMode();
-  mode->setOtherBits(new Bits("rwx"));
+  Bits* bits = new Bits("rwx");
+  mode->setOtherBits(bits);
   createFileOptions->setMode(mode);
   Mode* newMode = createFileOptions->getMode();
   assert(newMode->getOtherBits()->toString().compare("rwx") == 0);
@@ -75,6 +91,14 @@ void CreateFileOptionsTest() {
   std::string policyClass = createFileOptions->getLocationPolicyClass();
   assert(policyClass.compare(
       "alluxio.client.file.policy.RoundRobinPolicy") == 0);
+  delete newPolicy;
+  delete policy;
+  delete bits;
+  delete newMode;
+  delete mode;
+  delete ttlAction;
+  delete writeType;
+  delete createFileOptions;
 }
 
 void DeleteOptionsTest() {
@@ -88,13 +112,18 @@ void DeleteOptionsTest() {
   deleteOptions->setUnchecked(true);
   bool unchecked = deleteOptions->isUnchecked();
   assert(unchecked == true);
+  delete deleteOptions;
 }
 
 void ExistsOptionsTest() {
   ExistsOptions* existsOptions = ExistsOptions::getDefaultOptions();
-  existsOptions->setLoadMetadataType(new LoadMetadataType(1));
-  LoadMetadataType* loadMetadataType = existsOptions->getLoadMetadataType();
+  LoadMetadataType* loadMetadataType = new LoadMetadataType(1);
+  existsOptions->setLoadMetadataType(loadMetadataType);
+  delete loadMetadataType;
+  loadMetadataType = existsOptions->getLoadMetadataType();
   assert(loadMetadataType->getValue() == 1);
+  delete loadMetadataType;
+  delete existsOptions;
 }
 
 void FreeOptionsTest() {
@@ -105,13 +134,18 @@ void FreeOptionsTest() {
   freeOptions->setRecursive(true);
   bool recursive = freeOptions->isRecursive();
   assert(recursive == true);
+  delete freeOptions;
 }
 
 void ListStatusOptionsTest() {
   ListStatusOptions* listStatusOptions = ListStatusOptions::getDefaultOptions();
-  listStatusOptions->setLoadMetadataType(new LoadMetadataType(2));
-  LoadMetadataType* loadMetadataType = listStatusOptions->getLoadMetadataType();
+  LoadMetadataType* loadMetadataType = new LoadMetadataType(2);
+  listStatusOptions->setLoadMetadataType(loadMetadataType);
+  delete loadMetadataType;
+  loadMetadataType = listStatusOptions->getLoadMetadataType();
   assert(loadMetadataType->getValue() == 2);
+  delete loadMetadataType;
+  delete listStatusOptions;
 }
 
 void MountOptionsTest() {
@@ -129,6 +163,7 @@ void MountOptionsTest() {
   it = nProperties.begin();
   assert(it->first.compare("what") == 0);
   assert(it->second.compare("none") == 0);
+  delete mountOptions;
 }
 
 void OpenFileOptionsTest() {
@@ -145,6 +180,7 @@ void OpenFileOptionsTest() {
   policyClass = openFileOptions->getLocationPolicyClass();
   assert(policyClass.compare(
       "alluxio.client.file.policy.RoundRobinPolicy") == 0);
+  delete policy;
   policy = MostAvailableFirstPolicy::getPolicy();
   openFileOptions->setCacheLocationPolicy(policy);
   newPolicy = openFileOptions->getCacheLocationPolicy();
@@ -156,8 +192,10 @@ void OpenFileOptionsTest() {
   policyClass = openFileOptions->getCacheLocationPolicyClass();
   assert(policyClass.compare(
       "alluxio.client.file.policy.RoundRobinPolicy") == 0);
-  openFileOptions->setReadType(new ReadType(2));
-  ReadType* readType = openFileOptions->getReadType();
+  ReadType* readType = new ReadType(2);
+  openFileOptions->setReadType(readType);
+  delete readType;
+  readType = openFileOptions->getReadType();
   assert(readType->getValue() == 2);
   openFileOptions->setMaxUfsReadConcurrency(3);
   int maxUfsReadConcurrency = openFileOptions->getMaxUfsReadConcurrency();
@@ -174,6 +212,12 @@ void OpenFileOptionsTest() {
   policyClass = openFileOptions->getUfsReadLocationPolicyClass();
   assert(policyClass.compare(
       "alluxio.client.file.policy.RoundRobinPolicy") == 0);
+  delete nPolicy;
+  delete bPolicy;
+  delete readType;
+  delete newPolicy;
+  delete policy;
+  delete openFileOptions;
 }
 
 void SetAttributeOptionsTest() {
@@ -185,14 +229,17 @@ void SetAttributeOptionsTest() {
   setAttributeOptions->setTtl(10);
   int64_t ttl = setAttributeOptions->getTtl();
   assert(ttl == 10);
-  setAttributeOptions->setTtlAction(new TtlAction("FREE"));
-  TtlAction* ttlAction = setAttributeOptions->getTtlAction();
+  TtlAction* ttlAction = new TtlAction("FREE");
+  setAttributeOptions->setTtlAction(ttlAction);
+  delete ttlAction;
+  ttlAction = setAttributeOptions->getTtlAction();
   assert(ttlAction->isFree() == true);
   setAttributeOptions->setPersisted(true);
   bool persisted = setAttributeOptions->getPersisted();
   assert(persisted == true);
   Mode* mode = Mode::getDefaultMode();
-  mode->setOwnerBits(new Bits("rwx"));
+  Bits* bits = new Bits("rwx");
+  mode->setOwnerBits(bits);
   setAttributeOptions->setMode(mode);
   Mode* newMode = setAttributeOptions->getMode();
   assert(newMode->getOwnerBits()->toString().compare("rwx") == 0);
@@ -207,48 +254,25 @@ void SetAttributeOptionsTest() {
   std::string group = setAttributeOptions->getGroup();
   assert(owner.compare("user1") == 0);
   assert(group.compare("group1") == 0);
+  delete bits;
+  delete newMode;
+  delete mode;
+  delete ttlAction;
+  delete setAttributeOptions;
 }
 
 void GetStatusOptionsTest() {
   GetStatusOptions* getStatusOptions = GetStatusOptions::getDefaultOptions();
-  getStatusOptions->setLoadMetadataType(new LoadMetadataType(2));
-  LoadMetadataType* loadMetadataType = getStatusOptions->getLoadMetadataType();
+  LoadMetadataType* loadMetadataType = new LoadMetadataType(2);
+  getStatusOptions->setLoadMetadataType(loadMetadataType);
+  delete loadMetadataType;
+  loadMetadataType = getStatusOptions->getLoadMetadataType();
   assert(loadMetadataType->getValue() == 2);
+  delete loadMetadataType;
+  delete getStatusOptions;
 }
 
-// This test is only suitable for my local environment
-/*
-void GetWorkerOptionsTest() {
-  WorkerNetAddress* netAddress = new WorkerNetAddress("host1", 1, 1, 1, "1");
-  WorkerNetAddress* netAddress2 = new WorkerNetAddress(
-      "192.168.195.132", 2, 2, 2, "2");
-  BlockWorkerInfo* workerInfo = new BlockWorkerInfo(netAddress, 20, 2);
-  BlockWorkerInfo* workerInfo2 = new BlockWorkerInfo(netAddress2, 10, 2);
-  std::vector<BlockWorkerInfo> workerInfoList;
-  workerInfoList.push_back(*workerInfo);
-  workerInfoList.push_back(*workerInfo2);
-  GetWorkerOptions* getWorkerOptions = GetWorkerOptions::getDefaultOptions();
-  getWorkerOptions->setBlockWorkerInfos(&workerInfoList);
-  std::vector<BlockWorkerInfo>* newInfoList =
-      getWorkerOptions->getBlockWorkerInfos();
-  assert(newInfoList->begin()->getUsedBytes() == 2);
-  FileWriteLocationPolicy* policy = NULL;
-  policy = LocalFirstAvoidEvictionPolicy::getPolicy();
-  WorkerNetAddress* newAddress = policy->getWorkerForNextBlock(
-      getWorkerOptions->getBlockWorkerInfos(),
-      getWorkerOptions->getBlockSize());
-  assert(newAddress->getHost().compare("192.168.195.132") == 0);
-  BlockLocationPolicy* newPolicy = NULL;
-  newPolicy = DeterministicHashPolicy::getPolicy();
-  WorkerNetAddress* address = newPolicy->getWorker(getWorkerOptions);
-  assert(address->getHost().compare("host1") == 0);
-  newPolicy = SpecificHostPolicy::getPolicy("192.168.195.132");
-  address = newPolicy->getWorker(getWorkerOptions);
-  assert(address->getHost().compare("192.168.195.132") == 0);
-  newPolicy = MostAvailableFirstPolicy::getPolicy();
-  address = newPolicy->getWorker(getWorkerOptions);
-  assert(address->getHost().compare("host1") == 0);
-}*/
+
 }
 
 int main(void) {
@@ -267,7 +291,6 @@ int main(void) {
   alluxio::OpenFileOptionsTest();
   alluxio::SetAttributeOptionsTest();
   alluxio::GetStatusOptionsTest();
-  //alluxio::GetWorkerOptionsTest();
   delete miniCluster;
   delete fileSystem;
   return 0;
