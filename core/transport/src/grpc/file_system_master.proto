@@ -10,6 +10,8 @@ import "common.proto";
 
 message FileSystemMasterCommonPOptions {
   optional int64 syncIntervalMs = 1;
+  optional int64 ttl = 2;
+  optional grpc.TtlAction ttlAction = 3;
 }
 
 message CheckConsistencyPOptions {
@@ -135,6 +137,7 @@ message ListStatusPOptions {
   optional bool loadDirectChildren = 1;
   optional LoadMetadataPType loadMetadataType = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional bool recursive = 4;
 }
 message ListStatusPResponse {
   repeated FileInfo fileInfoList = 1;
@@ -160,6 +163,36 @@ message LoadMetadataPRequest {
   optional LoadMetadataPOptions options = 2;
 }
 
+enum PAclEntryType {
+  Owner = 0;
+  NamedUser = 1;
+  OwningGroup = 2;
+  NamedGroup = 3;
+  Mask = 4;
+  Other = 5;
+}
+
+enum PAclAction {
+  Read = 0;
+  Write = 1;
+  Execute = 2;
+}
+
+message PAclEntry {
+  optional PAclEntryType type = 1;
+  optional string subject = 2;
+  repeated PAclAction actions = 3;
+  optional bool isDefault = 4;
+}
+
+message PAcl {
+  optional string owner = 1;
+  optional string owningGroup = 2;
+  repeated PAclEntry entries = 3;
+  optional int32 mode = 4;
+  optional bool isDefault = 5;
+  optional bool isDefaultEmpty = 6;
+}
 
 /**
 * Contains the information of a block in a file. In addition to the BlockInfo, it includes the
@@ -198,6 +231,8 @@ message FileInfo {
   optional int64 mountId = 23;
   optional int32 inAlluxioPercentage = 24;
   optional string ufsFingerprint = 25;
+  optional PAcl acl = 26;
+  optional PAcl defaultAcl = 27;
 }
 
 message MountPOptions {
@@ -280,6 +315,29 @@ message SetAttributePRequest {
   optional SetAttributePOptions options = 2;
 }
 
+enum PSetAclAction {
+  Replace = 0;
+  Modify = 1;
+  Remove = 2;
+  RemoveAll = 3;
+  RemoveDefault = 4;
+}
+
+message SetAclPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional bool recursive = 2;
+}
+message SetAclPResponse {}
+message SetAclPRequest {
+  /** the path of the file or directory */
+  optional string path = 1;
+  /** the set action to perform */
+  optional PSetAclAction action = 2;
+  /** the list of ACL entries */
+  repeated PAclEntry entries = 3;
+  /** the method options */
+  optional SetAclPOptions options = 4;
+}
 
 message ScheduleAsyncPersistencePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
@@ -410,6 +468,11 @@ service FileSystemMasterService {
    * Schedules async persistence.
    */
   rpc ScheduleAsyncPersistence(ScheduleAsyncPersistencePRequest) returns (ScheduleAsyncPersistencePResponse);
+
+  /**
+   * Sets ACL for the path.
+   */
+  rpc SetAcl(SetAclPRequest) returns (SetAclPResponse);
 
   /**
    * Sets file or directory attributes.
