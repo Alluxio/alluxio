@@ -4,20 +4,18 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.ListStatusPOptions}
+ * Protobuf type {@code alluxio.grpc.SetAclPOptions}
  */
-public  final class ListStatusPOptions extends
+public  final class SetAclPOptions extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.ListStatusPOptions)
-    ListStatusPOptionsOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.SetAclPOptions)
+    SetAclPOptionsOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use ListStatusPOptions.newBuilder() to construct.
-  private ListStatusPOptions(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use SetAclPOptions.newBuilder() to construct.
+  private SetAclPOptions(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private ListStatusPOptions() {
-    loadDirectChildren_ = false;
-    loadMetadataType_ = 0;
+  private SetAclPOptions() {
     recursive_ = false;
   }
 
@@ -26,7 +24,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private ListStatusPOptions(
+  private SetAclPOptions(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -52,25 +50,9 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
-          case 8: {
-            bitField0_ |= 0x00000001;
-            loadDirectChildren_ = input.readBool();
-            break;
-          }
-          case 16: {
-            int rawValue = input.readEnum();
-            alluxio.grpc.LoadMetadataPType value = alluxio.grpc.LoadMetadataPType.valueOf(rawValue);
-            if (value == null) {
-              unknownFields.mergeVarintField(2, rawValue);
-            } else {
-              bitField0_ |= 0x00000002;
-              loadMetadataType_ = rawValue;
-            }
-            break;
-          }
-          case 26: {
+          case 10: {
             alluxio.grpc.FileSystemMasterCommonPOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000004) == 0x00000004)) {
+            if (((bitField0_ & 0x00000001) == 0x00000001)) {
               subBuilder = commonOptions_.toBuilder();
             }
             commonOptions_ = input.readMessage(alluxio.grpc.FileSystemMasterCommonPOptions.PARSER, extensionRegistry);
@@ -78,11 +60,11 @@ private static final long serialVersionUID = 0L;
               subBuilder.mergeFrom(commonOptions_);
               commonOptions_ = subBuilder.buildPartial();
             }
-            bitField0_ |= 0x00000004;
+            bitField0_ |= 0x00000001;
             break;
           }
-          case 32: {
-            bitField0_ |= 0x00000008;
+          case 16: {
+            bitField0_ |= 0x00000002;
             recursive_ = input.readBool();
             break;
           }
@@ -100,87 +82,48 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_ListStatusPOptions_descriptor;
+    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_SetAclPOptions_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_ListStatusPOptions_fieldAccessorTable
+    return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_SetAclPOptions_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.ListStatusPOptions.class, alluxio.grpc.ListStatusPOptions.Builder.class);
+            alluxio.grpc.SetAclPOptions.class, alluxio.grpc.SetAclPOptions.Builder.class);
   }
 
   private int bitField0_;
-  public static final int LOADDIRECTCHILDREN_FIELD_NUMBER = 1;
-  private boolean loadDirectChildren_;
+  public static final int COMMONOPTIONS_FIELD_NUMBER = 1;
+  private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_;
   /**
-   * <pre>
-   * This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
-   * </pre>
-   *
-   * <code>optional bool loadDirectChildren = 1;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 1;</code>
    */
-  public boolean hasLoadDirectChildren() {
+  public boolean hasCommonOptions() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <pre>
-   * This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
-   * </pre>
-   *
-   * <code>optional bool loadDirectChildren = 1;</code>
-   */
-  public boolean getLoadDirectChildren() {
-    return loadDirectChildren_;
-  }
-
-  public static final int LOADMETADATATYPE_FIELD_NUMBER = 2;
-  private int loadMetadataType_;
-  /**
-   * <code>optional .alluxio.grpc.LoadMetadataPType loadMetadataType = 2;</code>
-   */
-  public boolean hasLoadMetadataType() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
-  }
-  /**
-   * <code>optional .alluxio.grpc.LoadMetadataPType loadMetadataType = 2;</code>
-   */
-  public alluxio.grpc.LoadMetadataPType getLoadMetadataType() {
-    alluxio.grpc.LoadMetadataPType result = alluxio.grpc.LoadMetadataPType.valueOf(loadMetadataType_);
-    return result == null ? alluxio.grpc.LoadMetadataPType.NEVER : result;
-  }
-
-  public static final int COMMONOPTIONS_FIELD_NUMBER = 3;
-  private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_;
-  /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
-   */
-  public boolean hasCommonOptions() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
-  }
-  /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 1;</code>
    */
   public alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions() {
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
   }
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 1;</code>
    */
   public alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder() {
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
   }
 
-  public static final int RECURSIVE_FIELD_NUMBER = 4;
+  public static final int RECURSIVE_FIELD_NUMBER = 2;
   private boolean recursive_;
   /**
-   * <code>optional bool recursive = 4;</code>
+   * <code>optional bool recursive = 2;</code>
    */
   public boolean hasRecursive() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional bool recursive = 4;</code>
+   * <code>optional bool recursive = 2;</code>
    */
   public boolean getRecursive() {
     return recursive_;
@@ -199,16 +142,10 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeBool(1, loadDirectChildren_);
+      output.writeMessage(1, getCommonOptions());
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      output.writeEnum(2, loadMetadataType_);
-    }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      output.writeMessage(3, getCommonOptions());
-    }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      output.writeBool(4, recursive_);
+      output.writeBool(2, recursive_);
     }
     unknownFields.writeTo(output);
   }
@@ -220,19 +157,11 @@ private static final long serialVersionUID = 0L;
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(1, loadDirectChildren_);
+        .computeMessageSize(1, getCommonOptions());
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeEnumSize(2, loadMetadataType_);
-    }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, getCommonOptions());
-    }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(4, recursive_);
+        .computeBoolSize(2, recursive_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -244,21 +173,12 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.ListStatusPOptions)) {
+    if (!(obj instanceof alluxio.grpc.SetAclPOptions)) {
       return super.equals(obj);
     }
-    alluxio.grpc.ListStatusPOptions other = (alluxio.grpc.ListStatusPOptions) obj;
+    alluxio.grpc.SetAclPOptions other = (alluxio.grpc.SetAclPOptions) obj;
 
     boolean result = true;
-    result = result && (hasLoadDirectChildren() == other.hasLoadDirectChildren());
-    if (hasLoadDirectChildren()) {
-      result = result && (getLoadDirectChildren()
-          == other.getLoadDirectChildren());
-    }
-    result = result && (hasLoadMetadataType() == other.hasLoadMetadataType());
-    if (hasLoadMetadataType()) {
-      result = result && loadMetadataType_ == other.loadMetadataType_;
-    }
     result = result && (hasCommonOptions() == other.hasCommonOptions());
     if (hasCommonOptions()) {
       result = result && getCommonOptions()
@@ -280,15 +200,6 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasLoadDirectChildren()) {
-      hash = (37 * hash) + LOADDIRECTCHILDREN_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getLoadDirectChildren());
-    }
-    if (hasLoadMetadataType()) {
-      hash = (37 * hash) + LOADMETADATATYPE_FIELD_NUMBER;
-      hash = (53 * hash) + loadMetadataType_;
-    }
     if (hasCommonOptions()) {
       hash = (37 * hash) + COMMONOPTIONS_FIELD_NUMBER;
       hash = (53 * hash) + getCommonOptions().hashCode();
@@ -303,69 +214,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static alluxio.grpc.ListStatusPOptions parseFrom(
+  public static alluxio.grpc.SetAclPOptions parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.ListStatusPOptions parseFrom(
+  public static alluxio.grpc.SetAclPOptions parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.ListStatusPOptions parseFrom(
+  public static alluxio.grpc.SetAclPOptions parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.ListStatusPOptions parseFrom(
+  public static alluxio.grpc.SetAclPOptions parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.ListStatusPOptions parseFrom(byte[] data)
+  public static alluxio.grpc.SetAclPOptions parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.ListStatusPOptions parseFrom(
+  public static alluxio.grpc.SetAclPOptions parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.ListStatusPOptions parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.SetAclPOptions parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.ListStatusPOptions parseFrom(
+  public static alluxio.grpc.SetAclPOptions parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.ListStatusPOptions parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.SetAclPOptions parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.ListStatusPOptions parseDelimitedFrom(
+  public static alluxio.grpc.SetAclPOptions parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.ListStatusPOptions parseFrom(
+  public static alluxio.grpc.SetAclPOptions parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.ListStatusPOptions parseFrom(
+  public static alluxio.grpc.SetAclPOptions parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -377,7 +288,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.ListStatusPOptions prototype) {
+  public static Builder newBuilder(alluxio.grpc.SetAclPOptions prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -392,25 +303,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.ListStatusPOptions}
+   * Protobuf type {@code alluxio.grpc.SetAclPOptions}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.ListStatusPOptions)
-      alluxio.grpc.ListStatusPOptionsOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.SetAclPOptions)
+      alluxio.grpc.SetAclPOptionsOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_ListStatusPOptions_descriptor;
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_SetAclPOptions_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_ListStatusPOptions_fieldAccessorTable
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_SetAclPOptions_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.ListStatusPOptions.class, alluxio.grpc.ListStatusPOptions.Builder.class);
+              alluxio.grpc.SetAclPOptions.class, alluxio.grpc.SetAclPOptions.Builder.class);
     }
 
-    // Construct using alluxio.grpc.ListStatusPOptions.newBuilder()
+    // Construct using alluxio.grpc.SetAclPOptions.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -428,60 +339,48 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      loadDirectChildren_ = false;
-      bitField0_ = (bitField0_ & ~0x00000001);
-      loadMetadataType_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000002);
       if (commonOptionsBuilder_ == null) {
         commonOptions_ = null;
       } else {
         commonOptionsBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000004);
+      bitField0_ = (bitField0_ & ~0x00000001);
       recursive_ = false;
-      bitField0_ = (bitField0_ & ~0x00000008);
+      bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_ListStatusPOptions_descriptor;
+      return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_SetAclPOptions_descriptor;
     }
 
-    public alluxio.grpc.ListStatusPOptions getDefaultInstanceForType() {
-      return alluxio.grpc.ListStatusPOptions.getDefaultInstance();
+    public alluxio.grpc.SetAclPOptions getDefaultInstanceForType() {
+      return alluxio.grpc.SetAclPOptions.getDefaultInstance();
     }
 
-    public alluxio.grpc.ListStatusPOptions build() {
-      alluxio.grpc.ListStatusPOptions result = buildPartial();
+    public alluxio.grpc.SetAclPOptions build() {
+      alluxio.grpc.SetAclPOptions result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.ListStatusPOptions buildPartial() {
-      alluxio.grpc.ListStatusPOptions result = new alluxio.grpc.ListStatusPOptions(this);
+    public alluxio.grpc.SetAclPOptions buildPartial() {
+      alluxio.grpc.SetAclPOptions result = new alluxio.grpc.SetAclPOptions(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
-      }
-      result.loadDirectChildren_ = loadDirectChildren_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-        to_bitField0_ |= 0x00000002;
-      }
-      result.loadMetadataType_ = loadMetadataType_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-        to_bitField0_ |= 0x00000004;
       }
       if (commonOptionsBuilder_ == null) {
         result.commonOptions_ = commonOptions_;
       } else {
         result.commonOptions_ = commonOptionsBuilder_.build();
       }
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-        to_bitField0_ |= 0x00000008;
+      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        to_bitField0_ |= 0x00000002;
       }
       result.recursive_ = recursive_;
       result.bitField0_ = to_bitField0_;
@@ -516,22 +415,16 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.ListStatusPOptions) {
-        return mergeFrom((alluxio.grpc.ListStatusPOptions)other);
+      if (other instanceof alluxio.grpc.SetAclPOptions) {
+        return mergeFrom((alluxio.grpc.SetAclPOptions)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.ListStatusPOptions other) {
-      if (other == alluxio.grpc.ListStatusPOptions.getDefaultInstance()) return this;
-      if (other.hasLoadDirectChildren()) {
-        setLoadDirectChildren(other.getLoadDirectChildren());
-      }
-      if (other.hasLoadMetadataType()) {
-        setLoadMetadataType(other.getLoadMetadataType());
-      }
+    public Builder mergeFrom(alluxio.grpc.SetAclPOptions other) {
+      if (other == alluxio.grpc.SetAclPOptions.getDefaultInstance()) return this;
       if (other.hasCommonOptions()) {
         mergeCommonOptions(other.getCommonOptions());
       }
@@ -551,11 +444,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.ListStatusPOptions parsedMessage = null;
+      alluxio.grpc.SetAclPOptions parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.ListStatusPOptions) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.SetAclPOptions) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -566,101 +459,17 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private boolean loadDirectChildren_ ;
-    /**
-     * <pre>
-     * This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
-     * </pre>
-     *
-     * <code>optional bool loadDirectChildren = 1;</code>
-     */
-    public boolean hasLoadDirectChildren() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <pre>
-     * This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
-     * </pre>
-     *
-     * <code>optional bool loadDirectChildren = 1;</code>
-     */
-    public boolean getLoadDirectChildren() {
-      return loadDirectChildren_;
-    }
-    /**
-     * <pre>
-     * This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
-     * </pre>
-     *
-     * <code>optional bool loadDirectChildren = 1;</code>
-     */
-    public Builder setLoadDirectChildren(boolean value) {
-      bitField0_ |= 0x00000001;
-      loadDirectChildren_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <pre>
-     * This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
-     * </pre>
-     *
-     * <code>optional bool loadDirectChildren = 1;</code>
-     */
-    public Builder clearLoadDirectChildren() {
-      bitField0_ = (bitField0_ & ~0x00000001);
-      loadDirectChildren_ = false;
-      onChanged();
-      return this;
-    }
-
-    private int loadMetadataType_ = 0;
-    /**
-     * <code>optional .alluxio.grpc.LoadMetadataPType loadMetadataType = 2;</code>
-     */
-    public boolean hasLoadMetadataType() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional .alluxio.grpc.LoadMetadataPType loadMetadataType = 2;</code>
-     */
-    public alluxio.grpc.LoadMetadataPType getLoadMetadataType() {
-      alluxio.grpc.LoadMetadataPType result = alluxio.grpc.LoadMetadataPType.valueOf(loadMetadataType_);
-      return result == null ? alluxio.grpc.LoadMetadataPType.NEVER : result;
-    }
-    /**
-     * <code>optional .alluxio.grpc.LoadMetadataPType loadMetadataType = 2;</code>
-     */
-    public Builder setLoadMetadataType(alluxio.grpc.LoadMetadataPType value) {
-      if (value == null) {
-        throw new NullPointerException();
-      }
-      bitField0_ |= 0x00000002;
-      loadMetadataType_ = value.getNumber();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional .alluxio.grpc.LoadMetadataPType loadMetadataType = 2;</code>
-     */
-    public Builder clearLoadMetadataType() {
-      bitField0_ = (bitField0_ & ~0x00000002);
-      loadMetadataType_ = 0;
-      onChanged();
-      return this;
-    }
-
     private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.FileSystemMasterCommonPOptions, alluxio.grpc.FileSystemMasterCommonPOptions.Builder, alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder> commonOptionsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 1;</code>
      */
     public boolean hasCommonOptions() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 1;</code>
      */
     public alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions() {
       if (commonOptionsBuilder_ == null) {
@@ -670,7 +479,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 1;</code>
      */
     public Builder setCommonOptions(alluxio.grpc.FileSystemMasterCommonPOptions value) {
       if (commonOptionsBuilder_ == null) {
@@ -682,11 +491,11 @@ private static final long serialVersionUID = 0L;
       } else {
         commonOptionsBuilder_.setMessage(value);
       }
-      bitField0_ |= 0x00000004;
+      bitField0_ |= 0x00000001;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 1;</code>
      */
     public Builder setCommonOptions(
         alluxio.grpc.FileSystemMasterCommonPOptions.Builder builderForValue) {
@@ -696,15 +505,15 @@ private static final long serialVersionUID = 0L;
       } else {
         commonOptionsBuilder_.setMessage(builderForValue.build());
       }
-      bitField0_ |= 0x00000004;
+      bitField0_ |= 0x00000001;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 1;</code>
      */
     public Builder mergeCommonOptions(alluxio.grpc.FileSystemMasterCommonPOptions value) {
       if (commonOptionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004) &&
+        if (((bitField0_ & 0x00000001) == 0x00000001) &&
             commonOptions_ != null &&
             commonOptions_ != alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance()) {
           commonOptions_ =
@@ -716,11 +525,11 @@ private static final long serialVersionUID = 0L;
       } else {
         commonOptionsBuilder_.mergeFrom(value);
       }
-      bitField0_ |= 0x00000004;
+      bitField0_ |= 0x00000001;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 1;</code>
      */
     public Builder clearCommonOptions() {
       if (commonOptionsBuilder_ == null) {
@@ -729,19 +538,19 @@ private static final long serialVersionUID = 0L;
       } else {
         commonOptionsBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000004);
+      bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 1;</code>
      */
     public alluxio.grpc.FileSystemMasterCommonPOptions.Builder getCommonOptionsBuilder() {
-      bitField0_ |= 0x00000004;
+      bitField0_ |= 0x00000001;
       onChanged();
       return getCommonOptionsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 1;</code>
      */
     public alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder() {
       if (commonOptionsBuilder_ != null) {
@@ -752,7 +561,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.FileSystemMasterCommonPOptions, alluxio.grpc.FileSystemMasterCommonPOptions.Builder, alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder> 
@@ -770,31 +579,31 @@ private static final long serialVersionUID = 0L;
 
     private boolean recursive_ ;
     /**
-     * <code>optional bool recursive = 4;</code>
+     * <code>optional bool recursive = 2;</code>
      */
     public boolean hasRecursive() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional bool recursive = 4;</code>
+     * <code>optional bool recursive = 2;</code>
      */
     public boolean getRecursive() {
       return recursive_;
     }
     /**
-     * <code>optional bool recursive = 4;</code>
+     * <code>optional bool recursive = 2;</code>
      */
     public Builder setRecursive(boolean value) {
-      bitField0_ |= 0x00000008;
+      bitField0_ |= 0x00000002;
       recursive_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional bool recursive = 4;</code>
+     * <code>optional bool recursive = 2;</code>
      */
     public Builder clearRecursive() {
-      bitField0_ = (bitField0_ & ~0x00000008);
+      bitField0_ = (bitField0_ & ~0x00000002);
       recursive_ = false;
       onChanged();
       return this;
@@ -810,39 +619,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.ListStatusPOptions)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.SetAclPOptions)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.ListStatusPOptions)
-  private static final alluxio.grpc.ListStatusPOptions DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.SetAclPOptions)
+  private static final alluxio.grpc.SetAclPOptions DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.ListStatusPOptions();
+    DEFAULT_INSTANCE = new alluxio.grpc.SetAclPOptions();
   }
 
-  public static alluxio.grpc.ListStatusPOptions getDefaultInstance() {
+  public static alluxio.grpc.SetAclPOptions getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<ListStatusPOptions>
-      PARSER = new com.google.protobuf.AbstractParser<ListStatusPOptions>() {
-    public ListStatusPOptions parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<SetAclPOptions>
+      PARSER = new com.google.protobuf.AbstractParser<SetAclPOptions>() {
+    public SetAclPOptions parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new ListStatusPOptions(input, extensionRegistry);
+      return new SetAclPOptions(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<ListStatusPOptions> parser() {
+  public static com.google.protobuf.Parser<SetAclPOptions> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<ListStatusPOptions> getParserForType() {
+  public com.google.protobuf.Parser<SetAclPOptions> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.ListStatusPOptions getDefaultInstanceForType() {
+  public alluxio.grpc.SetAclPOptions getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

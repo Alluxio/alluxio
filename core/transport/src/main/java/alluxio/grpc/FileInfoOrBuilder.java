@@ -285,4 +285,30 @@ public interface FileInfoOrBuilder extends
    */
   com.google.protobuf.ByteString
       getUfsFingerprintBytes();
+
+  /**
+   * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+   */
+  boolean hasAcl();
+  /**
+   * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+   */
+  alluxio.grpc.PAcl getAcl();
+  /**
+   * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+   */
+  alluxio.grpc.PAclOrBuilder getAclOrBuilder();
+
+  /**
+   * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+   */
+  boolean hasDefaultAcl();
+  /**
+   * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+   */
+  alluxio.grpc.PAcl getDefaultAcl();
+  /**
+   * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+   */
+  alluxio.grpc.PAclOrBuilder getDefaultAclOrBuilder();
 }

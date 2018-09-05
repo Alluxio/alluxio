@@ -232,6 +232,32 @@ private static final long serialVersionUID = 0L;
             ufsFingerprint_ = bs;
             break;
           }
+          case 210: {
+            alluxio.grpc.PAcl.Builder subBuilder = null;
+            if (((bitField0_ & 0x00800000) == 0x00800000)) {
+              subBuilder = acl_.toBuilder();
+            }
+            acl_ = input.readMessage(alluxio.grpc.PAcl.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(acl_);
+              acl_ = subBuilder.buildPartial();
+            }
+            bitField0_ |= 0x00800000;
+            break;
+          }
+          case 218: {
+            alluxio.grpc.PAcl.Builder subBuilder = null;
+            if (((bitField0_ & 0x01000000) == 0x01000000)) {
+              subBuilder = defaultAcl_.toBuilder();
+            }
+            defaultAcl_ = input.readMessage(alluxio.grpc.PAcl.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(defaultAcl_);
+              defaultAcl_ = subBuilder.buildPartial();
+            }
+            bitField0_ |= 0x01000000;
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -855,6 +881,48 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int ACL_FIELD_NUMBER = 26;
+  private alluxio.grpc.PAcl acl_;
+  /**
+   * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+   */
+  public boolean hasAcl() {
+    return ((bitField0_ & 0x00800000) == 0x00800000);
+  }
+  /**
+   * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+   */
+  public alluxio.grpc.PAcl getAcl() {
+    return acl_ == null ? alluxio.grpc.PAcl.getDefaultInstance() : acl_;
+  }
+  /**
+   * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+   */
+  public alluxio.grpc.PAclOrBuilder getAclOrBuilder() {
+    return acl_ == null ? alluxio.grpc.PAcl.getDefaultInstance() : acl_;
+  }
+
+  public static final int DEFAULTACL_FIELD_NUMBER = 27;
+  private alluxio.grpc.PAcl defaultAcl_;
+  /**
+   * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+   */
+  public boolean hasDefaultAcl() {
+    return ((bitField0_ & 0x01000000) == 0x01000000);
+  }
+  /**
+   * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+   */
+  public alluxio.grpc.PAcl getDefaultAcl() {
+    return defaultAcl_ == null ? alluxio.grpc.PAcl.getDefaultInstance() : defaultAcl_;
+  }
+  /**
+   * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+   */
+  public alluxio.grpc.PAclOrBuilder getDefaultAclOrBuilder() {
+    return defaultAcl_ == null ? alluxio.grpc.PAcl.getDefaultInstance() : defaultAcl_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -941,6 +1009,12 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00400000) == 0x00400000)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 25, ufsFingerprint_);
+    }
+    if (((bitField0_ & 0x00800000) == 0x00800000)) {
+      output.writeMessage(26, getAcl());
+    }
+    if (((bitField0_ & 0x01000000) == 0x01000000)) {
+      output.writeMessage(27, getDefaultAcl());
     }
     unknownFields.writeTo(output);
   }
@@ -1047,6 +1121,14 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00400000) == 0x00400000)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(25, ufsFingerprint_);
+    }
+    if (((bitField0_ & 0x00800000) == 0x00800000)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(26, getAcl());
+    }
+    if (((bitField0_ & 0x01000000) == 0x01000000)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(27, getDefaultAcl());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -1182,6 +1264,16 @@ private static final long serialVersionUID = 0L;
       result = result && getUfsFingerprint()
           .equals(other.getUfsFingerprint());
     }
+    result = result && (hasAcl() == other.hasAcl());
+    if (hasAcl()) {
+      result = result && getAcl()
+          .equals(other.getAcl());
+    }
+    result = result && (hasDefaultAcl() == other.hasDefaultAcl());
+    if (hasDefaultAcl()) {
+      result = result && getDefaultAcl()
+          .equals(other.getDefaultAcl());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -1305,6 +1397,14 @@ private static final long serialVersionUID = 0L;
     if (hasUfsFingerprint()) {
       hash = (37 * hash) + UFSFINGERPRINT_FIELD_NUMBER;
       hash = (53 * hash) + getUfsFingerprint().hashCode();
+    }
+    if (hasAcl()) {
+      hash = (37 * hash) + ACL_FIELD_NUMBER;
+      hash = (53 * hash) + getAcl().hashCode();
+    }
+    if (hasDefaultAcl()) {
+      hash = (37 * hash) + DEFAULTACL_FIELD_NUMBER;
+      hash = (53 * hash) + getDefaultAcl().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -1432,6 +1532,8 @@ private static final long serialVersionUID = 0L;
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
         getFileBlockInfosFieldBuilder();
+        getAclFieldBuilder();
+        getDefaultAclFieldBuilder();
       }
     }
     public Builder clear() {
@@ -1490,6 +1592,18 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00800000);
       ufsFingerprint_ = "";
       bitField0_ = (bitField0_ & ~0x01000000);
+      if (aclBuilder_ == null) {
+        acl_ = null;
+      } else {
+        aclBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x02000000);
+      if (defaultAclBuilder_ == null) {
+        defaultAcl_ = null;
+      } else {
+        defaultAclBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x04000000);
       return this;
     }
 
@@ -1620,6 +1734,22 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00400000;
       }
       result.ufsFingerprint_ = ufsFingerprint_;
+      if (((from_bitField0_ & 0x02000000) == 0x02000000)) {
+        to_bitField0_ |= 0x00800000;
+      }
+      if (aclBuilder_ == null) {
+        result.acl_ = acl_;
+      } else {
+        result.acl_ = aclBuilder_.build();
+      }
+      if (((from_bitField0_ & 0x04000000) == 0x04000000)) {
+        to_bitField0_ |= 0x01000000;
+      }
+      if (defaultAclBuilder_ == null) {
+        result.defaultAcl_ = defaultAcl_;
+      } else {
+        result.defaultAcl_ = defaultAclBuilder_.build();
+      }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -1780,6 +1910,12 @@ private static final long serialVersionUID = 0L;
         bitField0_ |= 0x01000000;
         ufsFingerprint_ = other.ufsFingerprint_;
         onChanged();
+      }
+      if (other.hasAcl()) {
+        mergeAcl(other.getAcl());
+      }
+      if (other.hasDefaultAcl()) {
+        mergeDefaultAcl(other.getDefaultAcl());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -3161,6 +3297,242 @@ private static final long serialVersionUID = 0L;
       ufsFingerprint_ = value;
       onChanged();
       return this;
+    }
+
+    private alluxio.grpc.PAcl acl_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.PAcl, alluxio.grpc.PAcl.Builder, alluxio.grpc.PAclOrBuilder> aclBuilder_;
+    /**
+     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     */
+    public boolean hasAcl() {
+      return ((bitField0_ & 0x02000000) == 0x02000000);
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     */
+    public alluxio.grpc.PAcl getAcl() {
+      if (aclBuilder_ == null) {
+        return acl_ == null ? alluxio.grpc.PAcl.getDefaultInstance() : acl_;
+      } else {
+        return aclBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     */
+    public Builder setAcl(alluxio.grpc.PAcl value) {
+      if (aclBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        acl_ = value;
+        onChanged();
+      } else {
+        aclBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x02000000;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     */
+    public Builder setAcl(
+        alluxio.grpc.PAcl.Builder builderForValue) {
+      if (aclBuilder_ == null) {
+        acl_ = builderForValue.build();
+        onChanged();
+      } else {
+        aclBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x02000000;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     */
+    public Builder mergeAcl(alluxio.grpc.PAcl value) {
+      if (aclBuilder_ == null) {
+        if (((bitField0_ & 0x02000000) == 0x02000000) &&
+            acl_ != null &&
+            acl_ != alluxio.grpc.PAcl.getDefaultInstance()) {
+          acl_ =
+            alluxio.grpc.PAcl.newBuilder(acl_).mergeFrom(value).buildPartial();
+        } else {
+          acl_ = value;
+        }
+        onChanged();
+      } else {
+        aclBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x02000000;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     */
+    public Builder clearAcl() {
+      if (aclBuilder_ == null) {
+        acl_ = null;
+        onChanged();
+      } else {
+        aclBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x02000000);
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     */
+    public alluxio.grpc.PAcl.Builder getAclBuilder() {
+      bitField0_ |= 0x02000000;
+      onChanged();
+      return getAclFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     */
+    public alluxio.grpc.PAclOrBuilder getAclOrBuilder() {
+      if (aclBuilder_ != null) {
+        return aclBuilder_.getMessageOrBuilder();
+      } else {
+        return acl_ == null ?
+            alluxio.grpc.PAcl.getDefaultInstance() : acl_;
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.PAcl, alluxio.grpc.PAcl.Builder, alluxio.grpc.PAclOrBuilder> 
+        getAclFieldBuilder() {
+      if (aclBuilder_ == null) {
+        aclBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.PAcl, alluxio.grpc.PAcl.Builder, alluxio.grpc.PAclOrBuilder>(
+                getAcl(),
+                getParentForChildren(),
+                isClean());
+        acl_ = null;
+      }
+      return aclBuilder_;
+    }
+
+    private alluxio.grpc.PAcl defaultAcl_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.PAcl, alluxio.grpc.PAcl.Builder, alluxio.grpc.PAclOrBuilder> defaultAclBuilder_;
+    /**
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     */
+    public boolean hasDefaultAcl() {
+      return ((bitField0_ & 0x04000000) == 0x04000000);
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     */
+    public alluxio.grpc.PAcl getDefaultAcl() {
+      if (defaultAclBuilder_ == null) {
+        return defaultAcl_ == null ? alluxio.grpc.PAcl.getDefaultInstance() : defaultAcl_;
+      } else {
+        return defaultAclBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     */
+    public Builder setDefaultAcl(alluxio.grpc.PAcl value) {
+      if (defaultAclBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        defaultAcl_ = value;
+        onChanged();
+      } else {
+        defaultAclBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x04000000;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     */
+    public Builder setDefaultAcl(
+        alluxio.grpc.PAcl.Builder builderForValue) {
+      if (defaultAclBuilder_ == null) {
+        defaultAcl_ = builderForValue.build();
+        onChanged();
+      } else {
+        defaultAclBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x04000000;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     */
+    public Builder mergeDefaultAcl(alluxio.grpc.PAcl value) {
+      if (defaultAclBuilder_ == null) {
+        if (((bitField0_ & 0x04000000) == 0x04000000) &&
+            defaultAcl_ != null &&
+            defaultAcl_ != alluxio.grpc.PAcl.getDefaultInstance()) {
+          defaultAcl_ =
+            alluxio.grpc.PAcl.newBuilder(defaultAcl_).mergeFrom(value).buildPartial();
+        } else {
+          defaultAcl_ = value;
+        }
+        onChanged();
+      } else {
+        defaultAclBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x04000000;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     */
+    public Builder clearDefaultAcl() {
+      if (defaultAclBuilder_ == null) {
+        defaultAcl_ = null;
+        onChanged();
+      } else {
+        defaultAclBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x04000000);
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     */
+    public alluxio.grpc.PAcl.Builder getDefaultAclBuilder() {
+      bitField0_ |= 0x04000000;
+      onChanged();
+      return getDefaultAclFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     */
+    public alluxio.grpc.PAclOrBuilder getDefaultAclOrBuilder() {
+      if (defaultAclBuilder_ != null) {
+        return defaultAclBuilder_.getMessageOrBuilder();
+      } else {
+        return defaultAcl_ == null ?
+            alluxio.grpc.PAcl.getDefaultInstance() : defaultAcl_;
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.PAcl, alluxio.grpc.PAcl.Builder, alluxio.grpc.PAclOrBuilder> 
+        getDefaultAclFieldBuilder() {
+      if (defaultAclBuilder_ == null) {
+        defaultAclBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.PAcl, alluxio.grpc.PAcl.Builder, alluxio.grpc.PAclOrBuilder>(
+                getDefaultAcl(),
+                getParentForChildren(),
+                isClean());
+        defaultAcl_ = null;
+      }
+      return defaultAclBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

@@ -17,6 +17,8 @@ private static final long serialVersionUID = 0L;
   }
   private FileSystemMasterCommonPOptions() {
     syncIntervalMs_ = 0L;
+    ttl_ = 0L;
+    ttlAction_ = 0;
   }
 
   @java.lang.Override
@@ -53,6 +55,22 @@ private static final long serialVersionUID = 0L;
           case 8: {
             bitField0_ |= 0x00000001;
             syncIntervalMs_ = input.readInt64();
+            break;
+          }
+          case 16: {
+            bitField0_ |= 0x00000002;
+            ttl_ = input.readInt64();
+            break;
+          }
+          case 24: {
+            int rawValue = input.readEnum();
+            alluxio.grpc.TtlAction value = alluxio.grpc.TtlAction.valueOf(rawValue);
+            if (value == null) {
+              unknownFields.mergeVarintField(3, rawValue);
+            } else {
+              bitField0_ |= 0x00000004;
+              ttlAction_ = rawValue;
+            }
             break;
           }
         }
@@ -95,6 +113,37 @@ private static final long serialVersionUID = 0L;
     return syncIntervalMs_;
   }
 
+  public static final int TTL_FIELD_NUMBER = 2;
+  private long ttl_;
+  /**
+   * <code>optional int64 ttl = 2;</code>
+   */
+  public boolean hasTtl() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
+  }
+  /**
+   * <code>optional int64 ttl = 2;</code>
+   */
+  public long getTtl() {
+    return ttl_;
+  }
+
+  public static final int TTLACTION_FIELD_NUMBER = 3;
+  private int ttlAction_;
+  /**
+   * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+   */
+  public boolean hasTtlAction() {
+    return ((bitField0_ & 0x00000004) == 0x00000004);
+  }
+  /**
+   * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+   */
+  public alluxio.grpc.TtlAction getTtlAction() {
+    alluxio.grpc.TtlAction result = alluxio.grpc.TtlAction.valueOf(ttlAction_);
+    return result == null ? alluxio.grpc.TtlAction.DELETE : result;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -110,6 +159,12 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       output.writeInt64(1, syncIntervalMs_);
     }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      output.writeInt64(2, ttl_);
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      output.writeEnum(3, ttlAction_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -121,6 +176,14 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(1, syncIntervalMs_);
+    }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(2, ttl_);
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeEnumSize(3, ttlAction_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -143,6 +206,15 @@ private static final long serialVersionUID = 0L;
       result = result && (getSyncIntervalMs()
           == other.getSyncIntervalMs());
     }
+    result = result && (hasTtl() == other.hasTtl());
+    if (hasTtl()) {
+      result = result && (getTtl()
+          == other.getTtl());
+    }
+    result = result && (hasTtlAction() == other.hasTtlAction());
+    if (hasTtlAction()) {
+      result = result && ttlAction_ == other.ttlAction_;
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -158,6 +230,15 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + SYNCINTERVALMS_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getSyncIntervalMs());
+    }
+    if (hasTtl()) {
+      hash = (37 * hash) + TTL_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getTtl());
+    }
+    if (hasTtlAction()) {
+      hash = (37 * hash) + TTLACTION_FIELD_NUMBER;
+      hash = (53 * hash) + ttlAction_;
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -290,6 +371,10 @@ private static final long serialVersionUID = 0L;
       super.clear();
       syncIntervalMs_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
+      ttl_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000002);
+      ttlAction_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000004);
       return this;
     }
 
@@ -318,6 +403,14 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000001;
       }
       result.syncIntervalMs_ = syncIntervalMs_;
+      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        to_bitField0_ |= 0x00000002;
+      }
+      result.ttl_ = ttl_;
+      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        to_bitField0_ |= 0x00000004;
+      }
+      result.ttlAction_ = ttlAction_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -362,6 +455,12 @@ private static final long serialVersionUID = 0L;
       if (other == alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance()) return this;
       if (other.hasSyncIntervalMs()) {
         setSyncIntervalMs(other.getSyncIntervalMs());
+      }
+      if (other.hasTtl()) {
+        setTtl(other.getTtl());
+      }
+      if (other.hasTtlAction()) {
+        setTtlAction(other.getTtlAction());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -419,6 +518,74 @@ private static final long serialVersionUID = 0L;
     public Builder clearSyncIntervalMs() {
       bitField0_ = (bitField0_ & ~0x00000001);
       syncIntervalMs_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private long ttl_ ;
+    /**
+     * <code>optional int64 ttl = 2;</code>
+     */
+    public boolean hasTtl() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 ttl = 2;</code>
+     */
+    public long getTtl() {
+      return ttl_;
+    }
+    /**
+     * <code>optional int64 ttl = 2;</code>
+     */
+    public Builder setTtl(long value) {
+      bitField0_ |= 0x00000002;
+      ttl_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 ttl = 2;</code>
+     */
+    public Builder clearTtl() {
+      bitField0_ = (bitField0_ & ~0x00000002);
+      ttl_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private int ttlAction_ = 0;
+    /**
+     * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+     */
+    public boolean hasTtlAction() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+     */
+    public alluxio.grpc.TtlAction getTtlAction() {
+      alluxio.grpc.TtlAction result = alluxio.grpc.TtlAction.valueOf(ttlAction_);
+      return result == null ? alluxio.grpc.TtlAction.DELETE : result;
+    }
+    /**
+     * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+     */
+    public Builder setTtlAction(alluxio.grpc.TtlAction value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      bitField0_ |= 0x00000004;
+      ttlAction_ = value.getNumber();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+     */
+    public Builder clearTtlAction() {
+      bitField0_ = (bitField0_ & ~0x00000004);
+      ttlAction_ = 0;
       onChanged();
       return this;
     }

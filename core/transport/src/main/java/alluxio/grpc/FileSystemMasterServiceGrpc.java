@@ -513,6 +513,43 @@ public final class FileSystemMasterServiceGrpc {
      return getScheduleAsyncPersistenceMethod;
   }
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @java.lang.Deprecated // Use {@link #getSetAclMethod()} instead. 
+  public static final io.grpc.MethodDescriptor<alluxio.grpc.SetAclPRequest,
+      alluxio.grpc.SetAclPResponse> METHOD_SET_ACL = getSetAclMethodHelper();
+
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.SetAclPRequest,
+      alluxio.grpc.SetAclPResponse> getSetAclMethod;
+
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  public static io.grpc.MethodDescriptor<alluxio.grpc.SetAclPRequest,
+      alluxio.grpc.SetAclPResponse> getSetAclMethod() {
+    return getSetAclMethodHelper();
+  }
+
+  private static io.grpc.MethodDescriptor<alluxio.grpc.SetAclPRequest,
+      alluxio.grpc.SetAclPResponse> getSetAclMethodHelper() {
+    io.grpc.MethodDescriptor<alluxio.grpc.SetAclPRequest, alluxio.grpc.SetAclPResponse> getSetAclMethod;
+    if ((getSetAclMethod = FileSystemMasterServiceGrpc.getSetAclMethod) == null) {
+      synchronized (FileSystemMasterServiceGrpc.class) {
+        if ((getSetAclMethod = FileSystemMasterServiceGrpc.getSetAclMethod) == null) {
+          FileSystemMasterServiceGrpc.getSetAclMethod = getSetAclMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.SetAclPRequest, alluxio.grpc.SetAclPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.FileSystemMasterService", "SetAcl"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.SetAclPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.SetAclPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new FileSystemMasterServiceMethodDescriptorSupplier("SetAcl"))
+                  .build();
+          }
+        }
+     }
+     return getSetAclMethod;
+  }
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
   @java.lang.Deprecated // Use {@link #getSetAttributeMethod()} instead. 
   public static final io.grpc.MethodDescriptor<alluxio.grpc.SetAttributePRequest,
       alluxio.grpc.SetAttributePResponse> METHOD_SET_ATTRIBUTE = getSetAttributeMethodHelper();
@@ -805,6 +842,17 @@ public final class FileSystemMasterServiceGrpc {
     /**
      * <pre>
      **
+     * Sets ACL for the path.
+     * </pre>
+     */
+    public void setAcl(alluxio.grpc.SetAclPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.SetAclPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getSetAclMethodHelper(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Sets file or directory attributes.
      * </pre>
      */
@@ -930,6 +978,13 @@ public final class FileSystemMasterServiceGrpc {
                 alluxio.grpc.ScheduleAsyncPersistencePRequest,
                 alluxio.grpc.ScheduleAsyncPersistencePResponse>(
                   this, METHODID_SCHEDULE_ASYNC_PERSISTENCE)))
+          .addMethod(
+            getSetAclMethodHelper(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.SetAclPRequest,
+                alluxio.grpc.SetAclPResponse>(
+                  this, METHODID_SET_ACL)))
           .addMethod(
             getSetAttributeMethodHelper(),
             asyncUnaryCall(
@@ -1140,6 +1195,18 @@ public final class FileSystemMasterServiceGrpc {
     /**
      * <pre>
      **
+     * Sets ACL for the path.
+     * </pre>
+     */
+    public void setAcl(alluxio.grpc.SetAclPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.SetAclPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getSetAclMethodHelper(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Sets file or directory attributes.
      * </pre>
      */
@@ -1343,6 +1410,17 @@ public final class FileSystemMasterServiceGrpc {
     public alluxio.grpc.ScheduleAsyncPersistencePResponse scheduleAsyncPersistence(alluxio.grpc.ScheduleAsyncPersistencePRequest request) {
       return blockingUnaryCall(
           getChannel(), getScheduleAsyncPersistenceMethodHelper(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Sets ACL for the path.
+     * </pre>
+     */
+    public alluxio.grpc.SetAclPResponse setAcl(alluxio.grpc.SetAclPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getSetAclMethodHelper(), getCallOptions(), request);
     }
 
     /**
@@ -1566,6 +1644,18 @@ public final class FileSystemMasterServiceGrpc {
     /**
      * <pre>
      **
+     * Sets ACL for the path.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.SetAclPResponse> setAcl(
+        alluxio.grpc.SetAclPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getSetAclMethodHelper(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Sets file or directory attributes.
      * </pre>
      */
@@ -1615,9 +1705,10 @@ public final class FileSystemMasterServiceGrpc {
   private static final int METHODID_REMOVE = 10;
   private static final int METHODID_RENAME = 11;
   private static final int METHODID_SCHEDULE_ASYNC_PERSISTENCE = 12;
-  private static final int METHODID_SET_ATTRIBUTE = 13;
-  private static final int METHODID_UNMOUNT = 14;
-  private static final int METHODID_UPDATE_UFS_MODE = 15;
+  private static final int METHODID_SET_ACL = 13;
+  private static final int METHODID_SET_ATTRIBUTE = 14;
+  private static final int METHODID_UNMOUNT = 15;
+  private static final int METHODID_UPDATE_UFS_MODE = 16;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -1687,6 +1778,10 @@ public final class FileSystemMasterServiceGrpc {
         case METHODID_SCHEDULE_ASYNC_PERSISTENCE:
           serviceImpl.scheduleAsyncPersistence((alluxio.grpc.ScheduleAsyncPersistencePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.ScheduleAsyncPersistencePResponse>) responseObserver);
+          break;
+        case METHODID_SET_ACL:
+          serviceImpl.setAcl((alluxio.grpc.SetAclPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.SetAclPResponse>) responseObserver);
           break;
         case METHODID_SET_ATTRIBUTE:
           serviceImpl.setAttribute((alluxio.grpc.SetAttributePRequest) request,
@@ -1774,6 +1869,7 @@ public final class FileSystemMasterServiceGrpc {
               .addMethod(getRemoveMethodHelper())
               .addMethod(getRenameMethodHelper())
               .addMethod(getScheduleAsyncPersistenceMethodHelper())
+              .addMethod(getSetAclMethodHelper())
               .addMethod(getSetAttributeMethodHelper())
               .addMethod(getUnmountMethodHelper())
               .addMethod(getUpdateUfsModeMethodHelper())

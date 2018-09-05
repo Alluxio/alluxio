@@ -45,4 +45,13 @@ public interface ListStatusPOptionsOrBuilder extends
    * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 3;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
+
+  /**
+   * <code>optional bool recursive = 4;</code>
+   */
+  boolean hasRecursive();
+  /**
+   * <code>optional bool recursive = 4;</code>
+   */
+  boolean getRecursive();
 }
