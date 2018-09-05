@@ -13,18 +13,11 @@ package alluxio.file.options;
 
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
-<<<<<<< HEAD:core/base/src/main/java/alluxio/file/options/CreatePathOptions.java
-||||||| merged common ancestors
-import alluxio.wire.CommonOptions;
-=======
-import alluxio.wire.CommonOptions;
 import alluxio.wire.TtlAction;
->>>>>>> master:core/server/master/src/main/java/alluxio/master/file/options/CreatePathOptions.java
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
-import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -48,35 +41,6 @@ public abstract class CreatePathOptions<T> {
   protected boolean mRecursive;
   protected boolean mMetadataLoad;
 
-<<<<<<< HEAD:core/base/src/main/java/alluxio/file/options/CreatePathOptions.java
-||||||| merged common ancestors
-  protected CreatePathOptions() {
-    mCommonOptions = CommonOptions.defaults();
-    mMountPoint = false;
-    mOperationTimeMs = System.currentTimeMillis();
-    mOwner = "";
-    mGroup = "";
-    mMode = Mode.defaults();
-    mPersisted = false;
-    mRecursive = false;
-    mMetadataLoad = false;
-  }
-
-=======
-  protected CreatePathOptions() {
-    mCommonOptions = CommonOptions.defaults();
-    mMountPoint = false;
-    mOperationTimeMs = System.currentTimeMillis();
-    mOwner = "";
-    mGroup = "";
-    mMode = Mode.defaults();
-    mAcl = Collections.emptyList();
-    mPersisted = false;
-    mRecursive = false;
-    mMetadataLoad = false;
-  }
-
->>>>>>> master:core/server/master/src/main/java/alluxio/master/file/options/CreatePathOptions.java
   protected abstract T getThis();
 
   /**

@@ -11,8 +11,6 @@
 
 package alluxio.file.options;
 
-import alluxio.wire.TtlAction;
-
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -23,8 +21,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOptions> {
   protected boolean mAllowExists;
-  protected long mTtl;
-  protected TtlAction mTtlAction;
 
   /**
    * @return the allowExists flag; it specifies whether an exception should be thrown if the object
@@ -35,21 +31,6 @@ public class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOpt
   }
 
   /**
-   * @return the TTL (time to live) value; it identifies duration (in seconds) the created directory
-   *         should be kept around before it is automatically deleted or free
-   */
-  public long getTtl() {
-    return mTtl;
-  }
-
-  /**
-   * @return the {@link TtlAction}
-   */
-  public TtlAction getTtlAction() {
-    return mTtlAction;
-  }
-
-  /**
    * @param allowExists the allowExists flag value to use; it specifies whether an exception
    *        should be thrown if the object being made already exists.
    * @return the updated options object
@@ -57,25 +38,6 @@ public class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOpt
   public <T extends CreateDirectoryOptions> T setAllowExists(boolean allowExists) {
     mAllowExists = allowExists;
     return (T) this;
-  }
-
-  /**
-   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-   *        created directory should be kept around before it is automatically deleted
-   * @return the updated options object
-   */
-  public <T extends CreateDirectoryOptions> T setTtl(long ttl) {
-    mTtl = ttl;
-    return (T) getThis();
-  }
-
-  /**
-   * @param ttlAction the {@link TtlAction}; It informs the action to take when Ttl is expired;
-   * @return the updated options object
-   */
-  public <T extends CreateDirectoryOptions> T setTtlAction(TtlAction ttlAction) {
-    mTtlAction = ttlAction;
-    return (T) getThis();
   }
 
   @Override
@@ -95,19 +57,16 @@ public class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOpt
       return false;
     }
     CreateDirectoryOptions that = (CreateDirectoryOptions) o;
-    return Objects.equal(mAllowExists, that.mAllowExists) && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlAction, that.mTtlAction);
+    return Objects.equal(mAllowExists, that.mAllowExists);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mAllowExists, mTtl, mTtlAction);
+    return super.hashCode() + Objects.hashCode(mAllowExists);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
-        .add("allowExists", mAllowExists).add("ttl", mTtl)
-        .add("ttlAction", mTtlAction).toString();
+    return toStringHelper().add("allowExists", mAllowExists).toString();
   }
 }

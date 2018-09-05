@@ -11,7 +11,7 @@
 
 package alluxio.security.authorization;
 
-import alluxio.proto.journal.File;
+//import alluxio.proto.journal.File;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
@@ -186,28 +186,28 @@ public final class AclActions implements Serializable {
     return bits;
   }
 
-  /**
-   * @param actions the protobuf representation of {@link AclActions}
-   * @return the {@link AclActions} decoded from the protobuf representation
-   */
-  public static AclActions fromProtoBuf(File.AclActions actions) {
-    AclActions ret = new AclActions();
-    for (File.AclAction action : actions.getActionsList()) {
-      ret.add(AclAction.fromProtoBuf(action));
-    }
-    return ret;
-  }
-
-  /**
-   * @param actions the {@link AclActions}
-   * @return the protobuf representation of {@link AclActions}
-   */
-  public static File.AclActions toProtoBuf(AclActions actions) {
-    File.AclActions.Builder builder = File.AclActions.newBuilder();
-    for (AclAction action : actions.getActions()) {
-      File.AclAction pAction = action.toProtoBuf();
-      builder.addActions(pAction);
-    }
-    return builder.build();
-  }
+//  /**
+//   * @param actions the protobuf representation of {@link AclActions}
+//   * @return the {@link AclActions} decoded from the protobuf representation
+//   */
+//  public static AclActions fromProtoBuf(File.AclActions actions) {
+//    AclActions ret = new AclActions();
+//    for (File.AclAction action : actions.getActionsList()) {
+//      ret.add(AclAction.fromProtoBuf(action));
+//    }
+//    return ret;
+//  }
+//
+//  /**
+//   * @param actions the {@link AclActions}
+//   * @return the protobuf representation of {@link AclActions}
+//   */
+//  public static File.AclActions toProtoBuf(AclActions actions) {
+//    File.AclActions.Builder builder = File.AclActions.newBuilder();
+//    for (AclAction action : actions.getActions()) {
+//      File.AclAction pAction = action.toProtoBuf();
+//      builder.addActions(pAction);
+//    }
+//    return builder.build();
+//  }
 }

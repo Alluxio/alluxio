@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -30,6 +30,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
+import java.util.Collections;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -40,18 +42,27 @@ import javax.annotation.concurrent.NotThreadSafe;
 @JsonInclude(Include.NON_EMPTY)
 public final class CreateFileOptions extends alluxio.file.options.CreateFileOptions {
   private FileWriteLocationPolicy mLocationPolicy;
-<<<<<<< HEAD
-||||||| merged common ancestors
-  private long mBlockSizeBytes;
-  private long mTtl;
-  private TtlAction mTtlAction;
-  private Mode mMode;
-=======
-  private long mBlockSizeBytes;
-  private Mode mMode;
->>>>>>> master
   private int mWriteTier;
   private WriteType mWriteType;
+
+  private CreateFileOptions() {
+    // TODO(adit): redundant definition in CreateDirectoryOptions
+    mCommonOptions = CommonOptions.defaults()
+        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL)).setTtlAction(
+            Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class));
+    mMode = ModeUtils.applyFileUMask(Mode.defaults());
+    mAcl = Collections.emptyList();
+    mRecursive = true;
+
+    mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mLocationPolicy =
+        CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
+            PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
+    mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
+    mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    // TODO(adit):
+    mPersisted = mWriteType.isThrough();
+  }
 
   /**
    * @return the default {@link CreateFileOptions}
@@ -60,136 +71,12 @@ public final class CreateFileOptions extends alluxio.file.options.CreateFileOpti
     return new CreateFileOptions();
   }
 
-  private CreateFileOptions() {
-    mCommonOptions = CommonOptions.defaults()
-        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
-        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION,
-            TtlAction.class));
-    mRecursive = true;
-    mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    mLocationPolicy =
-        CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
-            PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
-    mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
-    mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-<<<<<<< HEAD
-    // TODO(adit):
-    mPersisted = mWriteType.isThrough();
-    mTtl = Constants.NO_TTL;
-    mTtlAction = TtlAction.DELETE;
-    mMode = ModeUtils.applyFileUMask(Mode.defaults());
-||||||| merged common ancestors
-    mTtl = Constants.NO_TTL;
-    mTtlAction = TtlAction.DELETE;
-    mMode = Mode.defaults().applyFileUMask();
-  }
-
-  /**
-   * @return the common options
-   */
-  public CommonOptions getCommonOptions() {
-    return mCommonOptions;
-  }
-
-  /**
-   * @return the block size
-   */
-  public long getBlockSizeBytes() {
-    return mBlockSizeBytes;
-=======
-    mMode = Mode.defaults().applyFileUMask();
-  }
-
-  /**
-   * @return the common options
-   */
-  public CommonOptions getCommonOptions() {
-    return mCommonOptions;
-  }
-
-  /**
-   * @return the block size
-   */
-  public long getBlockSizeBytes() {
-    return mBlockSizeBytes;
->>>>>>> master
-  }
-
   /**
    * @return the location policy used when storing data to Alluxio
    */
   @JsonIgnore
   public FileWriteLocationPolicy getLocationPolicy() {
     return mLocationPolicy;
-  }
-
-  /**
-   * @return the location policy class used when storing data to Alluxio
-   */
-  public String getLocationPolicyClass() {
-    return mLocationPolicy.getClass().getCanonicalName();
-  }
-
-  /**
-<<<<<<< HEAD
-||||||| merged common ancestors
-   * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
-   *         should be kept around before it is automatically deleted
-   */
-  public long getTtl() {
-    return mTtl;
-  }
-
-  /**
-   * @return the {@link TtlAction}
-   */
-  public TtlAction getTtlAction() {
-    return mTtlAction;
-  }
-
-  /**
-   * @return the mode of the file to create
-   */
-  public Mode getMode() {
-    return mMode;
-  }
-
-  /**
-=======
-   * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
-   *         should be kept around before it is automatically deleted
-   */
-  public long getTtl() {
-    return getCommonOptions().getTtl();
-  }
-
-  /**
-   * @return the {@link TtlAction}
-   */
-  public TtlAction getTtlAction() {
-    return getCommonOptions().getTtlAction();
-  }
-
-  /**
-   * @return the mode of the file to create
-   */
-  public Mode getMode() {
-    return mMode;
-  }
-
-  /**
->>>>>>> master
-   * @return the write tier
-   */
-  public int getWriteTier() {
-    return mWriteTier;
-  }
-
-  /**
-   * @return the write type
-   */
-  public WriteType getWriteType() {
-    return mWriteType;
   }
 
   /**
@@ -203,12 +90,20 @@ public final class CreateFileOptions extends alluxio.file.options.CreateFileOpti
   }
 
   /**
+   * @return the location policy class used when storing data to Alluxio
+   */
+  public String getLocationPolicyClass() {
+    return mLocationPolicy.getClass().getCanonicalName();
+  }
+
+  /**
    * @param className the location policy class to use when storing data to Alluxio
    * @return the updated options object
    */
   public CreateFileOptions setLocationPolicyClass(String className) {
     try {
-      @SuppressWarnings("unchecked") Class<FileWriteLocationPolicy> clazz =
+      @SuppressWarnings("unchecked")
+      Class<FileWriteLocationPolicy> clazz =
           (Class<FileWriteLocationPolicy>) Class.forName(className);
       mLocationPolicy = CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {});
       return this;
@@ -219,92 +114,26 @@ public final class CreateFileOptions extends alluxio.file.options.CreateFileOpti
   }
 
   /**
-<<<<<<< HEAD
-||||||| merged common ancestors
-   * @param mode the mode to be set
-   * @return the updated options object
+   * @return the write tier
    */
-  public CreateFileOptions setMode(Mode mode) {
-    mMode = mode;
-    return this;
+  public int getWriteTier() {
+    return mWriteTier;
   }
 
   /**
-   * @param recursive whether or not to recursively create the file's parents
-   * @return the updated options object
-   */
-  public CreateFileOptions setRecursive(boolean recursive) {
-    mRecursive = recursive;
-    return this;
-  }
-
-  /**
-   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-   *        created file should be kept around before it is automatically deleted, no matter whether
-   *        the file is pinned
-   * @return the updated options object
-   */
-  public CreateFileOptions setTtl(long ttl) {
-    mTtl = ttl;
-    return this;
-  }
-
-  /**
-   * @param ttlAction the {@link TtlAction} to use
-   * @return the updated options object
-   */
-  public CreateFileOptions setTtlAction(TtlAction ttlAction) {
-    mTtlAction = ttlAction;
-    return this;
-  }
-
-  /**
-=======
-   * @param mode the mode to be set
-   * @return the updated options object
-   */
-  public CreateFileOptions setMode(Mode mode) {
-    mMode = mode;
-    return this;
-  }
-
-  /**
-   * @param recursive whether or not to recursively create the file's parents
-   * @return the updated options object
-   */
-  public CreateFileOptions setRecursive(boolean recursive) {
-    mRecursive = recursive;
-    return this;
-  }
-
-  /**
-   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-   *        created file should be kept around before it is automatically deleted, no matter whether
-   *        the file is pinned
-   * @return the updated options object
-   */
-  public CreateFileOptions setTtl(long ttl) {
-    getCommonOptions().setTtl(ttl);
-    return this;
-  }
-
-  /**
-   * @param ttlAction the {@link TtlAction} to use
-   * @return the updated options object
-   */
-  public CreateFileOptions setTtlAction(TtlAction ttlAction) {
-    getCommonOptions().setTtlAction(ttlAction);
-    return this;
-  }
-
-  /**
->>>>>>> master
    * @param writeTier the write tier to use for this operation
    * @return the updated options object
    */
   public CreateFileOptions setWriteTier(int writeTier) {
     mWriteTier = writeTier;
     return this;
+  }
+
+  /**
+   * @return the write type
+   */
+  public WriteType getWriteType() {
+    return mWriteType;
   }
 
   /**
@@ -323,11 +152,8 @@ public final class CreateFileOptions extends alluxio.file.options.CreateFileOpti
    * @return representation of this object in the form of {@link OutStreamOptions}
    */
   public OutStreamOptions toOutStreamOptions() {
-    return OutStreamOptions.defaults()
-        .setBlockSizeBytes(mBlockSizeBytes)
-        .setLocationPolicy(mLocationPolicy)
-        .setMode(mMode)
-        .setWriteTier(mWriteTier)
+    return OutStreamOptions.defaults().setBlockSizeBytes(mBlockSizeBytes)
+        .setLocationPolicy(mLocationPolicy).setMode(mMode).setWriteTier(mWriteTier)
         .setWriteType(mWriteType);
   }
 
@@ -343,65 +169,21 @@ public final class CreateFileOptions extends alluxio.file.options.CreateFileOpti
     return Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
-        && Objects.equal(mLocationPolicy, that.mLocationPolicy)
-        && Objects.equal(mMode, that.mMode)
-        && mWriteTier == that.mWriteTier
-        && Objects.equal(mWriteType, that.mWriteType);
+        && Objects.equal(mLocationPolicy, that.mLocationPolicy) && Objects.equal(mMode, that.mMode)
+        && mWriteTier == that.mWriteTier && Objects.equal(mWriteType, that.mWriteType);
   }
 
   @Override
   public int hashCode() {
-    return Objects
-        .hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mWriteTier,
-            mWriteType, mCommonOptions);
+    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mWriteTier,
+        mWriteType, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-        .add("commonOptions", mCommonOptions)
-        .add("recursive", mRecursive)
-        .add("blockSizeBytes", mBlockSizeBytes)
-        .add("locationPolicy", mLocationPolicy)
-        .add("mode", mMode)
-        .add("writeTier", mWriteTier)
-        .add("writeType", mWriteType)
-        .toString();
+    return Objects.toStringHelper(this).add("commonOptions", mCommonOptions)
+        .add("recursive", mRecursive).add("blockSizeBytes", mBlockSizeBytes)
+        .add("locationPolicy", mLocationPolicy).add("mode", mMode).add("writeTier", mWriteTier)
+        .add("writeType", mWriteType).toString();
   }
-<<<<<<< HEAD
-||||||| merged common ancestors
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public CreateFileTOptions toThrift() {
-    CreateFileTOptions options = new CreateFileTOptions();
-    options.setBlockSizeBytes(mBlockSizeBytes);
-    options.setPersisted(mWriteType.isThrough());
-    options.setRecursive(mRecursive);
-    options.setTtl(mTtl);
-    options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
-    if (mMode != null) {
-      options.setMode(mMode.toShort());
-    }
-    options.setCommonOptions(mCommonOptions.toThrift());
-    return options;
-  }
-=======
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public CreateFileTOptions toThrift() {
-    CreateFileTOptions options = new CreateFileTOptions();
-    options.setBlockSizeBytes(mBlockSizeBytes);
-    options.setPersisted(mWriteType.isThrough());
-    options.setRecursive(mRecursive);
-    if (mMode != null) {
-      options.setMode(mMode.toShort());
-    }
-    options.setCommonOptions(mCommonOptions.toThrift());
-    return options;
-  }
->>>>>>> master
 }
