@@ -23,6 +23,7 @@ import alluxio.file.options.ListStatusOptions;
 import alluxio.file.options.LoadMetadataOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
+import alluxio.file.options.SetAclOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.SyncMetadataOptions;
 
@@ -53,6 +54,8 @@ public interface FileSystemMasterOptions {
   MountOptions getMountOptions();
 
   RenameOptions getRenameOptions();
+
+  SetAclOptions getSetAclOptions();
 
   SetAttributeOptions getSetAttributeOptions();
 

@@ -24,6 +24,7 @@ import alluxio.file.options.GetStatusOptions;
 import alluxio.file.options.ListStatusOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
+import alluxio.file.options.SetAclOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.UpdateUfsModeOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -34,7 +35,9 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.PSetAclAction;
 import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
@@ -49,6 +52,7 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.SetAclAction;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerNetAddress;
@@ -228,7 +232,7 @@ public final class GrpcUtils {
   }
 
   /**
-   * Converts from proto type to options.
+   * Converts from proto type to wire type.
    *
    * @param loadMetadataTType the proto representation of loadMetadataType
    * @return the {@link LoadMetadataType}
@@ -244,6 +248,32 @@ public final class GrpcUtils {
         return LoadMetadataType.Always;
       default:
         return null;
+    }
+  }
+
+  /**
+   * Converts from proto type to wire type.
+   *
+   * @param pSetAclAction {@link PSetAclAction}
+   * @return {@link SetAclAction} equivalent
+   */
+  public static SetAclAction fromProto(PSetAclAction pSetAclAction) {
+    if (pSetAclAction == null) {
+      throw new IllegalStateException("Null proto set acl action.");
+    }
+    switch (pSetAclAction) {
+      case Replace:
+        return SetAclAction.REPLACE;
+      case Modify:
+        return SetAclAction.MODIFY;
+      case Remove:
+        return SetAclAction.REMOVE;
+      case RemoveAll:
+        return SetAclAction.REMOVE_ALL;
+      case RemoveDefault:
+        return SetAclAction.REMOVE_DEFAULT;
+      default:
+        throw new IllegalStateException("Unrecognized proto set acl action: " + pSetAclAction);
     }
   }
 
@@ -296,6 +326,22 @@ public final class GrpcUtils {
     if (pOptions != null) {
       if (pOptions.hasCommonOptions()) {
         options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+    }
+    return options;
+  }
+
+  /**
+   * Converts from proto type to options.
+   */
+  public static SetAclOptions fromProto(FileSystemMasterOptions masterOptions, SetAclPOptions pOptions) {
+    SetAclOptions options = masterOptions.getSetAclOptions();
+    if (pOptions != null) {
+      if (pOptions.hasCommonOptions()) {
+        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+      }
+      if (pOptions.hasRecursive()) {
+        options.setRecursive(pOptions.getRecursive());
       }
     }
     return options;
@@ -690,6 +736,36 @@ public final class GrpcUtils {
    */
   public static RenamePOptions toProto(RenameOptions options) {
     return RenamePOptions.newBuilder().setCommonOptions(toProto(options.getCommonOptions()))
+        .build();
+  }
+
+  /**
+   * Converts wire type to proto type.
+   */
+  public static alluxio.grpc.PSetAclAction toProto(SetAclAction aclAction) {
+    switch (aclAction) {
+      case REPLACE:
+        return PSetAclAction.Replace;
+      case MODIFY:
+        return PSetAclAction.Modify;
+      case REMOVE:
+        return PSetAclAction.Remove;
+      case REMOVE_ALL:
+        return PSetAclAction.RemoveAll;
+      case REMOVE_DEFAULT:
+        return PSetAclAction.RemoveDefault;
+      default:
+        throw new IllegalStateException("Unrecognized set acl action: " + aclAction);
+    }
+  }
+
+  /**
+   * Converts a wire type to a proto type.
+   */
+  public static SetAclPOptions toProto(SetAclOptions options) {
+    return SetAclPOptions.newBuilder()
+        .setRecursive(options.getRecursive())
+        .setCommonOptions(toProto(options.getCommonOptions()))
         .build();
   }
 
