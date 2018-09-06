@@ -19,6 +19,7 @@ RUN apk add --update bash && \
 ADD ${ALLUXIO_TARBALL} /opt/
 
 # if the tarball was remote, it needs to be untarred
+# use ln -s instead of mv to avoid issues with Centos (see https://github.com/moby/moby/issues/27358)
 RUN cd /opt && \
     (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
     ln -s alluxio-* alluxio
