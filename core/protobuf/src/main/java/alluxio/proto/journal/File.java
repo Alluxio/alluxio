@@ -3683,18 +3683,10 @@ public final class File {
     // optional bool recursive = 2;
     /**
      * <code>optional bool recursive = 2;</code>
-     *
-     * <pre>
-     * Deprecated, we now write one journal entry per inode removed
-     * </pre>
      */
     boolean hasRecursive();
     /**
      * <code>optional bool recursive = 2;</code>
-     *
-     * <pre>
-     * Deprecated, we now write one journal entry per inode removed
-     * </pre>
      */
     boolean getRecursive();
 
@@ -3711,18 +3703,10 @@ public final class File {
     // optional bool alluxioOnly = 4;
     /**
      * <code>optional bool alluxioOnly = 4;</code>
-     *
-     * <pre>
-     * Deprecated, this field is about whether to delete in the UFS. We don't journal UFS changes.
-     * </pre>
      */
     boolean hasAlluxioOnly();
     /**
      * <code>optional bool alluxioOnly = 4;</code>
-     *
-     * <pre>
-     * Deprecated, this field is about whether to delete in the UFS. We don't journal UFS changes.
-     * </pre>
      */
     boolean getAlluxioOnly();
   }
@@ -3862,20 +3846,12 @@ public final class File {
     private boolean recursive_;
     /**
      * <code>optional bool recursive = 2;</code>
-     *
-     * <pre>
-     * Deprecated, we now write one journal entry per inode removed
-     * </pre>
      */
     public boolean hasRecursive() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>optional bool recursive = 2;</code>
-     *
-     * <pre>
-     * Deprecated, we now write one journal entry per inode removed
-     * </pre>
      */
     public boolean getRecursive() {
       return recursive_;
@@ -3902,20 +3878,12 @@ public final class File {
     private boolean alluxioOnly_;
     /**
      * <code>optional bool alluxioOnly = 4;</code>
-     *
-     * <pre>
-     * Deprecated, this field is about whether to delete in the UFS. We don't journal UFS changes.
-     * </pre>
      */
     public boolean hasAlluxioOnly() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
      * <code>optional bool alluxioOnly = 4;</code>
-     *
-     * <pre>
-     * Deprecated, this field is about whether to delete in the UFS. We don't journal UFS changes.
-     * </pre>
      */
     public boolean getAlluxioOnly() {
       return alluxioOnly_;
@@ -4240,30 +4208,18 @@ public final class File {
       private boolean recursive_ ;
       /**
        * <code>optional bool recursive = 2;</code>
-       *
-       * <pre>
-       * Deprecated, we now write one journal entry per inode removed
-       * </pre>
        */
       public boolean hasRecursive() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
        * <code>optional bool recursive = 2;</code>
-       *
-       * <pre>
-       * Deprecated, we now write one journal entry per inode removed
-       * </pre>
        */
       public boolean getRecursive() {
         return recursive_;
       }
       /**
        * <code>optional bool recursive = 2;</code>
-       *
-       * <pre>
-       * Deprecated, we now write one journal entry per inode removed
-       * </pre>
        */
       public Builder setRecursive(boolean value) {
         bitField0_ |= 0x00000002;
@@ -4273,10 +4229,6 @@ public final class File {
       }
       /**
        * <code>optional bool recursive = 2;</code>
-       *
-       * <pre>
-       * Deprecated, we now write one journal entry per inode removed
-       * </pre>
        */
       public Builder clearRecursive() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -4322,30 +4274,18 @@ public final class File {
       private boolean alluxioOnly_ ;
       /**
        * <code>optional bool alluxioOnly = 4;</code>
-       *
-       * <pre>
-       * Deprecated, this field is about whether to delete in the UFS. We don't journal UFS changes.
-       * </pre>
        */
       public boolean hasAlluxioOnly() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
        * <code>optional bool alluxioOnly = 4;</code>
-       *
-       * <pre>
-       * Deprecated, this field is about whether to delete in the UFS. We don't journal UFS changes.
-       * </pre>
        */
       public boolean getAlluxioOnly() {
         return alluxioOnly_;
       }
       /**
        * <code>optional bool alluxioOnly = 4;</code>
-       *
-       * <pre>
-       * Deprecated, this field is about whether to delete in the UFS. We don't journal UFS changes.
-       * </pre>
        */
       public Builder setAlluxioOnly(boolean value) {
         bitField0_ |= 0x00000008;
@@ -4355,10 +4295,6 @@ public final class File {
       }
       /**
        * <code>optional bool alluxioOnly = 4;</code>
-       *
-       * <pre>
-       * Deprecated, this field is about whether to delete in the UFS. We don't journal UFS changes.
-       * </pre>
        */
       public Builder clearAlluxioOnly() {
         bitField0_ = (bitField0_ & ~0x00000008);
