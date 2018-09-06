@@ -23,6 +23,7 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
+import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.SyncMetadataOptions;
 
@@ -94,6 +95,11 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   @Override
   public SetAttributeOptions getSetAttributeOptions() {
     return SetAttributeOptions.defaults();
+  }
+
+  @Override
+  public SetAclOptions getSetAclOptions() {
+    return SetAclOptions.defaults();
   }
 
   @Override
