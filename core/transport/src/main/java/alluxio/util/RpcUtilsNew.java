@@ -14,10 +14,7 @@ package alluxio.util;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
-import alluxio.metrics.Metric;
-import alluxio.metrics.MetricsSystem;
 
-import com.codahale.metrics.Timer;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 
@@ -116,7 +113,9 @@ public final class RpcUtilsNew {
       boolean failureOk, String description, StreamObserver<T> responseObserver, Object... args) {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
-    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
+    // TODO(adit): handle metrics
+    try {
+    // try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       logger.debug("Enter: {}: {}", methodName, debugDesc);
       T ret = callable.call();
       logger.debug("Exit (OK): {}: {}", methodName, debugDesc);
@@ -125,7 +124,8 @@ public final class RpcUtilsNew {
     } catch (AlluxioException e) {
       logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
       if (!failureOk) {
-        MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+        // TODO(adit): handle metrics
+        // MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
           logger.warn("Exit (Error): {}: {}, Error={}", methodName,
               String.format(description, args), e);
@@ -134,7 +134,8 @@ public final class RpcUtilsNew {
       responseObserver.onError(AlluxioStatusException.fromAlluxioException(e));
     } catch (RuntimeException e) {
       logger.error("Exit (Error): {}: {}", methodName, String.format(description, args), e);
-      MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+      // TODO(adit): handle metrics
+      // MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       responseObserver.onError(new InternalException(e));
     }
   }
@@ -220,7 +221,9 @@ public final class RpcUtilsNew {
       Object... args) {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
-    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
+    // TODO(adit): handle metrics
+    try {
+    //try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       logger.debug("Enter: {}: {}", methodName, debugDesc);
       T ret = callable.call();
       logger.debug("Exit (OK): {}: {}", methodName, debugDesc);
@@ -229,7 +232,8 @@ public final class RpcUtilsNew {
     } catch (AlluxioException e) {
       logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
       if (!failureOk) {
-        MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+        // TODO(adit): handle metrics
+        // MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
           logger.warn("Exit (Error): {}: {}, Error={}", methodName,
               String.format(description, args), e);
@@ -239,7 +243,8 @@ public final class RpcUtilsNew {
     } catch (IOException e) {
       logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
       if (!failureOk) {
-        MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+        // TODO(adit): handle metrics
+        // MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
           logger.warn("Exit (Error): {}: {}, Error={}", methodName,
               String.format(description, args), e);
@@ -248,7 +253,8 @@ public final class RpcUtilsNew {
       responseObserver.onError(AlluxioStatusException.fromIOException(e));
     } catch (RuntimeException e) {
       logger.error("Exit (Error): {}: {}", methodName, String.format(description, args), e);
-      MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+      // TODO(adit): handle metrics
+      // MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       responseObserver.onError(new InternalException(e));
     }
   }
@@ -290,16 +296,19 @@ public final class RpcUtilsNew {
       String methodName, String description, StreamObserver<T> responseObserver, Object... args) {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
-    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
+    // TODO(adit): handle metrics
+    try {
+    //try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       logger.debug("Enter: {}: {}", methodName, debugDesc);
       T result = callable.call();
       logger.debug("Exit (OK): {}: {}", methodName, debugDesc);
-      responseObserver.onNext(ret);
+      responseObserver.onNext(result);
       responseObserver.onCompleted();
     } catch (Exception e) {
       logger
           .warn("Exit (Error): {}: {}, Error={}", methodName, String.format(description, args), e);
-      MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+      // TODO(adit): handle metrics
+      // MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       callable.exceptionCaught(e);
     }
   }
@@ -313,11 +322,13 @@ public final class RpcUtilsNew {
   }
 
   private static String getQualifiedMetricNameInternal(String name) {
-    User user = AuthenticatedClientUser.getOrNull();
-    if (user != null) {
-      return Metric.getMetricNameWithUserTag(name, user.getName());
-    }
-    return name;
+    // TODO(adit): handle metrics
+    // User user = AuthenticatedClientUser.getOrNull();
+    // if (user != null) {
+    //  return Metric.getMetricNameWithUserTag(name, user.getName());
+    // }
+    // return name;
+    return null;
   }
 
   private RpcUtilsNew() {} // prevent instantiation

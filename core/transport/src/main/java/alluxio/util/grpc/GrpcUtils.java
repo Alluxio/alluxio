@@ -13,6 +13,7 @@ package alluxio.util.grpc;
 
 import static alluxio.util.StreamUtils.map;
 
+import alluxio.Constants;
 import alluxio.file.options.CheckConsistencyOptions;
 import alluxio.file.options.CommonOptions;
 import alluxio.file.options.CompleteFileOptions;
@@ -35,6 +36,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.PAcl;
 import alluxio.grpc.PAclAction;
 import alluxio.grpc.PAclEntry;
 import alluxio.grpc.PAclEntryType;
@@ -471,43 +473,42 @@ public final class GrpcUtils {
   /**
    * Converts a proto type to a wire type.
    *
-   * @param filePInfo the proto representation of a file information
+   * @param pInfo the proto representation of a file information
    * @return wire representation of the file information
    */
-  public static FileInfo fromProto(alluxio.grpc.FileInfo filePInfo) {
-    FileInfo fileInfo = new FileInfo();
-    fileInfo.setFileId(filePInfo.getFileId());
-    fileInfo.setName(filePInfo.getName());
-    fileInfo.setPath(filePInfo.getPath());
-    fileInfo.setUfsPath(filePInfo.getUfsPath());
-    fileInfo.setLength(filePInfo.getLength());
-    fileInfo.setBlockSizeBytes(filePInfo.getBlockSizeBytes());
-    fileInfo.setCreationTimeMs(filePInfo.getCreationTimeMs());
-    fileInfo.setCompleted(filePInfo.getCompleted());
-    fileInfo.setFolder(filePInfo.getFolder());
-    fileInfo.setPinned(filePInfo.getPinned());
-    fileInfo.setCacheable(filePInfo.getCacheable());
-    fileInfo.setPersisted(filePInfo.getPersisted());
-    fileInfo.setBlockIds(filePInfo.getBlockIdsList());
-    fileInfo.setLastModificationTimeMs(filePInfo.getLastModificationTimeMs());
-    fileInfo.setTtl(filePInfo.getTtl());
-    fileInfo.setTtlAction(fromProto(filePInfo.getTtlAction()));
-    fileInfo.setOwner(filePInfo.getOwner());
-    fileInfo.setGroup(filePInfo.getGroup());
-    fileInfo.setMode(filePInfo.getMode());
-    fileInfo.setPersistenceState(filePInfo.getPersistenceState());
-    fileInfo.setMountPoint(filePInfo.getMountPoint());
-    List<FileBlockInfo> fileBlockInfos = new ArrayList<>();
-    for (alluxio.grpc.FileBlockInfo fileBlockInfo : filePInfo.getFileBlockInfosList()) {
-      fileBlockInfos.add(fromProto(fileBlockInfo));
-    }
-    fileInfo.setFileBlockInfos(fileBlockInfos);
-    fileInfo.setMountId(filePInfo.getMountId());
-    fileInfo.setInAlluxioPercentage(filePInfo.getInAlluxioPercentage());
-    if (filePInfo.hasUfsFingerprint()) {
-      fileInfo.setUfsFingerprint(filePInfo.getUfsFingerprint());
-    }
-    return fileInfo;
+  public static FileInfo fromProto(alluxio.grpc.FileInfo pInfo) {
+    return new FileInfo()
+        .setFileId(pInfo.getFileId())
+        .setName(pInfo.getName())
+        .setPath(pInfo.getPath())
+        .setUfsPath(pInfo.getUfsPath())
+        .setLength(pInfo.getLength())
+        .setBlockSizeBytes(pInfo.getBlockSizeBytes())
+        .setCreationTimeMs(pInfo.getCreationTimeMs())
+        .setCompleted(pInfo.getCompleted())
+        .setFolder(pInfo.getFolder())
+        .setPinned(pInfo.getPinned())
+        .setCacheable(pInfo.getCacheable())
+        .setPersisted(pInfo.getPersisted())
+        .setBlockIds(pInfo.getBlockIdsList())
+        .setLastModificationTimeMs(pInfo.getLastModificationTimeMs())
+        .setTtl(pInfo.getTtl())
+        .setTtlAction(fromProto(pInfo.getTtlAction()))
+        .setOwner(pInfo.getOwner())
+        .setGroup(pInfo.getGroup())
+        .setMode(pInfo.getMode())
+        .setPersistenceState(pInfo.getPersistenceState())
+        .setMountPoint(pInfo.getMountPoint())
+        .setFileBlockInfos(map(GrpcUtils::fromProto, pInfo.getFileBlockInfosList()))
+        .setMountId(pInfo.getMountId())
+        .setInAlluxioPercentage(pInfo.getInAlluxioPercentage())
+        .setUfsFingerprint(pInfo.hasUfsFingerprint() ? pInfo.getUfsFingerprint()
+            : Constants.INVALID_UFS_FINGERPRINT)
+        .setAcl(pInfo.hasAcl() ? (AccessControlList.fromThrift(info.getAcl()))
+            : AccessControlList.EMPTY_ACL)
+        .setDefaultAcl(
+            pInfo.hasDefaultAcl() ? ((DefaultAccessControlList) fromProto(pInfo.getDefaultAcl()))
+                : DefaultAccessControlList.EMPTY_DEFAULT_ACL);
   }
 
   /**
@@ -740,6 +741,9 @@ public final class GrpcUtils {
     for (FileBlockInfo fileBlockInfo : fileInfo.getFileBlockInfos()) {
       fileBlockInfos.add(toProto(fileBlockInfo));
     }
+    PAcl pAcl = fileInfo.getAcl().equals(AccessControlList.EMPTY_ACL) ? null : toProto(fileInfo.getAcl());
+    PAcl pDefaultAcl = mDefaultAcl.equals(DefaultAccessControlList.EMPTY_DEFAULT_ACL)
+        ? null : mDefaultAcl.toThrift();
     return alluxio.grpc.FileInfo.newBuilder()
         .setFileId(fileInfo.getFileId())
         .setName(fileInfo.getName())
@@ -766,6 +770,8 @@ public final class GrpcUtils {
         .setMountId(fileInfo.getMountId())
         .setInAlluxioPercentage(fileInfo.getInAlluxioPercentage())
         .setUfsFingerprint(fileInfo.getUfsFingerprint())
+        .setAcl(pAcl)
+        .setDefaultAcl(pDefaultAcl)
         .build();
   }
 
