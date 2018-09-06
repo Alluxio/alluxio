@@ -66,8 +66,8 @@ public class AccessControlList implements Serializable {
   public static final String OWNING_GROUP_FIELD = "owningGroup";
   public static final String STRING_ENTRY_FIELD = "stringEntries";
 
-  protected static final String OWNING_USER_KEY = "";
-  protected static final String OWNING_GROUP_KEY = "";
+  public static final String OWNING_USER_KEY = "";
+  public static final String OWNING_GROUP_KEY = "";
 
   protected String mOwningUser;
   protected String mOwningGroup;
@@ -93,6 +93,13 @@ public class AccessControlList implements Serializable {
   }
 
   /**
+   * @return the extended entries
+   */
+  public ExtendedACLEntries getExtendedEntries() {
+    return mExtendedEntries;
+  }
+
+  /**
    * @return the owning user
    */
   public String getOwningUser() {
@@ -106,15 +113,15 @@ public class AccessControlList implements Serializable {
     return mOwningGroup;
   }
 
-  private AclActions getOwningUserActions() {
+  public AclActions getOwningUserActions() {
     return Mode.extractOwnerBits(mMode).toAclActions();
   }
 
-  private AclActions getOwningGroupActions() {
+  public AclActions getOwningGroupActions() {
     return Mode.extractGroupBits(mMode).toAclActions();
   }
 
-  private AclActions getOtherActions() {
+  public AclActions getOtherActions() {
     return Mode.extractOtherBits(mMode).toAclActions();
   }
 

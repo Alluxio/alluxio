@@ -14,9 +14,13 @@ package alluxio.util.proto;
 import alluxio.exception.status.Status;
 import alluxio.proto.journal.File;
 import alluxio.proto.status.Status.PStatus;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
+import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
+import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.security.authorization.ExtendedACLEntries;
 import alluxio.wire.SetAclAction;
 
 import com.google.protobuf.CodedInputStream;
@@ -26,6 +30,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Protobuf related utils.
@@ -73,24 +80,24 @@ public final class ProtoUtils {
    */
   public static File.AccessControlList toProto(AccessControlList acl) {
     File.AccessControlList.Builder builder = File.AccessControlList.newBuilder();
-    builder.setOwningUser(acl.mOwningUser);
-    builder.setOwningGroup(acl.mOwningGroup);
+    builder.setOwningUser(acl.getOwningUser());
+    builder.setOwningGroup(acl.getOwningGroup());
 
     // base entries
     builder.addUserActions(File.NamedAclActions.newBuilder()
-        .setName(OWNING_USER_KEY)
-        .setActions(AclActions.toProtoBuf(acl.getOwningUserActions()))
+        .setName(AccessControlList.OWNING_USER_KEY)
+        .setActions(toProto(acl.getOwningUserActions()))
         .build());
     builder.addGroupActions(File.NamedAclActions.newBuilder()
-        .setName(OWNING_GROUP_KEY)
-        .setActions(AclActions.toProtoBuf(acl.getOwningGroupActions()))
+        .setName(AccessControlList.OWNING_GROUP_KEY)
+        .setActions(toProto(acl.getOwningGroupActions()))
         .build());
-    builder.setOtherActions(AclActions.toProtoBuf(acl.getOtherActions()));
+    builder.setOtherActions(toProto(acl.getOtherActions()));
 
-    if (acl.mExtendedEntries != null) {
-      builder.addAllUserActions(acl.mExtendedEntries.getNamedUsersProto());
-      builder.addAllGroupActions(acl.mExtendedEntries.getNamedGroupsProto());
-      builder.setMaskActions(AclActions.toProtoBuf(acl.mExtendedEntries.getMask()));
+    if (acl.getExtendedEntries() != null) {
+      builder.addAllUserActions(getNamedUsersProto(acl.getExtendedEntries()));
+      builder.addAllGroupActions(getNamedGroupsProto(acl.getExtendedEntries()));
+      builder.setMaskActions(toProto(acl.getExtendedEntries().getMask()));
     }
 
     if (acl instanceof DefaultAccessControlList) {
@@ -101,6 +108,19 @@ public final class ProtoUtils {
       builder.setIsDefault(false);
       // non default acl is always not empty
       builder.setIsEmpty(false);
+    }
+    return builder.build();
+  }
+
+  /**
+   * @param actions the {@link AclActions}
+   * @return the protobuf representation of {@link AclActions}
+   */
+  public static File.AclActions toProto(AclActions actions) {
+    File.AclActions.Builder builder = File.AclActions.newBuilder();
+    for (AclAction action : actions.getActions()) {
+      File.AclAction pAction = toProto(action);
+      builder.addActions(pAction);
     }
     return builder.build();
   }
@@ -249,9 +269,9 @@ public final class ProtoUtils {
 
     for (File.NamedAclActions namedActions : acl.getUserActionsList()) {
       String name = namedActions.getName();
-      AclActions actions = AclActions.fromProtoBuf(namedActions.getActions());
+      AclActions actions = fromProto(namedActions.getActions());
       AclEntry entry;
-      if (name.equals(OWNING_USER_KEY)) {
+      if (name.equals(AccessControlList.OWNING_USER_KEY)) {
         entry = new AclEntry.Builder().setType(AclEntryType.OWNING_USER)
             .setSubject(acl.getOwningUser()).setActions(actions).build();
       } else {
@@ -264,9 +284,9 @@ public final class ProtoUtils {
 
     for (File.NamedAclActions namedActions : acl.getGroupActionsList()) {
       String name = namedActions.getName();
-      AclActions actions = AclActions.fromProtoBuf(namedActions.getActions());
+      AclActions actions = fromProto(namedActions.getActions());
       AclEntry entry;
-      if (name.equals(OWNING_GROUP_KEY)) {
+      if (name.equals(AccessControlList.OWNING_GROUP_KEY)) {
         entry = new AclEntry.Builder().setType(AclEntryType.OWNING_GROUP)
             .setSubject(acl.getOwningGroup()).setActions(actions).build();
       } else {
@@ -279,17 +299,29 @@ public final class ProtoUtils {
 
     if (hasExtended) {
       // Only set the mask if there are any extended acl entries.
-      AclActions actions = AclActions.fromProtoBuf(acl.getMaskActions());
+      AclActions actions = fromProto(acl.getMaskActions());
       AclEntry entry = new AclEntry.Builder().setType(AclEntryType.MASK)
           .setActions(actions).build();
       ret.setEntry(entry);
     }
 
-    AclActions actions = AclActions.fromProtoBuf(acl.getOtherActions());
+    AclActions actions = fromProto(acl.getOtherActions());
     AclEntry entry = new AclEntry.Builder().setType(AclEntryType.OTHER)
         .setActions(actions).build();
     ret.setEntry(entry);
 
+    return ret;
+  }
+
+  /**
+   * @param actions the protobuf representation of {@link AclActions}
+   * @return the {@link AclActions} decoded from the protobuf representation
+   */
+  public static AclActions fromProto(File.AclActions actions) {
+    AclActions ret = new AclActions();
+    for (File.AclAction action : actions.getActionsList()) {
+      ret.add(fromProto(action));
+    }
     return ret;
   }
 
@@ -425,12 +457,12 @@ public final class ProtoUtils {
   /**
    * @return a list of the proto representation of the named users actions
    */
-  public List<File.NamedAclActions> getNamedUsersProto(ExtendedACLEntries) {
-    List<File.NamedAclActions> actions = new ArrayList<>(mNamedUserActions.size());
-    for (Map.Entry<String, AclActions> kv : mNamedUserActions.entrySet()) {
+  public static List<File.NamedAclActions> getNamedUsersProto(ExtendedACLEntries entries) {
+    List<File.NamedAclActions> actions = new ArrayList<>(entries.getNamedUserActions().size());
+    for (Map.Entry<String, AclActions> kv : entries.getNamedUserActions().entrySet()) {
       File.NamedAclActions namedActions = File.NamedAclActions.newBuilder()
           .setName(kv.getKey())
-          .setActions(AclActions.toProtoBuf(kv.getValue()))
+          .setActions(toProto(kv.getValue()))
           .build();
       actions.add(namedActions);
     }
@@ -440,12 +472,12 @@ public final class ProtoUtils {
   /**
    * @return a list of the proto representation of the named group actions
    */
-  public List<File.NamedAclActions> getNamedGroupsProto(ExtendedACLEntries) {
-    List<File.NamedAclActions> actions = new ArrayList<>(mNamedGroupActions.size());
-    for (Map.Entry<String, AclActions> kv : mNamedGroupActions.entrySet()) {
+  public static List<File.NamedAclActions> getNamedGroupsProto(ExtendedACLEntries entries) {
+    List<File.NamedAclActions> actions = new ArrayList<>(entries.getNamedGroupActions().size());
+    for (Map.Entry<String, AclActions> kv : entries.getNamedGroupActions().entrySet()) {
       File.NamedAclActions namedActions = File.NamedAclActions.newBuilder()
           .setName(kv.getKey())
-          .setActions(AclActions.toProtoBuf(kv.getValue()))
+          .setActions(toProto(kv.getValue()))
           .build();
       actions.add(namedActions);
     }

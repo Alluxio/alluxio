@@ -82,6 +82,20 @@ public class ExtendedACLEntries {
   }
 
   /**
+   * @return named user actions
+   */
+  public Map<String, AclActions> getNamedUserActions() {
+    return mNamedUserActions;
+  }
+
+  /**
+   * @return named group actions
+   */
+  public Map<String, AclActions> getNamedGroupActions() {
+    return mNamedGroupActions;
+  }
+
+  /**
    * @return true if has extended ACL (named users, named groups)
    */
   public boolean hasExtended() {
