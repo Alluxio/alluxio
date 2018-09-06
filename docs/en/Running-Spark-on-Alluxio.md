@@ -187,7 +187,8 @@ specify the address of Zookeeper in the URI in the format of "`zk@zkHost1:2181;z
 > double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181/Output")
 ```
 
-This feature of encoding Zookeeper into Alluxio URI is not available on or before Alluxio 1.8.
+This feature of encoding Zookeeper service address into Alluxio URIs is not available in versions
+1.8 and earlier.
 
 > Note that you must use semicolons rather than commas to separate different Zookeeper addresses to
 refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
