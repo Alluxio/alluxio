@@ -68,6 +68,44 @@ public final class ProtoUtils {
   }
 
   /**
+   * @param acl {@link AccessControlList}
+   * @return protobuf representation
+   */
+  public static File.AccessControlList toProto(AccessControlList acl) {
+    File.AccessControlList.Builder builder = File.AccessControlList.newBuilder();
+    builder.setOwningUser(acl.mOwningUser);
+    builder.setOwningGroup(acl.mOwningGroup);
+
+    // base entries
+    builder.addUserActions(File.NamedAclActions.newBuilder()
+        .setName(OWNING_USER_KEY)
+        .setActions(AclActions.toProtoBuf(acl.getOwningUserActions()))
+        .build());
+    builder.addGroupActions(File.NamedAclActions.newBuilder()
+        .setName(OWNING_GROUP_KEY)
+        .setActions(AclActions.toProtoBuf(acl.getOwningGroupActions()))
+        .build());
+    builder.setOtherActions(AclActions.toProtoBuf(acl.getOtherActions()));
+
+    if (acl.mExtendedEntries != null) {
+      builder.addAllUserActions(acl.mExtendedEntries.getNamedUsersProto());
+      builder.addAllGroupActions(acl.mExtendedEntries.getNamedGroupsProto());
+      builder.setMaskActions(AclActions.toProtoBuf(acl.mExtendedEntries.getMask()));
+    }
+
+    if (acl instanceof DefaultAccessControlList) {
+      DefaultAccessControlList defaultAcl = (DefaultAccessControlList) acl;
+      builder.setIsDefault(true);
+      builder.setIsEmpty(defaultAcl.isEmpty());
+    } else {
+      builder.setIsDefault(false);
+      // non default acl is always not empty
+      builder.setIsEmpty(false);
+    }
+    return builder.build();
+  }
+
+  /**
    * @return the protobuf representation of action
    */
   public static File.AclAction toProto(AclAction aclAction) {
@@ -186,6 +224,73 @@ public final class ProtoUtils {
       default:
         throw new IllegalStateException("Unknown AclEntryType: " + entryType);
     }
+  }
+
+  /**
+   * @param acl the protobuf representation
+   * @return {@link AccessControlList}
+   */
+  public static AccessControlList fromProto(File.AccessControlList acl) {
+    AccessControlList ret;
+    if (acl.hasIsDefault() && acl.getIsDefault()) {
+      ret = new DefaultAccessControlList();
+    } else {
+      ret = new AccessControlList();
+    }
+    ret.setOwningUser(acl.getOwningUser());
+    ret.setOwningGroup(acl.getOwningGroup());
+
+    if (acl.getIsEmpty()) {
+      return ret;
+    }
+
+    // true if there are any extended entries (named user or named group)
+    boolean hasExtended = false;
+
+    for (File.NamedAclActions namedActions : acl.getUserActionsList()) {
+      String name = namedActions.getName();
+      AclActions actions = AclActions.fromProtoBuf(namedActions.getActions());
+      AclEntry entry;
+      if (name.equals(OWNING_USER_KEY)) {
+        entry = new AclEntry.Builder().setType(AclEntryType.OWNING_USER)
+            .setSubject(acl.getOwningUser()).setActions(actions).build();
+      } else {
+        hasExtended = true;
+        entry = new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
+            .setSubject(name).setActions(actions).build();
+      }
+      ret.setEntry(entry);
+    }
+
+    for (File.NamedAclActions namedActions : acl.getGroupActionsList()) {
+      String name = namedActions.getName();
+      AclActions actions = AclActions.fromProtoBuf(namedActions.getActions());
+      AclEntry entry;
+      if (name.equals(OWNING_GROUP_KEY)) {
+        entry = new AclEntry.Builder().setType(AclEntryType.OWNING_GROUP)
+            .setSubject(acl.getOwningGroup()).setActions(actions).build();
+      } else {
+        hasExtended = true;
+        entry = new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP)
+            .setSubject(name).setActions(actions).build();
+      }
+      ret.setEntry(entry);
+    }
+
+    if (hasExtended) {
+      // Only set the mask if there are any extended acl entries.
+      AclActions actions = AclActions.fromProtoBuf(acl.getMaskActions());
+      AclEntry entry = new AclEntry.Builder().setType(AclEntryType.MASK)
+          .setActions(actions).build();
+      ret.setEntry(entry);
+    }
+
+    AclActions actions = AclActions.fromProtoBuf(acl.getOtherActions());
+    AclEntry entry = new AclEntry.Builder().setType(AclEntryType.OTHER)
+        .setActions(actions).build();
+    ret.setEntry(entry);
+
+    return ret;
   }
 
   /**
@@ -315,5 +420,35 @@ public final class ProtoUtils {
       default:
         return Status.UNKNOWN;
     }
+  }
+
+  /**
+   * @return a list of the proto representation of the named users actions
+   */
+  public List<File.NamedAclActions> getNamedUsersProto(ExtendedACLEntries) {
+    List<File.NamedAclActions> actions = new ArrayList<>(mNamedUserActions.size());
+    for (Map.Entry<String, AclActions> kv : mNamedUserActions.entrySet()) {
+      File.NamedAclActions namedActions = File.NamedAclActions.newBuilder()
+          .setName(kv.getKey())
+          .setActions(AclActions.toProtoBuf(kv.getValue()))
+          .build();
+      actions.add(namedActions);
+    }
+    return actions;
+  }
+
+  /**
+   * @return a list of the proto representation of the named group actions
+   */
+  public List<File.NamedAclActions> getNamedGroupsProto(ExtendedACLEntries) {
+    List<File.NamedAclActions> actions = new ArrayList<>(mNamedGroupActions.size());
+    for (Map.Entry<String, AclActions> kv : mNamedGroupActions.entrySet()) {
+      File.NamedAclActions namedActions = File.NamedAclActions.newBuilder()
+          .setName(kv.getKey())
+          .setActions(AclActions.toProtoBuf(kv.getValue()))
+          .build();
+      actions.add(namedActions);
+    }
+    return actions;
   }
 }

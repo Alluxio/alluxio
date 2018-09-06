@@ -392,6 +392,33 @@ public final class GrpcUtils {
   }
 
   /**
+   * @param tAcl the thrift representation
+   * @return the {@link AccessControlList} instance created from the thrift representation
+   */
+  public static AccessControlList fromThrift(TAcl tAcl) {
+    AccessControlList acl;
+
+    if (tAcl.isIsDefault()) {
+      acl = new DefaultAccessControlList();
+      ((DefaultAccessControlList) acl).setEmpty(tAcl.isIsDefaultEmpty());
+    } else {
+      acl = new AccessControlList();
+    }
+
+    acl.setOwningUser(tAcl.getOwner());
+    acl.setOwningGroup(tAcl.getOwningGroup());
+    acl.setMode(tAcl.getMode());
+
+    if (tAcl.isSetEntries()) {
+      for (TAclEntry tEntry : tAcl.getEntries()) {
+        acl.setEntry(AclEntry.fromThrift(tEntry));
+      }
+    }
+
+    return acl;
+  }
+
+  /**
    * @param pAclEntry the proto representation
    * @return the {@link AclEntry} instance created from the proto representation
    */
@@ -583,6 +610,34 @@ public final class GrpcUtils {
     workerNetAddress.setDomainSocketPath(workerNetPAddress.getDomainSocketPath());
     workerNetAddress.setTieredIdentity(fromProto(workerNetPAddress.getTieredIdentity()));
     return workerNetAddress;
+  }
+
+  /**
+   * @return the thrift representation of this object
+   */
+  public TAcl toThrift(AccessControlList list) {
+    TAcl tAcl = new TAcl();
+    tAcl.setOwner(getOwningUser());
+    tAcl.setOwningGroup(getOwningGroup());
+    tAcl.setMode(mMode);
+    if (hasExtended()) {
+      for (AclEntry entry : mExtendedEntries.getEntries()) {
+        tAcl.addToEntries(entry.toThrift());
+      }
+    }
+    tAcl.setIsDefault(false);
+    return tAcl;
+  }
+
+  /**
+   * @return the thrift representation of this object
+   */
+  @Override
+  public TAcl toThrift(DefaultAccessControlList list) {
+    TAcl tAcl = super.toThrift();
+    tAcl.setIsDefault(true);
+    tAcl.setIsDefaultEmpty(isEmpty());
+    return tAcl;
   }
 
   /**

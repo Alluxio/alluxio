@@ -11,8 +11,6 @@
 
 package alluxio.wire;
 
-import static alluxio.util.StreamUtils.map;
-
 import alluxio.Constants;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
