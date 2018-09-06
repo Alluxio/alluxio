@@ -68,31 +68,9 @@ public final class RpcUtils {
     try {
       return callable.call();
     } catch (AlluxioException e) {
-<<<<<<< HEAD
-      logger.debug("Exit (Error): {}", callable, e);
-      if (logAnyFailure && !logger.isDebugEnabled()) {
-        logger.warn("{}, Error={}", callable, e.getMessage());
-      }
 //      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
-||||||| merged common ancestors
-      logger.debug("Exit (Error): {}", callable, e);
-      if (logAnyFailure && !logger.isDebugEnabled()) {
-        logger.warn("{}, Error={}", callable, e.getMessage());
-      }
-      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
-=======
-      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
->>>>>>> master
     } catch (RuntimeException e) {
-<<<<<<< HEAD
-      logger.error("Exit (Error): {}", callable, e);
 //      throw new InternalException(e).toThrift();
-||||||| merged common ancestors
-      logger.error("Exit (Error): {}", callable, e);
-      throw new InternalException(e).toThrift();
-=======
-      throw new InternalException(e).toThrift();
->>>>>>> master
     }
     // TODO(adit): remove me
     return null;
@@ -152,37 +130,10 @@ public final class RpcUtils {
               String.format(description, args), e);
         }
       }
-<<<<<<< HEAD
 //      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
-    } catch (IOException e) {
-      logger.debug("Exit (Error): {}", callable, e);
-      if (logAnyFailure && !logger.isDebugEnabled()) {
-        logger.warn("{}, Error={}", callable, e.getMessage());
-      }
-//      throw AlluxioStatusException.fromIOException(e).toThrift();
-||||||| merged common ancestors
-      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
-    } catch (IOException e) {
-      logger.debug("Exit (Error): {}", callable, e);
-      if (logAnyFailure && !logger.isDebugEnabled()) {
-        logger.warn("{}, Error={}", callable, e.getMessage());
-      }
-      throw AlluxioStatusException.fromIOException(e).toThrift();
-=======
-      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
->>>>>>> master
-    } catch (RuntimeException e) {
-<<<<<<< HEAD
-      logger.error("Exit (Error): {}", callable, e);
-//      throw new InternalException(e).toThrift();
-||||||| merged common ancestors
-      logger.error("Exit (Error): {}", callable, e);
-      throw new InternalException(e).toThrift();
-=======
       logger.error("Exit (Error): {}: {}", methodName, String.format(description, args), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
-      throw new InternalException(e).toThrift();
->>>>>>> master
+//      throw new InternalException(e).toThrift();
     }
     // TODO(adit): remove me
     return null;
@@ -215,12 +166,13 @@ public final class RpcUtils {
     try {
       return callable.call();
     } catch (AlluxioException e) {
-      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
+//      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e).toThrift();
+//      throw AlluxioStatusException.fromIOException(e).toThrift();
     } catch (RuntimeException e) {
-      throw new InternalException(e).toThrift();
+//      throw new InternalException(e).toThrift();
     }
+    return null;
   }
 
   /**
@@ -278,7 +230,7 @@ public final class RpcUtils {
               String.format(description, args), e);
         }
       }
-      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
+//      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (IOException e) {
       logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
       if (!failureOk) {
@@ -288,12 +240,13 @@ public final class RpcUtils {
               String.format(description, args), e);
         }
       }
-      throw AlluxioStatusException.fromIOException(e).toThrift();
+//      throw AlluxioStatusException.fromIOException(e).toThrift();
     } catch (RuntimeException e) {
       logger.error("Exit (Error): {}: {}", methodName, String.format(description, args), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
-      throw new InternalException(e).toThrift();
+//      throw new InternalException(e).toThrift();
     }
+    return null;
   }
 
   /**
