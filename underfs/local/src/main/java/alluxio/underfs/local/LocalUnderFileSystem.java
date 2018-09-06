@@ -86,6 +86,10 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public void cleanup() throws IOException {
+  }
+
+  @Override
   public void close() throws IOException {
   }
 

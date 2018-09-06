@@ -500,6 +500,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
         mAsyncAuditLogWriter.start();
       }
+      if (Configuration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
+        getExecutorService().submit(
+            new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
+                (int) Configuration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL)));
+      }
     }
   }
 
@@ -629,6 +634,24 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     service.shutdown();
     return inconsistentUris;
+  }
+
+  @Override
+  public void cleanupUfs() {
+    for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
+      MountInfo info = mountPoint.getValue();
+      if (info.getOptions().isReadOnly()) {
+        continue;
+      }
+      try (CloseableResource<UnderFileSystem> ufsResource =
+          mUfsManager.get(info.getMountId()).acquireUfsResource()) {
+        ufsResource.get().cleanup();
+      } catch (UnavailableException | NotFoundException e) {
+        LOG.error("No UFS cached for {}", info, e);
+      } catch (IOException e) {
+        LOG.error("Failed in cleanup UFS {}.", info, e);
+      }
+    }
   }
 
   @Override
