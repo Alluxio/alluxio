@@ -11,6 +11,7 @@
 
 package alluxio.file.options;
 
+import alluxio.security.authorization.Mode;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
@@ -29,7 +30,7 @@ public class SetAttributeOptions {
   protected Boolean mPersisted;
   protected String mOwner;
   protected String mGroup;
-  protected Short mMode;
+  protected Mode mMode;
   protected boolean mRecursive;
   protected long mOperationTimeMs;
   protected String mUfsFingerprint;
@@ -89,7 +90,7 @@ public class SetAttributeOptions {
    * @return the mode bits
    */
   public Short getMode() {
-    return mMode;
+    return mMode.toShort();
   }
 
   /**
@@ -189,6 +190,14 @@ public class SetAttributeOptions {
    * @return the updated options object
    */
   public <T extends SetAttributeOptions> T setMode(short mode) {
+    return setMode(new Mode(mode));
+  }
+
+  /**
+   * @param mode the mode bits to use
+   * @return the updated options object
+   */
+  public <T extends SetAttributeOptions> T setMode(Mode mode) {
     mMode = mode;
     return (T) this;
   }

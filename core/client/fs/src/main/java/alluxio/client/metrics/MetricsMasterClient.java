@@ -79,7 +79,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
       mClient.metricsHeartbeat(FileSystemContext.get().getId(),
           NetworkAddressUtils.getClientHostName(), new MetricsHeartbeatTOptions(metrics));
     } catch (AlluxioTException e) {
-      throw AlluxioStatusException.fromThrift(e);
+//      throw AlluxioStatusException.fromThrift(e);
     } catch (TException e) {
       throw new UnavailableException(e);
     }

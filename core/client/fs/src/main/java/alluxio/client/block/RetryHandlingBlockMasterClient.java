@@ -81,7 +81,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       List<WorkerInfo> result = new ArrayList<>();
       for (alluxio.thrift.WorkerInfo workerInfo : mClient
           .getWorkerInfoList(new GetWorkerInfoListTOptions()).getWorkerInfoList()) {
-        result.add(WorkerInfo.fromThrift(workerInfo));
+//        result.add(WorkerInfo.fromThrift(workerInfo));
       }
       return result;
     });
@@ -94,7 +94,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       List<WorkerInfo> result = new ArrayList<>();
       for (alluxio.thrift.WorkerInfo workerInfo : mClient
           .getWorkerReport(options.toThrift()).getWorkerInfoList()) {
-        result.add(WorkerInfo.fromThrift(workerInfo));
+//        result.add(WorkerInfo.fromThrift(workerInfo));
       }
       return result;
     });
@@ -107,8 +107,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    * @return the {@link BlockInfo}
    */
   public synchronized BlockInfo getBlockInfo(final long blockId) throws IOException {
-    return retryRPC(() ->
-      BlockInfo.fromThrift(mClient.getBlockInfo(blockId, new GetBlockInfoTOptions()).getBlockInfo())
+    return retryRPC(() -> null
+//      BlockInfo.fromThrift(mClient.getBlockInfo(blockId, new GetBlockInfoTOptions()).getBlockInfo())
     );
   }
 
