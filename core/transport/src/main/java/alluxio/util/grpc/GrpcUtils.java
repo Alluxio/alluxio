@@ -50,9 +50,11 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.UfsMode;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -233,7 +235,9 @@ public final class GrpcUtils {
       } else if (pOptions.hasLoadDirectChildren()) {
         options.setLoadMetadataType(LoadMetadataType.Never);
       }
-      // TODO(adit): update recursive
+      if (pOptions.hasRecursive()) {
+        options.setRecursive(pOptions.getRecursive());
+      }
     }
     return options;
 
@@ -392,26 +396,26 @@ public final class GrpcUtils {
   }
 
   /**
-   * @param tAcl the thrift representation
+   * @param pAcl the thrift representation
    * @return the {@link AccessControlList} instance created from the thrift representation
    */
-  public static AccessControlList fromThrift(TAcl tAcl) {
+  public static AccessControlList fromProto(PAcl pAcl) {
     AccessControlList acl;
 
-    if (tAcl.isIsDefault()) {
+    if (pAcl.getIsDefault()) {
       acl = new DefaultAccessControlList();
-      ((DefaultAccessControlList) acl).setEmpty(tAcl.isIsDefaultEmpty());
+      ((DefaultAccessControlList) acl).setEmpty(pAcl.getIsDefaultEmpty());
     } else {
       acl = new AccessControlList();
     }
 
-    acl.setOwningUser(tAcl.getOwner());
-    acl.setOwningGroup(tAcl.getOwningGroup());
-    acl.setMode(tAcl.getMode());
+    acl.setOwningUser(pAcl.getOwner());
+    acl.setOwningGroup(pAcl.getOwningGroup());
+    acl.setMode((short) pAcl.getMode());
 
-    if (tAcl.isSetEntries()) {
-      for (TAclEntry tEntry : tAcl.getEntries()) {
-        acl.setEntry(AclEntry.fromThrift(tEntry));
+    if (pAcl.getEntriesCount() > 0) {
+      for (PAclEntry tEntry : pAcl.getEntriesList()) {
+        acl.setEntry(fromProto(tEntry));
       }
     }
 
@@ -531,7 +535,7 @@ public final class GrpcUtils {
         .setInAlluxioPercentage(pInfo.getInAlluxioPercentage())
         .setUfsFingerprint(pInfo.hasUfsFingerprint() ? pInfo.getUfsFingerprint()
             : Constants.INVALID_UFS_FINGERPRINT)
-        .setAcl(pInfo.hasAcl() ? (AccessControlList.fromThrift(info.getAcl()))
+        .setAcl(pInfo.hasAcl() ? (fromProto(pInfo.getAcl()))
             : AccessControlList.EMPTY_ACL)
         .setDefaultAcl(
             pInfo.hasDefaultAcl() ? ((DefaultAccessControlList) fromProto(pInfo.getDefaultAcl()))
@@ -613,31 +617,30 @@ public final class GrpcUtils {
   }
 
   /**
-   * @return the thrift representation of this object
+   * @return the proto representation of this object
    */
-  public TAcl toThrift(AccessControlList list) {
-    TAcl tAcl = new TAcl();
-    tAcl.setOwner(getOwningUser());
-    tAcl.setOwningGroup(getOwningGroup());
-    tAcl.setMode(mMode);
-    if (hasExtended()) {
-      for (AclEntry entry : mExtendedEntries.getEntries()) {
-        tAcl.addToEntries(entry.toThrift());
+  public static PAcl toProto(AccessControlList acl) {
+    PAcl.Builder pAcl = PAcl.newBuilder();
+    pAcl.setOwner(acl.getOwningUser());
+    pAcl.setOwningGroup(acl.getOwningGroup());
+    pAcl.setMode(acl.getMode());
+    if (acl.hasExtended()) {
+      for (AclEntry entry : acl.getExtendedEntries().getEntries()) {
+        pAcl.addEntries(toProto(entry));
       }
     }
-    tAcl.setIsDefault(false);
-    return tAcl;
+    pAcl.setIsDefault(false);
+    return pAcl.build();
   }
 
   /**
-   * @return the thrift representation of this object
+   * @return the proto representation of default acl object
    */
-  @Override
-  public TAcl toThrift(DefaultAccessControlList list) {
-    TAcl tAcl = super.toThrift();
-    tAcl.setIsDefault(true);
-    tAcl.setIsDefaultEmpty(isEmpty());
-    return tAcl;
+  public static PAcl toProto(DefaultAccessControlList defaultAcl) {
+    PAcl.Builder pAcl = PAcl.newBuilder(toProto((AccessControlList) defaultAcl));
+    pAcl.setIsDefault(true);
+    pAcl.setIsDefaultEmpty(defaultAcl.isEmpty());
+    return pAcl.build();
   }
 
   /**
@@ -717,9 +720,11 @@ public final class GrpcUtils {
    * Converts options to proto type.
    */
   public static FileSystemMasterCommonPOptions toProto(CommonOptions options) {
-    // TODO(adit): update options
     return FileSystemMasterCommonPOptions.newBuilder()
-        .setSyncIntervalMs(options.getSyncIntervalMs()).build();
+        .setSyncIntervalMs(options.getSyncIntervalMs())
+        .setTtl(options.getTtl())
+        .setTtlAction(toProto(options.getTtlAction()))
+        .build();
   }
 
   /**
@@ -735,9 +740,12 @@ public final class GrpcUtils {
    */
   public static CreateDirectoryPOptions toProto(CreateDirectoryOptions options) {
     CreateDirectoryPOptions.Builder builder = CreateDirectoryPOptions.newBuilder()
-        .setAllowExist(options.isAllowExists()).setRecursive(options.isRecursive())
-        .setTtl(options.getTtl()).setTtlAction(toProto(options.getTtlAction()))
-        .setPersisted(options.isPersisted()).setCommonOptions(toProto(options.getCommonOptions()));
+        .setAllowExist(options.isAllowExists())
+        .setRecursive(options.isRecursive())
+        .setTtl(options.getTtl())
+        .setTtlAction(toProto(options.getTtlAction()))
+        .setPersisted(options.isPersisted())
+        .setCommonOptions(toProto(options.getCommonOptions()));
     if (options.getMode() != null) {
       builder.setMode(options.getMode().toShort());
     }
@@ -748,11 +756,13 @@ public final class GrpcUtils {
    * Converts options to proto type.
    */
   public static CreateFilePOptions toProto(CreateFileOptions options) {
-    CreateFilePOptions.Builder builder =
-        CreateFilePOptions.newBuilder().setBlockSizeBytes(options.getBlockSizeBytes())
-            .setPersisted(options.isPersisted()).setRecursive(options.isRecursive())
-            .setTtl(options.getTtl()).setTtlAction(toProto(options.getTtlAction()))
-            .setCommonOptions(toProto(options.getCommonOptions()));
+    CreateFilePOptions.Builder builder = CreateFilePOptions.newBuilder()
+        .setBlockSizeBytes(options.getBlockSizeBytes())
+        .setPersisted(options.isPersisted())
+        .setRecursive(options.isRecursive())
+        .setTtl(options.getTtl())
+        .setTtlAction(toProto(options.getTtlAction()))
+        .setCommonOptions(toProto(options.getCommonOptions()));
     if (options.getMode() != null) {
       builder.setMode(options.getMode().toShort());
     }
@@ -763,16 +773,20 @@ public final class GrpcUtils {
    * Converts options to proto type.
    */
   public static CompleteFilePOptions toProto(CompleteFileOptions options) {
-    return CompleteFilePOptions.newBuilder().setUfsLength(options.getUfsLength())
-        .setCommonOptions(toProto(options.getCommonOptions())).build();
+    return CompleteFilePOptions.newBuilder()
+        .setUfsLength(options.getUfsLength())
+        .setCommonOptions(toProto(options.getCommonOptions()))
+        .build();
   }
 
   /**
    * Converts options to proto type.
    */
   public static DeletePOptions toProto(DeleteOptions options) {
-    return DeletePOptions.newBuilder().setRecursive(options.isRecursive())
-        .setAlluxioOnly(options.isAlluxioOnly()).setUnchecked(options.isUnchecked())
+    return DeletePOptions.newBuilder()
+        .setRecursive(options.isRecursive())
+        .setAlluxioOnly(options.isAlluxioOnly())
+        .setUnchecked(options.isUnchecked())
         .setCommonOptions(toProto(options.getCommonOptions())).build();
   }
 
@@ -780,8 +794,10 @@ public final class GrpcUtils {
    * Converts options to proto type.
    */
   public static FreePOptions toProto(FreeOptions options) {
-    return FreePOptions.newBuilder().setForced(options.isForced())
-        .setRecursive(options.isRecursive()).setCommonOptions(toProto(options.getCommonOptions()))
+    return FreePOptions.newBuilder()
+        .setForced(options.isForced())
+        .setRecursive(options.isRecursive())
+        .setCommonOptions(toProto(options.getCommonOptions()))
         .build();
   }
 
@@ -797,8 +813,8 @@ public final class GrpcUtils {
       fileBlockInfos.add(toProto(fileBlockInfo));
     }
     PAcl pAcl = fileInfo.getAcl().equals(AccessControlList.EMPTY_ACL) ? null : toProto(fileInfo.getAcl());
-    PAcl pDefaultAcl = mDefaultAcl.equals(DefaultAccessControlList.EMPTY_DEFAULT_ACL)
-        ? null : mDefaultAcl.toThrift();
+    PAcl pDefaultAcl = fileInfo.getDefaultAcl().equals(DefaultAccessControlList.EMPTY_DEFAULT_ACL)
+        ? null : toProto(fileInfo.getDefaultAcl());
     return alluxio.grpc.FileInfo.newBuilder()
         .setFileId(fileInfo.getFileId())
         .setName(fileInfo.getName())
@@ -1024,15 +1040,15 @@ public final class GrpcUtils {
    */
   public static alluxio.grpc.WorkerNetAddress toProto(WorkerNetAddress workerNetAddress) {
     alluxio.grpc.WorkerNetAddress.Builder address = alluxio.grpc.WorkerNetAddress.newBuilder()
-        .setHost(workerNetAddress.getHost()).setRpcPort(workerNetAddress.getRpcPort())
-        .setDataPort(workerNetAddress.getDataPort()).setWebPort(workerNetAddress.getWebPort())
+        .setHost(workerNetAddress.getHost())
+        .setRpcPort(workerNetAddress.getRpcPort())
+        .setDataPort(workerNetAddress.getDataPort())
+        .setWebPort(workerNetAddress.getWebPort())
         .setDomainSocketPath(workerNetAddress.getDomainSocketPath());
     if (workerNetAddress.getTieredIdentity() != null) {
       address.setTieredIdentity(toProto(workerNetAddress.getTieredIdentity()));
     }
     return address.build();
   }
-
-  // TODO(adit): ACL conversions for createpath
 }
 
