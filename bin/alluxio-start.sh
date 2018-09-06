@@ -131,16 +131,21 @@ do_mount() {
   MOUNT_FAILED=0
   case "$1" in
     Mount|SudoMount)
+      local tier_alias=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
       local tier_path=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
-      is_ram_folder_mounted "${tier_path}" # 0 if already mounted
-      if [[ $? -eq 1 ]]; then
-        # Folder is not mounted as ramFS or tmpFS
-        # Do mount
+
+      if [[ ${TIER_ALIAS} != "MEM" ]]; then
+        echo "Can't Mount/SudoMount when alluxio.worker.tieredstore.level0.alias is not MEM"
+        exit 1
+      fi
+
+      is_ram_folder_mounted "${tier_path}" # Returns 0 if already mounted.
+      if [[ $? -eq 0 ]]; then
+        echo "Ramdisk already mounted. Skipping mounting procedure."
+      else
         echo "Ramdisk not detected. Mounting..."
         ${LAUNCHER} "${BIN}/alluxio-mount.sh" $1
         MOUNT_FAILED=$?
-      else
-        echo "Ramdisk already mounted. Skipping mounting procedure."
       fi
       ;;
     NoMount)
