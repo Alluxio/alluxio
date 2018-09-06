@@ -30,37 +30,4 @@ public enum AclAction {
   public static AclAction ofOrdinal(int ordinal) {
     return VALUES[ordinal];
   }
-
-//  /**
-//   * @param tAction the thrift representation
-//   * @return the {@link AclAction} created from the thrift representation
-//   */
-//  public static AclAction fromThrift(TAclAction tAction) {
-//    switch (tAction) {
-//      case TAclAction.Read:
-//        return READ;
-//      case TAclAction.Write:
-//        return WRITE;
-//      case TAclAction.Execute:
-//        return EXECUTE;
-//      default:
-//        throw new IllegalStateException("Unknown TAclACtion: " + tAction);
-//    }
-//  }
-//
-//  /**
-//   * @return the thrift representation of this enum
-//   */
-//  public TAclAction toThrift() {
-//    switch (this) {
-//      case READ:
-//        return TAclAction.Read;
-//      case WRITE:
-//        return TAclAction.Write;
-//      case EXECUTE:
-//        return TAclAction.Execute;
-//      default:
-//        throw new IllegalStateException("Unknown acl action: " + this);
-//    }
-//  }
 }

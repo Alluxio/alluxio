@@ -35,6 +35,9 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.PAclAction;
+import alluxio.grpc.PAclEntry;
+import alluxio.grpc.PAclEntryType;
 import alluxio.grpc.PSetAclAction;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAclPOptions;
@@ -45,6 +48,9 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.UfsMode;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.security.authorization.AclAction;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -134,8 +140,8 @@ public final class GrpcUtils {
       options.setTtlAction(fromProto(pOptions.getTtlAction()));
       // TODO(adit): implement auth
       // if (SecurityUtils.isAuthenticationEnabled()) {
-      // mOwner = SecurityUtils.getOwnerFromThriftClient();
-      // mGroup = SecurityUtils.getGroupFromThriftClient();
+      // mOwner = SecurityUtils.getOwnerFromProtoClient();
+      // mGroup = SecurityUtils.getGroupFromProtoClient();
       // }
       if (pOptions.hasMode()) {
         options.setMode(new Mode((short) pOptions.getMode()));
@@ -163,8 +169,8 @@ public final class GrpcUtils {
       options.setTtlAction(fromProto(pOptions.getTtlAction()));
       // TODO(adit): implement auth
       // if (SecurityUtils.isAuthenticationEnabled()) {
-      // mOwner = SecurityUtils.getOwnerFromThriftClient();
-      // mGroup = SecurityUtils.getGroupFromThriftClient();
+      // mOwner = SecurityUtils.getOwnerFromProtoClient();
+      // mGroup = SecurityUtils.getGroupFromProtoClient();
       // }
       if (pOptions.hasMode()) {
         options.setMode(new Mode((short) pOptions.getMode()));
@@ -384,6 +390,63 @@ public final class GrpcUtils {
   }
 
   /**
+   * @param pAclEntry the proto representation
+   * @return the {@link AclEntry} instance created from the proto representation
+   */
+  public static AclEntry fromProto(PAclEntry pAclEntry) {
+    AclEntry.Builder builder = new AclEntry.Builder();
+    builder.setType(fromProto(pAclEntry.getType()));
+    builder.setSubject(pAclEntry.getSubject());
+    builder.setIsDefault(pAclEntry.getIsDefault());
+    if (pAclEntry.getActionsCount() > 0) {
+      for (PAclAction pAclAction : pAclEntry.getActionsList()) {
+        builder.addAction(fromProto(pAclAction));
+      }
+    }
+    return builder.build();
+  }
+
+  /**
+   * @param pAction the proto representation
+   * @return the {@link AclAction} created from the proto representation
+   */
+  public static AclAction fromProto(PAclAction pAction) {
+    switch (pAction) {
+      case Read:
+        return AclAction.READ;
+      case Write:
+        return AclAction.WRITE;
+      case Execute:
+        return AclAction.EXECUTE;
+      default:
+        throw new IllegalStateException("Unknown TAclACtion: " + pAction);
+    }
+  }
+
+  /**
+   * @param pAclEntryType the proto representation
+   * @return the {@link AclEntryType} created from the proto representation
+   */
+  public static AclEntryType fromProto(PAclEntryType pAclEntryType) {
+    switch (pAclEntryType) {
+      case Owner:
+        return AclEntryType.OWNING_USER;
+      case NamedUser:
+        return AclEntryType.NAMED_USER;
+      case OwningGroup:
+        return AclEntryType.OWNING_GROUP;
+      case NamedGroup:
+        return AclEntryType.NAMED_GROUP;
+      case Mask:
+        return AclEntryType.MASK;
+      case Other:
+        return AclEntryType.OTHER;
+      default:
+        throw new IllegalStateException("Unknown TAclEntryType: " + pAclEntryType);
+    }
+  }
+
+  /**
    * Converts a proto type to a wire type.
    */
   public static BlockLocation fromProto(alluxio.grpc.BlockLocation blockPLocation) {
@@ -519,6 +582,58 @@ public final class GrpcUtils {
     workerNetAddress.setDomainSocketPath(workerNetPAddress.getDomainSocketPath());
     workerNetAddress.setTieredIdentity(fromProto(workerNetPAddress.getTieredIdentity()));
     return workerNetAddress;
+  }
+
+  /**
+   * @return the proto representation of this enum
+   */
+  public static PAclAction toProto(AclAction action) {
+    switch (action) {
+      case READ:
+        return PAclAction.Read;
+      case WRITE:
+        return PAclAction.Write;
+      case EXECUTE:
+        return PAclAction.Execute;
+      default:
+        throw new IllegalStateException("Unknown acl action: " + action);
+    }
+  }
+
+  /**
+   * @return the proto representation of AclEntry instance
+   */
+  public static PAclEntry toProto(AclEntry aclEntry) {
+    PAclEntry.Builder pAclEntry = PAclEntry.newBuilder();
+    pAclEntry.setType(toProto(aclEntry.getType()));
+    pAclEntry.setSubject(aclEntry.getSubject());
+    pAclEntry.setIsDefault(aclEntry.isDefault());
+    for (AclAction action : aclEntry.getActions().getActions()) {
+      pAclEntry.addActions(toProto(action));
+    }
+    return pAclEntry.build();
+  }
+
+  /**
+   * @return the proto representation of this enum
+   */
+  public static PAclEntryType toProto(AclEntryType aclEntryType) {
+    switch (aclEntryType) {
+      case OWNING_USER:
+        return PAclEntryType.Owner;
+      case NAMED_USER:
+        return PAclEntryType.NamedUser;
+      case OWNING_GROUP:
+        return PAclEntryType.OwningGroup;
+      case NAMED_GROUP:
+        return PAclEntryType.NamedGroup;
+      case MASK:
+        return PAclEntryType.Mask;
+      case OTHER:
+        return PAclEntryType.Other;
+      default:
+        throw new IllegalStateException("Unknown AclEntryType: " + aclEntryType);
+    }
   }
 
   /**

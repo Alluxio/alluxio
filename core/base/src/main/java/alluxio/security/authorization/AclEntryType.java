@@ -46,49 +46,4 @@ public enum AclEntryType {
         throw new IllegalStateException("Unknown AclEntryType: " + this);
     }
   }
-
-//  /**
-//   * @param tAclEntryType the thrift representation
-//   * @return the {@link AclEntryType} created from the thrift representation
-//   */
-//  public static AclEntryType fromThrift(TAclEntryType tAclEntryType) {
-//    switch (tAclEntryType) {
-//      case TAclEntryType.Owner:
-//        return OWNING_USER;
-//      case TAclEntryType.NamedUser:
-//        return NAMED_USER;
-//      case TAclEntryType.OwningGroup:
-//        return OWNING_GROUP;
-//      case TAclEntryType.NamedGroup:
-//        return NAMED_GROUP;
-//      case TAclEntryType.Mask:
-//        return MASK;
-//      case TAclEntryType.Other:
-//        return OTHER;
-//      default:
-//        throw new IllegalStateException("Unknown TAclEntryType: " + tAclEntryType);
-//    }
-//  }
-
-//  /**
-//   * @return the thrift representation of this enum
-//   */
-//  public TAclEntryType toThrift() {
-//    switch (this) {
-//      case OWNING_USER:
-//        return TAclEntryType.Owner;
-//      case NAMED_USER:
-//        return TAclEntryType.NamedUser;
-//      case OWNING_GROUP:
-//        return TAclEntryType.OwningGroup;
-//      case NAMED_GROUP:
-//        return TAclEntryType.NamedGroup;
-//      case MASK:
-//        return TAclEntryType.Mask;
-//      case OTHER:
-//        return TAclEntryType.Other;
-//      default:
-//        throw new IllegalStateException("Unknown AclEntryType: " + this);
-//    }
-//  }
 }

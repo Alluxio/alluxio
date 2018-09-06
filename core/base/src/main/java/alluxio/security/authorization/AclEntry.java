@@ -332,38 +332,6 @@ public final class AclEntry implements Serializable {
     return builder.build();
   }
 
-//  /**
-//   * @param tEntry the thrift representation
-//   * @return the {@link AclEntry} instance created from the thrift representation
-//   */
-//  public static AclEntry fromThrift(TAclEntry tEntry) {
-//    AclEntry.Builder builder = new AclEntry.Builder();
-//    builder.setType(AclEntryType.fromThrift(tEntry.getType()));
-//    builder.setSubject(tEntry.getSubject());
-//    builder.setIsDefault(tEntry.isIsDefault());
-//    if (tEntry.isSetActions()) {
-//      for (TAclAction tAction : tEntry.getActions()) {
-//        builder.addAction(AclAction.fromThrift(tAction));
-//      }
-//    }
-//
-//    return builder.build();
-//  }
-//
-//  /**
-//   * @return the thrift representation of this instance
-//   */
-//  public TAclEntry toThrift() {
-//    TAclEntry tAclEntry = new TAclEntry();
-//    tAclEntry.setType(mType.toThrift());
-//    tAclEntry.setSubject(mSubject);
-//    tAclEntry.setIsDefault(mIsDefault);
-//    for (AclAction action : mActions.getActions()) {
-//      tAclEntry.addToActions(action.toThrift());
-//    }
-//    return tAclEntry;
-//  }
-
   /**
    * Builder for {@link AclEntry}.
    */
