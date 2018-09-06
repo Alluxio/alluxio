@@ -39,8 +39,7 @@ public final class HeartbeatContext {
   public static final String MASTER_LOST_MASTER_DETECTION = "Master Lost Master Detection";
   public static final String MASTER_LOST_WORKER_DETECTION = "Master Lost Worker Detection";
   public static final String MASTER_METRICS_SYNC = "Master Metrics Sync";
-  public static final String MASTER_S3A_INTERMEDIATE_UPLOAD_CLEAN
-      = "Master S3A Intermediate Upload Clean";
+  public static final String MASTER_UFS_CLEANUP = "Master Ufs Cleanup";
   public static final String MASTER_TTL_CHECK = "Master TTL Check";
   public static final String META_MASTER_SYNC = "Meta Master Sync";
   public static final String WORKER_BLOCK_SYNC = "Worker Block Sync";
@@ -59,7 +58,7 @@ public final class HeartbeatContext {
     sTimerClasses.put(MASTER_LOST_FILES_DETECTION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_MASTER_DETECTION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_WORKER_DETECTION, SLEEPING_TIMER_CLASS);
-    sTimerClasses.put(MASTER_S3A_INTERMEDIATE_UPLOAD_CLEAN, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_UFS_CLEANUP, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_TTL_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(META_MASTER_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_FILESYSTEM_MASTER_SYNC, SLEEPING_TIMER_CLASS);

@@ -160,10 +160,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // Socket timeout
     clientConf
         .setSocketTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
-    // Set client request timeout for all requests since multipart copy is used,
-    // and copy parts can only be set with the client configuration.
-    clientConf
-        .setRequestTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
 
     // HTTP protocol
     if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED))) {
@@ -195,9 +191,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
     clientConf.setMaxConnections(numThreads);
 
+    // Set client request timeout for all requests since multipart copy is used,
+    // and copy parts can only be set with the client configuration.
+    clientConf
+        .setRequestTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
+
     boolean streamingUploadEnabled =
-        conf.isSet(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED)
-        && conf.getBoolean(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED);
+        conf.getBoolean(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED);
 
     // Signer algorithm
     if (conf.isSet(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM)) {

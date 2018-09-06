@@ -55,9 +55,32 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * [Experimental] A stream for writing a file into S3 using streaming upload.
- * The data will be persisted to a temporary directory on the local disk
- * and uploaded when the buffered data reaches the partition size. The data
- * transfer is done using an S3 low-level multipart upload API.
+ * The data transfer is done using S3 low-level multipart upload.
+ *
+ * The multipart upload is initialized in the first write() and an upload id is given
+ * by AWS S3 to distinguish different multipart uploads.
+ *
+ * We upload data in partitions. When write(), the data will be persisted to
+ * a temporary file {@link #mFile} on the local disk. When the data {@link #mPartitionOffset}
+ * in this temporary file reaches the {@link #mPartitionSize}, the file will be submitted
+ * to the upload executor {@link #mExecutor} and we do not wait for uploads to finish.
+ * A new temp file will be created for the future write and the {@link #mPartitionOffset}
+ * will be reset to zero. The process goes until all the data has been written to temp files.
+ *
+ * In flush(), we upload the buffered data if they are bigger than 5MB
+ * and wait for all uploads to finish. The temp files will be deleted after uploading successfully.
+ *
+ * In close(), we upload the last part of data (if exists), wait for all uploads to finish,
+ * and complete the multipart upload.
+ *
+ * close() will not be retried, but all the multipart upload
+ * related operations(init, upload, complete, and abort) will be retried.
+ *
+ * If an error occurs and we have no way to recover, we abort the multipart uploads.
+ * Some multipart uploads may not be completed/aborted in normal ways and need periodical cleanup
+ * by enabling the {@link PropertyKey#UNDERFS_CLEANUP_ENABLED}.
+ * When a leader master starts or a cleanup interval is reached, all the multipart uploads
+ * older than {@link PropertyKey#UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE} will be cleaned.
  */
 @NotThreadSafe
 public class S3ALowLevelOutputStream extends OutputStream {
@@ -67,7 +90,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
       Configuration.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED);
 
   /**
-   * Only parts bigger than 5MB could be uploaded through multipart upload,
+   * Only parts bigger than 5MB could be uploaded through S3A low-level multipart upload,
    * except the last part.
    */
   private static final long UPLOAD_THRESHOLD = 5 * Constants.MB;
@@ -75,7 +98,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
   /** Bucket name of the Alluxio S3 bucket. */
   private final String mBucketName;
 
-  /** The Amazon S3 client responsible to upload data to S3. */
+  /** The Amazon S3 client to interact with S3. */
   private final AmazonS3 mClient;
 
   /** Executing the upload tasks. */
@@ -84,8 +107,8 @@ public class S3ALowLevelOutputStream extends OutputStream {
   /** Key of the file when it is uploaded to S3. */
   private final String mKey;
 
-  /** Allowed size of the partition. */
-  private final long mPartitionSize;
+  /** The retry policy of this multipart upload. */
+  private final RetryPolicy mRetryPolicy = new CountingRetry(5);
 
   /** Pre-allocated byte buffer for writing single characters. */
   private final byte[] mSingleCharWrite = new byte[1];
@@ -93,29 +116,27 @@ public class S3ALowLevelOutputStream extends OutputStream {
   /** Tags for the uploaded part, provided by S3 after uploading. */
   private final List<PartETag> mTags = new ArrayList<>();
 
-  /** The retry policy of this multipart upload. */
-  private final RetryPolicy mRetryPolicy = new CountingRetry(5);
+  /** The MD5 hash of the file. */
+  private MessageDigest mHash;
+
+  /** The upload id of this multipart upload. */
+  private String mUploadId;
 
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
   private boolean mClosed = false;
 
+  /** When the offset reaches the partition size, we upload the temp file. */
+  private long mPartitionOffset;
+  /** The maximum allowed size of a partition. */
+  private final long mPartitionSize;
+
   /**
-   * The local file that will be uploaded when reaches the partition size
+   * The local temp file that will be uploaded when reaches the partition size
    * or when flush() is called and this file is bigger than 5MB.
    */
   private File mFile;
-
-  /** Store the future of tags. */
-  private List<ListenableFuture<PartETag>> mFutureTags = new ArrayList<>();
-
-  /** The MD5 hash of the file. */
-  private MessageDigest mHash;
-
-  /** The output stream to a local file where the file will be buffered. */
+  /** The output stream to the local temp file. */
   private OutputStream mLocalOutputStream;
-
-  /** When the offset reaches the partition size, we upload the temp file. */
-  private long mOffset;
 
   /**
    * Give each upload request an unique and continuous id
@@ -123,8 +144,8 @@ public class S3ALowLevelOutputStream extends OutputStream {
    */
   private AtomicInteger mPartNumber;
 
-  /** The upload id of this multipart upload. */
-  private String mUploadId;
+  /** Store the future of tags. */
+  private List<ListenableFuture<PartETag>> mTagFutures = new ArrayList<>();
 
   /**
    * Constructs a new stream for writing a file.
@@ -158,7 +179,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
   @Override
   public void write(int b) throws IOException {
     mSingleCharWrite[0] = (byte) b;
-    write(mSingleCharWrite, 0, 1);
+    write(mSingleCharWrite);
   }
 
   @Override
@@ -168,22 +189,23 @@ public class S3ALowLevelOutputStream extends OutputStream {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    if (mUploadId == null) {
-      initMultiPartUpload();
-    }
     if (b == null || len == 0) {
       return;
+    }
+    validateWriteArgs(b, off, len);
+    if (mUploadId == null) {
+      initMultiPartUpload();
     }
     if (mFile == null) {
       initNewFile();
     }
-    if (mOffset + len < mPartitionSize) {
+    if (mPartitionOffset + len < mPartitionSize) {
       mLocalOutputStream.write(b, off, len);
-      mOffset += len;
+      mPartitionOffset += len;
     } else {
-      int firstLen = (int) (mPartitionSize - mOffset);
+      int firstLen = (int) (mPartitionSize - mPartitionOffset);
       mLocalOutputStream.write(b, off, firstLen);
-      mOffset += firstLen;
+      mPartitionOffset += firstLen;
       uploadPart();
       write(b, off + firstLen, len - firstLen);
     }
@@ -201,7 +223,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
     if (mLocalOutputStream != null) {
       mLocalOutputStream.flush();
     }
-    if (mOffset > UPLOAD_THRESHOLD) {
+    if (mPartitionOffset > UPLOAD_THRESHOLD) {
       uploadPart();
     }
     waitForAllPartsUpload();
@@ -287,7 +309,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
     } else {
       mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
     }
-    mOffset = 0;
+    mPartitionOffset = 0;
     LOG.debug("Init new temp file @ {}", mFile.getPath());
   }
 
@@ -342,7 +364,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
           throw new IOException("Fail to upload part " + request.getPartNumber()
               + " to " + request.getKey(), lastException);
         });
-    mFutureTags.add(futureTag);
+    mTagFutures.add(futureTag);
     LOG.debug("Submit upload part request. key={}, partNum={}, file={}, fileSize={}, lastPart={}.",
         mKey, request.getPartNumber(), file.getPath(), file.length(), request.isLastPart());
   }
@@ -351,25 +373,28 @@ public class S3ALowLevelOutputStream extends OutputStream {
    * Waits for the submitted upload tasks to finish.
    */
   private void waitForAllPartsUpload() throws IOException {
+    int beforeSize = mTags.size();
     try {
-      for (ListenableFuture<PartETag> future : mFutureTags) {
+      for (ListenableFuture<PartETag> future : mTagFutures) {
         mTags.add(future.get());
       }
     } catch (ExecutionException e) {
       // No recover ways so that we need to cancel all the upload tasks
       // and abort the multipart upload
-      Futures.allAsList(mFutureTags).cancel(true);
+      Futures.allAsList(mTagFutures).cancel(true);
       abortMultiPartUpload();
       throw new IOException("Part upload failed in multipart upload with "
           + "id '" + mUploadId + "' to " + mKey, e);
     } catch (InterruptedException e) {
       LOG.warn("Interrupted object upload.", e);
-      Futures.allAsList(mFutureTags).cancel(true);
+      Futures.allAsList(mTagFutures).cancel(true);
       abortMultiPartUpload();
       Thread.currentThread().interrupt();
     }
-    mFutureTags = new ArrayList<>();
-    LOG.debug("Uploaded {} partitions of id '{}' to {}.", mTags.size(), mUploadId, mKey);
+    mTagFutures = new ArrayList<>();
+    if (mTags.size() != beforeSize) {
+      LOG.debug("Uploaded {} partitions of id '{}' to {}.", mTags.size(), mUploadId, mKey);
+    }
   }
 
   /**
@@ -418,5 +443,20 @@ public class S3ALowLevelOutputStream extends OutputStream {
         + "to be true.", mKey, mUploadId, mBucketName,
         PropertyKey.UNDERFS_CLEANUP_ENABLED.getName(),
         lastException);
+  }
+
+  /**
+   * Validates the arguments of write operation.
+   *
+   * @param b the data
+   * @param off the start offset in the data
+   * @param len the number of bytes to write
+   */
+  private void validateWriteArgs(byte[] b, int off, int len) {
+    Preconditions.checkNotNull(b);
+    if (off < 0 || off > b.length || len < 0
+        || (off + len) > b.length || (off + len) < 0) {
+      throw new IndexOutOfBoundsException("write(b[" + b.length + "], " + off + ", " + len + ")");
+    }
   }
 }

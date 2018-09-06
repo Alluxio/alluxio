@@ -502,8 +502,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       if (Configuration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
         getExecutorService().submit(
-            new HeartbeatThread(HeartbeatContext.MASTER_S3A_INTERMEDIATE_UPLOAD_CLEAN,
-                new UfsCleaner(this),
+            new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
                 (int) Configuration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL)));
       }
     }

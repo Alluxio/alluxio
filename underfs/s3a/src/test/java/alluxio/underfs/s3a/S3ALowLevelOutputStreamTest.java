@@ -57,12 +57,12 @@ public class S3ALowLevelOutputStreamTest {
   private static final String KEY = "testKey";
   private static final String UPLOAD_ID = "testUploadId";
 
-  private File mFile;
-  private BufferedOutputStream mLocalOutputStream;
-  private ListeningExecutorService mMockExecutor;
   private AmazonS3 mMockS3Client;
+  private ListeningExecutorService mMockExecutor;
+  private BufferedOutputStream mMockOutputStream;
+  private ListenableFuture<PartETag> mMockTag;
+
   private S3ALowLevelOutputStream mStream;
-  private ListenableFuture<PartETag> mTag;
 
   /**
    * Sets the properties and configuration before each test runs.
@@ -80,7 +80,7 @@ public class S3ALowLevelOutputStreamTest {
     mStream.write(1);
     Mockito.verify(mMockS3Client)
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
-    Mockito.verify(mLocalOutputStream).write(new byte[]{1}, 0, 1);
+    Mockito.verify(mMockOutputStream).write(new byte[]{1}, 0, 1);
     Mockito.verify(mMockExecutor, never()).submit(any(Callable.class));
 
     mStream.close();
@@ -97,8 +97,8 @@ public class S3ALowLevelOutputStreamTest {
     mStream.write(b, 0, b.length);
     Mockito.verify(mMockS3Client)
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
-    Mockito.verify(mLocalOutputStream).write(b, 0, b.length - 1);
-    Mockito.verify(mLocalOutputStream).write(b, b.length - 1, 1);
+    Mockito.verify(mMockOutputStream).write(b, 0, b.length - 1);
+    Mockito.verify(mMockOutputStream).write(b, b.length - 1, 1);
     Mockito.verify(mMockExecutor).submit(any(Callable.class));
 
     mStream.close();
@@ -114,13 +114,13 @@ public class S3ALowLevelOutputStreamTest {
     mStream.write(b, 0, b.length);
     Mockito.verify(mMockS3Client)
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
-    Mockito.verify(mLocalOutputStream).write(b, 0, partSize);
-    Mockito.verify(mLocalOutputStream).write(b, partSize, partSize - 1);
+    Mockito.verify(mMockOutputStream).write(b, 0, partSize);
+    Mockito.verify(mMockOutputStream).write(b, partSize, partSize - 1);
     Mockito.verify(mMockExecutor).submit(any(Callable.class));
 
     mStream.flush();
     Mockito.verify(mMockExecutor, times(2)).submit(any(Callable.class));
-    Mockito.verify(mTag, times(2)).get();
+    Mockito.verify(mMockTag, times(2)).get();
 
     mStream.close();
     Mockito.verify(mMockS3Client)
@@ -158,24 +158,24 @@ public class S3ALowLevelOutputStreamTest {
     when(mMockS3Client.completeMultipartUpload(any(CompleteMultipartUploadRequest.class)))
         .thenReturn(new CompleteMultipartUploadResult());
 
-    mTag = (ListenableFuture<PartETag>) PowerMockito.mock(ListenableFuture.class);
-    when(mTag.get()).thenReturn(new PartETag(1, "someTag"));
+    mMockTag = (ListenableFuture<PartETag>) PowerMockito.mock(ListenableFuture.class);
+    when(mMockTag.get()).thenReturn(new PartETag(1, "someTag"));
     mMockExecutor = Mockito.mock(ListeningExecutorService.class);
-    when(mMockExecutor.submit(any(Callable.class))).thenReturn(mTag);
+    when(mMockExecutor.submit(any(Callable.class))).thenReturn(mMockTag);
   }
 
   /**
    * Mocks file-related classes.
    */
   private void mockFileAndOutputStream() throws Exception {
-    mFile = Mockito.mock(File.class);
-    PowerMockito.whenNew(File.class).withArguments(Mockito.anyString()).thenReturn(mFile);
+    File file = Mockito.mock(File.class);
+    PowerMockito.whenNew(File.class).withArguments(Mockito.anyString()).thenReturn(file);
 
-    mLocalOutputStream = PowerMockito.mock(BufferedOutputStream.class);
+    mMockOutputStream = PowerMockito.mock(BufferedOutputStream.class);
     PowerMockito.whenNew(BufferedOutputStream.class)
-        .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
+        .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mMockOutputStream);
 
     FileOutputStream outputStream = PowerMockito.mock(FileOutputStream.class);
-    PowerMockito.whenNew(FileOutputStream.class).withArguments(mFile).thenReturn(outputStream);
+    PowerMockito.whenNew(FileOutputStream.class).withArguments(file).thenReturn(outputStream);
   }
 }
