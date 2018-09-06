@@ -89,7 +89,15 @@ public final class NettyPacketWriter implements PacketWriter {
 
   private boolean mClosed;
 
+  /**
+   * Uses to gurantee the operation ordering.
+   *
+   * NOTE: {@link Channel#writeAndFlush(Object)} is async.
+   * Netty I/O thread executes the {@link ChannelFutureListener#operationComplete(Future)}
+   * before writing any new message to the wire, which may introduce another layer of ordering.
+   */
   private final ReentrantLock mLock = new ReentrantLock();
+
   /** The next pos to write to the channel. */
   @GuardedBy("mLock")
   private long mPosToWrite;
@@ -240,6 +248,9 @@ public final class NettyPacketWriter implements PacketWriter {
               String.format("Timeout flushing to %s for request %s after %dms.",
                   mAddress, mPartialRequest, WRITE_TIMEOUT_MS));
         }
+      }
+      if (mEOFSent || mCancelSent) {
+        return;
       }
       Protocol.WriteRequest writeRequest =
           mPartialRequest.toBuilder().setOffset(mPosToQueue).setFlush(true).build();
@@ -470,7 +481,6 @@ public final class NettyPacketWriter implements PacketWriter {
       if (!future.isSuccess()) {
         future.channel().close();
       }
-      boolean shouldSendEOF = false;
       try (LockResource lr = new LockResource(mLock)) {
         Preconditions.checkState(mPosToWriteUncommitted - mPosToWrite <= mPacketSize,
             "Some packet is not acked.");
@@ -492,11 +502,8 @@ public final class NettyPacketWriter implements PacketWriter {
           mBufferNotFullOrFailed.signal();
         }
         if (mPosToWrite == mLength) {
-          shouldSendEOF = true;
+          sendEof();
         }
-      }
-      if (shouldSendEOF) {
-        sendEof();
       }
     }
   }
