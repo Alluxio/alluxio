@@ -15,8 +15,6 @@ import alluxio.collections.Pair;
 import alluxio.thrift.TAcl;
 
 import com.google.common.base.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +24,6 @@ import java.util.List;
  */
 public class DefaultAccessControlList extends AccessControlList {
   private static final long serialVersionUID = 8649647787531425489L;
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultAccessControlList.class);
   public static final DefaultAccessControlList EMPTY_DEFAULT_ACL = new DefaultAccessControlList();
 
   /**
@@ -66,7 +63,6 @@ public class DefaultAccessControlList extends AccessControlList {
    * @return child file's access ACL
    */
   public AccessControlList generateChildFileACL(Short mode) {
-    LOG.info("short mode {}", mode);
     Mode defaultMode = new Mode(mode);
     AccessControlList acl = new AccessControlList();
     acl.mOwningUser = mOwningUser;
