@@ -2540,7 +2540,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
         }
       }
-      // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
+      // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
       MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
       try (CloseableResource<UnderFileSystem> ufsResource =
                resolution.acquireUfsResource()) {
