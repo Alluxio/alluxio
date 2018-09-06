@@ -2541,17 +2541,26 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
       // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
-      // TODO(yuzhu): check if the alluxioPath does not shadow a path in any UFS??
+      MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
+      try (CloseableResource<UnderFileSystem> ufsResource =
+               resolution.acquireUfsResource()) {
+        String ufsResolvedPath = resolution.getUri().getPath();
+        if (ufsResource.get().exists(ufsResolvedPath)) {
+          throw new IOException(
+              ExceptionMessage.MOUNT_PATH_SHADOWS_PARENT_UFS.getMessage(alluxioPath));
+        }
+      }
+/*
       String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       UnderFileSystem defaultUfs = UnderFileSystem.Factory.createForRoot();
       String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
       if (defaultUfs.exists(shadowPath)) {
         throw new IOException(
-            ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
+            ExceptionMessage.MOUNT_PATH_SHADOWS_PARENT_UFS.getMessage(alluxioPath));
       }
-
+*/
       // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
-      // mount and no existing mount is a prefix of this mount.
+      // mount.
       mMountTable.add(journalContext, alluxioPath, ufsPath, mountId, options);
     } catch (Exception e) {
       mUfsManager.removeMount(mountId);
