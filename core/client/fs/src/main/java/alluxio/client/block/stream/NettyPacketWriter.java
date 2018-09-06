@@ -78,7 +78,7 @@ public final class NettyPacketWriter implements PacketWriter {
       Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS);
   /** Uses a long flush timeout since flush in S3 streaming upload may take a long time. */
   private static final long FLUSH_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_FLUSH_TIMEOUT_MS);
+      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_FLUSH_TIMEOUT);
 
   private final FileSystemContext mContext;
   private final Channel mChannel;
@@ -255,7 +255,7 @@ public final class NettyPacketWriter implements PacketWriter {
       Protocol.WriteRequest writeRequest =
           mPartialRequest.toBuilder().setOffset(mPosToQueue).setFlush(true).build();
       mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
-          .addListener(new FlushListener());
+          .addListener(new FlushOrEofOrCancelListener());
       if (!mFlushedOrFailed.await(FLUSH_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
         throw new DeadlineExceededException(
             String.format("Timeout flush to %s for request %s after %dms.",
@@ -350,7 +350,7 @@ public final class NettyPacketWriter implements PacketWriter {
     Protocol.WriteRequest writeRequest =
         mPartialRequest.toBuilder().setOffset(pos).setEof(true).build();
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
-        .addListener(new EofOrCancelListener());
+        .addListener(new FlushOrEofOrCancelListener());
   }
 
   /**
@@ -369,7 +369,7 @@ public final class NettyPacketWriter implements PacketWriter {
     Protocol.WriteRequest writeRequest =
         mPartialRequest.toBuilder().setOffset(pos).setCancel(true).build();
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
-        .addListener(new EofOrCancelListener());
+        .addListener(new FlushOrEofOrCancelListener());
   }
 
   @Override
@@ -509,45 +509,19 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   /**
-   * The netty channel future listener that is called when a EOF or CANCEL is complete.
+   * The netty channel future listener that is called when a FLUSH or EOF or CANCEL is complete.
    */
-  private final class EofOrCancelListener implements ChannelFutureListener {
+  private final class FlushOrEofOrCancelListener implements ChannelFutureListener {
     /**
      * Constructor.
      */
-    EofOrCancelListener() {}
+    FlushOrEofOrCancelListener() {}
 
     @Override
     public void operationComplete(ChannelFuture future) {
       if (!future.isSuccess()) {
         future.channel().close();
         try (LockResource lr = new LockResource(mLock)) {
-          updateException(future.cause());
-          mDoneOrFailed.signal();
-          mBufferNotFullOrFailed.signal();
-          mBufferEmptyOrFailed.signal();
-          mFlushedOrFailed.signal();
-        }
-      }
-    }
-  }
-
-  /**
-   * The netty channel future listener that is called when a FLUSH is complete.
-   */
-  private final class FlushListener implements ChannelFutureListener {
-    /**
-     * Constructor.
-     */
-    FlushListener() {}
-
-    @Override
-    public void operationComplete(ChannelFuture future) {
-      if (!future.isSuccess()) {
-        future.channel().close();
-      }
-      try (LockResource lr = new LockResource(mLock)) {
-        if (future.cause() != null) {
           updateException(future.cause());
           mDoneOrFailed.signal();
           mBufferNotFullOrFailed.signal();
