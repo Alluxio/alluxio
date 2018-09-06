@@ -61,6 +61,11 @@ import java.util.Set;
  */
 public interface FileSystemMaster extends Master {
   /**
+   * Periodically clean up the under file systems.
+   */
+  void cleanupUfs();
+
+  /**
    * @return the status of the startup consistency check and inconsistent paths if it is complete
    */
   StartupConsistencyCheck getStartupConsistencyCheck();

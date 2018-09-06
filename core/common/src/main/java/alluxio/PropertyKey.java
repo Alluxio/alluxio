@@ -516,6 +516,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey UNDERFS_CLEANUP_ENABLED =
+      new Builder(Name.UNDERFS_CLEANUP_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether or not to clean up under filesystem periodically."
+              + "Some ufs operations may not be completed and cleaned up successfully "
+              + "in normal ways and leave some intermediate data that needs periodical cleanup."
+              + "If enabled, all the mount points will be cleaned up when a leader master starts "
+              + "or cleanup interval is reached. This should be used sparingly.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey UNDERFS_CLEANUP_INTERVAL =
+      new Builder(Name.UNDERFS_CLEANUP_INTERVAL)
+          .setDefaultValue("1day")
+          .setDescription("The interval for periodically cleaning all the "
+              + " mounted under filesystem.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey UNDERFS_LISTING_LENGTH =
       new Builder(Name.UNDERFS_LISTING_LENGTH)
           .setDefaultValue(1000)
@@ -748,6 +767,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+      new Builder(Name.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+          .setDefaultValue("3day")
+          .setDescription("Streaming uploads may not have been completed/aborted correctly "
+              + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
+              + "intermediate multipart uploads in all non-readonly S3 mount points "
+              + "older than this age will be cleaned. This may impact other "
+              + "ongoing upload operations, so a large clean age is encouraged.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
       new Builder(Name.UNDERFS_S3A_LIST_OBJECTS_VERSION_1)
           .setDefaultValue(false)
@@ -794,6 +824,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setAlias(new String[]{"alluxio.underfs.s3a.socket.timeout.ms"})
           .setDefaultValue("50sec")
           .setDescription("Length of the socket timeout when communicating with S3.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_S3A_STREAMING_UPLOAD_ENABLED =
+      new Builder(Name.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using streaming upload to write to S3A.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE =
+      new Builder(Name.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "S3A streaming upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, S3A upload speed might be affected. ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -3125,6 +3172,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
     public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
         "alluxio.underfs.allow.set.owner.failure";
+    public static final String UNDERFS_CLEANUP_ENABLED = "alluxio.underfs.cleanup.enabled";
+    public static final String UNDERFS_CLEANUP_INTERVAL = "alluxio.underfs.cleanup.interval";
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
@@ -3149,11 +3198,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
     public static final String UNDERFS_S3A_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3a.bulk.delete.enabled";
-    public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout";
     public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
         "alluxio.underfs.s3a.directory.suffix";
+    public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
+    public static final String UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+        "alluxio.underfs.s3a.intermediate.upload.clean.age";
     public static final String UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
         "alluxio.underfs.s3a.list.objects.v1";
     public static final String UNDERFS_S3A_REQUEST_TIMEOUT_MS =
@@ -3166,6 +3217,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.s3a.signer.algorithm";
     public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
         "alluxio.underfs.s3a.socket.timeout";
+    public static final String UNDERFS_S3A_STREAMING_UPLOAD_ENABLED =
+        "alluxio.underfs.s3a.streaming.upload.enabled";
+    public static final String UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.s3a.streaming.upload.partition.size";
     public static final String UNDERFS_S3_ADMIN_THREADS_MAX =
         "alluxio.underfs.s3.admin.threads.max";
     public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
