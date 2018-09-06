@@ -134,7 +134,7 @@ do_mount() {
       local tier_alias=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
       local tier_path=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
 
-      if [[ ${TIER_ALIAS} != "MEM" ]]; then
+      if [[ ${tier_alias} != "MEM" ]]; then
         echo "Can't Mount/SudoMount when alluxio.worker.tieredstore.level0.alias is not MEM"
         exit 1
       fi
