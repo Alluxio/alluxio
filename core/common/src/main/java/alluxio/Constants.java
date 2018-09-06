@@ -177,5 +177,8 @@ public final class Constants {
   // Ufs fingerprint
   public static final String INVALID_UFS_FINGERPRINT = "";
 
+  // Output stream flushed signal
+  public static final String FLUSHED_SIGNAL = "FLUSHED";
+
   private Constants() {} // prevent instantiation
 }
