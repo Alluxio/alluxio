@@ -12,6 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -42,6 +44,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.Authority;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
@@ -461,5 +464,46 @@ public class BaseFileSystem implements FileSystem {
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
+  }
+
+  /**
+   * Alluxio URIs in the Filesystem don't need a scheme or host. Warn the user and throw an
+   * exception if necessary.
+   */
+  protected static void UriCheck(AlluxioURI uri) {
+    boolean logWarning = false;
+    if (uri.hasScheme()) {
+      if (uri.getScheme().compareTo("alluxio") == 0
+          || uri.getScheme().compareTo("alluxio-ft") == 0) {
+        logWarning = true;
+      } else {
+        // Throw Exception
+        throw new IllegalArgumentException(
+            "Valid scheme values in filesystem URI operations are \"alluxio\" and \"alluxio-ft\"."
+                + " Note that the scheme is not required for filesystem operations");
+      }
+    }
+
+    if (uri.hasAuthority()) {
+      logWarning = true;
+      /* Even if we choose to log the warning, check if the Configuration host matches what the
+       * user passes. If not, throw an exception letting the user know they don't match.
+       */
+      String host = Configuration.get(PropertyKey.MASTER_HOSTNAME);
+      String port = Configuration.get(PropertyKey.MASTER_RPC_PORT);
+      String authString = String.format("%s:%s", host, port);
+      Authority trueAuthority = Authority.fromString(authString);
+      if (trueAuthority.compareTo(uri.getAuthority()) != 0) {
+        throw new IllegalArgumentException(String.format(
+            "The URI host and port don't match the configured "
+            + "value of %s.", trueAuthority.toString()));
+      }
+    }
+
+    if (logWarning) {
+      LOG.warn("The scheme \"alluxio\" and \"alluxio-ft\" as well as the hostname and port are "
+          + "not required in URIs passed to the Alluxio Filesystem client.");
+    }
+    return;
   }
 }

@@ -14,6 +14,7 @@ package alluxio.client.file;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -22,6 +23,8 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -446,5 +449,40 @@ public final class BaseFileSystemTest {
     } catch (Exception e) {
       assertSame(EXCEPTION, e);
     }
+  }
+
+  /**
+   * Ensures Warnings are logged or exceptions are thrown when an {@link AlluxioURI} with a
+   * scheme://host is passed.
+   */
+  @Test
+  public void UriCheckTest() throws Exception {
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    AlluxioURI uri = new AlluxioURI("alluxio://localhost:1234/root");
+    boolean exceptionRaised = true;
+    try {
+      BaseFileSystem.UriCheck(uri);
+      exceptionRaised = false;
+      fail("Should have failed on bad host and port");
+    } catch (IllegalArgumentException e) {
+      assertTrue(exceptionRaised);
+    }
+
+    uri = new AlluxioURI("alluxio://localhost:19998/root");
+    try {
+      BaseFileSystem.UriCheck(uri);
+    } catch (IllegalArgumentException e) {
+      fail("Should not have thrown an exception with a valid scheme://host:port combination.");
+    }
+
+    uri = new AlluxioURI("/root");
+    try {
+      BaseFileSystem.UriCheck(uri);
+    } catch (IllegalArgumentException e) {
+      fail("Should not have thrown an exception when no scheme://host:port supplied.");
+    }
+
+    mFileSystem.createDirectory(new AlluxioURI("alluxio://localhost/root"));
   }
 }
