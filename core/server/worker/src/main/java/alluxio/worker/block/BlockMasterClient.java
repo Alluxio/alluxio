@@ -104,8 +104,9 @@ public final class BlockMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.getWorkerId(address.toThrift(), new GetWorkerIdTOptions())
-            .getWorkerId();
+//        return mClient.getWorkerId(address.toThrift(), new GetWorkerIdTOptions())
+//            .getWorkerId();
+        return null;
       }
     });
   }

@@ -31,33 +31,78 @@ import alluxio.file.options.SyncMetadataOptions;
  * The interface for file system master default options.
  */
 public interface FileSystemMasterOptions {
-  CheckConsistencyOptions getCheckConsistencyOptions();
+  /**
+   * @return an instance of {@link CheckConsistencyOptions}
+   */
+  <T extends CheckConsistencyOptions> T getCheckConsistencyOptions();
 
-  CommonOptions getCommonOptions();
+  /**
+   * @return an instance of {@link CommonOptions}
+   */
+  <T extends CommonOptions> T getCommonOptions();
 
-  CompleteFileOptions getCompleteFileOptions();
+  /**
+   * @return an instance of {@link CompleteFileOptions}
+   */
+  <T extends CompleteFileOptions> T getCompleteFileOptions();
 
-  CreateDirectoryOptions getCreateDirectoryOptions();
+  /**
+   * @return an instance of {@link CreateFileOptions}
+   */
+  <T extends CreateFileOptions> T getCreateFileOptions();
 
-  CreateFileOptions getCreateFileOptions();
+  /**
+   * @return an instance of {@link CreateDirectoryOptions}
+   */
+  <T extends CreateDirectoryOptions> T getCreateDirectoryOptions();
 
-  DeleteOptions getDeleteOptions();
+  /**
+   * @return an instance of {@link DeleteOptions}
+   */
+  <T extends DeleteOptions> T getDeleteOptions();
 
-  FreeOptions getFreeOptions();
+  /**
+   * @return an instance of {@link FreeOptions}
+   */
+  <T extends FreeOptions> T getFreeOptions();
 
-  GetStatusOptions getGetStatusOptions();
+  /**
+   * @return an instance of {@link GetStatusOptions}
+   */
+  <T extends GetStatusOptions> T getGetStatusOptions();
 
-  ListStatusOptions getListStatusOptions();
+  /**
+   * @return an instance of {@link ListStatusOptions}
+   */
+  <T extends ListStatusOptions> T getListStatusOptions();
 
-  LoadMetadataOptions getLoadMetadataOptions();
+  /**
+   * @return an instance of {@link LoadMetadataOptions}
+   */
+  <T extends LoadMetadataOptions> T getLoadMetadataOptions();
 
-  MountOptions getMountOptions();
+  /**
+   * @return an instance of {@link MountOptions}
+   */
+  <T extends MountOptions> T getMountOptions();
 
-  RenameOptions getRenameOptions();
+  /**
+   * @return an instance of {@link RenameOptions}
+   */
+  <T extends RenameOptions> T getRenameOptions();
 
-  SetAclOptions getSetAclOptions();
+  /**
+   * @return an instance of {@link SetAclOptions}
+   */
+  <T extends SetAclOptions> T getSetAclOptions();
 
-  SetAttributeOptions getSetAttributeOptions();
+  /**
+   * @return an instance of {@link SetAttributeOptions}
+   */
+  <T extends SetAttributeOptions> T getSetAttributeOptions();
 
-  SyncMetadataOptions getSyncMetadataOptions();
+  /**
+   * @return an instance of {@link SyncMetadataOptions}
+   */
+  <T extends SyncMetadataOptions> T getSyncMetadataOptions();
 }

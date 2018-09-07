@@ -12,6 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.Constants;
+import alluxio.security.authorization.Mode;
 import alluxio.wire.TtlAction;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -37,7 +38,7 @@ public final class SetAttributeOptions extends alluxio.file.options.SetAttribute
     mPersisted = null;
     mOwner = null;
     mGroup = null;
-    mMode = Constants.INVALID_MODE;
+    mMode = new Mode(Constants.INVALID_MODE);
     mRecursive = false;
     mOperationTimeMs = System.currentTimeMillis();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;

@@ -39,6 +39,7 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.StreamUtils;
+import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -377,7 +378,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
 
   private void apply(SetAclEntry entry) {
     Inode<?> inode = mInodes.getFirst(entry.getId());
-    List<AclEntry> entries = StreamUtils.map(AclEntry::fromProto, entry.getEntriesList());
+    List<AclEntry> entries = StreamUtils.map(ProtoUtils::fromProto, entry.getEntriesList());
     switch (entry.getAction()) {
       case REPLACE:
         // fully replace the acl for the path

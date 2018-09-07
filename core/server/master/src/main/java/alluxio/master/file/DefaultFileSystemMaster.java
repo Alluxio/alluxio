@@ -2326,19 +2326,22 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // Metadata loaded from UFS has no TTL set.
     CreateFileOptions createFileOptions =
-        MASTER_OPTIONS.getCreateFileOptions().setBlockSizeBytes(ufsBlockSizeByte)
-            .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true)
+        MASTER_OPTIONS.<alluxio.master.file.options.CreateFileOptions>getCreateFileOptions()
+            .setBlockSizeBytes(ufsBlockSizeByte)
+            .setRecursive(options.isCreateAncestors())
+            .setMetadataLoad(true)
+            .setPersisted(true)
             .setTtl(options.getCommonOptions().getTtl())
-            .setTtlAction(options.getCommonOptions().getTtlAction());
-    String ufsOwner = ufsStatus.getOwner();
-    String ufsGroup = ufsStatus.getGroup();
+            .setTtlAction(options.getCommonOptions().getTtlAction())
+            .setOwner(ufsStatus.getOwner())
+            .setGroup(ufsStatus.getGroup());
     short ufsMode = ufsStatus.getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = ufsStatus.getLastModifiedTime();
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createFileOptions = createFileOptions.setOwner(ufsOwner).setGroup(ufsGroup).setMode(mode);
+    createFileOptions.setMode(mode);
     if (acl != null) {
       createFileOptions.setAcl(acl.getEntries());
     }
@@ -2388,11 +2391,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         return;
       }
     }
-    CreateDirectoryOptions createDirectoryOptions = MASTER_OPTIONS.getCreateDirectoryOptions()
-        .setMountPoint(mMountTable.isMountPoint(inodePath.getUri())).setPersisted(true)
-        .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true)
-        .setTtl(options.getCommonOptions().getTtl())
-        .setTtlAction(options.getCommonOptions().getTtlAction());
+    alluxio.master.file.options.CreateDirectoryOptions createDirectoryOptions =
+        MASTER_OPTIONS.<alluxio.master.file.options.CreateDirectoryOptions>getCreateDirectoryOptions()
+          .setMountPoint(mMountTable.isMountPoint(inodePath.getUri()))
+          .setPersisted(true)
+          .setRecursive(options.isCreateAncestors())
+          .setMetadataLoad(true)
+          .setAllowExists(true)
+          .setTtl(options.getCommonOptions().getTtl())
+          .setTtlAction(options.getCommonOptions().getTtlAction());
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
     UfsStatus ufsStatus = options.getUfsStatus();
     if (ufsStatus == null) {
