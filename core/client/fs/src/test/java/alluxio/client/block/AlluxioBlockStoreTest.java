@@ -62,6 +62,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
@@ -336,6 +337,58 @@ public final class AlluxioBlockStoreTest {
         4, 1L);
     int expectedWorker = 2;
     testGetInStreamFallback(workerCount, persisted, blockLocations, failedWorkers, expectedWorker);
+  }
+
+  @Test
+  public void getInStreamInAlluxioWhenCreateStreamIsFailed() throws Exception {
+    int workerCount = 5;
+    boolean persisted = false;
+    int[] blockLocations = new int[]{2, 3, 4};
+    Map<Integer, Long> failedWorkers = ImmutableMap.of(
+            0, 3L,
+            1, 1L,
+            3, 2L);
+    int expectedWorker = 2;
+    WorkerNetAddress[] workers = new WorkerNetAddress[workerCount];
+    for (int i = 0; i < workers.length - 1; i++) {
+      workers[i] = new WorkerNetAddress().setHost(String.format("worker-%d", i));
+    }
+    workers[workers.length - 1] = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
+    when(mContext.acquireNettyChannel(WORKER_NET_ADDRESS_LOCAL))
+        .thenThrow(new ConnectException("failed to connect to "
+            + WORKER_NET_ADDRESS_LOCAL.getHost()));
+    BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID)
+        .setLocations(Arrays.stream(blockLocations).mapToObj(x ->
+            new BlockLocation().setWorkerAddress(workers[x])).collect(Collectors.toList()));
+    URIStatus dummyStatus =
+        new URIStatus(new FileInfo().setPersisted(persisted)
+            .setBlockIds(Collections.singletonList(BLOCK_ID))
+            .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
+    BlockLocationPolicy mockPolicy = mock(BlockLocationPolicy.class);
+    when(mockPolicy.getWorker(any())).thenAnswer(arg -> arg
+        .getArgumentAt(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
+        .getNetAddress());
+    OpenFileOptions readOptions =
+        OpenFileOptions.defaults().setUfsReadLocationPolicy(mockPolicy);
+    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
+    when(mMasterClient.getWorkerInfoList()).thenReturn(Arrays.stream(workers)
+        .map(x -> new WorkerInfo().setAddress(x)).collect((Collectors.toList())));
+    Map<WorkerNetAddress, Long> failedWorkerAddresses = failedWorkers.entrySet().stream()
+        .map(x -> new AbstractMap.SimpleImmutableEntry<>(workers[x.getKey()], x.getValue()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    BlockInStream inStream = null;
+    int i = 2;
+    while (i-- > 0) {
+      try {
+        inStream = mBlockStore.getInStream(BLOCK_ID, options,
+                failedWorkerAddresses);
+      } catch (Exception e) {
+        //do nothing
+      }
+    }
+    assertEquals(workers[expectedWorker], inStream.getAddress());
   }
 
   private void testGetInStreamFallback(int workerCount, boolean isPersisted, int[] blockLocations,
