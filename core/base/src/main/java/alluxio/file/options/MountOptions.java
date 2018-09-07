@@ -22,13 +22,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method option for mounting.
  */
 @NotThreadSafe
-public class MountOptions {
+public abstract class MountOptions {
   protected CommonOptions mCommonOptions;
   protected boolean mReadOnly;
   protected Map<String, String> mProperties;
   protected boolean mShared;
-
-  protected MountOptions() {}
 
   /**
    * @return the common options

@@ -21,13 +21,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for completing a file.
  */
 @NotThreadSafe
-public class CompleteFileOptions {
+public abstract class CompleteFileOptions {
   protected CommonOptions mCommonOptions;
   protected long mUfsLength;
   protected long mOperationTimeMs;
   protected UfsStatus mUfsStatus;
-
-  protected CompleteFileOptions() {}
 
   /**
    * @return the common options

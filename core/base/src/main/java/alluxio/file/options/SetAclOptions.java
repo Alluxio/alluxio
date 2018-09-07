@@ -19,11 +19,9 @@ import com.google.common.base.Objects;
  * Method options for setting ACLs.
  */
 @NotThreadSafe
-public class SetAclOptions {
+public abstract class SetAclOptions {
   protected CommonOptions mCommonOptions;
   protected boolean mRecursive;
-
-  protected SetAclOptions() {}
 
   /**
    * @return the common options

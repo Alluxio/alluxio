@@ -22,13 +22,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for loading metadata.
  */
 @NotThreadSafe
-public class LoadMetadataOptions {
+public abstract class LoadMetadataOptions {
   protected CommonOptions mCommonOptions;
   protected boolean mCreateAncestors;
   protected DescendantType mLoadDescendantType;
   protected UfsStatus mUfsStatus;
-
-  protected LoadMetadataOptions() {}
 
   /**
    * @return the common options

@@ -19,10 +19,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for syncing the metadata of a path.
  */
 @NotThreadSafe
-public class SyncMetadataOptions {
+public abstract class SyncMetadataOptions {
   protected CommonOptions mCommonOptions;
-
-  protected SyncMetadataOptions() {}
 
   /**
    * @return the common options

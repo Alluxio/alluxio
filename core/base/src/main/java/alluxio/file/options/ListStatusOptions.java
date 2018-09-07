@@ -21,12 +21,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for list status.
  */
 @NotThreadSafe
-public class ListStatusOptions {
+public abstract class ListStatusOptions {
   protected CommonOptions mCommonOptions;
   protected LoadMetadataType mLoadMetadataType;
   protected boolean mRecursive;
-
-  protected ListStatusOptions() {}
 
   /**
    * @return the common options

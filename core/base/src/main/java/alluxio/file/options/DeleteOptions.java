@@ -19,13 +19,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for deleting a file or a directory.
  */
 @NotThreadSafe
-public class DeleteOptions {
+public abstract class DeleteOptions {
   protected CommonOptions mCommonOptions;
   protected boolean mRecursive;
   protected boolean mAlluxioOnly;
   protected boolean mUnchecked;
-
-  protected DeleteOptions() {}
 
   /**
    * @return the common options

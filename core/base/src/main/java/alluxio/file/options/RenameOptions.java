@@ -19,11 +19,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for completing a file.
  */
 @NotThreadSafe
-public class RenameOptions {
+public abstract class RenameOptions {
   protected CommonOptions mCommonOptions;
   protected long mOperationTimeMs;
-
-  protected RenameOptions() {}
 
   /**
    * @return the common options

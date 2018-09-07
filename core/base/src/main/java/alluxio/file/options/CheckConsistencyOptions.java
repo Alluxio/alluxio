@@ -19,10 +19,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for checking the consistency of a path.
  */
 @NotThreadSafe
-public class CheckConsistencyOptions {
+public abstract class CheckConsistencyOptions {
   protected CommonOptions mCommonOptions;
-
-  protected CheckConsistencyOptions() {}
 
   /**
    * @return the common options

@@ -24,13 +24,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public class GetStatusOptions {
+public abstract class GetStatusOptions {
   protected CommonOptions mCommonOptions;
   protected LoadMetadataType mLoadMetadataType;
-
-  protected GetStatusOptions() {
-    mLoadMetadataType = LoadMetadataType.Once;
-  }
 
   /**
    * @return the common options

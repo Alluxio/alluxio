@@ -21,11 +21,9 @@ import alluxio.underfs.UfsMode;
  * Method options for updating operation mode of a ufs path.
  */
 @NotThreadSafe
-public class UpdateUfsModeOptions {
+public abstract class UpdateUfsModeOptions {
   protected CommonOptions mCommonOptions;
   protected UfsMode mUfsMode;
-
-  protected UpdateUfsModeOptions() {}
 
   /**
    * @return the common options

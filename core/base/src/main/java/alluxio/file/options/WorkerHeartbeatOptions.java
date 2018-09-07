@@ -21,10 +21,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for the worker to master heartbeat.
  */
 @NotThreadSafe
-public class WorkerHeartbeatOptions {
+public abstract class WorkerHeartbeatOptions {
   protected List<String> mPersistedUfsFingerprintList;
-
-  protected WorkerHeartbeatOptions() {}
 
   /**
    * @return list of ufs fingerprints, of the persisted files

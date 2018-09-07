@@ -23,16 +23,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Common method options.
  */
 @NotThreadSafe
-public class CommonOptions implements Serializable {
+public abstract class CommonOptions implements Serializable {
   private static final long serialVersionUID = -1491370184123698287L;
 
   protected long mSyncIntervalMs;
-
   /** Below ttl and ttl action are for loading files. */
   protected long mTtl;
   protected TtlAction mTtlAction;
-
-  protected CommonOptions() {}
 
   /**
    * @return the sync interval, in milliseconds

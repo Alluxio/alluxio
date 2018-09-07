@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for setting the attributes.
  */
 @NotThreadSafe
-public class SetAttributeOptions {
+public abstract class SetAttributeOptions {
   protected CommonOptions mCommonOptions;
   protected Boolean mPinned;
   protected Long mTtl;
@@ -34,8 +34,6 @@ public class SetAttributeOptions {
   protected boolean mRecursive;
   protected long mOperationTimeMs;
   protected String mUfsFingerprint;
-
-  protected SetAttributeOptions() {}
 
   /**
    * @return the common options

@@ -19,12 +19,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for list status.
  */
 @NotThreadSafe
-public class FreeOptions {
+public abstract class FreeOptions {
   protected CommonOptions mCommonOptions;
   protected boolean mRecursive;
   protected boolean mForced;
-
-  protected FreeOptions() {}
 
   /**
    * @return the common options
