@@ -2550,15 +2550,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               ExceptionMessage.MOUNT_PATH_SHADOWS_PARENT_UFS.getMessage(alluxioPath));
         }
       }
-/*
-      String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      UnderFileSystem defaultUfs = UnderFileSystem.Factory.createForRoot();
-      String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
-      if (defaultUfs.exists(shadowPath)) {
-        throw new IOException(
-            ExceptionMessage.MOUNT_PATH_SHADOWS_PARENT_UFS.getMessage(alluxioPath));
-      }
-*/
       // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
       // mount.
       mMountTable.add(journalContext, alluxioPath, ufsPath, mountId, options);
