@@ -96,6 +96,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+    BaseFileSystem.UriCheck(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.createDirectory(path, options);
@@ -122,6 +123,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+    BaseFileSystem.UriCheck(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     URIStatus status;
     try {
@@ -163,6 +165,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void delete(AlluxioURI path, DeleteOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+    BaseFileSystem.UriCheck(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.delete(path, options);
@@ -190,6 +193,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public boolean exists(AlluxioURI path, ExistsOptions options)
       throws InvalidPathException, IOException, AlluxioException {
+    BaseFileSystem.UriCheck(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this more efficient
@@ -219,6 +223,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void free(AlluxioURI path, FreeOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    BaseFileSystem.UriCheck(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.free(path, options);
@@ -243,6 +248,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    BaseFileSystem.UriCheck(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       return masterClient.getStatus(path, options);
@@ -266,6 +272,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    BaseFileSystem.UriCheck(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     // TODO(calvin): Fix the exception handling in the master
     try {
@@ -302,6 +309,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    BaseFileSystem.UriCheck(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.loadMetadata(path, options);
@@ -326,6 +334,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws IOException, AlluxioException {
+    BaseFileSystem.UriCheck(alluxioPath);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this fail on the master side
@@ -363,6 +372,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFileOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    BaseFileSystem.UriCheck(path);
     URIStatus status = getStatus(path);
     if (status.isFolder()) {
       throw new FileDoesNotExistException(
@@ -381,6 +391,8 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    BaseFileSystem.UriCheck(src);
+    BaseFileSystem.UriCheck(dst);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Update this code on the master side.
@@ -406,6 +418,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+    BaseFileSystem.UriCheck(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.setAcl(path, action, entries, options);
@@ -430,6 +443,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void setAttribute(AlluxioURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    BaseFileSystem.UriCheck(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.setAttribute(path, options);
@@ -453,6 +467,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void unmount(AlluxioURI path, UnmountOptions options)
       throws IOException, AlluxioException {
+    BaseFileSystem.UriCheck(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.unmount(path);
