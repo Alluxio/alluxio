@@ -225,31 +225,29 @@ S3 buckets nor objects.
 
 ## [Experimental] S3A streaming upload
 
-S3 is an object store and because of this feature, we send the whole file from client to worker, 
-store the file in the temporary directory in the local disk, and 
-upload the whole file in the `close()` method by default.
+S3 is an object store and because of this feature, the whole file is sent from client to worker, 
+stored in the local disk temporary diretory, and uploaded in the `close()` method by default.
 
 The default upload process is safer but has the following issues:
-* slow upload time. The file has to be sent to Alluxio worker first and then Alluxio worker is 
+* Slow upload time. The file has to be sent to Alluxio worker first and then Alluxio worker is 
 responsible for uploading the file to S3. The two processes are sequential.
-* the temporary directory mush have the capacity to store the whole file.
-* slow `close()`. The time of `close()` method is proportional to the file size 
+* The temporary directory mush have the capacity to store the whole file.
+* Slow `close()`. The time of `close()` method is proportional to the file size 
 and inversely proportional to the bandwidth. That is `O(FILE_SIZE/BANDWITH)`. 
-Slow `close()` is unexpected and have already been a bottleneck in the Alluxio Fuse integration.
-Alluxio Fuse method which calls `close()` is asynchronous and thus if we write a big file through Alluxio Fuse
-with `WRITE_TYPE=THROUGH`, the Fuse write operation will be returned much earlier than the file has been written
-to S3.
+Slow `close()` is unexpected and has already been a bottleneck in the Alluxio Fuse integration.
+Alluxio Fuse method which calls `close()` is asynchronous and thus if we write a big file through Alluxio Fuse to S3A, 
+the Fuse write operation will be returned much earlier than the file has been written to S3.
 
 Because of the above issues, we introduce S3A streaming upload. The S3A streaming upload is based on the
 [S3A low-level multipart upload](https://docs.aws.amazon.com/AmazonS3/latest/dev/mpListPartsJavaAPI.html).
 
 The S3A streaming upload has the following advantages:
-* shorter upload time. Alluxio worker uploads buffered data while receiving new incoming data. 
+* Shorter upload time. Alluxio worker uploads buffered data while receiving new data. 
 The total upload time will be at least as fast as the default method.
-* smaller capacity requirement. Our data is buffered and uploaded according to 
+* Smaller capacity requirement. Our data is buffered and uploaded according to 
 partitions (`alluxio.underfs.s3a.streaming.upload.partition.size` which is 64MB by default). 
-When a partition is successfully uploaded, this partition will be deleted in temporary directory.
-* faster `close()`. We begin uploading data when data buffered reaches the partition size instead of uploading 
+When a partition is successfully uploaded, this partition will be deleted.
+* Faster `close()`. We begin uploading data when data buffered reaches the partition size instead of uploading 
 the whole file in `close()`.
 
 ### Configuring
