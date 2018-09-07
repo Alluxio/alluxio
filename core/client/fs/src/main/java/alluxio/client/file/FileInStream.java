@@ -113,8 +113,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
     IOException lastException = null;
     while (retry.attempt()) {
-      updateStream();
       try {
+        updateStream();
         int result = mBlockInStream.read();
         if (result != -1) {
           mPosition++;
@@ -122,8 +122,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         return result;
       } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
         lastException = e;
-        handleRetryableException(mBlockInStream, e);
-        mBlockInStream = null;
+        if (mBlockInStream != null) {
+          handleRetryableException(mBlockInStream, e);
+          mBlockInStream = null;
+        }
       }
     }
     throw lastException;
@@ -163,8 +165,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         lastException = null;
       } catch (UnavailableException | ConnectException | DeadlineExceededException e) {
         lastException = e;
-        handleRetryableException(mBlockInStream, e);
-        mBlockInStream = null;
+        if (mBlockInStream != null) {
+          handleRetryableException(mBlockInStream, e);
+          mBlockInStream = null;
+        }
       }
     }
     if (lastException != null) {
@@ -214,8 +218,9 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         break;
       }
       long blockId = mStatus.getBlockIds().get(Math.toIntExact(pos / mBlockSize));
-      BlockInStream stream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
+      BlockInStream stream = null;
       try {
+        stream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
         long offset = pos % mBlockSize;
         int bytesRead =
             stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
@@ -227,8 +232,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         lastException = null;
       } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
         lastException = e;
-        handleRetryableException(stream, e);
-        stream = null;
+        if (stream != null) {
+          handleRetryableException(stream, e);
+          stream = null;
+        }
       } finally {
         closeBlockInStream(stream);
       }
