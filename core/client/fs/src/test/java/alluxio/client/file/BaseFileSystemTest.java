@@ -24,6 +24,7 @@ import static org.mockito.Mockito.doThrow;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -40,7 +41,9 @@ import alluxio.client.file.options.UnmountOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 
-import org.junit.After;
+import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggingEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -86,8 +89,7 @@ public final class BaseFileSystemTest {
   /**
    * Releases the client after a test ran.
    */
-  @After
-  public void after() {
+  public void verifyMasterClient() {
     verify(mFileContext).acquireMasterClient();
     verify(mFileContext).releaseMasterClient(mFileSystemMasterClient);
   }
@@ -109,6 +111,8 @@ public final class BaseFileSystemTest {
     FileOutStream out = mFileSystem.createFile(file, options);
     verify(mFileSystemMasterClient).createFile(file, options);
     assertEquals(out.mUri, file);
+
+    verifyMasterClient();
   }
 
   /**
@@ -125,6 +129,8 @@ public final class BaseFileSystemTest {
     } catch (Exception e) {
       assertSame(EXCEPTION, e);
     }
+
+    verifyMasterClient();
   }
 
   /**
@@ -136,6 +142,8 @@ public final class BaseFileSystemTest {
     DeleteOptions deleteOptions = DeleteOptions.defaults().setRecursive(true);
     mFileSystem.delete(file, deleteOptions);
     verify(mFileSystemMasterClient).delete(file, deleteOptions);
+
+    verifyMasterClient();
   }
 
   /**
@@ -152,6 +160,8 @@ public final class BaseFileSystemTest {
     } catch (Exception e) {
       assertSame(EXCEPTION, e);
     }
+
+    verifyMasterClient();
   }
 
   /**
@@ -163,6 +173,8 @@ public final class BaseFileSystemTest {
     FreeOptions freeOptions = FreeOptions.defaults().setRecursive(true);
     mFileSystem.free(file, freeOptions);
     verify(mFileSystemMasterClient).free(file, freeOptions);
+
+    verifyMasterClient();
   }
 
   /**
@@ -179,6 +191,8 @@ public final class BaseFileSystemTest {
     } catch (Exception e) {
       assertSame(EXCEPTION, e);
     }
+
+    verifyMasterClient();
   }
 
   /**
@@ -192,6 +206,8 @@ public final class BaseFileSystemTest {
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
     assertSame(status, mFileSystem.getStatus(file, getStatusOptions));
     verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
+
+    verifyMasterClient();
   }
 
   /**
@@ -208,6 +224,8 @@ public final class BaseFileSystemTest {
     } catch (Exception e) {
       assertSame(EXCEPTION, e);
     }
+
+    verifyMasterClient();
   }
 
   /**
@@ -222,6 +240,8 @@ public final class BaseFileSystemTest {
     when(mFileSystemMasterClient.listStatus(file, listStatusOptions)).thenReturn(infos);
     assertSame(infos, mFileSystem.listStatus(file, listStatusOptions));
     verify(mFileSystemMasterClient).listStatus(file, listStatusOptions);
+
+    verifyMasterClient();
   }
 
   /**
@@ -239,6 +259,8 @@ public final class BaseFileSystemTest {
     } catch (Exception e) {
       assertSame(EXCEPTION, e);
     }
+
+    verifyMasterClient();
   }
 
   /**
@@ -252,6 +274,8 @@ public final class BaseFileSystemTest {
     doNothing().when(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
     mFileSystem.loadMetadata(file, loadMetadataOptions);
     verify(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
+
+    verifyMasterClient();
   }
 
   /**
@@ -269,6 +293,8 @@ public final class BaseFileSystemTest {
     } catch (Exception e) {
       assertSame(EXCEPTION, e);
     }
+
+    verifyMasterClient();
   }
 
   /**
@@ -282,6 +308,8 @@ public final class BaseFileSystemTest {
     doNothing().when(mFileSystemMasterClient).createDirectory(dir, createDirectoryOptions);
     mFileSystem.createDirectory(dir, createDirectoryOptions);
     verify(mFileSystemMasterClient).createDirectory(dir, createDirectoryOptions);
+
+    verifyMasterClient();
   }
 
   /**
@@ -299,6 +327,8 @@ public final class BaseFileSystemTest {
     } catch (Exception e) {
       assertSame(EXCEPTION, e);
     }
+
+    verifyMasterClient();
   }
 
   /**
@@ -312,6 +342,8 @@ public final class BaseFileSystemTest {
     doNothing().when(mFileSystemMasterClient).mount(alluxioPath, ufsPath, mountOptions);
     mFileSystem.mount(alluxioPath, ufsPath, mountOptions);
     verify(mFileSystemMasterClient).mount(alluxioPath, ufsPath, mountOptions);
+
+    verifyMasterClient();
   }
 
   /**
@@ -330,6 +362,8 @@ public final class BaseFileSystemTest {
     } catch (Exception e) {
       assertSame(EXCEPTION, e);
     }
+
+    verifyMasterClient();
   }
 
   /**
@@ -345,6 +379,8 @@ public final class BaseFileSystemTest {
     OpenFileOptions openOptions = OpenFileOptions.defaults();
     mFileSystem.openFile(file, openOptions);
     verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
+
+    verifyMasterClient();
   }
 
   /**
@@ -362,6 +398,8 @@ public final class BaseFileSystemTest {
     } catch (Exception e) {
       assertSame(EXCEPTION, e);
     }
+
+    verifyMasterClient();
   }
 
   /**
@@ -452,37 +490,114 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Ensures Warnings are logged or exceptions are thrown when an {@link AlluxioURI} with a
-   * scheme://host is passed.
+   * Ensures warnings are logged and exception is thrown when an {@link AlluxioURI} with an invalid
+   * authority is passed.
    */
   @Test
-  public void UriCheckTest() throws Exception {
+  public void uriCheckBadAuthority() throws Exception {
     Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    TestAppender appender = new TestAppender();
+    Logger.getRootLogger().addAppender(appender);
+
     AlluxioURI uri = new AlluxioURI("alluxio://localhost:1234/root");
-    boolean exceptionRaised = true;
     try {
-      BaseFileSystem.UriCheck(uri);
-      exceptionRaised = false;
+      mFileSystem.createDirectory(uri);
       fail("Should have failed on bad host and port");
     } catch (IllegalArgumentException e) {
-      assertTrue(exceptionRaised);
+      assertTrue(e.getMessage().contains(
+          "The URI host and port do not match the configured value"));
     }
 
-    uri = new AlluxioURI("alluxio://localhost:19998/root");
+    for (LoggingEvent e : appender.mEvents) {
+      if (e.getLevel().equals("WARN")) {
+        assertTrue(e.getRenderedMessage().contains("The URI schemes")
+            || e.getRenderedMessage().contains("The URI authority"));
+      }
+    }
+
+    Logger.getRootLogger().removeAppender(appender);
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
+  /**
+   * Ensures an exception is thrown when an invalid scheme is passed.
+   */
+  @Test
+  public void uriCheckBadScheme() throws Exception {
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    AlluxioURI uri = new AlluxioURI("hdfs://localhost:19998/root");
     try {
-      BaseFileSystem.UriCheck(uri);
+      mFileSystem.createDirectory(uri);
+      fail("Should have failed on bad host and port");
     } catch (IllegalArgumentException e) {
-      fail("Should not have thrown an exception with a valid scheme://host:port combination.");
+      assertTrue(e.getMessage().contains("Scheme hdfs:// in AlluxioURI is invalid"));
     }
 
-    uri = new AlluxioURI("/root");
-    try {
-      BaseFileSystem.UriCheck(uri);
-    } catch (IllegalArgumentException e) {
-      fail("Should not have thrown an exception when no scheme://host:port supplied.");
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
+  @Test
+  /**
+   * Ensures sure there are two warnings when a URI with a valid scheme and authority is passed.
+   */
+  public void uriCheckGoodSchemeAuthority() throws Exception {
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    AlluxioURI uri = new AlluxioURI("alluxio://localhost:19998/root");
+    TestAppender appender = new TestAppender();
+    Logger.getRootLogger().addAppender(appender);
+
+    mFileSystem.createDirectory(uri);
+
+    for (LoggingEvent e : appender.mEvents) {
+      if (e.getLevel().equals("WARN")) {
+        assertTrue(e.getRenderedMessage().contains("The URI schemes")
+            || e.getRenderedMessage().contains("The URI authority"));
+        System.out.println(e.getRenderedMessage());
+      }
     }
 
-    mFileSystem.createDirectory(new AlluxioURI("alluxio://localhost/root"));
+    Logger.getRootLogger().removeAppender(appender);
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
+  /**
+   * Ensures there is no warnings or errors when an {@link AlluxioURI} without a scheme and
+   * authority is passed.
+   */
+  @Test
+  public void uriCheckNoSchemeAuthority() throws Exception {
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    TestAppender appender = new TestAppender();
+    Logger.getRootLogger().addAppender(appender);
+
+    AlluxioURI uri = new AlluxioURI("/root");
+    mFileSystem.createDirectory(uri);
+
+    if (appender.mEvents.size() > 0) {
+      fail("No events should have been logged.");
+    }
+
+    Logger.getRootLogger().removeAppender(appender);
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
+  private static class TestAppender extends AppenderSkeleton{
+
+    public List<LoggingEvent> mEvents = new ArrayList<LoggingEvent>();
+
+    public void close() { }
+
+    public boolean requiresLayout() {
+      return false;
+    }
+
+    @Override
+    protected void append(LoggingEvent event) {
+      mEvents.add(event);
+    }
   }
 }

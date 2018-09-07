@@ -18,17 +18,14 @@ import com.google.common.base.Objects;
  */
 public class SingleMasterAuthority implements Authority {
   private static final long serialVersionUID = -8901940466477691715L;
-  private final String mAuthority;
   private final String mHost;
   private final int mPort;
 
   /**
-   * @param authority the authority string of the URI
    * @param host the host of this authority
    * @param port the port of this authority
    */
-  public SingleMasterAuthority(String authority, String host, int port) {
-    mAuthority = authority;
+  public SingleMasterAuthority(String host, int port) {
     mHost = host;
     mPort = port;
   }
@@ -66,11 +63,11 @@ public class SingleMasterAuthority implements Authority {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mAuthority);
+    return Objects.hashCode(toString());
   }
 
   @Override
   public String toString() {
-    return mAuthority;
+    return String.format("%s:%d", mHost, mPort);
   }
 }
