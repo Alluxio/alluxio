@@ -812,10 +812,7 @@ public final class GrpcUtils {
     for (FileBlockInfo fileBlockInfo : fileInfo.getFileBlockInfos()) {
       fileBlockInfos.add(toProto(fileBlockInfo));
     }
-    PAcl pAcl = fileInfo.getAcl().equals(AccessControlList.EMPTY_ACL) ? null : toProto(fileInfo.getAcl());
-    PAcl pDefaultAcl = fileInfo.getDefaultAcl().equals(DefaultAccessControlList.EMPTY_DEFAULT_ACL)
-        ? null : toProto(fileInfo.getDefaultAcl());
-    return alluxio.grpc.FileInfo.newBuilder()
+    alluxio.grpc.FileInfo.Builder builder = alluxio.grpc.FileInfo.newBuilder()
         .setFileId(fileInfo.getFileId())
         .setName(fileInfo.getName())
         .setPath(fileInfo.getPath())
@@ -840,10 +837,14 @@ public final class GrpcUtils {
         .setTtlAction(GrpcUtils.toProto(fileInfo.getTtlAction()))
         .setMountId(fileInfo.getMountId())
         .setInAlluxioPercentage(fileInfo.getInAlluxioPercentage())
-        .setUfsFingerprint(fileInfo.getUfsFingerprint())
-        .setAcl(pAcl)
-        .setDefaultAcl(pDefaultAcl)
-        .build();
+        .setUfsFingerprint(fileInfo.getUfsFingerprint());
+    if (!fileInfo.getAcl().equals(AccessControlList.EMPTY_ACL)) {
+      builder.setAcl(toProto(fileInfo.getAcl()));
+    }
+    if (!fileInfo.getDefaultAcl().equals(DefaultAccessControlList.EMPTY_DEFAULT_ACL)) {
+      builder.setDefaultAcl(toProto(fileInfo.getDefaultAcl()));
+    }
+    return builder.build();
   }
 
   /**
