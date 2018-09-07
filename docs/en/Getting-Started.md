@@ -107,7 +107,8 @@ Alluxio configuration:
 $ ./bin/alluxio validateEnv local
 ```
 
-This will report potential problems that might prevent you from starting Alluxio services locally. If you configured Alluxio to run in a cluster and you want to validate environment on all nodes, you
+This will report potential problems that might prevent you from starting Alluxio services locally. If you're running it for the first time, you might see an error about underFSStorage. You can ignore that for now. If
+you configured Alluxio to run in a cluster and you want to validate environment on all nodes, you
 can run the following command instead:
 
 ```bash
