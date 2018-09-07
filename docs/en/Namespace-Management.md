@@ -1,10 +1,12 @@
 ---
 layout: global
-title: Unified and Transparent Namespace
-nickname: Unified Namespace
-group: Features
-priority: 5
+title: Namespace Management
+nickname: Namespace Management
+group: Advanced
+priority: 0
 ---
+
+TODO(David): Combine with Loading-Under-File-Storage-Metadata
 
 * Table of Contents
 {:toc}

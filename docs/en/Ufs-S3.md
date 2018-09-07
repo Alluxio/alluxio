@@ -1,10 +1,12 @@
 ---
 layout: global
-title: Configuring Alluxio with Amazon S3
-nickname: Alluxio with S3
-group: Under Store
+title: Amazon S3
+nickname: S3
+group: Under Stores
 priority: 0
 ---
+
+TODO(calvin, lu): Update content
 
 * Table of Contents
 {:toc}

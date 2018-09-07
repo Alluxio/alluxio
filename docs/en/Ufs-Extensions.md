@@ -1,7 +1,9 @@
 ---
 layout: global
-group: Under Store
 title: Under Storage Extensions
+nickname: Ufs Extensions
+group: Under Stores
+priority: 1
 ---
 
 * Table of Contents

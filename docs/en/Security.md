@@ -2,8 +2,8 @@
 layout: global
 title: Security
 nickname: Security
-group: Features
-priority: 1
+group: Advanced
+priority: 0
 ---
 
 * Table of Contents

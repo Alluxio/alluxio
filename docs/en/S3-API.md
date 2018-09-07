@@ -1,10 +1,12 @@
 ---
 layout: global
-title: S3 Client
-nickname: S3 Client
-group: Clients
-priority: 6
+title: S3 API
+nickname: S3 API
+group: APIs
+priority: 0
 ---
+
+TODO(Calvin): Update content. When should users use this? Should this doc be marked experimental?
 
 * Table of Contents
 {:toc}

@@ -1,8 +1,9 @@
 ---
 layout: global
-group: Resources
-title: Developing Under Storage Extensions
-priority: 3
+title: Under File Storage Extension API
+nickname: Ufs Extension API
+group: Apis
+priority: 0
 ---
 
 * Table of Contents

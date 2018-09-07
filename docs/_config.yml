@@ -45,10 +45,13 @@ categoryList:
   - User Guide
   - Deploying Alluxio
   - Features
-  - Clients
   - Frameworks
-  - Under Store
-  - Resources
+  - Under Stores
+  - Operations
+  - Advanced
+  - APIs
+  - Alluxio Developer Resources
+  - Other
 
 # Each language has a particular version of category names
 # When supporting a new language version, do not change the 'group' attribute in .md page files
@@ -66,19 +69,23 @@ categoryInfo:
     en: Features
     cn: 特性
     pt: Features
-  Clients:
-    en: Clients
-    cn: Clients
-    pt: Clients
   Frameworks:
     en: Frameworks
     cn: 计算框架
     pt: Frameworks
-  Under Store:
+  Under Stores:
     en: Under Stores
     cn: 底层存储系统
     pt: Under Stores
-  Resources:
-    en: Resources
+  Operations:
+    en: Operations
+  Advanced:
+    en: Advanced
+  APIs:
+    en: APIs
+    cn: Clients
+    pt: Clients
+  Alluxio Developer Resources:
+    en: Alluxio Developer Resources
     cn: 开发者资源
     pt: Recursos

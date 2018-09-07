@@ -1,8 +1,8 @@
 ---
 layout: global
-title: Configuring Alluxio with Google Cloud Storage
-nickname: Alluxio with GCS
-group: Under Store
+title: Google Cloud Storage
+nickname: GCS
+group: Under Stores
 priority: 0
 ---
 
