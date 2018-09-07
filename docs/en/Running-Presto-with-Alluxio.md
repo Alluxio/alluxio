@@ -41,35 +41,36 @@ This doc assumes and is tested with `presto-0.191`.
 
 Presto gets the database and table metadata information, as well as
 the file system location of table data from Hive Metastore.
-Edit the Presto configuration `${PRESTO_HOME}/etc/catalog/hive.properties` to :
+Edit the Presto configuration `${PRESTO_HOME}/etc/catalog/hive.properties`:
 
 ```properties
 connector.name=hive-hadoop2
 hive.metastore.uri=thrift://localhost:9083
 ```
 
-#### Distribute the Alluxio client jar to all Presto workers
+#### Distribute the Alluxio client jar to all Presto servers
 
-Put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into Presto cluster's worker directory
+Put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into directory
 `${PRESTO_HOME}/plugin/hive-hadoop2/`
-(note that, this directory may differ for versions of Presto). Restart the process of
+(this directory may differ across versions) on all Presto servers. Restart the process of
 coordinator and worker.
 
 ### Advanced Setup
 
 #### Configure additional Alluxio properties
 
-you can add the Hadoop conf files (`core-site.xml`,`hdfs-site.xml`), and use `hive.config
-.resources` in
+To configure additional Alluxio properties, one can add them to the Hadoop conf files 
+(`core-site.xml`, `hdfs-site.xml`), and use 
+Presto property `hive.config.resources` in
 file `${PRESTO_HOME}/etc/catalog/hive.properties` to point to the file's location for every Presto
 worker.
 
 ```
-hive.config.resources=/<PATH_TO_HADOOP>/etc/hadoop/core-site.xml,/<PATH_TO_HADOOP>/etc/hadoop/hdfs-site.xml
+hive.config.resources=/<PATH_TO_CONF>/core-site.xml, /<PATH_TO_CONF>/hdfs-site.xml
 ```
 
-Add additional Alluxio properties to `core-site.xml` of Hadoop configuration in Hadoop directory
-on each node. For example, change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
+For example, one can add additional Alluxio properties to `core-site.xml` to 
+change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
 
 ```xml
 <property>
@@ -78,7 +79,7 @@ on each node. For example, change `alluxio.user.file.writetype.default` from def
 </property>
 ```
 
-Alternatively, you can also append the conf path (i.e. `/<PATH_TO_ALLUXIO>/conf`) containing [`alluxio-site.properties`](Configuration-Settings.html) to Presto's JVM config at `etc/jvm.config` under Presto folder. The advantage of this approach is to have all the Alluxio properties set within the same file of `alluxio-site.properties`.
+Alternatively, you can also append the conf path (i.e. `${ALLUXIO_HOME}/conf`) containing [`alluxio-site.properties`](Configuration-Settings.html) to Presto's JVM config at `etc/jvm.config` under Presto folder. The advantage of this approach is to have all the Alluxio properties set within the same file of `alluxio-site.properties`.
 
 ```bash
 ...
@@ -87,16 +88,16 @@ Alternatively, you can also append the conf path (i.e. `/<PATH_TO_ALLUXIO>/conf`
 
 #### Setup Alluxio with HA
 
-To use fault tolerant mode, set the Alluxio cluster properties appropriately in an
+To use Alluxio in fault tolerant mode, set the Alluxio cluster properties appropriately in an
 `alluxio-site.properties` file which is on the classpath.
 
 ```properties
 alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181
+alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
 ```
 
-Alternatively you can add the properties to the Hadoop `core-site.xml` configuration which is then
-propagated to Alluxio.
+Alternatively you can add the properties to the Hadoop `core-site.xml` configuration 
+which is contained by `hive.config.resources`.
 
 ```xml
 <configuration>
@@ -106,15 +107,10 @@ propagated to Alluxio.
   </property>
   <property>
     <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181</value>
+    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
   </property>
 </configuration>
 ```
-
-#### Avoid Presto timeout reading large files
-
-Also, it's recommended to increase `alluxio.user.network.netty.timeout` to a bigger value (e.g. `10min`) to avoid the timeout
- failure when reading large files from remote worker.
 
 #### Enable data locality
 
@@ -124,6 +120,12 @@ scheduled on the same node as the Alluxio worker serving the split data. By defa
 #### Increase parallelism
 
 Presto's Hive integration uses the config [`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html) to control the parallelism of the query. It's recommended to set this size no less than Alluxio's block size to avoid the read contention within the same block.
+
+#### Avoid Presto timeout reading large files
+
+It is recommended to increase `alluxio.user.network.netty.timeout` to a bigger value (e.g. 
+`10min`) to avoid the timeout
+ failure when reading large files from remote worker.
 
 ## Examples: Use Presto to Query Tables on Alluxio
 
@@ -168,7 +170,8 @@ $ ${HIVE_HOME}/bin/hive --service metastore
 
 ### Start Presto server
 
-Start your Presto server. Presto server runs on port `8080` by default:
+Start your Presto server. Presto server runs on port `8080` by default (set by 
+`http-server.http.port` in `${PRESTO_HOME}/etc/config.properties` ):
 
 ```bash
 $ ${PRESTO_HOME}/bin/launcher run
@@ -181,7 +184,7 @@ rename it to `presto`, and make it executable with `chmod +x`
 (sometimes the executable `presto` exists in `${PRESTO_HOME}/bin/presto` and you can use it
 directly).
 
-Run a single query similar to:
+Run a single query similar to (assume the server is running locally at `8080`):
 
 ```bash
 $ ./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
@@ -197,7 +200,7 @@ Presto Server log:
 
 ## Frequently Asked Questions
 
-### "No FileSystem for scheme: alluxio"
+### Error message "No FileSystem for scheme: alluxio" on queries
 
 When you see error messages like the following, it is likely that Alluxio client jar is not put
 into the classpath of Presto worker. Please follow [instructions](#distribute-the-alluxio-client-jar-to-all-presto-workers)
