@@ -18,8 +18,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Information about a file or a directory in the under file system. Listing contents in an
- * UnderFileSystem returns entries of this class.
+ * Information about a file or a directory in the under file system. Listing contents in a
+ * {@link UnderFileSystem} returns entries of this class.
  */
 @NotThreadSafe
 public abstract class UfsStatus {

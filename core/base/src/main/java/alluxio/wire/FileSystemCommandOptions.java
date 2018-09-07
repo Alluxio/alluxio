@@ -12,7 +12,7 @@
 package alluxio.wire;
 
 /**
- * Class to represent a FileSystem command.
+ * Class to represent {@link FileSystemCommand} options.
  */
 public final class FileSystemCommandOptions {
   private PersistCommandOptions mPersistCommandOptions;
@@ -22,10 +22,18 @@ public final class FileSystemCommandOptions {
    */
   public FileSystemCommandOptions() {}
 
+  /**
+   * @return the persist options
+   */
   public PersistCommandOptions getPersistOptions() {
     return mPersistCommandOptions;
   }
 
+  /**
+   * Set the persist options.
+   *
+   * @param persistCommandOptions the persist options
+   */
   public void setPersistOptions(PersistCommandOptions persistCommandOptions) {
     this.mPersistCommandOptions = persistCommandOptions;
   }

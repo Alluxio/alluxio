@@ -31,18 +31,34 @@ public final class PersistFile {
     mBlockIds = blockIds;
   }
 
+  /**
+   * @return return the block ids
+   */
   public List<Long> getBlockIds() {
     return mBlockIds;
   }
 
+  /**
+   * @return the file id
+   */
   public long getFileId() {
     return mFileId;
   }
 
+  /**
+   * Set the block ids.
+   *
+   * @param blockIds the block ids
+   */
   public void setBlockIds(List<Long> blockIds) {
     this.mBlockIds = blockIds;
   }
 
+  /**
+   * Set the file id.
+   *
+   * @param fileId the file id
+   */
   public void setFileId(long fileId) {
     this.mFileId = fileId;
   }

@@ -60,6 +60,9 @@ import java.util.Set;
  */
 public interface FileSystemMasterService {
 
+  /**
+   * @return the file system master default options provider
+   */
   FileSystemMasterOptions getMasterOptions();
 
   /**

@@ -18,23 +18,45 @@ public final class FileSystemCommand {
   private CommandType mCommandType;
   private FileSystemCommandOptions mCommandOptions;
 
+  /**
+   * Create a new instance of {@link FileSystemCommand}.
+   *
+   * @param commandType the command type
+   * @param commandOptions the options for the specified command
+   */
   public FileSystemCommand(CommandType commandType, FileSystemCommandOptions commandOptions) {
     mCommandType = commandType;
     mCommandOptions = commandOptions;
   }
 
+  /**
+   * @return the command type
+   */
   public CommandType getCommandType() {
     return mCommandType;
   }
 
+  /**
+   * @return the command options
+   */
   public FileSystemCommandOptions getCommmandOptions() {
     return mCommandOptions;
   }
 
+  /**
+   * Set the command options.
+   *
+   * @param commandOptions the command options
+   */
   public void setCommmandOptions(FileSystemCommandOptions commandOptions) {
     this.mCommandOptions = commandOptions;
   }
 
+  /**
+   * Set the command type.
+   *
+   * @param commandType the command type
+   */
   public void setCommandType(CommandType commandType) {
     this.mCommandType = commandType;
   }

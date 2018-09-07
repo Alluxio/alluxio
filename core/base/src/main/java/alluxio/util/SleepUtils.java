@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Common utilities shared by all components in Alluxio.
+ * Sleep utilities shared by all components in Alluxio.
  */
 @ThreadSafe
 public final class SleepUtils {
