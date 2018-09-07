@@ -231,7 +231,7 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
         for (String mountPath : mState.getMountTable().keySet()) {
           try {
             if (PathUtils.hasPrefix(mountPath, path) && (!path.equals(mountPath))) {
-              LOG.warn("The path to unmount {} contains another nested mountpoint", path);
+              LOG.warn("The path to unmount {} contains another nested mountpoint {}", path, mountPath);
               return false;
             }
           } catch (InvalidPathException e) {
@@ -257,22 +257,18 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
    */
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
-    String candidatePath = ROOT;
+    String lastMount = ROOT;
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        String alluxioPath = entry.getKey();
+        String mount = entry.getKey();
         // we choose a new candidate path if the previous candidatepath is a prefix
         // of the current alluxioPath and the alluxioPath is a prefix of the path
-        if (!alluxioPath.equals(ROOT) && PathUtils.hasPrefix(path, alluxioPath)
-            && PathUtils.hasPrefix(alluxioPath, candidatePath)) {
-          candidatePath = alluxioPath;
+        if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
+            && PathUtils.hasPrefix(mount, lastMount)) {
+          lastMount = mount;
         }
       }
-      if (candidatePath.equals(ROOT)) {
-        return mState.getMountTable().containsKey(ROOT) ? ROOT : null;
-      } else {
-        return candidatePath;
-      }
+      return lastMount;
     }
   }
 
