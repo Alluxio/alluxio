@@ -1,10 +1,12 @@
 ---
 layout: global
-title: Configuring Alluxio with HDFS
-nickname: Alluxio with HDFS
-group: Under Store
-priority: 3
+title: HDFS
+nickname: HDFS
+group: Under Stores
+priority: 0
 ---
+
+TODO: Combine with Secure HDFS doc
 
 * Table of Contents
 {:toc}

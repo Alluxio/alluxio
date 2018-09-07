@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Contributing to Alluxio Tutorial
-nickname: Contributing to Alluxio Tutorial
-group: Resources
-priority: 2
+title: Contributing Tutorial
+nickname: Contributing Tutorial
+group: Alluxio Developer Resources
+priority: 0
 ---
 
 * Table of Contents

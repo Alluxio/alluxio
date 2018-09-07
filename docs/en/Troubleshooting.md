@@ -1,9 +1,11 @@
 ---
 layout: global
-title: Tips to Diagnose Issues
-group: Resources
-priority: 4
+title: Troubleshooting
+group: Other
+priority: 0
 ---
+
+TODO(Feng): Review existing content and add new content for common problems we've seen
 
 * Table of Contents
 {:toc}

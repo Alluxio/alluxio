@@ -1,10 +1,12 @@
 ---
 layout: global
-title: Contributing to Alluxio Guidelines
-nickname: Contributing to Alluxio Guidelines
-group: Resources
-priority: 2
+title: Code Conventions
+nickname: Code Conventions
+group: Alluxio Developer Resources
+priority: 0
 ---
+
+TODO(Andrew, Zac): Move some content to Developer-Tools, make sure remaining content makes sense
 
 * Table of Contents
 {:toc}

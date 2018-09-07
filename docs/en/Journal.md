@@ -1,10 +1,13 @@
 ---
 layout: global
-title: Journal
-nickname: Journal
-group: Features
+title: Journal Management
+nickname: Journal Management
+group: Operations
 priority: 0
 ---
+
+TODO(andrew): Add more information
+- Talk about log files and checkpoints, how to manage the size
 
 * Table of Contents
 {:toc}

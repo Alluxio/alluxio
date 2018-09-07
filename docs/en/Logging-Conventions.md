@@ -1,10 +1,12 @@
 ---
 layout: global
-title: Logging Configuration
-nickname: Logging Configuration
-group: Resources
-priority: 3
+title: Logging
+nickname: Logging
+group: Operations
+priority: 0
 ---
+
+TODO(Andrew, Zac): Combine with Remote-Logging
 
 * Table of Contents
 {:toc}

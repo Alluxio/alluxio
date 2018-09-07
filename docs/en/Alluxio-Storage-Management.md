@@ -1,10 +1,13 @@
 ---
 layout: global
-title: Alluxio Storage
-nickname: Alluxio Storage
-group: Features
-priority: 1
+title: Alluxio Storage Management
+nickname: Alluxio Storage Management
+group: Advanced
+priority: 0
 ---
+
+TODO(Andrew, Zac): Add documentation for free, load, and persist commands.
+TODO(Andrew, Zac): Combine with documentation page for TTL
 
 * Table of Contents
 {:toc}

@@ -2,8 +2,8 @@
 layout: global
 title: FAQ
 nickname: FAQ
-group: User Guide
-priority: 2
+group: Other
+priority: 0
 ---
 
 ## Alluxio Frequently Asked Questions.

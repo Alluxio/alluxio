@@ -1,8 +1,8 @@
 ---
 layout: global
 title: Metrics System
-group: Features
-priority: 3
+group: Operations
+priority: 0
 ---
 
 * Table of Contents
