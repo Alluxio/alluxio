@@ -19,11 +19,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for creating a file.
  */
 @NotThreadSafe
-public class CreateFileOptions extends CreatePathOptions<CreateFileOptions> {
+public abstract class CreateFileOptions<T extends CreateFileOptions<T>> extends CreatePathOptions<T> {
   protected long mBlockSizeBytes;
   protected boolean mCacheable;
-
-  protected CreateFileOptions() {}
 
   /**
    * @return the block size
@@ -36,9 +34,9 @@ public class CreateFileOptions extends CreatePathOptions<CreateFileOptions> {
    * @param blockSizeBytes the block size to use
    * @return the updated options object
    */
-  public <T extends CreateFileOptions> T setBlockSizeBytes(long blockSizeBytes) {
+  public T setBlockSizeBytes(long blockSizeBytes) {
     mBlockSizeBytes = blockSizeBytes;
-    return (T) this;
+    return getThis();
   }
 
   /**
@@ -52,14 +50,9 @@ public class CreateFileOptions extends CreatePathOptions<CreateFileOptions> {
    * @param cacheable true if the file is cacheable, false otherwise
    * @return the updated options object
    */
-  public <T extends CreateFileOptions> T setCacheable(boolean cacheable) {
+  public T setCacheable(boolean cacheable) {
     mCacheable = cacheable;
-    return (T) this;
-  }
-
-  @Override
-  protected CreateFileOptions getThis() {
-    return this;
+    return getThis();
   }
 
   @Override

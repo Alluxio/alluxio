@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for creating a file.
  */
 @NotThreadSafe
-public final class CreateFileOptions extends alluxio.file.options.CreateFileOptions {
+public final class CreateFileOptions extends alluxio.file.options.CreateFileOptions<CreateFileOptions> {
   /**
    * @return the default {@link CreateFileOptions}
    */
@@ -50,5 +50,10 @@ public final class CreateFileOptions extends alluxio.file.options.CreateFileOpti
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mMode = ModeUtils.applyFileUMask(mMode);
     mCacheable = false;
+  }
+
+  @Override
+  protected CreateFileOptions getThis() {
+    return this;
   }
 }

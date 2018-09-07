@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for creating a directory.
  */
 @NotThreadSafe
-public final class CreateDirectoryOptions extends alluxio.file.options.CreateDirectoryOptions {
+public final class CreateDirectoryOptions extends alluxio.file.options.CreateDirectoryOptions<CreateDirectoryOptions> {
   /**
    * @return the default {@link CreateDirectoryOptions}
    */
@@ -48,5 +48,10 @@ public final class CreateDirectoryOptions extends alluxio.file.options.CreateDir
 
     mAllowExists = false;
     mMode = ModeUtils.applyDirectoryUMask(mMode);
+  }
+
+  @Override
+  protected CreateDirectoryOptions getThis() {
+    return this;
   }
 }

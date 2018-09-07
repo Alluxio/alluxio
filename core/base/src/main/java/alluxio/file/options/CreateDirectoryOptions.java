@@ -21,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for creating a directory.
  */
 @NotThreadSafe
-public class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOptions> {
+public abstract class CreateDirectoryOptions<T extends CreateDirectoryOptions> extends CreatePathOptions<T> {
   protected boolean mAllowExists;
   protected UfsStatus mUfsStatus;
 
@@ -45,23 +45,18 @@ public class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOpt
    *        should be thrown if the object being made already exists.
    * @return the updated options object
    */
-  public <T extends CreateDirectoryOptions> T setAllowExists(boolean allowExists) {
+  public T setAllowExists(boolean allowExists) {
     mAllowExists = allowExists;
-    return (T) this;
+    return getThis();
   }
 
   /**
    * @param ufsStatus the {@link UfsStatus}; It sets the optional ufsStatus as an optimization
    * @return the updated options object
    */
-  public <T extends CreateDirectoryOptions> T setUfsStatus(UfsStatus ufsStatus) {
+  public T setUfsStatus(UfsStatus ufsStatus) {
     mUfsStatus = ufsStatus;
-    return (T) getThis();
-  }
-
-  @Override
-  protected CreateDirectoryOptions getThis() {
-    return this;
+    return getThis();
   }
 
   @Override
