@@ -52,7 +52,8 @@ running. Specifically, put the client jar on the same local path (e.g. `{{site.A
 
 Step 2, add the Alluxio client jar to the classpath of Spark drivers and executors
 in order for Spark applications to use the client jar to read and write files in Alluxio.
-Specifically, add the following line to `spark/conf/spark-defaults.conf`.
+Specifically, add the following line to `spark/conf/spark-defaults.conf` on every node running
+Spark.
 
 ```bash
 spark.driver.extraClassPath   {{site.ALLUXIO_CLIENT_JAR_PATH}}
@@ -85,6 +86,10 @@ Alternatively you can add the properties to the Hadoop configuration file
   </property>
 </configuration>
 ```
+
+After Alluxio 1.8 (not included), users can encode the Zookeeper service address
+inside an Alluxio URI (see [details](#access-data-from-alluxio-in-ha-mode)).
+In this way, it requires no extra setup for Spark configuration.
 
 ### Check Spark is Correctly Set Up
 
@@ -162,7 +167,7 @@ Also, the input file `Input_HDFS` now will be 100% loaded in the Alluxio file sy
 ### Access Data from Alluxio in HA Mode
 
 If Spark is set up by the instructions in [Alluxio with HA](#additional-setup-for-alluxio-with-ha),
-you can write URIs using the "alluxio://" scheme without specifying an Alluxio master in the authority. This is because
+you can write URIs using the "`alluxio://`" scheme without specifying an Alluxio master in the authority. This is because
 in HA mode, the address of primary Alluxio master will be served by the configured Zookeeper
 service rather than a user-specified hostname derived from the URI.
 
@@ -172,7 +177,8 @@ service rather than a user-specified hostname derived from the URI.
 > double.saveAsTextFile("alluxio:///Output")
 ```
 
-Alternatively, if the Zookeeper address for Alluxio HA is not set in Spark configuration, one can
+Alternatively, if the Zookeeper address for Alluxio HA is not set in Spark
+configuration, one can
 specify the address of Zookeeper in the URI in the format of "`zk@zkHost1:2181;zkHost2:2181`":
 
 ```scala
@@ -180,6 +186,9 @@ specify the address of Zookeeper in the URI in the format of "`zk@zkHost1:2181;z
 > val double = s.map(line => line + line)
 > double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181/Output")
 ```
+
+This feature of encoding Zookeeper service address into Alluxio URIs is not available in versions
+1.8 and earlier.
 
 > Note that you must use semicolons rather than commas to separate different Zookeeper addresses to
 refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
