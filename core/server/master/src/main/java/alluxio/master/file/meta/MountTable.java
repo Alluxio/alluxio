@@ -231,7 +231,8 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
         for (String mountPath : mState.getMountTable().keySet()) {
           try {
             if (PathUtils.hasPrefix(mountPath, path) && (!path.equals(mountPath))) {
-              LOG.warn("The path to unmount {} contains another nested mountpoint {}", path, mountPath);
+              LOG.warn("The path to unmount {} contains another nested mountpoint {}",
+                  path, mountPath);
               return false;
             }
           } catch (InvalidPathException e) {
