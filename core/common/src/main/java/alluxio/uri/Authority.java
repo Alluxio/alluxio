@@ -50,4 +50,9 @@ public interface Authority extends Comparable<Authority>, Serializable {
       }
     }
   }
+
+  @Override
+  default int compareTo(Authority o) {
+    return toString().compareTo(o.toString());
+  }
 }
