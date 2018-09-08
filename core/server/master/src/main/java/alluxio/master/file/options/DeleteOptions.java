@@ -17,7 +17,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for deleting a file or a directory.
  */
 @NotThreadSafe
-public final class DeleteOptions extends alluxio.file.options.DeleteOptions {
+public final class DeleteOptions extends alluxio.file.options.DeleteOptions<DeleteOptions> {
   /**
    * @return the default {@link DeleteOptions}
    */

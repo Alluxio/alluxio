@@ -25,7 +25,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class UpdateUfsModeOptions extends alluxio.file.options.UpdateUfsModeOptions {
+public final class UpdateUfsModeOptions
+    extends alluxio.file.options.UpdateUfsModeOptions<UpdateUfsModeOptions> {
   /**
    * @return the default {@link UpdateUfsModeOptions}
    */

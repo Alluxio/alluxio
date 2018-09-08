@@ -17,7 +17,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for completing a file.
  */
 @NotThreadSafe
-public class RenameOptions extends alluxio.file.options.RenameOptions {
+public class RenameOptions extends alluxio.file.options.RenameOptions<RenameOptions> {
   /**
    * @return the default {@link RenameOptions}
    */

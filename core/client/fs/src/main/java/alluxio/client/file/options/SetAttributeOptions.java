@@ -27,7 +27,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class SetAttributeOptions extends alluxio.file.options.SetAttributeOptions {
+public final class SetAttributeOptions
+    extends alluxio.file.options.SetAttributeOptions<SetAttributeOptions> {
   /**
    * @return the default {@link SetAttributeOptions}
    */

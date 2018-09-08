@@ -19,7 +19,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Options for checking the consistency of an Alluxio subtree.
  */
 @NotThreadSafe
-public final class CheckConsistencyOptions extends alluxio.file.options.CheckConsistencyOptions {
+public final class CheckConsistencyOptions
+    extends alluxio.file.options.CheckConsistencyOptions<CheckConsistencyOptions> {
   /**
    * @return the default {@link CheckConsistencyOptions}
    */

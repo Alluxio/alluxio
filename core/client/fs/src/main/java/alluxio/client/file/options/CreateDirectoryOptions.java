@@ -34,7 +34,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class CreateDirectoryOptions extends alluxio.file.options.CreateDirectoryOptions<CreateDirectoryOptions> {
+public final class CreateDirectoryOptions
+    extends alluxio.file.options.CreateDirectoryOptions<CreateDirectoryOptions> {
   private WriteType mWriteType;
 
   /**

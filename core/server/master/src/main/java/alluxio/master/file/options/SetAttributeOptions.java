@@ -21,7 +21,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for setting the attributes.
  */
 @NotThreadSafe
-public final class SetAttributeOptions extends alluxio.file.options.SetAttributeOptions {
+public final class SetAttributeOptions
+    extends alluxio.file.options.SetAttributeOptions<SetAttributeOptions> {
   /**
    * @return the default {@link SetAttributeOptions}
    */

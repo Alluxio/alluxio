@@ -20,7 +20,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for loading metadata.
  */
 @NotThreadSafe
-public final class LoadMetadataOptions extends alluxio.file.options.LoadMetadataOptions {
+public final class LoadMetadataOptions
+    extends alluxio.file.options.LoadMetadataOptions<LoadMetadataOptions> {
   /**
    * @return the default {@link LoadMetadataOptions}
    */
@@ -35,16 +36,4 @@ public final class LoadMetadataOptions extends alluxio.file.options.LoadMetadata
     mUfsStatus = null;
     mLoadDescendantType = DescendantType.NONE;
   }
-
-  /**
-   * @param options the thrift options to create from
-   */
-//  public LoadMetadataOptions(LoadMetadataTOptions options) {
-//    this();
-//    if (options != null) {
-//      if (options.isSetCommonOptions()) {
-//        mCommonOptions = new CommonOptions(options.getCommonOptions());
-//      }
-//    }
-//  }
 }

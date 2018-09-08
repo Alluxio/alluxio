@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method option for mounting.
  */
 @NotThreadSafe
-public final class MountOptions extends alluxio.file.options.MountOptions {
+public final class MountOptions extends alluxio.file.options.MountOptions<MountOptions> {
   /**
    * @return the default {@link CompleteFileOptions}
    */

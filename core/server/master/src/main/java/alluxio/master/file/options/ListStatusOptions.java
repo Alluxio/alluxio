@@ -19,7 +19,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for list status.
  */
 @NotThreadSafe
-public class ListStatusOptions extends alluxio.file.options.ListStatusOptions {
+public class ListStatusOptions extends alluxio.file.options.ListStatusOptions<ListStatusOptions> {
   /**
    * @return the default {@link ListStatusOptions}
    */

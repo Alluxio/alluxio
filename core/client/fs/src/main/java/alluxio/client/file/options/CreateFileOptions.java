@@ -40,7 +40,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class CreateFileOptions extends alluxio.file.options.CreateFileOptions<CreateFileOptions> {
+public final class CreateFileOptions
+    extends alluxio.file.options.CreateFileOptions<CreateFileOptions> {
   private FileWriteLocationPolicy mLocationPolicy;
   private int mWriteTier;
   private WriteType mWriteType;

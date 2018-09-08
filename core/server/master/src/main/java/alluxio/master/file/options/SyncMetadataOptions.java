@@ -17,7 +17,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for syncing the metadata of a path.
  */
 @NotThreadSafe
-public final class SyncMetadataOptions extends alluxio.file.options.SyncMetadataOptions {
+public final class SyncMetadataOptions
+    extends alluxio.file.options.SyncMetadataOptions<SyncMetadataOptions> {
   /**
    * @return the default {@link SyncMetadataOptions}
    */

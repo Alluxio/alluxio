@@ -19,7 +19,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for setting ACL.
  */
 @NotThreadSafe
-public final class SetAclOptions extends alluxio.file.options.SetAclOptions {
+public final class SetAclOptions extends alluxio.file.options.SetAclOptions<SetAclOptions> {
   /**
    * @return the default {@link SetAclOptions}
    */

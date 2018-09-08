@@ -24,7 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for the worker to master heartbeat.
  */
 @NotThreadSafe
-public final class WorkerHeartbeatOptions extends alluxio.file.options.WorkerHeartbeatOptions {
+public final class WorkerHeartbeatOptions
+    extends alluxio.file.options.WorkerHeartbeatOptions<WorkerHeartbeatOptions> {
   /**
    * @return the default {@link WorkerHeartbeatOptions}
    */

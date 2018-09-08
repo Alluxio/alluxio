@@ -20,7 +20,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for getStatus.
  */
 @NotThreadSafe
-public final class GetStatusOptions extends alluxio.file.options.GetStatusOptions {
+public final class GetStatusOptions
+    extends alluxio.file.options.GetStatusOptions<GetStatusOptions> {
   /**
    * @return the default {@link GetStatusOptions}
    */

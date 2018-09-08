@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class SetAclOptions extends alluxio.file.options.SetAclOptions {
+public final class SetAclOptions extends alluxio.file.options.SetAclOptions<SetAclOptions> {
   /**
    * @return the default {@link SetAclOptions}
    */

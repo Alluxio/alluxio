@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class FreeOptions extends alluxio.file.options.FreeOptions {
+public final class FreeOptions extends alluxio.file.options.FreeOptions<FreeOptions> {
   /**
    * @return the default {@link FreeOptions}
    */

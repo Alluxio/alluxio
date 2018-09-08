@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class RenameOptions extends alluxio.file.options.RenameOptions {
+public final class RenameOptions extends alluxio.file.options.RenameOptions<RenameOptions> {
   /**
    * @return the default {@link RenameOptions}
    */

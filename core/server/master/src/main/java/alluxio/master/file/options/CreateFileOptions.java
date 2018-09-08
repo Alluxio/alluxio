@@ -24,7 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for creating a file.
  */
 @NotThreadSafe
-public final class CreateFileOptions extends alluxio.file.options.CreateFileOptions<CreateFileOptions> {
+public final class CreateFileOptions
+    extends alluxio.file.options.CreateFileOptions<CreateFileOptions> {
   /**
    * @return the default {@link CreateFileOptions}
    */

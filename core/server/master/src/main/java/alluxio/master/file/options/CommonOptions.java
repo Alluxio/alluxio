@@ -17,7 +17,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Common options.
  */
 @NotThreadSafe
-public final class CommonOptions extends alluxio.file.options.CommonOptions {
+public final class CommonOptions extends alluxio.file.options.CommonOptions<CommonOptions> {
   /**
    * @return the default {@link CommonOptions}
    */

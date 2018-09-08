@@ -17,7 +17,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for free.
  */
 @NotThreadSafe
-public final class FreeOptions extends alluxio.file.options.FreeOptions {
+public final class FreeOptions extends alluxio.file.options.FreeOptions<FreeOptions> {
   /**
    * @return the default {@link FreeOptions}
    */
