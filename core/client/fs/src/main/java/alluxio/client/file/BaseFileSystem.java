@@ -504,7 +504,7 @@ public class BaseFileSystem implements FileSystem {
     }
 
     if (uri.hasAuthority()) {
-      LOG.warn("The URI authority (hostname and port) are ignored and not required in URIs passed "
+      LOG.warn("The URI authority (hostname and port) is ignored and not required in URIs passed "
           + "to the Alluxio Filesystem client.");
       /* Even if we choose to log the warning, check if the Configuration host matches what the
        * user passes. If not, throw an exception letting the user know they don't match.

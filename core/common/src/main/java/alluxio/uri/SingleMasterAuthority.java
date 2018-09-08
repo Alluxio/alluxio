@@ -58,7 +58,8 @@ public class SingleMasterAuthority implements Authority {
       return false;
     }
     SingleMasterAuthority that = (SingleMasterAuthority) o;
-    return toString().equals(that.toString());
+    return Objects.equal(mHost, that.mHost)
+        && Objects.equal(mPort, that.mPort);
   }
 
   @Override

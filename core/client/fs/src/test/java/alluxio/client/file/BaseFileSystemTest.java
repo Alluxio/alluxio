@@ -56,7 +56,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 
 /**
@@ -93,7 +92,6 @@ public final class BaseFileSystemTest {
     when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     mAppender = new TestAppender();
     Logger.getRootLogger().addAppender(mAppender);
-
   }
 
   @After
@@ -506,15 +504,13 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Ensures warnings are mLogged and exception is thrown when an {@link AlluxioURI} with an invalid
-   * authority is passed.
+   * Ensures warnings are logged and an exception is thrown when an {@link AlluxioURI} with an
+   * invalid authority is passed.
    */
   @Test
   public void uriCheckBadAuthority() throws Exception {
     Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
-    mAppender.track("The URI authority");
-    mAppender.track("The URI scheme");
 
     AlluxioURI uri = new AlluxioURI("alluxio://localhost:1234/root");
     try {
@@ -553,8 +549,6 @@ public final class BaseFileSystemTest {
   public void uriCheckGoodSchemeAndAuthority() throws Exception {
     Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
-    mAppender.track("The URI scheme");
-    mAppender.track("The URI authority");
 
     AlluxioURI uri = new AlluxioURI("alluxio://localhost:19998/root");
     mFileSystem.createDirectory(uri);
@@ -572,8 +566,7 @@ public final class BaseFileSystemTest {
   public void uriCheckNoSchemeAuthority() throws Exception {
     Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
-    mAppender.track("The URI authority");
-    mAppender.track("The URI scheme");
+
     AlluxioURI uri = new AlluxioURI("/root");
     mFileSystem.createDirectory(uri);
 
@@ -584,23 +577,19 @@ public final class BaseFileSystemTest {
   private static class TestAppender extends AppenderSkeleton {
 
     public List<LoggingEvent> mEvents = new ArrayList<LoggingEvent>();
-    private Hashtable<String, Boolean> mTracked = new Hashtable<>();
-    private Hashtable<String, Boolean> mLogged = new Hashtable<>();
 
     public void close() { }
 
-    /**
-     * Track a specific string to search for in logging events.
-     */
-    public void track(String s) {
-      mTracked.put(s, false);
-    }
-
-    /**
-     * Determines whether a mTracked string was mLogged.
-     */
-    public boolean wasLogged(String s) {
-      return mLogged.containsKey(s);
+      /**
+       * Determines whether string was logged.
+       */
+    public boolean wasLogged(String eventString) {
+      for (LoggingEvent e : mEvents) {
+        if (e.getRenderedMessage().contains(eventString)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     public boolean requiresLayout() {
@@ -611,12 +600,6 @@ public final class BaseFileSystemTest {
     protected void append(LoggingEvent event) {
       mEvents.add(event);
 
-      for (String key : mTracked.keySet()) {
-        if (event.getRenderedMessage().contains(key)) {
-          mLogged.put(key, true);
-          mTracked.remove(key);
-        }
-      }
     }
   }
 }
