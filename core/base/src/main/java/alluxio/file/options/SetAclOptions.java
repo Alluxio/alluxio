@@ -11,15 +11,17 @@
 
 package alluxio.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import com.google.common.base.Objects;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for setting ACLs.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class SetAclOptions {
+public abstract class SetAclOptions<T extends SetAclOptions> {
   protected CommonOptions mCommonOptions;
   protected boolean mRecursive;
 
@@ -41,7 +43,7 @@ public abstract class SetAclOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public <T extends SetAclOptions> T setCommonOptions(CommonOptions options) {
+  public T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
     return (T) this;
   }
@@ -50,7 +52,7 @@ public abstract class SetAclOptions {
    * @param recursive the recursive setting to use
    * @return the updated options
    */
-  public <T extends SetAclOptions> T setRecursive(boolean recursive) {
+  public T setRecursive(boolean recursive) {
     mRecursive = recursive;
     return (T) this;
   }

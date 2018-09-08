@@ -20,18 +20,27 @@ public final class PersistCommandOptions {
   private List<PersistFile> mFilesToPersist;
 
   /**
-   * Creates a new instance of {@link PersistCommandOptions}
+   * Creates a new instance of {@link PersistCommandOptions}.
    *
+   * @param filesToPersist the list of files to persist
    */
   public PersistCommandOptions(List<PersistFile> filesToPersist) {
     mFilesToPersist = filesToPersist;
   }
 
+  /**
+   * @return the list of files to persist
+   */
   public List<PersistFile> getFilesToPersist() {
     return mFilesToPersist;
   }
 
+  /**
+   * Set the list of files to persist.
+   *
+   * @param filesToPersist the list of files to persist
+   */
   public void setFilesToPersist(List<PersistFile> filesToPersist) {
-    this.mFilesToPersist = filesToPersist;
+    mFilesToPersist = filesToPersist;
   }
 }

@@ -17,9 +17,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for deleting a file or a directory.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class DeleteOptions {
+public abstract class DeleteOptions<T extends DeleteOptions> {
   protected CommonOptions mCommonOptions;
   protected boolean mRecursive;
   protected boolean mAlluxioOnly;
@@ -59,7 +61,7 @@ public abstract class DeleteOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public <T extends DeleteOptions> T setCommonOptions(CommonOptions options) {
+  public T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
     return (T) this;
   }
@@ -69,7 +71,7 @@ public abstract class DeleteOptions {
    *        the flag specifies whether the directory content should be recursively deleted as well
    * @return the updated options object
    */
-  public <T extends DeleteOptions> T setRecursive(boolean recursive) {
+  public T setRecursive(boolean recursive) {
     mRecursive = recursive;
     return (T) this;
   }
@@ -79,7 +81,7 @@ public abstract class DeleteOptions {
    *        deleted in Alluxio only, or in UFS as well
    * @return the updated options object
    */
-  public <T extends DeleteOptions> T setAlluxioOnly(boolean alluxioOnly) {
+  public T setAlluxioOnly(boolean alluxioOnly) {
     mAlluxioOnly = alluxioOnly;
     return (T) this;
   }
@@ -88,7 +90,7 @@ public abstract class DeleteOptions {
    * @param unchecked whether to skip UFS sync check
    * @return the updated options object
    */
-  public <T extends DeleteOptions> T setUnchecked(boolean unchecked) {
+  public T setUnchecked(boolean unchecked) {
     mUnchecked = unchecked;
     return (T) this;
   }

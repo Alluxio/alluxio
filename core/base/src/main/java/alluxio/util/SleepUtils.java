@@ -11,10 +11,10 @@
 
 package alluxio.util;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Sleep utilities shared by all components in Alluxio.

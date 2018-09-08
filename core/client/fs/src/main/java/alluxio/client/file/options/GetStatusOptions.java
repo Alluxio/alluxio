@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class GetStatusOptions extends alluxio.file.options.GetStatusOptions {
+public final class GetStatusOptions extends alluxio.file.options.GetStatusOptions<GetStatusOptions> {
   /**
    * @return the default {@link GetStatusOptions}
    */

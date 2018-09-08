@@ -11,17 +11,19 @@
 
 package alluxio.file.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.underfs.UfsMode;
 
 import com.google.common.base.Objects;
 
-import alluxio.underfs.UfsMode;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for updating operation mode of a ufs path.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class UpdateUfsModeOptions {
+public abstract class UpdateUfsModeOptions<T extends UpdateUfsModeOptions> {
   protected CommonOptions mCommonOptions;
   protected UfsMode mUfsMode;
 
@@ -43,7 +45,7 @@ public abstract class UpdateUfsModeOptions {
    * @param ufsMode the Ufs mode to set
    * @return the updated option object
    */
-  public <T extends UpdateUfsModeOptions> T setUfsMode(UfsMode ufsMode) {
+  public T setUfsMode(UfsMode ufsMode) {
     mUfsMode = ufsMode;
     return (T) this;
   }

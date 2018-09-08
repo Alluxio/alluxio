@@ -21,9 +21,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Common method options.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class CommonOptions implements Serializable {
+public abstract class CommonOptions<T extends CommonOptions> implements Serializable {
   private static final long serialVersionUID = -1491370184123698287L;
 
   protected long mSyncIntervalMs;
@@ -56,7 +58,7 @@ public abstract class CommonOptions implements Serializable {
    * @param syncIntervalMs the sync interval, in milliseconds
    * @return the updated options object
    */
-  public <T extends CommonOptions> T setSyncIntervalMs(long syncIntervalMs) {
+  public T setSyncIntervalMs(long syncIntervalMs) {
     mSyncIntervalMs = syncIntervalMs;
     return (T) this;
   }
@@ -65,7 +67,7 @@ public abstract class CommonOptions implements Serializable {
    * @param ttl time to live for files loaded by client, in milliseconds
    * @return the updated options object
    */
-  public <T extends CommonOptions> T setTtl(long ttl) {
+  public T setTtl(long ttl) {
     mTtl = ttl;
     return (T) this;
   }
@@ -74,7 +76,7 @@ public abstract class CommonOptions implements Serializable {
    * @param ttlAction action after ttl expired. DELETE by default
    * @return the updated options object
    */
-  public <T extends CommonOptions> T setTtlAction(TtlAction ttlAction) {
+  public T setTtlAction(TtlAction ttlAction) {
     mTtlAction = ttlAction;
     return (T) this;
   }

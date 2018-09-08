@@ -19,9 +19,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for list status.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class ListStatusOptions {
+public abstract class ListStatusOptions<T extends ListStatusOptions> {
   protected CommonOptions mCommonOptions;
   protected LoadMetadataType mLoadMetadataType;
   protected boolean mRecursive;
@@ -52,7 +54,7 @@ public abstract class ListStatusOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public <T extends ListStatusOptions> T setCommonOptions(CommonOptions options) {
+  public T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
     return (T) this;
   }
@@ -63,7 +65,7 @@ public abstract class ListStatusOptions {
    * @param loadMetadataType the load metadata type
    * @return the updated options
    */
-  public <T extends ListStatusOptions> T setLoadMetadataType(LoadMetadataType loadMetadataType) {
+  public T setLoadMetadataType(LoadMetadataType loadMetadataType) {
     mLoadMetadataType = loadMetadataType;
     return (T) this;
   }
@@ -74,7 +76,7 @@ public abstract class ListStatusOptions {
    * @param recursive whether to recursively list status
    * @return the updated options
    */
-  public <T extends ListStatusOptions> T setRecursive(boolean recursive) {
+  public T setRecursive(boolean recursive) {
     mRecursive = recursive;
     return (T) this;
   }

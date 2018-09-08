@@ -21,10 +21,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for getting the status of a path.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public abstract class GetStatusOptions {
+public abstract class GetStatusOptions<T extends GetStatusOptions> {
   protected CommonOptions mCommonOptions;
   protected LoadMetadataType mLoadMetadataType;
 
@@ -46,7 +48,7 @@ public abstract class GetStatusOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public <T extends GetStatusOptions> T setCommonOptions(CommonOptions options) {
+  public T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
     return (T) this;
   }
@@ -55,7 +57,7 @@ public abstract class GetStatusOptions {
    * @param loadMetadataType the loadMetataType
    * @return the updated options
    */
-  public <T extends GetStatusOptions> T setLoadMetadataType(LoadMetadataType loadMetadataType) {
+  public T setLoadMetadataType(LoadMetadataType loadMetadataType) {
     mLoadMetadataType = loadMetadataType;
     return (T) this;
   }

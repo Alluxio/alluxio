@@ -17,9 +17,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for checking the consistency of a path.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class CheckConsistencyOptions {
+public abstract class CheckConsistencyOptions<T extends CheckConsistencyOptions> {
   protected CommonOptions mCommonOptions;
 
   /**
@@ -33,7 +35,7 @@ public abstract class CheckConsistencyOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public <T extends CheckConsistencyOptions> T setCommonOptions(CommonOptions options) {
+  public T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
     return (T) this;
   }

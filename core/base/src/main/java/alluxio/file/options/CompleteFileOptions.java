@@ -19,9 +19,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for completing a file.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class CompleteFileOptions {
+public abstract class CompleteFileOptions<T extends CompleteFileOptions> {
   protected CommonOptions mCommonOptions;
   protected long mUfsLength;
   protected long mOperationTimeMs;
@@ -59,7 +61,7 @@ public abstract class CompleteFileOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public <T extends CompleteFileOptions> T setCommonOptions(CommonOptions options) {
+  public T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
     return (T) this;
   }
@@ -68,7 +70,7 @@ public abstract class CompleteFileOptions {
    * @param ufsLength the UFS file length to use
    * @return the updated options object
    */
-  public <T extends CompleteFileOptions> T setUfsLength(long ufsLength) {
+  public T setUfsLength(long ufsLength) {
     mUfsLength = ufsLength;
     return (T) this;
   }
@@ -77,7 +79,7 @@ public abstract class CompleteFileOptions {
    * @param ufsStatus the ufs status to use
    * @return the updated options object
    */
-  public <T extends CompleteFileOptions> T setUfsStatus(UfsStatus ufsStatus) {
+  public T setUfsStatus(UfsStatus ufsStatus) {
     mUfsStatus = ufsStatus;
     return (T) this;
   }
@@ -86,7 +88,7 @@ public abstract class CompleteFileOptions {
    * @param operationTimeMs the operation time to use
    * @return the updated options object
    */
-  public <T extends CompleteFileOptions> T setOperationTimeMs(long operationTimeMs) {
+  public T setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return (T) this;
   }

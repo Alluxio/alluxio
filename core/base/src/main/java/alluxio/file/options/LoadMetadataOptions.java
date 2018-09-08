@@ -20,9 +20,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for loading metadata.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class LoadMetadataOptions {
+public abstract class LoadMetadataOptions<T extends LoadMetadataOptions> {
   protected CommonOptions mCommonOptions;
   protected boolean mCreateAncestors;
   protected DescendantType mLoadDescendantType;
@@ -62,7 +64,7 @@ public abstract class LoadMetadataOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public <T extends LoadMetadataOptions> T setCommonOptions(CommonOptions options) {
+  public T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
     return (T) this;
   }
@@ -74,7 +76,7 @@ public abstract class LoadMetadataOptions {
    *        should be created if they do not already exist
    * @return the updated options object
    */
-  public <T extends LoadMetadataOptions> T setCreateAncestors(boolean createAncestors) {
+  public T setCreateAncestors(boolean createAncestors) {
     mCreateAncestors = createAncestors;
     return (T) this;
   }
@@ -83,7 +85,7 @@ public abstract class LoadMetadataOptions {
    * @param loadDescendantType the type of descendants to load
    * @return the updated object
    */
-  public <T extends LoadMetadataOptions> T setLoadDescendantType(DescendantType loadDescendantType) {
+  public T setLoadDescendantType(DescendantType loadDescendantType) {
     mLoadDescendantType = loadDescendantType;
     return (T) this;
   }
@@ -94,7 +96,7 @@ public abstract class LoadMetadataOptions {
    * @param status UFS status of path
    * @return the updated object
    */
-  public <T extends LoadMetadataOptions> T setUfsStatus(UfsStatus status) {
+  public T setUfsStatus(UfsStatus status) {
     mUfsStatus = status;
     return (T) this;
   }

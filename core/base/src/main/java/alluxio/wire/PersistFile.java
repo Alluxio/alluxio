@@ -51,7 +51,7 @@ public final class PersistFile {
    * @param blockIds the block ids
    */
   public void setBlockIds(List<Long> blockIds) {
-    this.mBlockIds = blockIds;
+    mBlockIds = blockIds;
   }
 
   /**
@@ -60,6 +60,6 @@ public final class PersistFile {
    * @param fileId the file id
    */
   public void setFileId(long fileId) {
-    this.mFileId = fileId;
+    mFileId = fileId;
   }
 }

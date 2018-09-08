@@ -32,76 +32,91 @@ import alluxio.file.options.SyncMetadataOptions;
  */
 public interface FileSystemMasterOptions {
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link CheckConsistencyOptions}
    */
   <T extends CheckConsistencyOptions> T getCheckConsistencyOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link CommonOptions}
    */
   <T extends CommonOptions> T getCommonOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link CompleteFileOptions}
    */
   <T extends CompleteFileOptions> T getCompleteFileOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link CreateFileOptions}
    */
   <T extends CreateFileOptions> T getCreateFileOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link CreateDirectoryOptions}
    */
   <T extends CreateDirectoryOptions> T getCreateDirectoryOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link DeleteOptions}
    */
   <T extends DeleteOptions> T getDeleteOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link FreeOptions}
    */
   <T extends FreeOptions> T getFreeOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link GetStatusOptions}
    */
   <T extends GetStatusOptions> T getGetStatusOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link ListStatusOptions}
    */
   <T extends ListStatusOptions> T getListStatusOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link LoadMetadataOptions}
    */
   <T extends LoadMetadataOptions> T getLoadMetadataOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link MountOptions}
    */
   <T extends MountOptions> T getMountOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link RenameOptions}
    */
   <T extends RenameOptions> T getRenameOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link SetAclOptions}
    */
   <T extends SetAclOptions> T getSetAclOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link SetAttributeOptions}
    */
   <T extends SetAttributeOptions> T getSetAttributeOptions();
 
   /**
+   * @param <T> the type of the concrete options subclass
    * @return an instance of {@link SyncMetadataOptions}
    */
   <T extends SyncMetadataOptions> T getSyncMetadataOptions();

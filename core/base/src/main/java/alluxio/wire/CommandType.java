@@ -11,9 +11,9 @@
 
 package alluxio.wire;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.annotation.PublicApi;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Types for file system commands.

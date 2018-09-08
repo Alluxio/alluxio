@@ -11,7 +11,6 @@
 
 package alluxio.wire;
 
-
 import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;

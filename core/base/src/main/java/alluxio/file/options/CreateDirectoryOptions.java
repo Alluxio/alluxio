@@ -19,9 +19,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for creating a directory.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class CreateDirectoryOptions<T extends CreateDirectoryOptions> extends CreatePathOptions<T> {
+public abstract class CreateDirectoryOptions<T extends CreateDirectoryOptions>
+    extends CreatePathOptions<T> {
   protected boolean mAllowExists;
   protected UfsStatus mUfsStatus;
 

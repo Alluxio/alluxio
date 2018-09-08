@@ -19,9 +19,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for the worker to master heartbeat.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class WorkerHeartbeatOptions {
+public abstract class WorkerHeartbeatOptions<T extends WorkerHeartbeatOptions> {
   protected List<String> mPersistedUfsFingerprintList;
 
   /**
@@ -33,9 +35,11 @@ public abstract class WorkerHeartbeatOptions {
 
   /**
    * @param persistedUfsFingerprintList the list of ufs fingerprints, of persisted files
+   * @return the list of persisted fingerprints
    */
-  public void setPersistedUfsFingerprintList(List<String> persistedUfsFingerprintList) {
+  public T setPersistedUfsFingerprintList(List<String> persistedUfsFingerprintList) {
     mPersistedUfsFingerprintList = persistedUfsFingerprintList;
+    return (T) this;
   }
 
   @Override

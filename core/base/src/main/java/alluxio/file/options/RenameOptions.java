@@ -17,9 +17,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for completing a file.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class RenameOptions {
+public abstract class RenameOptions<T extends RenameOptions> {
   protected CommonOptions mCommonOptions;
   protected long mOperationTimeMs;
 
@@ -41,7 +43,7 @@ public abstract class RenameOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public <T extends RenameOptions> T setCommonOptions(CommonOptions options) {
+  public T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
     return (T) this;
   }
@@ -50,7 +52,7 @@ public abstract class RenameOptions {
    * @param operationTimeMs the operation time to use
    * @return the updated options object
    */
-  public <T extends RenameOptions> T setOperationTimeMs(long operationTimeMs) {
+  public T setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return (T) this;
   }

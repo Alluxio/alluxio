@@ -20,9 +20,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method option for mounting.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class MountOptions {
+public abstract class MountOptions<T extends MountOptions> {
   protected CommonOptions mCommonOptions;
   protected boolean mReadOnly;
   protected Map<String, String> mProperties;
@@ -48,7 +50,7 @@ public abstract class MountOptions {
    *                 allowed under the mount point.
    * @return the updated options object
    */
-  public <T extends MountOptions> T setReadOnly(boolean readOnly) {
+  public T setReadOnly(boolean readOnly) {
     mReadOnly = readOnly;
     return (T) this;
   }
@@ -64,7 +66,7 @@ public abstract class MountOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public <T extends MountOptions> T setCommonOptions(CommonOptions options) {
+  public T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
     return (T) this;
   }
@@ -74,7 +76,7 @@ public abstract class MountOptions {
    *                   entries of the input map will be added to the internal map.
    * @return the updated options object
    */
-  public <T extends MountOptions> T setProperties(Map<String, String> properties) {
+  public T setProperties(Map<String, String> properties) {
     mProperties.clear();
     mProperties.putAll(properties);
     return (T) this;
@@ -92,7 +94,7 @@ public abstract class MountOptions {
    *               users.
    * @return the updated option object
    */
-  public <T extends MountOptions> T setShared(boolean shared) {
+  public T setShared(boolean shared) {
     mShared = shared;
     return (T) this;
   }

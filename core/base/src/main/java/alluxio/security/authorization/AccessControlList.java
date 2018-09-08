@@ -113,14 +113,23 @@ public class AccessControlList implements Serializable {
     return mOwningGroup;
   }
 
+  /**
+   * @return the owning user actions
+   */
   public AclActions getOwningUserActions() {
     return Mode.extractOwnerBits(mMode).toAclActions();
   }
 
+  /**
+   * @return the owning group actions
+   */
   public AclActions getOwningGroupActions() {
     return Mode.extractGroupBits(mMode).toAclActions();
   }
 
+  /**
+   * @return other actions
+   */
   public AclActions getOtherActions() {
     return Mode.extractOtherBits(mMode).toAclActions();
   }

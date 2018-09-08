@@ -17,9 +17,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for syncing the metadata of a path.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class SyncMetadataOptions {
+public abstract class SyncMetadataOptions<T extends SyncMetadataOptions> {
   protected CommonOptions mCommonOptions;
 
   /**
@@ -33,7 +35,7 @@ public abstract class SyncMetadataOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public <T extends SyncMetadataOptions> T setCommonOptions(CommonOptions options) {
+  public T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
     return (T) this;
   }

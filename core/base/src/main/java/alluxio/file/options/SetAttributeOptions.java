@@ -20,9 +20,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for setting the attributes.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class SetAttributeOptions {
+public abstract class SetAttributeOptions<T extends SetAttributeOptions> {
   protected CommonOptions mCommonOptions;
   protected Boolean mPinned;
   protected Long mTtl;
@@ -116,7 +118,7 @@ public abstract class SetAttributeOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public <T extends SetAttributeOptions> T setCommonOptions(CommonOptions options) {
+  public T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
     return (T) this;
   }
@@ -125,7 +127,7 @@ public abstract class SetAttributeOptions {
    * @param pinned the pinned flag value to use
    * @return the updated options object
    */
-  public <T extends SetAttributeOptions> T setPinned(boolean pinned) {
+  public T setPinned(boolean pinned) {
     mPinned = pinned;
     return (T) this;
   }
@@ -134,7 +136,7 @@ public abstract class SetAttributeOptions {
    * @param ttl the time-to-live (in seconds) to use
    * @return the updated options object
    */
-  public <T extends SetAttributeOptions> T setTtl(long ttl) {
+  public T setTtl(long ttl) {
     mTtl = ttl;
     return (T) this;
   }
@@ -143,7 +145,7 @@ public abstract class SetAttributeOptions {
    * @param ttlAction the {@link TtlAction} to use
    * @return the updated options object
    */
-  public <T extends SetAttributeOptions> T setTtlAction(TtlAction ttlAction) {
+  public T setTtlAction(TtlAction ttlAction) {
     mTtlAction = ttlAction;
     return (T) this;
   }
@@ -152,7 +154,7 @@ public abstract class SetAttributeOptions {
    * @param persisted the persisted flag value to use
    * @return the updated options object
    */
-  public <T extends SetAttributeOptions> T setPersisted(boolean persisted) {
+  public T setPersisted(boolean persisted) {
     mPersisted = persisted;
     return (T) this;
   }
@@ -162,7 +164,7 @@ public abstract class SetAttributeOptions {
    * @return the updated options object
    * @throws IllegalArgumentException if the owner is set to empty
    */
-  public <T extends SetAttributeOptions> T setOwner(String owner) {
+  public T setOwner(String owner) {
     if (owner != null && owner.isEmpty()) {
       throw new IllegalArgumentException("It is not allowed to set owner to empty.");
     }
@@ -175,7 +177,7 @@ public abstract class SetAttributeOptions {
    * @return the updated options object
    * @throws IllegalArgumentException if the group is set to empty
    */
-  public <T extends SetAttributeOptions> T setGroup(String group) {
+  public T setGroup(String group) {
     if (group != null && group.isEmpty()) {
       throw new IllegalArgumentException("It is not allowed to set group to empty");
     }
@@ -187,7 +189,7 @@ public abstract class SetAttributeOptions {
    * @param mode the mode bits to use
    * @return the updated options object
    */
-  public <T extends SetAttributeOptions> T setMode(short mode) {
+  public T setMode(short mode) {
     return setMode(new Mode(mode));
   }
 
@@ -195,7 +197,7 @@ public abstract class SetAttributeOptions {
    * @param mode the mode bits to use
    * @return the updated options object
    */
-  public <T extends SetAttributeOptions> T setMode(Mode mode) {
+  public T setMode(Mode mode) {
     mMode = mode;
     return (T) this;
   }
@@ -204,7 +206,7 @@ public abstract class SetAttributeOptions {
    * @param recursive whether owner / group / mode should be updated recursively
    * @return the updated options object
    */
-  public <T extends SetAttributeOptions> T setRecursive(boolean recursive) {
+  public T setRecursive(boolean recursive) {
     mRecursive = recursive;
     return (T) this;
   }
@@ -213,7 +215,7 @@ public abstract class SetAttributeOptions {
    * @param operationTimeMs the operation time to use
    * @return the updated options object
    */
-  public <T extends SetAttributeOptions> T setOperationTimeMs(long operationTimeMs) {
+  public T setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return (T) this;
   }
@@ -222,7 +224,7 @@ public abstract class SetAttributeOptions {
    * @param ufsFingerprint the ufs fingerprint
    * @return the updated options object
    */
-  public <T extends SetAttributeOptions> T setUfsFingerprint(String ufsFingerprint) {
+  public T setUfsFingerprint(String ufsFingerprint) {
     mUfsFingerprint = ufsFingerprint;
     return (T) this;
   }

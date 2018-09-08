@@ -35,6 +35,6 @@ public final class FileSystemCommandOptions {
    * @param persistCommandOptions the persist options
    */
   public void setPersistOptions(PersistCommandOptions persistCommandOptions) {
-    this.mPersistCommandOptions = persistCommandOptions;
+    mPersistCommandOptions = persistCommandOptions;
   }
 }

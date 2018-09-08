@@ -17,9 +17,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for list status.
+ *
+ * @param <T> the type of the concrete subclass
  */
 @NotThreadSafe
-public abstract class FreeOptions {
+public abstract class FreeOptions<T extends FreeOptions> {
   protected CommonOptions mCommonOptions;
   protected boolean mRecursive;
   protected boolean mForced;
@@ -51,7 +53,7 @@ public abstract class FreeOptions {
    * @param options the common options
    * @return the updated options object
    */
-  public <T extends FreeOptions> T setCommonOptions(CommonOptions options) {
+  public T setCommonOptions(CommonOptions options) {
     mCommonOptions = options;
     return (T) this;
   }
@@ -63,7 +65,7 @@ public abstract class FreeOptions {
    *         whether this object should still be freed
    * @return the updated options object
    */
-  public <T extends FreeOptions> T setForced(boolean forced) {
+  public T setForced(boolean forced) {
     mForced = forced;
     return (T) this;
   }
@@ -75,7 +77,7 @@ public abstract class FreeOptions {
    *        the flag specifies whether the directory content should be recursively freed as well
    * @return the updated options object
    */
-  public <T extends FreeOptions> T setRecursive(boolean recursive) {
+  public T setRecursive(boolean recursive) {
     mRecursive = recursive;
     return (T) this;
   }

@@ -49,7 +49,7 @@ public final class FileSystemCommand {
    * @param commandOptions the command options
    */
   public void setCommmandOptions(FileSystemCommandOptions commandOptions) {
-    this.mCommandOptions = commandOptions;
+    mCommandOptions = commandOptions;
   }
 
   /**
@@ -58,6 +58,6 @@ public final class FileSystemCommand {
    * @param commandType the command type
    */
   public void setCommandType(CommandType commandType) {
-    this.mCommandType = commandType;
+    mCommandType = commandType;
   }
 }
