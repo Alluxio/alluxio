@@ -63,7 +63,7 @@ public class SingleMasterAuthority implements Authority {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(toString());
+    return Objects.hashCode(mHost, mPort);
   }
 
   @Override
