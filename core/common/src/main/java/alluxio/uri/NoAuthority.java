@@ -24,11 +24,6 @@ public final class NoAuthority implements Authority {
   private NoAuthority() {} // enforce singleton pattern
 
   @Override
-  public int compareTo(Authority other) {
-    return toString().compareTo(other.toString());
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o || o instanceof NoAuthority) {
       return true;
