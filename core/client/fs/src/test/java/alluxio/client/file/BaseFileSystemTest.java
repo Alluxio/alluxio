@@ -599,7 +599,6 @@ public final class BaseFileSystemTest {
     @Override
     protected void append(LoggingEvent event) {
       mEvents.add(event);
-
     }
   }
 }
