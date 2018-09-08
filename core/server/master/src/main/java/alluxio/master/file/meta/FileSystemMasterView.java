@@ -23,6 +23,7 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -64,7 +65,7 @@ public final class FileSystemMasterView {
    * @throws AccessControlException if permission denied
    */
   public synchronized FileInfo getFileInfo(long fileId)
-      throws FileDoesNotExistException, AccessControlException, UnavailableException {
+      throws FileDoesNotExistException, AccessControlException, IOException {
     return mFileSystemMaster.getFileInfo(fileId);
   }
 

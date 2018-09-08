@@ -13,6 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.proto.journal.File;
 import alluxio.thrift.MountTOptions;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
@@ -158,6 +159,16 @@ public final class MountOptions {
   public MountOptions setShared(boolean shared) {
     mShared = shared;
     return this;
+  }
+
+  /**
+   * @return the ufs configuration represented by these mount point options
+   */
+  public UnderFileSystemConfiguration toUfsConfiguration() {
+    return UnderFileSystemConfiguration.defaults()
+        .setShared(mShared)
+        .setReadOnly(mReadOnly)
+        .setMountSpecificConf(mProperties);
   }
 
   @Override

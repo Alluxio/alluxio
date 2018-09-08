@@ -72,7 +72,7 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
             mWorkerProcess.getWorker(BlockWorker.class), mFileTransferType));
     pipeline.addLast("blockWriteHandler", new BlockWriteHandler(
         NettyExecutors.BLOCK_WRITER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class),
-        mWorkerProcess.getUfsManager()));
+        mWorkerProcess.getUfsClientCache()));
     pipeline.addLast("shortCircuitBlockReadHandler",
         new ShortCircuitBlockReadHandler(NettyExecutors.RPC_EXECUTOR,
             mWorkerProcess.getWorker(BlockWorker.class)));
@@ -83,7 +83,7 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
 
     // UFS Handlers
     pipeline.addLast("ufsFileWriteHandler", new UfsFileWriteHandler(
-        NettyExecutors.FILE_WRITER_EXECUTOR, mWorkerProcess.getUfsManager()));
+        NettyExecutors.FILE_WRITER_EXECUTOR, mWorkerProcess.getUfsClientCache()));
 
     // Unsupported Message Handler
     pipeline.addLast("unsupportedMessageHandler", new UnsupportedMessageHandler());

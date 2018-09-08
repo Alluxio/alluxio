@@ -50,8 +50,8 @@ public interface UfsBlockLocationCache {
   final class Factory {
     private Factory() {} // prevent instantiation
 
-    public static UfsBlockLocationCache create(MountTable mountTable) {
-      return new LazyUfsBlockLocationCache(mountTable);
+    public static UfsBlockLocationCache create(MountResolver mountResolver) {
+      return new LazyUfsBlockLocationCache(mountResolver);
     }
   }
 }

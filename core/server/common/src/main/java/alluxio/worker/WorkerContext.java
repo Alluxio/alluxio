@@ -11,24 +11,23 @@
 
 package alluxio.worker;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
- * Interface for factory of {@link Worker}.
+ * Stores context information for Alluxio workers.
  */
-@ThreadSafe
-public interface WorkerFactory {
-  /**
-   * @return whether the worker is enabled
-   */
-  boolean isEnabled();
+public class WorkerContext {
+  public final UfsClientCache mUfsClientCache;
 
   /**
-   * Factory method to create a new worker instance.
-   *
-   * @param registry the worker registry
-   * @param workerContext worker context
-   * @return a new {@link Worker} instance
+   * @param ufsClientCache cache for retrieving ufs clients
    */
-  Worker create(WorkerRegistry registry, WorkerContext workerContext);
+  public WorkerContext(UfsClientCache ufsClientCache) {
+    mUfsClientCache = ufsClientCache;
+  }
+
+  /**
+   * @return the ufs client cache
+   */
+  public UfsClientCache getUfsClientCache() {
+    return mUfsClientCache;
+  }
 }

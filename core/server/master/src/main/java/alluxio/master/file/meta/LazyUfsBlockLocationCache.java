@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.MountResolver.Resolution;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
@@ -42,16 +43,16 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
 
   /** Cache of ufs block locations, key is block ID, value is block locations. */
   private Cache<Long, List<String>> mCache;
-  private MountTable mMountTable;
+  private MountResolver mMountResolver;
 
   /**
    * Creates a new instance of {@link UfsBlockLocationCache}.
    *
-   * @param mountTable the mount table
+   * @param mountResolver the mount table
    */
-  public LazyUfsBlockLocationCache(MountTable mountTable) {
+  public LazyUfsBlockLocationCache(MountResolver mountResolver) {
     mCache = CacheBuilder.newBuilder().maximumSize(MAX_BLOCKS).build();
-    mMountTable = mountTable;
+    mMountResolver = mountResolver;
   }
 
   @Override
@@ -71,7 +72,7 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
       return locations;
     }
     try {
-      MountTable.Resolution resolution = mMountTable.resolve(fileUri);
+      Resolution resolution = mMountResolver.resolve(fileUri);
       String ufsUri = resolution.getUri().toString();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();

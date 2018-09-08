@@ -13,6 +13,10 @@ package alluxio.master;
 
 import static org.mockito.Mockito.mock;
 
+import alluxio.AlluxioURI;
+import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.options.MountOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 
@@ -35,6 +39,15 @@ public final class MasterTestUtils {
   public static MasterContext testMasterContext(JournalSystem journalSystem) {
     return new MasterContext(journalSystem, new TestSafeModeManager(),
         mock(BackupManager.class), -1, -1);
+  }
+
+  /**
+   * @param ufsPath ufs path for the root mount point
+   * @return
+   */
+  public static MountTable testMountTable(String ufsPath) {
+    return new MountTable(
+        new MountInfo(new AlluxioURI("/"), new AlluxioURI(ufsPath), 1, MountOptions.defaults()));
   }
 
   private MasterTestUtils() {} // Not intended for instatiation.

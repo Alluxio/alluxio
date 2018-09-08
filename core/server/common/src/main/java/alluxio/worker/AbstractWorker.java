@@ -24,12 +24,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractWorker implements Worker {
   /** The executor service for the master sync. */
   private final ExecutorService mExecutorService;
+  protected final WorkerContext mWorkerContext;
 
   /**
    * @param executorService executor service to use internally
+   * @param workerContext worker context
    */
-  protected AbstractWorker(ExecutorService executorService)  {
+  protected AbstractWorker(ExecutorService executorService, WorkerContext workerContext)  {
     mExecutorService = Preconditions.checkNotNull(executorService, "executorService");
+    mWorkerContext = Preconditions.checkNotNull(workerContext, "workerContext");
   }
 
   /**

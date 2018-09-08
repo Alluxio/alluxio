@@ -26,6 +26,7 @@ import alluxio.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -65,7 +66,7 @@ public interface AsyncPersistHandler {
    *
    * @param path the path to the file
    */
-  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, UnavailableException;
+  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, IOException;
 
   /**
    * Polls the files for persistence on the given worker.
@@ -77,5 +78,5 @@ public interface AsyncPersistHandler {
    * @throws AccessControlException if permission checking fails
    */
   List<PersistFile> pollFilesToPersist(long workerId)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException;
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
 }

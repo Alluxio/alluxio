@@ -19,7 +19,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.underfs.UfsManager;
+import alluxio.worker.UfsClientCache;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -50,7 +50,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   private final BlockWorker mWorker;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
-  private final UfsManager mUfsManager;
+  private final UfsClientCache mUfsClientCache;
 
   /**
    * Creates an instance of {@link BlockWriteHandler}.
@@ -67,13 +67,13 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
    *
    * @param executorService the executor service to run {@link PacketWriter}s
    * @param blockWorker the block worker
-   * @param ufsManager the UFS manager
+   * @param ufsClientCache the UFS client cache
    */
   BlockWriteHandler(ExecutorService executorService, BlockWorker blockWorker,
-      UfsManager ufsManager) {
+      UfsClientCache ufsClientCache) {
     super(executorService);
     mWorker = blockWorker;
-    mUfsManager = ufsManager;
+    mUfsClientCache = ufsClientCache;
   }
 
   @Override

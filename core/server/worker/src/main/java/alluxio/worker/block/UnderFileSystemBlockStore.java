@@ -16,8 +16,8 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
-import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
+import alluxio.worker.UfsClientCache;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
@@ -71,8 +71,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   /** The Local block store. */
   private final BlockStore mLocalBlockStore;
 
-  /** The manager for all ufs. */
-  private final UfsManager mUfsManager;
+  /** Cache for ufs clients. */
+  private final UfsClientCache mUfsClientCache;
 
   /** The manager for all ufs instream. */
   private final UfsInputStreamManager mUfsInstreamManager;
@@ -81,11 +81,11 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * Creates an instance of {@link UnderFileSystemBlockStore}.
    *
    * @param localBlockStore the local block store
-   * @param ufsManager the file manager
+   * @param ufsClientCache the ufs client cache
    */
-  public UnderFileSystemBlockStore(BlockStore localBlockStore, UfsManager ufsManager) {
+  public UnderFileSystemBlockStore(BlockStore localBlockStore, UfsClientCache ufsClientCache) {
     mLocalBlockStore = localBlockStore;
-    mUfsManager = ufsManager;
+    mUfsClientCache = ufsClientCache;
     mUfsInstreamManager = new UfsInputStreamManager();
   }
 
@@ -239,7 +239,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     }
     BlockReader reader =
         UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, mLocalBlockStore,
-            mUfsManager, mUfsInstreamManager);
+            mUfsClientCache, mUfsInstreamManager);
     blockInfo.setBlockReader(reader);
     return reader;
   }

@@ -32,7 +32,6 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
-import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
@@ -43,7 +42,6 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
-import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -115,9 +113,7 @@ public final class InodeTreeTest {
     BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, context);
     InodeDirectoryIdGenerator directoryIdGenerator =
         new InodeDirectoryIdGenerator(blockMaster);
-    UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
-    mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
+    mTree = new InodeTree(blockMaster, directoryIdGenerator, mock(MountResolver.class));
 
     mRegistry.start(true);
 

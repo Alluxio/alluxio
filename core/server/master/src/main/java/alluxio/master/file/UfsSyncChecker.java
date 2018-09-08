@@ -16,6 +16,8 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
+import alluxio.master.file.meta.MountResolver;
+import alluxio.master.file.meta.MountResolver.Resolution;
 import alluxio.master.file.meta.MountTable;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsStatus;
@@ -28,10 +30,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,8 +53,11 @@ public final class UfsSyncChecker {
   /** UFS directories for which list was called. */
   private Map<String, UfsStatus[]> mListedDirectories;
 
-  /** This manages the file system mount points. */
-  private final MountTable mMountTable;
+  /** The mount table. */
+  private MountTable mMountTable;
+
+  /** This resolves mount point information for alluxio paths. */
+  private final MountResolver mMountResolver;
 
   /** Directories in sync with the UFS. */
   private Map<AlluxioURI, Inode<?>> mSyncedDirectories = new HashMap<>();
@@ -60,11 +65,13 @@ public final class UfsSyncChecker {
   /**
    * Create a new instance of {@link UfsSyncChecker}.
    *
-   * @param mountTable to resolve path in under storage
+   * @param mountTable the mount table
+   * @param mountResolver to resolve path in under storage
    */
-  public UfsSyncChecker(MountTable mountTable) {
+  public UfsSyncChecker(MountTable mountTable, MountResolver mountResolver) {
     mListedDirectories = new HashMap<>();
     mMountTable = mountTable;
+    mMountResolver = mountResolver;
   }
   /**
    * Check if immediate children of directory are in sync with UFS.
@@ -138,7 +145,7 @@ public final class UfsSyncChecker {
    */
   private UfsStatus[] getChildrenInUFS(AlluxioURI alluxioUri)
       throws InvalidPathException, IOException {
-    MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
+    Resolution resolution = mMountResolver.resolve(alluxioUri);
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();

@@ -19,6 +19,8 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.MountResolver;
+import alluxio.master.file.meta.MountResolver.Resolution;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.resource.CloseableResource;
@@ -39,6 +41,7 @@ public final class SafeUfsDeleter implements UfsDeleter {
   private static final Logger LOG = LoggerFactory.getLogger(SafeUfsDeleter.class);
 
   private final MountTable mMountTable;
+  private final MountResolver mMountResolver;
   private final AlluxioURI mRootPath;
   private UfsSyncChecker mUfsSyncChecker;
 
@@ -46,17 +49,19 @@ public final class SafeUfsDeleter implements UfsDeleter {
    * Creates a new instance of {@link SafeUfsDeleter}.
    *
    * @param mountTable the mount table
+   * @param mountResolver for resolving mount points
    * @param inodes sub-tree being deleted (any node should appear before descendants)
    * @param deleteOptions delete options
    */
-  public SafeUfsDeleter(MountTable mountTable, List<Pair<AlluxioURI, LockedInodePath>> inodes,
-      DeleteOptions deleteOptions)
+  public SafeUfsDeleter(MountTable mountTable, MountResolver mountResolver,
+      List<Pair<AlluxioURI, LockedInodePath>> inodes, DeleteOptions deleteOptions)
       throws IOException, FileDoesNotExistException, InvalidPathException {
     mMountTable = mountTable;
+    mMountResolver = mountResolver;
     // Root of sub-tree occurs before any of its descendants
     mRootPath = inodes.get(0).getFirst();
     if (!deleteOptions.isUnchecked() && !deleteOptions.isAlluxioOnly()) {
-      mUfsSyncChecker = new UfsSyncChecker(mMountTable);
+      mUfsSyncChecker = new UfsSyncChecker(mMountTable, mMountResolver);
       for (Pair<AlluxioURI, LockedInodePath> inodePair : inodes) {
         AlluxioURI alluxioUri = inodePair.getFirst();
         InodeView inode = inodePair.getSecond().getInodeOrNull();
@@ -72,7 +77,7 @@ public final class SafeUfsDeleter implements UfsDeleter {
   @Override
   public void delete(AlluxioURI alluxioUri, InodeView inode)
       throws IOException, InvalidPathException {
-    MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
+    Resolution resolution = mMountResolver.resolve(alluxioUri);
     String ufsUri = resolution.getUri().toString();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();

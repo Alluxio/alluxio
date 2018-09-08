@@ -30,13 +30,13 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
 import alluxio.thrift.BlockWorkerClientService;
-import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
+import alluxio.worker.WorkerContext;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
@@ -121,11 +121,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /**
    * Constructs a default block worker.
    *
-   * @param ufsManager ufs manager
+   * @param workerContext worker context
    */
-  DefaultBlockWorker(UfsManager ufsManager) {
+  DefaultBlockWorker(WorkerContext workerContext) {
     this(new BlockMasterClientPool(), new FileSystemMasterClient(MasterClientConfig.defaults()),
-        new Sessions(), new TieredBlockStore(), ufsManager);
+        new Sessions(), new TieredBlockStore(), workerContext);
   }
 
   /**
@@ -135,13 +135,13 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param fileSystemMasterClient a client for talking to the file system master
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
-   * @param ufsManager ufs manager
+   * @param workerContext worker context
    */
   DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
-      UfsManager ufsManager) {
-    super(Executors
-        .newFixedThreadPool(4, ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
+      WorkerContext workerContext) {
+    super(Executors.newFixedThreadPool(4,
+        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)), workerContext);
     mBlockMasterClientPool = blockMasterClientPool;
     mBlockMasterClient = mBlockMasterClientPool.acquire();
     mFileSystemMasterClient = fileSystemMasterClient;
@@ -153,7 +153,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
-    mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, ufsManager);
+    mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, workerContext.getUfsClientCache());
 
     Metrics.registerGauges(this);
   }

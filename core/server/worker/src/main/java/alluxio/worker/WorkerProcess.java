@@ -13,7 +13,6 @@ package alluxio.worker;
 
 import alluxio.Process;
 import alluxio.network.TieredIdentityFactory;
-import alluxio.underfs.UfsManager;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
@@ -54,9 +53,9 @@ public interface WorkerProcess extends Process {
   WorkerNetAddress getAddress();
 
   /**
-   * @return the block worker for this Alluxio worker
+   * @return the ufs client cache for this Alluxio worker
    */
-  UfsManager getUfsManager();
+  UfsClientCache getUfsClientCache();
 
   /**
    * @return the worker's data service bind host (used by unit test only)

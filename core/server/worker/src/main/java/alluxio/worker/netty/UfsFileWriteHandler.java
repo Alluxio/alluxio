@@ -18,7 +18,7 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Mode;
-import alluxio.underfs.UfsManager;
+import alluxio.worker.UfsClientCache;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
@@ -52,17 +52,17 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(UfsFileWriteHandler.class);
-  private final UfsManager mUfsManager;
+  private final UfsClientCache mUfsClientCache;
 
   /**
    * Creates an instance of {@link UfsFileWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s
-   * @param ufsManager the file data manager
+   * @param ufsClientCache the file data manager
    */
-  UfsFileWriteHandler(ExecutorService executorService, UfsManager ufsManager) {
+  UfsFileWriteHandler(ExecutorService executorService, UfsClientCache ufsClientCache) {
     super(executorService);
-    mUfsManager = ufsManager;
+    mUfsClientCache = ufsClientCache;
   }
 
   @Override
@@ -85,24 +85,24 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
 
   @Override
   protected PacketWriter createPacketWriter(UfsFileWriteRequestContext context, Channel channel) {
-    return new UfsFilePacketWriter(context, channel, mUfsManager);
+    return new UfsFilePacketWriter(context, channel, mUfsClientCache);
   }
 
   /**
    * The packet writer that writes to UFS.
    */
   public class UfsFilePacketWriter extends PacketWriter {
-    private final UfsManager mUfsManager;
+    private final UfsClientCache mUfsClientCache;
 
     /**
      * @param context context of this packet writer
      * @param channel netty channel
-     * @param ufsManager UFS manager
+     * @param ufsClientCache UFS manager
      */
     public UfsFilePacketWriter(UfsFileWriteRequestContext context, Channel channel,
-        UfsManager ufsManager) {
+        UfsClientCache ufsClientCache) {
       super(context, channel);
-      mUfsManager = ufsManager;
+      mUfsClientCache = ufsClientCache;
     }
 
     @Override
@@ -171,7 +171,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       UfsFileWriteRequest request = context.getRequest();
       Preconditions.checkState(request != null);
       Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
-      UfsManager.UfsClient ufsClient = mUfsManager.get(createUfsFileOptions.getMountId());
+      UfsClientCache.UfsClient ufsClient = mUfsClientCache.get(createUfsFileOptions.getMountId());
       CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource();
       context.setUfsResource(ufsResource);
       UnderFileSystem ufs = ufsResource.get();

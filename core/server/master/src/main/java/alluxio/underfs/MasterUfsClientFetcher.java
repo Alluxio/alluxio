@@ -13,23 +13,25 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.JournalEntryReplayable;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.underfs.DefaultUfsClientCache.UfsClientFetcher;
+import alluxio.worker.UfsClientCache.UfsClient;
 import alluxio.underfs.UnderFileSystem.UfsMode;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -38,40 +40,21 @@ import javax.annotation.concurrent.ThreadSafe;
  * A class that manages the UFS for master servers.
  */
 @ThreadSafe
-public final class MasterUfsManager extends AbstractUfsManager
-    implements JournalEntryIterable, JournalEntryReplayable {
-  private static final Logger LOG = LoggerFactory.getLogger(MasterUfsManager.class);
+public final class MasterUfsClientFetcher
+    implements UfsClientFetcher, JournalEntryIterable, JournalEntryReplayable {
+  private static final Logger LOG = LoggerFactory.getLogger(MasterUfsClientFetcher.class);
 
+  private final MountTable mMountTable;
+  private final UfsCache mUfsCache;
   private final State mState;
 
-  /** A set of all managed ufs roots. */
-  private final Set<String> mUfsRoots;
-
-  /** Mapping from mount ID to ufs root. */
-  private final Map<Long, String> mIdToRoot;
-
   /**
-   * Constructs the instance of {@link MasterUfsManager}.
+   * Constructs the instance of {@link MasterUfsClientFetcher}.
    */
-  public MasterUfsManager() {
+  public MasterUfsClientFetcher(MountTable mountTable, UfsCache ufsCache) {
+    mMountTable = mountTable;
+    mUfsCache = ufsCache;
     mState = new State();
-    mUfsRoots = new HashSet<>();
-    mIdToRoot = new HashMap<>();
-  }
-
-  @Override
-  public synchronized void addMount(long mountId, final AlluxioURI ufsUri,
-      final UnderFileSystemConfiguration ufsConf) {
-    super.addMount(mountId, ufsUri, ufsConf);
-    String root = ufsUri.getRootPath();
-    mUfsRoots.add(root);
-    mIdToRoot.put(mountId, root);
-  }
-
-  @Override
-  public synchronized void removeMount(long mountId) {
-    mIdToRoot.remove(mountId);
-    super.removeMount(mountId);
   }
 
   /**
@@ -103,7 +86,7 @@ public final class MasterUfsManager extends AbstractUfsManager
     LOG.info("Set ufs mode for {} to {}", ufsPath, ufsMode);
 
     String root = ufsPath.getRootPath();
-    if (!mUfsRoots.contains(root)) {
+    if (!mMountTable.containsUfsRoot(root)) {
       LOG.warn("No managed ufs for physical ufs path {}", root);
       throw new InvalidPathException(String.format("Unknown Ufs path %s", root));
     }
@@ -112,6 +95,14 @@ public final class MasterUfsManager extends AbstractUfsManager
         .setUfsPath(ufsPath.getRootPath())
         .setUfsMode(File.UfsMode.valueOf(ufsMode.name()))
         .build());
+  }
+
+  @Override
+  public UfsClient getClient(long mountId) {
+    MountInfo info = mMountTable.getMountInfo(mountId);
+    return new UfsClient(
+        () -> mUfsCache.getOrAdd(info.getAlluxioUri(), info.getOptions().toUfsConfiguration()),
+        info.getUfsUri());
   }
 
   @Override

@@ -12,14 +12,15 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
-import alluxio.resource.CloseableResource;
+import alluxio.underfs.DefaultUfsClientCache.UfsClientFetcher;
+import alluxio.worker.UfsClientCache.UfsClient;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,32 +32,25 @@ import javax.annotation.concurrent.ThreadSafe;
  * The default implementation of UfsManager to manage the ufs used by different worker services.
  */
 @ThreadSafe
-public final class WorkerUfsManager extends AbstractUfsManager {
-  private static final Logger LOG = LoggerFactory.getLogger(WorkerUfsManager.class);
+public class WorkerUfsClientFetcher implements UfsClientFetcher {
+  private static final Logger LOG = LoggerFactory.getLogger(WorkerUfsClientFetcher.class);
 
   private final FileSystemMasterClient mMasterClient;
+  private final UfsCache mUfsCache;
+
+  private final Closer mCloser;
 
   /**
-   * Constructs an instance of {@link WorkerUfsManager}.
+   * Constructs an instance of {@link WorkerUfsClientFetcher}.
    */
-  public WorkerUfsManager() {
+  public WorkerUfsClientFetcher(UfsCache ufsCache) {
+    mCloser = Closer.create();
+    mUfsCache = ufsCache;
     mMasterClient = mCloser.register(new FileSystemMasterClient(MasterClientConfig.defaults()));
   }
 
-  /**
-   * {@inheritDoc}.
-   *
-   * If this mount id is new to this worker, this method will query master to get the corresponding
-   * ufs info.
-   */
   @Override
-  public UfsClient get(long mountId) throws NotFoundException, UnavailableException {
-    try {
-      return super.get(mountId);
-    } catch (NotFoundException e) {
-      // Not cached locally, let's query master
-    }
-
+  public UfsClient getClient(long mountId) throws IOException {
     alluxio.thrift.UfsInfo info;
     try {
       info = mMasterClient.getUfsInfo(mountId);
@@ -65,20 +59,15 @@ public final class WorkerUfsManager extends AbstractUfsManager {
           String.format("Failed to get UFS info for mount point with id %d", mountId), e);
     }
     Preconditions.checkState((info.isSetUri() && info.isSetProperties()), "unknown mountId");
-    super.addMount(mountId, new AlluxioURI(info.getUri()),
-        UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().isReadOnly())
-            .setShared(info.getProperties().isShared())
-            .setMountSpecificConf(info.getProperties().getProperties()));
-    UfsClient ufsClient = super.get(mountId);
-    try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
-      UnderFileSystem ufs = ufsResource.get();
-      ufs.connectFromWorker(
-          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-    } catch (IOException e) {
-      removeMount(mountId);
-      throw new UnavailableException(
-          String.format("Failed to connect to UFS %s with id %d", info.getUri(), mountId), e);
-    }
-    return ufsClient;
+    AlluxioURI ufsUri = new AlluxioURI(info.getUri());
+
+    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults()
+        .setReadOnly(info.getProperties().isReadOnly())
+        .setShared(info.getProperties().isShared())
+        .setMountSpecificConf(info.getProperties().getProperties());
+    UnderFileSystem ufs = mUfsCache.getOrAdd(ufsUri, ufsConf);
+    ufs.connectFromWorker(
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
+    return new UfsClient(() -> mUfsCache.getOrAdd(ufsUri, ufsConf), ufsUri);
   }
 }

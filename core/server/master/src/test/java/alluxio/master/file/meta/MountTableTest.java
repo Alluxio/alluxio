@@ -11,10 +11,6 @@
 
 package alluxio.master.file.meta;
 
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
@@ -23,14 +19,11 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.journal.NoopJournalContext;
-import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.IdUtils;
 
-import com.google.common.base.Suppliers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,11 +43,7 @@ public final class MountTableTest {
 
   @Before
   public void before() throws Exception {
-    UfsManager ufsManager = mock(UfsManager.class);
-    UfsClient ufsClient =
-        new UfsManager.UfsClient(Suppliers.ofInstance(mTestUfs), AlluxioURI.EMPTY_URI);
-    when(ufsManager.get(anyLong())).thenReturn(ufsClient);
-    mMountTable = new MountTable(ufsManager, new MountInfo(new AlluxioURI(MountTable.ROOT),
+    mMountTable = new MountTable(new MountInfo(new AlluxioURI(MountTable.ROOT),
         new AlluxioURI(ROOT_UFS), IdUtils.ROOT_MOUNT_ID, MountOptions.defaults()));
   }
 
@@ -94,29 +83,6 @@ public final class MountTableTest {
       Assert.assertEquals(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
           .getMessage("hdfs://localhost", "hdfs://localhost"), e.getMessage());
     }
-
-    // Test resolve()
-    MountTable.Resolution res1 = mMountTable.resolve(new AlluxioURI("/mnt/foo"));
-    Assert.assertEquals(new AlluxioURI("/foo"), res1.getUri());
-    Assert.assertEquals(2L, res1.getMountId());
-    MountTable.Resolution res2 = mMountTable.resolve(new AlluxioURI("/mnt/foo/x"));
-    Assert.assertEquals(new AlluxioURI("/foo/x"), res2.getUri());
-    Assert.assertEquals(2L, res2.getMountId());
-    MountTable.Resolution res3 = mMountTable.resolve(new AlluxioURI("/mnt/bar"));
-    Assert.assertEquals(new AlluxioURI("/bar"), res3.getUri());
-    Assert.assertEquals(3L, res3.getMountId());
-    MountTable.Resolution res4 = mMountTable.resolve(new AlluxioURI("/mnt/bar/y"));
-    Assert.assertEquals(new AlluxioURI("/bar/y"), res4.getUri());
-    Assert.assertEquals(3L, res4.getMountId());
-    MountTable.Resolution res5 = mMountTable.resolve(new AlluxioURI("/mnt/bar/baz"));
-    Assert.assertEquals(new AlluxioURI("/bar/baz"), res5.getUri());
-    Assert.assertEquals(3L, res4.getMountId());
-    MountTable.Resolution res6 = mMountTable.resolve(new AlluxioURI("/foobar"));
-    Assert.assertEquals(new AlluxioURI(ROOT_UFS).join("foobar"), res6.getUri());
-    Assert.assertEquals(IdUtils.ROOT_MOUNT_ID, res6.getMountId());
-    MountTable.Resolution res7 = mMountTable.resolve(new AlluxioURI("/"));
-    Assert.assertEquals(new AlluxioURI("s3a://bucket/"), res7.getUri());
-    Assert.assertEquals(IdUtils.ROOT_MOUNT_ID, res7.getMountId());
 
     // Test getMountPoint()
     Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(new AlluxioURI("/mnt/foo")));
@@ -177,16 +143,6 @@ public final class MountTableTest {
           ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage("/mnt/bar", "/mnt/bar/baz"),
           e.getMessage());
     }
-
-    // Test resolve()
-    Assert.assertEquals(new AlluxioURI("file://localhost:5678/foo"),
-        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/foo")).getUri());
-    Assert.assertEquals(new AlluxioURI("file://localhost:5678/bar"),
-        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/bar")).getUri());
-    Assert.assertEquals(new AlluxioURI("file://localhost:5678/bar/y"),
-        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/bar/y")).getUri());
-    Assert.assertEquals(new AlluxioURI("file://localhost:5678/bar/baz"),
-        mMountTable.resolve(new AlluxioURI("alluxio://localhost:1234/mnt/bar/baz")).getUri());
 
     // Test getMountPoint()
     Assert.assertEquals("/mnt/foo",

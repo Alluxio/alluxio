@@ -31,8 +31,7 @@ import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
-import alluxio.master.file.meta.MountTable;
-import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.meta.MountResolver;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metrics.MetricsMaster;
@@ -42,7 +41,6 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
-import alluxio.underfs.UfsManager;
 
 import com.google.common.collect.Lists;
 import org.junit.AfterClass;
@@ -181,9 +179,7 @@ public final class PermissionCheckerTest {
     sRegistry.add(MetricsMaster.class, sMetricsMaster);
     BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, masterContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
-    UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
-    sTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
+    sTree = new InodeTree(blockMaster, directoryIdGenerator, mock(MountResolver.class));
 
     sRegistry.start(true);
 

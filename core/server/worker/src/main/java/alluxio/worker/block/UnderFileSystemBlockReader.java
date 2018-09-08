@@ -23,11 +23,12 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.resource.CloseableResource;
-import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.worker.UfsClientCache;
+import alluxio.worker.UfsClientCache.UfsClient;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
@@ -70,8 +71,6 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   private BlockWriter mBlockWriter;
   /** If set, the reader is closed and should not be used afterwards. */
   private boolean mClosed;
-  /** The manager for different ufs. */
-  private final UfsManager mUfsManager;
   /** The manager for all ufs instream. */
   private final UfsInputStreamManager mUfsInstreamManager;
   /** The ufs client resource. */
@@ -92,15 +91,15 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @param blockMeta the block meta
    * @param offset the position within the block to start the read
    * @param localBlockStore the Local block store
-   * @param ufsManager the manager of ufs
+   * @param ufsClientCache the ufs client cache
    * @param ufsInstreamManager the manager of ufs instreams
    * @return the block reader
    */
   public static UnderFileSystemBlockReader create(UnderFileSystemBlockMeta blockMeta, long offset,
-      BlockStore localBlockStore, UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager)
+      BlockStore localBlockStore, UfsClientCache ufsClientCache, UfsInputStreamManager ufsInstreamManager)
       throws IOException {
     UnderFileSystemBlockReader ufsBlockReader =
-        new UnderFileSystemBlockReader(blockMeta, localBlockStore, ufsManager, ufsInstreamManager);
+        new UnderFileSystemBlockReader(blockMeta, localBlockStore, ufsClientCache, ufsInstreamManager);
     ufsBlockReader.init(offset);
     return ufsBlockReader;
   }
@@ -110,18 +109,17 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    *
    * @param blockMeta the block meta
    * @param localBlockStore the Local block store
-   * @param ufsManager the manager of ufs
+   * @param ufsClientCache the ufs client cache
    * @param ufsInstreamManager the manager of ufs instreams
    */
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, BlockStore localBlockStore,
-      UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager) throws IOException {
+      UfsClientCache ufsClientCache, UfsInputStreamManager ufsInstreamManager) throws IOException {
     mInitialBlockSize = Configuration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
     mLocalBlockStore = localBlockStore;
     mInStreamPos = -1;
-    mUfsManager = ufsManager;
     mUfsInstreamManager = ufsInstreamManager;
-    UfsManager.UfsClient ufsClient = mUfsManager.get(mBlockMeta.getMountId());
+    UfsClient ufsClient = ufsClientCache.get(mBlockMeta.getMountId());
     mUfsResource = ufsClient.acquireUfsResource();
     mUfsMountPointUri = ufsClient.getUfsMountPointUri();
   }

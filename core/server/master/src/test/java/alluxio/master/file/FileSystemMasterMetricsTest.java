@@ -20,8 +20,9 @@ import alluxio.master.file.DefaultFileSystemMaster.Metrics;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
-import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.worker.UfsClientCache;
+import alluxio.worker.UfsClientCache.UfsClient;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,14 +33,14 @@ import org.mockito.Mockito;
  */
 public class FileSystemMasterMetricsTest {
   private FileSystemMaster mFileSystemMaster;
-  private UfsManager mUfsManager;
+  private UfsClientCache mUfsClientCache;
 
   @Before
   public void before() throws Exception {
     MetricsSystem.clearAllMetrics();
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
-    mUfsManager = Mockito.mock(UfsManager.class);
-    Metrics.registerGauges(mFileSystemMaster, mUfsManager);
+    mUfsClientCache = Mockito.mock(UfsClientCache.class);
+    Metrics.registerGauges(mFileSystemMaster, mUfsClientCache);
   }
 
   @Test
@@ -56,7 +57,7 @@ public class FileSystemMasterMetricsTest {
 
   @Test
   public void testMetricsUfsCapacity() throws Exception {
-    UfsManager.UfsClient client = Mockito.mock(UfsManager.UfsClient.class);
+    UfsClient client = Mockito.mock(UfsClient.class);
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
     String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     when(ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL)).thenReturn(1000L);
@@ -66,7 +67,7 @@ public class FileSystemMasterMetricsTest {
       @Override
       public void close() {}
     });
-    when(mUfsManager.getRoot()).thenReturn(client);
+    when(mUfsClientCache.getRoot()).thenReturn(client);
     assertEquals(1000L, getGauge(MasterMetrics.UFS_CAPACITY_TOTAL));
     assertEquals(200L, getGauge(MasterMetrics.UFS_CAPACITY_USED));
     assertEquals(800L, getGauge(MasterMetrics.UFS_CAPACITY_FREE));

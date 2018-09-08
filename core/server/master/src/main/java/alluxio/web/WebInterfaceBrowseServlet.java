@@ -304,7 +304,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void setPathDirectories(AlluxioURI path, HttpServletRequest request)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      UnavailableException {
+      IOException {
     FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     if (path.isRoot()) {
       request.setAttribute("pathInfos", new UIFileInfo[0]);

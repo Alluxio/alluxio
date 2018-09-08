@@ -88,7 +88,7 @@ public interface FileSystemMaster extends Master {
    */
   // TODO(binfan): Add permission checking for internal APIs
   FileInfo getFileInfo(long fileId)
-      throws FileDoesNotExistException, AccessControlException, UnavailableException;
+      throws FileDoesNotExistException, AccessControlException, UnavailableException, IOException;
 
   /**
    * Returns the {@link FileInfo} for a given path.
@@ -170,7 +170,7 @@ public interface FileSystemMaster extends Master {
   void completeFile(AlluxioURI path, CompleteFileOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException,
-      UnavailableException;
+      IOException;
 
   /**
    * Creates a file (not a directory) for a given path.
@@ -446,7 +446,7 @@ public interface FileSystemMaster extends Master {
    *
    * @param path the path of the file for persistence
    */
-  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, UnavailableException;
+  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, IOException;
 
   /**
    * Update the operation mode for the given ufs path under one or more mount points.

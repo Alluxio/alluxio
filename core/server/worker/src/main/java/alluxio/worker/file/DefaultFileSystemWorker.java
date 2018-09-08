@@ -19,11 +19,11 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.FileSystemWorkerClientService;
-import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
+import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -62,23 +62,20 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
 
   /** The service that persists files. */
   private Future<?> mFilePersistenceService;
-  /** Handler to the ufs manager. */
-  private final UfsManager mUfsManager;
 
   /**
    * Creates a new DefaultFileSystemWorker.
    *
    * @param blockWorker the block worker handle
-   * @param ufsManager the ufs manager
+   * @param workerContext worker context
    */
-  DefaultFileSystemWorker(BlockWorker blockWorker, UfsManager ufsManager) {
+  DefaultFileSystemWorker(BlockWorker blockWorker, WorkerContext workerContext) {
     super(Executors.newFixedThreadPool(3,
-        ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
+        ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)), workerContext);
     mWorkerId = blockWorker.getWorkerId();
-    mUfsManager = ufsManager;
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker, "blockWorker"),
         RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)),
-        mUfsManager);
+        mWorkerContext.getUfsClientCache());
 
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(MasterClientConfig.defaults());

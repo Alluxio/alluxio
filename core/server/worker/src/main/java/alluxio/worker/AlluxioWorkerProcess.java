@@ -23,8 +23,9 @@ import alluxio.network.ChannelType;
 import alluxio.network.thrift.BootstrapServerTransport;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
-import alluxio.underfs.UfsManager;
-import alluxio.underfs.WorkerUfsManager;
+import alluxio.underfs.DefaultUfsClientCache;
+import alluxio.underfs.UfsCache;
+import alluxio.underfs.WorkerUfsClientFetcher;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
@@ -107,7 +108,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private long mStartTimeMs;
 
   /** The manager for all ufs. */
-  private UfsManager mUfsManager;
+  private UfsClientCache mUfsClientCache;
 
   /** The jvm monitor.*/
   private JvmPauseMonitor mJvmPauseMonitor;
@@ -119,7 +120,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     mTieredIdentitiy = tieredIdentity;
     try {
       mStartTimeMs = System.currentTimeMillis();
-      mUfsManager = new WorkerUfsManager();
+      UfsCache ufsCache = new UfsCache();
+      mUfsClientCache = new DefaultUfsClientCache(ufsCache, new WorkerUfsClientFetcher(ufsCache));
+      WorkerContext workerContext = new WorkerContext(mUfsClientCache);
       mRegistry = new WorkerRegistry();
       List<Callable<Void>> callables = new ArrayList<>();
       for (final WorkerFactory factory : ServiceUtils.getWorkerServiceLoader()) {
@@ -127,7 +130,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           @Override
           public Void call() throws Exception {
             if (factory.isEnabled()) {
-              factory.create(mRegistry, mUfsManager);
+              factory.create(mRegistry, workerContext);
             }
             return null;
           }
@@ -222,8 +225,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   }
 
   @Override
-  public UfsManager getUfsManager() {
-    return mUfsManager;
+  public UfsClientCache getUfsClientCache() {
+    return mUfsClientCache;
   }
 
   @Override
@@ -298,7 +301,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
     mThriftServer.stop();
     mThriftServerSocket.close();
-    mUfsManager.close();
+    mUfsClientCache.close();
     try {
       mWebServer.stop();
     } catch (Exception e) {

@@ -22,6 +22,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.RpcContext;
+import alluxio.master.file.meta.MountResolver.Resolution;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
@@ -104,8 +105,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   /** Number of retries when trying to lock a path, from a given id. */
   private static final int PATH_TRAVERSAL_RETRIES = 1000;
 
-  /** Mount table manages the file system mount points. */
-  private final MountTable mMountTable;
+  /** Mount point resolver. */
+  private final MountResolver mMountResolver;
 
   private final TtlBucketList mTtlBuckets;
   /** Unmodifiable view of all inodes in the inode tree. */
@@ -131,16 +132,16 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   /**
    * @param containerIdGenerator the container id generator to use to get new container ids
    * @param directoryIdGenerator the directory id generator to use to get new directory ids
-   * @param mountTable the mount table to manage the file system mount points
+   * @param mountResolver resolver for resolving mount points
    */
   public InodeTree(ContainerIdGenerable containerIdGenerator,
-      InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable) {
+      InodeDirectoryIdGenerator directoryIdGenerator, MountResolver mountResolver) {
     mTtlBuckets = new TtlBucketList();
     mState = new InodeTreePersistentState(mTtlBuckets);
     mInodes = mState.getInodesView();
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = directoryIdGenerator;
-    mMountTable = mountTable;
+    mMountResolver = mountResolver;
   }
 
   /**
@@ -1191,7 +1192,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   private Optional<UfsStatus> syncPersistDirectory(InodeDirectoryView dir)
       throws FileDoesNotExistException, IOException, InvalidPathException {
     AlluxioURI uri = getPath(dir);
-    MountTable.Resolution resolution = mMountTable.resolve(uri);
+    Resolution resolution = mMountResolver.resolve(uri);
     String ufsUri = resolution.getUri().toString();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();

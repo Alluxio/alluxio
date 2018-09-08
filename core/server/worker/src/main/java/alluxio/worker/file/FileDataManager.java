@@ -22,7 +22,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Mode;
-import alluxio.underfs.UfsManager;
+import alluxio.worker.UfsClientCache;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
@@ -76,7 +76,7 @@ public final class FileDataManager {
   /** A per worker rate limiter to throttle async persistence. */
   private final RateLimiter mPersistenceRateLimiter;
   /** The manager for all ufs. */
-  private final UfsManager mUfsManager;
+  private final UfsClientCache mUfsClientCache;
   /** Factory for creating filesystems. */
   private final Supplier<FileSystem> mFileSystemFactory;
   private final ChannelCopier mChannelCopier;
@@ -94,11 +94,11 @@ public final class FileDataManager {
    *
    * @param blockWorker the block worker handle
    * @param persistenceRateLimiter a per worker rate limiter to throttle async persistence
-   * @param ufsManager the ufs manager
+   * @param ufsClientCache the ufs manager
    */
   public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter,
-      UfsManager ufsManager) {
-    this(blockWorker, persistenceRateLimiter, ufsManager, () -> FileSystem.Factory.get(),
+      UfsClientCache ufsClientCache) {
+    this(blockWorker, persistenceRateLimiter, ufsClientCache, () -> FileSystem.Factory.get(),
         (r, w) -> BufferUtils.fastCopy(r, w));
   }
 
@@ -107,18 +107,18 @@ public final class FileDataManager {
    *
    * @param blockWorker the block worker handle
    * @param persistenceRateLimiter a per worker rate limiter to throttle async persistence
-   * @param ufsManager the ufs manager
+   * @param ufsClientCache the ufs manager
    * @param fileSystemFactory factory for creating file systems
    * @param channelCopier method to use for copying between channels
    */
   @VisibleForTesting
   FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter,
-      UfsManager ufsManager, Supplier<FileSystem> fileSystemFactory, ChannelCopier channelCopier) {
+      UfsClientCache ufsClientCache, Supplier<FileSystem> fileSystemFactory, ChannelCopier channelCopier) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker, "blockWorker");
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedUfsFingerprints = new HashMap<>();
     mPersistenceRateLimiter = persistenceRateLimiter;
-    mUfsManager = ufsManager;
+    mUfsClientCache = ufsClientCache;
     mFileSystemFactory = fileSystemFactory;
     mChannelCopier = channelCopier;
   }
@@ -195,7 +195,7 @@ public final class FileDataManager {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
     try (CloseableResource<UnderFileSystem> ufsResource =
-        mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
+        mUfsClientCache.get(fileInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       return ufs.isFile(dstPath) ? ufs.getFingerprint(dstPath) : null;
     }
@@ -263,7 +263,7 @@ public final class FileDataManager {
 
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     try (CloseableResource<UnderFileSystem> ufsResource =
-        mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
+        mUfsClientCache.get(fileInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       String dstPath = prepareUfsFilePath(fileInfo, ufs);
       OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()

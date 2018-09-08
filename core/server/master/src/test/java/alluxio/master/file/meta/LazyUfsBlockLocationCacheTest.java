@@ -12,13 +12,13 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.MasterTestUtils;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.journal.NoopJournalContext;
-import alluxio.underfs.MasterUfsManager;
-import alluxio.underfs.UfsManager;
+import alluxio.underfs.DefaultUfsClientCache;
+import alluxio.underfs.MasterUfsClientFetcher;
+import alluxio.underfs.UfsCache;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.IdUtils;
 
 import com.google.common.io.Files;
@@ -26,7 +26,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,9 +34,6 @@ import java.util.List;
 public class LazyUfsBlockLocationCacheTest {
   private String mLocalUfsPath;
   private UnderFileSystem mLocalUfs;
-  private long mMountId;
-  private UfsManager mUfsManager;
-  private MountTable mMountTable;
   private LazyUfsBlockLocationCache mUfsBlockLocationCache;
 
   /**
@@ -45,23 +41,18 @@ public class LazyUfsBlockLocationCacheTest {
    */
   @Before
   public void before() throws Exception {
+    MountTable mountTable = MasterTestUtils.testMountTable("/ufs");
+    UfsCache ufsCache = new UfsCache();
+    MountResolver mountResolver = new MountResolver(mountTable,
+        new DefaultUfsClientCache(ufsCache, new MasterUfsClientFetcher(mountTable, ufsCache)));
+
     mLocalUfsPath = Files.createTempDir().getAbsolutePath();
     mLocalUfs = UnderFileSystem.Factory.create(mLocalUfsPath);
+    long mountId = IdUtils.getRandomNonNegativeLong();
+    mountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
+        new AlluxioURI(mLocalUfsPath), mountId, MountOptions.defaults());
 
-    mMountId = IdUtils.getRandomNonNegativeLong();
-    mUfsManager = new MasterUfsManager();
-    MountOptions options = MountOptions.defaults();
-    mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
-        UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
-            .setShared(options.isShared())
-            .setMountSpecificConf(Collections.<String, String>emptyMap()));
-
-    mMountTable = new MountTable(mUfsManager,
-        new MountInfo(new AlluxioURI("/"), new AlluxioURI("/ufs"), 1, MountOptions.defaults()));
-    mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
-        new AlluxioURI(mLocalUfsPath), mMountId, options);
-
-    mUfsBlockLocationCache = new LazyUfsBlockLocationCache(mMountTable);
+    mUfsBlockLocationCache = new LazyUfsBlockLocationCache(mountResolver);
   }
 
   @Test
