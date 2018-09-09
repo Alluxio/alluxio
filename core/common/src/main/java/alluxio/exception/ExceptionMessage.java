@@ -249,8 +249,8 @@ public enum ExceptionMessage {
   // mounting
   MOUNT_POINT_ALREADY_EXISTS("Mount point {0} already exists"),
   MOUNT_POINT_PREFIX_OF_ANOTHER("Mount point {0} is a prefix of {1}"),
-  MOUNT_PATH_SHADOWS_DEFAULT_UFS(
-      "Mount path {0} shadows an existing path in the default underlying filesystem"),
+  MOUNT_PATH_SHADOWS_PARENT_UFS(
+      "Mount path {0} shadows an existing path {1} in the parent underlying filesystem"),
   MOUNT_READONLY("A write operation on {0} under a readonly mount point {1} is not allowed"),
   UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
 
