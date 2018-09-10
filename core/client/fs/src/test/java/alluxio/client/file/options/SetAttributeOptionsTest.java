@@ -108,7 +108,7 @@ public final class SetAttributeOptionsTest {
     assertTrue(protoOptions.hasPinned());
     assertEquals(pinned, protoOptions.getPinned());
     assertTrue(protoOptions.hasTtl());
-    assertEquals(alluxio.thrift.TTtlAction.Delete, protoOptions.getTtlAction());
+    assertEquals(alluxio.grpc.TtlAction.DELETE, protoOptions.getTtlAction());
     assertEquals(ttl, protoOptions.getTtl());
   }
 
