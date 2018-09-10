@@ -25,12 +25,12 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public enum ExceptionMessage {
   // general
-  INVALID_PREFIX("Parent path {0} is not a prefix of child {1}"),
-  NOT_SUPPORTED("This method is not supported"),
-  PATH_DOES_NOT_EXIST("Path {0} does not exist"),
-  PATH_MUST_BE_FILE("Path {0} must be a file"),
-  PATH_MUST_BE_DIRECTORY("Path {0} must be a directory"),
-  PATH_INVALID("Path {0} is invalid"),
+  INVALID_PREFIX("Parent path \"{0}\" is not a prefix of child {1}."),
+  NOT_SUPPORTED("This method is not supported."),
+  PATH_DOES_NOT_EXIST("Path \"{0}\" does not exist."),
+  PATH_MUST_BE_FILE("Path \"{0}\" must be a file."),
+  PATH_MUST_BE_DIRECTORY("Path \"{0}\" must be a directory."),
+  PATH_INVALID("Path \"{0}\" is invalid."),
 
   // general block
   BLOCK_UNAVAILABLE("Block {0} is unavailable in both Alluxio and UFS."),
