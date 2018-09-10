@@ -17,7 +17,6 @@ import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockMasterClientService;
-import alluxio.thrift.GetBlockInfoTOptions;
 import alluxio.thrift.GetBlockMasterInfoTOptions;
 import alluxio.thrift.GetCapacityBytesTOptions;
 import alluxio.thrift.GetUsedBytesTOptions;
@@ -108,7 +107,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    */
   public synchronized BlockInfo getBlockInfo(final long blockId) throws IOException {
     return retryRPC(() -> null
-//      BlockInfo.fromThrift(mClient.getBlockInfo(blockId, new GetBlockInfoTOptions()).getBlockInfo())
+    // BlockInfo.fromThrift(mClient.getBlockInfo(blockId, new
+    // GetBlockInfoTOptions()).getBlockInfo())
     );
   }
 

@@ -52,8 +52,6 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.util.grpc.GrpcUtils;
-import alluxio.wire.FileInfo;
-import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
 
 import java.util.ArrayList;
@@ -259,9 +257,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void unmount(final AlluxioURI alluxioPath) throws AlluxioStatusException {
-    retryRPC(() ->
-      mBlockingStub.unmount(UnmountPRequest.newBuilder().setAlluxioPath(alluxioPath.getPath())
-          .setOptions(UnmountPOptions.newBuilder().build()).build()), "Unmount");
+    retryRPC(() -> mBlockingStub
+        .unmount(UnmountPRequest.newBuilder().setAlluxioPath(alluxioPath.getPath())
+            .setOptions(UnmountPOptions.newBuilder().build()).build()),
+        "Unmount");
   }
 
   @Override
