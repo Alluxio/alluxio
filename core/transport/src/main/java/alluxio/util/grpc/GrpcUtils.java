@@ -606,6 +606,22 @@ public final class GrpcUtils {
   /**
    * Converts a proto type to a wire type.
    */
+  public static WorkerInfo fromProto(alluxio.grpc.WorkerInfo workerInfo) {
+    return new WorkerInfo()
+        .setAddress(fromProto(workerInfo.getAddress()))
+        .setCapacityBytes(workerInfo.getCapacityBytes())
+        .setCapacityBytesOnTiers(workerInfo.getCapacityBytesOnTiers())
+        .setId(workerInfo.getId())
+        .setLastContactSec(workerInfo.getLastContactSec())
+        .setStartTimeMs(workerInfo.getStartTimeMs())
+        .setState(workerInfo.getState())
+        .setUsedBytes(workerInfo.getUsedBytes())
+        .setUsedBytesOnTiers(workerInfo.getUsedBytesOnTiersMap());
+  }
+
+  /**
+   * Converts a proto type to a wire type.
+   */
   public static WorkerNetAddress fromProto(alluxio.grpc.WorkerNetAddress workerNetPAddress) {
     WorkerNetAddress workerNetAddress = new WorkerNetAddress();
     workerNetAddress.setHost(workerNetPAddress.getHost());
@@ -1073,9 +1089,18 @@ public final class GrpcUtils {
   /**
    * Converts wire type to proto type.
    */
-  public static Worker toProto(WorkerInfo workerInfo) {
-    // TODO(adit): implement worker info
-    return null;
+  public static alluxio.grpc.WorkerInfo toProto(WorkerInfo workerInfo) {
+    return alluxio.grpc.WorkerInfo.newBuilder()
+        .setId(workerInfo.getId())
+        .setAddress(toProto(workerInfo.getAddress()))
+        .setLastContactSec(workerInfo.getLastContactSec())
+        .setState(workerInfo.getState())
+        .setCapacityBytes(workerInfo.getCapacityBytes())
+        .setUsedBytes(workerInfo.getUsedBytes())
+        .setStartTimeMs(workerInfo.getStartTimeMs())
+        .putAllCapacityBytesOnTiers(workerInfo.getCapacityBytesOnTiers())
+        .putAllUsedBytesOnTiers(workerInfo.getUsedBytesOnTiers())
+        .build();
   }
 
   /**
