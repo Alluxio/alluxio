@@ -1,7 +1,7 @@
 syntax = "proto2";
 
 option java_multiple_files = true;
-option java_package = "alluxio.grpc";
+option java_package = "alluxio.grpc.block";
 option java_outer_classname = "BlockMasterProto";
 
 package alluxio.grpc;
@@ -66,14 +66,14 @@ enum WorkerRange {
 
 enum WorkerInfoField {
   ADDRESS = 1;
-  CAPACITY_BYTES = 2;
-  CAPACITY_BYTES_ON_TIERS = 3;
+  WORKER_CAPACITY_BYTES = 2;
+  WORKER_CAPACITY_BYTES_ON_TIERS = 3;
   ID = 4;
   LAST_CONTACT_SEC = 5;
   START_TIME_MS = 6;
   STATE = 7;
-  USED_BYTES = 8;
-  USED_BYTES_ON_TIERS = 9;
+  WORKER_USED_BYTES = 8;
+  WORKER_USED_BYTES_ON_TIERS = 9;
 }
 
 message WorkerInfo {

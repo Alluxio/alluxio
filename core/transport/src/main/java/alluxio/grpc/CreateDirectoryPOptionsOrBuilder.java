@@ -44,33 +44,15 @@ public interface CreateDirectoryPOptionsOrBuilder extends
   int getMode();
 
   /**
-   * <code>optional int64 ttl = 5;</code>
-   */
-  boolean hasTtl();
-  /**
-   * <code>optional int64 ttl = 5;</code>
-   */
-  long getTtl();
-
-  /**
-   * <code>optional .alluxio.grpc.TtlAction ttlAction = 6;</code>
-   */
-  boolean hasTtlAction();
-  /**
-   * <code>optional .alluxio.grpc.TtlAction ttlAction = 6;</code>
-   */
-  alluxio.grpc.TtlAction getTtlAction();
-
-  /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 7;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 7;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 7;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }

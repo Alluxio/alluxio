@@ -35,42 +35,24 @@ public interface CreateFilePOptionsOrBuilder extends
   boolean getRecursive();
 
   /**
-   * <code>optional int64 ttl = 4;</code>
-   */
-  boolean hasTtl();
-  /**
-   * <code>optional int64 ttl = 4;</code>
-   */
-  long getTtl();
-
-  /**
-   * <code>optional int32 mode = 5;</code>
+   * <code>optional int32 mode = 4;</code>
    */
   boolean hasMode();
   /**
-   * <code>optional int32 mode = 5;</code>
+   * <code>optional int32 mode = 4;</code>
    */
   int getMode();
 
   /**
-   * <code>optional .alluxio.grpc.TtlAction ttlAction = 6;</code>
-   */
-  boolean hasTtlAction();
-  /**
-   * <code>optional .alluxio.grpc.TtlAction ttlAction = 6;</code>
-   */
-  alluxio.grpc.TtlAction getTtlAction();
-
-  /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 7;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 7;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 7;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }
