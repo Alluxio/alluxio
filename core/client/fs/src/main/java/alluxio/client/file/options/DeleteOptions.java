@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class DeleteOptions extends alluxio.file.options.DeleteOptions {
+public final class DeleteOptions extends alluxio.file.options.DeleteOptions<DeleteOptions> {
   /**
    * @return the default {@link DeleteOptions}
    */
