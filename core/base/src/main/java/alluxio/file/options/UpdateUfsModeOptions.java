@@ -42,6 +42,14 @@ public abstract class UpdateUfsModeOptions<T extends UpdateUfsModeOptions> {
   }
 
   /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public T setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return (T) this;
+  }
+  /**
    * @param ufsMode the Ufs mode to set
    * @return the updated option object
    */

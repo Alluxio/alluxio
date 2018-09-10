@@ -29,7 +29,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class ListStatusOptions extends alluxio.file.options.ListStatusOptions {
+public final class ListStatusOptions
+    extends alluxio.file.options.ListStatusOptions<ListStatusOptions> {
   /**
    * @return the default {@link ListStatusOptions}
    */

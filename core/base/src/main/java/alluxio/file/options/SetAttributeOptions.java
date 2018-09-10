@@ -32,7 +32,7 @@ public abstract class SetAttributeOptions<T extends SetAttributeOptions> {
   protected Boolean mPersisted;
   protected String mOwner;
   protected String mGroup;
-  protected Mode mMode;
+  protected Mode mMode = Mode.defaults();
   protected boolean mRecursive;
   protected long mOperationTimeMs;
   protected String mUfsFingerprint;

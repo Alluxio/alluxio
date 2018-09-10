@@ -13,6 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.underfs.UfsMode;
+import alluxio.wire.CommonOptions;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -35,6 +36,8 @@ public final class UpdateUfsModeOptions
   }
 
   private UpdateUfsModeOptions() {
+    super();
+    mCommonOptions = CommonOptions.defaults();
     mUfsMode = UfsMode.READ_WRITE;
   }
 }

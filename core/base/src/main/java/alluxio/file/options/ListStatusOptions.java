@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public abstract class ListStatusOptions<T extends ListStatusOptions> {
   protected CommonOptions mCommonOptions;
-  protected LoadMetadataType mLoadMetadataType;
+  protected LoadMetadataType mLoadMetadataType = LoadMetadataType.Once;
   protected boolean mRecursive;
 
   /**

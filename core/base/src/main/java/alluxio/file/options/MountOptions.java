@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class MountOptions<T extends MountOptions> {
   protected CommonOptions mCommonOptions;
   protected boolean mReadOnly;
-  protected Map<String, String> mProperties;
+  protected Map<String, String> mProperties = Collections.EMPTY_MAP;
   protected boolean mShared;
 
   /**

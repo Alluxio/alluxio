@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public final class CommonOptions extends alluxio.file.options.CommonOptions {
+public final class CommonOptions extends alluxio.file.options.CommonOptions<CommonOptions> {
   private static final long serialVersionUID = -1491370184123698287L;
 
   /**
