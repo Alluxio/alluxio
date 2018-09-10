@@ -47,7 +47,7 @@ public final class MountOptionsTest {
   }
 
   /**
-   * Tests conversion to thrift representation.
+   * Tests conversion to proto representation.
    */
   @Test
   public void toProto() {

@@ -17,8 +17,10 @@ import alluxio.Constants;
 import alluxio.file.options.CheckConsistencyOptions;
 import alluxio.file.options.CommonOptions;
 import alluxio.file.options.CompleteFileOptions;
+import alluxio.file.options.CompleteUfsFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
+import alluxio.file.options.CreateUfsFileOptions;
 import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.FreeOptions;
 import alluxio.file.options.GetStatusOptions;
@@ -30,8 +32,10 @@ import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.UpdateUfsModeOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CompleteUfsFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.CreateUfsFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.ListStatusPOptions;
@@ -777,6 +781,40 @@ public final class GrpcUtils {
         .setUfsLength(options.getUfsLength())
         .setCommonOptions(toProto(options.getCommonOptions()))
         .build();
+  }
+
+  /**
+   * Converts options to proto type.
+   */
+  public static CreateUfsFilePOptions toProto(CreateUfsFileOptions options) {
+    CreateUfsFilePOptions.Builder builder = CreateUfsFilePOptions.newBuilder();
+    if (!options.getOwner().isEmpty()) {
+      builder.setOwner(options.getOwner());
+    }
+    if (!options.getGroup().isEmpty()) {
+      builder.setGroup(options.getGroup());
+    }
+    if (options.getMode() != null && options.getMode().toShort() != Constants.INVALID_MODE) {
+      builder.setMode(options.getMode().toShort());
+    }
+    return builder.build();
+  }
+
+  /**
+   * Converts options to proto type.
+   */
+  public static CompleteUfsFilePOptions toProto(CompleteUfsFileOptions options) {
+    CompleteUfsFilePOptions.Builder builder = CompleteUfsFilePOptions.newBuilder();
+    if (!options.getOwner().isEmpty()) {
+      builder.setOwner(options.getOwner());
+    }
+    if (!options.getGroup().isEmpty()) {
+      builder.setGroup(options.getGroup());
+    }
+    if (options.getMode() != null && options.getMode().toShort() != Constants.INVALID_MODE) {
+      builder.setMode(options.getMode().toShort());
+    }
+    return builder.build();
   }
 
   /**

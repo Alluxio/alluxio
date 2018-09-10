@@ -76,7 +76,7 @@ public final class CreateDirectoryOptionsTest {
   }
 
   /**
-   * Tests conversion to thrift representation.
+   * Tests conversion to proto representation.
    */
   @Test
   public void toProto() {
