@@ -83,7 +83,7 @@ public final class SetAttributeOptionsTest {
     assertEquals(TtlAction.FREE, options.getTtlAction());
     assertEquals(owner, options.getOwner());
     assertEquals(group, options.getGroup());
-    assertEquals(mode, options.getMode());
+    assertTrue(mode.toShort() == options.getMode());
     assertEquals(recursive, options.isRecursive());
   }
 

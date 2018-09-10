@@ -1022,6 +1022,9 @@ public final class GrpcUtils {
     if (options.getMode() != null) {
       builder.setMode(options.getMode());
     }
+    if (options.getPersisted() != null) {
+      builder.setPersisted(options.getPersisted());
+    }
     builder.setRecursive(options.isRecursive());
     return builder.build();
   }

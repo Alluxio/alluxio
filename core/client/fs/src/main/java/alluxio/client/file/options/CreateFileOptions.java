@@ -47,7 +47,6 @@ public final class CreateFileOptions
   private WriteType mWriteType;
 
   private CreateFileOptions() {
-    // TODO(adit): redundant definition in CreateDirectoryOptions
     mCommonOptions = CommonOptions.defaults()
         .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL)).setTtlAction(
             Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class));

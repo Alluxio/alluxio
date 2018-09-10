@@ -64,7 +64,7 @@ public final class SecurityUtils {
    */
   public static String getOwnerFromLoginModule() {
     // TODO(adit):
-    return "adit.madan";
+    return "test";
 //    try {
 //      // return LoginUser.get().getName();
 //    } catch (UnauthenticatedException | UnsupportedOperationException e) {
@@ -78,7 +78,7 @@ public final class SecurityUtils {
    */
   public static String getOwnerFromThriftClient() {
     // TODO(adit):
-    return "adit.madan";
+    return "test";
 //    try {
 //      User user = AuthenticatedClientUser.get();
 //      if (user == null) {

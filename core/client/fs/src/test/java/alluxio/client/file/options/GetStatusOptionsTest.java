@@ -12,8 +12,8 @@
 package alluxio.client.file.options;
 
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.test.util.CommonUtils;
-import alluxio.thrift.LoadMetadataTType;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.LoadMetadataType;
 
@@ -41,6 +41,6 @@ public class GetStatusOptionsTest {
   public void toProto() {
     GetStatusOptions options = GetStatusOptions.defaults();
     GetStatusPOptions protoOptions = GrpcUtils.toProto(options);
-    Assert.assertEquals(LoadMetadataTType.Once, protoOptions.getLoadMetadataType());
+    Assert.assertEquals(LoadMetadataPType.ONCE, protoOptions.getLoadMetadataType());
   }
 }

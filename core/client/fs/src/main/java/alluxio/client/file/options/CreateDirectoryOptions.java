@@ -46,13 +46,12 @@ public final class CreateDirectoryOptions
   }
 
   private CreateDirectoryOptions() {
-    // TODO(adit): redundant definition in CreateFileOptions
     mCommonOptions = CommonOptions.defaults()
         .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL)).setTtlAction(
             Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class));
-    mMode = ModeUtils.applyFileUMask(Mode.defaults());
+    mMode = ModeUtils.applyDirectoryUMask(Mode.defaults());
     mAcl = Collections.emptyList();
-    mRecursive = true;
+    mRecursive = false;
 
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     // TODO(adit):

@@ -90,7 +90,7 @@ public abstract class SetAttributeOptions<T extends SetAttributeOptions> {
    * @return the mode bits
    */
   public Short getMode() {
-    return mMode.toShort();
+    return mMode == null ? null : mMode.toShort();
   }
 
   /**
