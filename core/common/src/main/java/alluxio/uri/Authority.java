@@ -43,8 +43,7 @@ public interface Authority extends Comparable<Authority>, Serializable {
     } else {
       matcher = SINGLE_MASTER_AUTH.matcher(authority);
       if (matcher.matches()) {
-        return new SingleMasterAuthority(authority,
-            matcher.group(1), Integer.parseInt(matcher.group(2)));
+        return new SingleMasterAuthority(matcher.group(1), Integer.parseInt(matcher.group(2)));
       } else {
         return new UnknownAuthority(authority);
       }
