@@ -815,7 +815,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } else {
         checkLoadMetadataOptions(listStatusOptions.getLoadMetadataType(), inodePath.getUri());
       }
-      LOG.info("loadMetadata called");
       loadMetadataIfNotExist(rpcContext, inodePath, loadMetadataOptions);
       ensureFullPathAndUpdateCache(inodePath);
       inode = inodePath.getInode();
@@ -2228,10 +2227,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         isFile = ufs.isFile(ufsUri.toString());
       }
       if (isFile) {
-        LOG.info("load metadata for file {}", inodePath.getUri().toString());
         loadFileMetadataInternal(rpcContext, inodePath, resolution, options);
       } else {
-        LOG.info("load metadata for dir {}", inodePath.getUri().toString());
         loadDirectoryMetadata(rpcContext, inodePath, options);
         InodeDirectoryView inode = (InodeDirectoryView) inodePath.getInode();
 
@@ -2243,12 +2240,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             listOptions.setRecursive(false);
           }
           UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
-
           Arrays.sort(children, Comparator.comparing(UfsStatus::getName));
 
-          for (UfsStatus childStatus : children) {
-            LOG.info("child {}", childStatus.getName());
-          }
           for (UfsStatus childStatus : children) {
             if (PathUtils.isTemporaryFileName(childStatus.getName())) {
               continue;
@@ -2280,7 +2273,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
     } catch (IOException e) {
-      LOG.info("Failed to loadMetadata: inodePath={}, options={}.", inodePath.getUri(),
+      LOG.debug("Failed to loadMetadata: inodePath={}, options={}.", inodePath.getUri(),
           options, e);
       throw e;
     }
@@ -2306,7 +2299,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     long ufsBlockSizeByte;
     long ufsLength;
     AccessControlList acl = null;
-    DefaultAccessControlList defaultAcl = null;
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
 
@@ -2735,8 +2727,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
       } else {
         try {
-          List<AclEntry> entries = new ArrayList<>();
-          entries.addAll(inode.getACL().getEntries());
+          List<AclEntry> entries = new ArrayList<>(inode.getACL().getEntries());
           if (inode.isDirectory()) {
             InodeDirectoryView inodeDirectory = (InodeDirectoryView) inode;
             entries.addAll(inodeDirectory.getDefaultACL().getEntries());
@@ -2776,7 +2767,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     try {
       if (!replay && inode.isPersisted()) {
-        LOG.info("Setting ufs ACL for path: {}", inodePath.getUri());
         setUfsAcl(inodePath);
       }
     } catch (InvalidPathException | AccessControlException e) {

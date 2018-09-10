@@ -59,7 +59,7 @@ public class DefaultAccessControlList extends AccessControlList {
 
   /**
    * create a child file 's accessACL based on the default ACL.
-   * @param mode file's initial mode based on umask
+   * @param mode file's umask
    * @return child file's access ACL
    */
   public AccessControlList generateChildFileACL(Short mode) {
@@ -94,7 +94,7 @@ public class DefaultAccessControlList extends AccessControlList {
 
   /**
    * Creates a child directory's access ACL and default ACL based on the default ACL.
-   * @param mode child's initial mode based on umask
+   * @param mode child's umask
    * @return child directory's access ACL and default ACL
    */
   public Pair<AccessControlList, DefaultAccessControlList> generateChildDirACL(Short mode) {

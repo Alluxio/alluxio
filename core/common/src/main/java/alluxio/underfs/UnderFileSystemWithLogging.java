@@ -565,7 +565,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
 
       @Override
       public String toString() {
-        return String.format("SetAcl: path=%s, ACL=%s", path, aclEntries);
+        return String.format("SetAcl: path=%s, ACLEntries=%s", path, aclEntries);
       }
     });
   }
