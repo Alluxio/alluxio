@@ -17,7 +17,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for completing a file.
  */
 @NotThreadSafe
-public final class CompleteFileOptions extends alluxio.file.options.CompleteFileOptions<CompleteFileOptions> {
+public final class CompleteFileOptions
+    extends alluxio.file.options.CompleteFileOptions<CompleteFileOptions> {
   /**
    * @return the default {@link CompleteFileOptions}
    */

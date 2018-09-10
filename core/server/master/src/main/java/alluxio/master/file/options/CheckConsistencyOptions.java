@@ -17,7 +17,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for checking the consistency of a path.
  */
 @NotThreadSafe
-public final class CheckConsistencyOptions extends alluxio.file.options.CheckConsistencyOptions<CheckConsistencyOptions> {
+public final class CheckConsistencyOptions
+    extends alluxio.file.options.CheckConsistencyOptions<CheckConsistencyOptions> {
   /**
    * @return the default {@link CheckConsistencyOptions}
    */
