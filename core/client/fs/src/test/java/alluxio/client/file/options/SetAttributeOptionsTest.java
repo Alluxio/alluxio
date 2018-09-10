@@ -19,7 +19,8 @@ import static org.junit.Assert.fail;
 
 import alluxio.security.authorization.Mode;
 import alluxio.test.util.CommonUtils;
-import alluxio.thrift.SetAttributeTOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.TtlAction;
 
 import org.junit.Test;
@@ -90,7 +91,7 @@ public final class SetAttributeOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThrift() {
+  public void toProto() {
     Random random = new Random();
     boolean persisted = random.nextBoolean();
     boolean pinned = random.nextBoolean();
@@ -100,15 +101,15 @@ public final class SetAttributeOptionsTest {
     options.setPersisted(persisted);
     options.setPinned(pinned);
     options.setTtl(ttl);
-    SetAttributeTOptions thriftOptions = options.toThrift();
+    SetAttributePOptions protoOptions = GrpcUtils.toProto(options);
 
-    assertTrue(thriftOptions.isSetPersisted());
-    assertEquals(persisted, thriftOptions.isPersisted());
-    assertTrue(thriftOptions.isSetPinned());
-    assertEquals(pinned, thriftOptions.isPinned());
-    assertTrue(thriftOptions.isSetTtl());
-    assertEquals(alluxio.thrift.TTtlAction.Delete, thriftOptions.getTtlAction());
-    assertEquals(ttl, thriftOptions.getTtl());
+    assertTrue(protoOptions.hasPersisted());
+    assertEquals(persisted, protoOptions.getPersisted());
+    assertTrue(protoOptions.hasPinned());
+    assertEquals(pinned, protoOptions.getPinned());
+    assertTrue(protoOptions.hasTtl());
+    assertEquals(alluxio.thrift.TTtlAction.Delete, protoOptions.getTtlAction());
+    assertEquals(ttl, protoOptions.getTtl());
   }
 
   @Test

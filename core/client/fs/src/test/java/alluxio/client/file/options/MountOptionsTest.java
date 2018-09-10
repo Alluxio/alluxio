@@ -14,8 +14,9 @@ package alluxio.client.file.options;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.grpc.MountPOptions;
 import alluxio.test.util.CommonUtils;
-import alluxio.thrift.MountTOptions;
+import alluxio.util.grpc.GrpcUtils;
 
 import org.junit.Test;
 
@@ -49,16 +50,16 @@ public final class MountOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThrift() {
+  public void toProto() {
     MountOptions options = MountOptions.defaults();
-    MountTOptions thriftOptions = options.toThrift();
-    assertFalse(thriftOptions.isReadOnly());
+    MountPOptions protoOptions = GrpcUtils.toProto(options);
+    assertFalse(protoOptions.getReadOnly());
 
     options.setReadOnly(true);
     options.setShared(true);
-    thriftOptions = options.toThrift();
-    assertTrue(thriftOptions.isReadOnly());
-    assertTrue(thriftOptions.isShared());
+    protoOptions = GrpcUtils.toProto(options);
+    assertTrue(protoOptions.getReadOnly());
+    assertTrue(protoOptions.getShared());
   }
 
   @Test

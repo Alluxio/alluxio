@@ -16,9 +16,10 @@ import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
-import alluxio.thrift.CreateUfsFileTOptions;
+import alluxio.grpc.CreateUfsFilePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
+import alluxio.util.grpc.GrpcUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
@@ -76,7 +77,7 @@ public final class CreateUfsFileOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThrift() throws IOException {
+  public void toProto() throws IOException {
     Random random = new Random();
     String owner = CommonUtils.randomAlphaNumString(10);
     String group = CommonUtils.randomAlphaNumString(10);
@@ -87,10 +88,10 @@ public final class CreateUfsFileOptionsTest {
     options.setGroup(group);
     options.setMode(mode);
 
-    CreateUfsFileTOptions thriftOptions = options.toThrift();
-    Assert.assertEquals(owner, thriftOptions.getOwner());
-    Assert.assertEquals(group, thriftOptions.getGroup());
-    Assert.assertEquals(mode.toShort(), thriftOptions.getMode());
+    CreateUfsFilePOptions protoOptions = GrpcUtils.toProto(options);
+    Assert.assertEquals(owner, protoOptions.getOwner());
+    Assert.assertEquals(group, protoOptions.getGroup());
+    Assert.assertEquals(mode.toShort(), protoOptions.getMode());
   }
 
   @Test

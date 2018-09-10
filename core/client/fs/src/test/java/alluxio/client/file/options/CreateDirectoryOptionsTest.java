@@ -18,10 +18,11 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.test.util.CommonUtils;
-import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.util.ModeUtils;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.TtlAction;
 
 import org.junit.Test;
@@ -78,7 +79,7 @@ public final class CreateDirectoryOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThrift() {
+  public void toProto() {
     Random random = new Random();
     boolean allowExists = random.nextBoolean();
     boolean recursive = random.nextBoolean();
@@ -94,11 +95,11 @@ public final class CreateDirectoryOptionsTest {
     options.setRecursive(recursive);
     options.setWriteType(writeType);
 
-    CreateDirectoryTOptions thriftOptions = options.toThrift();
-    assertEquals(allowExists, thriftOptions.isAllowExists());
-    assertEquals(recursive, thriftOptions.isRecursive());
-    assertEquals(writeType.isThrough(), thriftOptions.isPersisted());
-    assertEquals(mode.toShort(), thriftOptions.getMode());
+    CreateDirectoryPOptions protoOptions = GrpcUtils.toProto(options);
+    assertEquals(allowExists, protoOptions.getAllowExist());
+    assertEquals(recursive, protoOptions.getRecursive());
+    assertEquals(writeType.isThrough(), protoOptions.getPersisted());
+    assertEquals(mode.toShort(), protoOptions.getMode());
   }
 
   @Test

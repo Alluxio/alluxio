@@ -16,8 +16,9 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.grpc.DeletePOptions;
 import alluxio.test.util.CommonUtils;
-import alluxio.thrift.DeleteTOptions;
+import alluxio.util.grpc.GrpcUtils;
 
 import org.junit.Test;
 
@@ -64,11 +65,11 @@ public final class DeleteOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThrift() {
+  public void toProto() {
     DeleteOptions options = DeleteOptions.defaults();
-    DeleteTOptions thriftOptions = options.toThrift();
-    assertFalse(thriftOptions.isRecursive());
-    assertFalse(thriftOptions.isAlluxioOnly());
+    DeletePOptions protoOptions = GrpcUtils.toProto(options);
+    assertFalse(protoOptions.getRecursive());
+    assertFalse(protoOptions.getAlluxioOnly());
   }
 
   @Test
