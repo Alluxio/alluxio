@@ -1,7 +1,7 @@
 syntax = "proto2";
 
 option java_multiple_files = true;
-option java_package = "alluxio.grpc.block";
+option java_package = "alluxio.grpc";
 option java_outer_classname = "BlockMasterProto";
 
 package alluxio.grpc;

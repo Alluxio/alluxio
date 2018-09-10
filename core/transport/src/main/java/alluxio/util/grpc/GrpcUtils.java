@@ -1073,7 +1073,7 @@ public final class GrpcUtils {
   /**
    * Converts wire type to proto type.
    */
-  public static Object toProto(WorkerInfo workerInfo) {
+  public static Worker toProto(WorkerInfo workerInfo) {
     // TODO(adit): implement worker info
     return null;
   }
