@@ -69,6 +69,7 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TtlAction;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.net.HostAndPort;
@@ -144,8 +145,6 @@ public final class GrpcUtils {
       options.setAllowExists(pOptions.getAllowExist());
       options.setPersisted(pOptions.getPersisted());
       options.setRecursive(pOptions.getRecursive());
-      options.setTtl(pOptions.getTtl());
-      options.setTtlAction(fromProto(pOptions.getTtlAction()));
       // TODO(adit): implement auth
       // if (SecurityUtils.isAuthenticationEnabled()) {
       // mOwner = SecurityUtils.getOwnerFromProtoClient();
@@ -173,8 +172,6 @@ public final class GrpcUtils {
       options.setBlockSizeBytes(pOptions.getBlockSizeBytes());
       options.setPersisted(pOptions.getPersisted());
       options.setRecursive(pOptions.getRecursive());
-      options.setTtl(pOptions.getTtl());
-      options.setTtlAction(fromProto(pOptions.getTtlAction()));
       // TODO(adit): implement auth
       // if (SecurityUtils.isAuthenticationEnabled()) {
       // mOwner = SecurityUtils.getOwnerFromProtoClient();
@@ -746,8 +743,6 @@ public final class GrpcUtils {
     CreateDirectoryPOptions.Builder builder = CreateDirectoryPOptions.newBuilder()
         .setAllowExist(options.isAllowExists())
         .setRecursive(options.isRecursive())
-        .setTtl(options.getTtl())
-        .setTtlAction(toProto(options.getTtlAction()))
         .setPersisted(options.isPersisted())
         .setCommonOptions(toProto(options.getCommonOptions()));
     if (options.getMode() != null) {
@@ -764,8 +759,6 @@ public final class GrpcUtils {
         .setBlockSizeBytes(options.getBlockSizeBytes())
         .setPersisted(options.isPersisted())
         .setRecursive(options.isRecursive())
-        .setTtl(options.getTtl())
-        .setTtlAction(toProto(options.getTtlAction()))
         .setCommonOptions(toProto(options.getCommonOptions()));
     if (options.getMode() != null) {
       builder.setMode(options.getMode().toShort());
@@ -1075,6 +1068,14 @@ public final class GrpcUtils {
         ufsMode = UfsMode.ReadWrite;
     }
     return UpdateUfsModePOptions.newBuilder().setUfsMode(ufsMode).build();
+  }
+
+  /**
+   * Converts wire type to proto type.
+   */
+  public static Object toProto(WorkerInfo workerInfo) {
+    // TODO(adit): implement worker info
+    return null;
   }
 
   /**

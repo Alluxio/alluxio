@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.util.CommonUtils;
+import alluxio.util.grpc.GrpcUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
@@ -31,9 +32,9 @@ public class WorkerNetAddressTest {
   }
 
   @Test
-  public void thrift() {
+  public void proto() {
     WorkerNetAddress workerNetAddress = createRandom();
-    WorkerNetAddress other = WorkerNetAddress.fromThrift(workerNetAddress.toThrift());
+    WorkerNetAddress other = GrpcUtils.fromProto(GrpcUtils.toProto(workerNetAddress));
     checkEquality(workerNetAddress, other);
   }
 

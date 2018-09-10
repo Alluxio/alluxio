@@ -33,7 +33,7 @@ public class MasterInfoTest {
   }
 
   @Test
-  public void thrift() {
+  public void proto() {
     MasterInfo masterInfo = createRandom();
     MasterInfo other = MasterInfo.fromThrift(masterInfo.toThrift());
     checkEquality(masterInfo, other);

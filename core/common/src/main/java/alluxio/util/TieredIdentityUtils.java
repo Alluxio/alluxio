@@ -33,6 +33,7 @@ public final class TieredIdentityUtils {
    * Locality comparison for wire type locality tiers, two locality tiers matches if both name and
    * values are equal, or for the "node" tier, if the node names resolve to the same IP address.
    *
+   * @param tier a wire type locality tier
    * @param otherTier a wire type locality tier to compare to
    * @return true if the wire type locality tier matches the given tier
    */
@@ -66,6 +67,7 @@ public final class TieredIdentityUtils {
   }
 
   /**
+   * @param tieredIdentity the tiered identity
    * @param identities the tiered identities to compare to
    * @return the identity closest to this one. If none of the identities match, the first identity
    *         is returned

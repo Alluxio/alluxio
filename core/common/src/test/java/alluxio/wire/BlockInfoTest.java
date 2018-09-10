@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.util.grpc.GrpcUtils;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,12 +35,12 @@ public final class BlockInfoTest {
   }
 
   /**
-   * Test to convert between a thrift type and a wire type.
+   * Test to convert between a proto type and a wire type.
    */
   @Test
-  public void thrift() {
+  public void proto() {
     BlockInfo blockInfo = createRandom();
-    BlockInfo other = BlockInfo.fromThrift(blockInfo.toThrift());
+    BlockInfo other = GrpcUtils.fromProto(GrpcUtils.toProto(blockInfo));
     checkEquality(blockInfo, other);
   }
 
