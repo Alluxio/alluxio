@@ -35,9 +35,8 @@ Where ACTION is one of:
   restart_workers    \tRestart any failed workers on worker nodes.
 
 MOPT (Mount Option) is one of:
-  Mount    \tMount the configured RamFS. Notice: this will format the existing RamFS.
-  SudoMount\tMount the configured RamFS using sudo.
-           \tNotice: this will format the existing RamFS.
+  Mount    \tMount the configured RamFS if it is not already mounted.
+  SudoMount\tMount the configured RamFS using sudo if it is not already mounted.
   NoMount  \tDo not mount the configured RamFS.
            \tNotice: to avoid sudo requirement but using tmpFS in Linux,
              set ALLUXIO_RAM_FOLDER=/dev/shm on each worker and use NoMount.
