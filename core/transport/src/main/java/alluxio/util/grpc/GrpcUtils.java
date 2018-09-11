@@ -91,6 +91,10 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
   public static CheckConsistencyOptions fromProto(FileSystemMasterOptions masterOptions,
       CheckConsistencyPOptions pOptions) {
@@ -105,6 +109,10 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
   public static CommonOptions fromProto(FileSystemMasterOptions masterOptions,
       FileSystemMasterCommonPOptions pOptions) {
@@ -119,6 +127,10 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
   public static CompleteFileOptions fromProto(FileSystemMasterOptions masterOptions,
       CompleteFilePOptions pOptions) {
@@ -134,6 +146,10 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
   public static CreateDirectoryOptions fromProto(FileSystemMasterOptions masterOptions,
       CreateDirectoryPOptions pOptions) {
@@ -161,6 +177,10 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
   public static CreateFileOptions fromProto(FileSystemMasterOptions masterOptions,
       CreateFilePOptions pOptions) {
@@ -189,6 +209,10 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
   public static FreeOptions fromProto(FileSystemMasterOptions masterOptions,
       FreePOptions pOptions) {
@@ -206,6 +230,10 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
   public static GetStatusOptions fromProto(FileSystemMasterOptions masterOptions,
       GetStatusPOptions pOptions) {
@@ -223,6 +251,10 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
   public static ListStatusOptions fromProto(FileSystemMasterOptions masterOptions,
       ListStatusPOptions pOptions) {
@@ -247,7 +279,7 @@ public final class GrpcUtils {
   /**
    * Converts from proto type to wire type.
    *
-   * @param loadMetadataTType the proto representation of loadMetadataType
+   * @param loadMetadataPType the proto representation of loadMetadataType
    * @return the {@link LoadMetadataType}
    */
   @Nullable
@@ -292,6 +324,10 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
   public static MountOptions fromProto(FileSystemMasterOptions masterOptions,
       MountPOptions pOptions) {
@@ -315,6 +351,10 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
   public static DeleteOptions fromProto(FileSystemMasterOptions masterOptions,
       DeletePOptions pOptions) {
@@ -332,6 +372,10 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
   public static RenameOptions fromProto(FileSystemMasterOptions masterOptions,
       RenamePOptions pOptions) {
@@ -346,8 +390,13 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
-  public static SetAclOptions fromProto(FileSystemMasterOptions masterOptions, SetAclPOptions pOptions) {
+  public static SetAclOptions fromProto(FileSystemMasterOptions masterOptions,
+      SetAclPOptions pOptions) {
     SetAclOptions options = masterOptions.getSetAclOptions();
     if (pOptions != null) {
       if (pOptions.hasCommonOptions()) {
@@ -362,6 +411,10 @@ public final class GrpcUtils {
 
   /**
    * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
    */
   public static SetAttributeOptions fromProto(FileSystemMasterOptions masterOptions,
       SetAttributePOptions pOptions) {
@@ -397,8 +450,8 @@ public final class GrpcUtils {
   }
 
   /**
-   * @param pAcl the thrift representation
-   * @return the {@link AccessControlList} instance created from the thrift representation
+   * @param pAcl the proto representation
+   * @return the {@link AccessControlList} instance created from the proto representation
    */
   public static AccessControlList fromProto(PAcl pAcl) {
     AccessControlList acl;
@@ -482,6 +535,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a proto type to a wire type.
+   *
+   * @param blockPLocation the proto type to convert
+   * @return the converted wire type
    */
   public static BlockLocation fromProto(alluxio.grpc.BlockLocation blockPLocation) {
     BlockLocation blockLocation = new BlockLocation();
@@ -493,6 +549,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a proto type to a wire type.
+   *
+   * @param blockPInfo the proto type to convert
+   * @return the converted wire type
    */
   public static BlockInfo fromProto(alluxio.grpc.BlockInfo blockPInfo) {
     BlockInfo blockInfo = new BlockInfo();
@@ -545,6 +604,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a proto type to a wire type.
+   *
+   * @param fileBlockPInfo the proto type to convert
+   * @return the converted wire type
    */
   public static FileBlockInfo fromProto(alluxio.grpc.FileBlockInfo fileBlockPInfo) {
     return new FileBlockInfo()
@@ -558,6 +620,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a proto type to a wire type.
+   *
+   * @param tieredPIdentity the proto type to convert
+   * @return the converted wire type
    */
   public static TieredIdentity fromProto(alluxio.grpc.TieredIdentity tieredPIdentity) {
     return new TieredIdentity(tieredPIdentity.getTiersList().stream().map(GrpcUtils::fromProto)
@@ -566,6 +631,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a proto type to a wire type.
+   *
+   * @param localityPTier the proto type to convert
+   * @return the converted wire type
    */
   public static TieredIdentity.LocalityTier fromProto(alluxio.grpc.LocalityTier localityPTier) {
     return new TieredIdentity.LocalityTier(localityPTier.getTierName(), localityPTier.getValue());
@@ -573,6 +641,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a proto type to a wire type.
+   *
+   * @param mountPointPInfo the proto type to convert
+   * @return the converted wire type
    */
   public static MountPointInfo fromProto(alluxio.grpc.MountPointInfo mountPointPInfo) {
     return new MountPointInfo().setUfsUri(mountPointPInfo.getUfsUri())
@@ -605,6 +676,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a proto type to a wire type.
+   *
+   * @param workerInfo the proto type to convert
+   * @return the converted wire type
    */
   public static WorkerInfo fromProto(alluxio.grpc.WorkerInfo workerInfo) {
     return new WorkerInfo()
@@ -621,6 +695,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a proto type to a wire type.
+   *
+   * @param workerNetPAddress the proto type to convert
+   * @return the converted wire type
    */
   public static WorkerNetAddress fromProto(alluxio.grpc.WorkerNetAddress workerNetPAddress) {
     WorkerNetAddress workerNetAddress = new WorkerNetAddress();
@@ -634,6 +711,7 @@ public final class GrpcUtils {
   }
 
   /**
+   * @param acl the access control list to convert
    * @return the proto representation of this object
    */
   public static PAcl toProto(AccessControlList acl) {
@@ -651,6 +729,7 @@ public final class GrpcUtils {
   }
 
   /**
+   * @param defaultAcl the default access control list to convert
    * @return the proto representation of default acl object
    */
   public static PAcl toProto(DefaultAccessControlList defaultAcl) {
@@ -661,6 +740,7 @@ public final class GrpcUtils {
   }
 
   /**
+   * @param action the acl action to convert
    * @return the proto representation of this enum
    */
   public static PAclAction toProto(AclAction action) {
@@ -677,6 +757,7 @@ public final class GrpcUtils {
   }
 
   /**
+   * @param aclEntry the acl entry to convert
    * @return the proto representation of AclEntry instance
    */
   public static PAclEntry toProto(AclEntry aclEntry) {
@@ -691,6 +772,7 @@ public final class GrpcUtils {
   }
 
   /**
+   * @param aclEntryType the acl entry type to convert
    * @return the proto representation of this enum
    */
   public static PAclEntryType toProto(AclEntryType aclEntryType) {
@@ -714,6 +796,9 @@ public final class GrpcUtils {
 
   /**
    * Converts wire type to proto type.
+   *
+   * @param blockInfo the wire type to convert
+   * @return the converted proto type
    */
   public static alluxio.grpc.BlockInfo toProto(BlockInfo blockInfo) {
     List<alluxio.grpc.BlockLocation> locations = new ArrayList<>();
@@ -726,6 +811,9 @@ public final class GrpcUtils {
 
   /**
    * Converts wire type to proto type.
+   *
+   * @param blockLocation the wire type to convert
+   * @return the converted proto type
    */
   public static alluxio.grpc.BlockLocation toProto(BlockLocation blockLocation) {
     return alluxio.grpc.BlockLocation.newBuilder().setWorkerId(blockLocation.getWorkerId())
@@ -735,6 +823,9 @@ public final class GrpcUtils {
 
   /**
    * Converts options to proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static FileSystemMasterCommonPOptions toProto(CommonOptions options) {
     return FileSystemMasterCommonPOptions.newBuilder()
@@ -746,6 +837,9 @@ public final class GrpcUtils {
 
   /**
    * Converts options to proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static CheckConsistencyPOptions toProto(CheckConsistencyOptions options) {
     return CheckConsistencyPOptions.newBuilder()
@@ -754,6 +848,9 @@ public final class GrpcUtils {
 
   /**
    * Converts options to proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static CreateDirectoryPOptions toProto(CreateDirectoryOptions options) {
     CreateDirectoryPOptions.Builder builder = CreateDirectoryPOptions.newBuilder()
@@ -769,6 +866,9 @@ public final class GrpcUtils {
 
   /**
    * Converts options to proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static CreateFilePOptions toProto(CreateFileOptions options) {
     CreateFilePOptions.Builder builder = CreateFilePOptions.newBuilder()
@@ -784,6 +884,9 @@ public final class GrpcUtils {
 
   /**
    * Converts options to proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static CompleteFilePOptions toProto(CompleteFileOptions options) {
     return CompleteFilePOptions.newBuilder()
@@ -794,6 +897,9 @@ public final class GrpcUtils {
 
   /**
    * Converts options to proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static CreateUfsFilePOptions toProto(CreateUfsFileOptions options) {
     CreateUfsFilePOptions.Builder builder = CreateUfsFilePOptions.newBuilder();
@@ -811,6 +917,9 @@ public final class GrpcUtils {
 
   /**
    * Converts options to proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static CompleteUfsFilePOptions toProto(CompleteUfsFileOptions options) {
     CompleteUfsFilePOptions.Builder builder = CompleteUfsFilePOptions.newBuilder();
@@ -828,6 +937,9 @@ public final class GrpcUtils {
 
   /**
    * Converts options to proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static DeletePOptions toProto(DeleteOptions options) {
     return DeletePOptions.newBuilder()
@@ -839,6 +951,9 @@ public final class GrpcUtils {
 
   /**
    * Converts options to proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static FreePOptions toProto(FreeOptions options) {
     return FreePOptions.newBuilder()
@@ -896,6 +1011,9 @@ public final class GrpcUtils {
 
   /**
    * Converts wire type to proto type.
+   *
+   * @param fileBlockInfo the wire representation to convert
+   * @return converted proto representation
    */
   public static alluxio.grpc.FileBlockInfo toProto(FileBlockInfo fileBlockInfo) {
     List<alluxio.grpc.WorkerNetAddress> ufsLocations = new ArrayList<>();
@@ -912,6 +1030,9 @@ public final class GrpcUtils {
 
   /**
    * Converts options to proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static GetStatusPOptions toProto(GetStatusOptions options) {
     return GetStatusPOptions.newBuilder()
@@ -921,6 +1042,9 @@ public final class GrpcUtils {
 
   /**
    * Converts options to proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static ListStatusPOptions toProto(ListStatusOptions options) {
     return ListStatusPOptions.newBuilder()
@@ -943,6 +1067,9 @@ public final class GrpcUtils {
 
   /**
    * Converts wire type to proto type.
+   *
+   * @param localityTier the wire representation to convert
+   * @return converted proto representation
    */
   public static alluxio.grpc.LocalityTier toProto(TieredIdentity.LocalityTier localityTier) {
     return alluxio.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName())
@@ -951,6 +1078,9 @@ public final class GrpcUtils {
 
   /**
    * Converts wire type to proto type.
+   *
+   * @param info the wire representation to convert
+   * @return converted proto representation
    */
   public static alluxio.grpc.MountPointInfo toProto(MountPointInfo info) {
     return alluxio.grpc.MountPointInfo.newBuilder().setUfsUri(info.getUfsUri())
@@ -961,6 +1091,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a wire type to a proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static MountPOptions toProto(MountOptions options) {
     MountPOptions.Builder builder = MountPOptions.newBuilder().setReadOnly(options.isReadOnly())
@@ -973,6 +1106,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a wire type to a proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static RenamePOptions toProto(RenameOptions options) {
     return RenamePOptions.newBuilder().setCommonOptions(toProto(options.getCommonOptions()))
@@ -981,6 +1117,9 @@ public final class GrpcUtils {
 
   /**
    * Converts wire type to proto type.
+   *
+   * @param aclAction the wire representation to convert
+   * @return the converted proto representation
    */
   public static alluxio.grpc.PSetAclAction toProto(SetAclAction aclAction) {
     switch (aclAction) {
@@ -1001,6 +1140,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a wire type to a proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static SetAclPOptions toProto(SetAclOptions options) {
     return SetAclPOptions.newBuilder()
@@ -1011,6 +1153,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a wire type to a proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static SetAttributePOptions toProto(SetAttributeOptions options) {
     SetAttributePOptions.Builder builder =
@@ -1037,9 +1182,12 @@ public final class GrpcUtils {
     builder.setRecursive(options.isRecursive());
     return builder.build();
   }
-  
+
   /**
    * Converts wire type to proto type.
+   *
+   * @param tieredIdentity the wire representation to convert
+   * @return the converted proto representation
    */
   public static alluxio.grpc.TieredIdentity toProto(TieredIdentity tieredIdentity) {
     return alluxio.grpc.TieredIdentity.newBuilder()
@@ -1070,6 +1218,9 @@ public final class GrpcUtils {
 
   /**
    * Converts a wire type to a proto type.
+   *
+   * @param options the options type to convert
+   * @return the converted proto type
    */
   public static UpdateUfsModePOptions toProto(UpdateUfsModeOptions options) {
     UfsMode ufsMode;
@@ -1088,6 +1239,9 @@ public final class GrpcUtils {
 
   /**
    * Converts wire type to proto type.
+   *
+   * @param workerInfo the wire representation to convert
+   * @return the converted proto representation
    */
   public static alluxio.grpc.WorkerInfo toProto(WorkerInfo workerInfo) {
     return alluxio.grpc.WorkerInfo.newBuilder()
@@ -1105,6 +1259,9 @@ public final class GrpcUtils {
 
   /**
    * Converts wire type to proto type.
+   *
+   * @param workerNetAddress the wire representation to convert
+   * @return the converted proto representation
    */
   public static alluxio.grpc.WorkerNetAddress toProto(WorkerNetAddress workerNetAddress) {
     alluxio.grpc.WorkerNetAddress.Builder address = alluxio.grpc.WorkerNetAddress.newBuilder()
