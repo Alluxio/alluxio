@@ -19,7 +19,6 @@ import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommitBlockTOptions;
-import alluxio.thrift.GetWorkerIdTOptions;
 import alluxio.thrift.Metric;
 import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.wire.ConfigProperty;

@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class MountOptions extends alluxio.file.options.MountOptions {
+public final class MountOptions extends alluxio.file.options.MountOptions<MountOptions> {
   /**
    * @return the default {@link MountOptions}
    */

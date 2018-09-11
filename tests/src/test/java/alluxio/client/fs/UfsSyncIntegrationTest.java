@@ -41,7 +41,7 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
-import alluxio.file.options.CommonOptions;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
 import com.google.common.collect.Sets;

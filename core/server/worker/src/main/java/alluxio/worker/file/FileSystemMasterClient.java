@@ -19,7 +19,6 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.thrift.FileSystemMasterWorkerService;
-import alluxio.thrift.GetFileInfoTOptions;
 import alluxio.thrift.GetPinnedFileIdsTOptions;
 import alluxio.thrift.GetUfsInfoTOptions;
 import alluxio.thrift.UfsInfo;
