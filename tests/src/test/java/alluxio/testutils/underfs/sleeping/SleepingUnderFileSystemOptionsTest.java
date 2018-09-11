@@ -27,6 +27,7 @@ public class SleepingUnderFileSystemOptionsTest {
   @Test
   public void defaults() {
     SleepingUnderFileSystemOptions defaults = new SleepingUnderFileSystemOptions();
+    Assert.assertEquals(-1, defaults.getCleanupMs());
     Assert.assertEquals(-1, defaults.getCloseMs());
     Assert.assertEquals(-1, defaults.getConnectFromMasterMs());
     Assert.assertEquals(-1, defaults.getConnectFromWorkerMs());
@@ -61,6 +62,7 @@ public class SleepingUnderFileSystemOptionsTest {
   public void fields() {
     SleepingUnderFileSystemOptions defaults = new SleepingUnderFileSystemOptions();
     Random random = new Random();
+    long sleepCleanupMs = random.nextLong();
     long sleepCloseMs = random.nextLong();
     long sleepConnectFromMasterMs = random.nextLong();
     long sleepConnectFromWorkerMs = random.nextLong();
@@ -88,6 +90,7 @@ public class SleepingUnderFileSystemOptionsTest {
     long sleepSupportsFlushMs = random.nextLong();
 
     defaults
+        .setCleanupMs(sleepCleanupMs)
         .setCloseMs(sleepCloseMs)
         .setConnectFromMasterMs(sleepConnectFromMasterMs)
         .setConnectFromWorkerMs(sleepConnectFromWorkerMs)
@@ -114,6 +117,7 @@ public class SleepingUnderFileSystemOptionsTest {
         .setSetOwnerMs(sleepSetOwnerMs)
         .setSupportsFlushMs(sleepSupportsFlushMs);
 
+    Assert.assertEquals(sleepCleanupMs, defaults.getCleanupMs());
     Assert.assertEquals(sleepCloseMs, defaults.getCloseMs());
     Assert.assertEquals(sleepConnectFromMasterMs, defaults.getConnectFromMasterMs());
     Assert.assertEquals(sleepConnectFromWorkerMs, defaults.getConnectFromWorkerMs());

@@ -31,7 +31,7 @@ public final class CatCommandIntegrationTest extends AbstractFileSystemShellTest
     int ret = mFsShell.run("cat", "/testDir");
     Assert.assertEquals(-1, ret);
     String expected = getCommandOutput(command);
-    expected += "Path /testDir must be a file\n";
+    expected += "Path \"/testDir\" must be a file.\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 

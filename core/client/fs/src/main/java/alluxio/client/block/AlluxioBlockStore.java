@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -144,7 +145,8 @@ public final class AlluxioBlockStore {
    * Gets a stream to read the data of a block. This method is primarily responsible for
    * determining the data source and type of data source. The latest BlockInfo will be fetched
    * from the master to ensure the locations are up to date. It takes a map of failed workers and
-   * their most recently failed time and attempts to avoid reading from a recently failed worker.
+   * their most recently failed time and tries to update it when BlockInStream created failed,
+   * attempting to avoid reading from a recently failed worker.
    *
    * @param blockId the id of the block to read
    * @param options the options associated with the read request
@@ -214,7 +216,15 @@ public final class AlluxioBlockStore {
     if (dataSource == null) {
       throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
-    return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
+
+    try {
+      return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
+    } catch (ConnectException e) {
+      //When BlockInStream created failed, it will update the passed-in failedWorkers
+      //to attempt to avoid reading from this failed worker in next try.
+      failedWorkers.put(dataSource, System.currentTimeMillis());
+      throw e;
+    }
   }
 
   private Set<WorkerNetAddress> handleFailedWorkers(Set<WorkerNetAddress> workers,

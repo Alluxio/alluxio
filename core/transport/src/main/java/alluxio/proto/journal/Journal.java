@@ -164,14 +164,26 @@ public final class Journal {
     // optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;
     /**
      * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     boolean hasDeleteLineage();
     /**
      * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     alluxio.proto.journal.Lineage.DeleteLineageEntry getDeleteLineage();
     /**
      * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     alluxio.proto.journal.Lineage.DeleteLineageEntryOrBuilder getDeleteLineageOrBuilder();
 
@@ -262,28 +274,52 @@ public final class Journal {
     // optional .alluxio.proto.journal.LineageEntry lineage = 13;
     /**
      * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     boolean hasLineage();
     /**
      * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     alluxio.proto.journal.Lineage.LineageEntry getLineage();
     /**
      * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     alluxio.proto.journal.Lineage.LineageEntryOrBuilder getLineageOrBuilder();
 
     // optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;
     /**
      * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     boolean hasLineageIdGenerator();
     /**
      * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     alluxio.proto.journal.Lineage.LineageIdGeneratorEntry getLineageIdGenerator();
     /**
      * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     alluxio.proto.journal.Lineage.LineageIdGeneratorEntryOrBuilder getLineageIdGeneratorOrBuilder();
 
@@ -332,14 +368,26 @@ public final class Journal {
     // optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;
     /**
      * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     boolean hasReinitializeFile();
     /**
      * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     alluxio.proto.journal.File.ReinitializeFileEntry getReinitializeFile();
     /**
      * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     alluxio.proto.journal.File.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder();
 
@@ -1206,18 +1254,30 @@ public final class Journal {
     private alluxio.proto.journal.Lineage.DeleteLineageEntry deleteLineage_;
     /**
      * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     public boolean hasDeleteLineage() {
       return ((bitField0_ & 0x00000800) == 0x00000800);
     }
     /**
      * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     public alluxio.proto.journal.Lineage.DeleteLineageEntry getDeleteLineage() {
       return deleteLineage_;
     }
     /**
      * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     public alluxio.proto.journal.Lineage.DeleteLineageEntryOrBuilder getDeleteLineageOrBuilder() {
       return deleteLineage_;
@@ -1360,18 +1420,30 @@ public final class Journal {
     private alluxio.proto.journal.Lineage.LineageEntry lineage_;
     /**
      * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     public boolean hasLineage() {
       return ((bitField0_ & 0x00040000) == 0x00040000);
     }
     /**
      * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     public alluxio.proto.journal.Lineage.LineageEntry getLineage() {
       return lineage_;
     }
     /**
      * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     public alluxio.proto.journal.Lineage.LineageEntryOrBuilder getLineageOrBuilder() {
       return lineage_;
@@ -1382,18 +1454,30 @@ public final class Journal {
     private alluxio.proto.journal.Lineage.LineageIdGeneratorEntry lineageIdGenerator_;
     /**
      * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     public boolean hasLineageIdGenerator() {
       return ((bitField0_ & 0x00080000) == 0x00080000);
     }
     /**
      * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     public alluxio.proto.journal.Lineage.LineageIdGeneratorEntry getLineageIdGenerator() {
       return lineageIdGenerator_;
     }
     /**
      * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     public alluxio.proto.journal.Lineage.LineageIdGeneratorEntryOrBuilder getLineageIdGeneratorOrBuilder() {
       return lineageIdGenerator_;
@@ -1470,18 +1554,30 @@ public final class Journal {
     private alluxio.proto.journal.File.ReinitializeFileEntry reinitializeFile_;
     /**
      * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     public boolean hasReinitializeFile() {
       return ((bitField0_ & 0x00800000) == 0x00800000);
     }
     /**
      * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     public alluxio.proto.journal.File.ReinitializeFileEntry getReinitializeFile() {
       return reinitializeFile_;
     }
     /**
      * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+     *
+     * <pre>
+     * deprecated, lineage is no longer supported
+     * </pre>
      */
     public alluxio.proto.journal.File.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder() {
       return reinitializeFile_;
@@ -3916,12 +4012,20 @@ public final class Journal {
           alluxio.proto.journal.Lineage.DeleteLineageEntry, alluxio.proto.journal.Lineage.DeleteLineageEntry.Builder, alluxio.proto.journal.Lineage.DeleteLineageEntryOrBuilder> deleteLineageBuilder_;
       /**
        * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public boolean hasDeleteLineage() {
         return ((bitField0_ & 0x00000800) == 0x00000800);
       }
       /**
        * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public alluxio.proto.journal.Lineage.DeleteLineageEntry getDeleteLineage() {
         if (deleteLineageBuilder_ == null) {
@@ -3932,6 +4036,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder setDeleteLineage(alluxio.proto.journal.Lineage.DeleteLineageEntry value) {
         if (deleteLineageBuilder_ == null) {
@@ -3948,6 +4056,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder setDeleteLineage(
           alluxio.proto.journal.Lineage.DeleteLineageEntry.Builder builderForValue) {
@@ -3962,6 +4074,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder mergeDeleteLineage(alluxio.proto.journal.Lineage.DeleteLineageEntry value) {
         if (deleteLineageBuilder_ == null) {
@@ -3981,6 +4097,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder clearDeleteLineage() {
         if (deleteLineageBuilder_ == null) {
@@ -3994,6 +4114,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public alluxio.proto.journal.Lineage.DeleteLineageEntry.Builder getDeleteLineageBuilder() {
         bitField0_ |= 0x00000800;
@@ -4002,6 +4126,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public alluxio.proto.journal.Lineage.DeleteLineageEntryOrBuilder getDeleteLineageOrBuilder() {
         if (deleteLineageBuilder_ != null) {
@@ -4012,6 +4140,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.DeleteLineageEntry delete_lineage = 7;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       private com.google.protobuf.SingleFieldBuilder<
           alluxio.proto.journal.Lineage.DeleteLineageEntry, alluxio.proto.journal.Lineage.DeleteLineageEntry.Builder, alluxio.proto.journal.Lineage.DeleteLineageEntryOrBuilder> 
@@ -4735,12 +4867,20 @@ public final class Journal {
           alluxio.proto.journal.Lineage.LineageEntry, alluxio.proto.journal.Lineage.LineageEntry.Builder, alluxio.proto.journal.Lineage.LineageEntryOrBuilder> lineageBuilder_;
       /**
        * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public boolean hasLineage() {
         return ((bitField0_ & 0x00040000) == 0x00040000);
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public alluxio.proto.journal.Lineage.LineageEntry getLineage() {
         if (lineageBuilder_ == null) {
@@ -4751,6 +4891,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder setLineage(alluxio.proto.journal.Lineage.LineageEntry value) {
         if (lineageBuilder_ == null) {
@@ -4767,6 +4911,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder setLineage(
           alluxio.proto.journal.Lineage.LineageEntry.Builder builderForValue) {
@@ -4781,6 +4929,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder mergeLineage(alluxio.proto.journal.Lineage.LineageEntry value) {
         if (lineageBuilder_ == null) {
@@ -4800,6 +4952,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder clearLineage() {
         if (lineageBuilder_ == null) {
@@ -4813,6 +4969,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public alluxio.proto.journal.Lineage.LineageEntry.Builder getLineageBuilder() {
         bitField0_ |= 0x00040000;
@@ -4821,6 +4981,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public alluxio.proto.journal.Lineage.LineageEntryOrBuilder getLineageOrBuilder() {
         if (lineageBuilder_ != null) {
@@ -4831,6 +4995,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageEntry lineage = 13;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       private com.google.protobuf.SingleFieldBuilder<
           alluxio.proto.journal.Lineage.LineageEntry, alluxio.proto.journal.Lineage.LineageEntry.Builder, alluxio.proto.journal.Lineage.LineageEntryOrBuilder> 
@@ -4852,12 +5020,20 @@ public final class Journal {
           alluxio.proto.journal.Lineage.LineageIdGeneratorEntry, alluxio.proto.journal.Lineage.LineageIdGeneratorEntry.Builder, alluxio.proto.journal.Lineage.LineageIdGeneratorEntryOrBuilder> lineageIdGeneratorBuilder_;
       /**
        * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public boolean hasLineageIdGenerator() {
         return ((bitField0_ & 0x00080000) == 0x00080000);
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public alluxio.proto.journal.Lineage.LineageIdGeneratorEntry getLineageIdGenerator() {
         if (lineageIdGeneratorBuilder_ == null) {
@@ -4868,6 +5044,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder setLineageIdGenerator(alluxio.proto.journal.Lineage.LineageIdGeneratorEntry value) {
         if (lineageIdGeneratorBuilder_ == null) {
@@ -4884,6 +5064,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder setLineageIdGenerator(
           alluxio.proto.journal.Lineage.LineageIdGeneratorEntry.Builder builderForValue) {
@@ -4898,6 +5082,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder mergeLineageIdGenerator(alluxio.proto.journal.Lineage.LineageIdGeneratorEntry value) {
         if (lineageIdGeneratorBuilder_ == null) {
@@ -4917,6 +5105,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder clearLineageIdGenerator() {
         if (lineageIdGeneratorBuilder_ == null) {
@@ -4930,6 +5122,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public alluxio.proto.journal.Lineage.LineageIdGeneratorEntry.Builder getLineageIdGeneratorBuilder() {
         bitField0_ |= 0x00080000;
@@ -4938,6 +5134,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public alluxio.proto.journal.Lineage.LineageIdGeneratorEntryOrBuilder getLineageIdGeneratorOrBuilder() {
         if (lineageIdGeneratorBuilder_ != null) {
@@ -4948,6 +5148,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.LineageIdGeneratorEntry lineage_id_generator = 14;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       private com.google.protobuf.SingleFieldBuilder<
           alluxio.proto.journal.Lineage.LineageIdGeneratorEntry, alluxio.proto.journal.Lineage.LineageIdGeneratorEntry.Builder, alluxio.proto.journal.Lineage.LineageIdGeneratorEntryOrBuilder> 
@@ -5320,12 +5524,20 @@ public final class Journal {
           alluxio.proto.journal.File.ReinitializeFileEntry, alluxio.proto.journal.File.ReinitializeFileEntry.Builder, alluxio.proto.journal.File.ReinitializeFileEntryOrBuilder> reinitializeFileBuilder_;
       /**
        * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public boolean hasReinitializeFile() {
         return ((bitField0_ & 0x00800000) == 0x00800000);
       }
       /**
        * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public alluxio.proto.journal.File.ReinitializeFileEntry getReinitializeFile() {
         if (reinitializeFileBuilder_ == null) {
@@ -5336,6 +5548,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder setReinitializeFile(alluxio.proto.journal.File.ReinitializeFileEntry value) {
         if (reinitializeFileBuilder_ == null) {
@@ -5352,6 +5568,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder setReinitializeFile(
           alluxio.proto.journal.File.ReinitializeFileEntry.Builder builderForValue) {
@@ -5366,6 +5586,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder mergeReinitializeFile(alluxio.proto.journal.File.ReinitializeFileEntry value) {
         if (reinitializeFileBuilder_ == null) {
@@ -5385,6 +5609,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public Builder clearReinitializeFile() {
         if (reinitializeFileBuilder_ == null) {
@@ -5398,6 +5626,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public alluxio.proto.journal.File.ReinitializeFileEntry.Builder getReinitializeFileBuilder() {
         bitField0_ |= 0x00800000;
@@ -5406,6 +5638,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       public alluxio.proto.journal.File.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder() {
         if (reinitializeFileBuilder_ != null) {
@@ -5416,6 +5652,10 @@ public final class Journal {
       }
       /**
        * <code>optional .alluxio.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
+       *
+       * <pre>
+       * deprecated, lineage is no longer supported
+       * </pre>
        */
       private com.google.protobuf.SingleFieldBuilder<
           alluxio.proto.journal.File.ReinitializeFileEntry, alluxio.proto.journal.File.ReinitializeFileEntry.Builder, alluxio.proto.journal.File.ReinitializeFileEntryOrBuilder> 

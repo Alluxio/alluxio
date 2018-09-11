@@ -68,6 +68,22 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public void cleanup() throws IOException {
+    call(new UfsCallable<Void>() {
+      @Override
+      public Void call() throws IOException {
+        mUnderFileSystem.cleanup();
+        return null;
+      }
+
+      @Override
+      public String toString() {
+        return "Cleanup";
+      }
+    });
+  }
+
+  @Override
   public void close() throws IOException {
     call(new UfsCallable<Void>() {
       @Override

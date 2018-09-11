@@ -22,13 +22,14 @@ import alluxio.underfs.options.DeleteOptions;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.transfer.TransferManager;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -57,6 +58,7 @@ public class S3AUnderFileSystemTest {
 
   private S3AUnderFileSystem mS3UnderFileSystem;
   private AmazonS3Client mClient;
+  private ListeningExecutorService mExecutor;
   private TransferManager mManager;
 
   @Rule
@@ -65,9 +67,10 @@ public class S3AUnderFileSystemTest {
   @Before
   public void before() throws InterruptedException, AmazonClientException {
     mClient = Mockito.mock(AmazonS3Client.class);
+    mExecutor = Mockito.mock(ListeningExecutorService.class);
     mManager = Mockito.mock(TransferManager.class);
     mS3UnderFileSystem = new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient,
-        BUCKET_NAME, mManager, UnderFileSystemConfiguration.defaults());
+        BUCKET_NAME, mExecutor, mManager, UnderFileSystemConfiguration.defaults(), false);
   }
 
   @Test
@@ -129,7 +132,7 @@ public class S3AUnderFileSystemTest {
           S3AUnderFileSystem.createAwsCredentialsProvider(ufsConf);
       Assert.assertEquals("key1", credentialsProvider.getCredentials().getAWSAccessKeyId());
       Assert.assertEquals("key2", credentialsProvider.getCredentials().getAWSSecretKey());
-      Assert.assertTrue(credentialsProvider instanceof StaticCredentialsProvider);
+      Assert.assertTrue(credentialsProvider instanceof AWSStaticCredentialsProvider);
     }
   }
 

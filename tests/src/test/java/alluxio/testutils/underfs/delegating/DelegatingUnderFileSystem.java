@@ -45,6 +45,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public void cleanup() throws IOException {
+    mUfs.cleanup();
+  }
+
+  @Override
   public void close() throws IOException {
     mUfs.close();
   }

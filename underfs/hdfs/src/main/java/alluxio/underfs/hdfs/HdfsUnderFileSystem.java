@@ -197,6 +197,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public void cleanup() throws IOException {
+  }
+
+  @Override
   public void close() throws IOException {
     // Don't close; file systems are singletons and closing it here could break other users
   }

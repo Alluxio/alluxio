@@ -168,17 +168,10 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
         throw new FileAlreadyExistsException(
             ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
       }
-      // Check all non-root mount points, to check if they're a prefix of the alluxioPath we're
-      // trying to mount. Also make sure that the ufs path we're trying to mount is not a prefix
+      // Make sure that the ufs path we're trying to mount is not a prefix
       // or suffix of any existing mount path.
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        String mountedAlluxioPath = entry.getKey();
         AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
-        if (!mountedAlluxioPath.equals(ROOT)
-            && PathUtils.hasPrefix(alluxioPath, mountedAlluxioPath)) {
-          throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(
-              mountedAlluxioPath, alluxioPath));
-        }
         if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
             && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
           String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
@@ -236,6 +229,18 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
 
     try (LockResource r = new LockResource(mWriteLock)) {
       if (mState.getMountTable().containsKey(path)) {
+        // check if the path contains another nested mount point
+        for (String mountPath : mState.getMountTable().keySet()) {
+          try {
+            if (PathUtils.hasPrefix(mountPath, path) && (!path.equals(mountPath))) {
+              LOG.warn("The path to unmount {} contains another nested mountpoint {}",
+                  path, mountPath);
+              return false;
+            }
+          } catch (InvalidPathException e) {
+            LOG.warn("Invalid path {} encountered when checking for nested mount point", path);
+          }
+        }
         mUfsManager.removeMount(mState.getMountTable().get(path).getMountId());
         mState.applyAndJournal(journalContext,
             DeleteMountPointEntry.newBuilder().setAlluxioPath(path).build());
@@ -255,15 +260,18 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
    */
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
-
+    String lastMount = ROOT;
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        String alluxioPath = entry.getKey();
-        if (!alluxioPath.equals(ROOT) && PathUtils.hasPrefix(path, alluxioPath)) {
-          return alluxioPath;
+        String mount = entry.getKey();
+        // we choose a new candidate path if the previous candidatepath is a prefix
+        // of the current alluxioPath and the alluxioPath is a prefix of the path
+        if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
+            && PathUtils.hasPrefix(mount, lastMount)) {
+          lastMount = mount;
         }
       }
-      return mState.getMountTable().containsKey(ROOT) ? ROOT : null;
+      return lastMount;
     }
   }
 
