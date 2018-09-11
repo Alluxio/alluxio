@@ -59,11 +59,11 @@ public class DefaultAccessControlList extends AccessControlList {
 
   /**
    * create a child file 's accessACL based on the default ACL.
-   * @param mode file's umask
+   * @param umask file's umask
    * @return child file's access ACL
    */
-  public AccessControlList generateChildFileACL(Short mode) {
-    Mode defaultMode = new Mode(mode);
+  public AccessControlList generateChildFileACL(Short umask) {
+    Mode defaultMode = new Mode(umask);
     AccessControlList acl = new AccessControlList();
     acl.mOwningUser = mOwningUser;
     acl.mOwningGroup = mOwningGroup;
@@ -77,13 +77,13 @@ public class DefaultAccessControlList extends AccessControlList {
       // permission to be filtered by the defaultMode
       acl.mExtendedEntries = new ExtendedACLEntries(mExtendedEntries);
 
-      // mask is filtered by the group bits from the mode parameter
+      // mask is filtered by the group bits from the umask parameter
       AclActions mask = acl.mExtendedEntries.getMask();
       AclActions groupAction = new AclActions();
       groupAction.updateByModeBits(defaultMode.getGroupBits());
       mask.mask(groupAction);
-      // user is filtered by the user bits from the mode parameter
-      // other is filtered by the other bits from the mode parameter
+      // user is filtered by the user bits from the umask parameter
+      // other is filtered by the other bits from the umask parameter
       Mode updateMode = new Mode(mMode);
       updateMode.setOwnerBits(updateMode.getOwnerBits().and(defaultMode.getOwnerBits()));
       updateMode.setOtherBits(updateMode.getOtherBits().and(defaultMode.getOtherBits()));
@@ -94,11 +94,11 @@ public class DefaultAccessControlList extends AccessControlList {
 
   /**
    * Creates a child directory's access ACL and default ACL based on the default ACL.
-   * @param mode child's umask
+   * @param umask child's umask
    * @return child directory's access ACL and default ACL
    */
-  public Pair<AccessControlList, DefaultAccessControlList> generateChildDirACL(Short mode) {
-    AccessControlList acl = generateChildFileACL(mode);
+  public Pair<AccessControlList, DefaultAccessControlList> generateChildDirACL(Short umask) {
+    AccessControlList acl = generateChildFileACL(umask);
     DefaultAccessControlList dAcl = new DefaultAccessControlList(acl);
     dAcl.setEmpty(false);
     dAcl.mOwningUser = mOwningUser;

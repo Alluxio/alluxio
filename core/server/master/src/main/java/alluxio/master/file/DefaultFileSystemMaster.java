@@ -815,6 +815,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } else {
         checkLoadMetadataOptions(listStatusOptions.getLoadMetadataType(), inodePath.getUri());
       }
+
       loadMetadataIfNotExist(rpcContext, inodePath, loadMetadataOptions);
       ensureFullPathAndUpdateCache(inodePath);
       inode = inodePath.getInode();

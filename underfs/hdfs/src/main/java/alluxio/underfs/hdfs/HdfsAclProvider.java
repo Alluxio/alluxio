@@ -32,7 +32,9 @@ public interface HdfsAclProvider {
    *
    * @param hdfs the HDFS client
    * @param path the path to retrieve the ACL for
-   * @return the {@link AccessControlList} representation, or null if ACL is unsupported/disabled
+   * @return a Pair object containing the {@link AccessControlList} representation and
+   *         the  {@link DefaultAccessControlList} representation or null if ACL is
+   *         unsupported/disabled
    * @throws IOException if ACL is supported but cannot be retrieved
    */
   @Nullable
@@ -40,10 +42,10 @@ public interface HdfsAclProvider {
       throws IOException;
 
   /**
-   * Sets the ACL for an hdfs path.
+   * Sets the ACL and default ACL for an hdfs path using ACL entries.
    *
    * @param hdfs the HDFS client
-   * @param path the path to set the ACL for
+   * @param path the path to set the ACL entries for
    * @param aclEntries list of AclEntries, could be a representation of {@link AccessControlList}
    *                   or {@link DefaultAccessControlList}
    * @throws IOException if ACL can not be set
