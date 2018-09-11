@@ -147,6 +147,12 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     }
 
     @Override
+    protected void flushRequest(BlockWriteRequestContext context)
+        throws Exception {
+      // This is a no-op because block worker does not support flush currently.
+    }
+
+    @Override
     protected void writeBuf(BlockWriteRequestContext context, Channel channel, ByteBuf buf,
         long pos) throws Exception {
       Preconditions.checkState(context != null);

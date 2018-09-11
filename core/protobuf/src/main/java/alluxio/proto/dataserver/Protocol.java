@@ -3508,6 +3508,16 @@ public final class Protocol {
      * </pre>
      */
     alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder getCreateUfsFileOptionsOrBuilder();
+
+    // optional bool flush = 8;
+    /**
+     * <code>optional bool flush = 8;</code>
+     */
+    boolean hasFlush();
+    /**
+     * <code>optional bool flush = 8;</code>
+     */
+    boolean getFlush();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.WriteRequest}
@@ -3612,6 +3622,11 @@ public final class Protocol {
                 createUfsFileOptions_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00000040;
+              break;
+            }
+            case 64: {
+              bitField0_ |= 0x00000080;
+              flush_ = input.readBool();
               break;
             }
           }
@@ -3800,6 +3815,22 @@ public final class Protocol {
       return createUfsFileOptions_;
     }
 
+    // optional bool flush = 8;
+    public static final int FLUSH_FIELD_NUMBER = 8;
+    private boolean flush_;
+    /**
+     * <code>optional bool flush = 8;</code>
+     */
+    public boolean hasFlush() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <code>optional bool flush = 8;</code>
+     */
+    public boolean getFlush() {
+      return flush_;
+    }
+
     private void initFields() {
       type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
       id_ = 0L;
@@ -3808,6 +3839,7 @@ public final class Protocol {
       eof_ = false;
       cancel_ = false;
       createUfsFileOptions_ = alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.getDefaultInstance();
+      flush_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -3841,6 +3873,9 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         output.writeMessage(7, createUfsFileOptions_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        output.writeBool(8, flush_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3878,6 +3913,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(7, createUfsFileOptions_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(8, flush_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4019,6 +4058,8 @@ public final class Protocol {
           createUfsFileOptionsBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000040);
+        flush_ = false;
+        bitField0_ = (bitField0_ & ~0x00000080);
         return this;
       }
 
@@ -4079,6 +4120,10 @@ public final class Protocol {
         } else {
           result.createUfsFileOptions_ = createUfsFileOptionsBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+          to_bitField0_ |= 0x00000080;
+        }
+        result.flush_ = flush_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -4115,6 +4160,9 @@ public final class Protocol {
         }
         if (other.hasCreateUfsFileOptions()) {
           mergeCreateUfsFileOptions(other.getCreateUfsFileOptions());
+        }
+        if (other.hasFlush()) {
+          setFlush(other.getFlush());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -4527,6 +4575,39 @@ public final class Protocol {
           createUfsFileOptions_ = null;
         }
         return createUfsFileOptionsBuilder_;
+      }
+
+      // optional bool flush = 8;
+      private boolean flush_ ;
+      /**
+       * <code>optional bool flush = 8;</code>
+       */
+      public boolean hasFlush() {
+        return ((bitField0_ & 0x00000080) == 0x00000080);
+      }
+      /**
+       * <code>optional bool flush = 8;</code>
+       */
+      public boolean getFlush() {
+        return flush_;
+      }
+      /**
+       * <code>optional bool flush = 8;</code>
+       */
+      public Builder setFlush(boolean value) {
+        bitField0_ |= 0x00000080;
+        flush_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool flush = 8;</code>
+       */
+      public Builder clearFlush() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        flush_ = false;
+        onChanged();
+        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.WriteRequest)
@@ -9986,30 +10067,31 @@ public final class Protocol {
       "\n\010ufs_path\030\001 \001(\t\022\026\n\016offset_in_file\030\002 \001(\003" +
       "\022\022\n\nblock_size\030\003 \001(\003\022\035\n\025maxUfsReadConcur" +
       "rency\030\004 \001(\005\022\017\n\007mountId\030\005 \001(\003\022\020\n\010no_cache" +
-      "\030\006 \001(\010\022\014\n\004user\030\007 \001(\t\"\333\001\n\014WriteRequest\0223\n" +
+      "\030\006 \001(\010\022\014\n\004user\030\007 \001(\t\"\352\001\n\014WriteRequest\0223\n" +
       "\004type\030\001 \001(\0162%.alluxio.proto.dataserver.R" +
       "equestType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\014" +
       "\n\004tier\030\004 \001(\005\022\013\n\003eof\030\005 \001(\010\022\016\n\006cancel\030\006 \001(" +
       "\010\022O\n\027create_ufs_file_options\030\007 \001(\0132..all",
       "uxio.proto.dataserver.CreateUfsFileOptio" +
-      "ns\"f\n\024CreateUfsFileOptions\022\020\n\010ufs_path\030\001" +
-      " \001(\t\022\r\n\005owner\030\002 \001(\t\022\r\n\005group\030\003 \001(\t\022\014\n\004mo" +
-      "de\030\004 \001(\005\022\020\n\010mount_id\030\005 \001(\003\"J\n\010Response\022-" +
-      "\n\006status\030\001 \001(\0162\035.alluxio.proto.status.PS" +
-      "tatus\022\017\n\007message\030\002 \001(\t\"i\n\014ReadResponse\0229" +
-      "\n\004type\030\001 \001(\0162+.alluxio.proto.dataserver." +
-      "ReadResponse.Type\"\036\n\004Type\022\026\n\022UFS_READ_HE" +
-      "ARTBEAT\020\001\"\013\n\tHeartbeat\":\n\025LocalBlockOpen" +
-      "Request\022\020\n\010block_id\030\001 \001(\003\022\017\n\007promote\030\002 \001",
-      "(\010\"&\n\026LocalBlockOpenResponse\022\014\n\004path\030\001 \001" +
-      "(\t\"*\n\026LocalBlockCloseRequest\022\020\n\010block_id" +
-      "\030\001 \001(\003\"o\n\027LocalBlockCreateRequest\022\020\n\010blo" +
-      "ck_id\030\001 \001(\003\022\014\n\004tier\030\003 \001(\005\022\030\n\020space_to_re" +
-      "serve\030\004 \001(\003\022\032\n\022only_reserve_space\030\005 \001(\010\"" +
-      "(\n\030LocalBlockCreateResponse\022\014\n\004path\030\001 \001(" +
-      "\t\"=\n\031LocalBlockCompleteRequest\022\020\n\010block_" +
-      "id\030\001 \001(\003\022\016\n\006cancel\030\002 \001(\010*.\n\013RequestType\022" +
-      "\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001"
+      "ns\022\r\n\005flush\030\010 \001(\010\"f\n\024CreateUfsFileOption" +
+      "s\022\020\n\010ufs_path\030\001 \001(\t\022\r\n\005owner\030\002 \001(\t\022\r\n\005gr" +
+      "oup\030\003 \001(\t\022\014\n\004mode\030\004 \001(\005\022\020\n\010mount_id\030\005 \001(" +
+      "\003\"J\n\010Response\022-\n\006status\030\001 \001(\0162\035.alluxio." +
+      "proto.status.PStatus\022\017\n\007message\030\002 \001(\t\"i\n" +
+      "\014ReadResponse\0229\n\004type\030\001 \001(\0162+.alluxio.pr" +
+      "oto.dataserver.ReadResponse.Type\"\036\n\004Type" +
+      "\022\026\n\022UFS_READ_HEARTBEAT\020\001\"\013\n\tHeartbeat\":\n" +
+      "\025LocalBlockOpenRequest\022\020\n\010block_id\030\001 \001(\003",
+      "\022\017\n\007promote\030\002 \001(\010\"&\n\026LocalBlockOpenRespo" +
+      "nse\022\014\n\004path\030\001 \001(\t\"*\n\026LocalBlockCloseRequ" +
+      "est\022\020\n\010block_id\030\001 \001(\003\"o\n\027LocalBlockCreat" +
+      "eRequest\022\020\n\010block_id\030\001 \001(\003\022\014\n\004tier\030\003 \001(\005" +
+      "\022\030\n\020space_to_reserve\030\004 \001(\003\022\032\n\022only_reser" +
+      "ve_space\030\005 \001(\010\"(\n\030LocalBlockCreateRespon" +
+      "se\022\014\n\004path\030\001 \001(\t\"=\n\031LocalBlockCompleteRe" +
+      "quest\022\020\n\010block_id\030\001 \001(\003\022\016\n\006cancel\030\002 \001(\010*" +
+      ".\n\013RequestType\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS" +
+      "_FILE\020\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -10039,7 +10121,7 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "Tier", "Eof", "Cancel", "CreateUfsFileOptions", });
+              new java.lang.String[] { "Type", "Id", "Offset", "Tier", "Eof", "Cancel", "CreateUfsFileOptions", "Flush", });
           internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_descriptor =
             getDescriptor().getMessageTypes().get(4);
           internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_fieldAccessorTable = new

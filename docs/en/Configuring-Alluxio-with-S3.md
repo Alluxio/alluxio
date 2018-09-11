@@ -222,3 +222,55 @@ If you want to share the S3 mount point with other users in Alluxio namespace, y
 
 `chown`, `chgrp`, and `chmod` of Alluxio directories and files do NOT propagate to the underlying
 S3 buckets nor objects.
+
+## [Experimental] S3A streaming upload
+
+S3 is an object store and because of this feature, the whole file is sent from client to worker, 
+stored in the local disk temporary diretory, and uploaded in the `close()` method by default.
+
+The default upload process is safer but has the following issues:
+* Slow upload time. The file has to be sent to Alluxio worker first and then Alluxio worker is 
+responsible for uploading the file to S3. The two processes are sequential.
+* The temporary directory mush have the capacity to store the whole file.
+* Slow `close()`. The time of `close()` method is proportional to the file size 
+and inversely proportional to the bandwidth. That is `O(FILE_SIZE/BANDWITH)`. 
+Slow `close()` is unexpected and has already been a bottleneck in the Alluxio Fuse integration.
+Alluxio Fuse method which calls `close()` is asynchronous and thus if we write a big file through Alluxio Fuse to S3A, 
+the Fuse write operation will be returned much earlier than the file has been written to S3.
+
+Because of the above issues, we introduce S3A streaming upload. The S3A streaming upload is based on the
+[S3A low-level multipart upload](https://docs.aws.amazon.com/AmazonS3/latest/dev/mpListPartsJavaAPI.html).
+
+The S3A streaming upload has the following advantages:
+* Shorter upload time. Alluxio worker uploads buffered data while receiving new data. 
+The total upload time will be at least as fast as the default method.
+* Smaller capacity requirement. Our data is buffered and uploaded according to 
+partitions (`alluxio.underfs.s3a.streaming.upload.partition.size` which is 64MB by default). 
+When a partition is successfully uploaded, this partition will be deleted.
+* Faster `close()`. We begin uploading data when data buffered reaches the partition size instead of uploading 
+the whole file in `close()`.
+
+### Configuring
+
+To enable S3A streaming upload, you need to modify
+`conf/alluxio-site.properties` to include:
+
+```
+alluxio.underfs.s3a.streaming.upload.enabled=true
+```
+
+### Cleanup
+
+If a S3A streaming upload is interrupted, there may be intermediate partitions uploaded to S3 
+and S3 will charge for those data.
+
+To reduce the charges, users can modify `conf/alluxio-site.properties` to include:
+
+```
+alluxio.underfs.cleanup.enabled=true
+```
+
+Intermediate multipart uploads in all non-readonly S3 mount points 
+older than the clean age (configured by `alluxio.underfs.s3a.intermediate.upload.clean.age`) 
+will be cleaned when a leader master starts 
+or a cleanup interval (configured by `alluxio.underfs.cleanup.interval`) is reached.
