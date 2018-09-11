@@ -311,7 +311,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-<<<<<<< HEAD
+//    checkUri(path);
 //    FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
 //    try {
 //      masterClient.loadMetadata(path, options);
@@ -325,36 +325,6 @@ public class BaseFileSystem implements FileSystem {
 //    } finally {
 //      mFileSystemContext.releaseMasterClient(masterClient);
 //    }
-||||||| merged common ancestors
-    FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
-    try {
-      masterClient.loadMetadata(path, options);
-      LOG.debug("Loaded metadata {}, options: {}", path.getPath(), options);
-    } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    } finally {
-      mFileSystemContext.releaseMasterClient(masterClient);
-    }
-=======
-    checkUri(path);
-    FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
-    try {
-      masterClient.loadMetadata(path, options);
-      LOG.debug("Loaded metadata {}, options: {}", path.getPath(), options);
-    } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    } finally {
-      mFileSystemContext.releaseMasterClient(masterClient);
-    }
->>>>>>> master
   }
 
   @Override

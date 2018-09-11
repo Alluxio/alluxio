@@ -59,6 +59,10 @@ import java.util.Set;
  * The interface of file system master service.
  */
 public interface FileSystemMasterService {
+  /**
+   * Periodically clean up the under file systems.
+   */
+  void cleanupUfs();
 
   /**
    * @return the file system master default options provider

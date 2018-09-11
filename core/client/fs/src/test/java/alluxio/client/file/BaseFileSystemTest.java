@@ -276,7 +276,6 @@ public final class BaseFileSystemTest {
     verifyFilesystemContextAcquiredAndReleased();
   }
 
-<<<<<<< HEAD
 //  /**
 //   * Tests for the {@link BaseFileSystem#loadMetadata(AlluxioURI, LoadMetadataOptions)}
 //   * method.
@@ -288,6 +287,8 @@ public final class BaseFileSystemTest {
 //    doNothing().when(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
 //    mFileSystem.loadMetadata(file, loadMetadataOptions);
 //    verify(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
+//
+//    verifyFilesystemContextAcquiredAndReleased();
 //  }
 //
 //  /**
@@ -305,72 +306,9 @@ public final class BaseFileSystemTest {
 //    } catch (Exception e) {
 //      assertSame(EXCEPTION, e);
 //    }
+//
+//    verifyFilesystemContextAcquiredAndReleased();
 //  }
-||||||| merged common ancestors
-  /**
-   * Tests for the {@link BaseFileSystem#loadMetadata(AlluxioURI, LoadMetadataOptions)}
-   * method.
-   */
-  @Test
-  public void loadMetadata() throws Exception {
-    AlluxioURI file = new AlluxioURI("/file");
-    LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
-    doNothing().when(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
-    mFileSystem.loadMetadata(file, loadMetadataOptions);
-    verify(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
-  }
-
-  /**
-   * Ensures that an exception is propagated correctly when loading the metadata.
-   */
-  @Test
-  public void loadMetadataException() throws Exception {
-    AlluxioURI file = new AlluxioURI("/file");
-    LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
-    doThrow(EXCEPTION).when(mFileSystemMasterClient)
-        .loadMetadata(file, loadMetadataOptions);
-    try {
-      mFileSystem.loadMetadata(file, loadMetadataOptions);
-      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
-    } catch (Exception e) {
-      assertSame(EXCEPTION, e);
-    }
-  }
-=======
-  /**
-   * Tests for the {@link BaseFileSystem#loadMetadata(AlluxioURI, LoadMetadataOptions)}
-   * method.
-   */
-  @Test
-  public void loadMetadata() throws Exception {
-    AlluxioURI file = new AlluxioURI("/file");
-    LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
-    doNothing().when(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
-    mFileSystem.loadMetadata(file, loadMetadataOptions);
-    verify(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
-
-    verifyFilesystemContextAcquiredAndReleased();
-  }
-
-  /**
-   * Ensures that an exception is propagated correctly when loading the metadata.
-   */
-  @Test
-  public void loadMetadataException() throws Exception {
-    AlluxioURI file = new AlluxioURI("/file");
-    LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
-    doThrow(EXCEPTION).when(mFileSystemMasterClient)
-        .loadMetadata(file, loadMetadataOptions);
-    try {
-      mFileSystem.loadMetadata(file, loadMetadataOptions);
-      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
-    } catch (Exception e) {
-      assertSame(EXCEPTION, e);
-    }
-
-    verifyFilesystemContextAcquiredAndReleased();
-  }
->>>>>>> master
 
   /**
    * Tests for the {@link BaseFileSystem#createDirectory(AlluxioURI, CreateDirectoryOptions)}
