@@ -13,10 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
-
-import java.util.Collections;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -36,17 +33,7 @@ public final class CreateFileOptions
   private CreateFileOptions() {
     super();
 
-    // TODO(adit): redundant definition in CreateDirectoryOptions
-    mCommonOptions = CommonOptions.defaults();
-    mMountPoint = false;
-    mOperationTimeMs = System.currentTimeMillis();
-    mOwner = "";
-    mGroup = "";
-    mMode = Mode.defaults();
-    mAcl = Collections.emptyList();
-    mPersisted = false;
-    mRecursive = false;
-    mMetadataLoad = false;
+    CreatePathOptionsUtils.setDefaults(this);
 
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mMode = ModeUtils.applyFileUMask(mMode);

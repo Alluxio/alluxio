@@ -11,11 +11,7 @@
 
 package alluxio.master.file.options;
 
-import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
-import alluxio.wire.CommonOptions;
-
-import java.util.Collections;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -35,17 +31,7 @@ public final class CreateDirectoryOptions
   private CreateDirectoryOptions() {
     super();
 
-    // TODO(adit): redundant definition in CreateFileOptions
-    mCommonOptions = CommonOptions.defaults();
-    mMountPoint = false;
-    mOperationTimeMs = System.currentTimeMillis();
-    mOwner = "";
-    mGroup = "";
-    mMode = Mode.defaults();
-    mAcl = Collections.emptyList();
-    mPersisted = false;
-    mRecursive = false;
-    mMetadataLoad = false;
+    CreatePathOptionsUtils.setDefaults(this);
 
     mAllowExists = false;
     mMode = ModeUtils.applyDirectoryUMask(mMode);
