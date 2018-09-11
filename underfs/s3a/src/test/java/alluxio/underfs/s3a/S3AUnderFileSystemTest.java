@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UfsMode;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
