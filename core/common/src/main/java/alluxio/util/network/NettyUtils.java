@@ -46,10 +46,35 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class NettyUtils {
   private static final Logger LOG = LoggerFactory.getLogger(NettyUtils.class);
 
-  public static final ChannelType USER_CHANNEL_TYPE =
-      getChannelType(PropertyKey.USER_NETWORK_NETTY_CHANNEL);
-  public static final ChannelType WORKER_CHANNEL_TYPE =
-      getChannelType(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL);
+  public static final ChannelType USER_CHANNEL_TYPE;
+  public static final ChannelType WORKER_CHANNEL_TYPE;
+
+  static {
+    boolean epollAvailable = Epoll.isAvailable();
+    if (!epollAvailable) {
+      LOG.info("EPOLL is not available, will use NIO");
+    } else {
+      // check that epoll is available in netty
+      try {
+        EpollChannelOption.class.getField("EPOLL_MODE");
+        LOG.info("EPOLL_MODE is available");
+        epollAvailable = true;
+      } catch (Throwable e) {
+        LOG.warn("EPOLL_MODE is not supported in netty with version < 4.0.26.Final, will use NIO");
+        epollAvailable = false;
+      }
+    }
+
+    if (epollAvailable) {
+      USER_CHANNEL_TYPE =
+          Configuration.getEnum(PropertyKey.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
+      WORKER_CHANNEL_TYPE =
+          Configuration.getEnum(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.class);
+    } else {
+      USER_CHANNEL_TYPE = ChannelType.NIO;
+      WORKER_CHANNEL_TYPE = ChannelType.NIO;
+    }
+  }
 
   private NettyUtils() {}
 
@@ -158,31 +183,5 @@ public final class NettyUtils {
     } else {
       return workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName());
     }
-  }
-
-  /**
-   * Note: Packet streaming requires {@link io.netty.channel.epoll.EpollMode} to be set to
-   * LEVEL_TRIGGERED which is not supported in netty versions < 4.0.26.Final. Without shading netty
-   * in Alluxio, we cannot use epoll.
-   *
-   * @param key the property key for looking up the configured channel type
-   * @return the channel type to use
-   */
-  private static ChannelType getChannelType(PropertyKey key) {
-    ChannelType configured = Configuration.getEnum(key, ChannelType.class);
-    if (configured == ChannelType.EPOLL) {
-      if (!Epoll.isAvailable()) {
-        LOG.info("EPOLL is not available, will use NIO");
-        return ChannelType.NIO;
-      }
-      try {
-        EpollChannelOption.class.getField("EPOLL_MODE");
-      } catch (Throwable e) {
-        LOG.warn("EPOLL_MODE is not supported in netty with version < 4.0.26.Final, will use NIO");
-        return ChannelType.NIO;
-      }
-      LOG.info("EPOLL_MODE is available");
-    }
-    return configured;
   }
 }
