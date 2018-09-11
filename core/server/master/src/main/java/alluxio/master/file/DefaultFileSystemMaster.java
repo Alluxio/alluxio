@@ -183,7 +183,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
-  private static final FileSystemMasterOptions MASTER_OPTIONS =
+  private static final DefaultFileSystemMasterOptions MASTER_OPTIONS =
       new DefaultFileSystemMasterOptions();
 
   @Override
@@ -2349,16 +2349,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     // Metadata loaded from UFS has no TTL set.
-    CreateFileOptions createFileOptions =
-        MASTER_OPTIONS.<alluxio.master.file.options.CreateFileOptions>getCreateFileOptions()
-            .setBlockSizeBytes(ufsBlockSizeByte)
-            .setRecursive(options.isCreateAncestors())
-            .setMetadataLoad(true)
-            .setPersisted(true)
-            .setTtl(options.getCommonOptions().getTtl())
-            .setTtlAction(options.getCommonOptions().getTtlAction())
-            .setOwner(ufsStatus.getOwner())
-            .setGroup(ufsStatus.getGroup());
+    CreateFileOptions createFileOptions = MASTER_OPTIONS.getCreateFileOptions()
+        .setBlockSizeBytes(ufsBlockSizeByte)
+        .setRecursive(options.isCreateAncestors())
+        .setMetadataLoad(true)
+        .setPersisted(true)
+        .setTtl(options.getCommonOptions().getTtl())
+        .setTtlAction(options.getCommonOptions().getTtlAction())
+        .setOwner(ufsStatus.getOwner())
+        .setGroup(ufsStatus.getGroup());
     short ufsMode = ufsStatus.getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = ufsStatus.getLastModifiedTime();
@@ -2415,15 +2414,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         return;
       }
     }
-    alluxio.master.file.options.CreateDirectoryOptions createDirectoryOptions = MASTER_OPTIONS
-        .<alluxio.master.file.options.CreateDirectoryOptions>getCreateDirectoryOptions()
-          .setMountPoint(mMountTable.isMountPoint(inodePath.getUri()))
-          .setPersisted(true)
-          .setRecursive(options.isCreateAncestors())
-          .setMetadataLoad(true)
-          .setAllowExists(true)
-          .setTtl(options.getCommonOptions().getTtl())
-          .setTtlAction(options.getCommonOptions().getTtlAction());
+    alluxio.master.file.options.CreateDirectoryOptions createDirectoryOptions =
+        MASTER_OPTIONS.getCreateDirectoryOptions()
+            .setMountPoint(mMountTable.isMountPoint(inodePath.getUri()))
+            .setPersisted(true)
+            .setRecursive(options.isCreateAncestors())
+            .setMetadataLoad(true)
+            .setAllowExists(true)
+            .setTtl(options.getCommonOptions().getTtl())
+            .setTtlAction(options.getCommonOptions().getTtlAction());
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
     UfsStatus ufsStatus = options.getUfsStatus();
     if (ufsStatus == null) {
