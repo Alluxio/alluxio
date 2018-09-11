@@ -11,7 +11,6 @@
 
 package alluxio.util.grpc;
 
-
 import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.netty.NettyChannelBuilder;
 
@@ -24,6 +23,13 @@ public final class GrpcChannelBuilder {
 
   NettyChannelBuilder mNettyChannelBuilder;
 
+  /**
+   * Create a channel builder for given address.
+   *
+   * @param name the host name
+   * @param port the hos port
+   * @return a new instance of {@link GrpcChannelBuilder}
+   */
   public static GrpcChannelBuilder forAddress(String name, int port) {
     return new GrpcChannelBuilder(NettyChannelBuilder.forAddress(name, port));
   }
@@ -32,11 +38,20 @@ public final class GrpcChannelBuilder {
     mNettyChannelBuilder = nettyChannelBuilder.nameResolverFactory(new DnsNameResolverProvider());
   }
 
+  /**
+   * Whether to use plain text.
+   *
+   * @param skipNegotiation whether to skip negotiation
+   * @return the updated {@link GrpcChannelBuilder} instance
+   */
   public GrpcChannelBuilder usePlaintext(boolean skipNegotiation) {
     mNettyChannelBuilder = mNettyChannelBuilder.usePlaintext(skipNegotiation);
     return this;
   }
 
+  /**
+   * @return the built {@link GrpcChannel}
+   */
   public GrpcChannel build() {
     return new GrpcChannel(mNettyChannelBuilder.build());
   }

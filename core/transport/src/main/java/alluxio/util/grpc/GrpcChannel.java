@@ -24,6 +24,11 @@ import io.grpc.MethodDescriptor;
 public final class GrpcChannel extends Channel {
   Channel mChannel;
 
+  /**
+   * Create a new instance of {@link GrpcChannel}.
+   *
+   * @param channel the grpc channel to wrap
+   */
   public GrpcChannel(Channel channel) {
     mChannel = channel;
   }

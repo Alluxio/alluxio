@@ -11,7 +11,6 @@
 
 package alluxio.util.grpc;
 
-
 import io.grpc.BindableService;
 import io.grpc.netty.NettyServerBuilder;
 
@@ -28,6 +27,12 @@ public class GrpcServerBuilder {
 
   NettyServerBuilder mNettyServerBuilder;
 
+  /**
+   * Create an new instance of {@link GrpcServerBuilder}.
+   *
+   * @param port the host port
+   * @return a new instance of {@link GrpcServerBuilder}
+   */
   public static GrpcServerBuilder forPort(int port) {
     return new GrpcServerBuilder(NettyServerBuilder.forPort(port));
   }
@@ -36,15 +41,32 @@ public class GrpcServerBuilder {
     mNettyServerBuilder = nettyChannelBuilder;
   }
 
+  /**
+   * Add a service to this server.
+   *
+   * @param service the service to add
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
   public GrpcServerBuilder addService(BindableService service) {
     mNettyServerBuilder = mNettyServerBuilder.addService(service);
     return this;
   }
 
+  /**
+   * Build.
+   *
+   * @return the built {@link GrpcServer}
+   */
   public GrpcServer build() {
     return new GrpcServer(mNettyServerBuilder.build());
   }
 
+  /**
+   * Set the executor for this server.
+   *
+   * @param executor the executor
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
   public GrpcServerBuilder executor(@Nullable Executor executor) {
     mNettyServerBuilder = mNettyServerBuilder.executor(executor);
     return this;

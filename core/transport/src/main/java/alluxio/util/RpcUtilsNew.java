@@ -57,7 +57,6 @@ public final class RpcUtilsNew {
    * @param callable the callable to call
    * @param <T> the return type of the callable
    * @param responseObserver gRPC response observer
-   * @return the return value from calling the callable
    */
   public static <T> void call(RpcCallable<T> callable, StreamObserver<T> responseObserver) {
     try {
@@ -82,7 +81,6 @@ public final class RpcUtilsNew {
    * @param responseObserver gRPC response observer
    * @param args the arguments for the description
    * @param <T> the return type of the callable
-   * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an exception
    */
   public static <T> void call(Logger logger, RpcCallable<T> callable, String methodName,
@@ -106,7 +104,6 @@ public final class RpcUtilsNew {
    * @param responseObserver gRPC response observer
    * @param args the arguments for the description
    * @param <T> the return type of the callable
-   * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an exception
    */
   public static <T> void call(Logger logger, RpcCallable<T> callable, String methodName,
@@ -161,10 +158,10 @@ public final class RpcUtilsNew {
    * @param callable the callable to call
    * @param responseObserver gRPC response observer
    * @param <T> the return type of the callable
-   * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an exception
    */
-  public static <T> void call(RpcCallableThrowsIOException<T> callable, StreamObserver<T> responseObserver) {
+  public static <T> void call(RpcCallableThrowsIOException<T> callable,
+      StreamObserver<T> responseObserver) {
     try {
       T ret = callable.call();
       responseObserver.onNext(ret);
@@ -189,7 +186,6 @@ public final class RpcUtilsNew {
    * @param responseObserver gRPC response observer
    * @param args the arguments for the description
    * @param <T> the return type of the callable
-   * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an exception
    */
   public static <T> void call(Logger logger, RpcCallableThrowsIOException<T> callable,
@@ -213,7 +209,6 @@ public final class RpcUtilsNew {
    * @param responseObserver gRPC response observer
    * @param args the arguments for the description
    * @param <T> the return type of the callable
-   * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an exception
    */
   public static <T> void call(Logger logger, RpcCallableThrowsIOException<T> callable,
@@ -290,7 +285,6 @@ public final class RpcUtilsNew {
    * @param responseObserver gRPC response observer
    * @param args the arguments for the description
    * @param <T> the return type of the callable
-   * @return the rpc result
    */
   public static <T> void nettyRPCAndLog(Logger logger, NettyRpcCallable<T> callable,
       String methodName, String description, StreamObserver<T> responseObserver, Object... args) {

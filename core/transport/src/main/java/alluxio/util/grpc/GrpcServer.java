@@ -23,9 +23,21 @@ import java.io.IOException;
 public class GrpcServer {
   Server mServer;
 
+  /**
+   * Create a new instance of {@link GrpcServer}.
+   *
+   * @param server the wrapped server
+   */
   public GrpcServer(Server server) {
     mServer = server;
   }
+
+  /**
+   * Start serving.
+   *
+   * @return this instance of {@link GrpcServer}
+   * @throws IOException when unable to start serving
+   */
   public GrpcServer start() throws IOException {
     mServer = mServer.start();
     return this;
