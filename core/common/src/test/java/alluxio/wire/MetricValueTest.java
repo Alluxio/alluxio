@@ -29,7 +29,7 @@ public class MetricValueTest {
   }
 
   @Test
-  public void thrift() {
+  public void proto() {
     MetricValue metricValue = MetricValue.forLong(new Random().nextLong());
     MetricValue other = MetricValue.fromThrift(metricValue.toThrift());
     Assert.assertEquals(metricValue.getLongValue(), other.getLongValue());

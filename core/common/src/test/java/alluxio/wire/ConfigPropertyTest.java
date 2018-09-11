@@ -31,7 +31,7 @@ public class ConfigPropertyTest {
   }
 
   @Test
-  public void thrift() {
+  public void proto() {
     ConfigProperty configProperty = createRandom();
     ConfigProperty other = ConfigProperty.fromThrift(configProperty.toThrift());
     checkEquality(configProperty, other);

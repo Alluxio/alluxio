@@ -11,6 +11,7 @@
 
 package alluxio.master.file.options;
 
+import alluxio.file.options.DescendantType;
 import alluxio.test.util.CommonUtils;
 
 import org.junit.Assert;

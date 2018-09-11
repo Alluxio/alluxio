@@ -11,8 +11,6 @@
 
 package alluxio.master.block;
 
-import static alluxio.wire.WorkerNetAddress.fromThrift;
-
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
@@ -99,9 +97,10 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
   @Override
   public GetWorkerIdTResponse getWorkerId(final WorkerNetAddress workerNetAddress,
       GetWorkerIdTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallable<GetWorkerIdTResponse>) () -> new GetWorkerIdTResponse(
-        mBlockMaster.getWorkerId(fromThrift(workerNetAddress))), "GetWorkerId",
-        "workerNetAddress=%s, options=%s", workerNetAddress, options);
+//    return RpcUtils.call(LOG, (RpcCallable<GetWorkerIdTResponse>) () -> new GetWorkerIdTResponse(
+//        mBlockMaster.getWorkerId(fromThrift(workerNetAddress))), "GetWorkerId",
+//        "workerNetAddress=%s, options=%s", workerNetAddress, options);
+    return null;
   }
 
   @Override

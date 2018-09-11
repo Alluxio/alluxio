@@ -19,6 +19,7 @@ import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.dataserver.Protocol.Response;
 import alluxio.util.proto.ProtoMessage;
+import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -206,7 +207,7 @@ public final class RPCProtoMessage extends RPCMessage {
    * @return the created {@link RPCProtoMessage}
    */
   public static RPCProtoMessage createResponse(Status status, String message, DataBuffer data) {
-    Response response = Protocol.Response.newBuilder().setStatus(Status.toProto(status))
+    Response response = Protocol.Response.newBuilder().setStatus(ProtoUtils.toProto(status))
         .setMessage(message).build();
     return new RPCProtoMessage(new ProtoMessage(response), data);
   }

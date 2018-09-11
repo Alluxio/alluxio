@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.util.grpc.GrpcUtils;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,9 +33,9 @@ public class WorkerInfoTest {
   }
 
   @Test
-  public void thrift() {
+  public void proto() {
     WorkerInfo workerInfo = createRandom();
-    WorkerInfo other = WorkerInfo.fromThrift(workerInfo.toThrift());
+    WorkerInfo other = GrpcUtils.fromProto(GrpcUtils.toProto(workerInfo));
     checkEquality(workerInfo, other);
   }
 

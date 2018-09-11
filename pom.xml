@@ -141,6 +141,7 @@
     <cxf.version>2.7.0</cxf.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <gmetric4j.version>1.0.7</gmetric4j.version>
+    <grpc.version>1.12.0</grpc.version>
     <hadoop.version>2.2.0</hadoop.version>
     <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
     <java.version>1.8</java.version>
@@ -153,7 +154,7 @@
     <metrics.version>3.1.2</metrics.version>
     <powermock.version>1.6.1</powermock.version>
     <prometheus.version>0.3.0</prometheus.version>
-    <protobuf.version>2.5.0</protobuf.version>
+    <protobuf.version>3.5.1</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
     <surefire.forkCount>2</surefire.forkCount>
@@ -311,11 +312,31 @@
         <artifactId>metrics-jvm</artifactId>
         <version>${metrics.version}</version>
       </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-core</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-netty</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-protobuf</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-stub</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
       <!-- Netty 4.0.50+ required for shading in client runtime jar to work -->
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
-        <version>4.0.53.Final</version>
+        <version>4.1.22.Final</version>
       </dependency>
       <dependency>
         <groupId>io.prometheus</groupId>
@@ -637,6 +658,11 @@
         <artifactId>guava-testlib</artifactId>
         <version>19.0</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-testing</artifactId>
+        <version>${grpc.version}</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -1106,7 +1132,7 @@
             <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
           </sourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/org/apache/jsp/**,**/alluxio/thrift/**,**/alluxio/proto/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/alluxio/thrift/**,**/alluxio/proto/**,**/alluxio/grpc/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -1136,6 +1162,7 @@
             <!-- Code Exclusions -->
             <exclude>**/src/main/java/alluxio/thrift/*</exclude>
             <exclude>**/src/main/java/alluxio/proto/**</exclude>
+            <exclude>**/src/main/java/alluxio/grpc/**</exclude>
             <exclude>**/src/main/java/alluxio/perf/thrift/*</exclude>
             <exclude>**/src/main/resources/*</exclude>
             <exclude>**/src/main/webapp/css/*</exclude>

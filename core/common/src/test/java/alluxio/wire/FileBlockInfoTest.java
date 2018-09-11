@@ -13,6 +13,7 @@ package alluxio.wire;
 
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
+import alluxio.util.grpc.GrpcUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HostAndPort;
@@ -35,9 +36,9 @@ public final class FileBlockInfoTest {
   }
 
   @Test
-  public void thrift() {
+  public void proto() {
     FileBlockInfo fileBlockInfo = createRandom();
-    FileBlockInfo other = FileBlockInfo.fromThrift(fileBlockInfo.toThrift());
+    FileBlockInfo other = GrpcUtils.fromProto(GrpcUtils.toProto(fileBlockInfo));
     checkEquality(fileBlockInfo, other);
   }
 

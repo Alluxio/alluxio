@@ -11,8 +11,9 @@
 
 package alluxio.client.file.options;
 
+import alluxio.grpc.CompleteFilePOptions;
 import alluxio.test.util.CommonUtils;
-import alluxio.thrift.CompleteFileTOptions;
+import alluxio.util.grpc.GrpcUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,15 +46,15 @@ public final class CompleteFileOptionsTest {
   }
 
   /**
-   * Tests conversion to thrift representation.
+   * Tests conversion to proto representation.
    */
   @Test
-  public void toThrift() {
+  public void toProto() {
     long len = new Random().nextLong();
     CompleteFileOptions options = CompleteFileOptions.defaults();
     options.setUfsLength(len);
-    CompleteFileTOptions thriftOptions = options.toThrift();
-    Assert.assertEquals(len, thriftOptions.getUfsLength());
+    CompleteFilePOptions protoOptions = GrpcUtils.toProto(options);
+    Assert.assertEquals(len, protoOptions.getUfsLength());
   }
 
   @Test

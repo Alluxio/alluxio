@@ -20,7 +20,6 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
-import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,7 +128,7 @@ public final class Format {
           String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
           String name = "Data path for tier " + level;
           for (String dirPath : dirPaths) {
-            String dirWorkerDataFolder = PathUtils.getWorkerDataDirectory(dirPath);
+            String dirWorkerDataFolder = CommonUtils.getWorkerDataDirectory(dirPath);
             LOG.info("Formatting {}:{}", name, dirWorkerDataFolder);
             formatWorkerDataFolder(dirWorkerDataFolder);
           }

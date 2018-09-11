@@ -175,16 +175,6 @@ public interface UnderFileSystem extends Closeable {
   }
 
   /**
-   * Operation mode for under storage. During maintenance the operation mode may be changed to
-   * NO_ACCESS or READ_ONLY.
-   */
-  enum UfsMode {
-    NO_ACCESS,
-    READ_ONLY,
-    READ_WRITE
-  }
-
-  /**
    * Cleans up the under file system. If any data or files are created
    * and not completed/aborted correctly in normal ways, they should be cleaned in this method.
    */

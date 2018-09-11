@@ -21,7 +21,6 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
-import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAclOptions;
@@ -138,17 +137,6 @@ public interface FileSystemMasterClient extends Client {
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
       throws AlluxioStatusException;
-
-  /**
-   * Loads the metadata of a file from the under file system.
-   *
-   * @param path the path of the file to load metadata for
-   * @param options method options
-   * @deprecated since version 1.1 and will be removed in version 2.0
-   * @throws NotFoundException if the path does not exist
-   */
-  @Deprecated
-  void loadMetadata(AlluxioURI path, LoadMetadataOptions options) throws AlluxioStatusException;
 
   /**
    * Mounts the given UFS path under the given Alluxio path.

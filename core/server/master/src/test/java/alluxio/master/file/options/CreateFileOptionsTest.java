@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
+import alluxio.util.ModeUtils;
 import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
@@ -41,7 +42,7 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertEquals("", options.getOwner());
     Assert.assertEquals("", options.getGroup());
-    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
+    Assert.assertEquals(ModeUtils.applyFileUMask(Mode.defaults()), options.getMode());
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());

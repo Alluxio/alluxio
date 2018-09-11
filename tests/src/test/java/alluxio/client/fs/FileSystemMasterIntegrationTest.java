@@ -56,6 +56,7 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.master.MasterTestUtils;
 import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsMode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
@@ -989,7 +990,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void ufsModeCreateFile() throws Exception {
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
-        UnderFileSystem.UfsMode.READ_ONLY);
+        UfsMode.READ_ONLY);
 
     // Alluxio only should not be affected
     mFsMaster.createFile(new AlluxioURI("/in_alluxio"),
@@ -1003,7 +1004,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void ufsModeCreateDirectory() throws Exception {
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
-        UnderFileSystem.UfsMode.READ_ONLY);
+        UfsMode.READ_ONLY);
 
     // Alluxio only should not be affected
     mFsMaster.createDirectory(new AlluxioURI("/in_alluxio"),
@@ -1017,7 +1018,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void ufsModePersist() throws Exception {
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
-        UnderFileSystem.UfsMode.READ_ONLY);
+        UfsMode.READ_ONLY);
 
     AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
     mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(false));
@@ -1032,7 +1033,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
 
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
-        UnderFileSystem.UfsMode.READ_ONLY);
+        UfsMode.READ_ONLY);
 
     mThrown.expect(FailedPreconditionException.class);
     mFsMaster.delete(alluxioFile, DeleteOptions.defaults().setAlluxioOnly(false));
@@ -1047,7 +1048,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
 
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
-        UnderFileSystem.UfsMode.READ_ONLY);
+        UfsMode.READ_ONLY);
 
     mThrown.expect(FailedPreconditionException.class);
     mFsMaster.delete(alluxioDirectory,
@@ -1066,7 +1067,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         CreateFileOptions.defaults().setPersisted(true));
 
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
-        UnderFileSystem.UfsMode.READ_ONLY);
+        UfsMode.READ_ONLY);
 
     mThrown.expect(AccessControlException.class);
     mFsMaster.rename(new AlluxioURI("/in_ufs_src"), new AlluxioURI("/in_ufs_dst"),
@@ -1082,7 +1083,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
 
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
-        UnderFileSystem.UfsMode.READ_ONLY);
+        UfsMode.READ_ONLY);
 
     mThrown.expect(AccessControlException.class);
     mFsMaster.rename(alluxioDirectory, new AlluxioURI("/in_ufs_dst"), RenameOptions.defaults());
@@ -1100,7 +1101,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
 
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
-        UnderFileSystem.UfsMode.READ_ONLY);
+        UfsMode.READ_ONLY);
     long opTimeMs = TEST_TIME_MS;
     mFsMaster.completeFile(alluxioFile,
         CompleteFileOptions.defaults().setOperationTimeMs(opTimeMs).setUfsLength(0));
@@ -1112,7 +1113,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void ufsModeReplay() throws Exception {
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
-        UnderFileSystem.UfsMode.NO_ACCESS);
+        UfsMode.NO_ACCESS);
 
     // Stop Alluxio.
     mLocalAlluxioClusterResource.get().stopFS();

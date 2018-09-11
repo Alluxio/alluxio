@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.UfsMode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -173,13 +174,13 @@ public class LocalUnderFileSystemTest {
 
   @Test
   public void getOperationMode() throws IOException {
-    Map<String, UnderFileSystem.UfsMode> physicalUfsState = new Hashtable<>();
+    Map<String, UfsMode> physicalUfsState = new Hashtable<>();
     // Check default
-    Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE,
+    Assert.assertEquals(UfsMode.READ_WRITE,
         mLocalUfs.getOperationMode(physicalUfsState));
     // Check NO_ACCESS mode
-    physicalUfsState.put(AlluxioURI.SEPARATOR, UnderFileSystem.UfsMode.NO_ACCESS);
-    Assert.assertEquals(UnderFileSystem.UfsMode.NO_ACCESS,
+    physicalUfsState.put(AlluxioURI.SEPARATOR, UfsMode.NO_ACCESS);
+    Assert.assertEquals(UfsMode.NO_ACCESS,
         mLocalUfs.getOperationMode(physicalUfsState));
   }
 

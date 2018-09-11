@@ -14,6 +14,7 @@ package alluxio.wire;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.CommonUtils;
+import alluxio.util.grpc.GrpcUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
@@ -52,9 +53,9 @@ public class FileInfoTest {
   }
 
   @Test
-  public void thrift() {
+  public void proto() {
     FileInfo fileInfo = createRandom();
-    FileInfo other = FileInfo.fromThrift(fileInfo.toThrift());
+    FileInfo other = GrpcUtils.fromProto(GrpcUtils.toProto(fileInfo));
     checkEquality(fileInfo, other);
   }
 
@@ -65,7 +66,6 @@ public class FileInfoTest {
     Assert.assertEquals(a.getFileBlockInfos(), b.getFileBlockInfos());
     Assert.assertEquals(a.getFileId(), b.getFileId());
     Assert.assertEquals(a.getGroup(), b.getGroup());
-    Assert.assertEquals(a.getInMemoryPercentage(), b.getInMemoryPercentage());
     Assert.assertEquals(a.getLastModificationTimeMs(), b.getLastModificationTimeMs());
     Assert.assertEquals(a.getLength(), b.getLength());
     Assert.assertEquals(a.getMode(), b.getMode());

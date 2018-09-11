@@ -12,7 +12,6 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
-import alluxio.thrift.UnmountTOptions;
 import alluxio.wire.CommonOptions;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -79,14 +78,5 @@ public final class UnmountOptions {
     return Objects.toStringHelper(this)
         .add("commonOptions", mCommonOptions)
         .toString();
-  }
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public UnmountTOptions toThrift() {
-    UnmountTOptions options = new UnmountTOptions();
-    options.setCommonOptions(mCommonOptions.toThrift());
-    return options;
   }
 }

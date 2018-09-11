@@ -19,7 +19,6 @@ import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommitBlockTOptions;
-import alluxio.thrift.GetWorkerIdTOptions;
 import alluxio.thrift.Metric;
 import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.wire.ConfigProperty;
@@ -104,8 +103,9 @@ public final class BlockMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.getWorkerId(address.toThrift(), new GetWorkerIdTOptions())
-            .getWorkerId();
+//        return mClient.getWorkerId(address.toThrift(), new GetWorkerIdTOptions())
+//            .getWorkerId();
+        return null;
       }
     });
   }

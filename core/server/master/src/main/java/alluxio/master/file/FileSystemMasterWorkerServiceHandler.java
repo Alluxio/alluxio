@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
-import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.thrift.FileSystemHeartbeatTResponse;
@@ -68,8 +67,10 @@ public final class FileSystemMasterWorkerServiceHandler
       final List<Long> persistedFiles, FileSystemHeartbeatTOptions options)
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<FileSystemHeartbeatTResponse>) () ->
-        new FileSystemHeartbeatTResponse(mFileSystemMaster.workerHeartbeat(workerId, persistedFiles,
-            new WorkerHeartbeatOptions(options))),
+        null,
+        // new FileSystemHeartbeatTResponse(mFileSystemMaster.workerHeartbeat(workerId,
+        // persistedFiles,
+        // new WorkerHeartbeatOptions(options))),
         "FileSystemHeartbeat", "workerId=%s, persistedFiles=%s, options=%s",
         workerId, persistedFiles, options);
   }
@@ -78,7 +79,8 @@ public final class FileSystemMasterWorkerServiceHandler
   public GetFileInfoTResponse getFileInfo(final long fileId, GetFileInfoTOptions options)
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetFileInfoTResponse>) () ->
-        new GetFileInfoTResponse(mFileSystemMaster.getFileInfo(fileId).toThrift()),
+        null,
+//        new GetFileInfoTResponse(mFileSystemMaster.getFileInfo(fileId).toThrift()),
         "GetFileInfo", "fileId=%s, options=%s", fileId, options);
   }
 
@@ -94,7 +96,8 @@ public final class FileSystemMasterWorkerServiceHandler
   public GetUfsInfoTResponse getUfsInfo(final long mountId, GetUfsInfoTOptions options)
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallable<GetUfsInfoTResponse>) () ->
-        new GetUfsInfoTResponse(mFileSystemMaster.getUfsInfo(mountId)),
+        null,
+//        new GetUfsInfoTResponse(mFileSystemMaster.getUfsInfo(mountId)),
         "GetUfsInfo", "mountId=%s, options=%s", mountId, options);
   }
 }

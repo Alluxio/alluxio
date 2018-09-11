@@ -19,7 +19,6 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.thrift.FileSystemMasterWorkerService;
-import alluxio.thrift.GetFileInfoTOptions;
 import alluxio.thrift.GetPinnedFileIdsTOptions;
 import alluxio.thrift.GetUfsInfoTOptions;
 import alluxio.thrift.UfsInfo;
@@ -77,8 +76,9 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @return the file info for the given file id
    */
   public synchronized FileInfo getFileInfo(final long fileId) throws IOException {
-    return retryRPC(() -> FileInfo
-        .fromThrift(mClient.getFileInfo(fileId, new GetFileInfoTOptions()).getFileInfo()));
+//    return retryRPC(() -> FileInfo
+//        .fromThrift(mClient.getFileInfo(fileId, new GetFileInfoTOptions()).getFileInfo()));
+    return null;
   }
 
   /**

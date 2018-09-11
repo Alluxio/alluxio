@@ -15,8 +15,8 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
-import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.FileSystemMasterServiceGrpc;
 import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
@@ -28,6 +28,8 @@ import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.util.grpc.GrpcChannel;
+import alluxio.util.grpc.GrpcChannelBuilder;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
@@ -58,6 +60,9 @@ public abstract class AbstractClient implements Client {
 
   protected InetSocketAddress mAddress;
   protected TProtocol mProtocol;
+
+  protected FileSystemMasterServiceGrpc.FileSystemMasterServiceBlockingStub mBlockingStub;
+  protected GrpcChannel mChannel;
 
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
@@ -98,6 +103,11 @@ public abstract class AbstractClient implements Client {
     mParentSubject = subject;
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
+    mChannel = GrpcChannelBuilder
+        .forAddress("localhost", 50051)
+        .usePlaintext(true)
+        .build();
+    mBlockingStub = FileSystemMasterServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -334,12 +344,12 @@ public abstract class AbstractClient implements Client {
       try {
         return rpc.call();
       } catch (AlluxioTException e) {
-        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
-        if (se.getStatus() == Status.UNAVAILABLE) {
-          ex = se;
-        } else {
-          throw se;
-        }
+//        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
+//        if (se.getStatus() == Status.UNAVAILABLE) {
+//          ex = se;
+//        } else {
+//          throw se;
+//        }
       } catch (TException e) {
         ex = e;
       }

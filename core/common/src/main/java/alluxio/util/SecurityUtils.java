@@ -13,7 +13,6 @@ package alluxio.util;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
@@ -63,11 +62,13 @@ public final class SecurityUtils {
    *         authentication is disabled
    */
   public static String getOwnerFromLoginModule() {
-    try {
-      return LoginUser.get().getName();
-    } catch (UnauthenticatedException | UnsupportedOperationException e) {
-      return "";
-    }
+    // TODO(adit):
+    return "test";
+//    try {
+//      // return LoginUser.get().getName();
+//    } catch (UnauthenticatedException | UnsupportedOperationException e) {
+//      return "";
+//    }
   }
 
   /**
@@ -75,15 +76,17 @@ public final class SecurityUtils {
    *         authentication is disabled
    */
   public static String getOwnerFromThriftClient() {
-    try {
-      User user = AuthenticatedClientUser.get();
-      if (user == null) {
-        return "";
-      }
-      return user.getName();
-    } catch (IOException e) {
-      return "";
-    }
+    // TODO(adit):
+    return "test";
+//    try {
+//      User user = AuthenticatedClientUser.get();
+//      if (user == null) {
+//        return "";
+//      }
+//      return user.getName();
+//    } catch (IOException e) {
+//      return "";
+//    }
   }
 
   /**

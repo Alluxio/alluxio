@@ -18,7 +18,7 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.master.backcompat.TestOp;
 import alluxio.multi.process.Clients;
-import alluxio.underfs.UnderFileSystem.UfsMode;
+import alluxio.underfs.UfsMode;
 
 /**
  * Test for updating UFS modes.

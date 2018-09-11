@@ -11,9 +11,10 @@
 
 package alluxio.client.file.options;
 
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.test.util.CommonUtils;
-import alluxio.thrift.ListStatusTOptions;
-import alluxio.thrift.LoadMetadataTType;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.LoadMetadataType;
 
 import org.junit.Assert;
@@ -39,11 +40,11 @@ public class ListStatusOptionsTest {
   }
 
   @Test
-  public void toThrift() {
+  public void toProto() {
     ListStatusOptions options = ListStatusOptions.defaults();
-    ListStatusTOptions thriftOptions = options.toThrift();
-    Assert.assertEquals(LoadMetadataTType.Once, thriftOptions.getLoadMetadataType());
-    Assert.assertEquals(false, thriftOptions.isRecursive());
+    ListStatusPOptions protoOptions = GrpcUtils.toProto(options);
+    Assert.assertEquals(LoadMetadataPType.ONCE, protoOptions.getLoadMetadataType());
+    Assert.assertEquals(false, protoOptions.getRecursive());
   }
 
   @Test
