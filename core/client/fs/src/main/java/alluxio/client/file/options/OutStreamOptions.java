@@ -75,7 +75,9 @@ public final class OutStreamOptions {
   /**
    * @return the acl
    */
-  public AccessControlList getAcl() { return mAcl; }
+  public AccessControlList getAcl() {
+    return mAcl;
+  }
 
   /**
    * @return the block size
@@ -170,7 +172,7 @@ public final class OutStreamOptions {
   }
 
   /**
-   * Sets the acl of the file
+   * Sets the acl of the file.
    *
    * @param acl the acl to use
    * @return the updated options object

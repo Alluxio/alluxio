@@ -60,7 +60,9 @@ public final class CreateOptions {
   /**
    * @return the Acl
    */
-  public AccessControlList getAcl() { return mAcl; }
+  public AccessControlList getAcl() {
+    return mAcl;
+  }
 
   /**
    * @return whether to create any necessary but nonexistent parent directories
@@ -98,7 +100,7 @@ public final class CreateOptions {
   }
 
   /**
-   * Sets an initial acl for the newly created file
+   * Sets an initial acl for the newly created file.
    *
    * @param acl option to set the ACL after creation
    * @return the updated object

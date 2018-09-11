@@ -11,9 +11,8 @@
 
 package alluxio.security.authorization;
 
-import alluxio.proto.journal.File;
-
 import alluxio.proto.shared.Acl;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 

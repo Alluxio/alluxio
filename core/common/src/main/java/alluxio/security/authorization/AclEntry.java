@@ -11,7 +11,6 @@
 
 package alluxio.security.authorization;
 
-import alluxio.proto.journal.File;
 import alluxio.proto.shared.Acl;
 import alluxio.thrift.TAclAction;
 import alluxio.thrift.TAclEntry;
