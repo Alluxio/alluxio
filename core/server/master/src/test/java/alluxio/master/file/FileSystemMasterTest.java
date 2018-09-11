@@ -2234,12 +2234,16 @@ public final class FileSystemMasterTest {
   @Test
   public void mountShadowDir() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
-    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello/shadow");
+
+    mFileSystemMaster.mount(alluxioURI, ufsURI.getParent(), MountOptions.defaults());
     AlluxioURI shadowAlluxioURI = new AlluxioURI("/hello/shadow");
-    AlluxioURI anotherUfsURI = createTempUfsDir("ufs/hi");
-    mThrown.expect(InvalidPathException.class);
-    mFileSystemMaster.mount(shadowAlluxioURI, anotherUfsURI, MountOptions.defaults());
+    AlluxioURI notShadowAlluxioURI = new AlluxioURI("/hello/notshadow");
+    AlluxioURI shadowUfsURI = createTempUfsDir("ufs/hi");
+    AlluxioURI notShadowUfsURI = createTempUfsDir("ufs/notshadowhi");
+    mFileSystemMaster.mount(notShadowAlluxioURI, notShadowUfsURI, MountOptions.defaults());
+    mThrown.expect(IOException.class);
+    mFileSystemMaster.mount(shadowAlluxioURI, shadowUfsURI, MountOptions.defaults());
   }
 
   /**

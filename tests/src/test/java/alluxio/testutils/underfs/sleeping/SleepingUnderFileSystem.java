@@ -52,6 +52,12 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
+  public void cleanup() throws IOException {
+    sleepIfNecessary(mOptions.getCleanupMs());
+    super.cleanup();
+  }
+
+  @Override
   public void close() throws IOException {
     sleepIfNecessary(mOptions.getCloseMs());
     super.close();

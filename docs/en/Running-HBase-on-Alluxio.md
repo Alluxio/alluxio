@@ -48,7 +48,7 @@ When Alluxio is running in fault tolerant mode, change the Alluxio URI to includ
 </property>
 ```
 
-Add the following two properties to the same file `hbase-site.xml`.
+Add the following properties to the same file `hbase-site.xml`.
 (make sure these three properties are configured in all HBase cluster nodes):
 
 ```xml
@@ -60,7 +60,14 @@ Add the following two properties to the same file `hbase-site.xml`.
   <name>fs.AbstractFileSystem.alluxio.impl</name>
   <value>alluxio.hadoop.AlluxioFileSystem</value>
 </property>
+<property>
+  <name>hbase.regionserver.hlog.syncer.count</name>
+  <value>1</value>
+</property>
 ```
+
+The last property is required to prevent HBase from flushing Alluxio file stream in a thread unsafe
+way.
 
 ## Distribute the Alluxio Client jar
 

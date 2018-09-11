@@ -156,6 +156,15 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     }
 
     @Override
+    protected void flushRequest(UfsFileWriteRequestContext context)
+        throws Exception {
+      Preconditions.checkState(context != null);
+      if (context.getOutputStream() != null) {
+        context.getOutputStream().flush();
+      }
+    }
+
+    @Override
     protected void writeBuf(UfsFileWriteRequestContext context, Channel channel, ByteBuf buf,
         long pos) throws Exception {
       Preconditions.checkState(context != null);
