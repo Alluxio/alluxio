@@ -229,7 +229,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     return null;
   }
 
-  // Get next chunk of listing result
+  // Get next chunk of listing result.
   private StorageObjectsChunk getObjectListingChunk(String key, String delimiter,
       String priorLastKey) {
     StorageObjectsChunk res;
