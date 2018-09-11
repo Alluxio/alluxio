@@ -126,6 +126,7 @@ public final class ProtoUtils {
   }
 
   /**
+   * @param aclAction the acl action
    * @return the protobuf representation of action
    */
   public static File.AclAction toProto(AclAction aclAction) {
@@ -142,6 +143,7 @@ public final class ProtoUtils {
   }
 
   /**
+   * @param aclEntry the acl entry
    * @return the proto representation of instance
    */
   public static File.AclEntry toProto(AclEntry aclEntry) {
@@ -158,7 +160,8 @@ public final class ProtoUtils {
   /**
    * Converts wire type to proto type.
    *
-   * @return {@link TSetAclAction} equivalent
+   * @param aclAction the acl action to convert
+   * @return {@link File.SetAclAction} equivalent
    */
   public static File.SetAclAction toProto(SetAclAction aclAction) {
     switch (aclAction) {
@@ -176,7 +179,7 @@ public final class ProtoUtils {
         throw new IllegalStateException("Unrecognized set acl action: " + aclAction);
     }
   }
-  
+
   /**
    * Converts an internal exception status to a protocol buffer type status.
    *
@@ -225,6 +228,7 @@ public final class ProtoUtils {
   }
 
   /**
+   * @param entryType the acl entry type
    * @return the proto representation of enum
    */
   public static File.AclEntryType toProto(AclEntryType entryType) {
@@ -455,6 +459,7 @@ public final class ProtoUtils {
   }
 
   /**
+   * @param entries the extended acl entries
    * @return a list of the proto representation of the named users actions
    */
   public static List<File.NamedAclActions> getNamedUsersProto(ExtendedACLEntries entries) {
@@ -470,6 +475,7 @@ public final class ProtoUtils {
   }
 
   /**
+   * @param entries the extended acl entries
    * @return a list of the proto representation of the named group actions
    */
   public static List<File.NamedAclActions> getNamedGroupsProto(ExtendedACLEntries entries) {
