@@ -87,7 +87,7 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
     return MountOptions.defaults();
   }
 
-   @Override
+  @Override
   public RenameOptions getRenameOptions() {
     return RenameOptions.defaults();
   }

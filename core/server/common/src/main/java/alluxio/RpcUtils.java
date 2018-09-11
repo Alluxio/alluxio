@@ -12,8 +12,6 @@
 package alluxio;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.InternalException;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;

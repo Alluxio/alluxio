@@ -183,7 +183,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
-  private static final FileSystemMasterOptions MASTER_OPTIONS = new DefaultFileSystemMasterOptions();
+  private static final FileSystemMasterOptions MASTER_OPTIONS =
+      new DefaultFileSystemMasterOptions();
 
   @Override
   public FileSystemMasterOptions getMasterOptions() {
@@ -2391,8 +2392,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         return;
       }
     }
-    alluxio.master.file.options.CreateDirectoryOptions createDirectoryOptions =
-        MASTER_OPTIONS.<alluxio.master.file.options.CreateDirectoryOptions>getCreateDirectoryOptions()
+    alluxio.master.file.options.CreateDirectoryOptions createDirectoryOptions = MASTER_OPTIONS
+        .<alluxio.master.file.options.CreateDirectoryOptions>getCreateDirectoryOptions()
           .setMountPoint(mMountTable.isMountPoint(inodePath.getUri()))
           .setPersisted(true)
           .setRecursive(options.isCreateAncestors())
@@ -2970,8 +2971,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                    mInodeTree.lockDescendantPath(inodePath, lockingScheme.getMode(),
                        mountPointUri)) {
             try {
-              loadMetadataInternal(rpcContext, descendantPath, MASTER_OPTIONS.getLoadMetadataOptions()
-                  .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
+              loadMetadataInternal(rpcContext, descendantPath,
+                  MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(true)
+                      .setLoadDescendantType(syncDescendantType));
             } catch (Exception e) {
               LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
             }
@@ -3030,8 +3032,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Set<String> pathsToLoad = new HashSet<>();
 
     // The options for deleting.
-    DeleteOptions syncDeleteOptions =
-        MASTER_OPTIONS.getDeleteOptions().setRecursive(true).setAlluxioOnly(true).setUnchecked(true);
+    DeleteOptions syncDeleteOptions = MASTER_OPTIONS.getDeleteOptions().setRecursive(true)
+        .setAlluxioOnly(true).setUnchecked(true);
 
     // The requested path already exists in Alluxio.
     InodeView inode = inodePath.getInode();
@@ -3147,8 +3149,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           Constants.INVALID_UFS_FINGERPRINT;
       try {
         // Permission checking for each file is performed inside setAttribute
-        setAttribute(getPath(fileId),
-            MASTER_OPTIONS.getSetAttributeOptions().setPersisted(true).setUfsFingerprint(ufsFingerprint));
+        setAttribute(getPath(fileId), MASTER_OPTIONS.getSetAttributeOptions().setPersisted(true)
+            .setUfsFingerprint(ufsFingerprint));
       } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {
         LOG.error("Failed to set file {} as persisted, because {}", fileId, e);
       }

@@ -18,6 +18,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class CommonOptions extends alluxio.file.options.CommonOptions<CommonOptions> {
+  private static final long serialVersionUID = -2523913701230985828L;
+
   /**
    * @return the default {@link CommonOptions}
    */

@@ -46,7 +46,6 @@ public final class MasterUfsManager extends AbstractUfsManager
   /** A set of all managed ufs roots. */
   private final Set<String> mUfsRoots;
 
-
   /** Mapping from mount ID to ufs root. */
   private final Map<Long, String> mIdToRoot;
 

@@ -24,7 +24,6 @@ import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.RpcContext;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.CreatePathOptions;
-import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.master.file.state.InodesView;
 import alluxio.master.journal.JournalContext;
@@ -647,14 +646,15 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     // NOTE, we set the mode of missing ancestor directories to be the default value, rather
     // than inheriting the option of the final file to create, because it may not have
     // "execute" permission.
-    CreateDirectoryOptions missingDirOptions = alluxio.master.file.options.CreateDirectoryOptions.defaults()
-        .setMountPoint(false)
-        .setPersisted(options.isPersisted())
-        .setOperationTimeMs(options.getOperationTimeMs())
-        .setOwner(options.getOwner())
-        .setGroup(options.getGroup())
-        .setTtl(options.getTtl())
-        .setTtlAction(options.getTtlAction());
+    CreateDirectoryOptions missingDirOptions =
+        alluxio.master.file.options.CreateDirectoryOptions.defaults()
+            .setMountPoint(false)
+            .setPersisted(options.isPersisted())
+            .setOperationTimeMs(options.getOperationTimeMs())
+            .setOwner(options.getOwner())
+            .setGroup(options.getGroup())
+            .setTtl(options.getTtl())
+            .setTtlAction(options.getTtlAction());
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectoryView dir = null;
       while (dir == null) {

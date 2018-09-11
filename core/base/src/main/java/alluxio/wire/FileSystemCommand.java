@@ -39,7 +39,7 @@ public final class FileSystemCommand {
   /**
    * @return the command options
    */
-  public FileSystemCommandOptions getCommmandOptions() {
+  public FileSystemCommandOptions getCommandOptions() {
     return mCommandOptions;
   }
 
@@ -48,7 +48,7 @@ public final class FileSystemCommand {
    *
    * @param commandOptions the command options
    */
-  public void setCommmandOptions(FileSystemCommandOptions commandOptions) {
+  public void setCommandOptions(FileSystemCommandOptions commandOptions) {
     mCommandOptions = commandOptions;
   }
 

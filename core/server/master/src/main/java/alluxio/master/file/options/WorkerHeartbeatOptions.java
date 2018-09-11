@@ -13,10 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.thrift.FileSystemHeartbeatTOptions;
 
-import com.google.common.base.Objects;
-
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

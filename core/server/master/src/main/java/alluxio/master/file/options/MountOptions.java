@@ -12,7 +12,6 @@
 package alluxio.master.file.options;
 
 import alluxio.proto.journal.File;
-import alluxio.thrift.MountTOptions;
 
 import java.util.HashMap;
 

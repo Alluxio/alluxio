@@ -68,8 +68,9 @@ public final class FileSystemMasterWorkerServiceHandler
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<FileSystemHeartbeatTResponse>) () ->
         null,
-//        new FileSystemHeartbeatTResponse(mFileSystemMaster.workerHeartbeat(workerId, persistedFiles,
-//            new WorkerHeartbeatOptions(options))),
+        // new FileSystemHeartbeatTResponse(mFileSystemMaster.workerHeartbeat(workerId,
+        // persistedFiles,
+        // new WorkerHeartbeatOptions(options))),
         "FileSystemHeartbeat", "workerId=%s, persistedFiles=%s, options=%s",
         workerId, persistedFiles, options);
   }

@@ -12,8 +12,6 @@
 package alluxio.master.file.options;
 
 import alluxio.test.util.CommonUtils;
-import alluxio.thrift.ListStatusTOptions;
-import alluxio.thrift.LoadMetadataTType;
 import alluxio.wire.LoadMetadataType;
 
 import org.junit.Assert;
@@ -41,15 +39,15 @@ public class ListStatusOptionsTest {
     Assert.assertEquals(true, options.isRecursive());
   }
 
-  @Test
-  public void fromThrift() {
-    ListStatusTOptions listStatusTOptions = new ListStatusTOptions();
-    listStatusTOptions.setLoadMetadataType(LoadMetadataTType.Always);
-    listStatusTOptions.setRecursive(true);
-    ListStatusOptions options = new ListStatusOptions(listStatusTOptions);
-    Assert.assertEquals(LoadMetadataType.Always, options.getLoadMetadataType());
-    Assert.assertEquals(true, options.isRecursive());
-  }
+//  @Test
+//  public void fromProto() {
+//    ListStatusPOptions.Builder builder = ListStatusPOptions.newBuilder();
+//    builder.setLoadMetadataType(LoadMetadataPType.ALWAYS);
+//    builder.setRecursive(true);
+//    ListStatusOptions options = GrpcUtils.fromProto(builder.build());
+//    Assert.assertEquals(LoadMetadataType.Always, options.getLoadMetadataType());
+//    Assert.assertEquals(true, options.isRecursive());
+//  }
 
   @Test
   public void equalsTest() throws Exception {
