@@ -51,7 +51,7 @@ public final class NettyUtils {
   public static final ChannelType WORKER_CHANNEL_TYPE =
       getChannelType(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL);
 
-  private static Boolean sNettyEpollAvailable;
+  private static Boolean sNettyEpollAvailable = null;
 
   private NettyUtils() {}
 
@@ -165,14 +165,12 @@ public final class NettyUtils {
   /**
    * @return whether netty epoll is available to the system
    */
-  public static boolean isNettyEpollAvailable() {
-    synchronized (sNettyEpollAvailable) {
-      if (sNettyEpollAvailable == null) {
-        // Only call checkNettyEpollAvailable once ever so that we only log the result once.
-        sNettyEpollAvailable = checkNettyEpollAvailable();
-      }
-      return sNettyEpollAvailable;
+  public static synchronized boolean isNettyEpollAvailable() {
+    if (sNettyEpollAvailable == null) {
+      // Only call checkNettyEpollAvailable once ever so that we only log the result once.
+      sNettyEpollAvailable = checkNettyEpollAvailable();
     }
+    return sNettyEpollAvailable;
   }
 
   private static boolean checkNettyEpollAvailable() {
