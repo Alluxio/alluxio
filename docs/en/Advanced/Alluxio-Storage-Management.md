@@ -12,7 +12,7 @@ TODO(Andrew, Zac): Combine with documentation page for TTL
 * Table of Contents
 {:toc}
 
-Alluxio manages the local storage, including memory, of Alluxio workers to act as a distributed
+Alluxio2 manages the local storage, including memory, of Alluxio workers to act as a distributed
 buffer cache. This fast data layer between user applications and the various under storages results
 in vastly improved I/O performance.
 
