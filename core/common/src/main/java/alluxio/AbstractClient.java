@@ -62,6 +62,7 @@ public abstract class AbstractClient implements Client {
   protected InetSocketAddress mAddress;
   protected TProtocol mProtocol;
 
+  // TODO(adit): move to fs master client
   protected FileSystemMasterServiceGrpc.FileSystemMasterServiceBlockingStub mBlockingStub;
   protected GrpcChannel mChannel;
 
@@ -108,6 +109,7 @@ public abstract class AbstractClient implements Client {
         .forAddress("localhost", 50051)
         .usePlaintext(true)
         .build();
+    // TODO(adit): move to fs master client
     mBlockingStub = FileSystemMasterServiceGrpc.newBlockingStub(mChannel);
   }
 
