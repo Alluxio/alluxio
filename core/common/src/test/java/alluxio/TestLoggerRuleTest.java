@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Unit tests for {link @TestLoggerRule}.
+ * Unit tests for {@link TestLoggerRule}.
  */
 public final class TestLoggerRuleTest {
 
@@ -32,7 +32,7 @@ public final class TestLoggerRuleTest {
   public void wasLoggedTest() {
     String logEvent = "This is a test";
     LOG.info(logEvent);
-    assertTrue(mLogger.mAppender.wasLogged(logEvent));
+    assertTrue(mLogger.wasLogged(logEvent));
   }
 
 }

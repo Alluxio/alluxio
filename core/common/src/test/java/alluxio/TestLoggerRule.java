@@ -20,9 +20,9 @@ import org.junit.Before;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestLoggerRule extends AbstractResourceRule{
+public class TestLoggerRule extends AbstractResourceRule {
 
-  public TestAppender mAppender;
+  private TestAppender mAppender;
 
   @Before
   public void before() {
@@ -33,6 +33,16 @@ public class TestLoggerRule extends AbstractResourceRule{
   @After
   public void after() {
     Logger.getRootLogger().removeAppender(mAppender);
+  }
+
+  /**
+   * Determine if a specific piece of text appears in log output.
+   *
+   * @param eventString The piece of text to search for in log events
+   * @return True if an event containing the string exists, false otherwise
+   */
+  public boolean wasLogged(String eventString) {
+    return mAppender.wasLogged(eventString);
   }
 
   public class TestAppender extends AppenderSkeleton {

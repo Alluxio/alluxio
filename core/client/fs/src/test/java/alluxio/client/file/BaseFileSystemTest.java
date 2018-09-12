@@ -517,8 +517,8 @@ public final class BaseFileSystemTest {
       assertThat(e.getMessage(), containsString("does not match the configured value of"));
     }
 
-    assertTrue(mTestLogger.mAppender.wasLogged("The URI scheme"));
-    assertTrue(mTestLogger.mAppender.wasLogged("The URI authority"));
+    assertTrue(mTestLogger.wasLogged("The URI scheme"));
+    assertTrue(mTestLogger.wasLogged("The URI authority"));
 
   }
 
@@ -550,8 +550,8 @@ public final class BaseFileSystemTest {
     AlluxioURI uri = new AlluxioURI("alluxio://localhost:19998/root");
     mFileSystem.createDirectory(uri);
 
-    assertTrue(mTestLogger.mAppender.wasLogged("The URI scheme"));
-    assertTrue(mTestLogger.mAppender.wasLogged("The URI authority"));
+    assertTrue(mTestLogger.wasLogged("The URI scheme"));
+    assertTrue(mTestLogger.wasLogged("The URI authority"));
 
   }
 
@@ -567,8 +567,8 @@ public final class BaseFileSystemTest {
     AlluxioURI uri = new AlluxioURI("/root");
     mFileSystem.createDirectory(uri);
 
-    assertFalse(mTestLogger.mAppender.wasLogged("The URI authority"));
-    assertFalse(mTestLogger.mAppender.wasLogged("The URI scheme"));
+    assertFalse(mTestLogger.wasLogged("The URI authority"));
+    assertFalse(mTestLogger.wasLogged("The URI scheme"));
   }
 
 }

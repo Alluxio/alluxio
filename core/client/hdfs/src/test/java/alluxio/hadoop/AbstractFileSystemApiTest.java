@@ -38,24 +38,23 @@ public final class AbstractFileSystemApiTest {
   }
 
   @Test
-  public void unkownAuthorityTriggersWarning() throws IOException {
+  public void unknownAuthorityTriggersWarning() throws IOException {
     URI unknown = URI.create("alluxio://test/");
     FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration());
-    assertTrue(mTestLogger.mAppender.wasLogged("Authority \"test\" is unknown"));
+    assertTrue(mTestLogger.wasLogged("Authority \"test\" is unknown"));
   }
 
   @Test
   public void noAuthorityNoWarning() throws IOException {
     URI unknown = URI.create("alluxio:///");
     FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration());
-    assertFalse(mTestLogger.mAppender.wasLogged("Authority \"\" is unknown"));
+    assertFalse(mTestLogger.wasLogged("Authority \"\" is unknown"));
   }
 
   @Test
   public void validAuthorityNoWarning() throws IOException {
     URI unknown = URI.create("alluxio://localhost:12345/");
     FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration());
-    assertFalse(mTestLogger.mAppender
-        .wasLogged("Authority \"localhost:12345\" is unknown"));
+    assertFalse(mTestLogger.wasLogged("Authority \"localhost:12345\" is unknown"));
   }
 }
