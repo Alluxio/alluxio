@@ -274,9 +274,9 @@ SPARK_LOCAL_HOSTNAME=simple30
 In either way, the Spark Worker addresses become hostnames and Locality Level becomes `NODE_LOCAL` as shown
 in Spark WebUI below.
 
-![hostname]({{site.data.img.screenshot_datalocality_sparkwebui}})
+![hostname]({{ site.baseurl }}/img/screenshot_datalocality_sparkwebui.png)
 
-![locality]({{site.data.img.screenshot_datalocality_tasklocality}})
+![locality]({{ site.baseurl }}/img/screenshot_datalocality_tasklocality.png)
 
 ### Data Locality of Spark Jobs on YARN
 

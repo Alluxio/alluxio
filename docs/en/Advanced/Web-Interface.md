@@ -25,7 +25,7 @@ The Alluxio master web interface contains several different pages, described bel
 
 The Alluxio master home page looks something like below:
 
-![Alluxio Master Home Page]({{site.data.img.screenshot_overview}})
+![Alluxio Master Home Page]({{ site.baseurl }}/img/screenshot_overview.png)
 
 The home page gives an overview of the system status. It includes the following sections:
 
@@ -40,7 +40,7 @@ The home page gives an overview of the system status. It includes the following 
 To check the current configuration information, click "Configuration" in the
 navigation bar on the top of the screen.
 
-![configurations]({{site.data.img.screenshot_systemConfiguration}})
+![configurations]({{ site.baseurl }}/img/screenshot_systemConfiguration.png)
 
 The configuration page has two sections:
 
@@ -53,19 +53,19 @@ The configuration page has two sections:
 You can browse the Alluxio file system through the UI. When selecting the "Browse" tab
 in the navigation bar, you will see something like this:
 
-![browse]({{site.data.img.screenshot_browseFileSystem}})
+![browse]({{ site.baseurl }}/img/screenshot_browseFileSystem.png)
 
 Files in the current folder are listed, with the file name, file size, size for each block, the
 percentage of in-Alluxio data, creation time, and the modification time. To view the content of a
 file, click on that file.
 
-![viewFile]({{site.data.img.screenshot_viewFile}})
+![viewFile]({{ site.baseurl }}/img/screenshot_viewFile.png)
 
 ### Browse In-Alluxio Files Page
 
 To browse all in-Alluxio files, click on the "In-Alluxio Files" tab in the navigation bar.
 
-![inMemFiles]({{site.data.img.screenshot_inMemoryFiles}})
+![inMemFiles]({{ site.baseurl }}/img/screenshot_inMemoryFiles.png)
 
 Files currently in Alluxio are listed, with the file name, file size, size for each block,
 whether the file is pinned or not, the file creation time, and the file modification time.
@@ -74,7 +74,7 @@ whether the file is pinned or not, the file creation time, and the file modifica
 
 The master also shows all known Alluxio workers in the system and shows them in the "Workers" tab.
 
-![workers]({{site.data.img.screenshot_workers}})
+![workers]({{ site.baseurl }}/img/screenshot_workers.png)
 
 The workers page gives an overview of all Alluxio worker nodes divided into two sections:
 
@@ -86,7 +86,7 @@ The workers page gives an overview of all Alluxio worker nodes divided into two 
 
 To Access master metrics section, click on the “Metrics” tab in the navigation bar.
 
-![masterMetrics]({{site.data.img.screenshot_masterMetrics}})
+![masterMetrics]({{ site.baseurl }}/img/screenshot_masterMetrics.png)
 
 This section shows all master metrics. It includes the following sections:
 
@@ -119,7 +119,7 @@ the blocks of that file.
 
 To Access worker metrics section, click on the “Metrics” tab in the navigation bar.
 
-![workerMetrics]({{site.data.img.screenshot_workerMetrics}})
+![workerMetrics]({{ site.baseurl }}/img/screenshot_workerMetrics.png)
 
 This section shows all worker metrics. It includes the following sections:
 

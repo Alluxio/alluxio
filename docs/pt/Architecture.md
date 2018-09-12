@@ -24,7 +24,7 @@ aplicações, qualquer armazenamento inferior pode suportar quaisquer aplicaçõ
 executadas em cima do Alluxio. Acompanhado com um potencial que permite montar múltiplas armazenamentos
 inferiores, Alluxio pode servir como uma camada unificada para as variadas origens de dados.
 
-![Stack]({{site.data.img.stack}})
+![Stack]({{ site.baseurl }}/img/stack.png)
 
 ## Componentes Alluxio
 

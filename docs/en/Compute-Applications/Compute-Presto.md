@@ -138,7 +138,7 @@ OVERWRITE INTO TABLE u_user;
 
 View Alluxio WebUI at `http://master_hostname:19999` and you can see the directory and file Hive creates:
 
-![HiveTableInAlluxio]({{site.data.img.screenshot_presto_table_in_alluxio}})
+![HiveTableInAlluxio]({{ site.baseurl }}/img/screenshot_presto_table_in_alluxio.png)
 
 Alternatively, you can follow the [instructions](Running-Hive-with-Alluxio.html#create-new-tables-from-files-in-alluxio) to create the tables from existing files in Alluxio.
 
@@ -174,8 +174,8 @@ $ ./presto --server localhost:8080 --execute "use default;select * from u_user l
 
 And you can see the query results from console:
 
-![PrestoQueryResult]({{site.data.img.screenshot_presto_query_result}})
+![PrestoQueryResult]({{ site.baseurl }}/img/screenshot_presto_query_result.png)
 
 Presto Server log:
 
-![PrestoQueryLog]({{site.data.img.screenshot_presto_query_log}})
+![PrestoQueryLog]({{ site.baseurl }}/img/screenshot_presto_query_log.png)

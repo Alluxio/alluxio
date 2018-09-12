@@ -15,7 +15,7 @@ priority: 5
 
 透明命名机制保证了Alluxio和底层存储系统的命名空间是一致的。
 
-![transparent]({{site.data.img.screenshot_transparent}})
+![transparent]({{ site.baseurl }}/img/screenshot_transparent.png)
 
 当在Alluxio文件系统中创建对象时，可以选择这些对象是否要在底层存储系统中进行持久化。对于需要持久化的对象，
 Alluxio会保存底层文件系统存储这些对象的文件夹的路径。例如，一个用户在根目录下创建了一个`Users`目录，其中
@@ -31,7 +31,7 @@ Alluxio文件系统中对一个持久化的对象进行重命名或者删除操�
 
 Alluxio提供了一个挂载API，通过该API能够在Alluxio中访问多个数据源中的数据。
 
-![unified]({{site.data.img.screenshot_unified}})
+![unified]({{ site.baseurl }}/img/screenshot_unified.png)
 
 默认情况下，Alluxio文件系统挂载到Alluxio配置中`alluxio.underfs.address`指定的目录，该目录代表Alluxio
 的"primary storage"。另外，用户可以通过挂载API添加和删除数据源。

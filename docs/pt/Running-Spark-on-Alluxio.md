@@ -135,6 +135,6 @@ SPARK_LOCAL_HOSTNAME=simple30
 De qualquer forma, os endereços do `Spark Worker` serão o `hostname` e o `Locality Level` será
 `NODE_LOCAL`, como demonstrado no `Spark WebUI` abaixo:
 
-![hostname]({{site.data.img.screenshot_datalocality_sparkwebui}})
+![hostname]({{ site.baseurl }}/img/screenshot_datalocality_sparkwebui.png)
 
-![locality]({{site.data.img.screenshot_datalocality_tasklocality}})
+![locality]({{ site.baseurl }}/img/screenshot_datalocality_tasklocality.png)

@@ -81,11 +81,11 @@ $ ${HBASE_HOME}/bin/start-hbase.sh
 访问HBase网址`http://<HBASE_MASTER_HOSTNAME>:16010`的Web用户界面以确认HBase在Alluxio上运行
 （检查`HBase Root Directory`属性）：
 
-![HBaseRootDirectory]({{site.data.img.screenshot_start_hbase_webui}})
+![HBaseRootDirectory]({{ site.baseurl }}/img/screenshot_start_hbase_webui.png)
 
 并且访问Alluxio网址为`http://<ALLUXIO_MASTER_HOSTNAME>:19999`的Web用户界面，点击 "Browse" 就会看到HBase存储在Alluxio上的文件，包括数据和WALs:
 
-![HBaseRootDirectoryOnAlluxio]({{site.data.img.screenshot_start_hbase_alluxio_webui}})
+![HBaseRootDirectoryOnAlluxio]({{ site.baseurl }}/img/screenshot_start_hbase_alluxio_webui.png)
 
 ## HBase shell示例
 
@@ -109,7 +109,7 @@ bin/hbase shell simple_test.txt
 
 将会看到一些类似这样的输出：
 
-![HBaseShellOutput]({{site.data.img.screenshot_hbase_shell_output}})
+![HBaseShellOutput]({{ site.baseurl }}/img/screenshot_hbase_shell_output.png)
 
 如果已经安装了Hadoop,可以在HBase shell中运行一个Hadoop功能程序以统计新创建的表的行数：
 
@@ -119,4 +119,4 @@ bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
 
 在这个mapreduce作业结束后，会看到如下结果：
 
-![HBaseHadoopOutput]({{site.data.img.screenshot_hbase_hadoop_output}})
+![HBaseHadoopOutput]({{ site.baseurl }}/img/screenshot_hbase_hadoop_output.png)

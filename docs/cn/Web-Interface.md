@@ -23,7 +23,7 @@ Alluxio master Web界面包含若干不同页面，描述如下：
 
 Alluxio master 主页如下所示:
 
-![Alluxio Master Home Page]({{site.data.img.screenshot_overview}})
+![Alluxio Master Home Page]({{ site.baseurl }}/img/screenshot_overview.png)
 
 主页显示了系统状态的概要信息，包括以下部分：
 
@@ -37,7 +37,7 @@ Alluxio master 主页如下所示:
 
 查看当前的配置信息，点击屏幕上方导航栏的"Configuration"。
 
-![configurations]({{site.data.img.screenshot_systemConfiguration}})
+![configurations]({{ site.baseurl }}/img/screenshot_systemConfiguration.png)
 
 配置页面包含两部分:
 
@@ -49,17 +49,17 @@ Alluxio master 主页如下所示:
 
 你可以通过Web UI浏览Alluxio文件系统。当你点击导航栏上的"Browse"选项卡，你可以看到如下的页面：
 
-![browse]({{site.data.img.screenshot_browseFileSystem}})
+![browse]({{ site.baseurl }}/img/screenshot_browseFileSystem.png)
 
 当前文件夹的文件会被列出，包括文件名，文件大小，块大小，内存中数据的百分比，创建时间和修改时间。查看文件内容只需点击对应的文件即可。
 
-![viewFile]({{site.data.img.screenshot_viewFile}})
+![viewFile]({{ site.baseurl }}/img/screenshot_viewFile.png)
 
 ### 浏览内存中文件页面
 
 浏览所有内存中文件，点击导航栏"In-Alluxio Files"选项卡。
 
-![inMemFiles]({{site.data.img.screenshot_inMemoryFiles}})
+![inMemFiles]({{ site.baseurl }}/img/screenshot_inMemoryFiles.png)
 
 当前在Alluxio的文件会被列出，包括文件名，文件大小，块大小，文件是否被固定在内存中，文件创建时间和文件修改时间。
 
@@ -67,7 +67,7 @@ Alluxio master 主页如下所示:
 
 master也显示了系统中所有已知的Alluxio worker。点击"Workers"选项卡即可查看。
 
-![workers]({{site.data.img.screenshot_workers}})
+![workers]({{ site.baseurl }}/img/screenshot_workers.png)
 
 workers页面将所有Alluxio worker节点分为两类显示：
 
@@ -79,7 +79,7 @@ workers页面将所有Alluxio worker节点分为两类显示：
 
 点击导航栏中的“Metrics”选项卡即可浏览master的度量信息。
 
-![masterMetrics]({{site.data.img.screenshot_masterMetrics}})
+![masterMetrics]({{ site.baseurl }}/img/screenshot_masterMetrics.png)
 
 这一部分显示了master的所有度量信息，包括：
 
@@ -109,7 +109,7 @@ Alluxio worker的主页和Alluxio master类似，但是显示的是单个worker�
 
 点击导航栏中的“Metrics”选项卡即可浏览worker的度量信息。
 
-![workerMetrics]({{site.data.img.screenshot_workerMetrics}})
+![workerMetrics]({{ site.baseurl }}/img/screenshot_workerMetrics.png)
 
 这一部分显示了worker的所有度量信息，包括：
 

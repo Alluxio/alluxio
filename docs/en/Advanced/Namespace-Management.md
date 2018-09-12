@@ -19,7 +19,7 @@ transparent naming and mounting API.
 Transparent naming maintains an identity between the Alluxio namespace and the underlying storage
 system namespace.
 
-![transparent]({{site.data.img.screenshot_transparent}})
+![transparent]({{ site.baseurl }}/img/screenshot_transparent.png)
 
 When a user creates objects in the Alluxio namespace, they can choose whether these objects should
 be persisted in the underlying storage system. For objects that are persisted, Alluxio preserves the
@@ -41,7 +41,7 @@ Alluxio, one can read the data using `FileInStream` or use the `load` command of
 Alluxio provides a mounting API that makes it possible to use Alluxio to access data across multiple
 data sources.
 
-![unified]({{site.data.img.screenshot_unified}})
+![unified]({{ site.baseurl }}/img/screenshot_unified.png)
 
 By default, Alluxio namespace is mounted onto the directory specified by the
 `alluxio.underfs.address` property of Alluxio configuration; this directory identifies the
