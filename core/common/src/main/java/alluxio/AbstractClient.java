@@ -15,6 +15,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
+import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.FileSystemMasterServiceGrpc;
 import alluxio.metrics.CommonMetrics;
@@ -26,11 +27,11 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.util.grpc.GrpcChannel;
 import alluxio.util.grpc.GrpcChannelBuilder;
 import alluxio.util.SecurityUtils;
+import alluxio.util.grpc.GrpcExceptionUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
@@ -343,15 +344,13 @@ public abstract class AbstractClient implements Client {
       connect();
       try {
         return rpc.call();
-      } catch (AlluxioTException e) {
-//        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
-//        if (se.getStatus() == Status.UNAVAILABLE) {
-//          ex = se;
-//        } else {
-//          throw se;
-//        }
-      } catch (TException e) {
-        ex = e;
+      } catch (Exception e) {
+        AlluxioStatusException se = GrpcExceptionUtils.fromGrpcStatusException(e);
+        if (se.getStatus() == Status.UNAVAILABLE) {
+          ex = se;
+        } else {
+          throw se;
+        }
       }
       LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
       onRetry.get();
