@@ -7,11 +7,17 @@ group: Home
 * Table of Contents
 {:toc}
 
-Alluxio, formerly known as Tachyon, is the world’s first memory speed virtual distributed storage
+Alluxio is the world’s first memory speed virtual distributed storage
 system. It unifies data access and bridges computation frameworks and underlying storage systems.
 Applications only need to connect with Alluxio to access data stored in any underlying storage
 systems. Additionally, Alluxio’s memory-centric architecture enables data access at speeds that is
 orders of magnitude faster than existing solutions.
+
+Alluxio holds a unique place in the big data ecosystem, residing between storage systems (such as Amazon S3, Apache HDFS or OpenStack Swift) and computation frameworks and applications (such as Apache Spark or Hadoop MapReduce) to provide a central point of access with a memory-centric design. Alluxio works best when computation frameworks and distributed storage are decoupled and Alluxio is deployed alongside a cluster’s computation framework.
+
+For user applications and computation frameworks, Alluxio is the storage underneath that usually collocates with the computation frameworks, so that Alluxio can provide fast storage, facilitating data sharing and locality between jobs, regardless of whether they are running on the same computation engine. As a result, Alluxio can serve the data at memory speed when data is local, or the computation cluster network speed when data is in Alluxio. Data is only read once from the under storage system on the first time it’s accessed. Therefore, the data access can be accelerated even when the access to the under storage is not fast.
+
+For under storage systems, Alluxio bridges the gap between big data applications and traditional storage systems, and expands the set of workloads available to utilize the data. Since Alluxio hides the integration of under storage systems from applications, any under storage can back all the applications and frameworks running on top of Alluxio. Also, when mounting multiple under storage systems simultaneously, Alluxio can serve as a unifying layer for any number of varied data sources.
 
 In the big data ecosystem, Alluxio lies between computation frameworks or jobs, such as Apache
 Spark, Apache MapReduce, Apache HBase, Apache Hive, or Apache Flink, and various kinds of storage
@@ -106,3 +112,11 @@ questions, please feel free to ask at our
 can not access Google Group, please use its
 [mirror](http://alluxio-users.85194.x6.nabble.com/) (notes: the mirror does not have information
 before May 2016).
+
+## Use Cases
+TODO: fill this section (binfan)
+### Data acceleration
+
+### Distributed cache for Presto / SparkSQL
+
+### API translation for Machine learning

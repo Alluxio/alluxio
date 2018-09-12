@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Running Alluxio on Kubernetes
+title: Deploy Alluxio on Kubernetes
 nickname: Alluxio on Kubernetes
 group: Deploying Alluxio
 priority: 3

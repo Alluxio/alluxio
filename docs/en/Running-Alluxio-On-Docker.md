@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Running Alluxio on Docker
+title: Deploy Alluxio on Docker
 nickname: Alluxio on Docker
 group: Deploying Alluxio
 priority: 3

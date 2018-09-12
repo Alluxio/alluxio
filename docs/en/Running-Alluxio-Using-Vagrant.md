@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Running Alluxio on EC2
-nickname: Alluxio on EC2
+title: Deploy Alluxio Using Vagrant
+nickname: Alluxio on Vagrant
 group: Deploying Alluxio
-priority: 3
+priority: 5
 ---
 
 * Table of Contents
