@@ -83,7 +83,7 @@
                                     </li>
                                 {% else %}
                                     <!-- Use the prefix .. to change the absolute url to relative url -->
-                                    <li><a href="{{base}}/{{ node.url }}">
+                                    <li><a href="{{base}}{{node.url}}">
                                         {% if node.nickname == null %}
                                             {{node.title}}
                                         {% else %}
