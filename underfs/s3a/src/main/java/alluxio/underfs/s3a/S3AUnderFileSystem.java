@@ -52,8 +52,7 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.util.Base64;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
+import java.util.function.Supplier;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -107,14 +106,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private final boolean mStreamingUploadEnabled;
 
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
-  private final Supplier<ObjectPermissions> mPermissions = Suppliers
-      .memoize(new Supplier<ObjectPermissions>() {
-        @Override
-        public ObjectPermissions get() {
-          return getPermissionsInternal();
-        }
-      });
-
+  private final Supplier<ObjectPermissions> mPermissions = () -> getPermissionsInternal();
   /** The configuration for ufs. */
   private final UnderFileSystemConfiguration mConf;
 

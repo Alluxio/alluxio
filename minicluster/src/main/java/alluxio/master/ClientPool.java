@@ -14,7 +14,7 @@ package alluxio.master;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 
 import java.io.Closeable;
 import java.io.IOException;

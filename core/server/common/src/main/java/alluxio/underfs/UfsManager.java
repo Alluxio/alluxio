@@ -19,7 +19,7 @@ import alluxio.resource.CloseableResource;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

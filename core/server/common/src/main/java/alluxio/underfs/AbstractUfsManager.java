@@ -20,7 +20,7 @@ import alluxio.util.IdUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
