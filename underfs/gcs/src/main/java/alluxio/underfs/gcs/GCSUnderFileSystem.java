@@ -8,7 +8,7 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
-  
+
 package alluxio.underfs.gcs;
 
 import alluxio.AlluxioURI;
