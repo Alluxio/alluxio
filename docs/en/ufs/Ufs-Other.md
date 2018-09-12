@@ -20,8 +20,8 @@ using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
 ### Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-From-Source.html), or
-[download the binaries locally](Running-Alluxio-Locally.html).
+[compile Alluxio]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
+[download the binaries locally]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 ### Configuring Alluxio
 
@@ -106,8 +106,8 @@ $ ./bin/alluxio-stop.sh local
 ### Access Control
 
 If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying Ceph Object Storage.
-Depending on the interace used, refer to [S3A Access Control](Configuring-Alluxio-with-S3.html#s3-access-control)
-or [Swift Access Control](Configuring-Alluxio-with-Swift.html#swift-access-control) for more information.
+Depending on the interace used, refer to [S3A Access Control]({{ site.baseurl }}{% link en/ufs/Ufs-S3.md %}#s3-access-control)
+or [Swift Access Control]({{ site.baseurl }}{% link en/ufs/Ufs-Other.md %}#swift-access-control) for more information.
 
 ## GlusterFS
 
@@ -117,8 +117,8 @@ storage system.
 ### Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-From-Source.html), or
-[download the binaries locally](Running-Alluxio-Locally.html).
+[compile Alluxio]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
+[download the binaries locally]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 ### Configuring Alluxio
 
@@ -165,7 +165,7 @@ as the under storage system.
 
 ### Compiling Alluxio with MapR Version
 
-Alluxio must be [compiled](Building-Alluxio-From-Source.html) with the correct MapR distribution
+Alluxio must be [compiled]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}) with the correct MapR distribution
 to integrate with MapR-FS. Here are some values of `hadoop.version` for different MapR
 distributions:
 
@@ -210,9 +210,9 @@ alluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///
 ```
 
 This configuration parameter should be set for all the Alluxio servers (masters, workers). Please
-read how to [configure Alluxio](Configuration-Settings.html). For Alluxio processes, this parameter
+read how to [configure Alluxio]({{ site.baseurl }}{% link en/advanced/Configuration-Settings.md %}). For Alluxio processes, this parameter
 can be set in the property file `alluxio-site.properties`. For more information, please read about
-[configuration of Alluxio with property files](Configuration-Settings.html#property-files).
+[configuration of Alluxio with property files]({{ site.baseurl }}{% link en/advanced/Configuration-Settings.md %}#property-files).
 
 ### Configuring Alluxio to use MapR-FS as Under File System
 
@@ -259,8 +259,8 @@ use this scheme to connect Alluxio with Minio server.
 ### Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-From-Source.html), or
-[download the binaries locally](Running-Alluxio-Locally.html).
+[compile Alluxio]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
+[download the binaries locally]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 ### Setup Minio
 
@@ -310,8 +310,8 @@ storage system.
 ### Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-From-Source.html), or
-[download the binaries locally](Running-Alluxio-Locally.html).
+[compile Alluxio]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
+[download the binaries locally]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 ### Configuring Alluxio
 
@@ -364,8 +364,8 @@ Service (OBS) is a massive, secure and highly reliable cloud storage service pro
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines. You can either
-[compile the binaries from Alluxio source code](Building-Alluxio-From-Source.html),
-or [download the precompiled binaries directly](Running-Alluxio-Locally.html).
+[compile Alluxio]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
+[download the binaries locally]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 OBS under storage is implemented as an under storage extension. A precompiled OBS under storage jar can be downloaded from [here](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs/target).
 
@@ -375,7 +375,7 @@ Then execute the following command on master to install the extension to all mas
 $ bin/alluxio extensions install /PATH/TO/DOWNLOADED/OBS/jar
 ```
 
-See [this doc](UFSExtensions.html) for more details on Alluxio extension management.
+See [this doc]({{ site.baseurl }}{% link en/ufs/Ufs-Extensions.md %}) for more details on Alluxio extension management.
 
 A bucket and directory in OBS should exist before mounting OBS to Alluxio, create them if they do not exist.
 Suppose the bucket is named `OBS_BUCKET` and the directory is named `OBS_DIRECTORY`.
@@ -390,7 +390,7 @@ information on different regions and endpoints in OBS.
 ### Mounting OBS
 
 Alluxio unifies access to different storage systems through the
-[unified namespace](Unified-and-Transparent-Namespace.html) feature. An OBS location can be
+[unified namespace]({{ site.baseurl }}{% link en/advanced/Namespace-Management.md %}) feature. An OBS location can be
 either mounted at the root of the Alluxio namespace or at a nested directory.
 
 #### Root Mount
@@ -422,7 +422,7 @@ and you can try to run alluxio locally with OBS.
 #### Nested Mount
 An OBS location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's
-[Mount Command](Command-Line-Interface.html#mount) can be used for this purpose.
+[Mount Command]({{ site.baseurl }}{% link en/advanced/Command-Line-Interface.md %}#mount) can be used for this purpose.
 For example, the following command mounts a folder inside an OBS bucket into Alluxio directory
 `/obs`:
 
@@ -470,8 +470,8 @@ Service (OSS) is a massive, secure and highly reliable cloud storage service pro
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines.You can either
-[compile the binaries from Alluxio source code](Building-Alluxio-From-Source.html),
-or [download the precompiled binaries directly](Running-Alluxio-Locally.html).
+[compile Alluxio]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
+[download the binaries locally]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 Also, in preparation for using OSS with alluxio, create a bucket or use an existing bucket. You
 should also note the directory you want to use in that bucket, either by creating a new
@@ -485,7 +485,7 @@ information about OSS Bucket, please see [here](https://intl.aliyun.com/help/doc
 ### Mounting OSS
 
 Alluxio unifies access to different storage systems through the
-[unified namespace](Unified-and-Transparent-Namespace.html) feature. An OSS location can be
+[unified namespace]({{ site.baseurl }}{% link en/advanced/Namespace-Management.md %}) feature. An OSS location can be
 either mounted at the root of the Alluxio namespace or at a nested directory.
 
 #### Root Mount
@@ -519,7 +519,7 @@ and you can try to run alluxio locally with OSS.
 #### Nested Mount
 An OSS location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's
-[Mount Command](Command-Line-Interface.html#mount) can be used for this purpose.
+[Mount Command]({{ site.baseurl }}{% link en/advanced/Command-Line-Interface.md %}#mount) can be used for this purpose.
 For example, the following command mounts a directory inside an OSS bucket into Alluxio directory
 `/oss`:
 
@@ -566,8 +566,8 @@ This guide describes how to configure Alluxio with an under storage system suppo
 ### Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-From-Source.html), or
-[download the binaries locally](Running-Alluxio-Locally.html).
+[compile Alluxio]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
+[download the binaries locally]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 ### Configuring Alluxio
 
