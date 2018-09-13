@@ -50,7 +50,7 @@ categoryList:
   - Operations
   - Advanced
   - APIs
-  - Alluxio Developer Resources
+  - Alluxio Contributor Resources
   - Other
 
 # Each language has a particular version of category names
@@ -85,7 +85,7 @@ categoryInfo:
     en: APIs
     cn: Clients
     pt: Clients
-  Alluxio Developer Resources:
-    en: Alluxio Developer Resources
+  Alluxio Contributor Resources:
+    en: Alluxio Contributor Resources
     cn: 开发者资源
     pt: Recursos
