@@ -98,6 +98,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -2332,7 +2333,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       ufsLength = ufsStatus.getContentLength();
 
       if (isAclEnabled()) {
-        acl = ufs.getAcl(ufsUri.toString());
+        Pair<AccessControlList, DefaultAccessControlList> aclPair
+            = ufs.getAclPair(ufsUri.toString());
+        if (aclPair != null) {
+          acl = aclPair.getFirst();
+          // DefaultACL should be null, because it is a file
+          if (aclPair.getSecond() != null) {
+            LOG.warn("File {} has default ACL in the UFS", inodePath.getUri());
+          }
+        }
+
       }
     }
 
@@ -2405,11 +2415,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         .setTtl(options.getTtl()).setTtlAction(options.getTtlAction());
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
     UfsStatus ufsStatus = options.getUfsStatus();
-    if (ufsStatus == null) {
-      AlluxioURI ufsUri = resolution.getUri();
-      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-        UnderFileSystem ufs = ufsResource.get();
+
+    AlluxioURI ufsUri = resolution.getUri();
+    AccessControlList acl = null;
+    DefaultAccessControlList defaultAcl = null;
+
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      if (ufsStatus == null) {
         ufsStatus = ufs.getDirectoryStatus(ufsUri.toString());
+      }
+      Pair<AccessControlList, DefaultAccessControlList> aclPair =
+          ufs.getAclPair(ufsUri.toString());
+      if (aclPair != null) {
+        acl = aclPair.getFirst();
+        defaultAcl = aclPair.getSecond();
       }
     }
     String ufsOwner = ufsStatus.getOwner();
@@ -2422,6 +2442,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     createDirectoryOptions = createDirectoryOptions.setOwner(ufsOwner).setGroup(ufsGroup)
             .setMode(mode).setUfsStatus(ufsStatus);
+    if (acl != null) {
+      createDirectoryOptions.setAcl(acl.getEntries());
+    }
+
+    if (defaultAcl != null) {
+      createDirectoryOptions.setDefaultAcl(defaultAcl.getEntries());
+    }
     if (lastModifiedTime != null) {
       createDirectoryOptions.setOperationTimeMs(lastModifiedTime);
     }
@@ -2465,7 +2492,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (!inodeExists || loadDirectChildren) {
       try {
         loadMetadataInternal(rpcContext, inodePath, options);
-      } catch (Exception e) {
+      } catch (IOException | InvalidPathException | FileDoesNotExistException | BlockInfoException
+          | FileAlreadyCompletedException | InvalidFileSizeException | AccessControlException e) {
         // NOTE, this may be expected when client tries to get info (e.g. exists()) for a file
         // existing neither in Alluxio nor UFS.
         LOG.debug("Failed to load metadata for path from UFS: {}", inodePath.getUri());
@@ -2725,11 +2753,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
       } else {
         try {
-          ufs.setAcl(ufsUri, inode.getACL());
+          List<AclEntry> entries = new ArrayList<>(inode.getACL().getEntries());
           if (inode.isDirectory()) {
             InodeDirectoryView inodeDirectory = (InodeDirectoryView) inode;
-            ufs.setAcl(ufsUri, inodeDirectory.getDefaultACL());
+            entries.addAll(inodeDirectory.getDefaultACL().getEntries());
           }
+          ufs.setAclEntries(ufsUri, entries);
         } catch (IOException e) {
           throw new AccessControlException("Could not setAcl for UFS file: " + ufsUri);
         }
