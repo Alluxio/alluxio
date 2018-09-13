@@ -2,7 +2,7 @@
 layout: global
 title: Developer Tools
 nickname: Developer Tools`
-group: Alluxio Developer Resources
+group: Contributor Resources
 priority: 0
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Quick Start Guide
-group: User Guide
+group: Home
 priority: 0
 ---
 

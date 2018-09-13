@@ -2,7 +2,7 @@
 layout: global
 title: Deploy Alluxio using YARN
 nickname: Deploy Alluxio with YARN
-group: Alluxio on YARN
+group: Deploying Alluxio
 priority: 6
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: global
-group: Features
 title: Web Interface
+group: Advanced
 priority: 6
 ---
 

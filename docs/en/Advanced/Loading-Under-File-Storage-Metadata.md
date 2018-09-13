@@ -2,7 +2,7 @@
 layout: global
 title: Loading Under File Storage Metadata
 nickname: Loading UFS Metadata
-group: Features
+group: Advanced
 priority: 0
 ---
 

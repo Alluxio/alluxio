@@ -2,7 +2,7 @@
 layout: global
 title: Mounting Alluxio with FUSE
 nickname: Alluxio-FUSE
-group: Features
+group: APIs
 priority: 7
 ---
 

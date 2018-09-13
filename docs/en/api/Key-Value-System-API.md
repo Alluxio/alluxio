@@ -2,7 +2,7 @@
 layout: global
 title: (Experimental) Key Value System Client API
 nickname: (Experimental) Key Value System API
-group: Features
+group: APIs
 priority: 99
 ---
 

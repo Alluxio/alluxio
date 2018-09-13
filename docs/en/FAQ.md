@@ -2,7 +2,7 @@
 layout: global
 title: FAQ
 nickname: FAQ
-group: Other
+group: Home
 priority: 0
 ---
 

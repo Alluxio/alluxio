@@ -1,7 +1,7 @@
 ---
 layout: global
 title: List of Configuration Properties
-group: Appendix
+group: Reference
 priority: 0
 ---
 

@@ -2,7 +2,7 @@
 layout: global
 title: Unit Testing Guidelines
 nickname: Unit Testing Guidelines
-group: Alluxio Developer Resources
+group: Contributor Resources
 priority: 3
 ---
 

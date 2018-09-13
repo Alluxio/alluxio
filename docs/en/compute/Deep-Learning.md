@@ -2,7 +2,7 @@
 layout: global
 title: Running Deep Learning Frameworks on Alluxio
 nickname: Deep Learning Frameworks
-group: Frameworks
+group: Compute Applications
 priority: 5
 ---
 

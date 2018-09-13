@@ -2,7 +2,7 @@
 layout: global
 title: Time to Live
 nickname: Time to Live
-group: Features
+group: Advanced
 priority: 8
 ---
 

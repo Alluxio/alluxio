@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Troubleshooting
-group: Other
+group: Operations
 priority: 0
 ---
 

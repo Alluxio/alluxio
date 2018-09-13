@@ -2,7 +2,7 @@
 layout: global
 title: Code Conventions
 nickname: Code Conventions
-group: Alluxio Developer Resources
+group: Contributor Resources
 priority: 0
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Remote Logging
-group: Features
+group: Operations
 priority: 5
 ---
 

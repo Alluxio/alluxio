@@ -2,7 +2,7 @@
 layout: global
 title: Tiered Locality
 nickname: Tiered Locality
-group: Features
+group: Advanced
 priority: 1
 ---
 

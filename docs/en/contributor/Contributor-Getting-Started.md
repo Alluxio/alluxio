@@ -2,7 +2,7 @@
 layout: global
 title: Contributing Tutorial
 nickname: Contributing Tutorial
-group: Alluxio Developer Resources
+group: Contributor Resources
 priority: 0
 ---
 

@@ -2,7 +2,7 @@
 layout: global
 title: Under File Storage Extension API
 nickname: Ufs Extension API
-group: Apis
+group: APIs
 priority: 0
 ---
 

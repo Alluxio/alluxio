@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Admin Command Line Interface
-group: Features
+group: Operations
 priority: 0
 ---
 

@@ -2,7 +2,7 @@
 layout: global
 title: Running Presto with Alluxio
 nickname: Presto
-group: Frameworks
+group: Compute Applications
 priority: 2
 ---
 
