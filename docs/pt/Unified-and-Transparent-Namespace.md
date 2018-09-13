@@ -17,7 +17,7 @@ da utilização de uma nomeação transparente e uma `API` de ponto de montagem.
 A nomeação transparente mantém uma identidade entre o Alluxio `namespace` e o sistema de armazenamento 
 inferior.
 
-![transparent]({{site.data.img.screenshot_transparent}})
+![transparent]({{ site.baseurl }}/img/screenshot_transparent.png)
 
 Quando um usuário cria objetos no Alluxio `namespace`, estes podem escolher objetos se devem ser mantidos  
 no sistema de armazenamento inferior. Para objetos que serão mantidos, o Alluxio preserva o caminho do 
@@ -40,7 +40,7 @@ quando estiver lendo o dado pela primeira vez ou utilize o comando `load` do All
 O Alluxio fornece uma `API` para ponto de montagem que torna possível para utilizar o Alluxio para acessar 
 os dados através de múltiplas origens de dados.
 
-![unified]({{site.data.img.screenshot_unified}})
+![unified]({{ site.baseurl }}/img/screenshot_unified.png)
 
 Por padrão, o Alluxio `namespace` é montado no diretório definido pela propriedade de configuração 
 `alluxio.underfs.address` do Alluxio. Este diretório identifica o armazenamento primário para o 

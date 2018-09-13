@@ -25,7 +25,7 @@ A interface `web` do Alluxio `master` possui várias páginas, conforme descrito
 
 A `home page` possui a aparência abaixo:
 
-![Alluxio Master Home Page]({{site.data.img.screenshot_overview}})
+![Alluxio Master Home Page]({{ site.baseurl }}/img/screenshot_overview.png)
 
 A `home page` informa a visão geral do `status` do sistema. Isto inclui as seções seguintes:
 
@@ -49,7 +49,7 @@ A `home page` informa a visão geral do `status` do sistema. Isto inclui as seç
 Para checar as informações atuais de configuração do sistema, clique em "System Configuration" na barra
 de navegação no topo da tela.
 
-![configurations]({{site.data.img.screenshot_systemConfiguration}})
+![configurations]({{ site.baseurl }}/img/screenshot_systemConfiguration.png)
 
 A página de configuração possui duas seções:
 
@@ -68,7 +68,7 @@ A página de configuração possui duas seções:
 Você pode navegar pelo `file system` do Alluxio através da `UI`. Quando selecionar a aba
 "Browse File System" na barra de navegação, você verá algo como isso:
 
-![browse]({{site.data.img.screenshot_browseFileSystem}})
+![browse]({{ site.baseurl }}/img/screenshot_browseFileSystem.png)
 
 Os arquivos no diretório atual estão listados com o nome do arquivo, tamanho do arquivo, tamanho de
 cada bloco, percentual do dado em memória, tempo de criação e tempo de modificação. Para visualizar o
@@ -78,7 +78,7 @@ conteúdo de um arquivo, clique neste arquivo.
 
 Para navegar em todos os arquivos em memória, clique na aba "In-Alluxio Files" dentro da barra de navegação.
 
-![inMemFiles]({{site.data.img.screenshot_inMemoryFiles}})
+![inMemFiles]({{ site.baseurl }}/img/screenshot_inMemoryFiles.png)
 
 Os arquivos atualmente na camada de memória são listados com o nome do arquivo, o tamanho do arquivo,
 tamanho de cada bloco, se o arquivo foi ou não fixado em memória, a data de criação e modificação
@@ -88,7 +88,7 @@ do arquivo.
 
 O `master` também visualiza todos os Alluxio `workers` do sistema e os mostra na aba "Workers".
 
-![workers]({{site.data.img.screenshot_workers}})
+![workers]({{ site.baseurl }}/img/screenshot_workers.png)
 
 A página dos `workers` sede uma visão geral de todos os servidores Alluxio `workers` em duas seções:
 
@@ -107,7 +107,7 @@ A página dos `workers` sede uma visão geral de todos os servidores Alluxio `wo
 
 Para acessar a seção de métricas do `master`, clique na aba “Metrics” dentro da aba de navegação.
 
-![masterMetrics]({{site.data.img.screenshot_masterMetrics}})
+![masterMetrics]({{ site.baseurl }}/img/screenshot_masterMetrics.png)
 
 Esta seção informa todas as métricas do `master`. Isto inclui as seções seguintes:
 
@@ -147,7 +147,7 @@ visualizar todos os blocos daquele arquivo.
 Para acessar a seção de métricas do `worker`, clique na aba “Metrics” dentro da barra de
 navegação.
 
-![workerMetrics]({{site.data.img.screenshot_workerMetrics}})
+![workerMetrics]({{ site.baseurl }}/img/screenshot_workerMetrics.png)
 
 Esta seção visualiza todas as métricas do `worker`. Isto inclui as seções a seguir:
 
