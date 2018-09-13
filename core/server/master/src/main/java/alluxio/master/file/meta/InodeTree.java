@@ -666,14 +666,17 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         newDir.setPinned(currentInodeDirectory.isPinned());
 
         // if the parent has default ACL, copy that default ACL as the new directory's default
-        // and access acl.
-        if (!options.isMetadataLoad()) {
-          DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
-          if (!dAcl.isEmpty()) {
-            Pair<AccessControlList, DefaultAccessControlList> pair = dAcl.generateChildDirACL();
-            newDir.setInternalAcl(pair.getFirst());
-            newDir.setDefaultACL(pair.getSecond());
-          }
+        // and access acl, ANDed with the umask
+        // if it is part of a metadata load operation, we ignore the umask and simply inherit
+        // the default ACL as the directory's new default and access ACL
+        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+            : newDir.getMode();
+        DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+        if (!dAcl.isEmpty()) {
+          Pair<AccessControlList, DefaultAccessControlList> pair =
+              dAcl.generateChildDirACL(mode);
+          newDir.setInternalAcl(pair.getFirst());
+          newDir.setDefaultACL(pair.getSecond());
         }
 
         if (mState.applyAndJournal(rpcContext, newDir)) {
@@ -764,11 +767,15 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         extensibleInodePath.getLockList().lockWriteAndCheckNameAndParent(newDir,
             currentInodeDirectory, name);
 
-        // if the parent has default ACL, copy that default ACL as the new directory's default
-        // and access acl.
+        // if the parent has default ACL, take the default ACL ANDed with the umask as the new
+        // directory's default and access acl
+        // WHen it is a metadata load operation, do not take the umask into account
+        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+            : newDir.getMode();
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
         if (!dAcl.isEmpty()) {
-          Pair<AccessControlList, DefaultAccessControlList> pair = dAcl.generateChildDirACL();
+          Pair<AccessControlList, DefaultAccessControlList> pair =
+              dAcl.generateChildDirACL(mode);
           newDir.setInternalAcl(pair.getFirst());
           newDir.setDefaultACL(pair.getSecond());
         }
@@ -801,10 +808,14 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         extensibleInodePath.getLockList().lockWriteAndCheckNameAndParent(newFile,
             currentInodeDirectory, name);
 
-        // if the parent has a default ACL, copy that default ACL as the new file's access ACL.
+        // if the parent has a default ACL, copy that default ACL ANDed with the umask as the new
+        // file's access ACL.
+        // If it is a metadata load operation, do not consider the umask.
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+            : newFile.getMode();
         if (!dAcl.isEmpty()) {
-          AccessControlList acl = dAcl.generateChildFileACL();
+          AccessControlList acl = dAcl.generateChildFileACL(mode);
           newFile.setInternalAcl(acl);
         }
 

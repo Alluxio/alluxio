@@ -11,6 +11,7 @@
 
 package alluxio.master.file.options;
 
+import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.underfs.UfsStatus;
@@ -18,8 +19,11 @@ import alluxio.util.SecurityUtils;
 import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Method options for creating a directory.
@@ -28,6 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOptions> {
   private boolean mAllowExists;
   private UfsStatus mUfsStatus;
+  private List<AclEntry> mDefaultAcl;
 
   /**
    * @return the default {@link CreateDirectoryOptions}
@@ -69,6 +74,7 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     mAllowExists = false;
     mMode.applyDirectoryUMask();
     mUfsStatus = null;
+    mDefaultAcl = Collections.emptyList();
   }
 
   /**
@@ -77,6 +83,23 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
    */
   public boolean isAllowExists() {
     return mAllowExists;
+  }
+
+  /**
+   * @return the default ACL in the form of a list of default ACL Entries
+   */
+  public List<AclEntry> getDefaultAcl() {
+    return mDefaultAcl;
+  }
+
+  /**
+   * Sets the default ACL in the option.
+   * @param defaultAcl a list of default ACL Entries
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setDefaultAcl(List<AclEntry> defaultAcl) {
+    mDefaultAcl = ImmutableList.copyOf(defaultAcl);
+    return getThis();
   }
 
   /**
@@ -123,17 +146,19 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     }
     CreateDirectoryOptions that = (CreateDirectoryOptions) o;
     return Objects.equal(mAllowExists, that.mAllowExists)
-        && Objects.equal(mUfsStatus, that.mUfsStatus);
+        && Objects.equal(mUfsStatus, that.mUfsStatus)
+        && Objects.equal(mDefaultAcl, that.mDefaultAcl);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mAllowExists, mUfsStatus);
+    return super.hashCode() + Objects.hashCode(mAllowExists, mUfsStatus, mDefaultAcl);
   }
 
   @Override
   public String toString() {
     return toStringHelper().add("allowExists", mAllowExists)
-        .add("ufsStatus", mUfsStatus).toString();
+        .add("ufsStatus", mUfsStatus)
+        .add("defaultAcl", mDefaultAcl).toString();
   }
 }

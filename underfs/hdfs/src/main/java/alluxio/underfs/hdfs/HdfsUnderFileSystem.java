@@ -14,9 +14,12 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.collections.Pair;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
@@ -248,13 +251,14 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public AccessControlList getAcl(String path) throws IOException {
+  public Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path)
+      throws IOException {
     return mHdfsAclProvider.getAcl(getFs(), path);
   }
 
   @Override
-  public void setAcl(String path, AccessControlList acl) throws IOException {
-    mHdfsAclProvider.setAcl(getFs(), path, acl);
+  public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
+    mHdfsAclProvider.setAclEntries(getFs(), path, aclEntries);
   }
 
   @Override
