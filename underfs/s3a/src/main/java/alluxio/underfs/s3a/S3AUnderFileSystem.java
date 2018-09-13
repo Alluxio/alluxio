@@ -52,7 +52,6 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.util.Base64;
 import com.google.common.base.Preconditions;
-import java.util.function.Supplier;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -67,6 +66,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.annotation.Nullable;
@@ -107,6 +107,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
   private final Supplier<ObjectPermissions> mPermissions = () -> getPermissionsInternal();
+
   /** The configuration for ufs. */
   private final UnderFileSystemConfiguration mConf;
 
