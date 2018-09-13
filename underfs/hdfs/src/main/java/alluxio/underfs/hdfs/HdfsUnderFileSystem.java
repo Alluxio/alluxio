@@ -228,7 +228,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
             FileSystem.create(hdfs, new Path(path),
             new FsPermission(options.getMode().toShort())));
         if (options.getAcl() != null) {
-          setAcl(path, options.getAcl());
+          setAclEntries(path, options.getAcl().getEntries());
         }
         return outputStream;
       } catch (IOException e) {
