@@ -161,7 +161,9 @@ if (LOG.isDebugEnabled()) {
 ```
 * Trace level logging (i.e., `LOG.trace`) is not used in Alluxio.
 
-## Unit testing goals
+## Unit Testing
+
+### Unit Test Goals
 
 1. Unit tests act as examples of how to use the code under test.
 2. Unit tests detect when an object breaks it's specification.
