@@ -2,7 +2,7 @@
 layout: global
 title: Contributor Tools
 nickname: Contributor Tools
-group: Alluxio Contributor Resources
+group: Contributor Resources
 priority: 3
 ---
 

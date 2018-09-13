@@ -2,7 +2,7 @@
 layout: global
 title: Building Alluxio From Source
 nickname: Building Alluxio From Source
-group: Alluxio Contributor Resources
+group: Contributor Resources
 priority: 0
 ---
 
