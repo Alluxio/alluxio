@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Building Alluxio From Source Code
-nickname: Building Alluxio From Source Code
-group: Resources
-priority: 1
+title: Building Alluxio From Source
+nickname: Building Alluxio From Source
+group: Contributor Resources
+priority: 0
 ---
 
 * Table of Contents

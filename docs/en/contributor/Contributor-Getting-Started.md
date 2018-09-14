@@ -1,69 +1,51 @@
 ---
 layout: global
-title: Contributing Tutorial
-nickname: Contributing Tutorial
+title: Contribution Guide
+nickname: Contribution Guide
 group: Contributor Resources
-priority: 0
+priority: 1
 ---
 
 * Table of Contents
 {:toc}
 
-Welcome to the Alluxio community! We are excited for your contributions and engagement in the
-community! Here is a guide on how to get started with becoming a member in the Alluxio open source
-community.
+## Introduction
 
-## Requirements
+We warmly welcome you to the Alluxio community. We are excited for your contributions and
+engagement with our project! This guide aims to give you step by step instructions on how
+to get started becoming a contributor to the Alluxio open source project.
 
-The main requirement is a computer with Mac OS X or Linux installed. Alluxio does not have Windows
-support at the moment.
+## Prerequisites
 
-## Software and Account Preparation
+The main requirement is a computer with MacOS or Linux-based operating system installed. Alluxio
+does not have Windows support at this time.
 
-There is some software and account setup required before contributing to Alluxio.
+If you haven't already, we recommend first cloning and compiling the Alluxio source code with our
+[Building Alluxio from Source Tutorial](Building-Alluxio-from-Source.html)
 
-> Watch our "Alluxio new contributor" video in the [Video](#video) section below!
+### Software Requirements
 
-### Java 8
+- Required Software:
+  - Java 8
+  - Maven 3.3.9+
+  - Git
 
-Developing Alluxio requires Java 8. If you are unsure of which version of Java you have, you
-can check with this command:
+### Account Preparation
 
-```bash
-$ java -version
-```
+#### Github Account
 
-If you do not have Java installed, download and install [the Java SDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
+A GitHub account is required in order to contribute to the Alluxio repository.
 
-### Maven
+You will need to know an email address that is associated with your GitHub account in order to make
+contributions. You can check this in [your profile email settings](https://github.com/settings/emails)
 
-Alluxio uses Maven to manage the build process. If you do not have Maven already installed, you can
-[download Maven](https://maven.apache.org/download.cgi), and
-[install Maven](https://maven.apache.org/install.html).
-
-### Git
-
-The Alluxio open source project uses the Git distributed version control system for its source code.
-Therefore, Git needs to be installed to contribute code to Alluxio.
-
-If you do not already have `git`, [install git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
-
-### GitHub Account
-
-The Alluxio open source code base is hosted on GitHub in the [Alluxio repository](https://github.com/Alluxio/alluxio).
-
-You will need a GitHub account in order to contribute to Alluxio. If you do not already have a
-GitHub account, please [create a GitHub account](https://github.com/).
-
-You will also need to know which [email addresses you have associated with your GitHub account](https://help.github.com/articles/adding-an-email-address-to-your-github-account/).
-
-### Jira Account
+#### Jira Account
 
 The [Alluxio open source project uses JIRA](https://alluxio.atlassian.net/projects/ALLUXIO/issues)
-to track features, bugs, and issues.
-Please [create an Alluxio JIRA account](https://alluxio.atlassian.net/admin/users/sign-up) in
-order to open tickets, track tickets, and provide fixes for tickets. If you are unable to create a
-JIRA account through the portal, please send a message to jira-admin@alluxio.org in the following
+to track features, bugs, and issues. Please 
+[create an Alluxio JIRA account](https://alluxio.atlassian.net/admin/users/sign-up) in order to
+open tickets, track tickets, and provide fixes for tickets. If you are unable to create a JIRA
+account through the portal, please send a message to jira-admin@alluxio.org in the following
 format:
 
 ```
@@ -106,10 +88,11 @@ $ git remote -v
 
 This will show you the urls for `origin` (your fork), and `upstream` (the Alluxio repository)
 
-## Configuring Your Git Email
+### Configuring Your Git Email
 
 Before creating commits to Alluxio, you should verify that your Git email is setup correctly.
-Please visit [the instructions for setting up your email](https://help.github.com/articles/setting-your-email-in-git/).
+Please visit
+[the instructions for setting up your email](https://help.github.com/articles/setting-your-email-in-git/).
 
 ## Building Alluxio
 
@@ -121,8 +104,8 @@ In your local clone directory, you can build Alluxio with:
 $ mvn clean install
 ```
 
-This will build all of Alluxio, as well as run all the tests. This may take several minutes to
-finish.
+This will build all of Alluxio, as well as run all the tests. Depending on your hardware this may take anywhere form several
+minutes to half an hour to finish.
 
 If at any point in time you would like to only recompile and not run all the checks and testing, you
 can run:
@@ -158,7 +141,7 @@ Notice that all Alluxio JIRA tickets are named by **ALLUXIO-####** where **####*
 name will be important later, when you create a pull request. The title of the pull request for this
 ticket will be titled like, **[ALLUXIO-XXXX] Awesome Feature**.
 
-## Creating a Branch in your Clone
+### Creating a Branch in your Clone
 
 After you have taken ticket, go back to the terminal, and go to the directory of your local clone.
 Now, you can start working on the fix!
@@ -193,7 +176,7 @@ $ git checkout -b awesome_feature
 This will create the branch, and switch to it. Now, you can modify the necessary code to address the
 JIRA ticket.
 
-## Creating Local Commits
+### Creating Local Commits
 
 As you are addressing the ticket, you can create local commits of your code. This can be useful for
 when you have finished a well-defined portion of the change. You can stage a file for commit with:
@@ -211,7 +194,7 @@ $ git commit -m "<concise but descriptive commit message>"
 
 If you want more details, please visit [instructions on how to create commits](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository).
 
-## Sending a Pull Request
+### Sending a Pull Request
 
 After you have finished all the changes to address the JIRA ticket, you are ready to submit a pull
 request to the Alluxio project! Here are [detailed instructions on sending a pull request](https://help.github.com/articles/using-pull-requests/),
@@ -241,12 +224,14 @@ the title will look something like **[ALLUXIO-1234] Awesome Feature** (In the ti
 or "Improve java doc of method Foo").
 
 In the first line of the description box, please add a link back to the JIRA ticket. The link will
-look something like: `https://alluxio.atlassian.net/browse/ALLUXIO-####`
+look something like: `https://alluxio.atlassian.net/browse/ALLUXIO-####`.
+
+If you are submitting fixes to documentation, or fixing minor things which don't require a ticket (for example, small typos in code) you may prefix your pull request title with either **[DOCFIX]** or **[SMALLFIX]** respectively.
 
 Once everything is set, click on the **Create pull request** button. Congratulations! Your first
 pull request for Alluxio has been submitted!
 
-## Reviewing the Pull Request
+### Reviewing the Pull Request
 
 After the pull request has been submitted, it can be found on the
 [Pull Request page of the Alluxio repository](https://github.com/Alluxio/alluxio/pulls).
@@ -297,4 +282,4 @@ For a tutorial, see the GitHub guides on
 [sending a pull request](https://help.github.com/articles/using-pull-requests).
 
 
-# Welcome to the Alluxio Community!
+## Welcome to the Alluxio Community!

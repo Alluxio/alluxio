@@ -3,7 +3,7 @@ layout: global
 title: Code Conventions
 nickname: Code Conventions
 group: Contributor Resources
-priority: 0
+priority: 2
 ---
 
 TODO(Andrew, Zac): Move some content to Developer-Tools, make sure remaining content makes sense
@@ -11,11 +11,14 @@ TODO(Andrew, Zac): Move some content to Developer-Tools, make sure remaining con
 * Table of Contents
 {:toc}
 
-> If you are the first time contributor to the Alluxio open source project, we strongly encourage
-> you to follow the step-by-step example in the [Contributing to Alluxio Tutorial](Contributing-Getting-Started.html)
-> and finish a new contributor task before making more advanced changes to Alluxio.
+First off, we thank you for your interest in the Alluxio open source project!
+We greatly appreciate any contribution; whether new features or bug fixes.
 
-Thank you for your interest in Alluxio! We greatly appreciate any new features or fixes.
+> If you are a first time contributor to the Alluxio open source project, we strongly encourage
+> you to follow the step-by-step instructions within the
+> [Contribution Guide](Contributing-Getting-Started.html) and finish a new contributor task before
+> making more advanced changes to Alluxio.
+
 
 ## Submitting Code
 
@@ -56,58 +59,7 @@ submitting the pull requests. For instance:
 [DOCFIX] Improve documentation of how to contribute to Alluxio
 ~~~~~
 
-## Unit Tests
 
-- Run all unit tests
-
-```bash
-$ cd ${ALLUXIO_HOME}
-$ mvn test
-```
-
-This will use the local filesystem as the under filesystem.
-
-- Run a single unit test:
-
-```bash
-$ mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
-```
-
-- To run unit tests for a specific module, execute the `maven test` command targeting
- the desired submodule directory. For example, to run tests for HDFS UFS module you would run
-
-```bash
-$ mvn test -pl underfs/hdfs
-```
-
-Run unit tests for HDFS UFS module with a different Hadoop version:
-
-```bash
-# build and run test on HDFS under filesystem module for Hadoop 2.7.0
-$ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
-# build and run test on HDFS under filesystem module for Hadoop 3.0.0
-$ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
-```
-
-The above unit tests will create a simulated HDFS service with the specific version.
-To run more comprehensive tests on HDFS under filesystem using a real and running HDFS deployment:
-
-```bash
-$ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
-```
-
-- To have the logs output to STDOUT, append the following arguments to the `mvn` command
-
-```
--Dtest.output.redirect=false -Dalluxio.root.logger=DEBUG,CONSOLE
-```
-
-- To quickly test the working of some APIs in an interactive manner, you may
-leverage the Scala shell, as discussed in this
-[blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
-
-- The fuse tests are ignored if the libfuse library is missing. To run those tests, please install the correct libraries
-mentioned in [this page](Mounting-Alluxio-FS-with-FUSE.html#requirements).
 
 ### System Settings
 
@@ -188,7 +140,7 @@ LOG.error("Failed to do something due to an exception", e);
 * Warn level logging (i.e., `LOG.warn`) indicates a logical mismatch between user intended behavior
 and Alluxio behavior. Warn level logs are accompanied by an exception message. The associated stack trace may be found in debug level logs.
 ```java
-LOG.warm("Failed to do something due to {}", e.getMessage());
+LOG.warn("Failed to do something due to {}", e.getMessage());
 ```
 * Info level logging (i.e., `LOG.info`) records important system state changes. Exception messages and stack traces are never associated with info level logs.
 Note that, this level of logging should not be used on critical path of operations that may
@@ -209,87 +161,137 @@ if (LOG.isDebugEnabled()) {
 ```
 * Trace level logging (i.e., `LOG.trace`) is not used in Alluxio.
 
-## FindBugs
+## Unit Testing
 
-Before submitting the pull-request, run the latest code against
-[FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.
+### Unit Test Goals
 
-{% include Contributing-to-Alluxio/findbugs.md %}
+1. Unit tests act as examples of how to use the code under test.
+2. Unit tests detect when an object breaks it's specification.
+3. Unit tests *don't* break when an object is refactored but still meets the same specification.
 
-## IDE
+### How to Write a Unit Test
 
-You can generate an Eclipse configuration file by running:
+1. If creating an instance of the class takes some work, create a `@Before` method to perform common setup. The `@Before` method gets run automatically before each unit test. Only do general setup which will apply to every test. Test-specific setup should be done locally in the tests that need it. In this example, we are testing a `BlockMaster`, which depends on a journal, clock, and executor service. The executor service and journal we provide are real implementations, and the `TestClock` is a fake clock which can be controlled by unit tests.
 
-{% include Contributing-to-Alluxio/eclipse-configuration.md %}
-
-Then import the folder into Eclipse.
-
-You may also have to add the classpath variable M2_REPO by running:
-
-{% include Contributing-to-Alluxio/M2_REPO.md %}
-
-If you are using IntelliJ IDEA, you may need to change the Maven profile to 'developer' in order
-to avoid import errors. You can do this by going to
-
-    View > Tool Windows > Maven Projects
-
-## Change a Thrift RPC definition
-
-Alluxio uses [Thrift](https://thrift.apache.org/) 0.9.3 for RPC communication between clients and servers. The `.thrift`
-files defined in `core/common/src/thrift/` are used to auto-generate Java code for calling the
-RPCs on clients and implementing the RPCs on servers. To change a Thrift definition, you
-must first [install the Thrift compiler](https://thrift.apache.org/docs/install/).
-If you have brew, you can do this by running
-
-```bash
-$ brew install thrift
+```java
+@Before
+public void before() throws Exception {
+  Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
+  mClock = new TestClock();
+  mExecutorService =
+      Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
+  mMaster = new BlockMaster(blockJournal, mClock, mExecutorService);
+  mMaster.start(true);
+}
 ```
 
-Then to regenerate the Java code, run
+2. If anything created in `@Before` creates something which needs to be cleaned up (e.g. a `BlockMaster`), create an `@After` method to do the cleanup. This method is automatically called after each test.
 
-```bash
-$ bin/alluxio thriftGen
+```java
+@After
+public void after() throws Exception {
+  mMaster.stop();
+}
 ```
 
-## Change a Protocol Buffer Message
+3. Decide on an element of functionality to test. The functionality you decide to test should be part of the public API and should not care about implementation details. Tests should be focused on testing only one thing.
 
-Alluxio uses [Protocol Buffers](https://developers.google.com/protocol-buffers/) 2.5.0 to read and write journal messages. The `.proto` files
-defined in `core/protobuf/src/proto/` are used to auto-generate Java definitions for
-the protocol buffer messages. To change one of these messages, first read about
-[updating a message type](https://developers.google.com/protocol-buffers/docs/proto#updating)
-to make sure your change will not break backwards compatibility. Next,
-[install protoc](https://github.com/google/protobuf#protocol-buffers---googles-data-interchange-format).
-If you have brew, you can do this by running
+4. Give your test a name that describes what functionality it's testing. The functionality being tested should ideally be simple enough to fit into a name, e.g. `removeNonexistentBlockThrowsException`, `mkdirCreatesDirectory`, or `cannotMkdirExistingFile`.
 
-```bash
-$ brew install protobuf@2.5
-$ brew link --force protobuf@2.5
+```java
+@Test
+public void detectLostWorker() throws Exception {
+```
+5. Set up the situation you want to test. Here we register a worker and then simulate an hour passing. The `HeartbeatScheduler` section enforces that the lost worker heartbeat runs at least once.
+
+```java
+  // Register a worker.
+  long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
+  mMaster.workerRegister(worker1,
+      ImmutableList.of("MEM"),
+      ImmutableMap.of("MEM", 100L),
+      ImmutableMap.of("MEM", 10L),
+      NO_BLOCKS_ON_TIERS);
+
+  // Advance the block master's clock by an hour so that the worker appears lost.
+  mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
+
+  // Run the lost worker detector.
+  HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
+  HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+  HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
+```
+6. Check that the class behaved correctly:
+
+```java
+  // Make sure the worker is detected as lost.
+  Set<WorkerInfo> info = mMaster.getLostWorkersInfo();
+  Assert.assertEquals(worker1, Iterables.getOnlyElement(info).getId());
+}
+```
+7. Loop back to step #3 until the class's entire public API has been tested.
+
+### Conventions
+1. The tests for `src/main/java/ClassName.java` should go in `src/test/java/ClassNameTest.java`
+2. Tests do not need to handle or document specific checked exceptions. Prefer to simply add `throws Exception` to the test method signature.
+3. Aim to keep tests short and simple enough that they don't require comments to understand.
+
+### Patterns to avoid
+
+1. Avoid randomness. Edge cases should be handled explicitly.
+2. Avoid waiting for something by calling `Thread.sleep()`. This leads to slower unit tests and can cause flaky failures if the sleep isn't long enough.
+3. Avoid using Whitebox to mess with the internal state of objects under test. If you need to mock a dependency, change the object to take the dependency as a parameter in its constructor (see [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection))
+4. Avoid slow tests. Mock expensive dependencies and aim to keep individual test times under 100ms.
+
+### Managing Global State
+All tests in a module run in the same JVM, so it's important to properly manage global state so that tests don't interfere with each other. Global state includes system properties, Alluxio configuration, and any static fields. Our solution to managing global state is to use JUnit's support for `@Rules`.
+
+#### Changing Alluxio configuration during tests
+
+Some unit tests want to test Alluxio under different configurations. This requires modifying the global `Configuration` object. When all tests in a suite need configuration parameters set a certain way, use `ConfigurationRule` to set them.
+
+```java
+@Rule
+public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap.of(
+    PropertyKey.key1, "value1",
+    PropertyKey.key2, "value2"));
+```
+For configuration changes needed for an individual test, use `Configuration.set(key, value)`, and create an `@After` method to clean up the configuration changes after the test:
+
+```java
+@After
+public void after() {
+  ConfigurationTestUtils.resetConfiguration();
+}
+
+@Test
+public void testSomething() {
+  Configuration.set(PropertyKey.key, "value");
+  ...
+}
 ```
 
-Then to regenerate the Java code, run
+#### Changing System properties during tests
 
-```bash
-$ bin/alluxio protoGen
+If you need to change a system property for the duration of a test suite, use `SystemPropertyRule`.
+
+```java
+@Rule
+public SystemPropertyRule mSystemPropertyRule = new SystemPropertyRule("propertyName", "value");
 ```
 
-## Full list of the commands in bin/alluxio
+To set a system property during a specific test, use `SetAndRestoreSystemProperty` in a try-catch statement:
 
-Most commands in `bin/alluxio` are for developers. The following table explains the description and
-the syntax of each command.
+```java
+@Test
+public void test() {
+  try (SetAndRestorySystemProperty p = new SetAndRestorySystemProperty("propertyKey", "propertyValue")) {
+     // Test something with propertyKey set to propertyValue.
+  }
+}
+```
 
-<table class="table table-striped">
-<tr><th>Command</th><th>Args</th><th>Description</th></tr>
-{% for dscp in site.data.table.Developer-Tips %}
-<tr>
-  <td>{{dscp.command}}</td>
-  <td>{{dscp.args}}</td>
-  <td>{{site.data.table.en.Developer-Tips[dscp.command]}}</td>
-</tr>
-{% endfor %}
-</table>
+#### Other global state
 
-In addition, these commands have different prerequisites. The prerequisite for the `format`,
-`formatWorker`, `journalCrashTest`, `readJournal`, `version`, `validateConf` and `validateEnv` commands is that you
-have already built Alluxio (see [Build Alluxio Master Branch](Building-Alluxio-From-Source.html)
-about how to build Alluxio manually). Further, the prerequisite for the `fs`, `loadufs`, `logLevel`, `runTest`
-and `runTests` commands is that you have a running Alluxio system.
+If a test needs to modify other types of global state, create a new `@Rule` for managing the state so that it can be shared across tests. One example of this is [`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/master/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java).
+
