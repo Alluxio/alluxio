@@ -6,6 +6,12 @@ group: Advanced
 priority: 1
 ---
 
+TODO(andrew): Add intro section which talks about why users would want to use this feature (specific use cases)
+TODO(andrew): Include example(s) of how to verify that tiered locality is set up correctly
+TODO(andrew): Focus on setting tiered locality via script, only discuss setting via configuration towards the end
+TODO(andrew): Split into "Basic Setup" vs "Advanced Setup". Most content goes into "Advanced Setup"
+TODO(andrew): Suggest using centralized configuration to set alluxio.locality.order when configuring custom tiers
+
 * Table of Contents
 {:toc}
 
