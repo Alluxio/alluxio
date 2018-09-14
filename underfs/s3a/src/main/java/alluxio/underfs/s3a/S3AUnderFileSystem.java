@@ -105,24 +105,27 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /** Whether the streaming upload is enabled. */
   private final boolean mStreamingUploadEnabled;
 
+//  private final Supplier<ObjectPermissions> mPermissions = this::getPermissionsInternal;
+
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
   private final Supplier<ObjectPermissions> mPermissions = memoize(this::getPermissionsInternal);
 
   /** Memoize implementation for java.util.function.supplier. */
   private static <T> Supplier<T> memoize(Supplier<T> original) {
     return new Supplier<T>() {
-      Supplier<T> delegate = this::firstTime;
-      boolean initialized;
+      Supplier<T> mDelegate = this::firstTime;
+      boolean mInitialized;
       public T get() {
-        return delegate.get();
+        return mDelegate.get();
       }
+
       private synchronized T firstTime() {
-        if(!initialized) {
-          T value=original.get();
-          delegate=() -> value;
-          initialized=true;
+        if (!mInitialized) {
+          T value = original.get();
+          mDelegate = () -> value;
+          mInitialized = true;
         }
-        return delegate.get();
+        return mDelegate.get();
       }
     };
   }
