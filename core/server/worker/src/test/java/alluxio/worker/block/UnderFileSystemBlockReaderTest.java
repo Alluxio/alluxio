@@ -86,7 +86,7 @@ public final class UnderFileSystemBlockReaderTest {
     mUfsManager = mock(UfsManager.class);
     mUfsInstreamManager = new UfsInputStreamManager();
     UfsClient ufsClient = new UfsClient(
-            () -> UnderFileSystem.Factory.create(testFilePath),
+        () -> UnderFileSystem.Factory.create(testFilePath),
         new AlluxioURI(testFilePath));
     when(mUfsManager.get(anyLong())).thenReturn(ufsClient);
 
