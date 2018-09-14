@@ -8,6 +8,19 @@ priority: 0
 
 TODO(andrew): Add more information
 - Talk about log files and checkpoints, how to manage the size
+- Lead with what the journal is, and its fault tolerance guarantees
+- Introduction should describe purpose of doc, which is administering the journal of an Alluxio cluster.
+
+Outline:
+# Configuration
+# Formatting the Journal
+# Operations
+## Manually Backing up the Journal
+## Restoring from a Backup
+## Changing Masters
+# Advanced
+## Running Alluxio in High Availability (HA) Mode
+## Space requirements (log files, checkpoints)
 
 * Table of Contents
 {:toc}
