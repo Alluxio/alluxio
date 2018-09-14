@@ -2639,6 +2639,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             listOptions.setRecursive(false);
           }
           UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
+          // children can be null if the pathname does not denote a directory
+          // or if the we do not have permission to listStatus on the directory in the ufs.
+          if (children == null) {
+            throw new IOException("Failed to loadMetadata because ufs can not listStatus at path "
+                + ufsUri.toString());
+          }
           Arrays.sort(children, Comparator.comparing(UfsStatus::getName));
 
           for (UfsStatus childStatus : children) {
