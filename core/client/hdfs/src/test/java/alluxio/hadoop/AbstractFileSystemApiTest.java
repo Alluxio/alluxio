@@ -63,7 +63,8 @@ public final class AbstractFileSystemApiTest {
 
   @Test
   public void parseZkUriWithPlusDelimiters() throws Exception {
-    FileSystem.get(URI.create("alluxio://zk@a:0+b:1+c:2/"), new org.apache.hadoop.conf.Configuration());
+    FileSystem.get(URI.create("alluxio://zk@a:0+b:1+c:2/"),
+        new org.apache.hadoop.conf.Configuration());
     assertTrue(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("a:0,b:1,c:2", Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
   }
