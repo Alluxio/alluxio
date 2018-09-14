@@ -52,6 +52,7 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.util.Base64;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Suppliers;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -106,7 +107,26 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private final boolean mStreamingUploadEnabled;
 
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
-  private final Supplier<ObjectPermissions> mPermissions = () -> getPermissionsInternal();
+  private final Supplier<ObjectPermissions> mPermissions = memoize(this::getPermissionsInternal);
+
+  /** Memoize implementation for java.util.function.supplier. */
+  private static <T> Supplier<T> memoize(Supplier<T> original) {
+    return new Supplier<T>() {
+      Supplier<T> delegate = this::firstTime;
+      boolean initialized;
+      public T get() {
+        return delegate.get();
+      }
+      private synchronized T firstTime() {
+        if(!initialized) {
+          T value=original.get();
+          delegate=() -> value;
+          initialized=true;
+        }
+        return delegate.get();
+      }
+    };
+  }
 
   /** The configuration for ufs. */
   private final UnderFileSystemConfiguration mConf;
