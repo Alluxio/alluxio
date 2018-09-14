@@ -2665,8 +2665,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               LoadMetadataOptions loadMetadataOptions =
                   LoadMetadataOptions.defaults().setLoadDescendantType(DescendantType.NONE)
                       .setCreateAncestors(false).setUfsStatus(childStatus);
-              loadMetadataAndJournal(rpcContext, tempInodePath, loadMetadataOptions);
-
+              try {
+                loadMetadataAndJournal(rpcContext, tempInodePath, loadMetadataOptions);
+              } catch (Exception e) {
+                LOG.info("Failed to loadMetadata: inodePath={}, options={}.",
+                    tempInodePath.getUri(), loadMetadataOptions, e);
+                continue;
+              }
               if (options.getLoadDescendantType() == DescendantType.ALL
                   && tempInodePath.getInode().isDirectory()) {
                 InodeDirectory inodeDirectory = (InodeDirectory) tempInodePath.getInode();
