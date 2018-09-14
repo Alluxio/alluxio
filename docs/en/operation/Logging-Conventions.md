@@ -6,7 +6,28 @@ group: Operations
 priority: 0
 ---
 
-TODO(Andrew, Zac): Combine with Remote-Logging
+TODO: Combine with Remote-Logging
+TODO: Split into client logging and server logging. Client logging goes under "Advanced".
+TODO: Order of the sections seems pretty arbitrary at the moment. We can improve it to be more operation-focused. Something like this:
+
+Client logs page:
+1. Log Location
+  - How do users find Alluxio client logs? This will vary by application. Each Compute Application doc should
+  have some information about how to locate logs and set log level.
+2. Changing log level
+3. Remote logging
+  - Send client logs to remote log server
+
+Server logs page:
+1. Log Location
+  - Where are logs by default
+  - Configure Log Location
+2. Changing log level
+  - Via configuration
+  - Via shell
+3. Remote logging
+  - Deploy remote log server
+  - Send server logs to remote log server
 
 * Table of Contents
 {:toc}
