@@ -2264,6 +2264,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             listOptions.setRecursive(false);
           }
           UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
+          if (children == null) {
+            return;
+          }
           Arrays.sort(children, Comparator.comparing(UfsStatus::getName));
 
           for (UfsStatus childStatus : children) {
