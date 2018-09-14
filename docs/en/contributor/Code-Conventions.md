@@ -11,7 +11,7 @@ TODO(Andrew, Zac): Move some content to Developer-Tools, make sure remaining con
 * Table of Contents
 {:toc}
 
-First off, we Thank you for your interest in the Alluxio open source project!
+First off, we thank you for your interest in the Alluxio open source project!
 We greatly appreciate any contribution; whether new features or bug fixes.
 
 > If you are a first time contributor to the Alluxio open source project, we strongly encourage

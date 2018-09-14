@@ -58,14 +58,16 @@ introduced.
 
 ### Compilation
 
-To simply compile the code you can run. This will not execute any unit tests but will execute the
-`checkstyle` and `findbugs` plugins.
+To simply compile the code you can run the following command:
 
 ```bash
 $ mvn clean compile -DskipTests
 ```
 
-To speed up compilation you may try using the command:
+This will not execute any unit tests but will execute the `checkstyle`, `findbugs`, and other
+plugins.
+
+To speed up compilation you may use the command:
 
 ```bash
 $ mvn -T 2C compile -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
@@ -81,8 +83,28 @@ as well. The targets `install`, `verify`, and `compile` will be most useful.
 ### Creating a Local Install
 
 If you want to test your changes with a compiled version of the repository, you may generate the
-jars with the `install` target. After the install target executes, you may start a local cluster
-with the `./bin/alluxio-start.sh` script.
+jars with the Maven `install` target.
+
+```bash
+mvn install -DskipTests
+```
+
+After the install target executes, you may configure and start a local cluster
+with the following commands:
+
+ > If you haven't configured or set up a local cluster yet, run the following commands
+
+```bash
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
+$ ./bin/alluxio format
+```
+
+Once you've run those configuration steps you can start a local Alluxio instance with
+
+```bash
+./bin/alluxio-start.sh local SudoMount
+```
 
 ### Unit Tests
 
