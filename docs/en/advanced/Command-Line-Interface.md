@@ -1,3 +1,24 @@
+New Contents:
+This doc so far only focus on the `alluxio fs` related operations 
+and admin CLI doc only focus on `alluxio fsadmin` related operations.
+
+Other `alluxio [COMMAND other than fs/fsadmin]` is missing in our documentation.
+Some of them are really useful to our users and should be included, such as the 
+usage of `alluxio getConf [key]`. If users know `alluxio getConf --master` can get
+the current alluxio cluster configuration, that would be useful.
+
+The commands include extensions, format, formatMaster, formatWorker, bootstrapConf, 
+fs, fsadmin, getConf, loadufs, logLevel, runClass, runTest, runKVTest, runTests, 
+runJournalCrashTest, runMesosTest, readJournal, upgradeJournal, killAll <WORD>, 
+copyDir, clearCache, confDocGen, thriftGen, protoGen, version, validateConf, validateEnv
+
+Some of them are developer side: confDocGen, thriftGen, protoGen
+We could exclude these commands in this docs, but I will feel better to include all the commands
+and detail their usages as other fs or fsadmin commands docs.
+
+One issue is that we have illustrate those commands in many places in our docs, like runTests, validateEnv.
+To make a single source of truth, we could details commands in this docs and use links in other docs to redirect.
+
 ---
 layout: global
 title: Command Line Interface
@@ -225,6 +246,7 @@ For example, `getUsedBytes` can be used to monitor the health of your cluster.
 
 {% include Command-Line-Interface/getUsedBytes.md %}
 
+// TODO(lu) add `fs head` command
 ### help
 
 The `help` command prints the help message for a given `fs` subcommand. If there isn't given
@@ -324,6 +346,9 @@ The `mount` command links an under storage path to an Alluxio path, and files an
 
 Options:
 
+// TODO(lu) add special things/use cases about --readonly mode?
+// automatically read the metadata of files in UFS?
+  
 * `--readonly` option sets the  mount point to be readonly in Alluxio
 * `--option <key>=<val>` option passes an property to this mount point (e.g., S3 credential)
 
@@ -407,6 +432,8 @@ For example, `stat` can be used to debug the block locations of a file. This is 
 {% include Command-Line-Interface/stat.md %}
 
 ### tail
+
+// TODO(lu) add `tail [-c <bytes>]` option description
 
 The `tail` command outputs the last 1 kb of data in a file to the console.
 

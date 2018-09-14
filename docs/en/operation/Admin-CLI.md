@@ -67,6 +67,9 @@ $ ./bin/alluxio fsadmin doctor configuration
 
 ### report
 
+// TODO(lu) detailed description about each of the subcommands.
+// such as the report capacity usage with filter tags.
+
 The `report` command provides Alluxio running cluster information. 
 
 ```bash
