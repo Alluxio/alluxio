@@ -2293,8 +2293,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               try {
                 loadMetadataInternal(rpcContext, tempInodePath, loadMetadataOptions);
               } catch (Exception e) {
-                LOG.debug("Failed to loadMetadata: inodePath={}, options={}.", tempInodePath.getUri(),
-                    loadMetadataOptions, e);
+                LOG.info("Failed to loadMetadata: inodePath={}, options={}.",
+                    tempInodePath.getUri(), loadMetadataOptions, e);
                 continue;
               }
               if (options.getLoadDescendantType() == DescendantType.ALL
