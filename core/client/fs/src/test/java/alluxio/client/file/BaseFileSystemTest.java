@@ -29,6 +29,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
+import alluxio.TestLoggerRule;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -44,11 +45,9 @@ import alluxio.client.file.options.UnmountOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 
-import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggingEvent;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -69,7 +68,8 @@ public final class BaseFileSystemTest {
   private static final String SHOULD_HAVE_PROPAGATED_MESSAGE =
       "Exception should have been propagated";
 
-  private TestAppender mAppender;
+  @Rule
+  private TestLoggerRule mTestLogger = new TestLoggerRule();
 
   private FileSystem mFileSystem;
   private FileSystemContext mFileContext;
@@ -90,14 +90,11 @@ public final class BaseFileSystemTest {
     mFileSystem = new DummyAlluxioFileSystem(mFileContext);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
-    mAppender = new TestAppender();
-    Logger.getRootLogger().addAppender(mAppender);
   }
 
   @After
   public void after() {
     ConfigurationTestUtils.resetConfiguration();
-    Logger.getRootLogger().removeAppender(mAppender);
   }
 
   /**
@@ -520,8 +517,8 @@ public final class BaseFileSystemTest {
       assertThat(e.getMessage(), containsString("does not match the configured value of"));
     }
 
-    assertTrue(mAppender.wasLogged("The URI scheme"));
-    assertTrue(mAppender.wasLogged("The URI authority"));
+    assertTrue(mTestLogger.wasLogged("The URI scheme"));
+    assertTrue(mTestLogger.wasLogged("The URI authority"));
 
   }
 
@@ -553,8 +550,8 @@ public final class BaseFileSystemTest {
     AlluxioURI uri = new AlluxioURI("alluxio://localhost:19998/root");
     mFileSystem.createDirectory(uri);
 
-    assertTrue(mAppender.wasLogged("The URI scheme"));
-    assertTrue(mAppender.wasLogged("The URI authority"));
+    assertTrue(mTestLogger.wasLogged("The URI scheme"));
+    assertTrue(mTestLogger.wasLogged("The URI authority"));
 
   }
 
@@ -570,35 +567,8 @@ public final class BaseFileSystemTest {
     AlluxioURI uri = new AlluxioURI("/root");
     mFileSystem.createDirectory(uri);
 
-    assertFalse(mAppender.wasLogged("The URI authority"));
-    assertFalse(mAppender.wasLogged("The URI scheme"));
+    assertFalse(mTestLogger.wasLogged("The URI authority"));
+    assertFalse(mTestLogger.wasLogged("The URI scheme"));
   }
 
-  private static class TestAppender extends AppenderSkeleton {
-
-    public List<LoggingEvent> mEvents = new ArrayList<LoggingEvent>();
-
-    public void close() { }
-
-      /**
-       * Determines whether string was logged.
-       */
-    public boolean wasLogged(String eventString) {
-      for (LoggingEvent e : mEvents) {
-        if (e.getRenderedMessage().contains(eventString)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    public boolean requiresLayout() {
-      return false;
-    }
-
-    @Override
-    protected void append(LoggingEvent event) {
-      mEvents.add(event);
-    }
-  }
 }

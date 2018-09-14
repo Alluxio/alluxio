@@ -39,7 +39,9 @@ import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
+import alluxio.uri.Authority;
 import alluxio.uri.SingleMasterAuthority;
+import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -460,6 +462,17 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mAlluxioHeader = getScheme() + "://" + authority;
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
     mStatistics = statistics;
+
+    Authority auth = Authority.fromString(uri.getAuthority());
+    if (auth instanceof UnknownAuthority) {
+      // TODO(zac): In Alluxio 2.0 this warning will be upgraded to an exception
+      LOG.warn("Authority \"{}\" is unknown. The client will not be configured with this"
+          + " authority. The authority connection details will be loaded from your client"
+          + " configuration.",
+          auth);
+      mAlluxioHeader = getScheme() + ":///";
+    }
+
     mUri = URI.create(mAlluxioHeader);
 
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
