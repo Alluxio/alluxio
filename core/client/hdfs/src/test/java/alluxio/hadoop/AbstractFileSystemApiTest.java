@@ -11,9 +11,12 @@
 
 package alluxio.hadoop;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.TestLoggerRule;
 
 import org.junit.After;
@@ -56,5 +59,12 @@ public final class AbstractFileSystemApiTest {
     URI unknown = URI.create("alluxio://localhost:12345/");
     FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration());
     assertFalse(mTestLogger.wasLogged("Authority \"localhost:12345\" is unknown"));
+  }
+
+  @Test
+  public void parseZkUriWithPlusDelimiters() throws Exception {
+    FileSystem.get(URI.create("alluxio://zk@a:0+b:1+c:2/"), new org.apache.hadoop.conf.Configuration());
+    assertTrue(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    assertEquals("a:0,b:1,c:2", Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
   }
 }

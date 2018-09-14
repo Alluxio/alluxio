@@ -76,5 +76,9 @@ public class AuthorityTest {
     authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181;host2:2181;host3:2181");
     assertEquals("zk@host1:2181;host2:2181;host3:2181", authority.toString());
     assertEquals("host1:2181,host2:2181,host3:2181", authority.getZookeeperAddress());
+
+    authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181+host2:2181+host3:2181");
+    assertEquals("zk@host1:2181+host2:2181+host3:2181", authority.toString());
+    assertEquals("host1:2181,host2:2181,host3:2181", authority.getZookeeperAddress());
   }
 }
