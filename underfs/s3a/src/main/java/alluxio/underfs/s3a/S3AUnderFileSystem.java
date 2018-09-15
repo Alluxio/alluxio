@@ -105,8 +105,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /** Whether the streaming upload is enabled. */
   private final boolean mStreamingUploadEnabled;
 
-//  private final Supplier<ObjectPermissions> mPermissions = this::getPermissionsInternal;
-
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
   private final Supplier<ObjectPermissions> mPermissions = memoize(this::getPermissionsInternal);
 

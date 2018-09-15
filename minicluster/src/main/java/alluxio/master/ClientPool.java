@@ -14,13 +14,12 @@ package alluxio.master;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 
-import java.util.function.Supplier;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
