@@ -5,6 +5,25 @@ nickname: Alluxio on Vagrant
 group: Deploying Alluxio
 priority: 5
 ---
+TODO(david): Outline
+  - Table of Contents 
+  - Prerequisite for using Vagrant	
+  - Deploy using Vagrant on Virtual Box
+    - Launch
+    - Access
+    - Destroy 
+  - Deploy using Vagrant on EC2
+    - Launch
+    - Access
+    - Destroy
+    - Advanced Tips
+      -Spot Instance
+  - Deploy using Vagrant on GCE
+    - Launch
+    - Access
+    - Destroy
+
+TODO(david): combine content from Deploy on EC2, GCE, Virtual Box using Vagrant 
 
 * Table of Contents
 {:toc}
