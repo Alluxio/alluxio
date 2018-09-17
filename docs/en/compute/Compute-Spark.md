@@ -27,6 +27,7 @@ as a near-compute cache Alluxio can still provide compute frameworks like Spark 
 
 ## Prerequisites
 
+* [Setup Java](Java-Setup.html) for Java 8 Update 60 or higher (8u60+), 64-bit.
 * An Alluxio cluster has been set up and is running according to either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 This guide assumes the persistent under storage is a local HDFS
@@ -36,12 +37,11 @@ Note that Alluxio supports many other under
 storage systems in addition to HDFS. To access data from any number of those systems is orthogonal
 to the focus of this guide but covered by
 [Unified and Transparent Namespace](Unified-and-Transparent-Namespace.html).
-
 * Make sure that the Alluxio client jar is available.
-  This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
-  downloaded from Alluxio [download page](http://www.alluxio.org/download).
-  Alternatively, advanced users can compile this client jar from the source code
-  by following the [instructions](Building-Alluxio-From-Source.html).
+This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
+downloaded from Alluxio [download page](http://www.alluxio.org/download).
+Alternatively, advanced users can compile this client jar from the source code
+by following the [instructions](Building-Alluxio-From-Source.html).
 
 ## Configure Spark
 

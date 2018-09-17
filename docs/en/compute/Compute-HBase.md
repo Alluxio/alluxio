@@ -14,20 +14,23 @@ that you can easily store HBase tables into Alluxio at various storage levels.
 
 ## Prerequisites
 
-The prerequisite for this part is that you have
-[Java](Java-Setup.html). Your Alluxio cluster should also be
-set up in accordance to these guides for either [Local Mode](Running-Alluxio-Locally.html) or
-[Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+* [Setup Java](Java-Setup.html) for Java 8 Update 60 or higher (8u60+), 64-bit.
+* An Alluxio cluster has been set up and is running according to either
+[Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+* Make sure that the Alluxio client jar is available.
+This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
+downloaded from Alluxio [download page](http://www.alluxio.org/download).
+Alternatively, advanced users can compile this client jar from the source code
+by following the [instructions](Building-Alluxio-From-Source.html).
+* [Deploy HBase](https://hbase.apache.org/book.html#configuration)
+Please follow this guides for setting up HBase.
 
-Please follow the guides for setting up HBase on
-[Apache HBase Configuration](https://hbase.apache.org/book.html#configuration).
-
-## Configuration
+## Configure HBase
 
 Apache HBase allows you to use Alluxio through a generic file system wrapper for the Hadoop file system.
 Therefore, the configuration of Alluxio is done mostly in HBase configuration files.
 
-### Set property in `hbase-site.xml`
+### Basic Setup
 
 Change the `hbase.rootdir` property in `conf/hbase-site.xml`:
 > You do not need to create the `/hbase` directory in Alluxio, HBase will do this for you.
@@ -69,7 +72,7 @@ Add the following properties to the same file `hbase-site.xml`.
 The last property is required to prevent HBase from flushing Alluxio file stream in a thread unsafe
 way.
 
-## Distribute the Alluxio Client jar
+### Distribute the Alluxio Client jar
 
 We need to make the Alluxio client jar file available to HBase, because it contains the configured
 `alluxio.hadoop.FileSystem` class.

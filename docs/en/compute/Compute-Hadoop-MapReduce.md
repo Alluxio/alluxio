@@ -12,28 +12,24 @@ priority: 1
 This guide describes how to get Alluxio running with Apache Hadoop MapReduce, so that you can
 easily run your MapReduce programs with files stored on Alluxio.
 
-## Initial Setup
+## Prerequisites
 
-The prerequisite for this guide includes
-
-- You have [Java](Java-Setup.html).
-- You have set up an Alluxio cluster in accordance to these guides
+* [Setup Java](Java-Setup.html) for Java 8 Update 60 or higher (8u60+), 64-bit.
+* An Alluxio cluster has been set up and is running according to either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
-- In order to run some simple map-reduce examples, we also recommend you download the
+* Make sure that the Alluxio client jar is available.
+This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
+downloaded from Alluxio [download page](http://www.alluxio.org/download).
+Alternatively, advanced users can compile this client jar from the source code
+by following the [instructions](Building-Alluxio-From-Source.html).
+* In order to run some simple map-reduce examples, we also recommend you download the
 [map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples)
 based on your hadoop version, or if you are using Hadoop 1, this
 [examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1).
 
-## Prepare the Alluxio client jar
+## Configure Hadoop
 
-For the MapReduce applications to communicate with Alluxio service, it is required to have the
-Alluxio client jar on their classpaths. We recommend you to download the tarball from
-Alluxio [download page](http://www.alluxio.org/download).
-Alternatively, advanced users can choose to compile this client jar from the source code
-by following the instructions [here](Building-Alluxio-From-Source.html#compute-framework-support).
-The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
-
-## Configuring Hadoop
+### Basic Setup
 
 Add the following two properties to the `core-site.xml` file of your Hadoop installation:
 
@@ -53,7 +49,7 @@ Add the following two properties to the `core-site.xml` file of your Hadoop inst
 This will allow your MapReduce jobs to recognize URIs with Alluxio scheme `alluxio://` in
 their input and output files.
 
-## Distributing the Alluxio Client Jar
+### Distributing the Alluxio Client Jar
 
 In order for the MapReduce applications to read and write files in Alluxio, the Alluxio client jar
 must be distributed on the classpath of the application across different nodes.
@@ -95,7 +91,7 @@ to ensure this jar is on the classpath.
 Note that the jars must be installed again for each update to a new release. On the other hand,
 when the jar is already on every node, then the `-libjars` command line option is not needed.
 
-## Check MapReduce with Alluxio integration (Supports Hadoop 2.X)
+### Check MapReduce with Alluxio integration (Supports Hadoop 2.X)
 
 Before running MapReduce on Alluxio, you might want to make sure that your configuration has been
 setup correctly for integrating with Alluxio. The MapReduce integration checker can help you achieve this.
