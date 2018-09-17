@@ -41,7 +41,6 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.MockRateLimiter;
@@ -81,7 +80,7 @@ public final class FileDataManagerTest {
     mManager = new FileDataManager(mBlockWorker, mMockRateLimiter.getGuavaRateLimiter(),
         mUfsManager, () -> mMockFileSystem, (r, w) -> mCopyCounter.incrementAndGet());
     mMockFileSystem = PowerMockito.mock(FileSystem.class);
-    UfsClient ufsClient = new UfsClient(Suppliers.ofInstance(mUfs), AlluxioURI.EMPTY_URI);
+    UfsClient ufsClient = new UfsClient(() -> mUfs, AlluxioURI.EMPTY_URI);
     when(mUfs.isDirectory(anyString())).thenReturn(true);
     when(mUfsManager.get(anyLong())).thenReturn(ufsClient);
   }
