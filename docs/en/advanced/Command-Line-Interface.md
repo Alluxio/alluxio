@@ -12,12 +12,9 @@ fs, fsadmin, getConf, loadufs, logLevel, runClass, runTest, runKVTest, runTests,
 runJournalCrashTest, runMesosTest, readJournal, upgradeJournal, killAll <WORD>, 
 copyDir, clearCache, confDocGen, thriftGen, protoGen, version, validateConf, validateEnv
 
-Some of them are developer side: confDocGen, thriftGen, protoGen
-We could exclude these commands in this docs, but I will feel better to include all the commands
-and detail their usages as other fs or fsadmin commands docs.
-
-One issue is that we have illustrate those commands in many places in our docs, like runTests, validateEnv.
-To make a single source of truth, we could details commands in this docs and use links in other docs to redirect.
+Developer side commands: extensions, confDocGen, thriftGen, protoGen
+Should be remove to dev/alluxio and will not be included in this doc.
+Other user side commands will all be explained and given usages in this docs.
 
 ---
 layout: global
@@ -69,6 +66,7 @@ without header provided to use the default hostname and port set in the
 >Note the double escape, this is because the shell script will eventually call a java program
 >which should have the final escaped parameters (`cat /\\*`).
 
+// TODO(lu) remove the list of operations
 ## List of Operations
 
 <table class="table table-striped">
@@ -82,6 +80,7 @@ without header provided to use the default hostname and port set in the
   {% endfor %}
 </table>
 
+// TODO(lu) change name to Operations
 ## Example Use Cases
 
 ### cat

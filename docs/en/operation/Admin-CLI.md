@@ -21,6 +21,7 @@ Usage: alluxio fsadmin [generic options]
        ...
 ```
 
+// TODO(lu) remove the list of operations
 ## List of Operations
 
 <table class="table table-striped">
@@ -34,6 +35,7 @@ Usage: alluxio fsadmin [generic options]
   {% endfor %}
 </table>
 
+// TODO(lu) change name to Operations
 ## Example Use Cases
 
 ### backup
