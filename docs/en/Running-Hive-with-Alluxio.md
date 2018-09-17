@@ -28,74 +28,13 @@ To run Hive on Hadoop MapReduce, please also follow the instructions in
 [running MapReduce on Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html) to make sure Hadoop
 MapReduce can run with Alluxio.
 
-## Configure Hive
-
-### Basic Setup
+## Basic Setup
 
 Include Alluxio client jar to ensure that Hive can query and access data stored on Alluxio.
 Set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
 
 ```bash
 export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
-```
-
-### Additional Setup
-
-There are two ways to specify any Alluxio client properties for Hive queries when
-connecting to Alluxio service:
-
-- Specify the Alluxio client properties in `alluxio-site.properties` and
-ensure that this file is on the classpath of Hive service on each node.
-- Add the Alluxio site properties to `conf/hive-site.xml` configuration file on each node.
-
-#### Example: connect to Alluxio with HA
-
-If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
-`zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`,
-set the Alluxio cluster propertie in `alluxio-site.properties`.
-Ensure that this file is on the classpath of Hive.
-
-```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
-```
-
-Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
-
-```xml
-<configuration>
-  <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
-  </property>
-</configuration>
-```
-> Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
- in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
-
-#### Example: change default Alluxio write type
-
-For example, change
-`alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`.
-
-One can specify the property in `alluxio-site.properties` and distribute this file to the classpath
-of each Hive node:
-
-```properties
-alluxio.user.file.writetype.default=CACHE_THROUGH
-```
-
-Alternatively, modify `conf/hive-site.xml` to have:
-
-```xml
-<property>
-  <name>alluxio.user.file.writetype.default</name>
-  <value>CACHE_THROUGH</value>
-</property>
 ```
 
 ## Use Alluxio as One Option to Store Hive Tables
@@ -310,6 +249,65 @@ hive> select * from u_user;
 And you can see the query results from console:
 
 ![HiveQueryResult]({{site.data.img.screenshot_hive_query_result}})
+
+## Advanced Setup
+
+There are two ways to specify any Alluxio client properties for Hive queries when
+connecting to Alluxio service:
+
+- Specify the Alluxio client properties in `alluxio-site.properties` and
+ensure that this file is on the classpath of Hive service on each node.
+- Add the Alluxio site properties to `conf/hive-site.xml` configuration file on each node.
+
+### Example: connect to Alluxio with HA
+
+If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
+`zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`,
+set the Alluxio cluster propertie in `alluxio-site.properties`.
+Ensure that this file is on the classpath of Hive.
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
+```
+
+Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+  </property>
+</configuration>
+```
+> Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
+ in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
+
+### Example: change default Alluxio write type
+
+For example, change
+`alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`.
+
+One can specify the property in `alluxio-site.properties` and distribute this file to the classpath
+of each Hive node:
+
+```properties
+alluxio.user.file.writetype.default=CACHE_THROUGH
+```
+
+Alternatively, modify `conf/hive-site.xml` to have:
+
+```xml
+<property>
+  <name>alluxio.user.file.writetype.default</name>
+  <value>CACHE_THROUGH</value>
+</property>
+```
 
 ## Check Hive with Alluxio integration (Supports Hive 2.X)
 
