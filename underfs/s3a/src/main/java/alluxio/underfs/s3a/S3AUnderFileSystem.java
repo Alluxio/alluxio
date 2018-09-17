@@ -52,8 +52,6 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.util.Base64;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -68,6 +66,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.annotation.Nullable;
@@ -107,13 +106,27 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private final boolean mStreamingUploadEnabled;
 
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
-  private final Supplier<ObjectPermissions> mPermissions = Suppliers
-      .memoize(new Supplier<ObjectPermissions>() {
-        @Override
-        public ObjectPermissions get() {
-          return getPermissionsInternal();
+  private final Supplier<ObjectPermissions> mPermissions = memoize(this::getPermissionsInternal);
+
+  /** Memoize implementation for java.util.function.supplier. */
+  private static <T> Supplier<T> memoize(Supplier<T> original) {
+    return new Supplier<T>() {
+      Supplier<T> mDelegate = this::firstTime;
+      boolean mInitialized;
+      public T get() {
+        return mDelegate.get();
+      }
+
+      private synchronized T firstTime() {
+        if (!mInitialized) {
+          T value = original.get();
+          mDelegate = () -> value;
+          mInitialized = true;
         }
-      });
+        return mDelegate.get();
+      }
+    };
+  }
 
   /** The configuration for ufs. */
   private final UnderFileSystemConfiguration mConf;

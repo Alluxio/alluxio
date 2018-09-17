@@ -30,7 +30,6 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.IdUtils;
 
-import com.google.common.base.Suppliers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +51,7 @@ public final class MountTableTest {
   public void before() throws Exception {
     UfsManager ufsManager = mock(UfsManager.class);
     UfsClient ufsClient =
-        new UfsManager.UfsClient(Suppliers.ofInstance(mTestUfs), AlluxioURI.EMPTY_URI);
+        new UfsManager.UfsClient(() -> mTestUfs, AlluxioURI.EMPTY_URI);
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mMountTable = new MountTable(ufsManager, new MountInfo(new AlluxioURI(MountTable.ROOT),
         new AlluxioURI(ROOT_UFS), IdUtils.ROOT_MOUNT_ID, MountOptions.defaults()));
