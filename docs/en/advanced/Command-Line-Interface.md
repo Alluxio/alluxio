@@ -24,18 +24,21 @@ Usage: alluxio [COMMAND]
 ## General operations
 
 In this section, we list the usages and examples of general Alluxio operations except file system 
-and file system admin operations. File system operations will be listed in the next section 
-and file system admin operations are listed in the [Admin CLI doc](Admin-CLI.html).
+and file system admin operations. File system admin operations are listed in the [Admin CLI doc](Admin-CLI.html).
 
 ### format
 
-The `format` command will format the Alluxio master and all workers.
+The `format` command will format the Alluxio master and all workers. 
+
+If you run this command for an existing Alluxio cluster, all data and metadata stored in Alluxio will be deleted. 
+However, data in under storage will not be changed.
 
 If `-s` specified, only format if underfs is local and doesn't already exist.
 
-Note that `format` is only required when you run Alluxio for the first time. 
-If you run this command for an existing Alluxio cluster, all previously stored data 
-and metadata in Alluxio filesystem will be erased. However, data in under storage will not be changed.
+Warning: `format` is required when you run Alluxio for the first time. 
+`format` should only be called while the cluster is not running.
+
+Warning: `format` will delete all Alluxio data and metadata.
 
 ```bash
 $ ./bin/alluxio format
@@ -44,7 +47,17 @@ $ ./bin/alluxio format -s
 
 ### formatMaster
 
-The `formatMaster` command will format the Alluxio master and all workers.
+The `formatMaster` command will format the Alluxio master.
+
+Alluxio master stores the metadata of the Alluxio related file system operations 
+and files stored in Allxuio workers. If a under file system file is written through Alluxio 
+or a user runs some `getStatus` related operations (e.g. `fs ls` command) on it,
+Alluxio master will also store its metadata. `formatMaster` cleans the journal system 
+and deletes all those metadata.
+
+Warning: `formatMaster` should only be called while the cluster is not running.
+
+Warning: `formatMaster` will delete all the metadata.
 
 ```bash
 $ ./bin/alluxio formatMaster
@@ -52,7 +65,17 @@ $ ./bin/alluxio formatMaster
 
 ### formatWorker 
 
-The `formatWorker` command will format the Alluxio master and all workers.
+The `formatWorker` command will format the Alluxio worker.
+
+Unlike the Alluxio master stores all the metadata, Alluxio worker stores 
+all the real data -- files and objects.
+
+`formatWorker` will delete all the real data stored in this worker node.
+However, data in under storage will not be changed.
+
+Warning: `formatWorker` should only be called while the cluster is not running.
+
+Warning: `formatWorker` will delete all the Alluxio data.
 
 ```bash
 $ ./bin/alluxio formatWorker
@@ -60,10 +83,17 @@ $ ./bin/alluxio formatWorker
 
 ### bootstrapConf
 
-The `bootstrapConf` command will generate a configuration file if one doesn't exist.
+The `bootstrapConf` command will generate the bootstrap configuration file
+`${ALLUXIO_HOME}/conf/alluxio-env.sh` with the specified `ALLUXIO_MASTER_HOSTNAME`, 
+if the configuration file doesn't exist. 
+
+In addition, worker memory size and ramdisk folder will be set in the config file
+according to the machine status:
+* type: Mac or Linux
+* total memory size of that machine
 
 ```bash
-$ ./bin/alluxio bootstrapConf
+$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
 ```
 
 ### getConf
@@ -125,57 +155,10 @@ alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
 ### runTests
 
 The `runTests` command will run all end-to-end tests on an Alluxio cluster 
-and provide a more comprehensive sanity check.
+and provide a comprehensive sanity check.
 
 ```bash
 $ ./bin/alluxio runTests
-```
-
-### runJournalCrashTest
-
-The `runJournalCrashTest` command will test the Master Journal System in a crash scenario.
-
-Options:
-
-* `-creates <arg>` Number of Client Threads to request create operations
-* `-deletes <arg>` Number of Client Threads to request create/delete operations
-* `-maxAlive <arg>` The maximum time a master should ever be alive during the test, in seconds
-* `-renames <arg>` Number of Client Threads to request create/rename operations
-* `-testDir <arg>` Test Directory on Alluxio
-* `-totalTime <arg>` The total time to run this test, in seconds. This
-value should be greater than [maxAlive]
-
-```bash
-$ ./bin/alluxio runJournalCrashTest
-
-# Launches total 6 clients connecting to the Master and the Master will
-# crash randomly with the max alive time 5 seconds.
-$ ./bin/alluxio runJournalCrashTest -maxAlive 5 -totalTime 20 -creates 2 -deletes 2 -renames 2
-```
-
-### runMesosTest
-
-The `runMesosTest` command will test the Alluxio integration with Mesos.
-
-```bash
-$ ./bin/alluxio runMesosTest
-```
-
-### readJournal
-
-The `readJournal` command will read an Alluxio journal file from stdin 
-and write a human-readable version of it to stdout.
-
-Options: 
-
-* `-journalFile <arg>` If set, only read journal from this file. `-master` is ignored when `-journalFile` is set.
-* `-master <arg>` The name of the master (e.g. FileSystemMaster, BlockMaster). Set to FileSystemMaster by default.
-* `-start <arg>` The start log sequence number (inclusive). Set to 0 by default.
-* `-end <arg>` The end log sequence number (exclusive). Set to +inf by default.
-
-```bash
-$ ./bin/alluxio readJournal
-$ ./bin/alluxio readJournal -master BlockMaster 
 ```
 
 ### upgradeJournal
@@ -192,7 +175,7 @@ $ ./bin/alluxio upgradeJournal
 
 ### copyDir
 
-The `copyDir` command will copy the `PATH` to all worker nodes.
+The `copyDir` command will copy the `PATH` to all worker nodes listed in `conf/workers`.
 
 ```bash
 $ ./bin/alluxio copyDir conf/alluxio-site.properties
@@ -460,10 +443,10 @@ For example, `getUsedBytes` can be used to monitor the health of your cluster.
 
 The `head` command prints the first 1 kb of data in a file to the console.
 
-Add `-c [bytes]` option will print the first n bytes of data to the console.
+Using the `-c [bytes]` option will print the first `n` bytes of data to the console.
 
 ```bash
-$ ./bin/alluxio fs head /output/part-00000
+$ ./bin/alluxio fs head -c 2048 /output/part-00000
 ```
 
 ### help
@@ -568,6 +551,11 @@ Options:
 * `--readonly` option sets the  mount point to be readonly in Alluxio
 * `--option <key>=<val>` option passes an property to this mount point (e.g., S3 credential)
 
+Note that `--readonly` mounts are useful to prevent accidental write operations. If multiple 
+Alluxio satellite clusters mount a remote storage cluster which serves as the central source of truth, 
+`--readonly` option could help prevent any write operations, e.g. rm -R, on the satellite cluster 
+from wiping out the remote storage.
+
 For example, `mount` can be used to make data in another storage system available in Alluxio.
 
 {% include Command-Line-Interface/mount.md %}
@@ -650,7 +638,7 @@ For example, `stat` can be used to debug the block locations of a file. This is 
 ### tail
 
 The `tail` command outputs the last 1 kb of data in a file to the console.
-Add `-c [bytes]` option will print the first n bytes of data to the console.
+Using the `-c [bytes]` option will print the last `n` bytes of data to the console.
 
 For example, `tail` can be used to verify the output of a job is in the expected format or contains expected values.
 

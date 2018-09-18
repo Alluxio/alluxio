@@ -60,9 +60,17 @@ If no argument is passed in, `report` will report the leader master, worker numb
 
 ```bash
 $ ./bin/alluxio fsadmin report
+Alluxio cluster summary:
+    Master Address: localhost:19998
+    Zookeeper Enabled: false
+    Live Workers: 1
+    Lost Workers: 0
+    Total Capacity: 10.45GB
+    Used Capacity: 0B
+    (only a subset of the results is shown)
 ```
 
-`report capacity` will report Alluxio cluster capacity informatin of different ranges: 
+`report capacity` will report Alluxio cluster capacity information for different subsets of workers: 
 * `-live` Live workers
 * `-lost` Lost workers
 * `-workers <worker_names>` Specified workers, host names or ip addresses separated by `,`. 
@@ -82,10 +90,12 @@ $ ./bin/alluxio fsadmin report capacity -workers AlluxioWorker1,127.0.0.1
 $ ./bin/alluxio fsadmin report metrics
 ```
 
-`report ufs` will report the under file system of Alluxio cluster.
+`report ufs` will report all the mounted under file system information of Alluxio cluster.
 
 ```bash
 $ ./bin/alluxio fsadmin report ufs 
+Alluxio under filesystem information:
+hdfs://localhost:9000/ on / (hdfs, capacity=-1B, used=-1B, not read-only, not shared, properties={})
 ```
 
 ### ufs
