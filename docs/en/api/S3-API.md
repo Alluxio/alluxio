@@ -6,12 +6,13 @@ group: APIs
 priority: 0
 ---
 
-TODO(Calvin): Update content. When should users use this? Should this doc be marked experimental?
-
 * Table of Contents
 {:toc}
 
-Alluxio supports a RESTFul API that is compatible with the basic operations of the Amazon 
+TODO: Add an introduction with examples of when to use this API
+TODO: Add list of unsupported operations and relevant JIRA tickets
+
+Alluxio supports a RESTFul API that is compatible with the basic operations of the Amazon
 [S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html).
 
 The [REST API documentation](http://www.alluxio.org/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
