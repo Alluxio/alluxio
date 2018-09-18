@@ -28,7 +28,7 @@ public class NoopHdfsAclProvider implements HdfsAclProvider {
   @Override
   public Pair<AccessControlList, DefaultAccessControlList> getAcl(FileSystem hdfs, String path)
       throws IOException {
-    return null;
+    return new Pair<>(null, null);
   }
 
   @Override
