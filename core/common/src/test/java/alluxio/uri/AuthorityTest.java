@@ -16,6 +16,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+
 /**
  * Unit tests for {@link Authority}.
  */
@@ -76,5 +78,22 @@ public class AuthorityTest {
     authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181;host2:2181;host3:2181");
     assertEquals("zk@host1:2181;host2:2181;host3:2181", authority.toString());
     assertEquals("host1:2181,host2:2181,host3:2181", authority.getZookeeperAddress());
+
+    authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181+host2:2181+host3:2181");
+    assertEquals("zk@host1:2181+host2:2181+host3:2181", authority.toString());
+    assertEquals("host1:2181,host2:2181,host3:2181", authority.getZookeeperAddress());
+  }
+
+  @Test
+  public void mixedDelimiters() {
+    String normalized = "a:0,b:0,c:0";
+    for (String test : Arrays.asList(
+        "zk@a:0;b:0+c:0",
+        "zk@a:0,b:0;c:0",
+        "zk@a:0+b:0,c:0"
+    )) {
+      assertEquals(normalized,
+          ((ZookeeperAuthority) Authority.fromString(test)).getZookeeperAddress());
+    }
   }
 }
