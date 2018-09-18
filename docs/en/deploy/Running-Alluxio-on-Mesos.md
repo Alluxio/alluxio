@@ -10,8 +10,8 @@ priority: 4
 {:toc}
 
 Alluxio can be deployed through Mesos. This allows Mesos to manage the resources used by Alluxio. For the Alluxio
-master this is just the cpu and memory needed by the JVM process. For the worker it is the same, but with the addition
-of the memory needed by the ramdisk.
+master the managed resources are the CPU and memory needed by the JVM process. For the worker, the additional resources
+include the ramdisk memory (if configuring memory as a storage tier) and other optional tiered storage such as SSD or HDD.
 
 ## Mesos version
 
@@ -32,7 +32,7 @@ $ /usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
 
 ### Changing Alluxio ports
 
-Alternately, you may specify the Alluxio ports in your `alluxio-site.properties` file like so:
+Alternately, you may specify the Alluxio ports in `alluxio-site.properties`:
 
 ```properties
 alluxio.master.port=31398
@@ -51,7 +51,7 @@ To deploy Alluxio on Mesos, we need to make the Alluxio distribution available t
 2. Point Mesos to an Alluxio tarball.
 
 ### Setting configuration properties
-See the [Configuration Settings](Configuration-Settings.html) documentation for instructions on how to set configuration properties.
+See the [Configuration Settings]({{ site.baseurl }}{% link en/advanced/Configuration-Settings.md %}) documentation for instructions on how to set configuration properties.
 
 ### Deploy with Alluxio already installed on all Mesos nodes
 
