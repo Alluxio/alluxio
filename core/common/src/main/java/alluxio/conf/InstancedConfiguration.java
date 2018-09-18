@@ -37,8 +37,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
-
 /**
  * Alluxio configuration.
  */
@@ -86,7 +84,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
     }
     if (!options.shouldUseRawValue()) {
-      value = lookup(value);
+      try {
+        value = lookup(value);
+      } catch (UnresolvablePropertyException e) {
+        throw new RuntimeException(e);
+      }
     }
     if (options.shouldUseDisplayValue()) {
       PropertyKey.DisplayType displayType = key.getDisplayType();
@@ -106,7 +108,18 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public boolean isSet(PropertyKey key) {
-    return mProperties.isSet(key);
+    if (!mProperties.isSet(key)) {
+      return false;
+    }
+    String val = mProperties.get(key);
+    try {
+      // Lookup to resolve any key before simply returning isSet. An exception will be thrown if
+      // the key can't be resolved or if a lower level value isn't set.
+      lookup(val);
+      return true;
+    } catch (UnresolvablePropertyException e) {
+      return false;
+    }
   }
 
   @Override
@@ -122,6 +135,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       return Integer.parseInt(lookup(rawValue));
     } catch (NumberFormatException e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(key));
+    } catch (UnresolvablePropertyException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -133,6 +148,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       return Long.parseLong(lookup(rawValue));
     } catch (NumberFormatException e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_LONG.getMessage(key));
+    } catch (UnresolvablePropertyException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -144,6 +161,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       return Double.parseDouble(lookup(rawValue));
     } catch (NumberFormatException e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_DOUBLE.getMessage(key));
+    } catch (UnresolvablePropertyException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -155,6 +174,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       return Float.parseFloat(lookup(rawValue));
     } catch (NumberFormatException e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_FLOAT.getMessage(key));
+    } catch (UnresolvablePropertyException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -290,7 +311,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param base the String to look for
    * @return resolved String value
    */
-  private String lookup(final String base) {
+  private String lookup(final String base) throws UnresolvablePropertyException {
     return lookupRecursively(base, new HashSet<>());
   }
 
@@ -301,11 +322,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param seen strings already seen during this lookup, used to prevent unbound recursion
    * @return the resolved string
    */
-  @Nullable
-  private String lookupRecursively(String base, Set<String> seen) {
+  private String lookupRecursively(String base, Set<String> seen)
+      throws UnresolvablePropertyException {
     // check argument
     if (base == null) {
-      return null;
+      throw new UnresolvablePropertyException("Can't resolve property with null key");
     }
 
     String resolved = base;
@@ -315,15 +336,16 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     while (matcher.find()) {
       String match = matcher.group(2).trim();
       if (!seen.add(match)) {
-        throw new RuntimeException("Circular dependency found while resolving " + match);
+        throw new RuntimeException(ExceptionMessage.KEY_CIRCULAR_DEPENDENCY.getMessage(match));
       }
       if (!PropertyKey.isValid(match)) {
-        throw new RuntimeException("Invalid property key " + match);
+        throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(match));
       }
       String value = lookupRecursively(mProperties.get(PropertyKey.fromString(match)), seen);
       seen.remove(match);
       if (value == null) {
-        throw new RuntimeException("No value specified for configuration property " + match);
+        throw new UnresolvablePropertyException(ExceptionMessage
+            .UNDEFINED_CONFIGURATION_KEY.getMessage(match));
       }
       LOG.debug("Replacing {} with {}", matcher.group(1), value);
       resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(value));
@@ -436,5 +458,13 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         }
       }
     }
+  }
+
+  private class UnresolvablePropertyException extends Exception {
+
+    public UnresolvablePropertyException(String msg) {
+      super(msg);
+    }
+
   }
 }

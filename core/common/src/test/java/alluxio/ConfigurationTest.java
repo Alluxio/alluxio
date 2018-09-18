@@ -90,6 +90,15 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void isSetResolve() {
+    Configuration.unset(PropertyKey.MASTER_HOSTNAME);
+    Configuration.set(PropertyKey.MASTER_WEB_HOSTNAME, "${alluxio.master.hostname}");
+    assertFalse(Configuration.isSet(PropertyKey.MASTER_WEB_HOSTNAME));
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    assertTrue(Configuration.isSet(PropertyKey.MASTER_WEB_HOSTNAME));
+  }
+
+  @Test
   public void getInt() {
     Configuration.set(PropertyKey.WEB_THREADS, "1");
     assertEquals(1, Configuration.getInt(PropertyKey.WEB_THREADS));
