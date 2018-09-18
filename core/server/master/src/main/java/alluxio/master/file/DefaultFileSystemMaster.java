@@ -98,6 +98,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -2263,6 +2264,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             listOptions.setRecursive(false);
           }
           UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
+          // children can be null if the pathname does not denote a directory
+          // or if the we do not have permission to listStatus on the directory in the ufs.
+          if (children == null) {
+            throw new IOException("Failed to loadMetadata because ufs can not listStatus at path "
+                + ufsUri.toString());
+          }
           Arrays.sort(children, Comparator.comparing(UfsStatus::getName));
 
           for (UfsStatus childStatus : children) {
@@ -2283,8 +2290,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               LoadMetadataOptions loadMetadataOptions =
                   LoadMetadataOptions.defaults().setLoadDescendantType(DescendantType.NONE)
                       .setCreateAncestors(false).setUfsStatus(childStatus);
-              loadMetadataInternal(rpcContext, tempInodePath, loadMetadataOptions);
-
+              try {
+                loadMetadataInternal(rpcContext, tempInodePath, loadMetadataOptions);
+              } catch (Exception e) {
+                LOG.info("Failed to loadMetadata: inodePath={}, options={}.",
+                    tempInodePath.getUri(), loadMetadataOptions, e);
+                continue;
+              }
               if (options.getLoadDescendantType() == DescendantType.ALL
                   && tempInodePath.getInode().isDirectory()) {
                 InodeDirectoryView inodeDirectory = (InodeDirectoryView) tempInodePath.getInode();
@@ -2332,7 +2344,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       ufsLength = ufsStatus.getContentLength();
 
       if (isAclEnabled()) {
-        acl = ufs.getAcl(ufsUri.toString());
+        Pair<AccessControlList, DefaultAccessControlList> aclPair
+            = ufs.getAclPair(ufsUri.toString());
+        if (aclPair != null) {
+          acl = aclPair.getFirst();
+          // DefaultACL should be null, because it is a file
+          if (aclPair.getSecond() != null) {
+            LOG.warn("File {} has default ACL in the UFS", inodePath.getUri());
+          }
+        }
+
       }
     }
 
@@ -2405,11 +2426,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         .setTtl(options.getTtl()).setTtlAction(options.getTtlAction());
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
     UfsStatus ufsStatus = options.getUfsStatus();
-    if (ufsStatus == null) {
-      AlluxioURI ufsUri = resolution.getUri();
-      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-        UnderFileSystem ufs = ufsResource.get();
+
+    AlluxioURI ufsUri = resolution.getUri();
+    AccessControlList acl = null;
+    DefaultAccessControlList defaultAcl = null;
+
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      if (ufsStatus == null) {
         ufsStatus = ufs.getDirectoryStatus(ufsUri.toString());
+      }
+      Pair<AccessControlList, DefaultAccessControlList> aclPair =
+          ufs.getAclPair(ufsUri.toString());
+      if (aclPair != null) {
+        acl = aclPair.getFirst();
+        defaultAcl = aclPair.getSecond();
       }
     }
     String ufsOwner = ufsStatus.getOwner();
@@ -2422,6 +2453,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     createDirectoryOptions = createDirectoryOptions.setOwner(ufsOwner).setGroup(ufsGroup)
             .setMode(mode).setUfsStatus(ufsStatus);
+    if (acl != null) {
+      createDirectoryOptions.setAcl(acl.getEntries());
+    }
+
+    if (defaultAcl != null) {
+      createDirectoryOptions.setDefaultAcl(defaultAcl.getEntries());
+    }
     if (lastModifiedTime != null) {
       createDirectoryOptions.setOperationTimeMs(lastModifiedTime);
     }
@@ -2465,7 +2503,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (!inodeExists || loadDirectChildren) {
       try {
         loadMetadataInternal(rpcContext, inodePath, options);
-      } catch (Exception e) {
+      } catch (IOException | InvalidPathException | FileDoesNotExistException | BlockInfoException
+          | FileAlreadyCompletedException | InvalidFileSizeException | AccessControlException e) {
         // NOTE, this may be expected when client tries to get info (e.g. exists()) for a file
         // existing neither in Alluxio nor UFS.
         LOG.debug("Failed to load metadata for path from UFS: {}", inodePath.getUri());
@@ -2563,17 +2602,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
         }
       }
-      // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
-      String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      UnderFileSystem defaultUfs = UnderFileSystem.Factory.createForRoot();
-      String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
-      if (defaultUfs.exists(shadowPath)) {
-        throw new IOException(
-            ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
+      // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
+      MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
+      try (CloseableResource<UnderFileSystem> ufsResource =
+               resolution.acquireUfsResource()) {
+        String ufsResolvedPath = resolution.getUri().getPath();
+        if (ufsResource.get().exists(ufsResolvedPath)) {
+          throw new IOException(
+              ExceptionMessage.MOUNT_PATH_SHADOWS_PARENT_UFS.getMessage(alluxioPath,
+                  ufsResolvedPath));
+        }
       }
-
       // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
-      // mount and no existing mount is a prefix of this mount.
+      // mount.
       mMountTable.add(journalContext, alluxioPath, ufsPath, mountId, options);
     } catch (Exception e) {
       mUfsManager.removeMount(mountId);
@@ -2723,11 +2764,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
       } else {
         try {
-          ufs.setAcl(ufsUri, inode.getACL());
+          List<AclEntry> entries = new ArrayList<>(inode.getACL().getEntries());
           if (inode.isDirectory()) {
             InodeDirectoryView inodeDirectory = (InodeDirectoryView) inode;
-            ufs.setAcl(ufsUri, inodeDirectory.getDefaultACL());
+            entries.addAll(inodeDirectory.getDefaultACL().getEntries());
           }
+          ufs.setAclEntries(ufsUri, entries);
         } catch (IOException e) {
           throw new AccessControlException("Could not setAcl for UFS file: " + ufsUri);
         }

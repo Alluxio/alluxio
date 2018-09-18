@@ -13,7 +13,7 @@ priority: 0
 
 This guide describes how to compile Alluxio from the beginning.
 
-The prerequisite for this guide is that you have [Java 8 or later](Java-Setup.html), [Maven 3.3.9 or later](Maven.html) installed.
+The prerequisite for this guide is that you must have [Java 8](Java-Setup.html) and [Maven 3.3.9 or later](Maven.html) installed.
 
 ### Checkout Source Code
 
@@ -57,12 +57,14 @@ The Maven build system fetches its dependencies, compiles source code, runs unit
 
 ### Test
 
-Once Alluxio is built, you can start it with:
+Once Alluxio is built, you can validate and start it with:
 
 ```bash
-$ echo "alluxio.master.hostname=localhost" > conf/alluxio-site.properties
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
+$ ./bin/alluxio validateEnv local
 $ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 To verify that Alluxio is running, you can visit [http://localhost:19999](http://localhost:19999) or check the log in the `alluxio/logs` directory. You can also run a simple program:

@@ -14,26 +14,24 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 
 ## Prerequisites
 
-The prerequisite for this part is that you have
-[Java](Java-Setup.html). Alluxio cluster should also be
-set up in accordance to these guides for either [Local Mode](Running-Alluxio-Locally.html) or
-[Cluster Mode](Running-Alluxio-on-a-Cluster.html).
-
-Please [Download Hive](http://hive.apache.org/downloads.html).
+* [Setup Java](Java-Setup.html) for Java 8 Update 60 or higher (8u60+), 64-bit.
+* [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted).
+* An Alluxio cluster has been set up and is running according to either
+[Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+* Make sure that the Alluxio client jar is available.
+  This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
+  downloaded from Alluxio [download page](http://www.alluxio.org/download).
+  Alternatively, advanced users can compile this client jar from the source code
+  by following the [instructions](Building-Alluxio-From-Source.html).
 
 To run Hive on Hadoop MapReduce, please also follow the instructions in
 [running MapReduce on Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html) to make sure Hadoop
 MapReduce can run with Alluxio.
 
-## Configure Hive
+## Basic Setup
 
-We recommend you to download the tarball from
-Alluxio [download page](http://www.alluxio.org/download).
-Alternatively, advanced users can choose to compile this client jar from the source code
-by following Follow the instructs [here](Building-Alluxio-From-Source.html#compute-framework-support).
-The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
-
-Set `HIVE_AUX_JARS_PATH` either in shell or `conf/hive-env.sh`:
+Include Alluxio client jar to ensure that Hive can query and access data stored on Alluxio.
+Set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
 
 ```bash
 export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
@@ -50,9 +48,6 @@ how to use Alluxio as the default file system
 for Hive. In the following sections, Hive is running on Hadoop MapReduce in this documentation.
 
 > Tips：All the following Hive CLI examples are also applicable to Hive Beeline. You can try these commands out in Beeline shell.
-
-> Tips：All the following examples are also applicable to Alluxio in fault tolerant mode with Zookeeper. 
-Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
 
 ### Create New Tables from Alluxio Files
 
@@ -204,43 +199,6 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 </property>
 ```
 
-To use fault tolerant mode, set the Alluxio cluster properties appropriately (see example below) in
-an `alluxio-site.properties` file which is on the classpath.
-
-```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=[zookeeper_hostname]:2181
-```
-
-Alternatively you can add the properties to the Hive `hive-site.xml` configuration which is then
-propagated to Alluxio.
-
-```xml
-<configuration>
-  <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>[zookeeper_hostname]:2181</value>
-  </property>
-</configuration>
-```
-
-### Add additional Alluxio site properties to Hive
-
-If there are any Alluxio site properties you want to specify for Hive, add those to `core-site.xml`
-to Hadoop configuration directory on each node. For example, change
-`alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
-
-```xml
-<property>
-<name>alluxio.user.file.writetype.default</name>
-<value>CACHE_THROUGH</value>
-</property>
-```
-
 ### Using Alluxio with Hive
 
 Create Directories in Alluxio for Hive:
@@ -291,6 +249,65 @@ hive> select * from u_user;
 And you can see the query results from console:
 
 ![HiveQueryResult]({{ site.baseurl }}/img/screenshot_hive_query_result.png)
+
+## Advanced Setup
+
+There are two ways to specify any Alluxio client properties for Hive queries when
+connecting to Alluxio service:
+
+- Specify the Alluxio client properties in `alluxio-site.properties` and
+ensure that this file is on the classpath of Hive service on each node.
+- Add the Alluxio site properties to `conf/hive-site.xml` configuration file on each node.
+
+### Example: connect to Alluxio with HA
+
+If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
+`zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`,
+set the Alluxio cluster propertie in `alluxio-site.properties`.
+Ensure that this file is on the classpath of Hive.
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
+```
+
+Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+  </property>
+</configuration>
+```
+> Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
+ in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
+
+### Example: change default Alluxio write type
+
+For example, change
+`alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`.
+
+One can specify the property in `alluxio-site.properties` and distribute this file to the classpath
+of each Hive node:
+
+```properties
+alluxio.user.file.writetype.default=CACHE_THROUGH
+```
+
+Alternatively, modify `conf/hive-site.xml` to have:
+
+```xml
+<property>
+  <name>alluxio.user.file.writetype.default</name>
+  <value>CACHE_THROUGH</value>
+</property>
+```
 
 ## Check Hive with Alluxio integration (Supports Hive 2.X)
 

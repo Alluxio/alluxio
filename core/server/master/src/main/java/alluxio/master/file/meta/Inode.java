@@ -402,8 +402,9 @@ public abstract class Inode<T> implements InodeView {
   /**
    * @param acl set the default ACL associated with this inode
    * @throws UnsupportedOperationException if the inode is a file
+   * @return the updated object
    */
-  public abstract void setDefaultACL(DefaultAccessControlList acl)
+  public abstract T setDefaultACL(DefaultAccessControlList acl)
       throws UnsupportedOperationException;
 
   /**
@@ -414,6 +415,9 @@ public abstract class Inode<T> implements InodeView {
    * @return the updated object
    */
   public T setAcl(List<AclEntry> entries) {
+    if (entries == null || entries.isEmpty()) {
+      return getThis();
+    }
     for (AclEntry entry : entries) {
       if (entry.isDefault()) {
         getDefaultACL().setEntry(entry);

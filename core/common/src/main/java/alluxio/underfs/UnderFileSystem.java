@@ -15,7 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
+import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -267,13 +270,14 @@ public interface UnderFileSystem extends Closeable {
   boolean exists(String path) throws IOException;
 
   /**
-   * Gets the access control list of a file or directory in under file system.
+   * Gets the ACL and the Default ACL of a file or directory in under file system.
    *
    * @param path the path to the file or directory
-   * @return the access control list, or null if ACL is unsupported or disabled
+   * @return the access control list, along with a Default ACL if it is a directory
+   *         return null if ACL is unsupported or disabled
    * @throws IOException if ACL is supported and enabled but cannot be retrieved
    */
-  AccessControlList getAcl(String path) throws IOException;
+  Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path) throws IOException;
 
   /**
    * Gets the block size of a file in under file system, in bytes.
@@ -522,11 +526,12 @@ public interface UnderFileSystem extends Closeable {
   /**
    * Sets the access control list of a file or directory in under file system.
    * if the ufs does not support acls, this is a noop.
+   * This will overwrite the ACL and defaultACL in the UFS.
    *
    * @param path the path to the file or directory
-   * @param acl the access control list
+   * @param aclEntries the access control list + default acl represented in a list of acl entries
    */
-  void setAcl(String path, AccessControlList acl) throws IOException;
+  void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException;
 
   /**
    * Changes posix file mode.

@@ -24,7 +24,8 @@ import java.util.regex.Pattern;
 public interface Authority extends Comparable<Authority>, Serializable {
   Logger LOG = LoggerFactory.getLogger(Authority.class);
   Pattern SINGLE_MASTER_AUTH = Pattern.compile("^([^:,;]+):(\\d+)$");
-  Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@([^:,;]+:\\d+([,;][^:,;]+:\\d+)*)$");
+  // We allow zookeeper authorities to be delimited by ',' ';' or '+'.
+  Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@([^:,;+]+:\\d+([,;+][^:,;+]+:\\d+)*)$");
 
   /**
    * Gets the Authority object from the input string.
@@ -38,16 +39,19 @@ public interface Authority extends Comparable<Authority>, Serializable {
     }
     Matcher matcher = ZOOKEEPER_AUTH.matcher(authority);
     if (matcher.matches()) {
-      return new ZookeeperAuthority(authority,
-          matcher.group(1).replaceAll(";", ","));
+      return new ZookeeperAuthority(authority, matcher.group(1).replaceAll("[;+]", ","));
     } else {
       matcher = SINGLE_MASTER_AUTH.matcher(authority);
       if (matcher.matches()) {
-        return new SingleMasterAuthority(authority,
-            matcher.group(1), Integer.parseInt(matcher.group(2)));
+        return new SingleMasterAuthority(matcher.group(1), Integer.parseInt(matcher.group(2)));
       } else {
         return new UnknownAuthority(authority);
       }
     }
+  }
+
+  @Override
+  default int compareTo(Authority o) {
+    return toString().compareTo(o.toString());
   }
 }
