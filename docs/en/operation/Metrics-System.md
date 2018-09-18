@@ -8,6 +8,9 @@ priority: 0
 * Table of Contents
 {:toc}
 
+TODO: Add an example configuration of using the local file system and csv sink
+TODO: Add images of the general metrics pages
+
 Metrics provide insight into what is going on in the cluster. They are an invaluable resource for
 monitoring and debugging. Alluxio has a configurable metrics system based on the [Coda Hale Metrics
 Library](https://github.com/dropwizard/metrics). In the metrics system, sources generate metrics,
