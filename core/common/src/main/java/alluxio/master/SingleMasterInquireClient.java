@@ -11,6 +11,9 @@
 
 package alluxio.master;
 
+import alluxio.uri.Authority;
+import alluxio.uri.SingleMasterAuthority;
+
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.List;
@@ -65,6 +68,11 @@ public class SingleMasterInquireClient implements MasterInquireClient {
     }
 
     @Override
+    public Authority toAuthority() {
+      return new SingleMasterAuthority(mAddress.getHostString(), mAddress.getPort());
+    }
+
+    @Override
     public boolean equals(Object o) {
       if (this == o) {
         return true;
@@ -83,7 +91,7 @@ public class SingleMasterInquireClient implements MasterInquireClient {
 
     @Override
     public String toString() {
-      return mAddress.getHostString() + ":" + mAddress.getPort();
+      return toAuthority().toString();
     }
   }
 }
