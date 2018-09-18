@@ -229,7 +229,7 @@ OVERWRITE INTO TABLE u_user;
 
 在浏览器中输入`http://master_hostname:port`以访问Alluxio Web UI，你可以看到相应文件夹以及Hive创建的文件：
 
-![HiveTableInAlluxio]({{site.data.img.screenshot_hive_table_in_alluxio}})
+![HiveTableInAlluxio]({{ site.baseurl }}/img/screenshot_hive_table_in_alluxio.png)
 
 ```
 hive> select * from u_user;
@@ -237,7 +237,7 @@ hive> select * from u_user;
 
 你可以在命令行中看到相应查询结果：
 
-![HiveQueryResult]({{site.data.img.screenshot_hive_query_result}})
+![HiveQueryResult]({{ site.baseurl }}/img/screenshot_hive_query_result.png)
 
 
 ## 检查Hive和Alluxio的集成情况 (支持 Hive 2.X)

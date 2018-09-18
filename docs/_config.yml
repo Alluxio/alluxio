@@ -42,41 +42,36 @@ defaults:
 
 # These are the ordered category names
 categoryList:
-  - User Guide
+  - Home
   - Deploying Alluxio
-  - Features
-  - Frameworks
   - Under Stores
+  - Compute Applications
   - Operations
   - Advanced
   - APIs
-  - Alluxio Developer Resources
-  - Other
+  - Contributor Resources
+  - Reference
 
 # Each language has a particular version of category names
 # When supporting a new language version, do not change the 'group' attribute in .md page files
 # Instead, just add the group name of that language below
 categoryInfo:
-  User Guide:
-    en: User Guides
+  Home:
+    en: Home
     cn: 用户指南
     pt: Guias do Usuário
   Deploying Alluxio:
     en: Deploying Alluxio
     cn: 部署Alluxio
     pt: Deploying Alluxio
-  Features:
-    en: Features
-    cn: 特性
-    pt: Features
-  Frameworks:
-    en: Frameworks
-    cn: 计算框架
-    pt: Frameworks
   Under Stores:
     en: Under Stores
     cn: 底层存储系统
     pt: Under Stores
+  Compute Applications:
+    en: Frameworks
+    cn: 计算框架
+    pt: Frameworks
   Operations:
     en: Operations
   Advanced:
@@ -85,7 +80,9 @@ categoryInfo:
     en: APIs
     cn: Clients
     pt: Clients
-  Alluxio Developer Resources:
-    en: Alluxio Developer Resources
+  Contributor Resources:
+    en: Contributor Resources
     cn: 开发者资源
     pt: Recursos
+  Reference:
+    en: Reference

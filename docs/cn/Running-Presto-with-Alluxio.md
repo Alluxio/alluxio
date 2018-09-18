@@ -119,7 +119,7 @@ OVERWRITE INTO TABLE u_user;
 
 在浏览器中输入`http://master_hostname:19999`以访问Alluxio Web UI，你可以看到相应文件夹以及Hive创建的文件：
 
-![HiveTableInAlluxio]({{site.data.img.screenshot_presto_table_in_alluxio}})
+![HiveTableInAlluxio]({{ site.baseurl }}/img/screenshot_presto_table_in_alluxio.png)
 
 你可以通过[说明](Running-Hive-with-Alluxio.html#create-new-tables-from-files-in-alluxio)创建已存在在Alluxio中的表。
 
@@ -131,8 +131,8 @@ OVERWRITE INTO TABLE u_user;
 
 你可以在命令行中看到相应查询结果：
 
-![PrestoQueryResult]({{site.data.img.screenshot_presto_query_result}})
+![PrestoQueryResult]({{ site.baseurl }}/img/screenshot_presto_query_result.png)
 
 日志：
 
-![PrestoQueryLog]({{site.data.img.screenshot_presto_query_log}})
+![PrestoQueryLog]({{ site.baseurl }}/img/screenshot_presto_query_log.png)

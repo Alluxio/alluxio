@@ -167,9 +167,9 @@ SPARK_LOCAL_HOSTNAME=simple30
 
 用以上任何一种方法，Spark Worker的地址变为主机名并且定位等级变为NODE_LOCAL，如下Spark WebUI所示：
 
-![hostname]({{site.data.img.screenshot_datalocality_sparkwebui}})
+![hostname]({{ site.baseurl }}/img/screenshot_datalocality_sparkwebui.png)
 
-![locality]({{site.data.img.screenshot_datalocality_tasklocality}})
+![locality]({{ site.baseurl }}/img/screenshot_datalocality_tasklocality.png)
 
 ### 在YARN上运行SPARK
 

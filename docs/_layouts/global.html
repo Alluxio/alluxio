@@ -7,21 +7,22 @@
 <html class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]><!-->
 <html class="no-js"> <!--<![endif]-->
+{% include base.html %}
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <title>{{ page.title }} - Alluxio {{site.ALLUXIO_MASTER_VERSION_SHORT}} Documentation</title>
     <meta name="description" content="">
 
-    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{base}}/css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="../css/bootstrap-responsive.min.css">
-    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="{{base}}/css/bootstrap-responsive.min.css">
+    <link rel="stylesheet" href="{{base}}/css/main.css">
 
-    <script src="../js/vendor/modernizr-2.6.1-respond-1.1.0.min.js"></script>
+    <script src="{{base}}/js/vendor/modernizr-2.6.1-respond-1.1.0.min.js"></script>
 
-    <link rel="stylesheet" href="../css/pygments-default.css">
+    <link rel="stylesheet" href="{{base}}/css/pygments-default.css">
 
     <script>
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -47,7 +48,7 @@
             <a href="/">
                 <div class="brand" style="display:table;">
                     <div style="position:relative;display:table-cell;vertical-align:middle;">
-                        <img src="../img/logo-white.png" alt="Alluxio Logo" style="height:34px;"/>
+                        <img src="{{base}}/img/logo-white.png" alt="Alluxio Logo" style="height:34px;"/>
                         <div style="position:absolute;right:0;top:32px;text-shadow:none;">
                             <span class="version">{{site.ALLUXIO_MASTER_VERSION_SHORT}}</span>
                         </div>
@@ -82,7 +83,7 @@
                                     </li>
                                 {% else %}
                                     <!-- Use the prefix .. to change the absolute url to relative url -->
-                                    <li><a href="..{{ node.url }}">
+                                    <li><a href="{{base}}{{node.url}}">
                                         {% if node.nickname == null %}
                                             {{node.title}}
                                         {% else %}
@@ -162,9 +163,9 @@
 </div>
 <!-- /container -->
 
-<script src="../js/vendor/jquery-1.8.0.min.js"></script>
-<script src="../js/vendor/bootstrap.min.js"></script>
-<script src="../js/main.js"></script>
+<script src="{{base}}/js/vendor/jquery-1.8.0.min.js"></script>
+<script src="{{base}}/js/vendor/bootstrap.min.js"></script>
+<script src="{{base}}/js/main.js"></script>
 
 <!-- A script to fix internal hash links because we have an overlapping top bar.
      Based on https://github.com/twitter/bootstrap/issues/193#issuecomment-2281510 -->
@@ -188,7 +189,7 @@
     })
 </script>
 
-<script src="../js/scrollspy.js"></script>
+<script src="{{base}}/js/scrollspy.js"></script>
 
 </body>
 </html>
