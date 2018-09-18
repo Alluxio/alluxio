@@ -18,7 +18,7 @@ This tutorial walks through a basic Alluxio setup on Kubernetes.
 - A Kubernetes cluster (version >= 1.8). Alluxio workers will use `emptyDir` volumes with a 
 restricted size using the `sizeLimit` parameter. This is an alpha feature in Kubernetes 1.8.
 Please ensure the feature is enabled.
-- An Alluxio Docker image. Refer to [this page](Running-Alluxio-On-Docker.html) for instructions
+- An Alluxio Docker image. Refer to [this page]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-Docker.md %}) for instructions
 to build an image. The image must be available for a pull from all Kubernetes hosts running
 Alluxio processes. This can be achieved by pushing the image to an accessible Docker registry,
 or pushing the image individually to all hosts. If using a private Docker registry, refer to the
@@ -56,7 +56,7 @@ to enable short-circuit. Short-circuit writes are then enabled if the worker UUI
 filesystem.
 ```properties
 alluxio.worker.data.server.domain.socket.as.uuid=true
-alluxio.worker.data.server.domain.socket.address=/path/to/domain/socket/directory
+alluxio.worker.data.server.domain.socket.address=/tmp/domain
 ```
 
 ## Provision a Persistent Volume
