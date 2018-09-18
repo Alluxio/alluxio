@@ -51,7 +51,7 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
       hdfsAcl = hdfs.getAclStatus(filePath);
     } catch (AclException e) {
       // When dfs.namenode.acls.enabled is false, getAclStatus throws AclException.
-      return null;
+      return new Pair<>(null, null);
     }
     AccessControlList acl = new AccessControlList();
     DefaultAccessControlList defaultAcl = new DefaultAccessControlList();
