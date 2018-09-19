@@ -87,7 +87,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       try {
         value = lookup(value);
       } catch (UnresolvablePropertyException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException("Could not resolve key " + key.getName() + ":" + e.getMessage());
       }
     }
     if (options.shouldUseDisplayValue()) {
@@ -132,11 +132,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     String rawValue = get(key);
 
     try {
-      return Integer.parseInt(lookup(rawValue));
+      return Integer.parseInt(rawValue);
     } catch (NumberFormatException e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(key));
-    } catch (UnresolvablePropertyException e) {
-      throw new RuntimeException(e);
     }
   }
 
@@ -145,11 +143,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     String rawValue = get(key);
 
     try {
-      return Long.parseLong(lookup(rawValue));
+      return Long.parseLong(rawValue);
     } catch (NumberFormatException e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_LONG.getMessage(key));
-    } catch (UnresolvablePropertyException e) {
-      throw new RuntimeException(e);
     }
   }
 
@@ -158,11 +154,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     String rawValue = get(key);
 
     try {
-      return Double.parseDouble(lookup(rawValue));
+      return Double.parseDouble(rawValue);
     } catch (NumberFormatException e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_DOUBLE.getMessage(key));
-    } catch (UnresolvablePropertyException e) {
-      throw new RuntimeException(e);
     }
   }
 
@@ -171,11 +165,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     String rawValue = get(key);
 
     try {
-      return Float.parseFloat(lookup(rawValue));
+      return Float.parseFloat(rawValue);
     } catch (NumberFormatException e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_FLOAT.getMessage(key));
-    } catch (UnresolvablePropertyException e) {
-      throw new RuntimeException(e);
     }
   }
 
@@ -326,7 +318,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       throws UnresolvablePropertyException {
     // check argument
     if (base == null) {
-      throw new UnresolvablePropertyException("Can't resolve property with null key");
+      throw new UnresolvablePropertyException("Can't resolve property with null value");
     }
 
     String resolved = base;

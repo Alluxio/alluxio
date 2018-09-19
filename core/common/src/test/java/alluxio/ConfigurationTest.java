@@ -105,6 +105,14 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void getIntResolve() {
+    Configuration.set(PropertyKey.LOGSERVER_THREADS_MAX, "${alluxio.master.worker.threads.max}");
+    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, "${alluxio.worker.block.threads.max}");
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "10");
+    assertEquals(10, Configuration.getInt(PropertyKey.LOGSERVER_THREADS_MAX));
+  }
+
+  @Test
   public void getMalformedIntThrowsException() {
     Configuration.set(PropertyKey.WEB_THREADS, "9448367483758473854738"); // bigger than MAX_INT
     mThrown.expect(RuntimeException.class);
