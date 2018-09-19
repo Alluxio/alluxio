@@ -50,6 +50,7 @@ $ spark-submit \
 
 TODO: does this work for the driver side? We should use the `--driver-java-options` for the driver
 options, since this also works for local drivers.
+TODO: link to the configuration section of the spark page
 
 In the Spark Shell, this can be achieved by:
 
@@ -72,9 +73,15 @@ $ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.
 -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
 <INPUT FILES> <OUTPUT DIRECTORY>
 ```
+TODO: link to the configuration section of the hadoop MR page
 
-### Hive Jobs
-TODO: add information about configuring hive queries
+### Hive Queries
+TODO: brief information about configuring hive queries
+TODO: link to the configuration section of the hive page
+
+### Presto Queries
+TODO: brief information about configuring presto queries
+TODO: link to the configuration section of the presto page
 
 ## Configure Alluxio Cluster
 
