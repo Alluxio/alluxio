@@ -350,6 +350,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey METRICS_CONTEXT_SHUTDOWN_TIMEOUT =
+      new Builder(Name.METRICS_CONTEXT_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("1sec")
+          .setDescription("Time to wait for the metrics context to shut down. The main purpose for "
+              + "this property is to allow tests to shut down faster.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setIsHidden(true)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       new Builder(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.network.host.resolution.timeout.ms"})
@@ -3148,6 +3157,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String LOGGER_TYPE = "alluxio.logger.type";
     public static final String LOGS_DIR = "alluxio.logs.dir";
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
+    public static final String METRICS_CONTEXT_SHUTDOWN_TIMEOUT =
+        "alluxio.metrics.context.shutdown.timeout";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
         "alluxio.network.host.resolution.timeout";
     public static final String NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =

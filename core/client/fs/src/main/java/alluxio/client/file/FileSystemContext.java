@@ -277,7 +277,8 @@ public final class FileSystemContext implements Closeable {
 
     synchronized (this) {
       if (mMetricsMasterClient != null) {
-        ThreadUtils.shutdownAndAwaitTermination(mExecutorService);
+        ThreadUtils.shutdownAndAwaitTermination(mExecutorService,
+            Configuration.getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
         mMetricsMasterClient.close();
         mMetricsMasterClient = null;
         mClientMasterSync = null;

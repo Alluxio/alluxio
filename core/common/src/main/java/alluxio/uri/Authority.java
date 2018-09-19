@@ -39,7 +39,7 @@ public interface Authority extends Comparable<Authority>, Serializable {
     }
     Matcher matcher = ZOOKEEPER_AUTH.matcher(authority);
     if (matcher.matches()) {
-      return new ZookeeperAuthority(authority, matcher.group(1).replaceAll("[;+]", ","));
+      return new ZookeeperAuthority(matcher.group(1).replaceAll("[;+]", ","));
     } else {
       matcher = SINGLE_MASTER_AUTH.matcher(authority);
       if (matcher.matches()) {

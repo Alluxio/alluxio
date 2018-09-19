@@ -19,23 +19,20 @@ import com.google.common.base.Objects;
 public final class ZookeeperAuthority implements Authority {
   private static final long serialVersionUID = -3549197285125519688L;
 
-  private final String mAuthority;
-  private final String mZookeeperAddress;
+  private final String mZkAddress;
 
   /**
-   * @param authority the authority string of the uri
-   * @param zookeeperAddress the zookeeper address inside the uri
+   * @param zkAddress the zookeeper address inside the uri
    */
-  public ZookeeperAuthority(String authority, String zookeeperAddress) {
-    mAuthority = authority;
-    mZookeeperAddress = zookeeperAddress;
+  public ZookeeperAuthority(String zkAddress) {
+    mZkAddress = zkAddress;
   }
 
   /**
    * @return the Zookeeper address in this authority
    */
   public String getZookeeperAddress() {
-    return mZookeeperAddress;
+    return mZkAddress;
   }
 
   @Override
@@ -52,11 +49,11 @@ public final class ZookeeperAuthority implements Authority {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mAuthority);
+    return Objects.hashCode(mZkAddress);
   }
 
   @Override
   public String toString() {
-    return mAuthority;
+    return "zk@" + mZkAddress;
   }
 }

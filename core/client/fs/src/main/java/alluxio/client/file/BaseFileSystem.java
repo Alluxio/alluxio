@@ -12,9 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -44,9 +42,9 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
-import alluxio.uri.SingleMasterAuthority;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
@@ -509,16 +507,13 @@ public class BaseFileSystem implements FileSystem {
       /* Even if we choose to log the warning, check if the Configuration host matches what the
        * user passes. If not, throw an exception letting the user know they don't match.
        */
-      String host = Configuration.get(PropertyKey.MASTER_HOSTNAME);
-      int port = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
-      Authority trueAuthority = new SingleMasterAuthority(host, port);
-      if (!trueAuthority.equals(uri.getAuthority())) {
-        throw new IllegalArgumentException(String.format(
-            "The URI authority %s does not match the configured "
-            + "value of %s.", uri.getAuthority(), trueAuthority));
+      Authority configured = MasterInquireClient.Factory.create().getConnectDetails().toAuthority();
+      if (!configured.equals(uri.getAuthority())) {
+        throw new IllegalArgumentException(
+            String.format("The URI authority %s does not match the configured " + "value of %s.",
+                uri.getAuthority(), configured));
       }
     }
-
     return;
   }
 }

@@ -76,11 +76,11 @@ public class AuthorityTest {
     assertEquals("127.0.0.1:2181,127.0.0.2:2181,127.0.0.3:2181", authority.getZookeeperAddress());
 
     authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181;host2:2181;host3:2181");
-    assertEquals("zk@host1:2181;host2:2181;host3:2181", authority.toString());
+    assertEquals("zk@host1:2181,host2:2181,host3:2181", authority.toString());
     assertEquals("host1:2181,host2:2181,host3:2181", authority.getZookeeperAddress());
 
     authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181+host2:2181+host3:2181");
-    assertEquals("zk@host1:2181+host2:2181+host3:2181", authority.toString());
+    assertEquals("zk@host1:2181,host2:2181,host3:2181", authority.toString());
     assertEquals("host1:2181,host2:2181,host3:2181", authority.getZookeeperAddress());
   }
 

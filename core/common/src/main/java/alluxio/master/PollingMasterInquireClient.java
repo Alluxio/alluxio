@@ -19,6 +19,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
+import alluxio.uri.Authority;
+import alluxio.uri.UnknownAuthority;
 
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransport;
@@ -127,6 +129,13 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     }
 
     @Override
+    public Authority toAuthority() {
+      // TODO(andrew): add authority type for multiple masters
+      return new UnknownAuthority(mAddresses.stream()
+          .map(addr -> addr.getHostString() + ":" + addr.getPort()).collect(joining(",")));
+    }
+
+    @Override
     public boolean equals(Object o) {
       if (this == o) {
         return true;
@@ -145,8 +154,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
     @Override
     public String toString() {
-      return mAddresses.stream().map(addr -> addr.getHostString() + ":" + addr.getPort())
-          .collect(joining(","));
+      return toAuthority().toString();
     }
   }
 }
