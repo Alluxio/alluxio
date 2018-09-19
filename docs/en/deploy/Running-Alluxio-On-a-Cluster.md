@@ -9,6 +9,34 @@ priority: 2
 * Table of Contents
 {:toc}
 
+TODO: Restructured Outline
+# Alluxio Single Master Cluster
+## Prerequisites
+## Setup
+### Alluxio download and installation
+### Configuration
+### Format Alluxio
+## Launch Alluxio
+## Verify Alluxio Cluster
+
+# Alluxio HA Cluster
+## Prerequisites
+## Setup
+### Alluxio download and installation
+### Configuration
+### Format Alluxio
+## Launch Alluxio
+## Verify Alluxio Cluster
+
+# Operations
+## Modify Server Configuration
+## Stop or Restart Alluxio
+## Format the Journal
+## Add/Remove Workers
+## Add/Remove Masters
+
+# Troubleshooting
+
 ## Running Alluxio with a Single Master
 
 The simplest way to deploy Alluxio on a cluster is to use one master. However, this single master becomes
