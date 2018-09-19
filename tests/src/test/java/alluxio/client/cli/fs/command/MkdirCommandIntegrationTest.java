@@ -91,7 +91,6 @@ public final class MkdirCommandIntegrationTest extends AbstractFileSystemShellTe
     status = mFileSystem.getStatus(new AlluxioURI(path3));
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isFolder());
-
   }
 
   @Test

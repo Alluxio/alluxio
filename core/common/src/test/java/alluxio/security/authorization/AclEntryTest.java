@@ -101,7 +101,6 @@ public class AclEntryTest {
     checkCliStringInvalid("other:other:---");
 
     checkCliStringInvalid("default:user:test");
-
   }
 
   private void checkCliString(String stringEntry) {

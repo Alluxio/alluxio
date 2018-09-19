@@ -194,5 +194,4 @@ public final class PlainSaslServer implements SaslServer {
       return new String[] {PlainSaslServerProvider.MECHANISM};
     }
   }
-
 }

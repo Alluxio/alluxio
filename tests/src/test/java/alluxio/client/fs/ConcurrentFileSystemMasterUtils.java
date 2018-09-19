@@ -133,7 +133,6 @@ public class ConcurrentFileSystemMasterUtils {
                 break;
               default: throw new IllegalArgumentException("'operation' is not a valid operation.");
             }
-
           } catch (Exception e) {
             Throwables.propagate(e);
           }

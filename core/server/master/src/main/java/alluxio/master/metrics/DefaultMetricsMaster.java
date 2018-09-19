@@ -232,5 +232,4 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
       // nothing to clean up
     }
   }
-
 }

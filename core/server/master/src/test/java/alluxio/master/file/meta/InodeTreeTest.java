@@ -298,7 +298,6 @@ public final class InodeTreeTest {
       assertEquals(childAcl.toStringEntries().stream().map(AclEntry::toDefault)
           .collect(Collectors.toList()), dAcl.toStringEntries());
     }
-
   }
 
   /**
