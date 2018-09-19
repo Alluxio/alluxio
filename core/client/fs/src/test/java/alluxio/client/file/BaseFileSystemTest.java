@@ -580,7 +580,7 @@ public final class BaseFileSystemTest {
 
   private void assertBadAuthority(String authority, String failureMessage) throws Exception {
     try {
-      useUriWithAuthority("zk@a:0,b:0,c:1");
+      useUriWithAuthority(authority);
       fail(failureMessage);
     } catch (IllegalArgumentException e) {
       assertThat(e.getMessage(), containsString("does not match"));
