@@ -6,13 +6,17 @@ group: Advanced
 priority: 0
 ---
 
-TODO(Andrew, Zac): Add documentation for free, load, and persist commands.
-TODO(Andrew, Zac): Combine with documentation page for TTL
 
 * Table of Contents
 {:toc}
 
-Alluxio2 manages the local storage, including memory, of Alluxio workers to act as a distributed
+TODO(Zac): Add an overview of Alluxio storage, how data is filled in and purged from this storage 
+space, and its indication to application I/O performance.
+    
+
+## Configure Alluxio Storage
+
+Alluxio manages the local storage, including memory, of Alluxio workers to act as a distributed
 buffer cache. This fast data layer between user applications and the various under storages results
 in vastly improved I/O performance.
 
@@ -20,7 +24,7 @@ The amount and type of storage for each Alluxio node to manage is determined by 
 Alluxio also supports tiered storage, which makes the system storage media aware, enabling data
 storage optimizations similar to L1/L2 cpu caches.
 
-## Configuring Alluxio Storage
+### Single-Tier Storage
 
 The easiest way to configure Alluxio storage is to use the default single-tier mode.
 
@@ -71,7 +75,105 @@ will have its size determined by `alluxio.worker.memory.size`, regardless of the
 `alluxio.worker.tieredstore.level0.dirs.quota`. Similarly, the quota should be set independently
 of the memory size if devices other than the default Alluxio provisioned ramdisk are to be used.
 
-## Eviction
+### Multiple-Tier Storage
+
+For typical deployments, it is recommended to use a single storage tier with heterogeneous storage
+media. However, in certain environments, workloads will benefit from explicit ordering of storage
+media based on I/O speed. In this case, tiered storage should be used. When tiered storage is
+enabled, the eviction process intelligently accounts for the tier concept. Alluxio assumes that
+tiers are ordered from top to bottom based on I/O performance. For example, users often specify the
+following tiers:
+
+ * MEM (Memory)
+ * SSD (Solid State Drives)
+ * HDD (Hard Disk Drives)
+
+#### Writing Data
+
+When a user writes a new block, it is written to the top tier by default. If eviction cannot free up
+space in the top tier, the write will fail. If the file size exceeds the size of the top tier, the
+write will also fail.
+
+The user can also specify the tier that the data will be written to via
+[configuration settings](#configuration-parameters-for-tiered-storage).
+
+Reading data with the ReadType.CACHE or ReadType.CACHE_PROMOTE will also result in the data being
+written into Alluxio. In this case, the data is always written to the top tier.
+
+Finally, data in written into Alluxio via the load command. In this case also, the data is always
+written to the top tier.
+
+#### Reading Data
+
+Reading a data block with tiered storage is similar to standard Alluxio. If the data is already in
+Alluxio, the client will simply read the block from where it is already stored. If Alluxio is
+configured with multiple tiers, then the block will not be necessarily read from the top tier, since
+it could have been moved to a lower tier transparently.
+
+Reading data with the ReadType.CACHE_PROMOTE will ensure the data is first transferred to the
+top tier before it is read from the worker. This can also be used as a data management strategy by
+explicitly moving hot data to higher tiers.
+
+#### Enabling and Configuring Tiered Storage
+
+Tiered storage can be enabled in Alluxio using
+[configuration parameters](Configuration-Settings.html). To specify additional tiers for Alluxio,
+use the following configuration parameters:
+
+```
+alluxio.worker.tieredstore.levels
+alluxio.worker.tieredstore.level{x}.alias
+alluxio.worker.tieredstore.level{x}.dirs.quota
+alluxio.worker.tieredstore.level{x}.dirs.path
+alluxio.worker.tieredstore.level{x}.watermark.high.ratio
+alluxio.worker.tieredstore.level{x}.watermark.low.ratio
+```
+
+For example, if you wanted to configure Alluxio to have two tiers -- memory and hard disk drive --
+you could use a configuration similar to:
+
+```
+alluxio.worker.tieredstore.levels=2
+alluxio.worker.tieredstore.level0.alias=MEM
+alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
+alluxio.worker.tieredstore.level0.dirs.quota=100GB
+alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9
+alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7
+alluxio.worker.tieredstore.level1.alias=HDD
+alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3
+alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
+alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9
+alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7
+```
+
+Here is the explanation of the example configuration:
+
+* `alluxio.worker.tieredstore.levels=2` configures 2 tiers in Alluxio
+* `alluxio.worker.tieredstore.level0.alias=MEM` configures the first (top) tier to be a memory tier
+* `alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk` defines `/mnt/ramdisk` to be the file
+path to the first tier
+* `alluxio.worker.tieredstore.level0.dirs.quota=100GB` sets the quota for the ramdisk to be `100GB`
+* `alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9` sets the ratio of high watermark on
+top layer to be 0.9
+* `alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7` sets the ratio of low watermark on
+top layer to be 0.7
+* `alluxio.worker.tieredstore.level1.alias=HDD` configures the second tier to be a hard disk tier
+* `alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3` configures 3 separate
+file paths for the second tier
+* `alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB` defines the quota for each of the 3
+file paths of the second tier
+* `alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9` sets the ratio of high watermark on
+the second layer to be 0.9
+* `alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7` sets the ratio of low watermark on
+the second layer to be 0.7
+
+There are a few restrictions to defining the tiers. There is no restriction on the number of tiers,
+however, a common configuration has 3 tiers - Memory, HDD and SSD. At most 1 tier can refer to a
+specific alias. For example, at most 1 tier can have the alias HDD. If you want Alluxio to use
+multiple hard drives for the HDD tier, you can configure that by using multiple paths for
+`alluxio.worker.tieredstore.level{x}.dirs.path`.
+
+## Data Eviction
 
 Because Alluxio storage is designed to be volatile, there must be a mechanism to make space for new
 data when Alluxio storage is full. This is termed eviction.
@@ -135,115 +237,119 @@ When using synchronous eviction, it is recommended to use smaller block sizes (a
 to reduce the latency of block eviction. When using the space reserver, block size does not affect
 eviction latency.
 
-## Using Tiered Storage
+## Operate Data in Alluxio
 
-For typical deployments, it is recommended to use a single storage tier with heterogeneous storage
-media. However, in certain environments, workloads will benefit from explicit ordering of storage
-media based on I/O speed. In this case, tiered storage should be used. When tiered storage is
-enabled, the eviction process intelligently accounts for the tier concept. Alluxio assumes that
-tiers are ordered from top to bottom based on I/O performance. For example, users often specify the
-following tiers:
+TODO(Zac): Add documentation on check capacity, fraction of used capacity and etc
+TODO(Zac): Add documentation for free, load, and persist commands.
 
- * MEM (Memory)
- * SSD (Solid State Drives)
- * HDD (Hard Disk Drives)
+## Time to Live (TTL)
 
-### Writing Data
+TODO(Zac): Clean up this section on setting TTL on data
 
-When a user writes a new block, it is written to the top tier by default. If eviction cannot free up
-space in the top tier, the write will fail. If the file size exceeds the size of the top tier, the
-write will also fail.
+Alluxio supports a `Time to Live (TTL)` setting on each file and directory in the namespace. This
+feature can be used to effectively manage the Alluxio cache, especially in environments with strict
+guarantees on the data access patterns. For example, if analytics is only done on the last week of
+ingested data, TTL can be used to explicitly flush old data to free the cache for new
+files.
 
-The user can also specify the tier that the data will be written to via
-[configuration settings](#configuration-parameters-for-tiered-storage).
+Alluxio has TTL attributes associated with each file or directory. These attributes are journaled
+and persist across cluster restarts. The active master node is responsible for holding the metadata
+in memory when Alluxio is serving. Internally, the master runs a background thread which
+periodically checks if files have reached their TTL.
 
-Reading data with the ReadType.CACHE or ReadType.CACHE_PROMOTE will also result in the data being
-written into Alluxio. In this case, the data is always written to the top tier.
+Note that the background thread runs on a configurable period, by default 1 hour. This means a TTL
+will not be enforced until the next check interval, and the enforcement of a TTL can be up to 1
+TTL interval late. The interval length is set by the `alluxio.master.ttl.checker.interval`
+property.
 
-Finally, data in written into Alluxio via the load command. In this case also, the data is always
-written to the top tier.
-
-### Reading Data
-
-Reading a data block with tiered storage is similar to standard Alluxio. If the data is already in
-Alluxio, the client will simply read the block from where it is already stored. If Alluxio is
-configured with multiple tiers, then the block will not be necessarily read from the top tier, since
-it could have been moved to a lower tier transparently.
-
-Reading data with the ReadType.CACHE_PROMOTE will ensure the data is first transferred to the
-top tier before it is read from the worker. This can also be used as a data management strategy by
-explicitly moving hot data to higher tiers.
-
-### Enabling and Configuring Tiered Storage
-
-Tiered storage can be enabled in Alluxio using
-[configuration parameters](Configuration-Settings.html). To specify additional tiers for Alluxio,
-use the following configuration parameters:
+For example, to set the interval to 10 minutes, add the following to `alluxio-site.properties`:
 
 ```
-alluxio.worker.tieredstore.levels
-alluxio.worker.tieredstore.level{x}.alias
-alluxio.worker.tieredstore.level{x}.dirs.quota
-alluxio.worker.tieredstore.level{x}.dirs.path
-alluxio.worker.tieredstore.level{x}.watermark.high.ratio
-alluxio.worker.tieredstore.level{x}.watermark.low.ratio
+alluxio.master.ttl.checker.interval=10m
 ```
 
-For example, if you wanted to configure Alluxio to have two tiers -- memory and hard disk drive --
-you could use a configuration similar to:
+Refer to the [configuration page](Configuration-Settings.html) for more details on setting Alluxio
+configurations.
+
+While the master node enforces TTLs, it is up to the clients to set the appropriate TTLs.
+
+### APIs
+
+There are three ways to set the TTL of a path.
+
+1. Through the Alluxio shell command line.
+1. Through the Alluxio Java File System API.
+1. Passively on each load metadata or create file.
+
+The TTL API is as follows:
 
 ```
-alluxio.worker.tieredstore.levels=2
-alluxio.worker.tieredstore.level0.alias=MEM
-alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
-alluxio.worker.tieredstore.level0.dirs.quota=100GB
-alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9
-alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7
-alluxio.worker.tieredstore.level1.alias=HDD
-alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3
-alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
-alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9
-alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7
+SetTTL(path, duration, action)
+`path`          the path in the Alluxio namespace
+`duration`      the number of milliseconds before the TTL action goes into effect, this overrides
+                any previous value
+`action`        the action to take when duration has elapsed. `FREE` will cause the file to be
+                evicted from Alluxio storage, regardless of the pin status. `DELETE` will cause the
+                file to be deleted from the Alluxio namespace and under store.
+                NOTE: `DELETE` is the default for certain commands and will cause the file to be
+                permanently removed.
 ```
 
-Here is the explanation of the example configuration:
+#### Command Line Usage
 
-* `alluxio.worker.tieredstore.levels=2` configures 2 tiers in Alluxio
-* `alluxio.worker.tieredstore.level0.alias=MEM` configures the first (top) tier to be a memory tier
-* `alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk` defines `/mnt/ramdisk` to be the file
-path to the first tier
-* `alluxio.worker.tieredstore.level0.dirs.quota=100GB` sets the quota for the ramdisk to be `100GB`
-* `alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9` sets the ratio of high watermark on
-top layer to be 0.9
-* `alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7` sets the ratio of low watermark on
-top layer to be 0.7
-* `alluxio.worker.tieredstore.level1.alias=HDD` configures the second tier to be a hard disk tier
-* `alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3` configures 3 separate
-file paths for the second tier
-* `alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB` defines the quota for each of the 3
-file paths of the second tier
-* `alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9` sets the ratio of high watermark on
-the second layer to be 0.9
-* `alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7` sets the ratio of low watermark on
-the second layer to be 0.7
+See the detailed [command line documentation](Command-Line-Interface.html#setttl).
 
-There are a few restrictions to defining the tiers. There is no restriction on the number of tiers,
-however, a common configuration has 3 tiers - Memory, HDD and SSD. At most 1 tier can refer to a
-specific alias. For example, at most 1 tier can have the alias HDD. If you want Alluxio to use
-multiple hard drives for the HDD tier, you can configure that by using multiple paths for
-`alluxio.worker.tieredstore.level{x}.dirs.path`.
+#### Java File System API
 
-### Configuration Parameters For Tiered Storage
+Use the Alluxio FileSystem object to set the file attribute with the appropriate options.
 
-These are the configuration parameters for tiered storage.
+```java
+FileSystem alluxioFs = FileSystem.Factory.get();
 
-<table class="table table-striped">
-<tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
-{% for item in site.data.table.tiered-storage-configuration-parameters %}
-<tr>
-<td>{{ item.parameter }}</td>
-<td>{{ item.defaultValue }}</td>
-<td>{{ site.data.table.en.tiered-storage-configuration-parameters[item.parameter] }}</td>
-</tr>
-{% endfor %}
-</table>
+AlluxioURI path = new AlluxioURI("alluxio://hostname:port/file/path");
+long ttlMs = 86400000L; // 1 day
+TtlAction ttlAction = TtlAction.FREE; // Free the file when TTL is hit
+
+SetAttributeOptions options = SetAttributeOptions.defaults().setTtl(ttlMs).setTtlAction(ttlAction);
+alluxioFs.setAttribute(path);
+```
+
+See the [Javadocs](http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html) for
+more details.
+
+#### Passively on load metadata or create file
+
+Whenever a new file is added to the Alluxio namespace, the user has the option of passively adding
+a TTL to that file. This is useful in cases where files accessed by the user are expected to be
+temporarily used. Instead of calling the API many times, it is automatically set on file discovery.
+
+Note: passive TTL is more convenient but also less flexible. The options are client level, so all
+TTL requests from the client will have the same action and duration.
+
+Passive TTL works with the following configuration options:
+
+* `alluxio.user.file.load.ttl` - the default duration to give any file newly loaded into Alluxio
+from an under store. By default this is no ttl.
+* `alluxio.user.file.load.ttl.action` - the default action for any ttl set on a file newly loaded
+into Alluxio from an under store. By default this is `DELETE`.
+* `alluxio.user.file.create.ttl` - the default duration to give any file newly created in Alluxio.
+By default this is no ttl.
+* `alluxio.user.file.create.ttl.action` - the default action for any ttl set on a file newly created
+in Alluxio. By default this is `DELETE`.
+
+There are two pairs of options, one for `load` and one for `create`. `Load` refers to files which
+are discovered by Alluxio from the under store. `Create` refers to new files or directories created
+in Alluxio.
+
+Both options are disabled by default and should only be enabled by clients which have strict data
+access patterns.
+
+For example, to delete the files created by the `runTests` after 1 minute:
+
+```bash
+$ bin/alluxio runTests -Dalluxio.user.file.create.ttl=1m -Dalluxio.user.file.create.ttl
+.action=DELETE
+```
+
+Note, if you try this example, make sure the `alluxio.master.ttl.checker.interval` is set to a short
+duration, ie. 1 minute.
