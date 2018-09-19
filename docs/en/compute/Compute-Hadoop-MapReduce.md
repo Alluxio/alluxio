@@ -14,9 +14,8 @@ easily run your MapReduce programs with files stored on Alluxio.
 
 ## Prerequisites
 
-* [Setup Java](Java-Setup.html) for Java 8 Update 60 or higher (8u60+), 64-bit.
 * An Alluxio cluster has been set up and is running according to either 
-[Local Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+[Local Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}) or [Cluster Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}).
 * Make sure that the Alluxio client jar is available.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball 
 downloaded from Alluxio [download page](http://www.alluxio.org/download).
@@ -71,7 +70,7 @@ jar available to the client JVM which is created when you run the hadoop jar com
 $  export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
-Alternative ways are described in the [Advanced Setup](Compute-Hadoop-MapReduce.html#advanced-setup)
+Alternative ways are described in the [Advanced Setup]({{ site.baseurl }}{% link en/compute/Compute-Hadoop-MapReduce.md#advanced-setup %})
 
 ## Example
 
@@ -143,3 +142,39 @@ $ integration/checker/bin/alluxio-checker.sh mapreduce
 
 You can use `-h` to display helpful information about the command.
 This command will report potential problems that might prevent you from running MapReduce on Alluxio.
+
+## Troubleshooting
+
+### Q: Why do I see exceptions like "No FileSystem for scheme: alluxio"?
+
+A: This error message is seen when your MapReduce application tries to access
+Alluxio as an HDFS-compatible file system, but the `alluxio://` scheme is not recognized by the
+application. Please make sure your HDFS configuration file `core-site.xml` has the following property:
+
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+</configuration>
+```
+
+### Q: Why do I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"?
+
+A: This error message is seen when your MapReduce application tries try to access
+Alluxio as an HDFS-compatible file system, the `alluxio://` scheme has been
+configured correctly but the Alluxio client jar is not found on the classpath of your application.
+
+You can append the client jar to `$HADOOP_CLASSPATH`:
+
+```bash
+$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+```
+
+If the corresponding classpath has been set but exceptions still exist, users can check
+whether the path is valid by:
+
+```bash
+$ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
+```
