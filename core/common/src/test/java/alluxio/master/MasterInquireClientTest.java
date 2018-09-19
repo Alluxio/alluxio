@@ -74,7 +74,7 @@ public final class MasterInquireClientTest {
           new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true").toResource()) {
         ConnectDetails zkConnect = new ZkMasterConnectDetails(zkAddr, leaderPath);
         assertCurrentConnectString(zkConnect);
-        assertEquals("zk://zkAddr:1234/my/leader/path", zkConnect.toString());
+        assertEquals("zk@zkAddr:1234/my/leader/path", zkConnect.toString());
       }
     }
   }

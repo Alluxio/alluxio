@@ -257,7 +257,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
 
     @Override
     public String toString() {
-      return toAuthority() + "/" + mLeaderPath;
+      return toAuthority() + mLeaderPath;
     }
   }
 }
