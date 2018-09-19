@@ -14,14 +14,14 @@ that you can easily store HBase tables into Alluxio at various storage levels.
 
 ## Prerequisites
 
-* [Setup Java](Java-Setup.html) for Java 8 Update 60 or higher (8u60+), 64-bit.
 * An Alluxio cluster has been set up and is running according to either 
-[Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+[Local Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}) or 
+[Cluster Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}).
 * Make sure that the Alluxio client jar is available.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball 
 downloaded from Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can compile this client jar from the source code 
-by following the [instructions](Building-Alluxio-From-Source.html).
+by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
 * [Deploy HBase](https://hbase.apache.org/book.html#configuration)
 Please follow this guides for setting up HBase.
 
@@ -42,25 +42,17 @@ Change the `hbase.rootdir` property in `conf/hbase-site.xml`:
 </property>
 ```
 
-Add the following properties to the same file `hbase-site.xml`.
-(make sure these three properties are configured in all HBase cluster nodes):
+Add the following property to the same file `hbase-site.xml`.
+(make sure it is configured in all HBase cluster nodes):
 
 ```xml
-<property>
-  <name>fs.alluxio.impl</name>
-  <value>alluxio.hadoop.FileSystem</value>
-</property>
-<property>
-  <name>fs.AbstractFileSystem.alluxio.impl</name>
-  <value>alluxio.hadoop.AlluxioFileSystem</value>
-</property>
 <property>
   <name>hbase.regionserver.hlog.syncer.count</name>
   <value>1</value>
 </property>
 ```
 
-The last property is required to prevent HBase from flushing Alluxio file stream in a thread unsafe
+This property is required to prevent HBase from flushing Alluxio file stream in a thread unsafe
 way.
 
 ### Distribute the Alluxio Client jar
@@ -75,7 +67,7 @@ on all cluster nodes). For example:
 export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
-Alternative ways are described in the [Advanced Setup](Compute-HBase.html#advanced-setup)
+Alternative ways are described in the [Advanced Setup]({{ site.baseurl }}{% link en/compute/Compute-HBase.md#advanced-setup %})
 
 ## Example
 
