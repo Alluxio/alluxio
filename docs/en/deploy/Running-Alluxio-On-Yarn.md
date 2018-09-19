@@ -9,6 +9,7 @@ priority: 6
 TODO: Expand the explanation of why we prefer to run alongside YARN instead of on top. Relevant
 mailing list thread: https://groups.google.com/forum/#!topic/alluxio-users/KEvBE9AiJlE
 TODO: Tell users how to configure Alluxio servers running on Yarn
+TODO: Discuss how to configure the YARN application classpath so that applications can work with Alluxio.
 TODO: Add troubleshooting help
 - How to debug when alluxio-yarn.sh fails to bring up Alluxio servers
 - How to find logs when Alluxio containers fail to start
