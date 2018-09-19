@@ -215,6 +215,7 @@ public enum ExceptionMessage {
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
   KEY_NOT_LONG("Configuration cannot evaluate key {0} as long"),
   KEY_NOT_MS("Configuration cannot evaluate key {0} as milliseconds"),
+  KEY_CIRCULAR_DEPENDENCY("Circular dependency found while resolving {0}"),
   UNDEFINED_CONFIGURATION_KEY("No value set for configuration key {0}"),
   UNKNOWN_ENUM("Unrecognized configuration value <{0}>. Acceptable values: {1}"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),

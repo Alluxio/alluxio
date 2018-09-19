@@ -535,7 +535,8 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     mInodes.add(inode);
     InodeDirectory parent = (InodeDirectory) mInodes.getFirst(inode.getParentId());
     if (!parent.addChild(inode)) {
-      LOG.info("Failed to add {} ({})", inode.getName(), inode.getId());
+      LOG.debug("Failed to add inode {} because another inode with the same name already exists",
+          inode.getName());
       mInodes.remove(inode);
       return false;
     }
