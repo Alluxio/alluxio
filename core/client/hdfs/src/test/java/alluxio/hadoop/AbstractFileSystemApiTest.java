@@ -16,10 +16,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.TestLoggerRule;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -35,9 +37,16 @@ public final class AbstractFileSystemApiTest {
   @Rule
   public TestLoggerRule mTestLogger = new TestLoggerRule();
 
+  @Before
+  public void before() {
+    // To make the test run faster.
+    Configuration.set(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT, "0sec");
+  }
+
   @After
   public void after() {
     HadoopClientTestUtils.resetClient();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test
@@ -51,14 +60,14 @@ public final class AbstractFileSystemApiTest {
   public void noAuthorityNoWarning() throws IOException {
     URI unknown = URI.create("alluxio:///");
     FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration());
-    assertFalse(mTestLogger.wasLogged("Authority \"\" is unknown"));
+    assertFalse(loggedAuthorityWarning());
   }
 
   @Test
   public void validAuthorityNoWarning() throws IOException {
     URI unknown = URI.create("alluxio://localhost:12345/");
     FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration());
-    assertFalse(mTestLogger.wasLogged("Authority \"localhost:12345\" is unknown"));
+    assertFalse(loggedAuthorityWarning());
   }
 
   @Test
@@ -68,4 +77,9 @@ public final class AbstractFileSystemApiTest {
     assertTrue(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("a:0,b:1,c:2", Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
   }
+
+  private boolean loggedAuthorityWarning() {
+    return mTestLogger.wasLogged("Authority .* is unknown");
+  }
 }
+
