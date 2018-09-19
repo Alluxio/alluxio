@@ -3,7 +3,7 @@ layout: global
 title: Configuring Alluxio with secure HDFS
 nickname: Alluxio with secure HDFS
 group: Under Stores
-priority: 3
+priority: 0
 ---
 
 * Table of Contents
