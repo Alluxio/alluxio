@@ -28,6 +28,8 @@ Workers, when you ran into any issues. If you do not understand the error messag
 try to search them in the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users),
 in case the problem has been discussed before.
 
+TODO(feng): brifely talk about client side logging and point user to the [logging page](https://github.com/Alluxio/alluxio/blob/doc-restructure/docs/en/operation/Logging-Conventions.md).
+
 ## Alluxio remote debug
 
 Usually, Alluxio does not run on the development environment, which makes it difficult to debug Alluxio. We locate problem's method is 'log-build-deploy-scanlog', the efficiency of the problem localization is low and need to modify the code and trigger new deployment, which is not allowed in some time.
@@ -44,7 +46,7 @@ Specially, if you want to debug shell command, you can add the `-debug` flag to 
 
 `suspend = y/n` will decide whether the JVM process wait until the debugger connects. If you want to debug with the shell command, set the `suspend = y`. Otherwise, you can set `suspend = n` so that avoid unnecessary waiting time.
 
-After start the master or worker, use eclipse or IntelliJ idea and other java ide, new a java remote configuration, set the debug server's host and port, then start debug session. If you set a breakpoint which can be reached, the ide will enter debug mode, you can read and write the current context's variables, call stack, thread list, expression evaluation. You can also execute debugging control instrument, such as 'step into', 'step over', 'resume', 'suspend' and so on. If you get this skill, you will locate problem faster, and will impressed by the source code you have debugged.
+After start the master or worker, use eclipse or IntelliJ idea and other java IDE, new a java remote configuration, set the debug server's host and port, then start debug session. If you set a breakpoint which can be reached, the ide will enter debug mode, you can read and write the current context's variables, call stack, thread list, expression evaluation. You can also execute debugging control instrument, such as 'step into', 'step over', 'resume', 'suspend' and so on. If you get this skill, you will locate problem faster, and will impressed by the source code you have debugged.
 
 ## Setup FAQ
 
@@ -78,6 +80,8 @@ Typical issues:
 - If the UnderFileSystem is S3, check the S3 bucket name in `ufs.yml` is the name of an existing
 bucket, without the `s3a://` prefix.
 - If you are not able to access the UI, please check that your security group allows incoming traffic on port 19999.
+
+TODO(feng) add a section for "Unsupported major.minor version 52.0" java issue.
 
 
 ## Usage FAQ
@@ -200,9 +204,14 @@ or [other approaches](https://stackoverflow.com/questions/880557/socket-accept-t
 value in `conf/alluxio-site.properties`. Note that, reducing the value of these two properties may
 potentially add latency for master to serve requests.
 
+TODO(feng) add a section about discover file updates in under fs.
+
+TODO(feng) add a section about missing blocks and different write types.
+
+TODO(feng) add a section for hanging commands
 
 ## Performance FAQ
-
+TODO(feng): Point user to the performance tuning page.
 ### Q: I tested Alluxio/Spark against HDFS/Spark (running simple word count of GBs of files). There is no discernible performance difference. Why?
 
 A: Alluxio accelerates your system performance by leveraging temporal or spatial locality using distributed in-memory storage
