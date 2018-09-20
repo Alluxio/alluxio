@@ -14,51 +14,48 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 
 ## Prerequisites
 
-* [Setup Java](Java-Setup.html) for Java 8 Update 60 or higher (8u60+), 64-bit.
+* Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
 * [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted).
 * An Alluxio cluster has been set up and is running according to either
-[Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+  [Local Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}) or
+  [Cluster Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}).
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](http://www.alluxio.org/download).
   Alternatively, advanced users can compile this client jar from the source code
-  by following the [instructions](Building-Alluxio-From-Source.html).
-
-To run Hive on Hadoop MapReduce, please also follow the instructions in
-[running MapReduce on Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html) to make sure Hadoop
-MapReduce can run with Alluxio.
+  by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
+* To run Hive on Hadoop MapReduce, please also follow the instructions in
+  [running MapReduce on Alluxio]({{ site.baseurl }}{% link en/compute/Compute-Hadoop-MapReduce.md %})
+  to make sure Hadoop MapReduce can work with Alluxio.
+  In the following sections of this documentation, Hive is running on Hadoop MapReduce.
 
 ## Basic Setup
 
-Include Alluxio client jar to ensure that Hive can query and access data stored on Alluxio.
+Distribute Alluxio client jar on all Hive nodes and include the Alluxio client jar to Hive
+classpath so Hive can query and access data on Alluxio.
 Set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
 
 ```bash
 export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
-## Use Alluxio as One Option to Store Hive Tables
+## Example: Create New Hive Tables in Alluxio
 
-There are different ways to integrate Hive with Alluxio. This section talks about how to use Alluxio
-as one of the filesystems (like HDFS) to store Hive tables. These tables can be either
-[internal (managed) or external](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables),
-either new tables to create or tables alreay exist in HDFS.
-The [next section](Running-Hive-with-Alluxio.html#use-alluxio-as-default-filesystem) talks about
-how to use Alluxio as the default file system
-for Hive. In the following sections, Hive is running on Hadoop MapReduce in this documentation.
+This section talks about how to use
+Hive to create new either [internal (managed) or external](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables)
+tables from files stored on Alluxio. In this way,
+Alluxio is used as one of the filesystems to store Hive tables similar to HDFS.
 
-> Tips：All the following Hive CLI examples are also applicable to Hive Beeline. You can try these commands out in Beeline shell.
-
-### Create New Tables from Alluxio Files
-
-Hive can create new tables from files stored on Alluxio. The setup is fairly straightforward
-and the change is also isolated from other Hive tables. An example use case is to store frequently
+The advantage of this setup is that it is fairly straightforward
+and each Hive table is isolated from other tables. One typical use case is to store frequently
 used Hive tables in Alluxio for high throughput and low latency by serving these files from memory
 storage.
 
-#### Example: Create a New Internal Table
+> Tips：All the following Hive CLI examples are also applicable to Hive Beeline. You can try these commands out in Beeline shell.
 
-Here is an example to create an internal table in Hive backed by files in Alluxio.
+### Prepare Data in Alluxio
+
+Here is an example to create a table in Hive backed by files in Alluxio.
 You can download a data file (e.g., `ml-100k.zip`) from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/).
 Unzip this file and upload the file `u.user` into `ml-100k/` on Alluxio:
@@ -67,6 +64,13 @@ Unzip this file and upload the file `u.user` into `ml-100k/` on Alluxio:
 $ bin/alluxio fs mkdir /ml-100k
 $ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
 ```
+
+View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
+creates:
+
+![HiveTableInAlluxio]({{ site.baseurl }}/img/screenshot_hive_table_in_alluxio.png)
+
+### Create a New Internal Table
 
 Then create a new internal table:
 
@@ -82,7 +86,7 @@ FIELDS TERMINATED BY '|'
 LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
-#### Example: Create a New External Table
+### Create a New External Table
 
 Make the same setup as the previous example, and create a new external table:
 
@@ -102,22 +106,29 @@ The difference is that Hive will manage the lifecycle of internal tables.
 When you drop an internal table, Hive deletes both the table metadata and the data file from
 Alluxio.
 
+### Query the Table
+
 Now you can query the created table. For example:
 
 ```
 hive> select * from u_user;
 ```
 
-### Map Existing Tables Stored in HDFS to Alluxio
+And you can see the query results from console:
+
+![HiveQueryResult]({{ site.baseurl }}/img/screenshot_hive_query_result.png)
+
+## Example: Serve Existing Tables Stored in HDFS from Alluxio
 
 When Hive is already serving and managing the tables stored in HDFS,
 Alluxio can also serve them for Hive if HDFS is mounted as the under storage of Alluxio.
 In this example, we assume a HDFS cluster is mounted as the under storage of
 Alluxio root directory (i.e., property `alluxio.underfs.address=hdfs://namenode:port/`
 is set in `conf/alluxio-site.properties`). Please refer to
-[unified namespace](Unified-and-Transparent-Namespace.html) for more details about mount operation.
+[unified namespace]({{ site.baseurl }}{% link en/advanced/Namespace-Management.md %})
+for more details about Alluxio `mount` operation.
 
-#### Example: Move an Internal Table from HDFS to Alluxio
+### Move an Internal Table from HDFS to Alluxio
 
 We assume that the `hive.metastore.warehouse.dir` property is set to `/user/hive/warehouse` which
 is the default value, and the internal table is already created like this:
@@ -153,7 +164,7 @@ first time will be translated to access corresponding files in
 the data is cached in Alluxio, Alluxio will serve them for follow-up queries without loading data
 again from HDFS. The entire process is transparent to Hive and users.
 
-#### Example: Move an External Table from HDFS to Alluxio
+### Move an External Table from HDFS to Alluxio
 
 Assume there is an existing external table `u_user` in Hive with location set to
 `hdfs://namenode_hostname:port/ml-100k`.
@@ -169,7 +180,7 @@ Then use the following HiveQL statement to change the table data location from H
 hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
 ```
 
-#### Example: Move an Alluxio Table Back to HDFS
+### Move an Alluxio Table Back to HDFS
 
 In both cases above about changing table data location to Alluxio, you can also change the table
 location back to HDFS:
@@ -182,13 +193,78 @@ Instructions and examples till here illustrate how to use Alluxio as one of the 
 tables in Hive, together with other filesystems like HDFS. They do not require to change the global
 setting in Hive such as the default filesystem which is covered in the next section.
 
-## Use Alluxio as the Default Filesystem
+## Advanced Setup
 
+### Add Additional Alluxio client-side properties
+
+There are two ways to specify any Alluxio client properties for Hive queries when
+connecting to Alluxio service:
+
+- Specify the Alluxio client properties in `alluxio-site.properties` and
+ensure that this file is on the classpath of Hive service on each node.
+- Add the Alluxio site properties to `conf/hive-site.xml` configuration file on each node.
+
+For example, change
+`alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`.
+
+One can specify the property in `alluxio-site.properties` and distribute this file to the classpath
+of each Hive node:
+
+```properties
+alluxio.user.file.writetype.default=CACHE_THROUGH
+```
+
+Alternatively, modify `conf/hive-site.xml` to have:
+
+```xml
+<property>
+  <name>alluxio.user.file.writetype.default</name>
+  <value>CACHE_THROUGH</value>
+</property>
+```
+
+### Connect to Alluxio with HA
+
+> Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
+ in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
+
+If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
+`zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`, it requires setting 
+set the Alluxio properties `alluxio.zookeeper.enabled` and `alluxio.zookeeper.address`
+
+One approach is to set in `alluxio-site.properties`.
+Ensure that this file is on the classpath of Hive.
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
+```
+
+Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+  </property>
+</configuration>
+```
+
+### Experimental: Use Alluxio as the Default Filesystem
+
+This section talks about
+how to use Alluxio as the default file system
+for Hive.
 Apache Hive can also use Alluxio through a generic file system interface to replace the
 Hadoop file system. In this way, the Hive uses Alluxio as the default file system and its internal
 metadata and intermediate results will be stored in Alluxio by default.
 
-### Configure Hive
+#### Configure Hive
 
 Add the following property to `hive-site.xml` in your Hive installation `conf` directory
 
@@ -199,7 +275,7 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 </property>
 ```
 
-### Using Alluxio with Hive
+#### Using Alluxio with Hive
 
 Create Directories in Alluxio for Hive:
 
@@ -213,7 +289,7 @@ $ ./bin/alluxio fs chmod 775 /user/hive/warehouse
 Then you can follow the
 [Hive documentation](https://cwiki.apache.org/confluence/display/Hive/GettingStarted) to use Hive.
 
-### Example: Create a Table
+#### Example: Create a Table
 
 Create a table in Hive and load a file in local path into Hive:
 
@@ -250,69 +326,13 @@ And you can see the query results from console:
 
 ![HiveQueryResult]({{ site.baseurl }}/img/screenshot_hive_query_result.png)
 
-## Advanced Setup
+## Troubleshooting
 
-There are two ways to specify any Alluxio client properties for Hive queries when
-connecting to Alluxio service:
-
-- Specify the Alluxio client properties in `alluxio-site.properties` and
-ensure that this file is on the classpath of Hive service on each node.
-- Add the Alluxio site properties to `conf/hive-site.xml` configuration file on each node.
-
-### Example: connect to Alluxio with HA
-
-If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
-`zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`,
-set the Alluxio cluster propertie in `alluxio-site.properties`.
-Ensure that this file is on the classpath of Hive.
-
-```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
-```
-
-Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
-
-```xml
-<configuration>
-  <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
-  </property>
-</configuration>
-```
-> Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
- in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
-
-### Example: change default Alluxio write type
-
-For example, change
-`alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`.
-
-One can specify the property in `alluxio-site.properties` and distribute this file to the classpath
-of each Hive node:
-
-```properties
-alluxio.user.file.writetype.default=CACHE_THROUGH
-```
-
-Alternatively, modify `conf/hive-site.xml` to have:
-
-```xml
-<property>
-  <name>alluxio.user.file.writetype.default</name>
-  <value>CACHE_THROUGH</value>
-</property>
-```
-
-## Check Hive with Alluxio integration (Supports Hive 2.X)
+### Check Hive is Configured Correctly
 
 Before running Hive on Alluxio, you might want to make sure that your configuration has been
-setup correctly for integrating with Alluxio. The Hive integration checker can help you achieve this.
+setup correctly set up with Alluxio. The Hive integration checker can help you achieve this (Hive
+ 2.x required).
 
 You can run the following command in the Alluxio project directory:
 
