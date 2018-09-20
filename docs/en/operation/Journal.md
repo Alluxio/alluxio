@@ -20,7 +20,7 @@ Outline:
 ## Changing Masters
 # Advanced
 ## Running Alluxio in High Availability (HA) Mode
-## Space requirements (log files, checkpoints)
+## Space requirements (log files, checkpoints, how to constrain space usage)
 
 * Table of Contents
 {:toc}
