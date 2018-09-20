@@ -15,12 +15,13 @@ easily run your MapReduce programs with files stored on Alluxio.
 ## Prerequisites
 
 * An Alluxio cluster has been set up and is running according to either 
-[Local Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}) or [Cluster Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}).
+[Local Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}) 
+or [Cluster Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}).
 * Make sure that the Alluxio client jar is available.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball 
 downloaded from Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can compile this client jar from the source code 
-by following the [instructions](Building-Alluxio-From-Source.html).
+by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
 * In order to run some simple map-reduce examples, we also recommend you download the 
 [map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples)
 based on your hadoop version, or if you are using Hadoop 1, this
@@ -64,13 +65,13 @@ $ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar word
 ```
 
 Sometimes, you also need to set the `HADOOP_CLASSPATH` environment variable to make Alluxio client
-jar available to the client JVM which is created when you run the hadoop jar command:
+jar available to the client JVM which is created when you run the `hadoop jar` command:
 
 ```bash
 $  export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
-Alternative ways are described in the [Advanced Setup]({{ site.baseurl }}{% link en/compute/Compute-Hadoop-MapReduce.md#advanced-setup %})
+Alternative ways are described in the [Advanced Setup](#advanced-setup)
 
 ## Example
 
@@ -113,14 +114,20 @@ $ bin/alluxio fs cat /wordcount/output/part-r-00000
 ```
 
 > Tips：The previous wordcount example is also applicable to Alluxio in fault tolerant mode with Zookeeper. 
-Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
+Please follow the instructions in 
+[HDFS API to connect to Alluxio with high availability]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md#hdfs-api %}).
 
 ## Advanced Setup
 
 ### Distributing the Alluxio Client Jar
 
-Instead of using the `-libjars` command line option, you could place the client jar
-`{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the `$HADOOP_HOME/lib`
+This guide on	
+[how to include 3rd party libraries from Cloudera](http://blog.cloudera.com/blog/2011/01/how-to-include-third-party-libraries-in-your-map-reduce-job/)	
+describes several ways to distribute the jars. From that guide, the recommended way to distributed	
+the Alluxio client jar is to use the distributed cache, via the `-libjars` command line option.	
+Another way to distribute the client jar is to manually distribute it to all the Hadoop nodes.
+
+You could place the client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the `$HADOOP_HOME/lib`
 (may be `$HADOOP_HOME/share/hadoop/common/lib` for different versions of Hadoop) directory of every
 MapReduce node, and then restart Hadoop. Alternatively, add this jar to
 `mapreduce.application.classpath` system property for your Hadoop deployment
@@ -128,6 +135,8 @@ to ensure this jar is on the classpath.
 
 Note that the jars must be installed again for each update to a new release. On the other hand,
 when the jar is already on every node, then the `-libjars` command line option is not needed.
+
+## Troubleshooting
 
 ### Check MapReduce with Alluxio integration (Supports Hadoop 2.X)
 
@@ -142,8 +151,6 @@ $ integration/checker/bin/alluxio-checker.sh mapreduce
 
 You can use `-h` to display helpful information about the command.
 This command will report potential problems that might prevent you from running MapReduce on Alluxio.
-
-## Troubleshooting
 
 ### Q: Why do I see exceptions like "No FileSystem for scheme: alluxio"?
 
@@ -162,7 +169,7 @@ application. Please make sure your HDFS configuration file `core-site.xml` has t
 
 ### Q: Why do I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"?
 
-A: This error message is seen when your MapReduce application tries try to access
+A: This error message is seen when your MapReduce application tries to access
 Alluxio as an HDFS-compatible file system, the `alluxio://` scheme has been
 configured correctly but the Alluxio client jar is not found on the classpath of your application.
 
