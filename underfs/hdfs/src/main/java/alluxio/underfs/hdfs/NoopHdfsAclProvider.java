@@ -36,5 +36,4 @@ public class NoopHdfsAclProvider implements HdfsAclProvider {
       throws IOException {
     // Noop for setAclEntries
   }
-
 }

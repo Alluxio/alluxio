@@ -458,6 +458,5 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     public UnresolvablePropertyException(String msg) {
       super(msg);
     }
-
   }
 }

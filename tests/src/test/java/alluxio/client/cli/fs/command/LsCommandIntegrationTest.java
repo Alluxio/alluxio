@@ -562,5 +562,4 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
 
     Assert.assertEquals(expected, mOutput.toString());
   }
-
 }

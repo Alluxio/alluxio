@@ -78,6 +78,5 @@ public abstract class AbstractFileSystemCommand implements Command {
     if (errorMessages.size() != 0) {
       throw new IOException(Joiner.on('\n').join(errorMessages));
     }
-
   }
 }

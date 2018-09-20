@@ -109,5 +109,4 @@ public class OSSInputStreamTest {
     mOssInputStream.skip(1);
     assertEquals(3, mOssInputStream.read());
   }
-
 }

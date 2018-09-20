@@ -42,7 +42,6 @@ public final class BlockLocationTest {
     Assert.assertEquals(a.getWorkerAddress(), b.getWorkerAddress());
     Assert.assertEquals(a.getTierAlias(), b.getTierAlias());
     Assert.assertEquals(a, b);
-
   }
 
   public static BlockLocation createRandom() {

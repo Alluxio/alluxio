@@ -76,6 +76,4 @@ public class TestLoggerRule extends AbstractResourceRule {
       mEvents.add(event);
     }
   }
-
 }
-
