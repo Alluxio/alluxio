@@ -42,5 +42,4 @@ public abstract class AbstractBlockStoreEventListener implements BlockStoreEvent
 
   @Override
   public void onRemoveBlockByWorker(long sessionId, long blockId) {}
-
 }

@@ -1097,7 +1097,6 @@ public final class FileSystemMasterTest {
     infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusOptions.defaults()
         .setLoadMetadataType(LoadMetadataType.Always).setRecursive(true));
     assertEquals(files + files +  2 + 2 + 2 , infos.size());
-
   }
 
   @Test
@@ -2475,7 +2474,6 @@ public final class FileSystemMasterTest {
         LoadMetadataOptions.defaults().setCreateAncestors(true));
     FileInfo info = mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
     Assert.assertTrue(info.convertAclToStringEntries().contains("user::r-x"));
-
   }
 
   /**

@@ -159,5 +159,4 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
     files[3] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileC"));
     return files;
   }
-
 }

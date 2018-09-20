@@ -64,6 +64,11 @@
     <property name="fileExtensions" value=".java"/>
     <property name="message" value="Extra newline"/>
   </module>
+  <module name="RegexpMultiline">
+    <property name="format" value="\n\s*\n\s*}"/>
+    <property name="fileExtensions" value=".java"/>
+    <property name="message" value="Extra newline at end of block"/>
+  </module>
 
   <!-- All Java AST specific tests live under TreeWalker module. -->
   <module name="TreeWalker">

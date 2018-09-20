@@ -34,5 +34,4 @@ public final class TestLoggerRuleTest {
     LOG.info(logEvent);
     assertTrue(mLogger.wasLogged(logEvent));
   }
-
 }

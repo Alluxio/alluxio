@@ -144,7 +144,6 @@ public final class TestCase {
 
     while ((len = br.read(buffer)) > 0) {
       sb.append(buffer, 0, len);
-
     }
     br.close();
 

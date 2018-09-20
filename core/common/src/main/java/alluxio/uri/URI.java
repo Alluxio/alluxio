@@ -203,7 +203,6 @@ public interface URI extends Comparable<URI>, Serializable {
       }
       return new Pair<>(scheme.substring(0, colon), scheme.substring(colon + 1));
     }
-
   }
 
   /**

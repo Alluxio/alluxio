@@ -47,5 +47,4 @@ public final class WaitForOptionsTest {
   public void equalsTest() throws Exception {
     CommonUtils.testEquals(WaitForOptions.class);
   }
-
 }

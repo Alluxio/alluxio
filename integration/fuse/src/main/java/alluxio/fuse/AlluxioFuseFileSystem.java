@@ -297,7 +297,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         mode |= FileStat.S_IFREG;
       }
       stat.st_mode.set(mode);
-
     } catch (InvalidPathException e) {
       LOG.debug("Invalid path {}", path, e);
       return -ErrorCodes.ENOENT();
@@ -404,7 +403,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
       }
-
     } catch (FileDoesNotExistException e) {
       LOG.debug("File does not exist {}", path, e);
       return -ErrorCodes.ENOENT();
@@ -520,7 +518,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       for (final URIStatus file : ls) {
         filter.apply(buff, file.getName(), null, 0);
       }
-
     } catch (FileDoesNotExistException e) {
       LOG.debug("File does not exist {}", path, e);
       return -ErrorCodes.ENOENT();
@@ -822,5 +819,4 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       return new AlluxioURI(tpath.toString());
     }
   }
-
 }

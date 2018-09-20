@@ -53,5 +53,4 @@ final class BasePayloadReader implements PayloadReader {
     final int valueFrom = pos + KEY_DATA_OFFSET + keyLength;
     return BufferUtils.sliceByteBuffer(mBuf, valueFrom, valueLength);
   }
-
 }
