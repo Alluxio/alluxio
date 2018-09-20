@@ -6,10 +6,27 @@ group: Advanced
 priority: 0
 ---
 
-TODO(David): Combine with Loading-Under-File-Storage-Metadata
-
 * Table of Contents
 {:toc}
+
+TODO: new outline
+
+Intro: Introduce concepts such as:
+- Alluxio's unified namespace
+- UFS namespace
+- transparent naming
+
+# Mounting UFS
+  explain what mounting is and the types of mount points
+  what happens and does not happen at mount time
+## Root Mount Point
+  include example
+## Nested Mount Points
+  include example
+# Ufs Metadata Sync
+  this section is probably the contents from Loading-Under-File-Storage-Metadata
+# Examples
+  reuse existing examples
 
 Alluxio enables effective data management across different storage systems through its use of
 transparent naming and mounting API.
