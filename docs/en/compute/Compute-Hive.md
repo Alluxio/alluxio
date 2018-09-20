@@ -23,7 +23,7 @@ that you can easily store Hive tables in Alluxio's tiered storage.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](http://www.alluxio.org/download).
   Alternatively, advanced users can compile this client jar from the source code
-  by following the [instructions](Building-Alluxio-From-Source.html).
+  by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
 * To run Hive on Hadoop MapReduce, please also follow the instructions in
   [running MapReduce on Alluxio]({{ site.baseurl }}{% link en/compute/Compute-Hadoop-MapReduce.md %})
   to make sure Hadoop MapReduce can work with Alluxio.
@@ -223,9 +223,6 @@ Alternatively, modify `conf/hive-site.xml` to have:
 </property>
 ```
 
-You can use `-h` to display helpful information about the command.
-This command will report potential problems that might prevent you from running Hive on Alluxio.
-
 ### Connect to Alluxio with HA
 
 > Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
@@ -233,7 +230,7 @@ This command will report potential problems that might prevent you from running 
 
 If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
 `zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`, it requires setting 
-set the Alluxio propertie `alluxio.zookeeper.enabled` and `alluxio.zookeeper.address`
+set the Alluxio properties `alluxio.zookeeper.enabled` and `alluxio.zookeeper.address`
 
 One approach is to set in `alluxio-site.properties`.
 Ensure that this file is on the classpath of Hive.
@@ -342,3 +339,6 @@ You can run the following command in the Alluxio project directory:
 ```bash
 $ integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
 ```
+
+You can use `-h` to display helpful information about the command.
+This command will report potential problems that might prevent you from running Hive on Alluxio.
