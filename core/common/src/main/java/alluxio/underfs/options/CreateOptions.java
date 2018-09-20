@@ -58,7 +58,7 @@ public final class CreateOptions {
   }
 
   /**
-   * @return the Acl
+   * @return the Acl or a null value indicating default values for ACL in creating the file
    */
   public AccessControlList getAcl() {
     return mAcl;
