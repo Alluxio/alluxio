@@ -17,24 +17,22 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
 * [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted).
 * An Alluxio cluster has been set up and is running according to either
-[Local Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}) or
-[Cluster Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}).
+  [Local Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}) or
+  [Cluster Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}).
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](http://www.alluxio.org/download).
   Alternatively, advanced users can compile this client jar from the source code
   by following the [instructions](Building-Alluxio-From-Source.html).
 * To run Hive on Hadoop MapReduce, please also follow the instructions in
-[running MapReduce on Alluxio]({{ site.baseurl }}{% link en/compute/Compute-Hadoop-MapReduce.md %})
-to make sure Hadoop
-MapReduce can work with Alluxio.
-In the following sections of this documentation, Hive is running on Hadoop MapReduce.
+  [running MapReduce on Alluxio]({{ site.baseurl }}{% link en/compute/Compute-Hadoop-MapReduce.md %})
+  to make sure Hadoop MapReduce can work with Alluxio.
+  In the following sections of this documentation, Hive is running on Hadoop MapReduce.
 
 ## Basic Setup
 
 Distribute Alluxio client jar on all Hive nodes and include the Alluxio client jar to Hive
-classpath
-so Hive can query and access data on Alluxio.
+classpath so Hive can query and access data on Alluxio.
 Set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
 
 ```bash
@@ -206,37 +204,6 @@ connecting to Alluxio service:
 ensure that this file is on the classpath of Hive service on each node.
 - Add the Alluxio site properties to `conf/hive-site.xml` configuration file on each node.
 
-#### Example: connect to Alluxio with HA
-
-If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
-`zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`,
-set the Alluxio cluster propertie in `alluxio-site.properties`.
-Ensure that this file is on the classpath of Hive.
-
-```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
-```
-
-Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
-
-```xml
-<configuration>
-  <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
-  </property>
-</configuration>
-```
-> Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
- in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
-
-#### Example: change default Alluxio write type
-
 For example, change
 `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`.
 
@@ -258,6 +225,38 @@ Alternatively, modify `conf/hive-site.xml` to have:
 
 You can use `-h` to display helpful information about the command.
 This command will report potential problems that might prevent you from running Hive on Alluxio.
+
+### Connect to Alluxio with HA
+
+> Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
+ in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
+
+If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
+`zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`, it requires setting 
+set the Alluxio propertie `alluxio.zookeeper.enabled` and `alluxio.zookeeper.address`
+
+One approach is to set in `alluxio-site.properties`.
+Ensure that this file is on the classpath of Hive.
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
+```
+
+Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+  </property>
+</configuration>
+```
 
 ### Experimental: Use Alluxio as the Default Filesystem
 
