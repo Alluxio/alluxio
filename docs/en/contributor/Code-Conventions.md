@@ -78,12 +78,12 @@ It is also recommended to exclude your local clone of Alluxio from Spotlight ind
 - Please follow the style of the existing codebase. Specifically, we use
 [Google Java style](https://google.github.io/styleguide/javaguide.html),
 with the following changes or deviations:
-- Maximum line length of **100** characters.
-- Third-party imports are grouped together to make IDE formatting much simpler.
-- Class member variable names should be prefixed with `m`, for example `private WorkerClient
-mWorkerClient;`
-- Static variable names should be prefixed with `s`, for example `public static String
-sUnderFSAddress;`
+  - Maximum line length of **100** characters.
+  - Third-party imports are grouped together to make IDE formatting much simpler.
+  - Class member variable names should be prefixed with `m`, for example `private WorkerClient
+    mWorkerClient;`
+  - Static variable names should be prefixed with `s`, for example `public static String
+    sUnderFSAddress;`
 - Bash scripts follow [Google Shell style](https://google.github.io/styleguide/shell.xml), and
 must be compatible with Bash 3.x
 - You can download our [Eclipse formatter](../resources/alluxio-code-formatter-eclipse.xml)
@@ -112,7 +112,7 @@ $ mvn checkstyle:checkstyle
 
 ## Logging Conventions
 
-Alluxio is using [SLF4J](https://www.slf4j.org/) for logging with typical usage pattern of:
+Alluxio uses [SLF4J](https://www.slf4j.org/) for logging with typical usage pattern of:
 
 ```java
 import org.slf4j.Logger;
