@@ -281,8 +281,8 @@ certain way, use `ConfigurationRule` to set them.
 ```java
 @Rule
 public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap.of(
-                                                                    PropertyKey.key1, "value1",
-                                                                    PropertyKey.key2, "value2"));
+    PropertyKey.key1, "value1",
+    PropertyKey.key2, "value2"));
 ```
 For configuration changes needed for an individual test, use `Configuration.set(key, value)`, and
 create an `@After` method to clean up the configuration changes after the test:
