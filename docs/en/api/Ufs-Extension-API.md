@@ -6,6 +6,12 @@ group: APIs
 priority: 0
 ---
 
+- (TODO): Explain what a UFS extension is first, when would a dev need this page? Possibly why they wouldn't?
+- (TODO): Switch the order - To me, It makes more sense to talk about how to implement one first, then once implemented
+talk about where to put it, then how loading works
+- (TODO): Add a section about how/where to install understorage extensions
+- (TODO): Make a section for how to contribute an under storage extension back to the alluxio project
+
 * Table of Contents
 {:toc}
 
