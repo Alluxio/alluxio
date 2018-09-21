@@ -115,7 +115,7 @@ $ bin/alluxio fs cat /wordcount/output/part-r-00000
 
 > Tips：The previous wordcount example is also applicable to Alluxio in fault tolerant mode with Zookeeper. 
 Please follow the instructions in 
-[HDFS API to connect to Alluxio with high availability]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md#hdfs-api %}).
+[HDFS API to connect to Alluxio with high availability]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}#hdfs-api).
 
 ## Advanced Setup
 

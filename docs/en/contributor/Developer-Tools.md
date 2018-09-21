@@ -27,7 +27,7 @@ You may also have to add the classpath variable M2_REPO by running:
 If you are using IntelliJ IDEA, you may need to change the Maven profile to 'developer' in order
 to avoid import errors. You can do this by going to
 
-    View > Tool Windows > Maven Projects
+View > Tool Windows > Maven Projects
 
 ## Maven Targets and Plugins
 
@@ -92,7 +92,7 @@ mvn install -DskipTests
 After the install target executes, you may configure and start a local cluster
 with the following commands:
 
- > If you haven't configured or set up a local cluster yet, run the following commands
+> If you haven't configured or set up a local cluster yet, run the following commands
 
 ```bash
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
@@ -124,7 +124,7 @@ $ mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
 ```
 
 - To run unit tests for a specific module, execute the `maven test` command targeting
- the desired submodule directory. For example, to run tests for HDFS UFS module you would run
+the desired submodule directory. For example, to run tests for HDFS UFS module you would run
 
 ```bash
 $ mvn test -pl underfs/hdfs
@@ -168,7 +168,8 @@ must first [install the Thrift compiler](https://thrift.apache.org/docs/install/
 If you have brew, you can do this by running
 
 ```bash
-$ brew install thrift
+$ brew install thrift@0.9
+$ brew link --force thrift@0.9
 ```
 
 Then to regenerate the Java code, run
@@ -204,14 +205,14 @@ Most commands in `bin/alluxio` are for developers. The following table explains 
 the syntax of each command.
 
 <table class="table table-striped">
-<tr><th>Command</th><th>Args</th><th>Description</th></tr>
-{% for dscp in site.data.table.Developer-Tips %}
-<tr>
-  <td>{{dscp.command}}</td>
-  <td>{{dscp.args}}</td>
-  <td>{{site.data.table.en.Developer-Tips[dscp.command]}}</td>
-</tr>
-{% endfor %}
+    <tr><th>Command</th><th>Args</th><th>Description</th></tr>
+    {% for dscp in site.data.table.Developer-Tips %}
+        <tr>
+            <td>{{dscp.command}}</td>
+            <td>{{dscp.args}}</td>
+            <td>{{site.data.table.en.Developer-Tips[dscp.command]}}</td>
+        </tr>
+    {% endfor %}
 </table>
 
 In addition, these commands have different prerequisites. The prerequisite for the `format`,
