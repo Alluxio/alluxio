@@ -9,14 +9,16 @@ priority: 0
 * Table of Contents
 {:toc}
 
-## Build Alluxio
+## Introduction
 
-This guide describes how to compile Alluxio from the beginning.
+This guide describes how to clone the Alluxio repository, compile the source code, and run tests in your environment.
 
-The prerequisite for this guide is that you must have [Java 8](Java-Setup.html) and [Maven 3.3.9 or later](Maven.html) installed.
+- Required software
+- [Java 8 installed on your system](Java-Setup.html)
+- [Maven 3.3.9 or later](Maven.html)
+- [Git](https://git-scm.org/downloads)
 
-### Checkout Source Code
-
+## Checkout Source Code
 
 Checkout the Alluxio master branch from Github and build the source code:
 
@@ -25,14 +27,22 @@ $ git clone git://github.com/alluxio/alluxio.git
 $ cd alluxio
 ```
 
-Optionally, you can build a particular version of Alluxio, for example {{site.ALLUXIO_RELEASED_VERSION}}.
-Otherwise, this will build the master branch of the source code.
+Optionally, you may build a particular version of Alluxio.
+
+For example {{site.ALLUXIO_RELEASED_VERSION}}. Otherwise, this will build the master branch of the source code.
 
 ```bash
 $ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
 ```
 
-### Build
+
+To view a list of all possible versions you can run
+
+```bash
+$ git tag
+```
+
+## Build
 
 Build the source code using Maven:
 
@@ -55,7 +65,7 @@ $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 
 The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages the system. If this is the first time you are building the project, it can take a while to download all the dependencies. Subsequent builds, however, will be much faster.
 
-### Test
+## Test
 
 Once Alluxio is built, you can validate and start it with:
 
@@ -67,7 +77,7 @@ $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local SudoMount
 ```
 
-To verify that Alluxio is running, you can visit [http://localhost:19999](http://localhost:19999) or check the log in the `alluxio/logs` directory. You can also run a simple program:
+To verify that Alluxio is running, you can visit [http://localhost:19999](http://localhost:19999) or check the log in the `alluxio/logs` directory. It may take a few seconds for the web server to start. You can also run a simple program to test your environment:
 
 ```bash
 $ ./bin/alluxio runTests
@@ -75,7 +85,7 @@ $ ./bin/alluxio runTests
 
 You should be able to see the result `Passed the test!`
 
-You can also stop the system by using:
+You can stop the local Alluxio system by using:
 
 ```bash
 $ ./bin/alluxio-stop.sh local
@@ -93,7 +103,7 @@ The Alluxio client jar built and located at
 ### Hadoop Distribution Support
 
 To build Alluxio against one of the different distributions of hadoop, you can run the following
- command by specifying `<HADOOP_PROFILE>` and the corresponding `hadoop.version`.:
+command by specifying `<HADOOP_PROFILE>` and the corresponding `hadoop.version`.:
 
 ```bash
 $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
