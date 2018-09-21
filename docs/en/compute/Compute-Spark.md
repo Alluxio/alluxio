@@ -28,9 +28,10 @@ as a near-compute cache Alluxio can still provide compute frameworks like Spark 
 ## Prerequisites
 
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
-* An Alluxio cluster has been set up and is running according to either
-[Local Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}) 
-or [Cluster Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}).
+* An Alluxio cluster has been set up and is running according to 
+[Local Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}), 
+[Cluster Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %})
+or other deployment ways.
 This guide assumes the persistent under storage is a local HDFS deployment. E.g., a line of 
 `alluxio.underfs.address= hdfs://localhost:9000/alluxio/` is included in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 Note that Alluxio supports many other under storage systems in addition to HDFS. 
