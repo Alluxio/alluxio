@@ -14,15 +14,18 @@ that you can easily store HBase tables into Alluxio at various storage levels.
 
 ## Prerequisites
 
-The prerequisite for this part is that you have
-[Java](Java-Setup.html). Your Alluxio cluster should also be
-set up in accordance to these guides for either [Local Mode](Running-Alluxio-Locally.html) or
-[Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+* An Alluxio cluster has been set up and is running according to either 
+[Local Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}) or 
+[Cluster Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}).
+* Make sure that the Alluxio client jar is available.
+This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball 
+downloaded from Alluxio [download page](http://www.alluxio.org/download).
+Alternatively, advanced users can compile this client jar from the source code 
+by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
+* [Deploy HBase](https://hbase.apache.org/book.html#configuration)
+Please follow this guides for setting up HBase.
 
-Please follow the guides for setting up HBase on
-[Apache HBase Configuration](https://hbase.apache.org/book.html#configuration).
-
-## Configuration
+## Basic Setup
 
 Apache HBase allows you to use Alluxio through a generic file system wrapper for the Hadoop file system.
 Therefore, the configuration of Alluxio is done mostly in HBase configuration files.
@@ -39,69 +42,34 @@ Change the `hbase.rootdir` property in `conf/hbase-site.xml`:
 </property>
 ```
 
-When Alluxio is running in fault tolerant mode, change the Alluxio URI to include Zookeeper information.
+Add the following property to the same file `hbase-site.xml`.
+(make sure it is configured in all HBase cluster nodes):
 
 ```xml
-<property>
-  <name>hbase.rootdir</name>
-  <value>alluxio://zk@zookeeper_hostname1:2181,zookeeper_hostname2:2181,zookeeper_hostname3:2181/hbase</value>
-</property>
-```
-
-Add the following properties to the same file `hbase-site.xml`.
-(make sure these three properties are configured in all HBase cluster nodes):
-
-```xml
-<property>
-  <name>fs.alluxio.impl</name>
-  <value>alluxio.hadoop.FileSystem</value>
-</property>
-<property>
-  <name>fs.AbstractFileSystem.alluxio.impl</name>
-  <value>alluxio.hadoop.AlluxioFileSystem</value>
-</property>
 <property>
   <name>hbase.regionserver.hlog.syncer.count</name>
   <value>1</value>
 </property>
 ```
 
-The last property is required to prevent HBase from flushing Alluxio file stream in a thread unsafe
+This property is required to prevent HBase from flushing Alluxio file stream in a thread unsafe
 way.
 
-## Distribute the Alluxio Client jar
+### Distribute the Alluxio Client jar
 
 We need to make the Alluxio client jar file available to HBase, because it contains the configured
 `alluxio.hadoop.FileSystem` class.
-We recommend you to download the tarball from
-Alluxio [download page](http://www.alluxio.org/download).
-Alternatively, advanced users can choose to compile this client jar from the source code
-by following the instructions [here](Building-Alluxio-From-Source.html#compute-framework-support).
-The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
-There are two ways to achieve that:
-
-- Copy the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase.
-- Specify the location of the jar file in the `$HBASE_CLASSPATH` environment variable (make sure it's available
+Specify the location of the jar file in the `$HBASE_CLASSPATH` environment variable (make sure it's available
 on all cluster nodes). For example:
 
 ```bash
 export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
-### Add additional Alluxio site properties to HBase
+Alternative ways are described in the [Advanced Setup]({{ site.baseurl }}{% link en/compute/Compute-HBase.md#advanced-setup %})
 
-If there are any Alluxio site properties you want to specify for HBase, add those to `hbase-site.xml`. For example,
-change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
-
-```xml
-<property>
-  <name>alluxio.user.file.writetype.default</name>
-  <value>CACHE_THROUGH</value>
-</property>
-```
-
-## Using Alluxio with HBase
+## Example
 
 Start HBase:
 
@@ -118,8 +86,6 @@ And visit Alluxio Web UI at `http://<ALLUXIO_MASTER_HOSTNAME>:19999`, click `Bro
 on Alluxio, including data and WALs:
 
 ![HBaseRootDirectoryOnAlluxio]({{ site.baseurl }}/img/screenshot_start_hbase_alluxio_webui.png)
-
-## HBase shell examples
 
 Create a text file `simple_test.txt` and write these commands into it:
 
@@ -153,3 +119,35 @@ bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
 After this mapreduce job finishes, you can see a result like this:
 
 ![HBaseHadoopOutput]({{ site.baseurl }}/img/screenshot_hbase_hadoop_output.png)
+
+## Advanced Setup
+
+### Alluxio in HA mode
+
+When Alluxio is running in fault tolerant mode, change the `hbase.rootdir` property in `conf/hbase-site.xml` 
+to include Zookeeper information.
+
+```xml
+<property>
+  <name>hbase.rootdir</name>
+  <value>alluxio://zk@zookeeper_hostname1:2181,zookeeper_hostname2:2181,zookeeper_hostname3:2181/hbase</value>
+</property>
+```
+
+### Add additional Alluxio site properties to HBase
+
+If there are any Alluxio site properties you want to specify for HBase, add those to `hbase-site.xml`. For example,
+change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
+
+```xml
+<property>
+  <name>alluxio.user.file.writetype.default</name>
+  <value>CACHE_THROUGH</value>
+</property>
+```
+
+### Alternative way to distribute the Alluxio Client jar
+
+Instead of specifying the location of the jar file in the `$HBASE_CLASSPATH` environment variable, 
+users could copy the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase
+(make sure it's available on all cluster nodes).
