@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>1.9.0-SNAPSHOT</version>
+    <version>1.8.1-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-cos</artifactId>
   <name>Alluxio Under File System - Tencent Cloud COS</name>
@@ -24,7 +24,9 @@
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <build.path>${project.parent.parent.basedir}/build</build.path>
+    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
   </properties>
 
   <dependencies>
