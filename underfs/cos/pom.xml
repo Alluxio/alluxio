@@ -1,0 +1,111 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-underfs</artifactId>
+    <version>1.8.1-SNAPSHOT</version>
+  </parent>
+  <artifactId>alluxio-underfs-cos</artifactId>
+  <name>Alluxio Under File System - Tencent Cloud COS</name>
+  <description>Tencent Cloud COS Under File System implementation</description>
+
+  <properties>
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
+    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+  </properties>
+
+  <dependencies>
+    <!-- External dependencies -->
+    <dependency>
+      <groupId>com.qcloud</groupId>
+      <artifactId>cos_api</artifactId>
+      <version>5.4.0</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+    </dependency>
+
+    <!-- Internal dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- External test dependencies -->
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Internal test dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>ufsContractTest</id>
+      <activation>
+        <property>
+          <name>testCOSBucket</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <testExcludes combine.self="override" />
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <testExcludes>
+          </testExcludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -163,6 +163,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/mesos/bin/alluxio-mesos-stop.sh",
 		"integration/mesos/bin/alluxio-worker-mesos.sh",
 		"integration/mesos/bin/common.sh",
+		fmt.Sprintf("lib/alluxio-underfs-cos-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-gcs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-hdfs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-local-%v.jar", version),
