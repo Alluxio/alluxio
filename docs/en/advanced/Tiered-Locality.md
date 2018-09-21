@@ -13,7 +13,7 @@ Alluxio's tiered locality feature enables applications to make intelligent, topo
 about which Alluxio workers to read from and write to.
 For an application running on `host1`, reading data from an Alluxio worker on `host1` is more efficient 
 than reading from a worker on `host2`. Similarly, reading from a worker on the same rack or in the same
-datacenter is faster than reading from a worker in a different rack or different datacenter. You can take
+datacenter is faster than reading from a worker on a different rack or different datacenter. You can take
 advantage of these various levels of locality by configuring your servers and clients with network 
 topology information.
 
@@ -22,17 +22,18 @@ topology information.
 In Alluxio, each entity (masters, workers, clients) has a *Tiered Identity*. A tiered
 identity is an address tuple such as **`(node=node_name, rack=rack_name, datacenter=datacenter_name)`**.
 Each pair in the tuple is called a *locality tier*.
-Alluxio clients favor reading and writing workers that are "more local". For example, if a client has
+Alluxio clients favor reading from and writing to workers that are "more local". For example, if a client has
 identity **`(node=A, rack=rack1, datacenter=dc1)`**, it will prefer to read from a worker at
-**`(node=B, rack=rack1, datacenter=dc1)`** over a worker at **`(node=C, rack=rack2, datacenter=dc1)`**. This keeps the
-read within the same rack instead of going cross-rack.
+**`(node=B, rack=rack1, datacenter=dc1)`** over a worker at **`(node=C, rack=rack2, datacenter=dc1)`** because 
+node `B` is on the same rack as the client, and node `C` is on a different rack.
 
 ## Basic Setup
 
 For this example, suppose your Alluxio workers are spread across multiple availability zones within EC2.
 To configure tiered locality, follow these steps:
 
-1. Write a script named `alluxio-locality.sh`:
+1. Write a script named `alluxio-locality.sh`. Alluxio uses this script to determine the tiered identity
+   for each entity. The output format is a comma-separated list of `tierName=tierValue pairs`.
    ```
    #!/bin/bash
   
@@ -82,18 +83,13 @@ perform a localhost lookup to set its node-level identity info. If other localit
 are left unset, they will not be used to inform locality decisions. To set
 the value for a locality tier, set the configuration property
 
-### Custom locality script name
-
-By default Alluxio searches the classpath for a script named `alluxio-locality.sh`. You can override this name by setting
-
-```
-alluxio.locality.script=locality_script_name
-```
-
 ### Set locality via configuration properties
 
-In some situations, it can be more convenient to set locality information with Alluxio configuration properties
-instead of using `alluxio-locality.sh`. You can do this by setting `alluxio.locality.[tiername]`, e.g.
+The `alluxio-locality.sh` script is the preferred way to configure tiered locality because the same
+script can be used for Alluxio servers and compute applications. However, in some situations
+you might not have access to applications' classpaths, so the `alluxio-locality.sh` approach is
+not possible. You can still configure tiered locality by setting `alluxio.locality.[tiername]`
+configuration properties, e.g.
 
 ```
 alluxio.locality.node=node_name
@@ -102,6 +98,14 @@ alluxio.locality.rack=rack_name
 
 See the [Configuration-Settings]({{ site.baseurl }}{% link en/advanced/Configuration-Settings.md %}) page for the different
 ways to set configuration properties.
+
+### Custom locality script name
+
+By default Alluxio clients and servers search the classpath for a script named `alluxio-locality.sh`. You can override this name by setting
+
+```
+alluxio.locality.script=locality_script_name
+```
 
 ### Node locality priority order
 
