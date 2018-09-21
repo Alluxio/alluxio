@@ -12,6 +12,19 @@ talk about where to put it, then how loading works
 - (TODO): Add a section about how/where to install understorage extensions
 - (TODO): Make a section for how to contribute an under storage extension back to the alluxio project
 
+Sample Outline:
+- Introduction
+- Implementing a UFS Extension
+    - Implement the `UnderFileSystem`
+    - Implement the `UnderFileSystemFactory`
+    - Declare The Service
+    - Build
+    - Test
+- Service Loading and Discovery
+    - Dependency Management
+- Contributing your UFS Extension to Alluxio
+
+
 * Table of Contents
 {:toc}
 
