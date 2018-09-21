@@ -205,14 +205,14 @@ Most commands in `bin/alluxio` are for developers. The following table explains 
 the syntax of each command.
 
 <table class="table table-striped">
-<tr><th>Command</th><th>Args</th><th>Description</th></tr>
-{% for dscp in site.data.table.Developer-Tips %}
-<tr>
-<td>{{dscp.command}}</td>
-<td>{{dscp.args}}</td>
-<td>{{site.data.table.en.Developer-Tips[dscp.command]}}</td>
-</tr>
-{% endfor %}
+    <tr><th>Command</th><th>Args</th><th>Description</th></tr>
+    {% for dscp in site.data.table.Developer-Tips %}
+        <tr>
+            <td>{{dscp.command}}</td>
+            <td>{{dscp.args}}</td>
+            <td>{{site.data.table.en.Developer-Tips[dscp.command]}}</td>
+        </tr>
+    {% endfor %}
 </table>
 
 In addition, these commands have different prerequisites. The prerequisite for the `format`,
