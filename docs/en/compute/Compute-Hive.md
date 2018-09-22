@@ -16,9 +16,7 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
 * [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted).
-* An Alluxio cluster has been set up and is running according to either
-  [Local Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}) or
-  [Cluster Mode]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}).
+* Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](http://www.alluxio.org/download).
