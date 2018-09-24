@@ -11,7 +11,7 @@
 
 package alluxio.security.authorization;
 
-import alluxio.proto.journal.File;
+import alluxio.proto.shared.Acl;
 import alluxio.thrift.TAclEntryType;
 
 /**
@@ -54,7 +54,7 @@ public enum AclEntryType {
    * @param pAclEntryType the proto representation
    * @return the {@link AclEntryType} created from the proto representation
    */
-  public static AclEntryType fromProto(File.AclEntryType pAclEntryType) {
+  public static AclEntryType fromProto(Acl.AclEntryType pAclEntryType) {
     switch (pAclEntryType) {
       case OWNER:
         return OWNING_USER;
@@ -76,20 +76,20 @@ public enum AclEntryType {
   /**
    * @return the proto representation of this enum
    */
-  public File.AclEntryType toProto() {
+  public Acl.AclEntryType toProto() {
     switch (this) {
       case OWNING_USER:
-        return File.AclEntryType.OWNER;
+        return Acl.AclEntryType.OWNER;
       case NAMED_USER:
-        return File.AclEntryType.NAMED_USER;
+        return Acl.AclEntryType.NAMED_USER;
       case OWNING_GROUP:
-        return File.AclEntryType.OWNING_GROUP;
+        return Acl.AclEntryType.OWNING_GROUP;
       case NAMED_GROUP:
-        return File.AclEntryType.NAMED_GROUP;
+        return Acl.AclEntryType.NAMED_GROUP;
       case MASK:
-        return File.AclEntryType.MASK;
+        return Acl.AclEntryType.MASK;
       case OTHER:
-        return File.AclEntryType.OTHER;
+        return Acl.AclEntryType.OTHER;
       default:
         throw new IllegalStateException("Unknown AclEntryType: " + this);
     }
