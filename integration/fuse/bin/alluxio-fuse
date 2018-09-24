@@ -58,8 +58,8 @@ mount_fuse() {
   local mount_point=$1
   local alluxio_root=$2
   local full_mount_option=""
-  if [[ ! -z "${mount_option}" ]]; then
-    full_mount_option="big_writes,${mount_option}"
+  if [[ ! -z "$3" ]]; then
+    full_mount_option="big_writes,$3"
   else
     full_mount_option="big_writes"
   fi
@@ -118,21 +118,22 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-mount_option=""
-for (( i=1; i<$#; i++)); do
-    if [[ "$i" -eq "-o" ]]; then
-      mount_option="$(i+1)"
-    fi
-done
-
 case $1 in
   mount)
-    if [[ $# -eq 2 || $# -eq 4 ]]; then
+    if [[ $# -eq 2 ]]; then
       mount_fuse $2 /
       exit $?
     fi
-    if [[ $# -eq 3 || $# -eq 5 ]]; then
+    if [[ $# -eq 3 ]]; then
       mount_fuse $2 $3
+      exit $?
+    fi
+    if [ $# -eq 4 ] && [ $3 == "-o" ]; then
+      mount_fuse $2 / $4
+      exit $?
+    fi
+    if [ $# -eq 5 ] && [ $4 == "-o" ]; then
+      mount_fuse $2 $3 $5
       exit $?
     fi
     echo -e "Usage\n\t$0 mount mount_point [alluxio_path]\n\t alluxio_path is default to root" >&2
