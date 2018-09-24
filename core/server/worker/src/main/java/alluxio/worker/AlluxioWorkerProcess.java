@@ -58,7 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -137,8 +136,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // registered at worker registry, so the maximum timeout here is set to the multiply of
       // the number of factories by the default timeout of getting a worker from the registry.
       CommonUtils.invokeAll(callables,
-          (long) callables.size() * Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS,
-          TimeUnit.MILLISECONDS);
+          (long) callables.size() * Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS);
 
       // Setup web server
       mWebServer =
