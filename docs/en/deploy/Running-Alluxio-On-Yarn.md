@@ -6,14 +6,16 @@ group: Deploying Alluxio
 priority: 6
 ---
 
-TODO: Expand the explanation of why we prefer to run alongside YARN instead of on top. Relevant
-mailing list thread: https://groups.google.com/forum/#!topic/alluxio-users/KEvBE9AiJlE
-TODO: Tell users how to configure Alluxio servers running on Yarn
-TODO: Discuss how to configure the YARN application classpath so that applications can work with Alluxio.
-TODO: Add troubleshooting help
-- How to debug when alluxio-yarn.sh fails to bring up Alluxio servers
-- How to find logs when Alluxio containers fail to start
-- How to diagnose when there aren't enough YARN resources to launch Alluxio containers
+This document discusses how to run Alluxio in a YARN environment. There are two
+approaches: running Alluxio standalone, and running Alluxio as an application
+on top of YARN. We support both approaches, but recommend running Alluxio
+standalone for a few reasons:
+
+- Alluxio's architecture is designed to have one worker per host, but this is not
+supported by YARN.
+- Running Alluxio on top of YARN adds the additional complexity of managing Alluxio's
+ApplicationMaster.
+- Multi-master high availability mode is not currently supported by our YARN integration.
 
 ## Standalone
 
@@ -57,10 +59,6 @@ $ ${HADOOP_HOME}/sbin/start-yarn.sh
 
 ## Alluxio YARN integration
 
-> YARN is not well-suited for long-running applications such as Alluxio. We recommend
-following [these instructions](#Standalone.html) for running Alluxio
-alongside YARN instead of as an application within YARN.
-
 This section goes over how to run Alluxio servers (master and workers) on a Yarn
 cluster.
 
@@ -70,14 +68,7 @@ cluster.
 
 **[Alluxio downloaded locally](https://www.alluxio.org/download)**
 
-## Configuration
-
-To customize Alluxio master and worker with specific properties (e.g., tiered storage setup on each
-worker), see [Configuration settings](Configuration-Settings.html). To ensure your configuration can be
-read by both the ApplicationMaster and Alluxio master/workers, put `alluxio-site.properties` in
-`/etc/alluxio/alluxio-site.properties`.
-
-## Run Alluxio Application
+## Launch Alluxio
 
 Use the script `integration/yarn/bin/alluxio-yarn.sh` to start Alluxio. This script takes three arguments:
 
@@ -118,11 +109,36 @@ $ ${HADOOP_HOME}/bin/yarn application -kill application_1445469376652_0002
 
 The ID can also be found in the YARN web UI.
 
-## Test Alluxio
+## Verify the Cluster
 
-Once you have the Alluxio application running, you can check its health by configuring
-`alluxio.master.hostname=masterhost` in `conf/alluxio-site.properties` and running
+Once you have the Alluxio application running, you can access the web UI at
+master_hostname:19999. To test IO functionality, configure
+`alluxio.master.hostname=master_hostname` in `conf/alluxio-site.properties` and run
 
 ```bash
 $ ${ALLUXIO_HOME}/bin/alluxio runTests
 ```
+
+## Configuration
+
+To customize Alluxio master and worker with specific properties (e.g., tiered storage setup on each
+worker), see [Configuration settings](Configuration-Settings.html). To ensure your configuration can be
+read by both the ApplicationMaster and Alluxio master/workers, put `alluxio-site.properties` in
+`/etc/alluxio/alluxio-site.properties`.
+
+## Troubleshooting
+
+If Alluxio doesn't come up after running `alluxio-yarn.sh`, check the YARN application logs
+to see what happened. Some common issues to look out for:
+
+- **Not enough memory/cpu**: Make sure you have enough YARN capacity to run the Alluxio master
+and all workers. The CPU requirements are configured by `alluxio.integration.master.resource.cpu`
+and `alluxio.integration.worker.resource.cpu` (both `1` by default). Memory requirements are
+configured by `alluxio.integration.master.resource.mem` and `alluxio.integration.worker.resource.mem`,
+both `1024MB` by default. Alluxio will avoid placing multiple workers on the same node.
+- **Hostname mismatch**: The hostname you specify for the Alluxio master must exactly
+match the hostname used by YARN for one of the hosts in the cluster. If you pass an IP address but
+YARN is using hostnames, the master cannot be started.
+
+The Alluxio [user mailing list](https://groups.google.com/forum/#!forum/alluxio-users) is
+a good resource for getting help if the log messages aren't enough.
