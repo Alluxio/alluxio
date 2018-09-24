@@ -9,8 +9,6 @@ priority: 2
 * Table of Contents
 {:toc}
 
-## Overview
-
 [Presto](https://prestodb.io/)
 is an open source distributed SQL query engine for running interactive analytic queries
 on data at a large scale.
@@ -24,11 +22,10 @@ latency especially when data is remote or network is slow or congested.
 
 ## Prerequisites
 
-* [Setup Java](Java-Setup.html) for Java 8 Update 60 or higher (8u60+), 64-bit.
+* Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
 * [Deploy Presto](https://prestodb.io/docs/current/installation/deployment.html).
 This guide is tested with `presto-0.208`.
-* Alluxio cluster should also be set up and running. One can follow guides like
-[Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+* Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](http://www.alluxio.org/download).
@@ -219,7 +216,7 @@ It is recommended to increase `alluxio.user.network.netty.timeout` to a bigger v
 `10min`) to avoid the timeout
  failure when reading large files from remote worker.
 
-## Frequently Asked Questions
+## Troubleshooting
 
 ### Error message "No FileSystem for scheme: alluxio" on queries
 

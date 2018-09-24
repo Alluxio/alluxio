@@ -6,6 +6,15 @@ group: Deploying Alluxio
 priority: 6
 ---
 
+TODO: Expand the explanation of why we prefer to run alongside YARN instead of on top. Relevant
+mailing list thread: https://groups.google.com/forum/#!topic/alluxio-users/KEvBE9AiJlE
+TODO: Tell users how to configure Alluxio servers running on Yarn
+TODO: Discuss how to configure the YARN application classpath so that applications can work with Alluxio.
+TODO: Add troubleshooting help
+- How to debug when alluxio-yarn.sh fails to bring up Alluxio servers
+- How to find logs when Alluxio containers fail to start
+- How to diagnose when there aren't enough YARN resources to launch Alluxio containers
+
 ## Standalone
 
 Alluxio should be run alongside YARN so that all YARN nodes have access to a local Alluxio worker.
@@ -45,11 +54,15 @@ After updating the YARN configuration, restart YARN so that it picks up the chan
 $ ${HADOOP_HOME}/sbin/stop-yarn.sh
 $ ${HADOOP_HOME}/sbin/start-yarn.sh
 ```
+
 ## Alluxio YARN integration
 
-Note: YARN is not well-suited for long-running applications such as Alluxio. We recommend
+> YARN is not well-suited for long-running applications such as Alluxio. We recommend
 following [these instructions](#Standalone.html) for running Alluxio
 alongside YARN instead of as an application within YARN.
+
+This section goes over how to run Alluxio servers (master and workers) on a Yarn
+cluster.
 
 ## Prerequisites
 

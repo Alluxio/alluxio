@@ -6,6 +6,31 @@ group: Deploying Alluxio
 priority: 3
 ---
 
+TODO: Focus on tmpfs + domain sockets to avoid issues with memory limits.
+TODO: Restructure to be similar to other deploy docs.
+
+Introduction: Give more context/examples about why someone would want to run Alluxio in
+a Docker container.
+
+1. Prerequisites: Generalize the current prerequisites so that they can apply to real
+production environments.
+2. Launch Alluxio
+- Tell the user how to run from dockerhub (minimal example w/ 1 worker 1 master)
+3. Verify the Cluster
+- runTests, check the web UI, run fsadmin report
+4. Operations (Only include if different from standalone cluster deployment)
+- How to set server configuration
+- How to use domain sockets for short-circuit read/write
+- How to stop or restart Alluxio
+- How to format the journal
+- How to upgrade Alluxio to a newer version
+- How to add/remove workers/masters
+- How to run in HA mode
+- How to tweak and rebuild the docker image
+6. Troubleshooting
+- How to find logs
+- Where to get help
+
 * Table of Contents
 {:toc}
 
