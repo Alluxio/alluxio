@@ -129,7 +129,6 @@ $ integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path] -o allow_ro
 Note that only one of the `allow_other` or `allow_root` could be set.
 
 You could also use `-o [comma separated mount options]` to set other mount options. 
-For details, please view the [mount fuse page](https://manpages.debian.org/stretch/fuse/mount.fuse.8.en.html).
 
 Note that `direct_io` mount option is set by default so that writes and reads bypass the kernel page cache 
 and go directly to alluxio.
