@@ -94,7 +94,9 @@ pid	mount_point	alluxio_path
 80847	/mnt/sales	/sales
 ```
 
-## Optional configuration steps
+## Advanced configuration
+
+### Configure Alluxio client options
 
 Alluxio-FUSE is based on the standard Java client API `alluxio-core-client-fs` to perform its
 operations. You might want to customize the behaviour of the alluxio client used by Alluxio-FUSE the
@@ -102,6 +104,35 @@ same way you would for any other client application.
 
 One possibility, for example, is to edit `$ALLUXIO_HOME/conf/alluxio-site.properties` and set your
 specific alluxio client options. Note that these changes should be before Alluxio-FUSE starts.
+
+### Configure mount point options
+
+By default, Alluxio Fuse mount point could only be accessed by he user mounting the Alluxio.
+If you want to allow other users or allow root to access the mounted folder, you could 
+add the following line to the file `/etc/fuse.conf`:
+
+```
+user_allow_other
+```
+
+This option allow non-root users to specify the `allow_other` or `allow_root` mount options.
+
+After that, you could pass the `allow_other` or `allow_root` mount options when mounting Alluxio-Fuse:
+
+```bash
+# All users (including root) can access the files.
+$ integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path] -o allow_other
+# The user mounting the filesystem and root can access the files.
+$ integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path] -o allow_root
+```
+
+Note that only one of the `allow_other` or `allow_root` could be set.
+
+You could also use `-o [comma separated mount options]` to set other mount options. 
+For details, please view the [mount fuse page](https://manpages.debian.org/stretch/fuse/mount.fuse.8.en.html).
+
+Note that `direct_io` mount option is set by default so that writes and reads bypass the kernel page cache 
+and go directly to alluxio.
 
 ## Assumptions and limitations
 
