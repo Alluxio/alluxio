@@ -12,6 +12,7 @@
 package alluxio.underfs.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 
 import com.google.common.base.Objects;
@@ -34,6 +35,7 @@ public final class CreateOptions {
   private String mOwner;
   private String mGroup;
   private Mode mMode;
+  private AccessControlList mAcl;
 
   /**
    * @return the default {@link CreateOptions}
@@ -46,12 +48,20 @@ public final class CreateOptions {
    * Constructs a default {@link CreateOptions}.
    */
   private CreateOptions() {
+    mAcl = null;
     mCreateParent = false;
     mEnsureAtomic = false;
     // default owner and group are null (unset)
     mOwner = null;
     mGroup = null;
     mMode = Mode.defaults().applyFileUMask();
+  }
+
+  /**
+   * @return the Acl or a null value indicating default values for ACL in creating the file
+   */
+  public AccessControlList getAcl() {
+    return mAcl;
   }
 
   /**
@@ -87,6 +97,17 @@ public final class CreateOptions {
    */
   public boolean isEnsureAtomic() {
     return mEnsureAtomic;
+  }
+
+  /**
+   * Sets an initial acl for the newly created file.
+   *
+   * @param acl option to set the ACL after creation
+   * @return the updated object
+   */
+  public CreateOptions setAcl(AccessControlList acl) {
+    mAcl = acl;
+    return this;
   }
 
   /**
@@ -150,7 +171,8 @@ public final class CreateOptions {
       return false;
     }
     CreateOptions that = (CreateOptions) o;
-    return (mCreateParent == that.mCreateParent)
+    return Objects.equal(mAcl, that.mAcl)
+        && (mCreateParent == that.mCreateParent)
         && (mEnsureAtomic == that.mEnsureAtomic)
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
@@ -159,12 +181,13 @@ public final class CreateOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCreateParent, mEnsureAtomic, mOwner, mGroup, mMode);
+    return Objects.hashCode(mAcl, mCreateParent, mEnsureAtomic, mOwner, mGroup, mMode);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("acl", mAcl)
         .add("createParent", mCreateParent)
         .add("ensureAtomic", mEnsureAtomic)
         .add("owner", mOwner)
