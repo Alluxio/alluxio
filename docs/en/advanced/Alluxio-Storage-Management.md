@@ -228,16 +228,25 @@ When using synchronous eviction, it is recommended to use smaller block sizes (a
 to reduce the latency of block eviction. When using the space reserver, block size does not affect
 eviction latency.
 
-## Manually Manage Data in Alluxio
+## Manage Data in Alluxio
+
+TODO(Zac): Explain Alluxio-specific concepts in storage which is unique to Alluxio.
+We want to cover
+- "free": remove data from Alluxio space but the same data will still be available in UFS if
+persisted
+- "load": preload data from UFS to Alluxio
+- "persist"
+- "ttl": this section is already added.
+
+Note that, since this article is already long, we want to stay in the concept plus possible examples
+using Alluxio CLI. Let's not go deep into Java-level examples.
 
 TODO(Zac): Add examples on check capacity, fraction of used capacity and etc
 
 
-TODO(Zac): Add examples for free, load, and persist commands.
-
 ### Set Time to Live (TTL)
 
-TODO(Zac): Clean up this section on setting TTL on data
+TODO(Zac): Clean up this section on setting TTL on data. e.g., we can remove the Java API examples.
 
 Alluxio supports a `Time to Live (TTL)` setting on each file and directory in the namespace. This
 feature can be used to effectively manage the Alluxio cache, especially in environments with strict
