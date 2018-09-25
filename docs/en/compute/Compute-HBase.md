@@ -65,7 +65,7 @@ on all cluster nodes). For example:
 export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
-Alternative ways are described in the [Advanced Setup]({{ site.baseurl }}{% link en/compute/Compute-HBase.md#advanced-setup %})
+Alternative ways are described in the [Advanced Setup]({{ site.baseurl }}{% link en/compute/Compute-HBase.md %}#advanced-setup)
 
 ## Example
 
