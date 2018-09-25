@@ -107,7 +107,7 @@ public class AsyncCacheRequestManager {
           }
           LOG.debug("Result of async caching block {}: {}", blockId, result);
         } catch (Exception e) {
-          LOG.warn("Failed to complete async cache request {} from UFS", request, e.getMessage());
+          LOG.warn("Async cache request failed.\n{}\nError: {}", request, e);
         } finally {
           if (result) {
             ASYNC_CACHE_SUCCEEDED_BLOCKS.inc();
@@ -121,7 +121,7 @@ public class AsyncCacheRequestManager {
       // RuntimeExceptions (e.g. RejectedExecutionException) may be thrown in extreme cases when the
       // netty thread pool is drained due to highly concurrent caching workloads. In these cases,
       // return as async caching is at best effort.
-      LOG.warn("Failed to submit async cache request {}: {}", request, e.getMessage());
+      LOG.warn("Failed to submit async cache request.\n{}\nError: {}", request, e);
       ASYNC_CACHE_FAILED_BLOCKS.inc();
       mPendingRequests.remove(blockId);
     }
@@ -161,14 +161,13 @@ public class AsyncCacheRequestManager {
       }
     } catch (AlluxioException | IOException e) {
       // This is only best effort
-      LOG.warn("Failed to async cache block {} from UFS on copying the block: {}", blockId,
-          e.getMessage());
+      LOG.warn("Failed to async cache block {} from UFS on copying the block: {}", blockId, e);
       return false;
     } finally {
       try {
         mBlockWorker.closeUfsBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
       } catch (AlluxioException | IOException ee) {
-        LOG.warn("Failed to close UFS block {}: {}", blockId, ee.getMessage());
+        LOG.warn("Failed to close UFS block {}: {}", blockId, ee);
         return false;
       }
     }
