@@ -342,3 +342,9 @@ $ integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
 
 You can use `-h` to display helpful information about the command.
 This command will report potential problems that might prevent you from running Hive on Alluxio.
+
+### Logging Configuration
+
+If you wish to modify how your Hive client logs information, see the detailed page within the Hive
+documentation that 
+[explains how to configure logging for your Hive application][https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-HiveLoggingErrorLogsHiveLogs]

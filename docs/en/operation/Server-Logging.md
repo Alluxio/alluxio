@@ -24,11 +24,11 @@ Alluxio's logging behavior can be fully configured through the `log4j.properties
 
 ### Default Location
 
-By default Alluxio processes log files can be found under `{ALLUXIO_HOME}/logs/`.
+By default Alluxio processes' log files can be found under `${ALLUXIO_HOME}/logs/`.
 
 ### Configuring the Log Location 
 
-The location of the logs on is determined by the `alluxio.logs.dir` property. This is a JVM
+The location of the logs is determined by the `alluxio.logs.dir` property. This is a JVM
 property which cannot be set in the `alluxio-site.properties` file. See the
 [configuration settings page]({{site.baseurl}}{% link en/advanced/Configuration-Settings.md %}#configuration-sources)
 for more information on how to set JVM properties for Alluxio.
@@ -40,14 +40,14 @@ Each Alluxio process (master, worker, FUSE, proxy) will log to a separate file w
 
 ### Modifying Logging with `log4j.properties`
 
-You can modify the `log4j.properties` found under the `{ALLUXIO_HOME}/conf/log4j.properties` to modify logging levels.
+You can modify the `log4j.properties` found under the `${ALLUXIO_HOME}/conf/log4j.properties` to modify logging levels.
 
 ### Modifying Logging at Runtime
 
 Alluxio shell comes with a `logLevel` command that allows you to get or change the log level of a
 particular class on specific instances.
 
-The synax is `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`,
+The sytnax is `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`,
 where the `logName` indicates the logger's name, and `target` lists the Alluxio masters or
 workers to set. If parameter `level` is provided the command changes the logger level, otherwise it
 gets and displays the current logger level.
@@ -91,13 +91,10 @@ $ ./bin/alluxio-stop.sh logserver
 
 ### Configuring Alluxio Processes to use the Log Server
 
-Refer to [Running Alluxio on a cluster]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %})
-for instructions in deploying Alluxio in a cluster.
-
 By default, remote logging is not enabled. To enable Alluxio remote logging, you can set
 environment variables or modify Alluxio's `log4j.properties`
 
-There is no requirement on where the log server can be run run, as long as the other Alluxio servers
+There is no requirement on where the log server can be run, as long as the other Alluxio servers
 have network access to it. In our example, we run the log server on the same machine as a master.
 
 #### Enable Remote Logging with Environment Variables
@@ -116,19 +113,25 @@ ALLUXIO_LOGSERVER_LOGS_DIR=/tmp/alluxio_remote_logs
 
 #### Enable Remote Logging with `log4j.properties`
 
-You can also choose to modify the `{ALLUXIO_HOME}/conf/log4j.properties` file on the machines where
+You can also choose to modify the `${ALLUXIO_HOME}/conf/log4j.properties` file on the machines where
 your masters or workers reside to add an appender which will send log entries to the log server. A
 sample configuration is provided below:
 
-```conf
+```properties
+log4j.rootLogger=INFO, MASTER_LOGGER_SOCKET
 log4j.appender.MASTER_LOGGER_SOCKET=org.apache.log4j.net.SocketAppender
-log4j.appender.MASTER_LOGGER_SOCKET.Port=<PORT>
+log4j.appender.MASTER_LOGGER_SOCKET.Port=<PORT_OF_LOG_SERVER>
 log4j.appender.MASTER_LOGGER_SOCKET.RemoteHost=<HOSTNAME_OF_LOG_SERVER>
-log4j.appender.MASTER_LOGGER_SOCKET.ReconnectionDelay=<MILLIS_TO_WAIT_BEFORE_RECONNECTION_ATTEMPT>
+log4j.appender.MASTER_LOGGER_SOCKET.ReconnectionDelay=10000
 log4j.appender.MASTER_LOGGER_SOCKET.layout=org.apache.log4j.PatternLayout
 log4j.appender.MASTER_LOGGER_SOCKET.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 ```
 
+Note that on the line containing `log4j.rootLogger` you may add multiple appenders in order to log locally to a file on the system and remotely over a network. For example:
+
+```properties
+log4j.rootLogger=INFO, ${REMOTE_APPENDER_NAME}, ${LOCAL_APPENDER_NAME}
+```
 
 ### Restart Alluxio And Log Server
 

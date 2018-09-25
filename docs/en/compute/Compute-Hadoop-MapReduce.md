@@ -138,6 +138,20 @@ when the jar is already on every node, then the `-libjars` command line option i
 
 ## Troubleshooting
 
+### Logging Configuration
+
+Logs with Hadoop can be modified in many different ways. If you wish to directly modify the 
+`log4j.properties` file for Hadoop, then you can add or modify appenders within
+`${HADOOP_HOME}/conf/log4j.properties` on each of the nodes in your cluster.
+
+You may also modify the configuration values in
+[`mapred-site.xml`](https://hadoop.apache.org/docs/r2.7.2/hadoop-mapreduce-client/hadoop-mapreduce-client-core/mapred-default.xml)
+in your installation. If you simply wish to modify log levels then your can change
+`mapreduce.map.log.level` or `mapreduce.reduce.log.level`.
+
+If you arn using YARN then you may also wish to modify some of the `yarn.log.*` properties which
+can be found in [`yarn-site.xml`](https://hadoop.apache.org/docs/r2.7.6/hadoop-yarn/hadoop-yarn-common/yarn-default.xml)
+
 ### Check MapReduce with Alluxio integration (Supports Hadoop 2.X)
 
 Before running MapReduce on Alluxio, you might want to make sure that your configuration has been

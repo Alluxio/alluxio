@@ -218,6 +218,15 @@ See the blog article
 
 ## TroubleShooting
 
+### Logging Configuration
+
+You may configure Spark's application logging for debugging purposes. Spark's
+documentation explains [how to configure logging for a Spark application.]((https://spark.apache.org/docs/latest/configuration.html#configuring-logging))
+
+If you are using YARN then there is a separate section which explains
+[how to configure logging with YARN for a Spark application.]((https://spark.apache.org/docs/latest/running-on-yarn.html#debugging-your-application))
+
+
 ### Check Spark is Correctly Set Up
 
 To ensure that your Spark can correctly work with Alluxio

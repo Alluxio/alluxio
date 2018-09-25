@@ -153,3 +153,10 @@ bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
 After this mapreduce job finishes, you can see a result like this:
 
 ![HBaseHadoopOutput]({{ site.baseurl }}/img/screenshot_hbase_hadoop_output.png)
+
+## Troubleshooting
+
+### Logging Configuration
+
+In order to change the logging configuration for HBase, you can [modify your installation's
+`log4j.properties` file.](http://hbase.apache.org/0.94/book/trouble.client.html#trouble.client.scarylogs)
