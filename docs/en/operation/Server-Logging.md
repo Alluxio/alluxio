@@ -40,17 +40,44 @@ Each Alluxio process (master, worker, FUSE, proxy) will log to a separate file w
 
 ### Modifying Logging with `log4j.properties`
 
-You can modify the `log4j.properties` found under the `${ALLUXIO_HOME}/conf/log4j.properties` to modify logging levels.
+You can modify the `log4j.properties` found under the `${ALLUXIO_HOME}/conf/log4j.properties` to
+modify logging levels.
+
+For example, if you would like to modify the level for all logs, then you can change the `rootLogger` level
+
+```properties
+log4j.rootLogger=INFO, ${alluxio.logger.type}, ${alluxio.remote.logger.type}
+
+log4j.category.alluxio.logserver=INFO, ${alluxio.logserver.logger.type}
+log4j.additivity.alluxio.logserver=false
+
+log4j.logger.AUDIT_LOG=INFO, ${alluxio.master.audit.logger.type}
+log4j.additivity.AUDIT_LOG=false
+.
+.
+.
+```
+
+If you wish to have `DEBUG` logging, then you would make the first line
+
+```properties
+log4j.rootLogger=INFO, ${alluxio.logger.type}, ${alluxio.remote.logger.type}`
+```
 
 ### Modifying Logging at Runtime
 
-Alluxio shell comes with a `logLevel` command that allows you to get or change the log level of a
-particular class on specific instances.
+It is recommended to modify the `log4j.properties` file, however if there is a need to modify
+logging parameters without stopping nodes in the cluster, then you may modify some parameters at
+runtime.
 
-The sytnax is `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`,
+The Alluxio shell comes with a `logLevel` command that allows you to get or change the log level of a
+particular class on specific master or worker instances.
+
+The syntax is `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`,
 where the `logName` indicates the logger's name, and `target` lists the Alluxio masters or
 workers to set. If parameter `level` is provided the command changes the logger level, otherwise it
-gets and displays the current logger level.
+gets and displays the current logger level. `logName` typically represents the name of the class
+that is logging the information.
 
 For example, this command sets the class `alluxio.heartbeat.HeartbeatContext`'s logger level to
 DEBUG on master as well as a worker at `192.168.100.100:30000`.
@@ -64,6 +91,8 @@ And the following command gets all workers' log level on class `alluxio.heartbea
 alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
 ```
 
+For more information, refer to the help text of the `logLevel` commmand by running `./bin/alluxio logLevel`
+
 ## Remote Logging
 
 ### Overview
@@ -74,6 +103,11 @@ log files, e.g. master.log, worker.log, etc. on all Alluxio servers will be read
 a designated and configurable directory on the log server.
 
 ### Deploying The Log Server
+
+#### Configuring the Log Server
+
+You can choose the directory that the log server will write logs to by setting the
+`$ALLUXIO_LOGSERVER_LOGS_DIR` environment variable.
 
 #### Start Log Server
 
@@ -127,7 +161,8 @@ log4j.appender.MASTER_LOGGER_SOCKET.layout=org.apache.log4j.PatternLayout
 log4j.appender.MASTER_LOGGER_SOCKET.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 ```
 
-Note that on the line containing `log4j.rootLogger` you may add multiple appenders in order to log locally to a file on the system and remotely over a network. For example:
+Note that on the line containing `log4j.rootLogger` you may add multiple appenders in order to
+log locally to a file on the system and remotely over a network. For example:
 
 ```properties
 log4j.rootLogger=INFO, ${REMOTE_APPENDER_NAME}, ${LOCAL_APPENDER_NAME}
@@ -138,7 +173,6 @@ log4j.rootLogger=INFO, ${REMOTE_APPENDER_NAME}, ${LOCAL_APPENDER_NAME}
 After making the modification to configuration, you need to restart the log server first. Then you
 can start Alluxio. This ensures that the logs that Alluxio generates during start-up phase will
 also go to the log server.
-
 
 ### Verify Log Server Has Started
 
@@ -160,3 +194,8 @@ $ ls -l master/
 You can see that the log files are put into different folders according to their type. Master logs are put
 in the folder `master`, worker logs are put in folder `worker`, etc. Within each folder, log files from
 different workers are distinguished by the IP/hostname of the machine on which the server has been running.
+
+
+## Configuration Properties
+
+You can find the properties related to logging in the [table of configuration properties]({{site.baseurl}}{%link en/reference/Properties-List.md %}#alluxio.logger.type)

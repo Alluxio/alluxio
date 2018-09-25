@@ -51,15 +51,15 @@ An example configuration for a `SocketAppender` can be found below:
 
 ```properties
 # Appender to send logs to a log server
-log4j.appender.MASTER_LOGGER_SOCKET=org.apache.log4j.net.SocketAppender
-log4j.appender.MASTER_LOGGER_SOCKET.Port=<PORT_OF_LOG_SERVER>
-log4j.appender.MASTER_LOGGER_SOCKET.RemoteHost=<HOSTNAME_OF_LOG_SERVER>
-log4j.appender.MASTER_LOGGER_SOCKET.ReconnectionDelay=10000
-log4j.appender.MASTER_LOGGER_SOCKET.layout=org.apache.log4j.PatternLayout
-log4j.appender.MASTER_LOGGER_SOCKET.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
+log4j.appender.CLIENT_REMOTE_LOGGER=org.apache.log4j.net.SocketAppender
+log4j.appender.CLIENT_REMOTE_LOGGER.Port=<PORT_OF_LOG_SERVER>
+log4j.appender.CLIENT_REMOTE_LOGGER.RemoteHost=<HOSTNAME_OF_LOG_SERVER>
+log4j.appender.CLIENT_REMOTE_LOGGER.ReconnectionDelay=10000
+log4j.appender.CLIENT_REMOTE_LOGGER.layout=org.apache.log4j.PatternLayout
+log4j.appender.CLIENT_REMOTE_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 ```
 
-Using this configuration, the `MASTER_LOGGER_SOCKET` appender should be added to an already
+Using this configuration, the `CLIENT_REMOTE_LOGGER` appender should be added to an already
 existing logger within the a log4j configuration.
 
 To find where the proper configuration file to modify is, refer to the documentation for your
