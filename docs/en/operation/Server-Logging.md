@@ -61,7 +61,7 @@ log4j.additivity.AUDIT_LOG=false
 If you wish to have `DEBUG` logging, then you would make the first line
 
 ```properties
-log4j.rootLogger=INFO, ${alluxio.logger.type}, ${alluxio.remote.logger.type}`
+log4j.rootLogger=DEBUG, ${alluxio.logger.type}, ${alluxio.remote.logger.type}`
 ```
 
 ### Modifying Logging at Runtime
