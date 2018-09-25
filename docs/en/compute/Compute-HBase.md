@@ -156,3 +156,4 @@ users could copy the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` dire
 
 In order to change the logging configuration for HBase, you can [modify your installation's
 `log4j.properties` file.](http://hbase.apache.org/0.94/book/trouble.client.html#trouble.client.scarylogs)
+
