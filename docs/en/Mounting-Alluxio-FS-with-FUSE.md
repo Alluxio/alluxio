@@ -107,6 +107,23 @@ specific alluxio client options. Note that these changes should be before Alluxi
 
 ### Configure mount point options
 
+You can use `-o [mount options]` to set mount options.
+If you want to set multiple mount options, you can pass in comma separated mount options as the value of `-o`.
+The `-o [mount options]` must follow the `mount` command.
+
+The commonly used mount options are listed [here](http://man7.org/linux/man-pages/man8/mount.fuse.8.html).
+
+```bash
+$ integration/fuse/bin/alluxio-fuse mount -o [comma separated mount options] mount_point [alluxio_path]
+```
+
+Note that `direct_io` mount option is set by default so that writes and reads bypass the kernel page cache 
+and go directly to Alluxio.
+
+Note that different versions of libfuse and osxfuse support different mount options.
+
+#### Example: allow_other or allow_root
+
 By default, Alluxio Fuse mount point can only be accessed by the user 
 mounting the Alluxio namespace to the local filesystem.
 If you want to allow other users or allow root to access the mounted folder, you can 
@@ -122,17 +139,12 @@ After that, you can pass the `allow_other` or `allow_root` mount options when mo
 
 ```bash
 # All users (including root) can access the files.
-$ integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path] -o allow_other
+$ integration/fuse/bin/alluxio-fuse mount -o allow_other mount_point [alluxio_path]
 # The user mounting the filesystem and root can access the files.
-$ integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path] -o allow_root
+$ integration/fuse/bin/alluxio-fuse mount -o allow_root mount_point [alluxio_path]
 ```
 
 Note that only one of the `allow_other` or `allow_root` could be set.
-
-You could also use `-o [comma separated mount options]` to set other mount options. 
-
-Note that `direct_io` mount option is set by default so that writes and reads bypass the kernel page cache 
-and go directly to Alluxio.
 
 ## Assumptions and limitations
 
@@ -158,7 +170,7 @@ directly.
 Most of the overheads come from the fact that there are several memory copies going on for each call
 on `read` or `write` operations, and that FUSE caps the maximum granularity of writes to 128KB. This
 could be probably improved by a large extent by leveraging the FUSE cache write-backs feature
-introduced in kernel 3.15 (not supported yet, however, by libfuse 2.x userspace libs).
+introduced in kernel 3.15 (supported by libfuse 3.x userspace libs but not supported in jnr-fuse yet).
 
 ## Configuration Parameters For Alluxio-FUSE
 
