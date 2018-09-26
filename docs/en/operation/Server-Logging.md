@@ -107,7 +107,8 @@ a designated and configurable directory on the log server.
 #### Configuring the Log Server
 
 You can choose the directory that the log server will write logs to by setting the
-`$ALLUXIO_LOGSERVER_LOGS_DIR` environment variable.
+`ALLUXIO_LOGSERVER_LOGS_DIR` environment variable or adding it to
+`${ALLUXIO_HOME}/conf/alluxio-env.sh`
 
 #### Start Log Server
 
@@ -125,25 +126,30 @@ $ ./bin/alluxio-stop.sh logserver
 
 ### Configuring Alluxio Processes to use the Log Server
 
-By default, remote logging is not enabled. To enable Alluxio remote logging, you can set
-environment variables or modify Alluxio's `log4j.properties`
+By default, remote logging is not enabled. There are two options which can enable remote logging.
+One option is to set environment variables within `${ALLUXIO_HOME}/conf/alluxio-env.sh`. The other
+is to modify Alluxio's `log4j.properties` file under `${ALLUXIO_HOME}/conf/log4j.properties`.
 
 There is no requirement on where the log server can be run, as long as the other Alluxio servers
 have network access to it. In our example, we run the log server on the same machine as a master.
 
 #### Enable Remote Logging with Environment Variables
 
-The three environment variables `ALLUXIO_LOGSERVER_HOSTNAME`, `ALLUXIO_LOGSERVER_PORT` and
-`ALLUXIO_LOGSERVER_LOGS_DIR` control Alluxio remote logging behavior.
+The two environment variables `ALLUXIO_LOGSERVER_HOSTNAME` and `ALLUXIO_LOGSERVER_PORT` control
+the logging behavior of masters and workers in an Alluxio cluster.
 
 Suppose the hostname of the log server is `AlluxioLogServer`, and the port is `45010`.
-In `conf/alluxio-env.sh`, add the following lines:
+The following lines would need to be added to `conf/alluxio-env.sh` to enable the correct :
 
 ```bash
 ALLUXIO_LOGSERVER_HOSTNAME=AlluxioLogServer
 ALLUXIO_LOGSERVER_PORT=45010
-ALLUXIO_LOGSERVER_LOGS_DIR=/tmp/alluxio_remote_logs
 ```
+
+These variables propagate their values to the `alluxio.logserver.hostname` and
+`alluxio.logserver.port`
+[system properties]({{site.baseurl}}{% link en/reference/Properties-List.md %}#alluxio.logserver.hostname)
+when set via `alluxio-env.sh` which are then referenced within `log4j.properties`
 
 #### Enable Remote Logging with `log4j.properties`
 
@@ -194,7 +200,6 @@ $ ls -l master/
 You can see that the log files are put into different folders according to their type. Master logs are put
 in the folder `master`, worker logs are put in folder `worker`, etc. Within each folder, log files from
 different workers are distinguished by the IP/hostname of the machine on which the server has been running.
-
 
 ## Configuration Properties
 
