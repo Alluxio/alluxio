@@ -107,8 +107,9 @@ specific alluxio client options. Note that these changes should be before Alluxi
 
 ### Configure mount point options
 
-By default, Alluxio Fuse mount point could only be accessed by he user mounting the Alluxio.
-If you want to allow other users or allow root to access the mounted folder, you could 
+By default, Alluxio Fuse mount point can only be accessed by the user 
+mounting the Alluxio namespace to the local filesystem.
+If you want to allow other users or allow root to access the mounted folder, you can 
 add the following line to the file `/etc/fuse.conf`:
 
 ```
@@ -117,7 +118,7 @@ user_allow_other
 
 This option allow non-root users to specify the `allow_other` or `allow_root` mount options.
 
-After that, you could pass the `allow_other` or `allow_root` mount options when mounting Alluxio-Fuse:
+After that, you can pass the `allow_other` or `allow_root` mount options when mounting Alluxio-Fuse:
 
 ```bash
 # All users (including root) can access the files.
@@ -131,7 +132,7 @@ Note that only one of the `allow_other` or `allow_root` could be set.
 You could also use `-o [comma separated mount options]` to set other mount options. 
 
 Note that `direct_io` mount option is set by default so that writes and reads bypass the kernel page cache 
-and go directly to alluxio.
+and go directly to Alluxio.
 
 ## Assumptions and limitations
 

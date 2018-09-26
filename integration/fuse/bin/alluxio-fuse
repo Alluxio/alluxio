@@ -58,8 +58,8 @@ mount_fuse() {
   local mount_point=$1
   local alluxio_root=$2
   local full_mount_option=""
-  if [[ ! -z "$3" ]]; then
-    full_mount_option="big_writes,$3"
+  if [[ ! -z "${mount_option}" ]]; then
+    full_mount_option="big_writes,${mount_option}"
   else
     full_mount_option="big_writes"
   fi
@@ -120,26 +120,31 @@ fi
 
 case $1 in
   mount)
+    shift
+    while getopts "o:" option; do
+      case "${option}" in
+        o)
+          mount_option=${OPTARG}
+          ;;
+        *)
+          echo -e "${USAGE}" >&2
+          exit 1
+          ;;
+      esac
+    done
+    shift $((${OPTIND} - 1))
+    if [[ $# -eq 1 ]]; then
+      mount_fuse $1 /
+      exit $?
+    fi
     if [[ $# -eq 2 ]]; then
-      mount_fuse $2 /
-      exit $?
-    fi
-    if [[ $# -eq 3 ]]; then
-      mount_fuse $2 $3
-      exit $?
-    fi
-    if [ $# -eq 4 ] && [ $3 == "-o" ]; then
-      mount_fuse $2 / $4
-      exit $?
-    fi
-    if [ $# -eq 5 ] && [ $4 == "-o" ]; then
-      mount_fuse $2 $3 $5
+      mount_fuse $1 $2
       exit $?
     fi
     echo -e "Usage\n\t$0 mount mount_point [alluxio_path]\n\t alluxio_path is default to root" >&2
     exit 1
     ;;
-  umount)    
+  umount)
     if [[ $# -eq 2 ]]; then
       umount_fuse $2
       exit $?
