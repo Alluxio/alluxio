@@ -164,6 +164,20 @@ aws.accessKeyId:
   'The access key of S3 bucket.'
 aws.secretKey:
   'The secret key of S3 bucket.'
+fs.cos.access.key:
+  'The access key of COS bucket.'
+fs.cos.app.id:
+  'The app id of COS bucket.'
+fs.cos.connection.max:
+  'The maximum number of COS connections.'
+fs.cos.connection.timeout:
+  'The timeout of connecting to COS.'
+fs.cos.region:
+  'The region name of COS bucket.'
+fs.cos.secret.key:
+  'The secret key of COS bucket.'
+fs.cos.socket.timeout:
+  'The timeout of COS socket.'
 fs.gcs.accessKeyId:
   'The access key of GCS bucket.'
 fs.gcs.secretAccessKey:
