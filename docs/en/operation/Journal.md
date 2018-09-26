@@ -9,7 +9,7 @@ priority: 0
 * Table of Contents
 {:toc}
 
-Alluxio is fault-tolerant: force-killing the system will not lose data. To achieve
+Alluxio is fault-tolerant: force-killing the system will not lose metadata. To achieve
 this, the master writes edit logs of all metadata changes. On startup,
 a recovering master will read the edit logs to restore itself back to its previous state.
 We use the term "journal" to refer to the system of edit logs used to support fault-tolerance.
@@ -40,19 +40,19 @@ Use the local file system to store the journal:
 alluxio.master.journal.folder=/opt/alluxio/journal
 ```
 
-## Formatting the Journal
+## Formatting the journal
 
 Formatting the journal deletes all of its content and restores it to a fresh state.
 Before starting Alluxio for the first time, the journal must be formatted.
 
 ```bash
 # This permanently deletes all Alluxio metadata, so be careful with this operation
-$ bin/alluxio formatMasters
+$ bin/alluxio formatMaster
 ```
 
 ## Operations
 
-### Manually Backing up the Journal
+### Manually backing up the journal
 
 Alluxio supports taking journal backups so that Alluxio metadata can be restored
 to a previous point in time. Generating a backup causes temporary service
@@ -74,7 +74,7 @@ alluxio.master.backup.directory=/alluxio/backups
 
 See the [backup command documentation](Admin-CLI.html#backup) for additional backup options.
 
-### Restoring from a Backup
+### Restoring from a backup
 
 To restore the Alluxio system from a journal backup, stop the system, format the
 journal, then restart the system, passing the URI of the backup with the `-i`
@@ -82,12 +82,15 @@ journal, then restart the system, passing the URI of the backup with the `-i`
 
 ```bash
 $ bin/alluxio-stop.sh masters
-$ bin/alluxio formatMasters
+$ bin/alluxio formatMaster
 $ bin/alluxio-start.sh -i <backup_uri> masters
 ```
 
 The `<backup_uri>` should be a full URI path that is available to all masters, e.g.
 `hdfs://[namenodeserver]:[namenodeport]/alluxio_backups/alluxio-journal-YYYY-MM-DD-timestamp.gz`
+
+If starting up masters individually, pass the `-i` argument to each one. The master which
+becomes primary first will import the journal backup, and the rest will ignore the `-i`.
 
 If the restore succeeds, you should see a log message along the lines of
 ```
@@ -95,9 +98,9 @@ INFO AlluxioMasterProcess - Restored 57 entries from backup
 ```
 in the primary master logs.
 
-### Changing Masters
+### Changing masters
 
-If the journal is stored in a distributed system like HDFS, changing masters is easy.
+If the journal is stored in a shared storage system like HDFS, changing masters is easy.
 As long as the new master sets `alluxio.master.journal.folder` the same as the old
 master, it will start up in the same state that the old master left off.
 
@@ -106,29 +109,32 @@ copied to the new master.
 
 ## Advanced
 
-### Journal Checkpoints
+### Managing the journal size
 
 When running with a single master, the journal folder size will grow indefinitely
 as metadata operations are written to journal log files. To address this, production
 deployments should run in HA mode with multiple Alluxio masters. The non-primary
 masters will create checkpoints of the master state and clean up the logs that
-were written prior to the checkpoints. For example, if 3 million files were
+were written prior to the checkpoints. For example, if 3 million alluxio files were
 created and then 2 million were deleted, the journal logs would contain 5 million
-total entries. Then if a checkpoint is taken, the checkpoint will contain only
-1 million entries, and the original 5 million entries will be deleted.
+total entries. Then if a checkpoint is taken, the checkpoint will contain only the
+metadata for the 1 million remaining files, and the original 5 million entries will be deleted.
 
-By default, checkpoints are taken every 2 million entries. This can be configured by
+By default, checkpoints are automatically taken every 2 million entries. This can be configured by
 setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setting
 the value lower will reduce the amount of disk space needed by the journal at the
 cost of additional work for the secondary masters.
 
-If HA mode is not an option, it is possible to run two masters on the same node,
-where the second master exists only to write checkpoints. In this setup, both
+If your cluster has high metadata throughput, consider
+
+If HA mode is not an option, it is possible to run a master on the same node as a
+dedicated secondary master. The second master exists only to write checkpoints, and
+will not serve client requests if the primary master dies. In this setup, both
 masters have similar memory requirements since they both need to hold all Alluxio
 metadata in memory. To start a dedicated secondary master for writing periodic checkpoints,
 run
 
-```
+```bash
 bin/alluxio-start.sh secondary_master
 ```
 
