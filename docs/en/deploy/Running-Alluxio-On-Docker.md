@@ -6,53 +6,27 @@ group: Deploying Alluxio
 priority: 3
 ---
 
-TODO: Focus on tmpfs + domain sockets to avoid issues with memory limits.
-TODO: Restructure to be similar to other deploy docs.
-
-Introduction: Give more context/examples about why someone would want to run Alluxio in
-a Docker container.
-
-1. Prerequisites: Generalize the current prerequisites so that they can apply to real
-production environments.
-2. Launch Alluxio
-- Tell the user how to run from dockerhub (minimal example w/ 1 worker 1 master)
-3. Verify the Cluster
-- runTests, check the web UI, run fsadmin report
-4. Operations (Only include if different from standalone cluster deployment)
-- How to set server configuration
-- How to use domain sockets for short-circuit read/write
-- How to stop or restart Alluxio
-- How to format the journal
-- How to upgrade Alluxio to a newer version
-- How to add/remove workers/masters
-- How to run in HA mode
-- How to tweak and rebuild the docker image
-6. Troubleshooting
-- How to find logs
-- Where to get help
-
 * Table of Contents
 {:toc}
 
-Alluxio can be run in a Docker container. This guide demonstrates how to run Alluxio
-in Docker using the Dockerfile provided in the distribution.
+Docker can be used to simplify the deployment and management of Alluxio servers.
+Using the `alluxio/alluxio` Docker image available on Dockerhub, you can go from 
+zero to a running Alluxio cluster in just a couple of `docker run` commands.
+This document provides a tutorial for running Dockerized Alluxio on a single node. 
+We'll also discuss more advanced topics, and how to troubleshoot.
 
-## Basic Tutorial
+## Prerequisites
 
-This tutorial walks through a basic dockerized Alluxio setup on a single node.
+- A Linux machine with Docker installed.
+- Ports 19998, 19999, 29998, 29999, and 30000 are available
 
-### Prerequisites
+If you don't have access to a Linux machine with Docker installed, you can
+provision a t2.small EC2 machine (costs about $0.03/hour) to follow along with
+the tutorial. When provisioning the instance, set the security group so that
+port `19999` is open to your IP address. This will let you view the Alluxio web 
+UI in your browser.
 
-A Linux machine. For the purposes of this guide, we will use a fresh EC2 machine running
-Amazon Linux. The machine size doesn't need to be large; we will use t2.small.
-When setting up the network security for the instance, allow traffic on ports 19998-19999
-and 29998-30000.
-
-### Launch a standalone cluster
-
-All steps below should be executed from your Linux machine.
-
-#### Install Docker
+To set up Docker after provisioning the instance, run
 
 ```bash
 $ sudo yum install -y docker
@@ -63,111 +37,61 @@ $ # Log out and log back in again to pick up the group changes
 $ exit
 ```
 
-#### Download and unpack Alluxio
-
-1. [Download](https://www.alluxio.org/download) Alluxio and copy it to the linux machine.
-1. Unpack the Alluxio tarball to a directory.
-```bash
-$ tar xvfz alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-<hadoop distribution>.tar.gz
-```
-
-#### Build the Alluxio Docker image
+## Launch Alluxio
 
 ```bash
-$ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-<hadoop distribution>/integration/docker
-$ mv ../../../alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-<hadoop distribution>.tar.gz .
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-<hadoop distribution>.tar.gz .
+# Launch the Alluxio master
+$ docker run -d --net=host
+    -v /mnt/data:/opt/alluxio/underFSStorage
+    alluxio/alluxio master
+# Launch the Alluxio worker
+$ docker run -d --net=host
+    --shm-size=1G -e ALLUXIO_WORKER_MEMORY_SIZE=1G
+    -v /mnt/data:/opt/alluxio/underFSStorage
+    -e ALLUXIO_MASTER_HOSTNAME=localhost
+    alluxio/alluxio worker
 ```
 
-#### Set up under storage
+These commands use the host machine's `/mnt/data` directory as the under storage for Alluxio. 
+The `--shm-size=1G` argument will allocate a `1G` tmpfs for the worker to store Alluxio data.
 
-Create an under storage folder on the host.
+## Verify the Cluster
+
+To verify that the services came up, check `docker ps`. You should see something like
 ```bash
-$ mkdir underStorage
+$ docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+ef2f3b5be1a3        alluxio:1.8.0       "/entrypoint.sh work…"   6 days ago          Up 6 days                               dazzling_lichterman
+8e3c31ed62cc        alluxio:1.8.0       "/entrypoint.sh mast…"   6 days ago          Up 6 days                               eloquent_clarke
 ```
 
-#### Set up ramdisk to enable short-circuit IO
+If you don't see the containers, run `docker logs` on their container ids to see what happened. 
+The container ids were printed by the `docker run` command, and can also be found in `docker ps -a`.
 
-From the host machine:
+Next, visit `instance_hostname:19999` to view the Alluxio web UI. You should see one worker connected and providing
+`1024MB` of space.
 
-```bash
-$ sudo mkdir /mnt/ramdisk
-$ sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
-$ sudo chmod a+w /mnt/ramdisk
-```
-
-Restart Docker so that it is aware of the new mount point.
-
-```bash
-$ sudo service docker restart
-```
-
-#### Run the Alluxio master
-
-```bash
-$ # This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
-$ docker run -d --net=host \
-             -v $PWD/underStorage:/underStorage \
-             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-             -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
-             alluxio master
-```
-Details:
-- `-e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP}`: Tell the master what address to use.
-- `-v $PWD/underStorage:/underStorage`: Share the underStorage folder with the Docker container.
-- `-e ALLUXIO_UNDERFS_ADDRESS=/underStorage`: Tell the worker to use /underStorage as the under file storage.
-
-#### Run the Alluxio worker
+To run tests, first enter the worker container
 
 ```bash
-$ # Launch an Alluxio worker container and save the container ID for later
-$ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
-             -v /mnt/ramdisk:/opt/ramdisk \
-             -v $PWD/underStorage:/underStorage \
-             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-             -e ALLUXIO_RAM_FOLDER=/opt/ramdisk \
-             -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
-             -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
-             alluxio worker)
-```
-Details:
-- `-v /mnt/ramdisk:/opt/ramdisk`: Share the host machine's ramdisk with the Docker container.
-- `-v $PWD/underStorage:/underStorage`: Share the underStorage folder with the Docker container.
-- `-e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP}`: Tell the worker how to contact the master.
-- `-e ALLUXIO_RAM_FOLDER=/opt/ramdisk`: Tell the worker where to find the ramdisk.
-- `-e ALLUXIO_WORKER_MEMORY_SIZE=1GB`: Tell the worker how much ramdisk space to use.
-- `-e ALLUXIO_UNDERFS_ADDRESS=/underStorage`: Tell the worker to use /underStorage as the under file storage.
-
-#### Test the cluster
-
-To test the cluster, first enter the worker container.
-
-```bash
-$ docker exec -it ${ALLUXIO_WORKER_CONTAINER_ID} /bin/sh
+$ docker exec -it ${worker_container_id} /bin/bash
 ```
 
-Now run Alluxio tests.
+Then run the tests
+
 ```bash
 $ cd /opt/alluxio
 $ bin/alluxio runTests
 ```
 
-## Building from a specific Alluxio distribution
+Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to learn more about how to manage the cluster and make is production-ready.
 
-To build an Alluxio Docker image from a local or remote Alluxio tarball, use `--build-arg`
+## Operations
 
-Local tarball:
-```bash
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
-```
+### Set server configuration
 
-Remote tarball:
-```bash
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz .
-```
-
-## Alluxio Configuration Properties
+Configuration changes require stopping the Alluxio Docker images, then re-launching 
+them with the new configuration.
 
 To set an Alluxio configuration property, convert it to an environment variable by uppercasing
 and replacing periods with underscores. For example, `alluxio.master.hostname` converts to
@@ -175,45 +99,46 @@ and replacing periods with underscores. For example, `alluxio.master.hostname` c
 `-e PROPERTY=value`. Alluxio configuration values will be copied to `conf/alluxio-site.properties`
 when the image starts.
 
-## Memory tier: ramdisk vs Docker tmpfs
+### Run in High-Availability Mode
 
-The tutorial used a ramdisk to enable short-circuit reads. Another option is to use the tmpfs that
-comes with Docker containers. This makes setup easier and improves isolation, but comes at the cost
-of not being able to perform memory-speed short-circuit reads from local clients. Local clients will
-instead need to go over the network to get data from Alluxio workers.
+A lone Alluxio master is a single point of failure. To guard against this, a production
+cluster should run multiple Alluxio masters and use Zookeeper for leader election. One
+of the masters will be elected leader and serve client requests. If it dies, one of the
+remaining masters will become leader and pick up where the previous master left off.
 
-### Using the Docker tmpfs
+With multiple masters, Alluxio needs a shared journal directory that all masters have
+access to, usually either NFS or HDFS.
 
-When `ALLUXIO_RAM_FOLDER` isn't specified, the Docker worker container will use the
-tmpfs mounted at `/dev/shm`. To set the size of the worker memory to `1GB`, specify
-`--shm-size 1G` at launch time and configure the Alluxio worker with `1GB` memory size.
+To run in HA mode, launch multiple Alluxio masters, point them to a shared journal,
+and set their Zookeeper configuration.
 
 ```bash
-$ docker run -d --net=host --shm-size=1G \
-             -v $PWD/underStorage:/underStorage \
-             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-             -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
-             -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
+$ docker run -d --net=host \
+             ...
+             -e ALLUXIO_MASTER_JOURNAL_FOLDER=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
+             -e ALLUXIO_ZOOKEEPER_ENABLED=true -e ALLUXIO_ZOOKEEPER_ADDRESS=zkhost1:2181,zkhost2:2181,zkhost3:2181 \
+             alluxio master
+```
+
+Set the same Zookeeper configuration for workers so that they can query Zookeeper
+to discover the current leader.
+
+```bash
+$ docker run -d --net=host \
+             ...
+             -e ALLUXIO_ZOOKEEPER_ENABLED=true -e ALLUXIO_ZOOKEEPER_ADDRESS=zkhost1:2181,zkhost2:2181,zkhost3:2181 \
              alluxio worker
 ```
 
-To prevent clients from attempting and failing short-circuit reads, the client's hostname must
-be set to a value different from the worker's hostname. On the clients, configure `alluxio.user.hostname=dummy`.
+### Enable short-circuit reads and writes
 
-## Short-circuit operations
+If your compute applications will run on the same nodes as your Alluxio workers,
+you can improve performance by enabling short-circuit reads
+and writes. This allows applications to read from and write to their
+local Alluxio worker without going over the loopback network. Instead, they will
+read and write using [domain sockets](https://en.wikipedia.org/wiki/Unix_domain_socket).
 
-In the tutorial, we set up a shared ramdisk between the host system and the worker container.
-This enables clients to perform read and write operations directly against the ramdisk instead
-of having to go through the worker process. A limitation of this approach is that it doesn't play
-well with setting worker container memory limits. Even though the ramdisk is mounted on the host,
-writes to it from the worker container will count towards the container's memory limit. To work
-around this limitation, you can share a domain socket instead of the ramdisk itself. The downside
-of using domain sockets is that they are computationally more expensive and suffer from lower
-write throughput.
-
-### Domain Socket
-
-From the host machine, create a directory for the shared domain socket.
+On worker host machines, create a directory for the shared domain socket.
 ```bash
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
@@ -226,16 +151,10 @@ to share the domain socket directory. Also set the site property
 when launching the container.
 
 ```bash
-$ # This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
-$ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
-             -v /tmp/domain:/opt/domain \
-             -v $PWD/underStorage:/underStorage \
-             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-             -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
-             -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d \
-             -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
-             alluxio worker)
+$ docker run -d --net=host \
+             ...
+             -v /tmp/domain:/opt/domain -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d \
+             alluxio worker
 ```
 
 By default, short-circuit operations between the Alluxio client and worker are enabled if the client
@@ -245,34 +164,18 @@ use filesystem inspection instead: `ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADD
 and `ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true`. Short-circuit writes are then enabled if
 the worker UUID is located on the client filesystem.
 
-## FUSE
+TODO: Should we just always recommend using filesystem inspection? Are there downsides?
 
-To use FUSE, you need to build a docker image with FUSE enabled:
+### Relaunch Alluxio Servers
 
-```bash
-docker build -f Dockerfile.fuse -t alluxio-fuse .
-```
+When relaunching Alluxio masters, use the `--no-format` flag to avoid re-formatting
+the journal. The journal should only be formatted the first time the image is run.
+Formatting the journal deletes all Alluxio metadata, and starts the cluster in
+a fresh state.
 
-There are a couple extra arguments required to run the docker image with FUSE support,
-for example:
+## Troubleshooting
 
-```bash
-docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master --cap-add SYS_ADMIN --device /dev/fuse  alluxio-fuse [master|worker|proxy]
-```
-
-Note: running FUSE in docker requires adding [SYS_ADMIN capability](http://man7.org/linux/man-pages/man7/capabilities.7.html)
- to the container. This removes isolation of the container and should be used with caution.
-
-Importantly, in order for the application to access data from Alluxio storage mounted with FUSE, it must run in the same
- container as Alluxio. You can easily extend the docker image to include applications to run on top of Alluxio. For example,
- to run TensorFlow with Alluxio inside a docker container, just edit Dockerfile.fuse and replace
-
-```bash
-FROM ubuntu:16.04
-```
-
-with
-
-```bash
-FROM tensorflow/tensorflow:1.3.0
-```
+Alluxio server logs can be accessed by running `docker logs $container_id`.
+Usually the logs will give a good indication of what is wrong. If they are not enough to diagnose
+your issue, you can get help on the
+[user mailing list](https://groups.google.com/forum/#!forum/alluxio-users).
