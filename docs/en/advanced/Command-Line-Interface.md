@@ -1,21 +1,3 @@
-New Contents:
-This doc so far only focus on the `alluxio fs` related operations 
-and admin CLI doc only focus on `alluxio fsadmin` related operations.
-
-Other `alluxio [COMMAND other than fs/fsadmin]` is missing in our documentation.
-Some of them are really useful to our users and should be included, such as the 
-usage of `alluxio getConf [key]`. If users know `alluxio getConf --master` can get
-the current alluxio cluster configuration, that would be useful.
-
-The commands include extensions, format, formatMaster, formatWorker, bootstrapConf, 
-fs, fsadmin, getConf, loadufs, logLevel, runClass, runTest, runKVTest, runTests, 
-runJournalCrashTest, runMesosTest, readJournal, upgradeJournal, killAll <WORD>, 
-copyDir, clearCache, confDocGen, thriftGen, protoGen, version, validateConf, validateEnv
-
-Developer side commands: extensions, confDocGen, thriftGen, protoGen
-Should be remove to dev/alluxio and will not be included in this doc.
-Other user side commands will all be explained and given usages in this docs.
-
 ---
 layout: global
 title: Command Line Interface
@@ -30,6 +12,236 @@ Alluxio's command line interface provides users with basic file system operation
 the following command line utility to get all the subcommands:
 
 ```bash
+$ ./bin/alluxio
+Usage: alluxio [COMMAND]
+       [format [-s]]
+       [getConf [key]]
+       [logLevel]
+       [runTests]
+       ...
+```
+
+## General operations
+
+In this section, we list the usages and examples of general Alluxio operations except file system 
+and file system admin operations. File system admin operations are listed in the [Admin CLI doc](Admin-CLI.html).
+
+### format
+
+The `format` command will format the Alluxio master and all workers. 
+
+If you run this command for an existing Alluxio cluster, all data and metadata stored in Alluxio will be deleted. 
+However, data in under storage will not be changed.
+
+If `-s` specified, only format if underfs is local and doesn't already exist.
+
+Warning: `format` is required when you run Alluxio for the first time. 
+`format` should only be called while the cluster is not running.
+
+Warning: `format` will delete all Alluxio data and metadata.
+
+```bash
+$ ./bin/alluxio format
+$ ./bin/alluxio format -s
+```
+
+### formatMaster
+
+The `formatMaster` command will format the Alluxio master.
+
+Alluxio master stores the metadata of the Alluxio related file system operations 
+and files stored in Allxuio workers. If a under file system file is written through Alluxio 
+or a user runs some `getStatus` related operations (e.g. `fs ls` command) on it,
+Alluxio master will also store its metadata. `formatMaster` cleans the journal system 
+and deletes all those metadata.
+
+Warning: `formatMaster` should only be called while the cluster is not running.
+
+Warning: `formatMaster` will delete all the metadata.
+
+```bash
+$ ./bin/alluxio formatMaster
+```
+
+### formatWorker 
+
+The `formatWorker` command will format the Alluxio worker.
+
+Unlike the Alluxio master stores all the metadata, Alluxio worker stores 
+all the real data -- files and objects.
+
+`formatWorker` will delete all the real data stored in this worker node.
+However, data in under storage will not be changed.
+
+Warning: `formatWorker` should only be called while the cluster is not running.
+
+Warning: `formatWorker` will delete all the Alluxio data.
+
+```bash
+$ ./bin/alluxio formatWorker
+```
+
+### bootstrapConf
+
+The `bootstrapConf` command will generate the bootstrap configuration file
+`${ALLUXIO_HOME}/conf/alluxio-env.sh` with the specified `ALLUXIO_MASTER_HOSTNAME`, 
+if the configuration file doesn't exist. 
+
+In addition, worker memory size and ramdisk folder will be set in the config file
+according to the machine status:
+* type: Mac or Linux
+* total memory size of that machine
+
+```bash
+$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
+```
+
+### getConf
+
+The `getConf` command will print the configured value for the given key. If the key is
+invalid, the exit code will be nonzero. If the key is valid but isn't set, 
+an empty string is printed. If no key is specified, all configuration is printed.
+
+Options:
+
+* `--master` option will print the configuration properties used by the master.
+* `--source` option will print the source of the configuration properties as well.
+* `--unit <arg>` option will display the values of the configuration in the given unit.
+E.g., with "--unit KB", a configuration value of "4096B" will return 4, 
+and with "--unit S", a configuration value of "5000ms" will return 5. 
+Possible unit options include B, KB, MB, GB, TP, PB, MS, S, M, H, D.
+
+```bash
+# Displays all the current node configuration
+$ ./bin/alluxio getConf
+
+# Displays the value of a property key
+$ ./bin/alluxio getConf alluxio.master.hostname
+
+# Displays the configuration of the current running Alluxio leader master
+$ ./bin/alluxio getConf --master
+
+# Also display the source of the configuration
+$ ./bin/alluxio getConf --source
+
+# Displays the values in a given unit
+$ ./bin/alluxio getConf --unit KB alluxio.user.block.size.bytes.default
+$ ./bin/alluxio getConf --unit S alluxio.master.journal.flush.timeout
+```
+
+### logLevel
+
+The `logLevel` command allows you to get or change the log level of a particular class on specific instances.
+Our users are able to change Alluxio server-side log level at runtime using this command.
+
+The syntax is `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`.
+* `--logName <arg>` indicates the logger's name (e.g.alluxio.master.file.DefaultFileSystemMaster)
+* `--target <arg>` lists the Alluxio master or workers to set. The target could be `<master|workers|host:webPort>`. 
+A list of targets separated by `,` can be specified. `host:webPort` pair must be one of the workers. 
+Default target is master and all workers.
+* `--level <arg>` If provided the command changes to the defined logger level, 
+otherwise it gets and displays the current logger level.
+
+For example, this command sets the class `alluxio.heartbeat.HeartbeatContext`'s logger level to DEBUG on master as well as a worker at `192.168.100.100:30000`.
+```bash
+alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=master,192.168.100.100:30000 --level=DEBUG
+```
+
+And the following command gets all workers' log level on class `alluxio.heartbeat.HeartbeatContext`
+```bash
+alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
+```
+
+### runTests
+
+The `runTests` command will run all end-to-end tests on an Alluxio cluster 
+and provide a comprehensive sanity check.
+
+```bash
+$ ./bin/alluxio runTests
+```
+
+### upgradeJournal
+
+The `upgradeJournal` command will upgrade an Alluxio journal version 0 (Alluxio version < 1.5.0) 
+to an Alluxio journal version 1 (Alluxio version >= 1.5.0).
+
+`-journalDirectoryV0 <arg>` will provide the v0 journal persisted location. It is assumed to be 
+the same as the v1 journal directory if not set.
+
+```bash
+$ ./bin/alluxio upgradeJournal
+```
+
+### copyDir
+
+The `copyDir` command will copy the `PATH` to all worker nodes listed in `conf/workers`.
+
+```bash
+$ ./bin/alluxio copyDir conf/alluxio-site.properties
+```
+
+### version
+
+The `version` command will print Alluxio version and exit.
+
+```bash
+$ ./bin/alluxio version
+```
+
+### validateConf
+
+The `validateConf` command will validate Alluxio conf and exit.
+
+```bash
+$ ./bin/alluxio validateConf
+```
+
+### validateEnv
+
+Before starting Alluxio, you might want to make sure that your system environment is ready for running Alluxio services. 
+You can run the `validateEnv` command to validate your environment and it will report potential problems 
+that might prevent you from starting Alluxio services.
+
+The usage is `validateEnv COMMAND [NAME] [OPTIONS]`. 
+
+`COMMAND` can be one of the following values:
+* `local` run all validation tasks on local
+* `master` run master validation tasks on local
+* `worker` run worker validation tasks on local
+* `all` run corresponding validation tasks on all master nodes and worker nodes
+* `masters` run master validation tasks on all master nodes
+* `workers` run worker validation tasks on all worker nodes
+* `list` list all validation tasks
+
+```bash
+# Runs all validation tasks on local
+$ ./bin/alluxio validateEnv local
+
+# Runs corresponding validation tasks on all master nodes and worker nodes
+$ ./bin/alluxio validateEnv all
+
+# Lists all validation tasks
+$ ./bin/alluxio validateEnv list
+```
+
+For all commands except list, `NAME` can be any task full name or prefix.
+When `NAME` is given, only tasks with name starts with the prefix will run.
+If NAME is not given, all tasks for the given TARGET will run.
+
+```bash
+# Only run validation tasks that check your local system resource limits
+$ ./bin/alluxio validateEnv ulimit
+# Only run the tasks start with "ma", like "master.rpc.port.available" and "master.web.port.available"
+$ ./bin/alluxio validateEnv local ma
+```
+
+`OPTIONS` can be a list of command line options. Each option has the format  `-<optionName> [optionValue]`
+For example, `[-hadoopConfDir <arg>]` could set the path to server-side hadoop conf dir when running validating tasks.
+ 
+## File System Operations
+
+```bash
 $ ./bin/alluxio fs
 Usage: alluxio fs [generic options]
        [cat <path>]
@@ -41,7 +253,6 @@ For `fs` subcommands that take Alluxio URIs as argument (e.g. `ls`, `mkdir`), th
 be either a complete Alluxio URI `alluxio://<master-hostname>:<master-port>/<path>`, or `/<path>`
 without header provided to use the default hostname and port set in the
 `conf/allluxio-site.properties`.
-
 
 >**Wildcard input**
 >
@@ -65,23 +276,6 @@ without header provided to use the default hostname and port set in the
 >
 >Note the double escape, this is because the shell script will eventually call a java program
 >which should have the final escaped parameters (`cat /\\*`).
-
-// TODO(lu) remove the list of operations
-## List of Operations
-
-<table class="table table-striped">
-  <tr><th>Operation</th><th>Syntax</th><th>Description</th></tr>
-  {% for item in site.data.table.operation-command %}
-    <tr>
-      <td>{{ item.operation }}</td>
-      <td>{{ item.syntax }}</td>
-      <td>{{ site.data.table.en.operation-command[item.operation] }}</td>
-    </tr>
-  {% endfor %}
-</table>
-
-// TODO(lu) change name to Operations
-## Example Use Cases
 
 ### cat
 
@@ -245,7 +439,16 @@ For example, `getUsedBytes` can be used to monitor the health of your cluster.
 
 {% include Command-Line-Interface/getUsedBytes.md %}
 
-// TODO(lu) add `fs head` command
+### head
+
+The `head` command prints the first 1 kb of data in a file to the console.
+
+Using the `-c [bytes]` option will print the first `n` bytes of data to the console.
+
+```bash
+$ ./bin/alluxio fs head -c 2048 /output/part-00000
+```
+
 ### help
 
 The `help` command prints the help message for a given `fs` subcommand. If there isn't given
@@ -345,11 +548,13 @@ The `mount` command links an under storage path to an Alluxio path, and files an
 
 Options:
 
-// TODO(lu) add special things/use cases about --readonly mode?
-// automatically read the metadata of files in UFS?
-  
 * `--readonly` option sets the  mount point to be readonly in Alluxio
 * `--option <key>=<val>` option passes an property to this mount point (e.g., S3 credential)
+
+Note that `--readonly` mounts are useful to prevent accidental write operations. If multiple 
+Alluxio satellite clusters mount a remote storage cluster which serves as the central source of truth, 
+`--readonly` option could help prevent any write operations, e.g. rm -R, on the satellite cluster 
+from wiping out the remote storage.
 
 For example, `mount` can be used to make data in another storage system available in Alluxio.
 
@@ -432,9 +637,8 @@ For example, `stat` can be used to debug the block locations of a file. This is 
 
 ### tail
 
-// TODO(lu) add `tail [-c <bytes>]` option description
-
 The `tail` command outputs the last 1 kb of data in a file to the console.
+Using the `-c [bytes]` option will print the last `n` bytes of data to the console.
 
 For example, `tail` can be used to verify the output of a job is in the expected format or contains expected values.
 

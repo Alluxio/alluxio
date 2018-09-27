@@ -21,22 +21,7 @@ Usage: alluxio fsadmin [generic options]
        ...
 ```
 
-// TODO(lu) remove the list of operations
-## List of Operations
-
-<table class="table table-striped">
-  <tr><th>Operation</th><th>Syntax</th><th>Description</th></tr>
-  {% for item in site.data.table.fsadmin-command %}
-    <tr>
-      <td>{{ item.operation }}</td>
-      <td>{{ item.syntax }}</td>
-      <td>{{ site.data.table.en.fsadmin-command[item.operation] }}</td>
-    </tr>
-  {% endfor %}
-</table>
-
-// TODO(lu) change name to Operations
-## Example Use Cases
+## Operations
 
 ### backup
 
@@ -69,26 +54,49 @@ $ ./bin/alluxio fsadmin doctor configuration
 
 ### report
 
-// TODO(lu) detailed description about each of the subcommands.
-// such as the report capacity usage with filter tags.
-
 The `report` command provides Alluxio running cluster information. 
 
+If no argument is passed in, `report` will report the leader master, worker number, and capacity information.
+
 ```bash
-# Report cluster summary
 $ ./bin/alluxio fsadmin report
-#
-# Report worker capacity information
-$ ./bin/alluxio fsadmin report capacity
-#
-# Report metrics information
-$ ./bin/alluxio fsadmin report metrics
-#
-# Report under file system information
-$ ./bin/alluxio fsadmin report ufs 
+Alluxio cluster summary:
+    Master Address: localhost:19998
+    Zookeeper Enabled: false
+    Live Workers: 1
+    Lost Workers: 0
+    Total Capacity: 10.45GB
+    Used Capacity: 0B
+    (only a subset of the results is shown)
 ```
 
-You can use `-h` to display helpful information about the command.
+`report capacity` will report Alluxio cluster capacity information for different subsets of workers: 
+* `-live` Live workers
+* `-lost` Lost workers
+* `-workers <worker_names>` Specified workers, host names or ip addresses separated by `,`. 
+
+```bash
+# Capacity information of all workers
+$ ./bin/alluxio fsadmin report capacity
+# Capacity information of live workers
+$ ./bin/alluxio fsadmin report capacity -live
+# Capacity information of specified workers
+$ ./bin/alluxio fsadmin report capacity -workers AlluxioWorker1,127.0.0.1
+```
+
+`report metrics` will report the metrics information of Alluxio cluster.
+
+```bash
+$ ./bin/alluxio fsadmin report metrics
+```
+
+`report ufs` will report all the mounted under file system information of Alluxio cluster.
+
+```bash
+$ ./bin/alluxio fsadmin report ufs 
+Alluxio under filesystem information:
+hdfs://localhost:9000/ on / (hdfs, capacity=-1B, used=-1B, not read-only, not shared, properties={})
+```
 
 ### ufs
 
