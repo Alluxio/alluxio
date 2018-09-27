@@ -231,7 +231,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     ExecutorService service = ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory("alluxio-s3-transfer-manager-worker",
+        .fixedThreadPool("alluxio-s3-transfer-manager-worker",
             numTransferThreads).create();
 
     TransferManager transferManager = TransferManagerBuilder.standard()

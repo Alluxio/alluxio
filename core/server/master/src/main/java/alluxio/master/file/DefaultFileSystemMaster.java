@@ -331,8 +331,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param masterContext the context for Alluxio master
    */
   DefaultFileSystemMaster(BlockMaster blockMaster, MasterContext masterContext) {
-    this(blockMaster, masterContext, ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 4));
+    this(blockMaster, masterContext,
+        ExecutorServiceFactories.cachedThreadPool(Constants.FILE_SYSTEM_MASTER_NAME));
   }
 
   /**
@@ -495,7 +495,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
         mStartupConsistencyCheck = getExecutorService().submit(() -> startupCheckConsistency(
             ExecutorServiceFactories
-               .fixedThreadPoolExecutorServiceFactory("startup-consistency-check", 32).create()));
+               .fixedThreadPool("startup-consistency-check", 32).create()));
       }
       if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();

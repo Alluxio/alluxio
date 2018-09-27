@@ -82,7 +82,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     super(uri, ufsConf);
 
     int numThreads = Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
-    mExecutorService = ExecutorServiceFactories.fixedThreadPoolExecutorServiceFactory(
+    mExecutorService = ExecutorServiceFactories.fixedThreadPool(
         "alluxio-underfs-object-service-worker", numThreads).create();
   }
 
