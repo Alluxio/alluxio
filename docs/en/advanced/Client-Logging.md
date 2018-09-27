@@ -20,18 +20,18 @@ Depending on which compute framework you are using, the location of the logs can
 recommend looking at the specific documentation for your compute framework to determine where to
 find alluxio client logs.
 
-Here are links to compute frameworks with information where logs may be found and how to configure
+Below are links to compute framework documentation with information about where logs may be found
+and how to configure them.
 
 - [Apache Hadoop]({{ site.baseurl }}{% link en/compute/Compute-Hadoop-MapReduce.md %}#logging-configuration)
 - [Apache HBase]({{ site.baseurl }}{% link en/compute/Compute-HBase.md %}#logging-configuration)
 - [Apache Hive]({{ site.baseurl }}{% link en/compute/Compute-Hive.md %}#logging-configuration)
 - [Apache Spark]({{ site.baseurl }}{% link en/compute/Compute-Spark.md %}#logging-configuration)
 
-However, by setting the `alluxio.logs.dir` property you can modify where the logs are stored.
-This Alluxio property is a JVM system property which cannot be set from an
-`alluxio-site.properties` file. For more information on setting JVM system properties see
-the [configuration documentation]({{site.baseurl}}{% link en/advanced/Configuration-Settings.md %}#configuration-sources)
-
+It is important to note that while Alluxio specifically uses log4j to perform logging, the location
+of client logs varies by application and will typically be found in the same location as the
+application logs for each compute framework.
+ 
 ## Log Levels
 
 Often it's useful to change the log level of the Alluxio client running in the compute framework
@@ -60,7 +60,11 @@ log4j.appender.CLIENT_REMOTE_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c
 ```
 
 Using this configuration, the `CLIENT_REMOTE_LOGGER` appender should be added to an already
-existing logger within the a log4j configuration.
+existing logger within the a log4j configuration. Foe example
+
+```properties
+log4j.rootLogger=DEBUG, CLIENT_REMOTE_LOGGER
+```
 
 To find where the proper configuration file to modify is, refer to the documentation for your
 desired framework linked in the previous section.

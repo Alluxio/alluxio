@@ -43,19 +43,11 @@ Each Alluxio process (master, worker, FUSE, proxy) will log to a separate file w
 You can modify the `log4j.properties` found under the `${ALLUXIO_HOME}/conf/log4j.properties` to
 modify logging levels.
 
-For example, if you would like to modify the level for all logs, then you can change the `rootLogger` level
+For example, if you would like to modify the level for all logs, then you can change the
+`rootLogger` level by modifying the following line:
 
 ```properties
 log4j.rootLogger=INFO, ${alluxio.logger.type}, ${alluxio.remote.logger.type}
-
-log4j.category.alluxio.logserver=INFO, ${alluxio.logserver.logger.type}
-log4j.additivity.alluxio.logserver=false
-
-log4j.logger.AUDIT_LOG=INFO, ${alluxio.master.audit.logger.type}
-log4j.additivity.AUDIT_LOG=false
-.
-.
-.
 ```
 
 If you wish to have `DEBUG` logging, then you would make the first line
@@ -102,7 +94,7 @@ to system administrators who have to perform the task of log collection. With re
 log files, e.g. master.log, worker.log, etc. on all Alluxio servers will be readily available on
 a designated and configurable directory on the log server.
 
-### Deploying The Log Server
+### Deploying the Log Server
 
 #### Configuring the Log Server
 
@@ -110,7 +102,7 @@ You can choose the directory that the log server will write logs to by setting t
 `ALLUXIO_LOGSERVER_LOGS_DIR` environment variable or adding it to
 `${ALLUXIO_HOME}/conf/alluxio-env.sh`
 
-#### Start Log Server
+#### Start the Log Server
 
 On the log server, execute the following command.
 
@@ -174,13 +166,13 @@ log locally to a file on the system and remotely over a network. For example:
 log4j.rootLogger=INFO, ${REMOTE_APPENDER_NAME}, ${LOCAL_APPENDER_NAME}
 ```
 
-### Restart Alluxio And Log Server
+### Restart Alluxio and the Log Server
 
 After making the modification to configuration, you need to restart the log server first. Then you
 can start Alluxio. This ensures that the logs that Alluxio generates during start-up phase will
 also go to the log server.
 
-### Verify Log Server Has Started
+### Verify the Log Server has Started
 
 First, `ssh` to the machine on which log server is running.
 
