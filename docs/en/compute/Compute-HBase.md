@@ -65,7 +65,7 @@ on all cluster nodes). For example:
 export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
-Alternative ways are described in the [Advanced Setup]({{ site.baseurl }}{% link en/compute/Compute-HBase.md#advanced-setup %})
+Alternative ways are described in the [Advanced Setup]({{ site.baseurl }}{% link en/compute/Compute-HBase.md %}#advanced-setup)
 
 ## Example
 
@@ -149,3 +149,11 @@ change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE
 Instead of specifying the location of the jar file in the `$HBASE_CLASSPATH` environment variable, 
 users could copy the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase
 (make sure it's available on all cluster nodes).
+
+## Troubleshooting
+
+### Logging Configuration
+
+In order to change the logging configuration for HBase, you can [modify your installation's
+`log4j.properties` file.](http://hbase.apache.org/0.94/book/trouble.client.html#trouble.client.scarylogs)
+

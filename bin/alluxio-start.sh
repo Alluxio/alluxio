@@ -31,6 +31,7 @@ Where ACTION is one of:
   safe               \tScript will run continuously and start the master if it's not running.
   worker [MOPT]      \tStart a worker on this node.
   workers [MOPT]     \tStart workers on worker nodes.
+  logserver          \tStart the logserver
   restart_worker     \tRestart a failed worker on this node.
   restart_workers    \tRestart any failed workers on worker nodes.
 
