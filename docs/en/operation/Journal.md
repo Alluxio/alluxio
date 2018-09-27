@@ -125,8 +125,6 @@ setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setti
 the value lower will reduce the amount of disk space needed by the journal at the
 cost of additional work for the secondary masters.
 
-If your cluster has high metadata throughput, consider
-
 If HA mode is not an option, it is possible to run a master on the same node as a
 dedicated secondary master. The second master exists only to write checkpoints, and
 will not serve client requests if the primary master dies. In this setup, both
@@ -135,7 +133,7 @@ metadata in memory. To start a dedicated secondary master for writing periodic c
 run
 
 ```bash
-bin/alluxio-start.sh secondary_master
+$ bin/alluxio-start.sh secondary_master
 ```
 
 ### Recovering from journal issues
