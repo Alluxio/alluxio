@@ -145,26 +145,18 @@ $ chmod a+w /tmp/domain
 ```
 
 When starting workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`
-to share the domain socket directory. Also set the site property
-`alluxio.worker.data.server.domain.socket.address` in the worker by passing
-`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d`
-when launching the container.
+to share the domain socket directory. Also set domain socket properties by passing
+`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain` and
+`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true` when launching worker containers.
 
 ```bash
 $ docker run -d --net=host \
              ...
-             -v /tmp/domain:/opt/domain -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d \
+             -v /tmp/domain:/opt/domain \
+             -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain \
+             -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true \
              alluxio worker
 ```
-
-By default, short-circuit operations between the Alluxio client and worker are enabled if the client
-hostname matches the worker hostname. This may not be true if the client is running as part of a container
-with virtual networking. In such a scenario, when starting the workers, set the following properties to
-use filesystem inspection instead: `ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain`
-and `ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true`. Short-circuit writes are then enabled if
-the worker UUID is located on the client filesystem.
-
-TODO: Should we just always recommend using filesystem inspection? Are there downsides?
 
 ### Relaunch Alluxio Servers
 
