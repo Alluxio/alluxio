@@ -8,9 +8,6 @@ priority: 0
 * Table of Contents
 {:toc}
 
-TODO: Add an example configuration of using the local file system and csv sink
-TODO: Add images of the general metrics pages
-
 Metrics provide insight into what is going on in the cluster. They are an invaluable resource for
 monitoring and debugging. Alluxio has a configurable metrics system based on the [Coda Hale Metrics
 Library](https://github.com/dropwizard/metrics). In the metrics system, sources generate metrics,
@@ -34,12 +31,37 @@ Each instance can report to zero or more sinks.
 * MetricsServlet: Adds a servlet in Web UI to serve metrics data as JSON data.
 
 ## Configuration
+
 The metrics system is configured via a configuration file that Alluxio expects to be present at
 `$ALLUXIO_HOME/conf/metrics.properties`. A custom file location can be specified via the
 `alluxio.metrics.conf.file` configuration property. Alluxio provides a `metrics.properties.template`
 under the `conf` directory which includes all configurable properties. By default, MetricsServlet
 is enabled in Alluxio master and workers. You can send an HTTP request to "/metrics/json" to get a
 snapshot of all metrics in JSON format.
+
+## Sample Sink Setup
+
+This section gives an example of writing collected metrics to a CSV file.
+
+In the metrics property file, `$ALLUXIO_HOME/conf/metrics.properties` by default, add the following
+properties.
+
+```
+# Enable CsvSink
+sink.csv.class=alluxio.metrics.sink.CsvSink
+
+# Polling period for CsvSink
+sink.csv.period=1
+sink.csv.unit=seconds
+
+# Polling directory for CsvSink, ensure this directory exists!
+sink.csv.directory=/tmp/alluxio-metrics
+```
+
+If Alluxio is deployed in a cluster, this file needs to be distributed to all the nodes.
+
+Then, start Alluxio, CSV files containing metrics will be found in the `sink.csv.directory`. The
+file name will correspond with the metric name.
 
 ## Supported Metrics
 
@@ -51,6 +73,8 @@ metrics.
 Cluster metrics are collected by the master and displayed in the metrics tab of the web UI. These
 metrics are designed to provide a snapshot of the cluster state and the overall amount of data and
 metadata served by Alluxio.
+
+![Master Metrics]({{ site.baseurl }}/img/screenshot_generalMetrics.png)
 
 Clients and workers send metrics data to the Alluxio master tagged with an application id. By
 default this will be in the form of 'app-[random number]'. This value can be configured through the
