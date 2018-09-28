@@ -210,8 +210,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    * @param masterContext the context for Alluxio master
    */
   DefaultBlockMaster(MetricsMaster metricsMaster, MasterContext masterContext) {
-    this(metricsMaster, masterContext, new SystemClock(), ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
+    this(metricsMaster, masterContext, new SystemClock(),
+        ExecutorServiceFactories.cachedThreadPool(Constants.BLOCK_MASTER_NAME));
   }
 
   /**

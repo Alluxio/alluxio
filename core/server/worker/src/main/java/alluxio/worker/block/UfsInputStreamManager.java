@@ -78,7 +78,7 @@ public class UfsInputStreamManager {
   public UfsInputStreamManager() {
     mFileIdToInputStreamIds = new HashMap<>();
     mRemovalThreadPool = ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory(Constants.UFS_INPUT_STREAM_CACHE_EXPIRATION, 2)
+        .fixedThreadPool(Constants.UFS_INPUT_STREAM_CACHE_EXPIRATION, 2)
         .create();
 
     // A listener to the input stream removal.

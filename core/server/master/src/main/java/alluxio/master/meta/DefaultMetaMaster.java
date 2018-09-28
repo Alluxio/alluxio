@@ -139,8 +139,8 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
    * @param masterContext the context for Alluxio master
    */
   DefaultMetaMaster(BlockMaster blockMaster, MasterContext masterContext) {
-    this(blockMaster, masterContext, ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory(Constants.META_MASTER_NAME, 2));
+    this(blockMaster, masterContext,
+        ExecutorServiceFactories.cachedThreadPool(Constants.META_MASTER_NAME));
   }
 
   /**
