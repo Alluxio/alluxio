@@ -81,6 +81,7 @@ public final class Constants {
   public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 2;
   public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 2;
   public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long FILE_SYSTEM_MASTER_JOB_SERVICE_VERSION = 2;
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 2;
   public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
@@ -102,6 +103,7 @@ public final class Constants {
   public static final String BLOCK_MASTER_CLIENT_SERVICE_NAME = "BlockMasterClient";
   public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";
   public static final String FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME = "FileSystemMasterClient";
+  public static final String FILE_SYSTEM_MASTER_JOB_SERVICE_NAME = "FileSystemMasterJob";
   public static final String FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME = "FileSystemMasterWorker";
   // TODO(binfan): set META_MASTER_CLIENT_SERVICE_NAME to "MetaMasterClient" after 2.0.
   // Its value is "MetaMaster" for backwards compatibility so 1.7 clients can talk to 1.8 MetaMaster
@@ -179,6 +181,30 @@ public final class Constants {
 
   // Output stream flushed signal
   public static final String FLUSHED_SIGNAL = "FLUSHED";
+
+  // Job service
+  public static final String JOB_MASTER_WORKER_SERVICE_NAME = "JobMasterWorker";
+  public static final long JOB_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final String JOB_MASTER_NAME = "JobMaster";
+  public static final String JOB_MASTER_CLIENT_SERVICE_NAME = "JobMasterClient";
+  public static final int JOB_MASTER_CLIENT_SERVICE_VERSION = 1;
+  public static final String JOB_WORKER_NAME = "JobWorker";
+
+  public static final int JOB_DEFAULT_MASTER_PORT = 20001;
+  public static final int JOB_DEFAULT_MASTER_WEB_PORT = JOB_DEFAULT_MASTER_PORT + 1;
+  public static final int JOB_DEFAULT_WORKER_PORT = 30001;
+  public static final int JOB_DEFAULT_WORKER_DATA_PORT = JOB_DEFAULT_WORKER_PORT + 1;
+  public static final int JOB_DEFAULT_WORKER_WEB_PORT = JOB_DEFAULT_WORKER_PORT + 2;
+
+  // Journal
+  public static final String JOB_JOURNAL_NAME = "JobJournal";
+
+  // Replication
+  public static final int REPLICATION_MAX_INFINITY = -1;
+
+  // Persistence
+  public static final int PERSISTENCE_INVALID_JOB_ID = -1;
+  public static final String PERSISTENCE_INVALID_UFS_PATH = "";
 
   private Constants() {} // prevent instantiation
 }

@@ -58,6 +58,8 @@ public final class MetricsSystem {
    * An enum of supported instance type.
    */
   public enum InstanceType {
+    JOB_MASTER("JobMaster"),
+    JOB_WORKER("JobWorker"),
     MASTER("Master"),
     WORKER("Worker"),
     CLUSTER("Cluster"),
@@ -205,6 +207,10 @@ public final class MetricsSystem {
         return getProxyMetricName(name);
       case WORKER:
         return getWorkerMetricName(name);
+      case JOB_MASTER:
+        return getJobMasterMetricName(name);
+      case JOB_WORKER:
+        return getJobWorkerMetricName(name);
       default:
         throw new IllegalStateException("Unknown process type");
     }
@@ -272,6 +278,27 @@ public final class MetricsSystem {
    */
   public static String getClusterMetricName(String name) {
     return Joiner.on(".").join(CLUSTER, name);
+  }
+
+  /**
+   * Builds metric registry names for the job master instance. The pattern is instance.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  private static String getJobMasterMetricName(String name) {
+    return Joiner.on(".").join(InstanceType.JOB_MASTER, name);
+  }
+
+  /**
+   * Builds metric registry name for job worker instance. The pattern is
+   * instance.uniqueId.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getJobWorkerMetricName(String name) {
+    return getMetricNameWithUniqueId(InstanceType.JOB_WORKER, name);
   }
 
   /**

@@ -126,6 +126,8 @@ func getVersion() (string, error) {
 func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version string) {
 	chdir(srcPath)
 	pathsToCopy := []string{
+		"integration/docker/bin/alluxio-job-worker.sh",
+		"integration/docker/bin/alluxio-job-master.sh",
 		"bin/alluxio",
 		"bin/alluxio-masters.sh",
 		"bin/alluxio-monitor.sh",

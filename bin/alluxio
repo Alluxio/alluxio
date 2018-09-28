@@ -22,6 +22,7 @@ function printUsage {
   echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
   echo -e "  fsadmin       \t Command line tool for use by Alluxio filesystem admins."
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
+  echo -e "  job           \t Command line tool for interacting with the job service."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
   echo -e "  logLevel      \t Set or get log level of Alluxio servers."
   echo -e "  runClass      \t Run the main method of an Alluxio class."
@@ -292,6 +293,11 @@ function main {
     CLASS="alluxio.cli.GetConf"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.conf.validation.enabled=false"
+    runJavaClass "$@"
+  ;;
+  "job")
+    CLASS="alluxio.cli.job.JobShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   "loadufs")

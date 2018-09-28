@@ -93,6 +93,16 @@ public interface MasterInquireClient {
       }
     }
 
+    public static MasterInquireClient createForJobMaster() {
+      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+        return ZkMasterInquireClient.getClient(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
+            Configuration.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH),
+            Configuration.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH));
+      } else {
+        return new SingleMasterInquireClient(
+            NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC));
+      }
+    }
     /**
      * @param conf configuration for creating the master inquire client
      * @return the connect string represented by the configuration

@@ -20,6 +20,10 @@ BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 USAGE="Usage: alluxio-stop.sh [-h] [component]
 Where component is one of:
   all               \tStop all masters, proxies, and workers.
+  job_master        \tStop local job master.
+  job_masters       \tStop job masters on master nodes.
+  job_worker        \tStop local job worker.
+  job_workers       \tStop job workers on worker nodes.
   local             \tStop all processes locally.
   master            \tStop local primary master.
   secondary_master  \tStop local secondary master.
@@ -30,6 +34,22 @@ Where component is one of:
   workers           \tStop workers on worker nodes.
 
 -h  display this help."
+
+stop_job_master() {
+  ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioJobMaster"
+}
+
+stop_job_masters() {
+  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-stop.sh" "job_master"
+}
+
+stop_job_worker() {
+  ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.worker.AlluxioJobWorker"
+}
+
+stop_job_workers() {
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-stop.sh" "job_worker"
+}
 
 stop_master() {
   if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
@@ -70,16 +90,32 @@ WHAT=${1:--h}
 case "${WHAT}" in
   all)
     stop_proxies
+    stop_job_workers
     stop_workers
+    stop_job_masters
     stop_masters
     ;;
   local)
     stop_proxy
+    stop_job_worker
+    stop_job_master
     stop_worker
     ALLUXIO_MASTER_SECONDARY=true
     stop_master
     ALLUXIO_MASTER_SECONDARY=false
     stop_master
+    ;;
+  job_master)
+    stop_job_master
+    ;;
+  job_masters)
+    stop_job_masters
+    ;;
+  job_worker)
+    stop_job_worker
+    ;;
+  job_workers)
+    stop_job_workers
     ;;
   master)
     stop_master

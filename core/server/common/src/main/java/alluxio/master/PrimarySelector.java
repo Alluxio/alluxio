@@ -48,6 +48,16 @@ public interface PrimarySelector {
       return new PrimarySelectorClient(zkAddress, zkElectionPath, zkLeaderPath);
     }
 
+    /**
+     * @return a job master primary selector based on zookeeper configuration
+     */
+    public static PrimarySelector createZkJobPrimarySelector() {
+      String zkAddress = Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS);
+      String zkElectionPath = Configuration.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH);
+      String zkLeaderPath = Configuration.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH);
+      return new PrimarySelectorClient(zkAddress, zkElectionPath, zkLeaderPath);
+    }
+
     private Factory() {} // Not intended for instantiation.
   }
 

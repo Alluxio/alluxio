@@ -42,6 +42,11 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
   private boolean mCacheable;
   private boolean mCompleted;
   private long mLength;
+  private long mPersistJobId;
+  private int mReplicationDurable;
+  private int mReplicationMax;
+  private int mReplicationMin;
+  private String mTempUfsPath;
 
   /**
    * Creates a new instance of {@link InodeFile}.
@@ -56,6 +61,11 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
     mCacheable = false;
     mCompleted = false;
     mLength = 0;
+    mPersistJobId = Constants.PERSISTENCE_INVALID_JOB_ID;
+    mReplicationDurable = 0;
+    mReplicationMax = Constants.REPLICATION_MAX_INFINITY;
+    mReplicationMin = 0;
+    mTempUfsPath = Constants.PERSISTENCE_INVALID_UFS_PATH;
   }
 
   @Override
@@ -88,6 +98,8 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
     ret.setMode(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(false);
+    ret.setReplicationMax(getReplicationMax());
+    ret.setReplicationMin(getReplicationMin());
     ret.setUfsFingerprint(getUfsFingerprint());
     ret.setAcl(mAcl);
     return ret;
@@ -141,6 +153,31 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
           "blockIndex " + blockIndex + " is out of range. File blocks: " + mBlocks.size());
     }
     return mBlocks.get(blockIndex);
+  }
+
+  @Override
+  public long getPersistJobId() {
+    return mPersistJobId;
+  }
+
+  @Override
+  public int getReplicationDurable() {
+    return mReplicationDurable;
+  }
+
+  @Override
+  public int getReplicationMax() {
+    return mReplicationMax;
+  }
+
+  @Override
+  public int getReplicationMin() {
+    return mReplicationMin;
+  }
+
+  @Override
+  public String getTempUfsPath() {
+    return mTempUfsPath;
   }
 
   @Override
@@ -212,11 +249,68 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
   }
 
   /**
+   * @param persistJobId the id of the job persisting this file
+   * @return the updated object
+   */
+  public InodeFile setPersistJobId(long persistJobId) {
+    mPersistJobId = persistJobId;
+    return getThis();
+  }
+
+  /**
+   * @param replicationDurable the durable number of block replication
+   * @return the updated object
+   */
+  public InodeFile setReplicationDurable(int replicationDurable) {
+    mReplicationDurable = replicationDurable;
+    return getThis();
+  }
+
+  /**
+   * @param replicationMax the maximum number of block replication
+   * @return the updated object
+   */
+  public InodeFile setReplicationMax(int replicationMax) {
+    mReplicationMax = replicationMax;
+    return getThis();
+  }
+
+  /**
+   * @param replicationMin the minimum number of block replication
+   * @return the updated object
+   */
+  public InodeFile setReplicationMin(int replicationMin) {
+    mReplicationMin = replicationMin;
+    return getThis();
+  }
+
+  /**
+   * @param tempUfsPath the temporary UFS path this file is persisted to
+   * @return the updated object
+   */
+  public InodeFile setTempUfsPath(String tempUfsPath) {
+    mTempUfsPath = tempUfsPath;
+    return getThis();
+  }
+
+  /**
    * Updates this inode file's state from the given entry.
    *
    * @param entry the entry
    */
   public void updateFromEntry(UpdateInodeFileEntry entry) {
+    if (entry.hasPersistJobId()) {
+      setPersistJobId(entry.getPersistJobId());
+    }
+    if (entry.hasReplicationMax()) {
+      setReplicationMax(entry.getReplicationMax());
+    }
+    if (entry.hasReplicationMin()) {
+      setReplicationMin(entry.getReplicationMin());
+    }
+    if (entry.hasTempUfsPath()) {
+      setTempUfsPath(entry.getTempUfsPath());
+    }
     if (entry.hasBlockSizeBytes()) {
       setBlockSizeBytes(entry.getBlockSizeBytes());
     }
@@ -242,6 +336,11 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("cacheable", mCacheable)
         .add("completed", mCompleted)
+        .add("persistJobId", mPersistJobId)
+        .add("replicationDurable", mReplicationDurable)
+        .add("replicationMax", mReplicationMax)
+        .add("replicationMin", mReplicationMin)
+        .add("tempUfsPath", mTempUfsPath)
         .add("length", mLength).toString();
   }
 
@@ -265,6 +364,11 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
+        .setPersistJobId(entry.getPersistJobId())
+        .setReplicationDurable(entry.getReplicationDurable())
+        .setReplicationMax(entry.getReplicationMax())
+        .setReplicationMin(entry.getReplicationMin())
+        .setTempUfsPath(entry.getTempUfsPath())
         .setTtl(entry.getTtl())
         .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
         .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
@@ -295,10 +399,16 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
    */
   public static InodeFile create(long blockContainerId, long parentId, String name,
       long creationTimeMs, CreateFileOptions options) {
+    Preconditions.checkArgument(
+        options.getReplicationMax() == Constants.REPLICATION_MAX_INFINITY
+        || options.getReplicationMax() >= options.getReplicationMin());
     return new InodeFile(blockContainerId)
         .setBlockSizeBytes(options.getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)
         .setName(name)
+        .setReplicationDurable(options.getReplicationDurable())
+        .setReplicationMax(options.getReplicationMax())
+        .setReplicationMin(options.getReplicationMin())
         .setTtl(options.getTtl())
         .setTtlAction(options.getTtlAction())
         .setParentId(parentId)
@@ -326,6 +436,11 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .setParentId(getParentId())
         .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
+        .setReplicationDurable(getReplicationDurable())
+        .setReplicationMax(getReplicationMax())
+        .setReplicationMin(getReplicationMin())
+        .setPersistJobId(getPersistJobId())
+        .setTempUfsPath(getTempUfsPath())
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setUfsFingerprint(getUfsFingerprint())

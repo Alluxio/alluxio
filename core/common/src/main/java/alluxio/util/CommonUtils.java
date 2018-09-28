@@ -528,6 +528,8 @@ public final class CommonUtils {
 
   /** Alluxio process types. */
   public enum ProcessType {
+    JOB_MASTER,
+    JOB_WORKER,
     CLIENT,
     MASTER,
     PROXY,

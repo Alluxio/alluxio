@@ -67,5 +67,10 @@
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-job-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 </project>
