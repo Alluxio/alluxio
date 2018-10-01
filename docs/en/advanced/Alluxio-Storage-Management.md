@@ -22,21 +22,32 @@ priority: 0
 - the indication to application I/O performance when data is cached in Alluxio storage. -->
 <!-- ################## -->
 
+The purpose of this documentation is to introduce users to the concepts behind Alluxio storage and
+the operations that can be performed within Alluxio storage space. For metadata related operations
+such as syncing and namespaces, refer to the
+[page on namespace management]({{site.baseurl}}{% link en/advanced/Namespace-Management.md %})
+
 Alluxio helps unify users' data across a variety of platforms while also helping to increase
 overall I/O throughput from a user's perspective. Alluxio accomplishes this by splitting storage
-into two distinct categories
+into two distinct categories.
 
-- **UFS (Under Filesystem, also sometimes called under storage)**
+- **UFS (Under File Storage, also sometimes called under storage)**
     - This storage is represented as space which is not managed by Alluxio. UFS storage may come
     from an external system such as HDFS, S3, or any other type of filesystem. Alluxio
-    may connect to one or more of these UFSs and expose them within a single namespace. This is one
-    of the main features of Alluxio.
+    may connect to one or more of these UFSs and expose them within a single namespace.
+    - Typically, UFS storage is aimed at storing large amounts of data persistently for extended
+    periods of time.
 - **Alluxio storage**
     - Alluxio manages the local storage, including memory, of Alluxio workers to act as a
     distributed buffer cache. This fast data layer between user applications and the various under
     storages results in vastly improved I/O performance.
+    - Alluxio storage is mainly aimed at storing hot, transient data and is not focused on long-term
+    persistence.
     - The amount and type of storage for each Alluxio node to manage is determined by user
     configuration.
+    - Even if data is not currently within Alluxio storage, files within a connected UFS are still
+    visible to Alluxio clients. When a client attempts to read a file which is only in a UFS
+    the data will be copied into Alluxio storage.
 
 
 <!-- Will eventually get an image specifically for docs, but for now will use this as reference -->
@@ -242,8 +253,8 @@ process.
 
 Out-of-the-box evictor implementations include:
 
-- **GreedyEvictor**: Evicts arbitrary blocks until the required size is freed.
-- **LRUEvictor**: Evicts the least-recently-used blocks until the required size is freed.
+- **GreedyEvictor**: Evicts arbitrary blocks until the required space is freed.
+- **LRUEvictor**: Evicts the least-recently-used blocks until the required space is freed.
 **This is Alluxio's default evictor**
 - **LRFUEvictor**: Evicts blocks based on least-recently-used and least-frequently-used with a
 configurable weight.
@@ -257,6 +268,14 @@ maximum free space and only evict from that StorageDir.
 
 The evictor utilized by workers is determined by the Alluxio property
 [`alluxio.worker.evictor.class`]({{site.basurl}}{% link en/reference/Properties-List.md %}#alluxio.worker.evictor.class).
+The property should specify the fully qualified class name within the configuration. Currently
+available options are:
+
+- `alluxio.worker.block.evictor.GreedyEvictor`
+- `alluxio.worker.block.evictor.LRUEvictor`
+- `alluxio.worker.block.evictor.LRFUEvictor`
+- `alluxio.worker.block.evictor.PartialLRUEvictor`
+
 In the future, additional evictors may be available.
 
 When using synchronous eviction, it is recommended to use smaller block sizes (around 64-128MB),
@@ -269,7 +288,7 @@ eviction behavior. You can create your own custom evictor by implementing the
 If you want to see sample evictor implementations, you can find them under
 `alluxio.worker.block.evictor` package. In order to specify your own custom evictor in the
 `alluxio.worker.evictor.class` property you must compile your evictor implementation to a JAR
-file, and then add the JAR file to the java classpath when starting the Alluxio master and workers.
+file, and then add the JAR file to the java classpath when starting the Alluxio workers.
 
 
 ## Manage Data in Alluxio
@@ -289,16 +308,17 @@ to properly utilize the available resources. Users should understanding the foll
 
 - **free**: Freeing data in Alluxio means removing data from the Alluxio cache, but not the
 underlying UFS. Data is still available to users after a free, but performance may be degraded
-to those who attempt to access a file after it has been freed from Alluxio.
-- **load**: Loading data into Alluxio means moving it from a UFS into Alluxio cache. If
+for those who attempt to access a file after it has been freed from Alluxio.
+- **load**: Loading data into Alluxio means copying it from a UFS into Alluxio cache. If
 Alluxio is using memory-based storage, users will likely see I/O performance improvements after
 loading data into Alluxio.
 - **persist**: In the context of Alluxio persisting means writing data which may or may not have
 been modified within Alluxio storage back to a UFS. By writing data back to a UFS data is
-guaranteed not to be lost if an ALluxio node goes down.
+guaranteed not to be lost if an Alluxio node goes down.
 - **TTL (Time to Live)**: Files and directories within Alluxio space have a TTL property which can
 be set in order to effectively manage Alluxio space. By setting a TTL Alluxio remove old data from
-the Alluxio cache after a period of time in order to make room for new data.
+the Alluxio cache after a period of time in order to make room for new data. UFS data can also be
+managed by setting the `TTLAction` to "_delete_".
 
 ### Freeing Data from Alluxio Storage
 
@@ -329,13 +349,15 @@ $ ./bin/alluxio fs load ${PATH_TO_FILE}
 If there is data within the local filesystem, the
 [command `copyFromLocal`]({{site.baseurl}}{% link en/advanced/Command-Line-Interface.md %}#copyfromlocal)
 which can be used to load data into Alluxio storage, but will not persist the data to a UFS.
-Manually loading data is not recommended as Alluxio will automatically load data into the Alluxio
-cache when a file is used frequently.
+However, setting the write type will also control whether or not data will be written to the UFS or
+not. The `MUST_CACHE` write type will _not_ persist data to a UFS while `CACHE` and `CACHE_THROUGH`
+will. Manually loading data is not recommended as Alluxio will automatically load data into the
+Alluxio cache when a file is used even once.
 
 ### Persisting Data in Alluxio
 
 [The `alluxio fs persist`]({{site.baseurl}}{% link en/advanced/Command-Line-Interface.md %}#persist)
-command allows a user to push data from the Alluxio cache to to a UFS.
+command allows a user to push data from the Alluxio cache to a UFS.
 
 ```bash
 $ ./bin/alluxio fs persist ${PATH_TO_FILE}
@@ -397,7 +419,7 @@ SetTTL(path, duration, action)
                 any previous value
 `action`        the action to take when duration has elapsed. `FREE` will cause the file to be
                 evicted from Alluxio storage, regardless of the pin status. `DELETE` will cause the
-                file to be deleted from the Alluxio namespace **and** under store.
+                file to be deleted from the Alluxio namespace and under store.
                 NOTE: `DELETE` is the default for certain commands and will cause the file to be
                 permanently removed.
 ```
@@ -449,10 +471,34 @@ duration, ie. 1 minute.
 <!-- TODO(Zac): Add examples on check capacity, fraction of used capacity and etc -->
 <!-- ################## -->
 
-## Verifying Alluxio Cache Capacity and Usage
+## Checking Alluxio Cache Capacity and Usage
 
-The alluxio shell exposes two commands which allow a user to verify how much space is available to
-the Alluxio cache as well as how much space is currently in use. The `fs getCapacityBytes` and
+To get a report containing information about the used and available space within an Alluxio cluster
+the Alluxio shell command `fsadmin report` provides a short summary of space availability along with
+some other useful information. Sample output is shown below
+
+```
+$ ./bin/alluxio fsadmin report
+Alluxio cluster summary:
+    Master Address: localhost/127.0.0.1:19998
+    Web Port: 19999
+    Rpc Port: 19998
+    Started: 09-28-2018 12:52:09:486
+    Uptime: 0 day(s), 0 hour(s), 0 minute(s), and 26 second(s)
+    Version: 1.8.0
+    Safe Mode: true
+    Zookeeper Enabled: false
+    Live Workers: 1
+    Lost Workers: 0
+    Total Capacity: 10.67GB
+        Tier: MEM  Size: 10.67GB
+    Used Capacity: 0B
+        Tier: MEM  Size: 0B
+    Free Capacity: 10.67GB
+```
+
+The alluxio shell also exposes two commands which allow a user to check how much space is available
+to the Alluxio cache as well as how much space is currently in use. The `fs getCapacityBytes` and
 `fs getUsedBytes` commands show a user how many bytes of available and used storage are in the
 Alluxio cache respectively.
 
@@ -472,6 +518,6 @@ To determine the percentage of used space you can do `100 * (getUsedBytes/getCap
 Another option to view the storage capacity and usage of an Alluxio cluster is by using the web
 interface which can be found at `http:/{MASTER_IP}:${alluxio.master.web.port}/
 
-The web interface gives the user a visual overview of the cluster and how much storage space is
-used. More detailed information about the Alluxio web interface can be
+The Alluxio master web interface gives the user a visual overview of the cluster and how much
+storage space is used. More detailed information about the Alluxio web interface can be
 [found in our documentation]({{site.baseurl}}{% link en/advanced/Web-Interface.md %})
