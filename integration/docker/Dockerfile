@@ -11,7 +11,7 @@
 
 FROM openjdk:8-jdk-alpine
 
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.8.0/alluxio-1.8.0-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.8.1/alluxio-1.8.1-bin.tar.gz
 
 RUN apk add --update bash && \
     rm -rf /var/cache/apk/*
