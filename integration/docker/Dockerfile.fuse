@@ -11,7 +11,7 @@
 
 FROM ubuntu:16.04
 
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.8.0/alluxio-1.8.0-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.8.1/alluxio-1.8.1-bin.tar.gz
 ENV ENABLE_FUSE true
 
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
