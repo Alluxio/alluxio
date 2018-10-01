@@ -11,25 +11,13 @@ priority: 5
 ## Introduction
 Alluxio can be deployed locally or in the cloud using the [Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with Alluxio. The scripts let you create, configure, and destroy clusters that come automatically configured locally, with [Amazon EC2](https://ec2.amazon.com/) or with [Google Compute Engine](https:/cloud.google.com).
 
-## Deploy using Vagrant on Virtual Box
-### Prerequisites
-**Install VirtualBox**
+## Common Prerequisites
+There are several prerequisites for all three deployment scenarios that are suppported. 
 
-Download [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
-
-**Install Vagrant**
-
-Download [Vagrant](https://www.vagrantup.com/downloads.html)
-
-**Install Alluxio**
-
-[Clone Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine
-
-**Install python library dependencies**
-
-Install [python>=2.7](https://www.python.org/), not python3.
-
-Under `deploy/vagrant` directory in your home directory, run:
+* Download and Install [Vagrant](https://www.vagrantup.com/downloads.html)
+* [Clone Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine
+* Download and Install [python>=2.7](https://www.python.org/), not python3.
+* Install python library dependencies, under `deploy/vagrant` directory in your home directory, run:
 
 ```bash
 $ sudo bash bin/install.sh
@@ -41,6 +29,13 @@ in `deploy/vagrant` run:
 ```bash
 $ sudo pip install -r pip-req.txt
 ```
+
+
+## Deploy locally on Virtual Box using Vagrant 
+### Additional Prerequisites
+
+* Download and Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+
 ### Launch Cluster
 
 Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem by running the script under deploy/vagrant:
@@ -112,40 +107,15 @@ $ ./destroy
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the virtual machines are terminated.
 
-## Deploy using Vagrant on AWS EC2
+## Deploy on AWS EC2 using Vagrant
 
-### Prerequisites
+### Additional Prerequisites
 
-**Install Vagrant and the AWS plugins**
-
-Download [Vagrant](https://www.vagrantup.com/downloads.html)
-
-Install AWS Vagrant plugin:
+* Install AWS Vagrant plugin:
 
 ```bash
 $ vagrant plugin install vagrant-aws
 $ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
-```
-
-**Install Alluxio**
-
-[Clone Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine.
-
-**Install python library dependencies**
-
-Install [python>=2.7](https://www.python.org/), not python3.
-
-Under `deploy/vagrant` directory in your home directory, run:
-
-```bash
-$ sudo bash bin/install.sh
-```
-
-Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/installing/), and then
-in `deploy/vagrant` run:
-
-```bash
-$ sudo pip install -r pip-req.txt
 ```
 
 ### Launch Cluster
@@ -285,40 +255,15 @@ $ ./create <number of machines> aws
 
 Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
 
-## Deploy with Vagrant on GCE
+## Deploy on Google Compute Engine (GCE) with Vagrant 
 
-### Prerequisites
+### Additional Prerequisites
 
-**Install Vagrant and the Google plugin**
-
-Download [Vagrant](https://www.vagrantup.com/downloads.html)
-
-Install the Google Vagrant plugin:
+* Download and Install the Google Vagrant plugin:
 
 ```bash
 $ vagrant plugin install vagrant-google
 $ vagrant box add google https://github.com/mitchellh/vagrant-google/raw/master/google.box
-```
-
-**Install Alluxio**
-
-[Clone the Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine.
-
-**Install python library dependencies**
-
-Install [python>=2.7](https://www.python.org/), not python3.
-
-If you already have [pip](https://pip.pypa.io/en/latest/installing/) installed, you can directly
-install the dependencies by running the following in the `deploy/vagrant` of the Alluxio install:
-
-```bash
-$ sudo bash bin/install.sh
-```
-
-If you do not have `pip` installed, in the `deploy/vagrant` directory of the Alluxio install, run:
-
-```bash
-$ sudo pip install -r pip-req.txt
 ```
 
 ### Launch a Cluster
