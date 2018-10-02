@@ -145,3 +145,26 @@ YARN is using hostnames, the master cannot be started.
 
 The Alluxio [user mailing list](https://groups.google.com/forum/#!forum/alluxio-users) is
 a good resource for getting help if the log messages aren't enough.
+
+## Configure yarn.application.classpath
+
+To enable your YARN applications to communicate with Alluxio servers, add the alluxio
+client jar to each YARN node, either by adding it to a directory on your
+`yarn.application.classpath`, or updating the classpath to include the client jar.
+For example,
+
+```
+<property>
+ <name>yarn.application.classpath</name>
+ <value>$HADOOP_CONF_DIR,
+ $HADOOP_COMMON_HOME/share/hadoop/common/*,
+ $HADOOP_COMMON_HOME/share/hadoop/common/lib/*,
+ $HADOOP_HDFS_HOME/share/hadoop/hdfs/*,
+ $HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,
+ $HADOOP_YARN_HOME/share/hadoop/yarn/*,
+ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*,
+ $ALLUXIO_HOME/client/*</value>
+</property>
+```
+
+Make sure to replace `$ALLUXIO_HOME` with the path that you've installed Alluxio to.
