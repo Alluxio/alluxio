@@ -12,16 +12,6 @@ priority: 0
 
 ## Alluxio Storage Overview
 
-
-<!-- ################## -->
-<!-- TODO(Zac): Add an overview of Alluxio storage here, covering
-- relationship and difference between Alluxio storage and under storage.
-    * replication: hot data in Alluxio storage can have mulitple copies
-    * once data is persisted, data can have zero copy in Alluxio but still available to
-   applications.
-- the indication to application I/O performance when data is cached in Alluxio storage. -->
-<!-- ################## -->
-
 The purpose of this documentation is to introduce users to the concepts behind Alluxio storage and
 the operations that can be performed within Alluxio storage space. For metadata related operations
 such as syncing and namespaces, refer to the
@@ -51,7 +41,7 @@ into two distinct categories.
 
 
 <!-- Will eventually get an image specifically for docs, but for now will use this as reference -->
-![Alluxio storage diagram](https://www.alluxio.org/images/alluxio-unifies-access.png)
+![Alluxio storage diagram]({{site.baseurl}}{% link img/stack.png %})
 
 One of the reasons that Alluxio storage improves performance is that it stores data in memory
 co-located with compute nodes. Another reason is that Alluxio makes "hot" data more available to
@@ -241,12 +231,6 @@ available Alluxio space. In general, we recommend to use asynchronous eviction.
 
 ### Eviction Policies
 
-<!-- ################## -->
-<!-- TODO(Zac): cleanup this section.
-We should describe the default behavior, and give use cases for why users would want to use each evictor.
-And we mention that users can write their own evictors, but don't give any resources for them to do that. -->
-<!-- ################## -->
-
 Alluxio uses evictors for deciding which blocks to remove from Alluxio storage, when space needs to
 be freed. Users can specify the Alluxio evictor to achieve fine grained control over the eviction
 process.
@@ -292,16 +276,6 @@ file, and then add the JAR file to the java classpath when starting the Alluxio 
 
 
 ## Manage Data in Alluxio
-
-<!-- ################## -->
-<!-- TODO(Zac): Explain Alluxio-specific concepts in storage which is unique to Alluxio.
-We want to cover
-- "free": remove data from Alluxio space but the same data will still be available in UFS if
-persisted
-- "load": preload data from UFS to Alluxio
-- "persist"
-- "ttl": this section is already added. -->
-<!-- ################## -->
 
 Within an Alluxio cluster there are concepts related to storage which must be understood in order
 to properly utilize the available resources. Users should understanding the following:
@@ -366,15 +340,7 @@ $ ./bin/alluxio fs persist ${PATH_TO_FILE}
 This command is useful if you have data which you loaded into Alluxio which didn't come from a
 configured UFS. Most of the time users should not need to worry about manually persisting data.
 
-<!-- Note that, since this article is already long, we want to stay in the concept plus possible examples
-using Alluxio CLI. Let's not go deep into Java-level examples. -->
-
-
 ### Setting Time to Live (TTL)
-
-<!-- ################## -->
-<!-- TODO(Zac): Clean up this section on setting TTL on data. e.g., we can remove the Java API examples. -->
-<!-- ################## -->
 
 Alluxio supports a `Time to Live (TTL)` setting on each file and directory in the namespace. This
 feature can be used to effectively manage the Alluxio cache, especially in environments with strict
@@ -467,17 +433,13 @@ $ bin/alluxio runTests -Dalluxio.user.file.create.ttl=1m -Dalluxio.user.file.cre
 Note, if you try this example, make sure the `alluxio.master.ttl.checker.interval` is set to a short
 duration, ie. 1 minute.
 
-<!-- ################## -->
-<!-- TODO(Zac): Add examples on check capacity, fraction of used capacity and etc -->
-<!-- ################## -->
-
 ## Checking Alluxio Cache Capacity and Usage
 
 To get a report containing information about the used and available space within an Alluxio cluster
 the Alluxio shell command `fsadmin report` provides a short summary of space availability along with
 some other useful information. Sample output is shown below
 
-```
+```bash
 $ ./bin/alluxio fsadmin report
 Alluxio cluster summary:
     Master Address: localhost/127.0.0.1:19998
@@ -505,13 +467,13 @@ Alluxio cache respectively.
 To get the total used bytes:
 
 ```bash
-./bin/alluxio fs getUsedBytes
+$ ./bin/alluxio fs getUsedBytes
 ```
 
 To get the total capacity in bytes:
 
 ```bash
-./bin/alluxio fs getCapacityBytes
+$ ./bin/alluxio fs getCapacityBytes
 ```
 
 To determine the percentage of used space you can do `100 * (getUsedBytes/getCapacityBytes)`.
