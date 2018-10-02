@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Deploy Alluxio using YARN
-nickname: Deploy Alluxio with YARN
+title: Alluxio with YARN
+nickname: Alluxio with YARN
 group: Deploying Alluxio
 priority: 6
 ---
@@ -168,4 +168,4 @@ For example,
 </property>
 ```
 
-Make sure to replace `$ALLUXIO_HOME` with the path that you've installed Alluxio to.
+Make sure to replace `$ALLUXIO_HOME` with the path of your Alluxio installation.
