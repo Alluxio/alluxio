@@ -12,21 +12,49 @@ priority: 0
 
 ## Alluxio Storage Overview
 
-TODO(Zac): Add an overview of Alluxio storage here, covering
-- relationship and difference between Alluxio storage and under storage.
-    * replication: hot data in Alluxio storage can have mulitple copies
-    * once data is persisted, data can have zero copy in Alluxio but still available to
-   applications.
-- the indication to application I/O performance when data is cached in Alluxio storage.
+The purpose of this documentation is to introduce users to the concepts behind Alluxio storage and
+the operations that can be performed within Alluxio storage space. For metadata related operations
+such as syncing and namespaces, refer to the
+[page on namespace management]({{site.baseurl}}{% link en/advanced/Namespace-Management.md %})
 
-Alluxio manages the local storage, including memory, of Alluxio workers to act as a distributed
-buffer cache. This fast data layer between user applications and the various under storages results
-in vastly improved I/O performance.
+Alluxio helps unify users' data across a variety of platforms while also helping to increase
+overall I/O throughput from a user's perspective. Alluxio accomplishes this by splitting storage
+into two distinct categories.
 
-The amount and type of storage for each Alluxio node to manage is determined by user configuration.
+- **UFS (Under File Storage, also sometimes called under storage)**
+    - This storage is represented as space which is not managed by Alluxio. UFS storage may come
+    from an external system such as HDFS, S3, or any other type of filesystem. Alluxio
+    may connect to one or more of these UFSs and expose them within a single namespace.
+    - Typically, UFS storage is aimed at storing large amounts of data persistently for extended
+    periods of time.
+- **Alluxio storage**
+    - Alluxio manages the local storage, including memory, of Alluxio workers to act as a
+    distributed buffer cache. This fast data layer between user applications and the various under
+    storages results in vastly improved I/O performance.
+    - Alluxio storage is mainly aimed at storing hot, transient data and is not focused on long-term
+    persistence.
+    - The amount and type of storage for each Alluxio node to manage is determined by user
+    configuration.
+    - Even if data is not currently within Alluxio storage, files within a connected UFS are still
+    visible to Alluxio clients. When a client attempts to read a file which is only in a UFS
+    the data will be copied into Alluxio storage.
+
+
+![Alluxio storage diagram]({{site.baseurl}}{% link img/stack.png %})
+
+One of the reasons that Alluxio storage improves performance is that it stores data in memory
+co-located with compute nodes. Another reason is that Alluxio makes "hot" data more available to
+nodes by creating more replicas of data within Alluxio storage so more I/O operations may occur in
+parallel.
+
+Replicas of data within Alluxio are independent of the replicas which may exist within a UFS. The
+number of data replicas within Alluxio storage is determined dynamically by cluster activity. It is
+also possible to have zero copies of a file within Alluxio, but still have access to it. Due to the
+fact that Alluxio relies on UFSs for a majority of data storage, Alluxio doesn't need to always
+keep copies of data that aren't currently being used. 
+
 Alluxio also supports tiered storage, which makes the system storage media aware, enabling data
 storage optimizations similar to L1/L2 cpu caches.
-
 
 ## Configure Alluxio Storage
 
@@ -182,71 +210,136 @@ For example, to turn off asynchronous eviction:
 alluxio.worker.tieredstore.reserver.enabled=false
 ```
 
-Asynchronous eviction is the default implementation of eviction. It relies on a periodic space reserver
-thread in each worker to evict data. It waits until the worker storage utilization reaches a configurable
- high watermark. Then it evicts data based on the eviction policy until it reaches the configurable low
-  watermark. For example, if we had the same 16+100+100=216GB storage configured, we can set eviction to
-  kick in at around 200GB and stop at around 160GB:
+Asynchronous eviction is the default implementation of eviction. It relies on a periodic space
+reserver thread in each worker to evict data. It waits until the worker storage utilization reaches
+a configurable high watermark. Then it evicts data based on the eviction policy until it reaches the
+configurable low watermark. For example, if we had the same 16+100+100=216GB storage configured,
+we can set eviction to kick in at around 200GB and stop at around 160GB:
 
-```
+```properties
 alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9 # 216GB * 0.9 ~ 200GB
 alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75 # 216GB * 0.75 ~ 160GB
 ```
 
 In write or read-cache heavy workloads, asynchronous eviction can improve performance.
 
-Synchronous eviction waits for a client to request more space than is currently available on the worker
-and then kicks off the eviction process to free up enough space to serve that request. This leads to many
-small eviction attempts, which is less efficient but maximizes the utilization of available Alluxio space.
-In general, we recommend to use asynchronous eviction.
+Synchronous eviction waits for a client to request more space than is currently available on the
+worker and then kicks off the eviction process to free up enough space to serve that request. This
+leads to many small eviction attempts, which is less efficient but maximizes the utilization of
+available Alluxio space. In general, we recommend to use asynchronous eviction.
 
 ### Eviction Policies
 
-TODO(Zac): cleanup this section.
-We should describe the default behavior, and give use cases for why users would want to use each evictor.
-And we mention that users can write their own evictors, but don't give any resources for them to do that.
-
-
-Alluxio uses evictors for deciding which blocks to evict, when space needs to be
-freed. Users can specify the Alluxio evictor to achieve fine grained control over the eviction
+Alluxio uses evictors for deciding which blocks to remove from Alluxio storage, when space needs to
+be freed. Users can specify the Alluxio evictor to achieve fine grained control over the eviction
 process.
 
-Alluxio supports custom evictors. Out-of-the-box implementations include:
+Out-of-the-box evictor implementations include:
 
-* **GreedyEvictor**: Evicts arbitrary blocks until the required size is freed.
-* **LRUEvictor**: Evicts the least-recently-used blocks until the required size is freed.
-* **LRFUEvictor**: Evicts blocks based on least-recently-used and least-frequently-used with a configurable weight.
-    If the weight is completely biased toward least-recently-used, the behavior will be the same as
-    the LRUEvictor.
-* **PartialLRUEvictor** : Evicts based on least-recently-used but will choose StorageDir with
+- **GreedyEvictor**: Evicts arbitrary blocks until the required space is freed.
+- **LRUEvictor**: Evicts the least-recently-used blocks until the required space is freed.
+**This is Alluxio's default evictor**
+- **LRFUEvictor**: Evicts blocks based on least-recently-used and least-frequently-used with a
+configurable weight.
+    - If the weight is completely biased toward least-recently-used, the behavior will be the same
+    as the LRUEvictor.
+    - The applicable configuration properties are `alluxio.worker.evictor.lrfu.step.factor` and
+    `alluxio.worker.evictor.lrfu.attenuation.factor.` which can be found in
+    [configuration properties]({{site.baseurl}}{% link en/reference/Properties-List.md %}#alluxio.worker.evictor.lrfu.step.factor)
+- **PartialLRUEvictor** : Evicts based on least-recently-used but will choose StorageDir with
 maximum free space and only evict from that StorageDir.
 
-In the future, additional evictors will be available. Since Alluxio supports custom evictors,
-you can also develop your own evictor appropriate for your workload.
+The evictor utilized by workers is determined by the Alluxio property
+[`alluxio.worker.evictor.class`]({{site.basurl}}{% link en/reference/Properties-List.md %}#alluxio.worker.evictor.class).
+The property should specify the fully qualified class name within the configuration. Currently
+available options are:
+
+- `alluxio.worker.block.evictor.GreedyEvictor`
+- `alluxio.worker.block.evictor.LRUEvictor`
+- `alluxio.worker.block.evictor.LRFUEvictor`
+- `alluxio.worker.block.evictor.PartialLRUEvictor`
+
+In the future, additional evictors may be available.
 
 When using synchronous eviction, it is recommended to use smaller block sizes (around 64-128MB),
 to reduce the latency of block eviction. When using the space reserver, block size does not affect
 eviction latency.
 
+Alluxio also supports custom evictors so that you can have even finer-grained control over Alluxio
+eviction behavior. You can create your own custom evictor by implementing the
+[Evictor interface](https://github.com/Alluxio/alluxio/blob/master/core/server/worker/src/main/java/alluxio/worker/block/evictor/Evictor.java).
+If you want to see sample evictor implementations, you can find them under
+`alluxio.worker.block.evictor` package. In order to specify your own custom evictor in the
+`alluxio.worker.evictor.class` property you must compile your evictor implementation to a JAR
+file, and then add the JAR file to the java classpath when starting the Alluxio workers.
+
+
 ## Manage Data in Alluxio
 
-TODO(Zac): Explain Alluxio-specific concepts in storage which is unique to Alluxio.
-We want to cover
-- "free": remove data from Alluxio space but the same data will still be available in UFS if
-persisted
-- "load": preload data from UFS to Alluxio
-- "persist"
-- "ttl": this section is already added.
+Within an Alluxio cluster there are concepts related to storage which must be understood in order
+to properly utilize the available resources. Users should understanding the following:
 
-Note that, since this article is already long, we want to stay in the concept plus possible examples
-using Alluxio CLI. Let's not go deep into Java-level examples.
+- **free**: Freeing data in Alluxio means removing data from the Alluxio cache, but not the
+underlying UFS. Data is still available to users after a free, but performance may be degraded
+for those who attempt to access a file after it has been freed from Alluxio.
+- **load**: Loading data into Alluxio means copying it from a UFS into Alluxio cache. If
+Alluxio is using memory-based storage, users will likely see I/O performance improvements after
+loading data into Alluxio.
+- **persist**: In the context of Alluxio persisting means writing data which may or may not have
+been modified within Alluxio storage back to a UFS. By writing data back to a UFS data is
+guaranteed not to be lost if an Alluxio node goes down.
+- **TTL (Time to Live)**: Files and directories within Alluxio space have a TTL property which can
+be set in order to effectively manage Alluxio space. By setting a TTL Alluxio remove old data from
+the Alluxio cache after a period of time in order to make room for new data. UFS data can also be
+managed by setting the `TTLAction` to "_delete_".
 
-TODO(Zac): Add examples on check capacity, fraction of used capacity and etc
+### Freeing Data from Alluxio Storage
 
+In order to manually free data in Alluxio, you can use the `./bin/alluxio` filesystem command
+line interface.
 
-### Set Time to Live (TTL)
+```bash
+$ ./bin/alluxio fs free ${PATH_TO_UNUSED_DATA}
+```
 
-TODO(Zac): Clean up this section on setting TTL on data. e.g., we can remove the Java API examples.
+This will remove data from Alluxio storage. but if the data is persisted to a UFS, it will still be
+accessible. For more information refer to the
+[command line interface documentation]({{site.baseurl}}{% link en/advanced/Command-Line-Interface.md %}#free)
+
+It should be noted that a user typically should not need to manually free data from Alluxio as the
+configured [eviction policy](#eviction-policies) will take care of removing unused or old data.
+
+### Loading Data into Alluxio Storage
+
+There are a couple ways that a user may move data into Alluxio storage. If the data is already in a
+UFS, then the user may use
+[`alluxio fs load`]({{site.baseurl}}{% link en/advanced/Command-Line-Interface.md %}#load)
+
+```bash
+$ ./bin/alluxio fs load ${PATH_TO_FILE}
+```
+
+If there is data within the local filesystem, the
+[command `copyFromLocal`]({{site.baseurl}}{% link en/advanced/Command-Line-Interface.md %}#copyfromlocal)
+which can be used to load data into Alluxio storage, but will not persist the data to a UFS.
+However, setting the write type will also control whether or not data will be written to the UFS or
+not. The `MUST_CACHE` write type will _not_ persist data to a UFS while `CACHE` and `CACHE_THROUGH`
+will. Manually loading data is not recommended as Alluxio will automatically load data into the
+Alluxio cache when a file is used even once.
+
+### Persisting Data in Alluxio
+
+[The `alluxio fs persist`]({{site.baseurl}}{% link en/advanced/Command-Line-Interface.md %}#persist)
+command allows a user to push data from the Alluxio cache to a UFS.
+
+```bash
+$ ./bin/alluxio fs persist ${PATH_TO_FILE}
+```
+
+This command is useful if you have data which you loaded into Alluxio which didn't come from a
+configured UFS. Most of the time users should not need to worry about manually persisting data.
+
+### Setting Time to Live (TTL)
 
 Alluxio supports a `Time to Live (TTL)` setting on each file and directory in the namespace. This
 feature can be used to effectively manage the Alluxio cache, especially in environments with strict
@@ -270,8 +363,8 @@ For example, to set the interval to 10 minutes, add the following to `alluxio-si
 alluxio.master.ttl.checker.interval=10m
 ```
 
-Refer to the [configuration page](Configuration-Settings.html) for more details on setting Alluxio
-configurations.
+Refer to the [configuration page]({{site.baseurl}} {% link en/advanced/Configuration-Settings.md %})
+for more details on setting Alluxio configurations.
 
 While the master node enforces TTLs, it is up to the clients to set the appropriate TTLs.
 
@@ -280,7 +373,6 @@ While the master node enforces TTLs, it is up to the clients to set the appropri
 There are three ways to set the TTL of a path.
 
 1. Through the Alluxio shell command line.
-1. Through the Alluxio Java File System API.
 1. Passively on each load metadata or create file.
 
 The TTL API is as follows:
@@ -297,27 +389,11 @@ SetTTL(path, duration, action)
                 permanently removed.
 ```
 
-##### Command Line Usage
+#### Command Line Usage
 
-See the detailed [command line documentation](Command-Line-Interface.html#setttl).
-
-#### Java File System API
-
-Use the Alluxio FileSystem object to set the file attribute with the appropriate options.
-
-```java
-FileSystem alluxioFs = FileSystem.Factory.get();
-
-AlluxioURI path = new AlluxioURI("alluxio://hostname:port/file/path");
-long ttlMs = 86400000L; // 1 day
-TtlAction ttlAction = TtlAction.FREE; // Free the file when TTL is hit
-
-SetAttributeOptions options = SetAttributeOptions.defaults().setTtl(ttlMs).setTtlAction(ttlAction);
-alluxioFs.setAttribute(path);
-```
-
-See the [Javadocs](http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html) for
-more details.
+See the detailed
+[command line documentation]({{site.baseurl}}{% link en/advanced/Command-Line-Interface.md %}#setttl)
+to see how to use the `setTtl` command within the Alluxio shell to modify files' TTL.
 
 #### Passively on load metadata or create file
 
@@ -355,3 +431,54 @@ $ bin/alluxio runTests -Dalluxio.user.file.create.ttl=1m -Dalluxio.user.file.cre
 
 Note, if you try this example, make sure the `alluxio.master.ttl.checker.interval` is set to a short
 duration, ie. 1 minute.
+
+## Checking Alluxio Cache Capacity and Usage
+
+To get a report containing information about the used and available space within an Alluxio cluster
+the Alluxio shell command `fsadmin report` provides a short summary of space availability along with
+some other useful information. Sample output is shown below
+
+```bash
+$ ./bin/alluxio fsadmin report
+Alluxio cluster summary:
+    Master Address: localhost/127.0.0.1:19998
+    Web Port: 19999
+    Rpc Port: 19998
+    Started: 09-28-2018 12:52:09:486
+    Uptime: 0 day(s), 0 hour(s), 0 minute(s), and 26 second(s)
+    Version: 1.8.0
+    Safe Mode: true
+    Zookeeper Enabled: false
+    Live Workers: 1
+    Lost Workers: 0
+    Total Capacity: 10.67GB
+        Tier: MEM  Size: 10.67GB
+    Used Capacity: 0B
+        Tier: MEM  Size: 0B
+    Free Capacity: 10.67GB
+```
+
+The alluxio shell also exposes two commands which allow a user to check how much space is available
+to the Alluxio cache as well as how much space is currently in use. The `fs getCapacityBytes` and
+`fs getUsedBytes` commands show a user how many bytes of available and used storage are in the
+Alluxio cache respectively.
+
+To get the total used bytes:
+
+```bash
+$ ./bin/alluxio fs getUsedBytes
+```
+
+To get the total capacity in bytes:
+
+```bash
+$ ./bin/alluxio fs getCapacityBytes
+```
+
+To determine the percentage of used space you can do `100 * (getUsedBytes/getCapacityBytes)`.
+Another option to view the storage capacity and usage of an Alluxio cluster is by using the web
+interface which can be found at `http:/{MASTER_IP}:${alluxio.master.web.port}/
+
+The Alluxio master web interface gives the user a visual overview of the cluster and how much
+storage space is used. More detailed information about the Alluxio web interface can be
+[found in our documentation]({{site.baseurl}}{% link en/advanced/Web-Interface.md %})
