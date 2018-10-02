@@ -31,26 +31,26 @@ implementing HDFS's file system API.
 <dependency>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-core-client-fs</artifactId>
-  <version>1.8.0</version>
+  <version>1.8.1</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```groovy
-compile 'org.alluxio:alluxio-core-client-fs:1.8.0'
+compile 'org.alluxio:alluxio-core-client-fs:1.8.1'
 ```
 
 #### Apache Ant
 ```xml
-<dependency org="org.alluxio" name="alluxio" rev="1.8.0">
+<dependency org="org.alluxio" name="alluxio" rev="1.8.1">
   <artifact name="alluxio-core-client-fs" type="jar" />
 </dependency>
 ```
 
 #### SBT
 ```
-libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "1.8.0"
+libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "1.8.1"
 ```
 
 ## Contributing
