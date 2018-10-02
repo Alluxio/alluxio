@@ -18,7 +18,7 @@
   <parent>
     <artifactId>alluxio-integration</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>1.8.2-SNAPSHOT<version>
+    <version>1.8.2-SNAPSHOT</version>
   </parent>
   <name>Alluxio Integration - YARN</name>
   <artifactId>alluxio-integration-yarn</artifactId>
