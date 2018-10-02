@@ -95,6 +95,47 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
     return mLength - pos - (mCurrentPacket != null ? mCurrentPacket.readableBytes() : 0);
   }
 
+  /**
+   * Creates a new remote block output stream.
+   *
+   * @param context the file system context
+   * @param blockId the block id
+   * @param blockSize the block size
+   * @param workerNetAddresses the worker network addresses
+   * @param options the options
+   * @return the {@link BlockOutStream} instance created
+   */
+  public static BlockOutStream createReplicatedBlockOutStream(FileSystemContext context,
+      long blockId, long blockSize, java.util.List<WorkerNetAddress> workerNetAddresses,
+      OutStreamOptions options) throws IOException {
+    List<PacketWriter> packetWriters = new ArrayList<>();
+    for (WorkerNetAddress address: workerNetAddresses) {
+      PacketWriter packetWriter =
+            PacketWriter.Factory.create(context, blockId, blockSize, address, options);
+      packetWriters.add(packetWriter);
+    }
+    return new BlockOutStream(packetWriters, blockSize, workerNetAddresses);
+  }
+
+  /**
+   * Constructs a new {@link BlockOutStream} with only one {@link PacketWriter}.
+   *
+   * @param packetWriters the packet writer
+   * @param length the length of the stream
+   * @param workerNetAddresses the worker network addresses
+   */
+  protected BlockOutStream(List<PacketWriter> packetWriters, long length,
+      java.util.List<WorkerNetAddress> workerNetAddresses) {
+    mCloser = Closer.create();
+    mLength = length;
+    mAddress = workerNetAddresses.get(0);
+    mPacketWriters = packetWriters;
+    for (PacketWriter packetWriter : packetWriters) {
+      mCloser.register(packetWriter);
+    }
+    mClosed = false;
+  }
+
   @Override
   public void write(int b) throws IOException {
     Preconditions.checkState(remaining() > 0, PreconditionMessage.ERR_END_OF_BLOCK);
@@ -117,6 +158,38 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
       updateCurrentPacket(false);
       int toWrite = Math.min(len, mCurrentPacket.writableBytes());
       mCurrentPacket.writeBytes(b, off, toWrite);
+      off += toWrite;
+      len -= toWrite;
+    }
+    updateCurrentPacket(false);
+  }
+
+  /**
+   * Writes the data in the specified byte buf to this output stream.
+   *
+   * @param buf the buffer
+   * @throws IOException
+   */
+  public void write(io.netty.buffer.ByteBuf buf) throws IOException {
+    write(buf, 0, buf.readableBytes());
+  }
+
+  /**
+   * Writes len bytes from the specified byte buf starting at offset off to this output stream.
+   *
+   * @param buf the buffer
+   * @param off the offset
+   * @param len the length
+   */
+  public void write(io.netty.buffer.ByteBuf buf, int off, int len) throws IOException {
+    if (len == 0) {
+      return;
+    }
+
+    while (len > 0) {
+      updateCurrentPacket(false);
+      int toWrite = Math.min(len, mCurrentPacket.writableBytes());
+      mCurrentPacket.writeBytes(buf, off, toWrite);
       off += toWrite;
       len -= toWrite;
     }
