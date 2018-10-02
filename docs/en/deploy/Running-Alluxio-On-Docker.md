@@ -10,9 +10,10 @@ priority: 3
 {:toc}
 
 Docker can be used to simplify the deployment and management of Alluxio servers.
-Using the `alluxio/alluxio` Docker image available on Dockerhub, you can go from 
+Using the [alluxio/alluxio](https://hub.docker.com/r/alluxio/alluxio/) Docker
+image available on Dockerhub, you can go from
 zero to a running Alluxio cluster in just a couple of `docker run` commands.
-This document provides a tutorial for running Dockerized Alluxio on a single node. 
+This document provides a tutorial for running Dockerized Alluxio on a single node.
 We'll also discuss more advanced topics, and how to troubleshoot.
 
 ## Prerequisites
@@ -23,7 +24,7 @@ We'll also discuss more advanced topics, and how to troubleshoot.
 If you don't have access to a Linux machine with Docker installed, you can
 provision a t2.small EC2 machine (costs about $0.03/hour) to follow along with
 the tutorial. When provisioning the instance, set the security group so that
-port `19999` is open to your IP address. This will let you view the Alluxio web 
+port `19999` is open to your IP address. This will let you view the Alluxio web
 UI in your browser.
 
 To set up Docker after provisioning the instance, run
@@ -39,21 +40,21 @@ $ exit
 
 ## Launch Alluxio
 
+These commands use the host machine's `/mnt/data` directory as the under storage for Alluxio.
+The `--shm-size=1G` argument will allocate a `1G` tmpfs for the worker to store Alluxio data.
+
 ```bash
 # Launch the Alluxio master
-$ docker run -d --net=host
-    -v /mnt/data:/opt/alluxio/underFSStorage
+$ docker run -d --net=host \
+    -v /mnt/data:/opt/alluxio/underFSStorage \
     alluxio/alluxio master
 # Launch the Alluxio worker
-$ docker run -d --net=host
-    --shm-size=1G -e ALLUXIO_WORKER_MEMORY_SIZE=1G
-    -v /mnt/data:/opt/alluxio/underFSStorage
-    -e ALLUXIO_MASTER_HOSTNAME=localhost
-    alluxio/alluxio worker
+$ docker run -d --net=host \
+    --shm-size=1G -e ALLUXIO_WORKER_MEMORY_SIZE=1G \
+    -v /mnt/data:/opt/alluxio/underFSStorage \
+    -e ALLUXIO_MASTER_HOSTNAME=localhost \
+    alluxio/alluxio worker \
 ```
-
-These commands use the host machine's `/mnt/data` directory as the under storage for Alluxio. 
-The `--shm-size=1G` argument will allocate a `1G` tmpfs for the worker to store Alluxio data.
 
 ## Verify the Cluster
 
@@ -65,7 +66,7 @@ ef2f3b5be1a3        alluxio:1.8.0       "/entrypoint.sh work…"   6 days ago   
 8e3c31ed62cc        alluxio:1.8.0       "/entrypoint.sh mast…"   6 days ago          Up 6 days                               eloquent_clarke
 ```
 
-If you don't see the containers, run `docker logs` on their container ids to see what happened. 
+If you don't see the containers, run `docker logs` on their container ids to see what happened.
 The container ids were printed by the `docker run` command, and can also be found in `docker ps -a`.
 
 Next, visit `instance_hostname:19999` to view the Alluxio web UI. You should see one worker connected and providing
@@ -90,14 +91,20 @@ Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to 
 
 ### Set server configuration
 
-Configuration changes require stopping the Alluxio Docker images, then re-launching 
+Configuration changes require stopping the Alluxio Docker images, then re-launching
 them with the new configuration.
 
 To set an Alluxio configuration property, convert it to an environment variable by uppercasing
 and replacing periods with underscores. For example, `alluxio.master.hostname` converts to
 `ALLUXIO_MASTER_HOSTNAME`. You can then set the environment variable for the image with
 `-e PROPERTY=value`. Alluxio configuration values will be copied to `conf/alluxio-site.properties`
-when the image starts.
+when the image starts. If you aren't seeing a property take effect, make sure the property in
+`conf/alluxio-site.properties` within the container is spelled correctly. You can check the
+contents with
+
+```bash
+$ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-site.properties
+```
 
 ### Run in High-Availability Mode
 
