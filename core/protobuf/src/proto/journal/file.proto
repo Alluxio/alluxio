@@ -86,7 +86,7 @@ message UpdateInodeDirectoryEntry {
   optional alluxio.proto.shared.AccessControlList defaultAcl = 4;
 }
 
-// next available id: 8
+// next available id: 12
 message UpdateInodeFileEntry {
   optional int64 id = 1;
   optional int64 block_size_bytes = 2;
@@ -95,6 +95,11 @@ message UpdateInodeFileEntry {
   optional bool cacheable = 5;
   // Overwirte the blocks list
   repeated int64 set_blocks = 7;
+  optional int32 replication_max = 8;
+  optional int32 replication_min = 9;
+  optional int64 persist_job_id = 10;
+  optional string temp_ufs_path = 11;
+
 }
 
 // next available id: 17
@@ -128,7 +133,7 @@ enum PTtlAction {
   FREE = 1;
 }
 
-// next available id: 20
+// next available id: 25
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -149,6 +154,11 @@ message InodeFileEntry {
   optional PTtlAction ttlAction = 17 [default = DELETE];
   optional string ufs_fingerprint = 18;
   optional alluxio.proto.shared.AccessControlList acl = 19;
+  optional int32 replication_max = 20;
+  optional int32 replication_min = 21;
+  optional int64 persist_job_id = 22;
+  optional string temp_ufs_path = 23;
+  optional int32 replication_durable = 24;
 }
 
 // next available id: 3
@@ -205,7 +215,7 @@ message SetAclEntry {
   optional bool recursive = 5;
 }
 
-// next available id: 11
+// next available id: 15
 message SetAttributeEntry {
   optional int64 id = 1;
   optional int64 op_time_ms = 2;
@@ -217,6 +227,10 @@ message SetAttributeEntry {
   optional int32 permission = 8;
   optional PTtlAction ttlAction = 9 [default = DELETE];
   optional string ufs_fingerprint = 10;
+  optional int64 persistJobId = 11;
+  optional string tempUfsPath = 12;
+  optional int32 replication_max = 13;
+  optional int32 replication_min = 14;
 }
 
 enum UfsMode {

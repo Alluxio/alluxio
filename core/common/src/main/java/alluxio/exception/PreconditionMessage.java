@@ -55,6 +55,11 @@ public enum PreconditionMessage {
   INCONSISTENT_ZK_CONFIGURATION(
       "Inconsistent Zookeeper configuration; %s should be set if and only if %s is true"),
   INODE_TREE_UNINITIALIZED_IS_ROOT_ID("Cannot call isRootId() before initializeRoot()"),
+  INVALID_REPLICATION_MAX_VALUE("Max replication must be -1 (infinity) or a non-negative integer"),
+  INVALID_REPLICATION_MIN_VALUE("Min replication must be a non-negative integer"),
+  INVALID_REPLICATION_MAX_MIN_VALUE_NULL("Both min and max replication are null"),
+  INVALID_REPLICATION_MAX_SMALLER_THAN_MIN("Cannot set min and max replication to be %s and %s: "
+      + "min replication must be smaller or equal than max replication"),
   INVALID_PROPERTY("Invalid property: %s"),
   INVALID_USER_FILE_BUFFER_BYTES("Invalid value of %s: %s"),
   NOT_ENOUGH_BYTES_READ(

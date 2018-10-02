@@ -315,6 +315,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
       // Send an async cache request to a worker based on read type and passive cache options.
       boolean cache = mOptions.getOptions().getReadType().isCache();
+      boolean overReplicated = mStatus.getReplicationMax() > 0
+          && mStatus.getFileBlockInfos().get((int) (getPos() / mBlockSize))
+          .getBlockInfo().getLocations().size() >= mStatus.getReplicationMax();
+      cache = cache && !overReplicated;
       boolean passiveCache = Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
       long channelTimeout = Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
       if (cache) {

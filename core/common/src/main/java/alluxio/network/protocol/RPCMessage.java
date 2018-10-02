@@ -36,6 +36,7 @@ public abstract class RPCMessage implements EncodedMessage {
    */
   public enum Type implements EncodedMessage {
     // Tags lower than 100 are reserved since v1.4.0.
+    RPC_REMOVE_BLOCK_REQUEST(15),
     RPC_READ_REQUEST(100),
     RPC_WRITE_REQUEST(101),
     RPC_RESPONSE(102),
@@ -93,6 +94,8 @@ public abstract class RPCMessage implements EncodedMessage {
     public static Type decode(ByteBuf in) {
       int id = in.readInt();
       switch (id) {
+        case 15:
+          return RPC_REMOVE_BLOCK_REQUEST;
         case 100:
           return RPC_READ_REQUEST;
         case 101:
@@ -181,6 +184,9 @@ public abstract class RPCMessage implements EncodedMessage {
    */
   public static RPCMessage decodeMessage(Type type, ByteBuf in) {
     switch (type) {
+      case RPC_REMOVE_BLOCK_REQUEST:
+        return RPCProtoMessage.decode(in,
+            new ProtoMessage(Protocol.RemoveBlockRequest.getDefaultInstance()));
       case RPC_READ_REQUEST:
         return RPCProtoMessage
             .decode(in, new ProtoMessage(Protocol.ReadRequest.getDefaultInstance()));
