@@ -40,7 +40,6 @@ into two distinct categories.
     the data will be copied into Alluxio storage.
 
 
-<!-- Will eventually get an image specifically for docs, but for now will use this as reference -->
 ![Alluxio storage diagram]({{site.baseurl}}{% link img/stack.png %})
 
 One of the reasons that Alluxio storage improves performance is that it stores data in memory
