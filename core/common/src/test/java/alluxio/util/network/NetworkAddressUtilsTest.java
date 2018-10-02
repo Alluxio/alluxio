@@ -173,6 +173,18 @@ public class NetworkAddressUtilsTest {
 
     // connect host and wildcard bind host with port
     switch (service) {
+      case JOB_MASTER_RPC:
+        Configuration.set(PropertyKey.JOB_MASTER_RPC_PORT, "20000");
+        break;
+      case JOB_MASTER_WEB:
+        Configuration.set(PropertyKey.JOB_MASTER_WEB_PORT, "20000");
+        break;
+      case JOB_WORKER_RPC:
+        Configuration.set(PropertyKey.JOB_WORKER_RPC_PORT, "20000");
+        break;
+      case JOB_WORKER_WEB:
+        Configuration.set(PropertyKey.JOB_WORKER_WEB_PORT, "20000");
+        break;
       case MASTER_RPC:
         Configuration.set(PropertyKey.MASTER_RPC_PORT, "20000");
         break;

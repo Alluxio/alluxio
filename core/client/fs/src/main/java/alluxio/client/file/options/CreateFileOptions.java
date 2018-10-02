@@ -46,6 +46,9 @@ public final class CreateFileOptions {
   private Mode mMode;
   private int mWriteTier;
   private WriteType mWriteType;
+  private int mReplicationDurable;
+  private int mReplicationMax;
+  private int mReplicationMin;
 
   /**
    * @return the default {@link CreateFileOptions}
@@ -66,6 +69,9 @@ public final class CreateFileOptions {
             PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    mReplicationDurable = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
+    mReplicationMax = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
+    mReplicationMin = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
     mMode = Mode.defaults().applyFileUMask();
   }
 
@@ -96,6 +102,27 @@ public final class CreateFileOptions {
    */
   public String getLocationPolicyClass() {
     return mLocationPolicy.getClass().getCanonicalName();
+  }
+
+  /**
+   * @return the number of block replication for durable write
+   */
+  public int getReplicationDurable() {
+    return mReplicationDurable;
+  }
+
+  /**
+   * @return the maximum number of block replication
+   */
+  public int getReplicationMax() {
+    return mReplicationMax;
+  }
+
+  /**
+   * @return the minimum number of block replication
+   */
+  public int getReplicationMin() {
+    return mReplicationMin;
   }
 
   /**
@@ -204,6 +231,39 @@ public final class CreateFileOptions {
   }
 
   /**
+   * @param replicationDurable the number of block replication for durable write
+   * @return the updated options object
+   */
+  public CreateFileOptions setReplicationDurable(int replicationDurable) {
+    mReplicationDurable = replicationDurable;
+    return this;
+  }
+
+  /**
+   * @param replicationMax the maximum number of block replication
+   * @return the updated options object
+   */
+  public CreateFileOptions setReplicationMax(int replicationMax) {
+    com.google.common.base.Preconditions
+        .checkArgument(
+            replicationMax == alluxio.Constants.REPLICATION_MAX_INFINITY || replicationMax >= 0,
+            alluxio.exception.PreconditionMessage.INVALID_REPLICATION_MAX_VALUE);
+    mReplicationMax = replicationMax;
+    return this;
+  }
+
+  /**
+   * @param replicationMin the minimum number of block replication
+   * @return the updated options object
+   */
+  public CreateFileOptions setReplicationMin(int replicationMin) {
+    com.google.common.base.Preconditions.checkArgument(replicationMin >= 0,
+        alluxio.exception.PreconditionMessage.INVALID_REPLICATION_MIN_VALUE);
+    mReplicationMin = replicationMin;
+    return this;
+  }
+
+  /**
    * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
    *        created file should be kept around before it is automatically deleted, no matter whether
    *        the file is pinned
@@ -250,6 +310,9 @@ public final class CreateFileOptions {
         .setBlockSizeBytes(mBlockSizeBytes)
         .setLocationPolicy(mLocationPolicy)
         .setMode(mMode)
+        .setReplicationDurable(mReplicationDurable)
+        .setReplicationMax(mReplicationMax)
+        .setReplicationMin(mReplicationMin)
         .setWriteTier(mWriteTier)
         .setWriteType(mWriteType);
   }
@@ -267,6 +330,9 @@ public final class CreateFileOptions {
         && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mReplicationDurable, that.mReplicationDurable)
+        && Objects.equal(mReplicationMax, that.mReplicationMax)
+        && Objects.equal(mReplicationMin, that.mReplicationMin)
         && Objects.equal(mMode, that.mMode)
         && mWriteTier == that.mWriteTier
         && Objects.equal(mWriteType, that.mWriteType);
@@ -274,9 +340,9 @@ public final class CreateFileOptions {
 
   @Override
   public int hashCode() {
-    return Objects
-        .hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mWriteTier,
-            mWriteType, mCommonOptions);
+    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode,
+        mReplicationDurable, mReplicationMax, mReplicationMin, mWriteTier,
+        mWriteType, mCommonOptions);
   }
 
   @Override
@@ -286,6 +352,9 @@ public final class CreateFileOptions {
         .add("recursive", mRecursive)
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("locationPolicy", mLocationPolicy)
+        .add("replicationDurable", mReplicationDurable)
+        .add("replicationMax", mReplicationMax)
+        .add("replicationMin", mReplicationMin)
         .add("mode", mMode)
         .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
@@ -300,6 +369,9 @@ public final class CreateFileOptions {
     options.setBlockSizeBytes(mBlockSizeBytes);
     options.setPersisted(mWriteType.isThrough());
     options.setRecursive(mRecursive);
+    options.setReplicationDurable(mReplicationDurable);
+    options.setReplicationMax(mReplicationMax);
+    options.setReplicationMin(mReplicationMin);
     if (mMode != null) {
       options.setMode(mMode.toShort());
     }

@@ -29,6 +29,12 @@ public final class HeartbeatContext {
   public static final Class<? extends HeartbeatTimer> SLEEPING_TIMER_CLASS = SleepingTimer.class;
 
   // Names of different heartbeat executors.
+  public static final String JOB_MASTER_LOST_WORKER_DETECTION = "Job Master Lost Worker Detection";
+  public static final String JOB_WORKER_COMMAND_HANDLING =
+      "Job Worker Command Handling";
+  public static final String MASTER_PERSISTENCE_CHECKER = "Master Persistence Checker";
+  public static final String MASTER_PERSISTENCE_SCHEDULER = "Master Persistence Scheduler";
+  public static final String MASTER_REPLICATION_CHECK = "Master Replication Check";
   public static final String MASTER_BLOCK_INTEGRITY_CHECK = "Master Block Integrity Check";
   public static final String MASTER_CLUSTER_METRICS_UPDATER = "Master Cluster Metrics Updater";
   public static final String MASTER_CHECKPOINT_SCHEDULING = "Master Checkpoint Scheduling";
@@ -50,6 +56,11 @@ public final class HeartbeatContext {
 
   static {
     sTimerClasses = new HashMap<>();
+    sTimerClasses.put(MASTER_PERSISTENCE_CHECKER, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_PERSISTENCE_SCHEDULER, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_REPLICATION_CHECK, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(JOB_MASTER_LOST_WORKER_DETECTION, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(JOB_WORKER_COMMAND_HANDLING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_BLOCK_INTEGRITY_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_CLUSTER_METRICS_UPDATER, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_CHECKPOINT_SCHEDULING, SLEEPING_TIMER_CLASS);

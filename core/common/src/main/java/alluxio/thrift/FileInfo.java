@@ -66,6 +66,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final org.apache.thrift.protocol.TField UFS_FINGERPRINT_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsFingerprint", org.apache.thrift.protocol.TType.STRING, (short)27);
   private static final org.apache.thrift.protocol.TField ACL_FIELD_DESC = new org.apache.thrift.protocol.TField("acl", org.apache.thrift.protocol.TType.STRUCT, (short)28);
   private static final org.apache.thrift.protocol.TField DEFAULT_ACL_FIELD_DESC = new org.apache.thrift.protocol.TField("defaultAcl", org.apache.thrift.protocol.TType.STRUCT, (short)29);
+  private static final org.apache.thrift.protocol.TField REPLICATION_MAX_FIELD_DESC = new org.apache.thrift.protocol.TField("replicationMax", org.apache.thrift.protocol.TType.I32, (short)30);
+  private static final org.apache.thrift.protocol.TField REPLICATION_MIN_FIELD_DESC = new org.apache.thrift.protocol.TField("replicationMin", org.apache.thrift.protocol.TType.I32, (short)31);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -101,6 +103,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private String ufsFingerprint; // required
   private TAcl acl; // required
   private TAcl defaultAcl; // required
+  private int replicationMax; // required
+  private int replicationMin; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -135,7 +139,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     IN_ALLUXIO_PERCENTAGE((short)26, "inAlluxioPercentage"),
     UFS_FINGERPRINT((short)27, "ufsFingerprint"),
     ACL((short)28, "acl"),
-    DEFAULT_ACL((short)29, "defaultAcl");
+    DEFAULT_ACL((short)29, "defaultAcl"),
+    REPLICATION_MAX((short)30, "replicationMax"),
+    REPLICATION_MIN((short)31, "replicationMin");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -206,6 +212,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           return ACL;
         case 29: // DEFAULT_ACL
           return DEFAULT_ACL;
+        case 30: // REPLICATION_MAX
+          return REPLICATION_MAX;
+        case 31: // REPLICATION_MIN
+          return REPLICATION_MIN;
         default:
           return null;
       }
@@ -262,7 +272,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final int __MOUNTPOINT_ISSET_ID = 13;
   private static final int __MOUNTID_ISSET_ID = 14;
   private static final int __INALLUXIOPERCENTAGE_ISSET_ID = 15;
-  private short __isset_bitfield = 0;
+  private static final int __REPLICATIONMAX_ISSET_ID = 16;
+  private static final int __REPLICATIONMIN_ISSET_ID = 17;
+  private int __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -324,6 +336,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, TAcl.class)));
     tmpMap.put(_Fields.DEFAULT_ACL, new org.apache.thrift.meta_data.FieldMetaData("defaultAcl", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, TAcl.class)));
+    tmpMap.put(_Fields.REPLICATION_MAX, new org.apache.thrift.meta_data.FieldMetaData("replicationMax", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.REPLICATION_MIN, new org.apache.thrift.meta_data.FieldMetaData("replicationMin", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileInfo.class, metaDataMap);
   }
@@ -359,7 +375,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     int inAlluxioPercentage,
     String ufsFingerprint,
     TAcl acl,
-    TAcl defaultAcl)
+    TAcl defaultAcl,
+    int replicationMax,
+    int replicationMin)
   {
     this();
     this.fileId = fileId;
@@ -406,6 +424,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.ufsFingerprint = ufsFingerprint;
     this.acl = acl;
     this.defaultAcl = defaultAcl;
+    this.replicationMax = replicationMax;
+    setReplicationMaxIsSet(true);
+    this.replicationMin = replicationMin;
+    setReplicationMinIsSet(true);
   }
 
   /**
@@ -470,6 +492,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     if (other.isSetDefaultAcl()) {
       this.defaultAcl = new TAcl(other.defaultAcl);
     }
+    this.replicationMax = other.replicationMax;
+    this.replicationMin = other.replicationMin;
   }
 
   public FileInfo deepCopy() {
@@ -522,6 +546,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.ufsFingerprint = null;
     this.acl = null;
     this.defaultAcl = null;
+    setReplicationMaxIsSet(false);
+    this.replicationMax = 0;
+    setReplicationMinIsSet(false);
+    this.replicationMin = 0;
   }
 
   public long getFileId() {
@@ -1218,6 +1246,52 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     }
   }
 
+  public int getReplicationMax() {
+    return this.replicationMax;
+  }
+
+  public FileInfo setReplicationMax(int replicationMax) {
+    this.replicationMax = replicationMax;
+    setReplicationMaxIsSet(true);
+    return this;
+  }
+
+  public void unsetReplicationMax() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __REPLICATIONMAX_ISSET_ID);
+  }
+
+  /** Returns true if field replicationMax is set (has been assigned a value) and false otherwise */
+  public boolean isSetReplicationMax() {
+    return EncodingUtils.testBit(__isset_bitfield, __REPLICATIONMAX_ISSET_ID);
+  }
+
+  public void setReplicationMaxIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REPLICATIONMAX_ISSET_ID, value);
+  }
+
+  public int getReplicationMin() {
+    return this.replicationMin;
+  }
+
+  public FileInfo setReplicationMin(int replicationMin) {
+    this.replicationMin = replicationMin;
+    setReplicationMinIsSet(true);
+    return this;
+  }
+
+  public void unsetReplicationMin() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __REPLICATIONMIN_ISSET_ID);
+  }
+
+  /** Returns true if field replicationMin is set (has been assigned a value) and false otherwise */
+  public boolean isSetReplicationMin() {
+    return EncodingUtils.testBit(__isset_bitfield, __REPLICATIONMIN_ISSET_ID);
+  }
+
+  public void setReplicationMinIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REPLICATIONMIN_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case FILE_ID:
@@ -1444,6 +1518,22 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       break;
 
+    case REPLICATION_MAX:
+      if (value == null) {
+        unsetReplicationMax();
+      } else {
+        setReplicationMax((Integer)value);
+      }
+      break;
+
+    case REPLICATION_MIN:
+      if (value == null) {
+        unsetReplicationMin();
+      } else {
+        setReplicationMin((Integer)value);
+      }
+      break;
+
     }
   }
 
@@ -1533,6 +1623,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     case DEFAULT_ACL:
       return getDefaultAcl();
 
+    case REPLICATION_MAX:
+      return getReplicationMax();
+
+    case REPLICATION_MIN:
+      return getReplicationMin();
+
     }
     throw new IllegalStateException();
   }
@@ -1600,6 +1696,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       return isSetAcl();
     case DEFAULT_ACL:
       return isSetDefaultAcl();
+    case REPLICATION_MAX:
+      return isSetReplicationMax();
+    case REPLICATION_MIN:
+      return isSetReplicationMin();
     }
     throw new IllegalStateException();
   }
@@ -1869,6 +1969,24 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return false;
     }
 
+    boolean this_present_replicationMax = true;
+    boolean that_present_replicationMax = true;
+    if (this_present_replicationMax || that_present_replicationMax) {
+      if (!(this_present_replicationMax && that_present_replicationMax))
+        return false;
+      if (this.replicationMax != that.replicationMax)
+        return false;
+    }
+
+    boolean this_present_replicationMin = true;
+    boolean that_present_replicationMin = true;
+    if (this_present_replicationMin || that_present_replicationMin) {
+      if (!(this_present_replicationMin && that_present_replicationMin))
+        return false;
+      if (this.replicationMin != that.replicationMin)
+        return false;
+    }
+
     return true;
   }
 
@@ -2015,6 +2133,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     list.add(present_defaultAcl);
     if (present_defaultAcl)
       list.add(defaultAcl);
+
+    boolean present_replicationMax = true;
+    list.add(present_replicationMax);
+    if (present_replicationMax)
+      list.add(replicationMax);
+
+    boolean present_replicationMin = true;
+    list.add(present_replicationMin);
+    if (present_replicationMin)
+      list.add(replicationMin);
 
     return list.hashCode();
   }
@@ -2307,6 +2435,26 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetReplicationMax()).compareTo(other.isSetReplicationMax());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetReplicationMax()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.replicationMax, other.replicationMax);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetReplicationMin()).compareTo(other.isSetReplicationMin());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetReplicationMin()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.replicationMin, other.replicationMin);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -2485,6 +2633,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     } else {
       sb.append(this.defaultAcl);
     }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("replicationMax:");
+    sb.append(this.replicationMax);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("replicationMin:");
+    sb.append(this.replicationMin);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -2784,6 +2940,22 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 30: // REPLICATION_MAX
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.replicationMax = iprot.readI32();
+              struct.setReplicationMaxIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 31: // REPLICATION_MIN
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.replicationMin = iprot.readI32();
+              struct.setReplicationMinIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -2921,6 +3093,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         struct.defaultAcl.write(oprot);
         oprot.writeFieldEnd();
       }
+      oprot.writeFieldBegin(REPLICATION_MAX_FIELD_DESC);
+      oprot.writeI32(struct.replicationMax);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(REPLICATION_MIN_FIELD_DESC);
+      oprot.writeI32(struct.replicationMin);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -3023,7 +3201,13 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetDefaultAcl()) {
         optionals.set(27);
       }
-      oprot.writeBitSet(optionals, 28);
+      if (struct.isSetReplicationMax()) {
+        optionals.set(28);
+      }
+      if (struct.isSetReplicationMin()) {
+        optionals.set(29);
+      }
+      oprot.writeBitSet(optionals, 30);
       if (struct.isSetFileId()) {
         oprot.writeI64(struct.fileId);
       }
@@ -3120,12 +3304,18 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetDefaultAcl()) {
         struct.defaultAcl.write(oprot);
       }
+      if (struct.isSetReplicationMax()) {
+        oprot.writeI32(struct.replicationMax);
+      }
+      if (struct.isSetReplicationMin()) {
+        oprot.writeI32(struct.replicationMin);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, FileInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(28);
+      BitSet incoming = iprot.readBitSet(30);
       if (incoming.get(0)) {
         struct.fileId = iprot.readI64();
         struct.setFileIdIsSet(true);
@@ -3258,6 +3448,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         struct.defaultAcl = new TAcl();
         struct.defaultAcl.read(iprot);
         struct.setDefaultAclIsSet(true);
+      }
+      if (incoming.get(28)) {
+        struct.replicationMax = iprot.readI32();
+        struct.setReplicationMaxIsSet(true);
+      }
+      if (incoming.get(29)) {
+        struct.replicationMin = iprot.readI32();
+        struct.setReplicationMinIsSet(true);
       }
     }
   }

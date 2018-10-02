@@ -45,6 +45,9 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   private static final org.apache.thrift.protocol.TField MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("mode", org.apache.thrift.protocol.TType.I16, (short)5);
   private static final org.apache.thrift.protocol.TField TTL_ACTION_NOT_USED_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlActionNotUsed", org.apache.thrift.protocol.TType.I32, (short)6);
   private static final org.apache.thrift.protocol.TField COMMON_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("commonOptions", org.apache.thrift.protocol.TType.STRUCT, (short)7);
+  private static final org.apache.thrift.protocol.TField REPLICATION_MAX_FIELD_DESC = new org.apache.thrift.protocol.TField("replicationMax", org.apache.thrift.protocol.TType.I32, (short)8);
+  private static final org.apache.thrift.protocol.TField REPLICATION_MIN_FIELD_DESC = new org.apache.thrift.protocol.TField("replicationMin", org.apache.thrift.protocol.TType.I32, (short)9);
+  private static final org.apache.thrift.protocol.TField REPLICATION_DURABLE_FIELD_DESC = new org.apache.thrift.protocol.TField("replicationDurable", org.apache.thrift.protocol.TType.I32, (short)10);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -59,6 +62,9 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   private short mode; // optional
   private alluxio.thrift.TTtlAction ttlActionNotUsed; // optional
   private FileSystemMasterCommonTOptions commonOptions; // optional
+  private int replicationMax; // optional
+  private int replicationMin; // optional
+  private int replicationDurable; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -72,7 +78,10 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
      * @see alluxio.thrift.TTtlAction
      */
     TTL_ACTION_NOT_USED((short)6, "ttlActionNotUsed"),
-    COMMON_OPTIONS((short)7, "commonOptions");
+    COMMON_OPTIONS((short)7, "commonOptions"),
+    REPLICATION_MAX((short)8, "replicationMax"),
+    REPLICATION_MIN((short)9, "replicationMin"),
+    REPLICATION_DURABLE((short)10, "replicationDurable");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -101,6 +110,12 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
           return TTL_ACTION_NOT_USED;
         case 7: // COMMON_OPTIONS
           return COMMON_OPTIONS;
+        case 8: // REPLICATION_MAX
+          return REPLICATION_MAX;
+        case 9: // REPLICATION_MIN
+          return REPLICATION_MIN;
+        case 10: // REPLICATION_DURABLE
+          return REPLICATION_DURABLE;
         default:
           return null;
       }
@@ -146,8 +161,11 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   private static final int __RECURSIVE_ISSET_ID = 2;
   private static final int __TTLNOTUSED_ISSET_ID = 3;
   private static final int __MODE_ISSET_ID = 4;
+  private static final int __REPLICATIONMAX_ISSET_ID = 5;
+  private static final int __REPLICATIONMIN_ISSET_ID = 6;
+  private static final int __REPLICATIONDURABLE_ISSET_ID = 7;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.BLOCK_SIZE_BYTES,_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.TTL_NOT_USED,_Fields.MODE,_Fields.TTL_ACTION_NOT_USED,_Fields.COMMON_OPTIONS};
+  private static final _Fields optionals[] = {_Fields.BLOCK_SIZE_BYTES,_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.TTL_NOT_USED,_Fields.MODE,_Fields.TTL_ACTION_NOT_USED,_Fields.COMMON_OPTIONS,_Fields.REPLICATION_MAX,_Fields.REPLICATION_MIN,_Fields.REPLICATION_DURABLE};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -165,6 +183,12 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, alluxio.thrift.TTtlAction.class)));
     tmpMap.put(_Fields.COMMON_OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("commonOptions", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemMasterCommonTOptions.class)));
+    tmpMap.put(_Fields.REPLICATION_MAX, new org.apache.thrift.meta_data.FieldMetaData("replicationMax", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.REPLICATION_MIN, new org.apache.thrift.meta_data.FieldMetaData("replicationMin", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.REPLICATION_DURABLE, new org.apache.thrift.meta_data.FieldMetaData("replicationDurable", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(CreateFileTOptions.class, metaDataMap);
   }
@@ -188,6 +212,9 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     if (other.isSetCommonOptions()) {
       this.commonOptions = new FileSystemMasterCommonTOptions(other.commonOptions);
     }
+    this.replicationMax = other.replicationMax;
+    this.replicationMin = other.replicationMin;
+    this.replicationDurable = other.replicationDurable;
   }
 
   public CreateFileTOptions deepCopy() {
@@ -208,6 +235,12 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     this.mode = 0;
     this.ttlActionNotUsed = null;
     this.commonOptions = null;
+    setReplicationMaxIsSet(false);
+    this.replicationMax = 0;
+    setReplicationMinIsSet(false);
+    this.replicationMin = 0;
+    setReplicationDurableIsSet(false);
+    this.replicationDurable = 0;
   }
 
   public long getBlockSizeBytes() {
@@ -381,6 +414,75 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     }
   }
 
+  public int getReplicationMax() {
+    return this.replicationMax;
+  }
+
+  public CreateFileTOptions setReplicationMax(int replicationMax) {
+    this.replicationMax = replicationMax;
+    setReplicationMaxIsSet(true);
+    return this;
+  }
+
+  public void unsetReplicationMax() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __REPLICATIONMAX_ISSET_ID);
+  }
+
+  /** Returns true if field replicationMax is set (has been assigned a value) and false otherwise */
+  public boolean isSetReplicationMax() {
+    return EncodingUtils.testBit(__isset_bitfield, __REPLICATIONMAX_ISSET_ID);
+  }
+
+  public void setReplicationMaxIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REPLICATIONMAX_ISSET_ID, value);
+  }
+
+  public int getReplicationMin() {
+    return this.replicationMin;
+  }
+
+  public CreateFileTOptions setReplicationMin(int replicationMin) {
+    this.replicationMin = replicationMin;
+    setReplicationMinIsSet(true);
+    return this;
+  }
+
+  public void unsetReplicationMin() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __REPLICATIONMIN_ISSET_ID);
+  }
+
+  /** Returns true if field replicationMin is set (has been assigned a value) and false otherwise */
+  public boolean isSetReplicationMin() {
+    return EncodingUtils.testBit(__isset_bitfield, __REPLICATIONMIN_ISSET_ID);
+  }
+
+  public void setReplicationMinIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REPLICATIONMIN_ISSET_ID, value);
+  }
+
+  public int getReplicationDurable() {
+    return this.replicationDurable;
+  }
+
+  public CreateFileTOptions setReplicationDurable(int replicationDurable) {
+    this.replicationDurable = replicationDurable;
+    setReplicationDurableIsSet(true);
+    return this;
+  }
+
+  public void unsetReplicationDurable() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __REPLICATIONDURABLE_ISSET_ID);
+  }
+
+  /** Returns true if field replicationDurable is set (has been assigned a value) and false otherwise */
+  public boolean isSetReplicationDurable() {
+    return EncodingUtils.testBit(__isset_bitfield, __REPLICATIONDURABLE_ISSET_ID);
+  }
+
+  public void setReplicationDurableIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REPLICATIONDURABLE_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case BLOCK_SIZE_BYTES:
@@ -439,6 +541,30 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       }
       break;
 
+    case REPLICATION_MAX:
+      if (value == null) {
+        unsetReplicationMax();
+      } else {
+        setReplicationMax((Integer)value);
+      }
+      break;
+
+    case REPLICATION_MIN:
+      if (value == null) {
+        unsetReplicationMin();
+      } else {
+        setReplicationMin((Integer)value);
+      }
+      break;
+
+    case REPLICATION_DURABLE:
+      if (value == null) {
+        unsetReplicationDurable();
+      } else {
+        setReplicationDurable((Integer)value);
+      }
+      break;
+
     }
   }
 
@@ -465,6 +591,15 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     case COMMON_OPTIONS:
       return getCommonOptions();
 
+    case REPLICATION_MAX:
+      return getReplicationMax();
+
+    case REPLICATION_MIN:
+      return getReplicationMin();
+
+    case REPLICATION_DURABLE:
+      return getReplicationDurable();
+
     }
     throw new IllegalStateException();
   }
@@ -490,6 +625,12 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       return isSetTtlActionNotUsed();
     case COMMON_OPTIONS:
       return isSetCommonOptions();
+    case REPLICATION_MAX:
+      return isSetReplicationMax();
+    case REPLICATION_MIN:
+      return isSetReplicationMin();
+    case REPLICATION_DURABLE:
+      return isSetReplicationDurable();
     }
     throw new IllegalStateException();
   }
@@ -570,6 +711,33 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         return false;
     }
 
+    boolean this_present_replicationMax = true && this.isSetReplicationMax();
+    boolean that_present_replicationMax = true && that.isSetReplicationMax();
+    if (this_present_replicationMax || that_present_replicationMax) {
+      if (!(this_present_replicationMax && that_present_replicationMax))
+        return false;
+      if (this.replicationMax != that.replicationMax)
+        return false;
+    }
+
+    boolean this_present_replicationMin = true && this.isSetReplicationMin();
+    boolean that_present_replicationMin = true && that.isSetReplicationMin();
+    if (this_present_replicationMin || that_present_replicationMin) {
+      if (!(this_present_replicationMin && that_present_replicationMin))
+        return false;
+      if (this.replicationMin != that.replicationMin)
+        return false;
+    }
+
+    boolean this_present_replicationDurable = true && this.isSetReplicationDurable();
+    boolean that_present_replicationDurable = true && that.isSetReplicationDurable();
+    if (this_present_replicationDurable || that_present_replicationDurable) {
+      if (!(this_present_replicationDurable && that_present_replicationDurable))
+        return false;
+      if (this.replicationDurable != that.replicationDurable)
+        return false;
+    }
+
     return true;
   }
 
@@ -611,6 +779,21 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     list.add(present_commonOptions);
     if (present_commonOptions)
       list.add(commonOptions);
+
+    boolean present_replicationMax = true && (isSetReplicationMax());
+    list.add(present_replicationMax);
+    if (present_replicationMax)
+      list.add(replicationMax);
+
+    boolean present_replicationMin = true && (isSetReplicationMin());
+    list.add(present_replicationMin);
+    if (present_replicationMin)
+      list.add(replicationMin);
+
+    boolean present_replicationDurable = true && (isSetReplicationDurable());
+    list.add(present_replicationDurable);
+    if (present_replicationDurable)
+      list.add(replicationDurable);
 
     return list.hashCode();
   }
@@ -693,6 +876,36 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetReplicationMax()).compareTo(other.isSetReplicationMax());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetReplicationMax()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.replicationMax, other.replicationMax);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetReplicationMin()).compareTo(other.isSetReplicationMin());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetReplicationMin()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.replicationMin, other.replicationMin);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetReplicationDurable()).compareTo(other.isSetReplicationDurable());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetReplicationDurable()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.replicationDurable, other.replicationDurable);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -760,6 +973,24 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       } else {
         sb.append(this.commonOptions);
       }
+      first = false;
+    }
+    if (isSetReplicationMax()) {
+      if (!first) sb.append(", ");
+      sb.append("replicationMax:");
+      sb.append(this.replicationMax);
+      first = false;
+    }
+    if (isSetReplicationMin()) {
+      if (!first) sb.append(", ");
+      sb.append("replicationMin:");
+      sb.append(this.replicationMin);
+      first = false;
+    }
+    if (isSetReplicationDurable()) {
+      if (!first) sb.append(", ");
+      sb.append("replicationDurable:");
+      sb.append(this.replicationDurable);
       first = false;
     }
     sb.append(")");
@@ -867,6 +1098,30 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 8: // REPLICATION_MAX
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.replicationMax = iprot.readI32();
+              struct.setReplicationMaxIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 9: // REPLICATION_MIN
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.replicationMin = iprot.readI32();
+              struct.setReplicationMinIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 10: // REPLICATION_DURABLE
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.replicationDurable = iprot.readI32();
+              struct.setReplicationDurableIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -921,6 +1176,21 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
           oprot.writeFieldEnd();
         }
       }
+      if (struct.isSetReplicationMax()) {
+        oprot.writeFieldBegin(REPLICATION_MAX_FIELD_DESC);
+        oprot.writeI32(struct.replicationMax);
+        oprot.writeFieldEnd();
+      }
+      if (struct.isSetReplicationMin()) {
+        oprot.writeFieldBegin(REPLICATION_MIN_FIELD_DESC);
+        oprot.writeI32(struct.replicationMin);
+        oprot.writeFieldEnd();
+      }
+      if (struct.isSetReplicationDurable()) {
+        oprot.writeFieldBegin(REPLICATION_DURABLE_FIELD_DESC);
+        oprot.writeI32(struct.replicationDurable);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -960,7 +1230,16 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       if (struct.isSetCommonOptions()) {
         optionals.set(6);
       }
-      oprot.writeBitSet(optionals, 7);
+      if (struct.isSetReplicationMax()) {
+        optionals.set(7);
+      }
+      if (struct.isSetReplicationMin()) {
+        optionals.set(8);
+      }
+      if (struct.isSetReplicationDurable()) {
+        optionals.set(9);
+      }
+      oprot.writeBitSet(optionals, 10);
       if (struct.isSetBlockSizeBytes()) {
         oprot.writeI64(struct.blockSizeBytes);
       }
@@ -982,12 +1261,21 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       if (struct.isSetCommonOptions()) {
         struct.commonOptions.write(oprot);
       }
+      if (struct.isSetReplicationMax()) {
+        oprot.writeI32(struct.replicationMax);
+      }
+      if (struct.isSetReplicationMin()) {
+        oprot.writeI32(struct.replicationMin);
+      }
+      if (struct.isSetReplicationDurable()) {
+        oprot.writeI32(struct.replicationDurable);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, CreateFileTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(7);
+      BitSet incoming = iprot.readBitSet(10);
       if (incoming.get(0)) {
         struct.blockSizeBytes = iprot.readI64();
         struct.setBlockSizeBytesIsSet(true);
@@ -1016,6 +1304,18 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         struct.commonOptions = new FileSystemMasterCommonTOptions();
         struct.commonOptions.read(iprot);
         struct.setCommonOptionsIsSet(true);
+      }
+      if (incoming.get(7)) {
+        struct.replicationMax = iprot.readI32();
+        struct.setReplicationMaxIsSet(true);
+      }
+      if (incoming.get(8)) {
+        struct.replicationMin = iprot.readI32();
+        struct.setReplicationMinIsSet(true);
+      }
+      if (incoming.get(9)) {
+        struct.replicationDurable = iprot.readI32();
+        struct.setReplicationDurableIsSet(true);
       }
     }
   }
