@@ -1,21 +1,25 @@
 ---
 layout: global
-title: Deploy Alluxio using YARN
-nickname: Deploy Alluxio with YARN
+title: Alluxio with YARN
+nickname: Alluxio with YARN
 group: Deploying Alluxio
 priority: 6
 ---
 
-TODO: Expand the explanation of why we prefer to run alongside YARN instead of on top. Relevant
-mailing list thread: https://groups.google.com/forum/#!topic/alluxio-users/KEvBE9AiJlE
-TODO: Tell users how to configure Alluxio servers running on Yarn
-TODO: Discuss how to configure the YARN application classpath so that applications can work with Alluxio.
-TODO: Add troubleshooting help
-- How to debug when alluxio-yarn.sh fails to bring up Alluxio servers
-- How to find logs when Alluxio containers fail to start
-- How to diagnose when there aren't enough YARN resources to launch Alluxio containers
+This document discusses how to run Alluxio in a YARN environment. There are two
+approaches: [running Alluxio alongside YARN](#running-alluxio-alongside-yarn), and
+[running Alluxio as an application on top of YARN](#running-alluxio-as-a-yarn-application).
+We support both approaches, but recommend running Alluxio alongside YARN for a few reasons:
 
-## Standalone
+- Alluxio servers are long-running daemons like HDFS. HDFS is not supposed to run on YARN.
+- Alluxio's architecture is designed to have one worker per host, but this is not
+well supported by YARN.
+- Running Alluxio on top of YARN adds the additional complexity of managing Alluxio's
+ApplicationMaster.
+- Multi-master high availability mode is not currently supported by our YARN integration.
+- The YARN integration does not support restarting workers in case they crash.
+
+## Running Alluxio Alongside YARN
 
 Alluxio should be run alongside YARN so that all YARN nodes have access to a local Alluxio worker.
 For YARN and Alluxio to play nicely together on the same nodes, you must partition the node's
@@ -55,29 +59,19 @@ $ ${HADOOP_HOME}/sbin/stop-yarn.sh
 $ ${HADOOP_HOME}/sbin/start-yarn.sh
 ```
 
-## Alluxio YARN integration
-
-> YARN is not well-suited for long-running applications such as Alluxio. We recommend
-following [these instructions](#Standalone.html) for running Alluxio
-alongside YARN instead of as an application within YARN.
+## Running Alluxio as a YARN Application
 
 This section goes over how to run Alluxio servers (master and workers) on a Yarn
-cluster.
+cluster. In this mode, you run an Alluxio ApplicationMaster which communicates with
+YARN to request containers for launching the master and workers.
 
-## Prerequisites
+### Prerequisites
 
 **A running YARN cluster**
 
 **[Alluxio downloaded locally](https://www.alluxio.org/download)**
 
-## Configuration
-
-To customize Alluxio master and worker with specific properties (e.g., tiered storage setup on each
-worker), see [Configuration settings](Configuration-Settings.html). To ensure your configuration can be
-read by both the ApplicationMaster and Alluxio master/workers, put `alluxio-site.properties` in
-`/etc/alluxio/alluxio-site.properties`.
-
-## Run Alluxio Application
+### Launch Alluxio
 
 Use the script `integration/yarn/bin/alluxio-yarn.sh` to start Alluxio. This script takes three arguments:
 
@@ -118,11 +112,60 @@ $ ${HADOOP_HOME}/bin/yarn application -kill application_1445469376652_0002
 
 The ID can also be found in the YARN web UI.
 
-## Test Alluxio
+### Verify the Cluster
 
-Once you have the Alluxio application running, you can check its health by configuring
-`alluxio.master.hostname=masterhost` in `conf/alluxio-site.properties` and running
+Once you have the Alluxio application running, you can access the web UI at
+master_hostname:19999. To test IO functionality, configure
+`alluxio.master.hostname=master_hostname` in `conf/alluxio-site.properties` and run
 
 ```bash
 $ ${ALLUXIO_HOME}/bin/alluxio runTests
 ```
+
+### Configuration
+
+To customize Alluxio master and worker with specific properties (e.g., tiered storage setup on each
+worker), see [Configuration settings](Configuration-Settings.html). To ensure your configuration can be
+read by both the ApplicationMaster and Alluxio master/workers, put `alluxio-site.properties` in
+`/etc/alluxio/alluxio-site.properties`.
+
+### Troubleshooting
+
+If Alluxio doesn't come up after running `alluxio-yarn.sh`, check the YARN application logs
+to see what happened. Some common issues to look out for:
+
+- **Not enough memory/cpu**: Make sure you have enough YARN capacity to run the Alluxio master
+and all workers. The CPU requirements are configured by `alluxio.integration.master.resource.cpu`
+and `alluxio.integration.worker.resource.cpu` (both `1` by default). Memory requirements are
+configured by `alluxio.integration.master.resource.mem` and `alluxio.integration.worker.resource.mem`,
+both `1024MB` by default. Alluxio will avoid placing multiple workers on the same node.
+- **Hostname mismatch**: The hostname you specify for the Alluxio master must exactly
+match the hostname used by YARN for one of the hosts in the cluster. If you pass an IP address but
+YARN is using hostnames, the master cannot be started.
+
+The Alluxio [user mailing list](https://groups.google.com/forum/#!forum/alluxio-users) is
+a good resource for getting help if the log messages aren't enough.
+
+## Configure yarn.application.classpath
+
+To enable your YARN applications to communicate with Alluxio servers, add the alluxio
+client jar to each YARN node, either by adding it to a directory on your
+`yarn.application.classpath`, or updating the classpath to include the client jar.
+For example,
+
+```xml
+<property>
+ <name>yarn.application.classpath</name>
+ <value>$HADOOP_CONF_DIR,
+   $HADOOP_COMMON_HOME/share/hadoop/common/*,
+   $HADOOP_COMMON_HOME/share/hadoop/common/lib/*,
+   $HADOOP_HDFS_HOME/share/hadoop/hdfs/*,
+   $HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,
+   $HADOOP_YARN_HOME/share/hadoop/yarn/*,
+   $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*,
+   $ALLUXIO_HOME/client/*
+ </value>
+</property>
+```
+
+Make sure to replace `$ALLUXIO_HOME` with the path of your Alluxio installation.
