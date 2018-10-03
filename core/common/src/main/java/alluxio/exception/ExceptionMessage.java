@@ -189,6 +189,7 @@ public enum ExceptionMessage {
   INVALID_ARGS_NUM_INSUFFICIENT("Command {0} requires at least {1} arguments ({2} provided)"),
   INVALID_ARGS_NUM_TOO_MANY("Command {0} requires at most {1} arguments ({2} provided)"),
   INVALID_ARGS_SORT_FIELD("Invalid sort option `{0}` for --sort"),
+  INVALID_ARG_TYPE("Arg {0} is not type {1}"),
 
   // extension shell
   INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),
@@ -215,6 +216,7 @@ public enum ExceptionMessage {
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
   KEY_NOT_LONG("Configuration cannot evaluate key {0} as long"),
   KEY_NOT_MS("Configuration cannot evaluate key {0} as milliseconds"),
+  KEY_CIRCULAR_DEPENDENCY("Circular dependency found while resolving {0}"),
   UNDEFINED_CONFIGURATION_KEY("No value set for configuration key {0}"),
   UNKNOWN_ENUM("Unrecognized configuration value <{0}>. Acceptable values: {1}"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
@@ -258,6 +260,23 @@ public enum ExceptionMessage {
   KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),
   KEY_ALREADY_EXISTS("The input key already exists in the key-value store"),
   INVALID_KEY_VALUE_STORE_URI("The URI {0} exists but is not a key-value store"),
+
+  // move job
+  MOVE_CANNOT_BE_TO_SUBDIRECTORY("Cannot move because {0} is a prefix of {1}"),
+  MOVE_DIRECTORY_TO_FILE("Cannot move a directory ({0}) to a file ({1})"),
+  MOVE_FILE_TO_DIRECTORY("Cannot move a file ({0}) to a directory ({1})"),
+  MOVE_NEED_OVERWRITE("Cannot move to {0} because it exists and overwrite is set to false"),
+  MOVE_OVERWRITE_DIRECTORY(
+      "{0} already exists. The overwrite flag cannot be used to overwrite directories"),
+  MOVE_TO_FILE_AS_DIRECTORY("Cannot move to {0}. {1} is a file, not a directory"),
+
+  // job service
+  NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK(
+      "Cannot find a local block worker to replicate blockId {0,number,#}"),
+
+  // job manager
+  JOB_DEFINITION_DOES_NOT_EXIST("The job definition for config {0} does not exist"),
+  JOB_DOES_NOT_EXIST("The job of id {0} does not exist"),
 
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),

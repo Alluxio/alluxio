@@ -128,7 +128,6 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     public String getWorkerAddress() {
       return mWorkerAddress;
     }
-
   }
 
   /**
@@ -174,7 +173,6 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     public long getUsedBytes() {
       return mUsedBytes;
     }
-
   }
 
   private static final long serialVersionUID = 3735143768058466487L;

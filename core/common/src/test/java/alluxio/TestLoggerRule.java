@@ -19,6 +19,9 @@ import org.junit.Before;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+
+import javax.annotation.concurrent.GuardedBy;
 
 public class TestLoggerRule extends AbstractResourceRule {
 
@@ -36,42 +39,41 @@ public class TestLoggerRule extends AbstractResourceRule {
   }
 
   /**
-   * Determine if a specific piece of text appears in log output.
+   * Determine if a specific pattern appears in log output.
    *
-   * @param eventString The piece of text to search for in log events
-   * @return True if an event containing the string exists, false otherwise
+   * @param pattern a pattern text to search for in log events
+   * @return true if a log message containing the pattern exists, false otherwise
    */
-  public boolean wasLogged(String eventString) {
-    return mAppender.wasLogged(eventString);
+  public boolean wasLogged(String pattern) {
+    return mAppender.wasLogged(Pattern.compile(".*" + pattern + ".*"));
   }
 
   public class TestAppender extends AppenderSkeleton {
-
-    public List<LoggingEvent> mEvents = new ArrayList<LoggingEvent>();
+    @GuardedBy("this")
+    private List<LoggingEvent> mEvents = new ArrayList<>();
 
     public void close() { }
 
     /**
-     * Determines whether string was logged.
+     * Determines whether a message with the given pattern was logged.
      */
-    public boolean wasLogged(String eventString) {
+    public synchronized boolean wasLogged(Pattern pattern) {
       for (LoggingEvent e : mEvents) {
-        if (e.getRenderedMessage().contains(eventString)) {
+        if (pattern.matcher(e.getRenderedMessage()).matches()) {
           return true;
         }
       }
       return false;
     }
 
+    @Override
     public boolean requiresLayout() {
       return false;
     }
 
     @Override
-    protected void append(LoggingEvent event) {
+    protected synchronized void append(LoggingEvent event) {
       mEvents.add(event);
     }
   }
-
 }
-

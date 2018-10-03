@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.fs.FileSystemShell;
+import alluxio.cli.job.JobShell;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
@@ -25,6 +26,8 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.LocalAlluxioJobCluster;
+import alluxio.master.job.JobMaster;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -47,17 +50,26 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
   public LocalAlluxioCluster mLocalAlluxioCluster = null;
   public FileSystem mFileSystem = null;
   public FileSystemShell mFsShell = null;
+  protected JobMaster mJobMaster;
+  protected LocalAlluxioJobCluster mLocalAlluxioJobCluster = null;
+  protected JobShell mJobShell = null;
 
   @Before
   public final void before() throws Exception {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
     mFsShell = new FileSystemShell();
+    mLocalAlluxioJobCluster = new alluxio.master.LocalAlluxioJobCluster();
+    mLocalAlluxioJobCluster.start();
+    mJobMaster = mLocalAlluxioJobCluster.getMaster().getJobMaster();
+    mJobShell = new alluxio.cli.job.JobShell();
   }
 
   @After
   public final void after() throws Exception {
     mFsShell.close();
+    mLocalAlluxioJobCluster.stop();
+    mJobShell.close();
   }
 
   /**

@@ -54,6 +54,20 @@ public final class MasterContext {
   }
 
   /**
+   * Create a master context to be used for job masters.
+   *
+   * @param journalSystem the journal system to use for tracking master operations
+   */
+  public MasterContext(JournalSystem journalSystem) {
+    mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
+    mSafeModeManager = null;
+    mBackupManager = null;
+    mStateLock = new ReentrantReadWriteLock();
+    mStartTimeMs = -1;
+    mPort = -1;
+  }
+
+  /**
    * @return the journal system to use for tracking master operations
    */
   public JournalSystem getJournalSystem() {

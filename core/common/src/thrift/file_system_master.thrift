@@ -41,6 +41,9 @@ struct CreateFileTOptions {
   5: optional i16 mode
   6: optional common.TTtlAction ttlActionNotUsed // deprecated from 1.8
   7: optional FileSystemMasterCommonTOptions commonOptions
+  8: optional i32 replicationMax;
+  9: optional i32 replicationMin;
+  10: optional i32 replicationDurable;
 }
 struct CreateFileTResponse {}
 
@@ -169,6 +172,8 @@ struct FileInfo {
   27: string ufsFingerprint
   28: TAcl acl
   29: TAcl defaultAcl
+  30: i32 replicationMax
+  31: i32 replicationMin
 }
 
 struct MountTOptions {
@@ -241,6 +246,8 @@ struct SetAttributeTOptions {
   7: optional bool recursive
   8: optional common.TTtlAction ttlAction
   9: optional FileSystemMasterCommonTOptions commonOptions
+  10: optional i32 replicationMax;
+  11: optional i32 replicationMin;
 }
 struct SetAttributeTResponse {}
 
@@ -512,6 +519,30 @@ service FileSystemMasterWorkerService extends common.AlluxioService {
   GetPinnedFileIdsTResponse getPinnedFileIds(
     /** the method options */ 1: GetPinnedFileIdsTOptions options,
   ) throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns the UFS information for the given mount point identified by its id.
+   **/
+  GetUfsInfoTResponse getUfsInfo(
+    /** the id of the ufs */ 1: i64 mountId,
+    /** the method options */ 2: GetUfsInfoTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+}
+
+/**
+ * This interface contains file system master service endpoints for Alluxio job service.
+ */
+service FileSystemMasterJobService extends common.AlluxioService {
+
+  /*
+   * Returns the file information for a file or directory identified by the given file id.
+   */
+  GetFileInfoTResponse getFileInfo(
+    /** the id of the file */ 1: i64 fileId,
+    /** the method options */ 2: GetFileInfoTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Returns the UFS information for the given mount point identified by its id.

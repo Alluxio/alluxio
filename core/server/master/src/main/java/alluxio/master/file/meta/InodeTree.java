@@ -1050,6 +1050,70 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   }
 
   /**
+   * Sets the min and/or max replication level of an inode. If the inode is a directory, the state
+   * will be set recursively. Arguments replicationMax and replicationMin can be null if they are
+   * not meant to be set.
+   *
+   * @param rpcContext the rpc context
+   * @param inodePath the {@link LockedInodePath} to set the pinned state for
+   * @param replicationMax the max replication level to set for the inode (and possible descendants)
+   * @param replicationMin the min replication level to set for the inode (and possible descendants)
+   * @param opTimeMs the operation time
+   * @throws FileDoesNotExistException if inode does not exist
+   */
+  public void setReplication(RpcContext rpcContext, LockedInodePath inodePath,
+      Integer replicationMax, Integer replicationMin, long opTimeMs)
+      throws FileDoesNotExistException {
+    Preconditions.checkArgument(replicationMin != null || replicationMax != null,
+        PreconditionMessage.INVALID_REPLICATION_MAX_MIN_VALUE_NULL);
+    Preconditions.checkArgument(replicationMin == null || replicationMin >= 0,
+        PreconditionMessage.INVALID_REPLICATION_MIN_VALUE);
+
+    InodeView inode = inodePath.getInode();
+
+    if (inode.isFile()) {
+      InodeFileView inodeFile = (InodeFileView) inode;
+      int newMax = (replicationMax == null) ? inodeFile.getReplicationMax() : replicationMax;
+      int newMin = (replicationMin == null) ? inodeFile.getReplicationMin() : replicationMin;
+
+      Preconditions.checkArgument(newMax == alluxio.Constants.REPLICATION_MAX_INFINITY
+          || newMax >= newMin,
+          PreconditionMessage.INVALID_REPLICATION_MAX_SMALLER_THAN_MIN.toString(),
+          replicationMax, replicationMax);
+
+      mState.applyAndJournal(rpcContext, UpdateInodeFileEntry.newBuilder()
+          .setId(inode.getId())
+          .setReplicationMax(newMax)
+          .setReplicationMin(newMin)
+          .build());
+      mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
+          .setId(inode.getId())
+          .setPinned(newMin > 0)
+          .setLastModificationTimeMs(opTimeMs)
+          .build());
+    } else {
+      try {
+        for (InodeView child : ((InodeDirectoryView) inode).getChildren()) {
+          try (LockedInodePath tempInodePath =
+                   inodePath.createTempPathForExistingChild(child, LockMode.WRITE)) {
+            setReplication(rpcContext, tempInodePath, replicationMax, replicationMin, opTimeMs);
+          }
+        }
+      } catch (InvalidPathException e) {
+        LOG.warn("Invalid path encountered when trying to set replication {}",
+            inodePath.getUri().getPath());
+      }
+    }
+  }
+
+  /**
+   * @return the set of file ids whose replication max is not infinity
+   */
+  public Set<Long> getReplicationLimitedFileIds() {
+    return java.util.Collections.unmodifiableSet(mState.getReplicationLimitedFileIds());
+  }
+
+  /**
    * @return the set of file ids which are pinned
    */
   public Set<Long> getPinIdSet() {

@@ -26,6 +26,7 @@ import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.status.Status.PStatus;
 import alluxio.resource.LockResource;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
@@ -167,7 +168,9 @@ public final class NettyPacketWriter implements PacketWriter {
       Protocol.CreateUfsFileOptions ufsFileOptions =
           Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())
               .setOwner(options.getOwner()).setGroup(options.getGroup())
-              .setMode(options.getMode().toShort()).setMountId(options.getMountId()).build();
+              .setMode(options.getMode().toShort()).setMountId(options.getMountId())
+              .setAcl(AccessControlList.toProtoBuf(options.getAcl()))
+              .build();
       builder.setCreateUfsFileOptions(ufsFileOptions);
     }
     mPartialRequest = builder.buildPartial();

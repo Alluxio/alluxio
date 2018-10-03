@@ -77,5 +77,4 @@ public interface Index {
    * @return an iterator of keys, the iterator does not support remove
    */
   Iterator<ByteBuffer> keyIterator(PayloadReader reader);
-
 }

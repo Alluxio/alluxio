@@ -21,6 +21,31 @@ import java.util.List;
 public interface InodeFileView extends InodeView {
 
   /**
+   * @return the job id of the job persisting this file
+   */
+  long getPersistJobId();
+
+  /**
+   * @return the durable number of block replication
+   */
+  int getReplicationDurable();
+
+  /**
+   * @return the maximum number of block replication
+   */
+  int getReplicationMax();
+
+  /**
+   * @return the minimum number of block replication
+   */
+  int getReplicationMin();
+
+  /**
+   * @return the temporary UFS path this file is persisted to
+   */
+  String getTempUfsPath();
+
+  /**
    * @return a duplication of all the block ids of the file
    */
   List<Long> getBlockIds();

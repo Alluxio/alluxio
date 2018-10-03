@@ -285,12 +285,52 @@ public final class AlluxioBlockStore {
     WorkerNetAddress address;
     FileWriteLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
         PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
-    address = locationPolicy.getWorkerForNextBlock(getEligibleWorkers(), blockSize);
-    if (address == null) {
-      throw new UnavailableException(
-          ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
+    java.util.Set<BlockWorkerInfo> blockWorkers;
+    blockWorkers = com.google.common.collect.Sets.newHashSet(getEligibleWorkers());
+    // The number of initial copies depends on the write type: if ASYNC_THROUGH, it is the property
+    // "alluxio.user.file.replication.durable" before data has been persisted; otherwise
+    // "alluxio.user.file.replication.min"
+    int initialReplicas = (options.getWriteType() == alluxio.client.WriteType.ASYNC_THROUGH
+        && options.getReplicationDurable() > options.getReplicationMin())
+        ? options.getReplicationDurable() : options.getReplicationMin();
+    if (initialReplicas <= 1) {
+      address = locationPolicy.getWorkerForNextBlock(blockWorkers, blockSize);
+      if (address == null) {
+        throw new UnavailableException(
+            ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
+      }
+      return getOutStream(blockId, blockSize, address, options);
     }
-    return getOutStream(blockId, blockSize, address, options);
+
+    // Group different block workers by their hostnames
+    java.util.Map<String, java.util.Set<BlockWorkerInfo>> blockWorkersByHost =
+        new java.util.HashMap<>();
+    for (BlockWorkerInfo blockWorker : blockWorkers) {
+      String hostName = blockWorker.getNetAddress().getHost();
+      if (blockWorkersByHost.containsKey(hostName)) {
+        blockWorkersByHost.get(hostName).add(blockWorker);
+      } else {
+        blockWorkersByHost.put(hostName, com.google.common.collect.Sets.newHashSet(blockWorker));
+      }
+    }
+
+    // Select N workers on different hosts where N is the value of initialReplicas for this block
+    List<WorkerNetAddress> workerAddressList = new java.util.ArrayList<>();
+    for (int i = 0; i < initialReplicas; i++) {
+      address = locationPolicy.getWorkerForNextBlock(blockWorkers, blockSize);
+      if (address == null) {
+        break;
+      }
+      workerAddressList.add(address);
+      blockWorkers.removeAll(blockWorkersByHost.get(address.getHost()));
+    }
+    if (workerAddressList.size() < initialReplicas) {
+      throw new alluxio.exception.status.ResourceExhaustedException(String.format(
+          "Not enough workers for replications, %d workers selected but %d required",
+          workerAddressList.size(), initialReplicas));
+    }
+    return BlockOutStream
+        .createReplicatedBlockOutStream(mContext, blockId, blockSize, workerAddressList, options);
   }
 
   /**

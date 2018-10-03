@@ -395,5 +395,4 @@ public final class TransportProviderTest {
       }
     }
   }
-
 }

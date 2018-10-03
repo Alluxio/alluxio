@@ -44,5 +44,4 @@ public final class PlainSaslServerProvider extends Provider {
     super(NAME, VERSION, "Plain SASL server provider");
     put("SaslServerFactory." + MECHANISM, PlainSaslServer.Factory.class.getName());
   }
-
 }

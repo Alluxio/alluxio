@@ -41,6 +41,8 @@ public final class SetAttributeOptions {
   private String mGroup;
   private Mode mMode;
   private boolean mRecursive;
+  private Integer mReplicationMax;
+  private Integer mReplicationMin;
 
   /**
    * @return the default {@link SetAttributeOptions}
@@ -59,6 +61,8 @@ public final class SetAttributeOptions {
     mGroup = null;
     mMode = null;
     mRecursive = false;
+    mReplicationMax = null;
+    mReplicationMin = null;
   }
 
   /**
@@ -127,6 +131,20 @@ public final class SetAttributeOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @return the maximum number of block replication
+   */
+  public Integer getReplicationMax() {
+    return mReplicationMax;
+  }
+
+  /**
+   * @return the minimum number of block replication
+   */
+  public Integer getReplicationMin() {
+    return mReplicationMin;
   }
 
   /**
@@ -228,6 +246,29 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * @param replicationMax the maximum number of block replication
+   * @return the updated options object
+   */
+  public SetAttributeOptions setReplicationMax(int replicationMax) {
+    com.google.common.base.Preconditions.checkArgument(
+        replicationMax == alluxio.Constants.REPLICATION_MAX_INFINITY || replicationMax >= 0,
+        alluxio.exception.PreconditionMessage.INVALID_REPLICATION_MAX_VALUE);
+    mReplicationMax = replicationMax;
+    return this;
+  }
+
+  /**
+   * @param replicationMin the minimum number of block replication
+   * @return the updated options object
+   */
+  public SetAttributeOptions setReplicationMin(int replicationMin) {
+    com.google.common.base.Preconditions.checkArgument(replicationMin >= 0,
+        alluxio.exception.PreconditionMessage.INVALID_REPLICATION_MIN_VALUE);
+    mReplicationMin = replicationMin;
+    return this;
+  }
+
+  /**
    * @return Thrift representation of the options
    */
   public SetAttributeTOptions toThrift() {
@@ -252,6 +293,12 @@ public final class SetAttributeOptions {
     if (mMode != null) {
       options.setMode(mMode.toShort());
     }
+    if (mReplicationMax != null) {
+      options.setReplicationMax(mReplicationMax);
+    }
+    if (mReplicationMin != null) {
+      options.setReplicationMin(mReplicationMin);
+    }
     options.setRecursive(mRecursive);
     options.setCommonOptions(mCommonOptions.toThrift());
     return options;
@@ -274,13 +321,15 @@ public final class SetAttributeOptions {
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode)
+        && Objects.equal(mReplicationMax, that.mReplicationMax)
+        && Objects.equal(mReplicationMin, that.mReplicationMin)
         && Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner,
-        mGroup, mMode, mRecursive, mCommonOptions);
+        mReplicationMax, mReplicationMin, mGroup, mMode, mRecursive, mCommonOptions);
   }
 
   @Override
@@ -295,6 +344,8 @@ public final class SetAttributeOptions {
         .add("group", mGroup)
         .add("mode", mMode)
         .add("recursive", mRecursive)
+        .add("replicationMax", mReplicationMax)
+        .add("replicationMin", mReplicationMin)
         .toString();
   }
 }

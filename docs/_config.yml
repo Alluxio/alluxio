@@ -6,7 +6,7 @@ kramdown:
 
 # For release candidates and release branches, this should match the pom.xml Alluxio version, e.g. "1.5.0" or "1.5.0-RC1"
 # For master branch, this should be the latest released version, e.g. "1.5.0"
-ALLUXIO_RELEASED_VERSION: 1.8.0
+ALLUXIO_RELEASED_VERSION: 1.8.1
 # This should be the same as ALLUXIO_RELEASED_VERSION, except on master branch, where it should be "master"
 ALLUXIO_MASTER_VERSION_SHORT: master
 # For release candidates and release branches, this should be the major Alluxio version, e.g. both 1.5.0 and 1.5.0-RC1 should use "1.5"

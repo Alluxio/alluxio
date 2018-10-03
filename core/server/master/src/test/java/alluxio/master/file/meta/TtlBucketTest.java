@@ -129,7 +129,6 @@ public class TtlBucketTest {
     Assert.assertTrue(mBucket.getInodes().contains(mDirectoryTtl2));
     mBucket.removeInode(mDirectoryTtl2);
     Assert.assertEquals(0, mBucket.getInodes().size());
-
   }
 
   /**
