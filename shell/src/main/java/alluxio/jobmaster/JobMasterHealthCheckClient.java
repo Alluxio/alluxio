@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.jobmaster;
 
 import alluxio.Constants;
 import alluxio.common.RpcPortHealthCheckClient;
@@ -22,20 +22,19 @@ import java.net.InetSocketAddress;
 import java.util.function.Supplier;
 
 /**
- * WorkerHealthCheckClient check if worker is serving RPC.
+ * JobMasterHealthCheckClient check if job_master is serving RPC.
  */
-public class WorkerHealthCheckClient extends RpcPortHealthCheckClient {
-  private static final Logger LOG =
-      LoggerFactory.getLogger(alluxio.worker.WorkerHealthCheckClient.class);
+public class JobMasterHealthCheckClient extends RpcPortHealthCheckClient {
+  private static final Logger LOG = LoggerFactory.getLogger(JobMasterHealthCheckClient.class);
 
   /**
-   * Creates a worker health check client.
+   * Creates a job_master health check client.
    *
-   * @param jobWorkerAddress The potential job_worker address
+   * @param jobMasterAddress The potential job_master address
    * @param retryPolicySupplier the retry policy supplier
    */
-  public WorkerHealthCheckClient(InetSocketAddress jobWorkerAddress,
-                                    Supplier<RetryPolicy> retryPolicySupplier) {
-    super(jobWorkerAddress, Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME, retryPolicySupplier);
+  public JobMasterHealthCheckClient(InetSocketAddress jobMasterAddress,
+      Supplier<RetryPolicy> retryPolicySupplier) {
+    super(jobMasterAddress, Constants.FILE_SYSTEM_MASTER_JOB_SERVICE_NAME, retryPolicySupplier);
   }
 }
