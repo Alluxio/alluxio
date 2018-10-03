@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Alluxio with YARN
-nickname: Alluxio with YARN
+nickname: YARN
 group: Deploying Alluxio
 priority: 6
 ---

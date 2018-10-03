@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Deploy Alluxio on Mesos
-nickname: Alluxio on Mesos
+nickname: Mesos
 group: Deploying Alluxio
 priority: 4
 ---

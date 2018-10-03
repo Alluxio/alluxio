@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Deploy Alluxio on Docker
-nickname: Alluxio on Docker
+nickname: Docker
 group: Deploying Alluxio
 priority: 3
 ---

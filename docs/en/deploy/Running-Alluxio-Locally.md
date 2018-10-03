@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Deploy Alluxio Locally
-nickname: Alluxio on Local Machine
+nickname: Local Machine
 group: Deploying Alluxio
 priority: 1
 ---
