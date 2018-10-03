@@ -25,7 +25,8 @@ import java.util.function.Supplier;
  * WorkerHealthCheckClient check if worker is serving RPC.
  */
 public class WorkerHealthCheckClient extends RpcPortHealthCheckClient {
-  private static final Logger LOG = LoggerFactory.getLogger(alluxio.worker.WorkerHealthCheckClient.class);
+  private static final Logger LOG =
+      LoggerFactory.getLogger(alluxio.worker.WorkerHealthCheckClient.class);
 
   /**
    * Creates a worker health check client.
