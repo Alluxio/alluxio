@@ -10,7 +10,7 @@ priority: 5
 {:toc}
 
 This guide describes how to configure Alluxio with
-[Huawei OBS](http://www.huaweicloud.com/en-us/product/obs.html) as the under storage system. Object Storage
+[Open Telecom OBS](http://www.huaweicloud.com/en-us/product/obs.html) as the under storage system. Object Storage
 Service (OBS) is a massive, secure and highly reliable cloud storage service provided by Huawei Cloud.
 
 ## Initial Setup
