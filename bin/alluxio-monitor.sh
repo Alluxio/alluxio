@@ -25,6 +25,10 @@ Where ACTION is one of:
   masters            \tStart monitors for all masters nodes.
   worker             \tStart a worker monitor on this node.
   workers            \tStart monitors for all workers nodes.
+  job_master         \tStart a job_master monitor on this node.
+  job_masters        \tStart monitors for all job_master nodes.
+  job_worker         \tStart a job_worker monitor on this node.
+  job_workers        \tStart monitors for all job_worker nodes.
   proxy              \tStart the proxy monitor on this node.
   proxies            \tStart monitors for all proxies nodes.
 
@@ -85,6 +89,12 @@ run_monitor() {
     worker)
       monitor_exec=alluxio.worker.AlluxioWorkerMonitor
       ;;
+    job_master)
+      monitor_exec=alluxio.jobmaster.AlluxioJobMasterMonitor
+      ;;
+    job_worker)
+      monitor_exec=alluxio.jobworker.AlluxioJobWorkerMonitor
+      ;;
     proxy)
       monitor_exec=alluxio.proxy.AlluxioProxyMonitor
       ;;
@@ -121,6 +131,12 @@ run_monitors() {
         ;;
       worker)
         nodes=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
+        ;;
+      job_master)
+        nodes=$(cat "${ALLUXIO_CONF_DIR}/job_masters" | sed  "s/#.*$//;/^$/d")
+        ;;
+      job_worker)
+        nodes=$(cat "${ALLUXIO_CONF_DIR}/job_workers" | sed  "s/#.*$//;/^$/d")
         ;;
       proxy)
         nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d" | sort | uniq)
@@ -210,6 +226,22 @@ main() {
     masters)
       prepare_monitor "Starting to monitor all the ${CYAN}masters${NC} services."
       run_monitors "master" "${HOSTS}"
+      ;;
+    job_master)
+      prepare_monitor "Starting to monitor the ${CYAN}job_master{NC} service."
+      run_monitor "job_master" "${MODE}"
+      ;;
+    job_masters)
+      prepare_monitor "Starting to monitor all the ${CYAN}job_master{NC} services."
+      run_monitors "job_master" "${HOSTS}"
+      ;;
+    job_worker)
+      prepare_monitor "Starting to monitor the ${CYAN}job_worker{NC} service."
+      run_monitor "job_worker" "${MODE}"
+      ;;
+    job_workers)
+      prepare_monitor "Starting to monitor all the ${CYAN}job_worker{NC} services."
+      run_monitors "job_worker" "${HOSTS}"
       ;;
     proxy)
       prepare_monitor "Starting to monitor the ${CYAN}proxy${NC} service."
