@@ -2,7 +2,7 @@
 layout: global
 title: Running Apache Hive with Alluxio
 nickname: Apache Hive
-group: Compute Applications
+group: Compute
 priority: 2
 ---
 
@@ -23,7 +23,7 @@ that you can easily store Hive tables in Alluxio's tiered storage.
   Alternatively, advanced users can compile this client jar from the source code
   by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
 * To run Hive on Hadoop MapReduce, please also follow the instructions in
-  [running MapReduce on Alluxio]({{ site.baseurl }}{% link en/compute/Compute-Hadoop-MapReduce.md %})
+  [running MapReduce on Alluxio]({{ site.baseurl }}{% link en/compute/Hadoop-MapReduce.md %})
   to make sure Hadoop MapReduce can work with Alluxio.
   In the following sections of this documentation, Hive is running on Hadoop MapReduce.
 

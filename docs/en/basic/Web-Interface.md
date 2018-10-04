@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Web Interface
-group: Advanced
+group: Basic
 priority: 6
 ---
 

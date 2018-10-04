@@ -30,7 +30,7 @@ By default Alluxio processes' log files can be found under `${ALLUXIO_HOME}/logs
 
 The location of the logs is determined by the `alluxio.logs.dir` property. This is a JVM
 property which cannot be set in the `alluxio-site.properties` file. See the
-[configuration settings page]({{site.baseurl}}{% link en/advanced/Configuration-Settings.md %}#configuration-sources)
+[configuration settings page]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}#configuration-sources)
 for more information on how to set JVM properties for Alluxio.
 
 Each Alluxio process (master, worker, FUSE, proxy) will log to a separate file within the

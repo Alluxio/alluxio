@@ -52,7 +52,7 @@ alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob
 
 ### Nested Mount
 An Azure blob store location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ site.baseurl }}{% link en/advanced/Command-Line-Interface.md %}) can be used for this purpose.
+to multiple under storage systems. Alluxio's [Command Line Interface]({{ site.baseurl }}{% link en/basic/Command-Line-Interface.md %}) can be used for this purpose.
 
 ```bash
 $ ./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\

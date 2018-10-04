@@ -51,7 +51,7 @@ To deploy Alluxio on Mesos, we need to make the Alluxio distribution available t
 2. Point Mesos to an Alluxio tarball.
 
 ### Setting configuration properties
-See the [Configuration Settings]({{ site.baseurl }}{% link en/advanced/Configuration-Settings.md %}) documentation for instructions on how to set configuration properties.
+See the [Configuration Settings]({{ site.baseurl }}{% link en/basic/Configuration-Settings.md %}) documentation for instructions on how to set configuration properties.
 
 ### Deploy with Alluxio already installed on all Mesos nodes
 

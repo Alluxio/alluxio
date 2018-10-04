@@ -23,10 +23,10 @@ find alluxio client logs.
 Below are links to compute framework documentation with information about where logs may be found
 and how to configure them.
 
-- [Apache Hadoop]({{ site.baseurl }}{% link en/compute/Compute-Hadoop-MapReduce.md %}#logging-configuration)
-- [Apache HBase]({{ site.baseurl }}{% link en/compute/Compute-HBase.md %}#logging-configuration)
-- [Apache Hive]({{ site.baseurl }}{% link en/compute/Compute-Hive.md %}#logging-configuration)
-- [Apache Spark]({{ site.baseurl }}{% link en/compute/Compute-Spark.md %}#logging-configuration)
+- [Apache Hadoop]({{ site.baseurl }}{% link en/compute/Hadoop-MapReduce.md %}#logging-configuration)
+- [Apache HBase]({{ site.baseurl }}{% link en/compute/HBase.md %}#logging-configuration)
+- [Apache Hive]({{ site.baseurl }}{% link en/compute/Hive.md %}#logging-configuration)
+- [Apache Spark]({{ site.baseurl }}{% link en/compute/Spark.md %}#logging-configuration)
 
 It is important to note that while Alluxio specifically uses log4j to perform logging, the location
 of client logs varies by application and will typically be found in the same location as the

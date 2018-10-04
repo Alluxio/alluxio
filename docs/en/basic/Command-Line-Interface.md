@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Command Line Interface
-group: Advanced
+group: Basic
 priority: 0
 ---
 

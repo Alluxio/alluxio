@@ -45,7 +45,8 @@ categoryList:
   - Home
   - Deploying Alluxio
   - Under Stores
-  - Compute Applications
+  - Compute
+  - Basic
   - Operations
   - Advanced
   - APIs
@@ -61,17 +62,19 @@ categoryInfo:
     cn: 用户指南
     pt: Guias do Usuário
   Deploying Alluxio:
-    en: Deploying Alluxio
-    cn: 部署Alluxio
-    pt: Deploying Alluxio
+    en: Deploy
+    cn: 部署
+    pt: Deploy
   Under Stores:
     en: Under Stores
     cn: 底层存储系统
     pt: Under Stores
-  Compute Applications:
-    en: Frameworks
+  Compute:
+    en: Compute
     cn: 计算框架
-    pt: Frameworks
+    pt: Compute
+  Basic:
+    en: Basic
   Operations:
     en: Operations
   Advanced:

@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Configuration Settings
-group: Advanced
+group: Basic
 priority: 0
 ---
 
