@@ -9,12 +9,12 @@ group: Home
 
 ## Architecture
 
-### Overview 
+### Overview
 
-Alluxio is not a persistent storage system. Instead, 
-Alluxio serves as a new data access layer in the ecosystem, residing between any persistent storage 
-systems (such as Amazon S3, Microsoft Azure Object Store, Apache HDFS or OpenStack Swift) 
-and computation frameworks 
+Alluxio is not a persistent storage system. Instead,
+Alluxio serves as a new data access layer in the ecosystem, residing between any persistent storage
+systems (such as Amazon S3, Microsoft Azure Object Store, Apache HDFS or OpenStack Swift)
+and computation frameworks
 (such as Apache Spark, Presto or Hadoop MapReduce).
 There are multiple benefits to have this layer in the stack:
 
@@ -23,7 +23,7 @@ There are multiple benefits to have this layer in the stack:
 
 - For under storage systems, Alluxio bridges the gap between big data applications and traditional storage systems, and expands the set of workloads available to utilize the data. Since Alluxio hides the integration of under storage systems from applications, any under storage can back all the applications and frameworks running on top of Alluxio. Also, when mounting multiple under storage systems simultaneously, Alluxio can serve as a unifying layer for any number of varied data sources.
 
-At a high level, Alluxio can be divided into three components: the master, workers, and clients. 
+At a high level, Alluxio can be divided into three components: the master, workers, and clients.
 Alluxio consists a single primary master and multiple workers.
 The master and workers together make up the Alluxio servers, which are the components a system admin would maintain and manage. The clients are used to talk to Alluxio servers by the applications, such as Spark or MapReduce jobs, Alluxio command-line, or the FUSE layer.
 
@@ -51,7 +51,6 @@ Also, Alluxio workers perform data operations on the under store (e.g. data tran
 
 Because RAM usually offers limited capacity, blocks in a worker can be evicted when space is full. Workers employ eviction policies to decide which data to keep in the Alluxio space. For more on this topic, please check out the documentation for [Tiered Storage]({{ site.baseurl }}{% link en/advanced/Alluxio-Storage-Management.md %}#multiple-tier-storage).
 
-
 ### Client
 
 The Alluxio client provides users a gateway to interact with the Alluxio servers. It initiates communication with the primary master to carry out metadata operations and with workers to read and write data that is stored in Alluxio. It also provides a native filesystem API in Java, and supports multiple client languages including REST, Go and Python. In addition to that, Alluxio also supports APIs that are compatible with HDFS API as well as Amazon S3 API.
@@ -68,7 +67,7 @@ Sitting between the under storage and computation framework, Alluxio can serve a
 
 This occurs when the requested data resides on the local Alluxio worker and the computation gets a local cache hit. For example, if an application requests data access through the Alluxio client, the client checks with the Alluxio master for the worker location of the data. If the data is locally available, the Alluxio client will use a “short-circuit” read to bypass the Alluxio worker and read the file directly via the local filesystem. Short-circuit reads avoid data transfer over a TCP socket, and provide the data access at memory speed. Short-circuit reads are the most performant way of reading data out of Alluxio.
 
-By default, short-circuit reads use local filesystem operations which require permissive permissions. This is sometimes impossible when the worker and client are dockerized due to incorrect resource accounting. In cases where the default short circuit is not feasible, Alluxio provides domain socket based short circuit in which the worker will transfer data to the client through a predesignated domain socket path. For more information on 
+By default, short-circuit reads use local filesystem operations which require permissive permissions. This is sometimes impossible when the worker and client are dockerized due to incorrect resource accounting. In cases where the default short circuit is not feasible, Alluxio provides domain socket based short circuit in which the worker will transfer data to the client through a predesignated domain socket path. For more information on
 this topic, please check out the instructions on [running Alluxio on Docker]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-Docker.md %}).
 
 Also note that Alluxio can manage other storage media (e.g. SSD, HDD) in addition to memory, so local data access speed may vary depending on the local storage media. To learn more about this topic, please refer to the [tiered storage document]({{ site.baseurl }}{% link en/advanced/Alluxio-Storage-Management.md %}#multiple-tier-storage).
@@ -83,7 +82,6 @@ In addition to returning the data to the client, the worker will also write a co
 
 ![Data Flow of Read from a Remote Worker]({{ site.baseurl }}/img/dataflow-remote-cache-hit.gif)
 
-
 #### Read Misses Alluxio Cache and Triggers Cache
 
 If the data is not available within the Alluxio space, a cache miss occurs and the application will have to read the data from the under storage. The Alluxio client will delegate the read to a local worker and the worker will read the data from the under storage. Up to the client, the worker may cache the data locally for future reads. Cache misses generally cause the largest delay because the application has to wait until the data is fetched from the under storage. A cache miss typically happens when the data is read the first time.
@@ -96,27 +94,28 @@ In Alluxio versions 1.7 and above, partial caching is always enabled and handled
 
 #### Read Misses Alluxio but do not Cache
 
-It’s possible to turn off caching in Alluxio and have the client read directly from the under storage by setting the property `alluxio.user.file.readtype.default` in the client to `NO_CACHE`.
+It’s possible to turn off caching in Alluxio and have the client read directly from the under storage by setting the property
+[`alluxio.user.file.readtype.default`]({{ site.baseurl }}{% link en/reference/Properties-List.md %}#alluxio.user.file.cache.partially.read.block) in the client to `NO_CACHE`.
 
 ### Write
 
-Users can configure how data should be written by choosing from different write types. The write type can be set either through the Alluxio API or by configuring the property `alluxio.user.file.writetype.default` in the client. This section describes the behaviors of different write types as well as the performance implications to the applications.
+Users can configure how data should be written by choosing from different write types. The write type can be set either through the Alluxio API or by configuring the property
+[`alluxio.user.file.writetype.default`]({{ site.baseurl }}{% link en/reference/Properties-List.md %}#alluxio.user.file.writetype.default)
+in the client. This section describes the behaviors of different write types as well as the performance implications to the applications.
 
 #### Write to Alluxio only (`MUST_CACHE`)
 With a write type of MUST_CACHE, the Alluxio client only writes to the local Alluxio worker, and no data will be written to the under storage. Before the write, Alluxio client will create the metadata on the Alluxio master. During the write, if short-circuit write is available, Alluxio client will directly write to the file on the local RAM disk, bypassing the Alluxio worker to avoid the slower network transfer. Short-circuit write is the most performant write (it executes at memory speed). Since the data is not written persistently to the under storage, data can be lost if the machine crashes or data needs to be freed up for newer writes. As a result, the `MUST_CACHE` setting is useful for writing temporary data when data loss can be tolerated.
 
 ![MUST_CACHE data flow]({{ site.baseurl }}/img/dataflow-must-cache.gif)
 
-
 #### Write through to UFS (`CACHE_THROUGH`)
 
-With the write type of CACHE_THROUGH, data is written synchronously to an Alluxio worker and the under storage system. The Alluxio client delegates the write to the local worker, and the worker will simultaneously write to both the local memory as well as the under storage. Since the under storage is typically much slower to write to than the local storage, the client write speed will match the write speed of the under storage. The CACHE_THROUGH write type is recommended when data persistence is required. A local copy is also written, so any future reads of the data can be served from local memory directly.
+With the write type of CACHE_THROUGH, data is written synchronously to an Alluxio worker and the under storage system. The Alluxio client delegates the write to the local worker, and the worker will simultaneously write to both the local memory as well as the under storage. Since the under storage is typically much slower to write to than the local storage, the client write speed will match the write speed of the under storage. The `CACHE_THROUGH` write type is recommended when data persistence is required. A local copy is also written, so any future reads of the data can be served from local memory directly.
 
 ![CACHE_THROUGH data flow]({{ site.baseurl }}/img/dataflow-cache-through.gif)
 
-
 #### Write back to UFS (`ASYNC_THROUGH`)
 
-Lastly, Alluxio provides a write type of `ASYNC_THROUGH`. With `ASYNC_THROUGH`, data is written synchronously to an Alluxio worker and asynchronously to the under storage system. ASYNC_THROUGH can provide data write at memory speed while still persisting the data. 
+Lastly, Alluxio provides a write type of `ASYNC_THROUGH`. With `ASYNC_THROUGH`, data is written synchronously to an Alluxio worker and asynchronously to the under storage system. `ASYNC_THROUGH` can provide data write at memory speed while still persisting the data.
 
 ![ASYNC_THROUGH data flow]({{ site.baseurl }}/img/dataflow-async-through.gif)
