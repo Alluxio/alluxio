@@ -96,7 +96,7 @@ public final class LoginUserTest {
   @Test
   public void getSimpleLoginUserWhenNotProvidedByApp() throws Exception {
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "");
+    Configuration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
 
     User loginUser = LoginUser.get();
 
@@ -140,7 +140,7 @@ public final class LoginUserTest {
   @Test
   public void getCustomLoginUserWhenNotProvidedByApp() throws Exception {
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "");
+    Configuration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
 
     User loginUser = LoginUser.get();
 

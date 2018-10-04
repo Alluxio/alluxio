@@ -156,8 +156,9 @@ public final class Configuration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public static void set(PropertyKey key, Object value, Source source) {
-    Preconditions.checkArgument(key != null && value != null,
-        String.format("the key value pair (%s, %s) cannot have null", key, value));
+    Preconditions.checkArgument(key != null && value != null && !value.equals(""),
+        String.format("The key value pair (%s, %s) cannot be null or an empty string",
+            key, value));
     PROPERTIES.put(key, String.valueOf(value), source);
   }
 

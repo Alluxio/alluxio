@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.channels.SocketChannel;
@@ -101,7 +102,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void listenEmpty() throws Exception {
-    startCluster("");
+    startCluster(InetAddress.getLocalHost().getHostName());
     boolean allConnected = true;
     try {
       connectServices();
@@ -155,7 +156,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void connectDifferentAddress() throws Exception {
-    startCluster("");
+    startCluster(InetAddress.getLocalHost().getHostName());
 
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRpcAddr = new InetSocketAddress("127.0.0.1",

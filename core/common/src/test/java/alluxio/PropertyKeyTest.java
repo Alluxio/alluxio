@@ -13,6 +13,7 @@ package alluxio;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.PropertyKey.Builder;
@@ -283,5 +284,13 @@ public final class PropertyKeyTest {
     matcher = Template.MASTER_IMPERSONATION_USERS_OPTION.match(users);
     assertTrue(matcher.matches());
     assertEquals(name, matcher.group(1));
+  }
+
+  @Test
+  public void testEmptyKeyDefaults() {
+    for (PropertyKey key : PropertyKey.defaultKeys()) {
+      assertNotEquals(key.getDefaultValue(), "", String.format(
+          "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()));
+    }
   }
 }
