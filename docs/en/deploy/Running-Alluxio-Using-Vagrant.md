@@ -38,7 +38,7 @@ $ sudo pip install -r pip-req.txt
 
 ### Launch Cluster
 
-Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem by running the script under deploy/vagrant:
+Now you can launch the Alluxio cluster with Hadoop as under filesystem by running the script under deploy/vagrant:
 
 ```bash
 $ ./create <number of machines> vb
