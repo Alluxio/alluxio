@@ -87,6 +87,7 @@ public class BlockMetaTest {
   @Test
   public void getPath() {
     mBlockMeta = new BlockMeta(mTempBlockMeta);
-    Assert.assertEquals(PathUtils.concatPath(mTestBlockDirPath, TEST_BLOCK_ID), mBlockMeta.getPath());
+    Assert.assertEquals(PathUtils.concatPath(mTestBlockDirPath, TEST_BLOCK_ID),
+        mBlockMeta.getPath());
   }
 }

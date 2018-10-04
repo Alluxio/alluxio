@@ -62,7 +62,8 @@ public class TempBlockMetaTest {
    */
   @Test
   public void getPath() {
-    Assert.assertEquals(PathUtils.concatPath(mTestBlockDirPath, ".tmp_blocks", TEST_SESSION_ID % 1024,
+    Assert.assertEquals(PathUtils.concatPath(mTestBlockDirPath,
+        ".tmp_blocks", TEST_SESSION_ID % 1024,
         String.format("%x-%x", TEST_SESSION_ID, TEST_BLOCK_ID)),
         mTempBlockMeta.getPath());
   }
