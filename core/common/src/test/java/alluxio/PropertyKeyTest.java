@@ -292,9 +292,6 @@ public final class PropertyKeyTest {
       assertNotEquals(String.format(
           "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()),
           key.getDefaultValue(), "");
-//      assertNotEquals(String.format(
-//          "Property keys cannot have a default value of null. Offending key: %s", key.getName()),
-//          key.getDefaultValue(), null);
     }
   }
 }
