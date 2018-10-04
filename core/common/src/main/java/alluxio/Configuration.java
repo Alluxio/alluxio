@@ -160,7 +160,7 @@ public final class Configuration {
         String.format("The key value pair (%s, %s) cannot be null", key, value));
     Preconditions.checkArgument(!value.equals(""),
         String.format("The key \"%s\" cannot be have an empty string as a value. Use "
-            + "Configuration.unset to remove a key from the configuration.", key, value));
+            + "Configuration.unset to remove a key from the configuration.", key));
     PROPERTIES.put(key, String.valueOf(value), source);
   }
 

@@ -29,7 +29,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.channels.SocketChannel;
