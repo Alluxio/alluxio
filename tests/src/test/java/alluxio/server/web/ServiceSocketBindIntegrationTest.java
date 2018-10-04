@@ -156,7 +156,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void connectDifferentAddress() throws Exception {
-    startCluster(InetAddress.getLocalHost().getHostName());
+    startCluster(NetworkAddressUtils.getLocalHostName(100));
 
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRpcAddr = new InetSocketAddress("127.0.0.1",
