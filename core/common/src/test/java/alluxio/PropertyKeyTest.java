@@ -289,8 +289,12 @@ public final class PropertyKeyTest {
   @Test
   public void testEmptyKeyDefaults() {
     for (PropertyKey key : PropertyKey.defaultKeys()) {
-      assertNotEquals(key.getDefaultValue(), "", String.format(
-          "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()));
+      assertNotEquals(String.format(
+          "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()),
+          key.getDefaultValue(), "");
+//      assertNotEquals(String.format(
+//          "Property keys cannot have a default value of null. Offending key: %s", key.getName()),
+//          key.getDefaultValue(), null);
     }
   }
 }

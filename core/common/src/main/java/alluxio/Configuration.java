@@ -157,8 +157,10 @@ public final class Configuration {
    */
   public static void set(PropertyKey key, Object value, Source source) {
     Preconditions.checkArgument(key != null && value != null && !value.equals(""),
-        String.format("The key value pair (%s, %s) cannot be null or an empty string",
-            key, value));
+        String.format("The key value pair (%s, %s) cannot be null", key, value));
+    Preconditions.checkArgument(!value.equals(""),
+        String.format("The key \"%s\" cannot be have an empty string as a value. Use "
+            + "Configuration.unset to remove a key from the configuration.", key, value));
     PROPERTIES.put(key, String.valueOf(value), source);
   }
 
