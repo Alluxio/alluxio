@@ -102,7 +102,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void listenEmpty() throws Exception {
-    startCluster(InetAddress.getLocalHost().getHostName());
+    startCluster(null);
     boolean allConnected = true;
     try {
       connectServices();
