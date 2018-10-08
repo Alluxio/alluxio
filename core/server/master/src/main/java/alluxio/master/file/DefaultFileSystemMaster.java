@@ -3050,7 +3050,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // 4. Load metadata from UFS.
 
     Set<String> pathsToLoad = new HashSet<>();
-
+    UfsStatus[] children;
+    Map<String, UfsStatus> statusCache = new HashMap<>();
     // Set to true if the given inode was deleted.
     boolean deletedInode = false;
 
@@ -3059,10 +3060,27 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // The requested path does not exist in Alluxio, so just load metadata.
         pathsToLoad.add(inodePath.getUri().getPath());
       } else {
-        SyncResult result =
-            syncInodeMetadata(rpcContext, inodePath, syncDescendantType);
-        deletedInode = result.getDeletedInode();
-        pathsToLoad = result.getPathsToLoad();
+        AlluxioURI path = inodePath.getUri();
+        MountTable.Resolution resolution = mMountTable.resolve(path);
+        AlluxioURI ufsUri = resolution.getUri();
+        try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+          UnderFileSystem ufs = ufsResource.get();
+          ListOptions listOptions = ListOptions.defaults();
+          if (syncDescendantType == DescendantType.ALL) {
+            listOptions.setRecursive(true);
+          } else {
+            listOptions.setRecursive(false);
+          }
+          children = ufs.listStatus(ufsUri.toString(), listOptions);
+          for (UfsStatus childStatus : children) {
+            statusCache.put(childStatus.getName(), childStatus);
+          }
+
+          SyncResult result =
+              syncInodeMetadata(rpcContext, inodePath, syncDescendantType, statusCache);
+          deletedInode = result.getDeletedInode();
+          pathsToLoad = result.getPathsToLoad();
+        }
       }
     } catch (Exception e) {
       LOG.error("Failed to remove out-of-sync metadata for path: {}", inodePath.getUri(), e);
@@ -3152,7 +3170,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *         metadata is required
    */
   private SyncResult syncInodeMetadata(RpcContext rpcContext, LockedInodePath inodePath,
-      DescendantType syncDescendantType)
+      DescendantType syncDescendantType, Map<String, UfsStatus> statusCache)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     // Set to true if the given inode was deleted.
     boolean deletedInode = false;
@@ -3182,7 +3200,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
-      String ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
+      String ufsFingerprint;
+      UfsStatus cachedStatus = statusCache.get(inodePath.getUri().toString());
+      if (cachedStatus == null) {
+        LOG.info("went to ufs to get fingerprint for" + ufsUri.toString());
+        ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
+      } else {
+        Pair<AccessControlList, DefaultAccessControlList> aclPair = ufs.getAclPair(ufsUri.toString());
+
+        if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
+          ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), cachedStatus).serialize();
+        } else {
+          ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), cachedStatus, aclPair.getFirst()).serialize();
+        }
+      }
+
       Fingerprint ufsFpParsed = Fingerprint.parse(ufsFingerprint);
       boolean containsMountPoint = mMountTable.containsMountPoint(inodePath.getUri());
 
@@ -3254,7 +3286,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               syncDescendantType = DescendantType.NONE;
             }
             SyncResult syncResult =
-                syncInodeMetadata(rpcContext, tempInodePath, syncDescendantType);
+                syncInodeMetadata(rpcContext, tempInodePath, syncDescendantType, statusCache);
             pathsToLoad.addAll(syncResult.getPathsToLoad());
           }
         }
