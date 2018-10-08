@@ -23,6 +23,7 @@ import alluxio.master.job.command.CommandManager;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -41,6 +42,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class JobCoordinator {
   private static final Logger LOG = LoggerFactory.getLogger(JobCoordinator.class);
+  /**
+   * Access to mJobInfo should be synchronized in order to avoid inconsistent internal task state.
+   */
   private final JobInfo mJobInfo;
   private final CommandManager mCommandManager;
   /**
@@ -54,16 +58,20 @@ public final class JobCoordinator {
    */
   private final Map<Integer, WorkerInfo> mTaskIdToWorkerInfo = Maps.newHashMap();
   /**
-   * Mapping from workers running tasks for this job to the ids of those tasks. If this
-   * coordinator was created to represent an already-completed job, this map will be empty.
+   * Mapping from workers running tasks for this job to the ids of those tasks. If this coordinator
+   * was created to represent an already-completed job, this map will be empty.
    */
   private final Map<Long, Integer> mWorkerIdToTaskId = Maps.newHashMap();
-  /** The manager for all ufs. */
+  /**
+   * The manager for all ufs.
+   */
   private UfsManager mUfsManager;
 
   private JobCoordinator(CommandManager commandManager, UfsManager ufsManager,
-      List<WorkerInfo> workerInfoList, JobInfo jobInfo) {
-    mJobInfo = Preconditions.checkNotNull(jobInfo);
+      List<WorkerInfo> workerInfoList, Long jobId, JobConfig jobConfig,
+      Function<JobInfo, Void> statusChangeCallback) {
+    Preconditions.checkNotNull(jobConfig);
+    mJobInfo = new JobInfo(jobId, jobConfig, statusChangeCallback);
     mCommandManager = commandManager;
     mUfsManager = ufsManager;
     mWorkersInfoList = workerInfoList;
@@ -75,15 +83,18 @@ public final class JobCoordinator {
    * @param commandManager the command manager
    * @param ufsManager the ufs manager
    * @param workerInfoList the list of workers to use
-   * @param jobInfo the job information
+   * @param jobId the job Id
+   * @param jobConfig configuration for the job
+   * @param statusChangeCallback Callback to be called for status changes on the job
    * @return the created coordinator
    * @throws JobDoesNotExistException when the job definition doesn't exist
    */
   public static JobCoordinator create(CommandManager commandManager, UfsManager ufsManager,
-      List<WorkerInfo> workerInfoList, JobInfo jobInfo) throws JobDoesNotExistException {
+      List<WorkerInfo> workerInfoList, Long jobId, JobConfig jobConfig,
+      Function<JobInfo, Void> statusChangeCallback) throws JobDoesNotExistException {
     Preconditions.checkNotNull(commandManager);
-    JobCoordinator jobCoordinator =
-        new JobCoordinator(commandManager, ufsManager, workerInfoList, jobInfo);
+    JobCoordinator jobCoordinator = new JobCoordinator(commandManager, ufsManager, workerInfoList,
+        jobId, jobConfig, statusChangeCallback);
     jobCoordinator.start();
     // start the coordinator, create the tasks
     return jobCoordinator;
@@ -97,8 +108,8 @@ public final class JobCoordinator {
     JobMasterContext context = new JobMasterContext(mJobInfo.getId(), mUfsManager);
     Map<WorkerInfo, ?> taskAddressToArgs;
     try {
-      taskAddressToArgs = definition
-          .selectExecutors(mJobInfo.getJobConfig(), mWorkersInfoList, context);
+      taskAddressToArgs =
+          definition.selectExecutors(mJobInfo.getJobConfig(), mWorkersInfoList, context);
     } catch (Exception e) {
       LOG.warn("Failed to select executor.", e.getMessage());
       LOG.debug("Exception: ", e);
@@ -127,7 +138,7 @@ public final class JobCoordinator {
   /**
    * Cancels the current job.
    */
-  public void cancel() {
+  public synchronized void cancel() {
     for (int taskId : mJobInfo.getTaskIdList()) {
       mCommandManager.submitCancelTaskCommand(mJobInfo.getId(), taskId,
           mTaskIdToWorkerInfo.get(taskId).getId());
@@ -135,10 +146,65 @@ public final class JobCoordinator {
   }
 
   /**
+   * Updates internal status with given tasks.
+   *
+   * @param taskInfoList List of @TaskInfo instances to update
+   */
+  public synchronized void updateTasks(List<TaskInfo> taskInfoList) {
+    for (TaskInfo taskInfo : taskInfoList) {
+      mJobInfo.setTaskInfo(taskInfo.getTaskId(), taskInfo);
+    }
+    updateStatus();
+  }
+
+  /**
+   * @return true if the job is finished
+   */
+  public synchronized boolean isJobFinished() {
+    return mJobInfo.getStatus().isFinished();
+  }
+
+  /**
+   * Sets the job as failed with given error message.
+   *
+   * @param errorMessage Error message to set for failure
+   */
+  public synchronized void setJobAsFailed(String errorMessage) {
+    mJobInfo.setStatus(Status.FAILED);
+    mJobInfo.setErrorMessage(errorMessage);
+  }
+
+  /**
+   * Fails any incomplete tasks being run on the specified worker.
+   *
+   * @param workerId the id of the worker to fail tasks for
+   */
+  public synchronized void failTasksForWorker(long workerId) {
+    Integer taskId = mWorkerIdToTaskId.get(workerId);
+    if (taskId == null) {
+      return;
+    }
+    TaskInfo taskInfo = mJobInfo.getTaskInfo(taskId);
+    if (taskInfo.getStatus().isFinished()) {
+      return;
+    }
+    taskInfo.setStatus(Status.FAILED);
+    taskInfo.setErrorMessage("Job worker was lost before the task could complete");
+    updateStatus();
+  }
+
+  /**
+   * @return the on the wire job info for the job being coordinated
+   */
+  public synchronized alluxio.job.wire.JobInfo getJobInfoWire() {
+    return new alluxio.job.wire.JobInfo(mJobInfo);
+  }
+
+  /**
    * Updates the status of the job. When all the tasks are completed, run the join method in the
    * definition.
    */
-  public void updateStatus() {
+  private void updateStatus() {
     int completed = 0;
     List<TaskInfo> taskInfoList = mJobInfo.getTaskInfoList();
     for (TaskInfo info : taskInfoList) {
@@ -183,32 +249,6 @@ public final class JobCoordinator {
         mJobInfo.setErrorMessage(e.getMessage());
       }
     }
-  }
-
-  /**
-   * Fails any incomplete tasks being run on the specified worker.
-   *
-   * @param workerId the id of the worker to fail tasks for
-   */
-  public void failTasksForWorker(long workerId) {
-    Integer taskId = mWorkerIdToTaskId.get(workerId);
-    if (taskId == null) {
-      return;
-    }
-    TaskInfo taskInfo = mJobInfo.getTaskInfo(taskId);
-    if (taskInfo.getStatus().isFinished()) {
-      return;
-    }
-    taskInfo.setStatus(Status.FAILED);
-    taskInfo.setErrorMessage("Job worker was lost before the task could complete");
-    updateStatus();
-  }
-
-  /**
-   * @return the job info for the job being coordinated
-   */
-  public JobInfo getJobInfo() {
-    return mJobInfo;
   }
 
   /**
