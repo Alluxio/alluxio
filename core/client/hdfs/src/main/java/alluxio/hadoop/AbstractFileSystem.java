@@ -296,7 +296,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         // add the existing in-Alluxio block locations
         List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
             .stream().map(alluxio.wire.BlockLocation::getWorkerAddress).collect(toList());
-        if (locations.isEmpty()) {
+        if (locations.isEmpty() && !fileBlockInfo.getUfsLocations().isEmpty()) {
           // No in-Alluxio location, fallback to use under file system locations with
           // co-located workers.
           if (workerHosts == null) {
@@ -308,7 +308,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
               .map(location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHostText()))
               .filter(Objects::nonNull).collect(toList());
         }
-        if (locations.isEmpty()) {
+        if (locations.isEmpty() && Configuration
+            .getBoolean(PropertyKey.MASTER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
           // Fallback to add all workers to the location so some apps (Impala) won't panic.
           locations.addAll(workerHosts.values());
           Collections.shuffle(locations);

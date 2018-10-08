@@ -1395,6 +1395,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+    public static final PropertyKey MASTER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
+      new Builder(Name.MASTER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to return all workers as block location if ufs block locations "
+              + "are not co-located with any Alluxio workers.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey MASTER_UFS_PATH_CACHE_CAPACITY =
       new Builder(Name.MASTER_UFS_PATH_CACHE_CAPACITY)
           .setDefaultValue(100000)
@@ -3446,6 +3455,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.levels";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
+    public static final String MASTER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
+        "alluxio.master.ufs.block.location.all.fallback.enabled";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =
