@@ -297,7 +297,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
             .stream().map(alluxio.wire.BlockLocation::getWorkerAddress).collect(toList());
         if (locations.isEmpty()) { // No in-Alluxio location
-          if (workerHosts == null) {
+          if (workerHosts == null && (!fileBlockInfo.getUfsLocations().isEmpty() || Configuration
+              .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED))) {
             // lazy initialization for rpc call
             workerHosts = getHostToWorkerMap();
           }
