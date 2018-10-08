@@ -296,8 +296,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         // add the existing in-Alluxio block locations
         List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
             .stream().map(alluxio.wire.BlockLocation::getWorkerAddress).collect(toList());
-        if (locations.isEmpty()) {
-          // No in-Alluxio location
+        if (locations.isEmpty()) { // No in-Alluxio location
           if (workerHosts == null) {
             // lazy initialization for rpc call
             workerHosts = getHostToWorkerMap();
@@ -305,13 +304,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
           if (!fileBlockInfo.getUfsLocations().isEmpty()) {
             // Case 1: Fallback to use under file system locations with co-located workers.
             Map<String, WorkerNetAddress> finalWorkerHosts = workerHosts;
-            locations = fileBlockInfo.getUfsLocations().stream()
-                .map(location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHostText()))
+            locations = fileBlockInfo.getUfsLocations().stream().map(
+                location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHostText()))
                 .filter(Objects::nonNull).collect(toList());
           }
           if (locations.isEmpty() && Configuration
-              .getBoolean(PropertyKey.MASTER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
-            // Case 2: Fallback to add all workers to the location so some apps (Impala) won't panic.
+              .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
+            // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
             locations.addAll(workerHosts.values());
             Collections.shuffle(locations);
           }

@@ -558,7 +558,7 @@ public class AbstractFileSystemTest {
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
     try (Closeable conf =
-        new ConfigurationRule(PropertyKey.MASTER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true")
+        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true")
             .toResource()) {
       verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
     }
@@ -588,7 +588,7 @@ public class AbstractFileSystemTest {
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
     try (Closeable conf =
-        new ConfigurationRule(PropertyKey.MASTER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true")
+        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true")
             .toResource()) {
       verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
     }
