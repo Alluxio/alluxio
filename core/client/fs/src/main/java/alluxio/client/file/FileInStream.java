@@ -88,6 +88,9 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   /** Underlying block stream, null if a position change has invalidated the previous stream. */
   private BlockInStream mBlockInStream;
 
+  /** Cached block stream for the positioned read API. */
+  private BlockInStream mCachedPositionedReadStream;
+
   /** A map of worker addresses to the most recent epoch time when client fails to read from it. */
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
 
@@ -102,6 +105,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
     mPosition = 0;
     mBlockInStream = null;
+    mCachedPositionedReadStream = null;
   }
 
   /* Input Stream methods */
@@ -191,6 +195,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   @Override
   public void close() throws IOException {
     closeBlockInStream(mBlockInStream);
+    closeBlockInStream(mCachedPositionedReadStream);
   }
 
   /* Bounded Stream methods */
@@ -218,12 +223,16 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         break;
       }
       long blockId = mStatus.getBlockIds().get(Math.toIntExact(pos / mBlockSize));
-      BlockInStream stream = null;
       try {
-        stream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
+        if (mCachedPositionedReadStream == null) {
+          mCachedPositionedReadStream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
+        } else if (mCachedPositionedReadStream.getId() != blockId) {
+          closeBlockInStream(mCachedPositionedReadStream);
+          mCachedPositionedReadStream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
+        }
         long offset = pos % mBlockSize;
-        int bytesRead =
-            stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
+        int bytesRead = mCachedPositionedReadStream.positionedRead(offset, b, off,
+            (int) Math.min(mBlockSize - offset, len));
         Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
         pos += bytesRead;
         off += bytesRead;
@@ -232,12 +241,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         lastException = null;
       } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
         lastException = e;
-        if (stream != null) {
-          handleRetryableException(stream, e);
-          stream = null;
+        if (mCachedPositionedReadStream != null) {
+          handleRetryableException(mCachedPositionedReadStream, e);
+          mCachedPositionedReadStream = null;
         }
-      } finally {
-        closeBlockInStream(stream);
       }
     }
     if (lastException != null) {
