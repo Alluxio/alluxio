@@ -1395,7 +1395,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-    public static final PropertyKey MASTER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
+  public static final PropertyKey MASTER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
       new Builder(Name.MASTER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether to return all workers as block location if ufs block locations "
