@@ -15,13 +15,13 @@ Alluxio enables effective data management across different storage systems throu
 ## Unified namespace
 One of the key benefit that Alluxio provides is a unified namespace to the applications.
 This is an abstraction that allows applications to access multiple independent storage systems through the same name space and interface.
-Applications simply communicates with Alluxio and Alluxio manages communications with the different underlying storage system.
+Applications simply communicate with Alluxio and Alluxio interacts with the different underlying storage systems.
 
 ![unified]({{ site.baseurl }}/img/screenshot_unified.png)
 
-By default, Alluxio namespace is mounted onto the directory specified by the
-`alluxio.underfs.address` property of Alluxio configuration; this directory identifies the
-"primary storage" for Alluxio. In addition, users can use the mounting API to add new and remove
+The directory specified by the `alluxio.underfs.address` property of Alluxio configuration is mounted to the root of the Alluxio namespace.
+This directory identifies the "primary storage" for Alluxio.
+In addition, users can use the mounting API to add new and remove
 existing data sources:
 
 ```java
@@ -70,30 +70,36 @@ Alluxio, one can read the data using `FileInStream` or use the `load` command of
 # Mounting Under File System (UFS)
 Mounting in Alluxio works similarly to mounting a volume in a Linux file system.
 The mount command attaches a UFS to the file system tree in the Alluxio namespace. 
-The command line interface (CLI) for mounting has the following syntax.
-
-```bash
-$ bin/alluxio fs mount /path/in/alluxio/namespace /path/to/ufs 
-```
 
 ## Root Mount Point
 The root mount point of the Alluxio namespace can be specified by adding the following line to the configuration file in `conf/alluxio-site.properties`.
+Below is an example of configuration having an HDFS path to be the root of Alluxio namespace.
 
 ```
 alluxio.underfs.address=hdfs://HDFS_HOSTNAME:9000
 ``` 
 
+If the root mount point requires additional parameters such as credentials, it can be specified in the configuration file as well. 
+
+```
+aws.accessKeyId=<AWS_ACCESS_KEY_ID>
+aws.secretKey=<AWS_SECRET_ACCESS_KEY>
+```
+
 ## Nested Mount Points
-In addition to the root mount point, other under filesystems can be mounted into Alluxio namespace by using the mount command. 
+In addition to the root mount point, other under filesystems can be mounted into Alluxio namespace by using the mount command. Using the `--option` flag, the user can pass additional parameters to the mount operation, such as credentials for S3 storage. 
 
 ```bash
-$ bin/alluxio fs mount /path/in/alluxio/namespace /path/to/ufs 
+$ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
+$ ./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId> --option aws.secretKey=<secretKey>
+  /mnt/s3 s3a://data-bucket/
+
 ```
 
 The result of this mount command is that the ufs path will be attached to the Alluxio namespace at the designated location.
 Note that mount points can be nested as well. For example, we can mount one UFS at  `alluxio:///path1`, and then mount another UFS at  `alluxio:///path1/path2`
 
-# UFS Metadata Sync
+# Relationship Between Alluxio Namespace and UFS Namespace
 Alluxio provides a unified namespace, acting like a cache for data in one or more
 under file storage (UFS) systems. This section discusses how Alluxio interacts with
 UFSes to discover UFS files and make them available through Alluxio.
@@ -117,7 +123,7 @@ changes go through Alluxio, this has no user-facing impact.
 However, it is sometimes necessary for Alluxio to handle out of band UFS changes.
 That is where the metadata sync feature comes into play.
 
-## UFS Metadata Sync Feature
+## UFS Metadata Sync
 
 > The UFS metadata sync feature has been available since version `1.7.0`.
 
