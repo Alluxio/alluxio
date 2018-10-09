@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import javax.annotation.concurrent.ThreadSafe;
-
+import javax.annotation.Nullable;
 /**
  * A list of non-empty {@link TtlBucket}s sorted by ttl interval start time of each bucket.
  * <p>
@@ -45,6 +45,7 @@ public final class TtlBucketList {
    * @param inode the inode to be contained
    * @return the bucket containing the inode, or null if no such bucket exists
    */
+  @Nullable
   private TtlBucket getBucketContaining(InodeView inode) {
     if (inode.getTtl() == Constants.NO_TTL) {
       // no bucket will contain a inode with NO_TTL.
