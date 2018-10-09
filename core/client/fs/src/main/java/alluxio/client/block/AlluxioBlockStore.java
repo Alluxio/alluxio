@@ -164,7 +164,9 @@ public final class AlluxioBlockStore {
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
     // Initial target workers to read the block given the block locations.
     Set<WorkerNetAddress> workerPool;
-    if (options.getStatus().isPersisted()) {
+    // Note that, it is possible that the blocks have been written as UFS blocks
+    if (options.getStatus().isPersisted()
+        || options.getStatus().getPersistenceState().equals("TO_BE_PERSISTED")) {
       blockWorkerInfo = getEligibleWorkers();
       workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
     } else {

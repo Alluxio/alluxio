@@ -22,6 +22,7 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockHeartbeatTResponse;
 import alluxio.thrift.BlockMasterWorkerService;
+import alluxio.thrift.CommitBlockInUfsTResponse;
 import alluxio.thrift.CommitBlockTOptions;
 import alluxio.thrift.CommitBlockTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
@@ -94,6 +95,16 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
       return new CommitBlockTResponse();
     }, "CommitBlock", "workerId=%s, usedBytesOnTier=%s, tierAlias=%s, blockId=%s, length=%s, "
         + "options=%s", workerId, usedBytesOnTier, tierAlias, blockId, length, options);
+  }
+
+  @Override
+  public CommitBlockInUfsTResponse commitBlockInUfs(final long blockId,
+      final long length, alluxio.thrift.CommitBlockInUfsTOptions options) throws AlluxioTException {
+    return RpcUtils.call(LOG,
+        (RpcCallableThrowsIOException<alluxio.thrift.CommitBlockInUfsTResponse>) () -> {
+          mBlockMaster.commitBlockInUFS(blockId, length);
+          return new alluxio.thrift.CommitBlockInUfsTResponse();
+        }, "CommitBlockInUfs", "blockId=%s, length=%s, options=%s", blockId, length, options);
   }
 
   @Override
