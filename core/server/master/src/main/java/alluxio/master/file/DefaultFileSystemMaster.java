@@ -3073,9 +3073,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           }
           children = ufs.listStatus(ufsUri.toString(), listOptions);
           for (UfsStatus childStatus : children) {
-            statusCache.put(childStatus.getName(), childStatus);
+            statusCache.put(inodePath.getUri().joinUnsafe(childStatus.getName()).toString(), childStatus);
           }
-
           SyncResult result =
               syncInodeMetadata(rpcContext, inodePath, syncDescendantType, statusCache);
           deletedInode = result.getDeletedInode();
@@ -3203,7 +3202,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       String ufsFingerprint;
       UfsStatus cachedStatus = statusCache.get(inodePath.getUri().toString());
       if (cachedStatus == null) {
-        LOG.info("went to ufs to get fingerprint for" + ufsUri.toString());
         ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
       } else {
         Pair<AccessControlList, DefaultAccessControlList> aclPair = ufs.getAclPair(ufsUri.toString());
