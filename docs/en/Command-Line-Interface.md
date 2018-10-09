@@ -176,7 +176,15 @@ For example, `cp` can be used to copy files between Under file systems.
 
 ### du
 
-The `du` command outputs the size of a file. If a directory is specified, it will output the aggregate size of all files in the directory and its children directories.
+The `du` command outputs the total size and in Alluxio size of a file. 
+
+If a directory is specified, it will output the total size and in Alluxio size of all files in the directory ().
+If the `-s` option is used, it will output the aggregate size of those files.
+
+By default, `du` prints the size in bytes. If the `-h` option is used, it will print sizes in human readable format (e.g., 1k 234M 2G).
+
+The `--header` option will print the header showing what kind of size each column belongs to.
+The `--memory` option will print the in memory size as well.
 
 For example, if the Alluxio space is unexpectedly over utilized, `du` can be used to detect which folders are taking up the most space.
 
