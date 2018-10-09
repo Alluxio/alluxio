@@ -3050,8 +3050,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // 4. Load metadata from UFS.
 
     Set<String> pathsToLoad = new HashSet<>();
-    UfsStatus[] children;
-    Map<String, UfsStatus> statusCache = new HashMap<>();
+
     // Set to true if the given inode was deleted.
     boolean deletedInode = false;
 
@@ -3066,15 +3065,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           ListOptions listOptions = ListOptions.defaults();
-          if (syncDescendantType == DescendantType.ALL) {
-            listOptions.setRecursive(true);
-          } else {
-            listOptions.setRecursive(false);
-          }
-          children = ufs.listStatus(ufsUri.toString(), listOptions);
-          for (UfsStatus childStatus : children) {
-            statusCache.put(inodePath.getUri().joinUnsafe(childStatus.getName()).toString(),
-                childStatus);
+          // statusCache stores uri to ufsstatus mapping that is used to construct fingerprint
+          Map<AlluxioURI, UfsStatus> statusCache = new HashMap<>();
+          listOptions.setRecursive(syncDescendantType == DescendantType.ALL);
+          UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
+          if (children != null) {
+            for (UfsStatus childStatus : children) {
+              statusCache.put(inodePath.getUri().joinUnsafe(childStatus.getName()),
+                  childStatus);
+            }
           }
           SyncResult result =
               syncInodeMetadata(rpcContext, inodePath, syncDescendantType, statusCache);
@@ -3166,11 +3165,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param inodePath the Alluxio inode path to sync with UFS
    * @param syncDescendantType how to sync descendants
+   * @param statusCache a pre-populated cache of ufs statuses that can be used to construct
+   *                    fingerprint
    * @return the result of the sync, including if the inode was deleted, and if further load
    *         metadata is required
    */
   private SyncResult syncInodeMetadata(RpcContext rpcContext, LockedInodePath inodePath,
-      DescendantType syncDescendantType, Map<String, UfsStatus> statusCache)
+      DescendantType syncDescendantType, Map<AlluxioURI, UfsStatus> statusCache)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     // Set to true if the given inode was deleted.
     boolean deletedInode = false;
@@ -3201,7 +3202,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       String ufsFingerprint;
-      UfsStatus cachedStatus = statusCache.get(inodePath.getUri().toString());
+      UfsStatus cachedStatus = statusCache.get(inodePath.getUri());
       if (cachedStatus == null) {
         ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
       } else {
