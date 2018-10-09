@@ -2754,8 +2754,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
           .build();
   public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
-      new Builder(Name.USER_NETWORK_NETTY_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.user.worker.list.refresh.interval"})
+      new Builder(Name.USER_WORKER_LIST_REFRESH_INTERVAL)
           .setDefaultValue("2min")
           .setDescription("The interval used to refresh the live worker list on the client")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3749,6 +3748,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
+    public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
+        "alluxio.user.worker.list.refresh.interval";
 
     //
     // FUSE integration related properties
