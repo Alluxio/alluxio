@@ -149,7 +149,6 @@ public class FileOutStream extends AbstractOutStream {
           // Note, this is a workaround to prevent commit(blockN-1) and write(blockN)
           // race, in worse case, this may result in commit(blockN-1) completes earlier than
           // write(blockN), and blockN evicts the committed blockN-1 and causing file lost.
-          // https://tachyonnexus.atlassian.net/browse/AE-232
           if (mCurrentBlockOutStream != null) {
             mCurrentBlockOutStream.close();
           }

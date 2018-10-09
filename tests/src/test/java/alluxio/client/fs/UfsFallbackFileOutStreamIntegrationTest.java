@@ -52,7 +52,6 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
         .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, BUFFER_BYTES) // initial buffer for worker
         .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE)
         .setProperty(PropertyKey.USER_FILE_UFS_TIER_ENABLED, true)
-        // NOTE: due to AE-380, we need to disable async eviction
         .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false)
         .build();
   }
