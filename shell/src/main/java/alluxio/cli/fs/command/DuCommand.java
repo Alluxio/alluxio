@@ -63,7 +63,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
       Option.builder(READABLE_OPTION_NAME)
           .required(false)
           .hasArg(false)
-          .desc("print sizes in human readable format (e.g., 1k 234M 2G)")
+          .desc("print sizes in human readable format (e.g., 1KB 234MB 2GB)")
           .build();
 
   private static final Option SUMMARIZE_OPTION =
@@ -109,9 +109,9 @@ public final class DuCommand extends AbstractFileSystemCommand {
    *
    * @param path the path to get size info of
    * @param statuses the statuses of files and folders
-   * @param readable whether to print info of human-readable format
+   * @param readable whether to print info of human readable format
    * @param summarize whether to display the aggregate summary lengths
-   * @param addMemory whether to display the memory information
+   * @param addMemory whether to display the memory size and percentage information
    */
   private void getSizeInfo(AlluxioURI path, List<URIStatus> statuses,
       boolean readable, boolean summarize, boolean addMemory) {
@@ -149,10 +149,10 @@ public final class DuCommand extends AbstractFileSystemCommand {
   }
 
   /**
-   * Formats the size information to string message.
+   * Gets the formatted value and percentage string from sizes.
    *
-   * @param readable whether to print info of human-readable format
-   * @param subSize the sub size to calculate percentage information
+   * @param readable whether to print info of human readable format
+   * @param subSize the sub size to print
    * @param totalSize the total size to calculate percentage information
    * @return the formatted value and percentage information
    */
