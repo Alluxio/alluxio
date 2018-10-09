@@ -18,28 +18,39 @@ aims to enumerate a list of such parameters which should be tuned for the scale 
 
 The Alluxio master heap size directly controls the total number of files that can fit into the
 master memory. Control the heap size by setting JVM options for the Alluxio master and secondary
-master processes. For example, to set the heap size to `256GB`, modify `alluxio-env.sh` as follows:
+master processes. For example, to set the heap size limit to `256GB`, modify `alluxio-env.sh` as
+follows.
 ```properties
-ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx256g "
-ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx256g "
+ALLUXIO_MASTER_JAVA_OPTS+=" -Xms128g -Xmx256g "
+ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xms128g -Xmx256g "
 ```
 
-Note: Each thread spawned by the master JVM requires off heap space determined by the thread stack
+Note:
+
+a. As a rule of thumb set the min heap size to half the max heap size.
+
+b. Each thread spawned by the master JVM requires off heap space determined by the thread stack
 size. When setting the heap size, ensure that you have enough memory allocated for off heap storage.
+For example, to spawn `50` thousand threads with a default thread stack size of `1MB` ensure you
+have at least `50GB` of off-heap space available.
 
 #### Thread Pool Size
 An executor pool is used on the master to handle concurrent client requests. If you expect a large
 number of concurrent clients communicating with the master, tune the thread pool size by modifying
 the following properties. The actual thread count depends on the maximum concurrency expected on the
-cluster.
+cluster. For example, if spawning `10` thousand concurrent tasks (clients) each with a client thread
+pool size of `4`, set the master thread pool max to greater than `40` thousand.
 ```properties
 alluxio.master.worker.threads.max=51200
 alluxio.master.worker.threads.min=25600
 ```
 
-Note: a. You may need to set OS limits, as defined in the following section, to allow the above number
-of threads to be spawned. b. Check that the amount of off heap storage available allows for the
-count thread.
+Note:
+
+a. You may need to set OS limits, as defined in the following section, to allow the above number of
+threads to be spawned.
+
+b. Check that the amount of off heap storage available allows for the count thread.
 
 #### Operating System Limits
 Several OS parameters limit the number of threads that a process can spawn. These limits are often
@@ -49,6 +60,10 @@ Alluxio master JVM to spawn the number of threads specified in the previous sect
 
 An exception message like `java.lang.OutOfMemoryError: unable to create new native thread`
 indicates that the limits may need tuning.
+
+Note:
+
+a. As a rule of thumb, `vm.max_map_count` should be at least twice the limit for master threads.
 
 #### Heartbeat Intervals and Timeouts
 
@@ -81,7 +96,7 @@ alluxio.user.rpc.retry.base.sleep.ms=1s
 
 #### Thread Pool Size
 
-Consider reducing the client thread pool sizes if the master is overloaded.
+Consider reducing the client thread pool sizes if the master is not responsive.
 ```properties
 alluxio.user.block.master.client.threads=5
 alluxio.user.file.master.client.threads=5
