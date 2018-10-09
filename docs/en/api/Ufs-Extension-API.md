@@ -6,54 +6,22 @@ group: APIs
 priority: 0
 ---
 
-- (TODO): Explain what a UFS extension is first, when would a dev need this page? Possibly why they wouldn't?
-- (TODO): Switch the order - To me, It makes more sense to talk about how to implement one first, then once implemented
-talk about where to put it, then how loading works
-- (TODO): Add a section about how/where to install understorage extensions
-- (TODO): Make a section for how to contribute an under storage extension back to the alluxio project
-
-Sample Outline:
-- Introduction
-- Implementing a UFS Extension
-    - Implement the `UnderFileSystem`
-    - Implement the `UnderFileSystemFactory`
-    - Declare The Service
-    - Build
-    - Test
-- Service Loading and Discovery
-    - Dependency Management
-- Contributing your UFS Extension to Alluxio
-
-
 * Table of Contents
 {:toc}
+
 
 This page is intended for developers of under storage extensions. Please look at [managing
 extensions](UFSExtensions.html) for a guide to using existing extensions.
 
-Under storage extensions are built as JARs and included at a specific extensions location to be
+## Introduction
+
+Under storage extensions provide a framework to enable additional storage systems to work with Alluxio and makes it convenient to develop
+modules not already supported by Alluxio. Extensions are built as JARs and included at a specific extensions location to be
 picked up by core Alluxio. This page describes the mechanics of how extensions in Alluxio work, and
-provides detailed instructions for developing an under storage extension. Extensions provide a
-framework to enable more under storages to work with Alluxio and makes it convenient to develop
-modules not already supported by Alluxio.
+provides detailed instructions for developing an under storage extension.
 
-## How it Works
-
-### Service Discovery
-
-Extension JARs are loaded dynamically at runtime by Alluxio servers, which enables Alluxio to talk
-to new under storage systems without requiring a restart. Alluxio servers use Java
-[ServiceLoader](https://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html) to discover
-implementations of the under storage API. Providers include implementations of the
-`alluxio.underfs.UnderFileSystemFactory` interface. The implementation is advertised by including a
-text file in `META_INF/services` with a single line pointing to the class implementing the said
-interface.
-
-### Dependency Management
-
-Implementors are required to include transitive dependencies in their extension JARs. Alluxio performs
-isolated classloading for each extension JARs to avoid dependency conflicts between Alluxio servers and
-extensions.
+If the modules included in core Alluxio do not use the interface supported by your desired storage system, you may choose to implement 
+an under storage extension.
 
 ## Implementing an Under Storage Extension
 
@@ -157,6 +125,26 @@ public final class DummyUnderFileSystemContractTest extends AbstractUnderFileSys
     ...
 } 
 ```
+
+## How it Works
+
+### Service Discovery
+
+Extension JARs are loaded dynamically at runtime by Alluxio servers, which enables Alluxio to talk
+to new under storage systems without requiring a restart. Alluxio servers use Java
+[ServiceLoader](https://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html) to discover
+implementations of the under storage API. Providers include implementations of the
+`alluxio.underfs.UnderFileSystemFactory` interface. The implementation is advertised by including a
+text file in `META_INF/services` with a single line pointing to the class implementing the said
+interface.
+
+### Dependency Management
+
+Implementors are required to include transitive dependencies in their extension JARs. Alluxio performs
+isolated classloading for each extension JARs to avoid dependency conflicts between Alluxio servers and
+extensions.
+
+## Contributing your Under Storage extension to Alluxio
 
 Congratulations! You have developed a new under storage extension to Alluxio. Let the community
 know by submitting a pull request to the Alluxio
