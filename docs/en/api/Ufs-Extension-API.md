@@ -9,7 +9,6 @@ priority: 0
 * Table of Contents
 {:toc}
 
-
 This page is intended for developers of under storage extensions. Please look at [managing
 extensions](UFSExtensions.html) for a guide to using existing extensions.
 
