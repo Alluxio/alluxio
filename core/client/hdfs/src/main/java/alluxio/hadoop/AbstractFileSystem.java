@@ -37,6 +37,8 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.MasterInquireClient.Factory;
+import alluxio.refresh.RefreshPolicy;
+import alluxio.refresh.TimeoutRefresh;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.uri.Authority;
@@ -106,6 +108,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
 
+  /** Cached map for workers. */
+  private Map<String, WorkerNetAddress> mWorkerToHostMap = null;
+  /** The policy to refresh workers list. */
+  private RefreshPolicy mWorkerRefreshPolicy = null;
+
   /**
    * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
    * handler for tests.
@@ -115,6 +122,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   AbstractFileSystem(FileSystem fileSystem) {
     mFileSystem = fileSystem;
+    mWorkerRefreshPolicy =
+        new TimeoutRefresh(Configuration.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     sInitialized = true;
   }
 
@@ -287,7 +296,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
     List<FileBlockInfo> blocks = getFileBlocks(path);
     List<BlockLocation> blockLocations = new ArrayList<>();
-    Map<String, WorkerNetAddress> workerHosts = null;
     for (FileBlockInfo fileBlockInfo : blocks) {
       long offset = fileBlockInfo.getOffset();
       long end = offset + fileBlockInfo.getBlockInfo().getLength();
@@ -297,14 +305,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
             .stream().map(alluxio.wire.BlockLocation::getWorkerAddress).collect(toList());
         if (locations.isEmpty()) { // No in-Alluxio location
-          if (workerHosts == null && (!fileBlockInfo.getUfsLocations().isEmpty() || Configuration
-              .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED))) {
-            // lazy initialization for rpc call
-            workerHosts = getHostToWorkerMap();
-          }
           if (!fileBlockInfo.getUfsLocations().isEmpty()) {
             // Case 1: Fallback to use under file system locations with co-located workers.
-            Map<String, WorkerNetAddress> finalWorkerHosts = workerHosts;
+            Map<String, WorkerNetAddress> finalWorkerHosts = getHostToWorkerMap();
             locations = fileBlockInfo.getUfsLocations().stream().map(
                 location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHostText()))
                 .filter(Objects::nonNull).collect(toList());
@@ -312,7 +315,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
           if (locations.isEmpty() && Configuration
               .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
             // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
-            locations.addAll(workerHosts.values());
+            locations.addAll(getHostToWorkerMap().values());
             Collections.shuffle(locations);
           }
         }
@@ -769,6 +772,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   private Map<String, WorkerNetAddress> getHostToWorkerMap() throws IOException {
+    if (mWorkerToHostMap == null || mWorkerRefreshPolicy.attempt()) {
+      mWorkerToHostMap = getHostToWorkerMapInternal();
+    }
+    return mWorkerToHostMap;
+  }
+
+  private Map<String, WorkerNetAddress> getHostToWorkerMapInternal() throws IOException {
     List<BlockWorkerInfo> workers = AlluxioBlockStore.create(mContext).getEligibleWorkers();
     return workers.stream().collect(
         toMap(worker -> worker.getNetAddress().getHost(), BlockWorkerInfo::getNetAddress,

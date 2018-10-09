@@ -2753,6 +2753,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "an exponential backoff. This property determines the maximum duration to retry for"
               + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
           .build();
+  public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
+      new Builder(Name.USER_NETWORK_NETTY_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.user.worker.list.refresh.interval"})
+          .setDefaultValue("2min")
+          .setDescription("The interval used to refresh the live worker list on the client")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   /**
    * @deprecated since version 1.8 and will be removed in version 2.0.
    */
