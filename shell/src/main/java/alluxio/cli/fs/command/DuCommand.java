@@ -38,18 +38,9 @@ public final class DuCommand extends AbstractFileSystemCommand {
   private static final String SHORT_INFO_FORMAT = "%-13s %-16s %s";
   private static final String VALUE_AND_PERCENT_FORMAT = "%s (%d%%)";
 
-  private static final String HEADER_OPTION_NAME = "header";
   private static final String MEMORY_OPTION_NAME = "memory";
   private static final String READABLE_OPTION_NAME = "h";
   private static final String SUMMARIZE_OPTION_NAME = "s";
-
-  private static final Option HEADER_OPTION =
-      Option.builder()
-          .longOpt(HEADER_OPTION_NAME)
-          .required(false)
-          .hasArg(false)
-          .desc("display the header")
-          .build();
 
   private static final Option MEMORY_OPTION =
       Option.builder()
@@ -86,6 +77,12 @@ public final class DuCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  protected void processHeader(CommandLine cl) {
+    printInfo("File Size", "In Alluxio",
+        cl.hasOption(MEMORY_OPTION_NAME) ? "In Memory" : "", "Path");
+  }
+
+  @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
 
@@ -93,11 +90,6 @@ public final class DuCommand extends AbstractFileSystemCommand {
     List<URIStatus> statuses = mFileSystem.listStatus(path, listOptions);
     if (statuses == null || statuses.size() == 0) {
       return;
-    }
-
-    if (cl.hasOption(HEADER_OPTION_NAME)) {
-      printInfo("File Size", "In Alluxio",
-          cl.hasOption(MEMORY_OPTION_NAME) ? "In Memory" : "", "Path");
     }
 
     getSizeInfo(path, statuses, cl.hasOption(READABLE_OPTION_NAME),
@@ -116,32 +108,33 @@ public final class DuCommand extends AbstractFileSystemCommand {
   private void getSizeInfo(AlluxioURI path, List<URIStatus> statuses,
       boolean readable, boolean summarize, boolean addMemory) {
     if (summarize) {
-      long sizeInBytes = 0;
+      long totalSize = 0;
       long sizeInAlluxio = 0;
       long sizeInMem = 0;
       for (URIStatus status : statuses) {
         if (!status.isFolder()) {
           long size = status.getLength();
-          sizeInBytes += size;
-          sizeInMem += size * status.getInMemoryPercentage() / 100;
-          sizeInAlluxio += size * status.getInMemoryPercentage() / 100;
+          totalSize += size;
+          sizeInMem += size * status.getInMemoryPercentage();
+          sizeInAlluxio += size * status.getInMemoryPercentage();
         }
       }
-      String sizeMessage = readable ? FormatUtils.getSizeFromBytes(sizeInBytes)
-          : String.valueOf(sizeInBytes);
-      String inAlluxioMessage = getFormattedValues(readable, sizeInAlluxio, sizeInBytes);
-      String inMemMessage = addMemory ? getFormattedValues(readable, sizeInMem, sizeInBytes) : "";
+      String sizeMessage = readable ? FormatUtils.getSizeFromBytes(totalSize)
+          : String.valueOf(totalSize);
+      String inAlluxioMessage = getFormattedValues(readable, sizeInAlluxio / 100, totalSize);
+      String inMemMessage = addMemory
+          ? getFormattedValues(readable, sizeInMem / 100, totalSize) : "";
       printInfo(sizeMessage, inAlluxioMessage, inMemMessage, path.toString());
     } else {
       for (URIStatus status : statuses) {
         if (!status.isFolder()) {
-          long sizeInBytes = status.getLength();
-          String sizeMessage = readable ? FormatUtils.getSizeFromBytes(sizeInBytes)
-              : String.valueOf(sizeInBytes);
+          long totalSize = status.getLength();
+          String sizeMessage = readable ? FormatUtils.getSizeFromBytes(totalSize)
+              : String.valueOf(totalSize);
           String inAlluxioMessage = getFormattedValues(readable,
-              status.getInAlluxioPercentage() * sizeInBytes / 100, sizeInBytes);
+              status.getInAlluxioPercentage() * totalSize / 100, totalSize);
           String inMemMessage = addMemory ? getFormattedValues(readable,
-              status.getInMemoryPercentage() * sizeInBytes / 100, sizeInBytes) : "";
+              status.getInMemoryPercentage() * totalSize / 100, totalSize) : "";
           printInfo(sizeMessage, inAlluxioMessage, inMemMessage, status.getPath());
         }
       }
@@ -149,17 +142,20 @@ public final class DuCommand extends AbstractFileSystemCommand {
   }
 
   /**
-   * Gets the formatted value and percentage string from sizes.
+   * Gets the size and its percentage information, if readable option is provided,
+   * get the size in human readable format.
    *
    * @param readable whether to print info of human readable format
-   * @param subSize the sub size to print
+   * @param size the size to get information from
    * @param totalSize the total size to calculate percentage information
    * @return the formatted value and percentage information
    */
-  private String getFormattedValues(boolean readable, long subSize, long totalSize) {
-    int percent = totalSize == 0 ? 0 : (int) (subSize * 100 / totalSize);
-    String subSizeMessage = readable ? FormatUtils.getSizeFromBytes(subSize)
-        : String.valueOf(subSize);
+  private String getFormattedValues(boolean readable, long size, long totalSize) {
+    // If size is 1, total size is 5, and readable is true, it will
+    // return a string as "1B (20%)"
+    int percent = totalSize == 0 ? 0 : (int) (size * 100 / totalSize);
+    String subSizeMessage = readable ? FormatUtils.getSizeFromBytes(size)
+        : String.valueOf(size);
     return String.format(VALUE_AND_PERCENT_FORMAT, subSizeMessage, percent);
   }
 
@@ -173,14 +169,14 @@ public final class DuCommand extends AbstractFileSystemCommand {
    */
   private void printInfo(String sizeMessage,
       String inAlluxioMessage, String inMemMessage, String path) {
-    System.out.println(inMemMessage.equals("")
+    System.out.println(inMemMessage.isEmpty()
         ? String.format(SHORT_INFO_FORMAT, sizeMessage, inAlluxioMessage, path)
         : String.format(LONG_INFO_FORMAT, sizeMessage, inAlluxioMessage, inMemMessage, path));
   }
 
   @Override
   public String getUsage() {
-    return "du [-h|-s|--header|--memory] <path>";
+    return "du [-h|-s|--memory] <path>";
   }
 
   @Override
@@ -195,7 +191,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(HEADER_OPTION).addOption(MEMORY_OPTION)
+    return new Options().addOption(MEMORY_OPTION)
         .addOption(READABLE_OPTION).addOption(SUMMARIZE_OPTION);
   }
 

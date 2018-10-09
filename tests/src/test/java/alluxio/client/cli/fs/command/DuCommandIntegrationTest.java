@@ -38,25 +38,23 @@ public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest 
 
     // du a non-existing file
     mFsShell.run("du", "/testRoot/noneExisting");
+    expected += "File Size     In Alluxio       Path\n";
     expected += ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testRoot/noneExisting") + "\n";
-
-    // du a zero length file
-    mFsShell.run("du", "/testRoot/testFileA");
-    expected += "0             0 (0%)           /testRoot/testFileA\n";
 
     // du a folder
     mFsShell.run("du", "/testRoot/");
-    expected += "0             0 (0%)           /testRoot/testFileA\n"
+    expected += "File Size     In Alluxio       Path\n"
+        + "0             0 (0%)           /testRoot/testFileA\n"
         + "21243         21243 (100%)     /testRoot/testFileB\n"
         + "9712654       0 (0%)           /testRoot/testDir/testFileC\n"
         + "532982        0 (0%)           /testRoot/testDir/testDir/testFileD\n";
 
     // du a folder with options
-    mFsShell.run("du", "-h", "-s", "--header", "/testRoot/testDir");
+    mFsShell.run("du", "-h", "-s", "/testRoot/testDir");
     expected += "File Size     In Alluxio       Path\n"
         + "9.77MB        0B (0%)          /testRoot/testDir\n";
 
-    mFsShell.run("du", "-h", "-s", "--memory", "--header", "/testRoot");
+    mFsShell.run("du", "-h", "-s", "--memory", "/testRoot");
     expected += "File Size     In Alluxio       In Memory        Path\n"
         + "9.79MB        20.75KB (0%)     20.75KB (0%)     /testRoot\n";
     Assert.assertEquals(expected, mOutput.toString());
@@ -72,11 +70,13 @@ public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest 
         WriteType.MUST_CACHE, 30);
 
     mFsShell.run("du", "/testRoot/*/testFile*");
-    String expected = "10            10 (100%)        /testRoot/testDir1/testFileA\n"
+    String expected = "File Size     In Alluxio       Path\n"
+        + "10            10 (100%)        /testRoot/testDir1/testFileA\n"
         + "20            0 (0%)           /testRoot/testDir2/testFileB\n";
 
     mFsShell.run("du", "-h", "-s", "--memory", "/testRoot/*");
-    expected += "10B           10B (100%)       10B (100%)       /testRoot/testDir1\n"
+    expected += "File Size     In Alluxio       In Memory        Path\n"
+        + "10B           10B (100%)       10B (100%)       /testRoot/testDir1\n"
         + "50B           30B (60%)        30B (60%)        /testRoot/testDir2\n";
     Assert.assertEquals(expected, mOutput.toString());
   }

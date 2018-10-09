@@ -52,6 +52,17 @@ public abstract class AbstractFileSystemCommand implements Command {
   }
 
   /**
+   * Process the header of the command. Our input path may contain wildcard
+   * but we only want to print the header for once.
+   *
+   * @param cl object containing the original commandLine
+   * @throws AlluxioException
+   * @throws IOException
+   */
+  protected void processHeader(CommandLine cl) throws IOException {
+  }
+
+  /**
    * Run the command for a particular URI that may contain wildcard in its path.
    *
    * @param wildCardPath an AlluxioURI that may or may not contain a wildcard
@@ -65,6 +76,9 @@ public abstract class AbstractFileSystemCommand implements Command {
       throw new IOException(wildCardPath + " does not exist.");
     }
     paths.sort(Comparator.comparing(AlluxioURI::getPath));
+
+    // TODO(lu) if errors occur in runPlainPath, we may not want to print header
+    processHeader(cl);
 
     List<String> errorMessages = new ArrayList<>();
     for (AlluxioURI path : paths) {
