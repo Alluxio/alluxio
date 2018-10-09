@@ -3073,7 +3073,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           }
           children = ufs.listStatus(ufsUri.toString(), listOptions);
           for (UfsStatus childStatus : children) {
-            statusCache.put(inodePath.getUri().joinUnsafe(childStatus.getName()).toString(), childStatus);
+            statusCache.put(inodePath.getUri().joinUnsafe(childStatus.getName()).toString(),
+                childStatus);
           }
           SyncResult result =
               syncInodeMetadata(rpcContext, inodePath, syncDescendantType, statusCache);
@@ -3204,12 +3205,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (cachedStatus == null) {
         ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
       } else {
-        Pair<AccessControlList, DefaultAccessControlList> aclPair = ufs.getAclPair(ufsUri.toString());
+        Pair<AccessControlList, DefaultAccessControlList> aclPair
+            = ufs.getAclPair(ufsUri.toString());
 
         if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), cachedStatus).serialize();
         } else {
-          ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), cachedStatus, aclPair.getFirst()).serialize();
+          ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), cachedStatus,
+              aclPair.getFirst()).serialize();
         }
       }
 
