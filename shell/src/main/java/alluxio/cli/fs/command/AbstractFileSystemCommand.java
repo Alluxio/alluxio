@@ -40,7 +40,7 @@ public abstract class AbstractFileSystemCommand implements Command {
   }
 
   /**
-   * Run the command for a particular URI that does not contain wildcard in its path.
+   * Runs the command for a particular URI that does not contain wildcard in its path.
    *
    * @param plainPath an AlluxioURI that does not contain wildcard
    * @param cl object containing the original commandLine
@@ -52,7 +52,7 @@ public abstract class AbstractFileSystemCommand implements Command {
   }
 
   /**
-   * Process the header of the command. Our input path may contain wildcard
+   * Processes the header of the command. Our input path may contain wildcard
    * but we only want to print the header for once.
    *
    * @param cl object containing the original commandLine
@@ -63,7 +63,7 @@ public abstract class AbstractFileSystemCommand implements Command {
   }
 
   /**
-   * Run the command for a particular URI that may contain wildcard in its path.
+   * Runs the command for a particular URI that may contain wildcard in its path.
    *
    * @param wildCardPath an AlluxioURI that may or may not contain a wildcard
    * @param cl object containing the original commandLine
