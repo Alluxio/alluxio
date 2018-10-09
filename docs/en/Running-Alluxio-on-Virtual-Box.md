@@ -34,16 +34,14 @@ Install [python>=2.7](https://www.python.org/), not python3.
 
 Under `deploy/vagrant` directory in your home directory, run:
 
-```
-bash
+```bash
 $ sudo bash bin/install.sh
 ```
 
 Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/installing/), and then
 in `deploy/vagrant` run:
 
-```
-bash
+```bash
 $ sudo pip install -r pip-req.txt
 ```
 
@@ -52,8 +50,7 @@ $ sudo pip install -r pip-req.txt
 Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem by running the script
 under `deploy/vagrant`:
 
-```
-bash
+```bash
 $ ./create <number of machines> vb
 ```
 
@@ -66,8 +63,7 @@ Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs an
 After the command `./create <number of machines> vb` succeeds, you can see two green lines like
 below shown at the end of the shell output:
 
-```
-bash
+```bash
 >>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI<<<
 >>> visit default port of the web UI of what you deployed <<<
 ```
@@ -84,15 +80,13 @@ The nodes set up are named as `AlluxioMaster`, `AlluxioWorker1`, `AlluxioWorker2
 
 To ssh into a node, run:
 
-```
-bash
+```bash
 $ vagrant ssh <node name>
 ```
 
 For example, you can ssh into `AlluxioMaster` with:
 
-```
-bash
+```bash
 $ vagrant ssh AlluxioMaster
 ```
 
@@ -101,8 +95,7 @@ and Hadoop is installed in `/hadoop`.
 
 On the `AlluxioMaster` node, you can run tests against Alluxio to check its health:
 
-```
-bash
+```bash
 $ /alluxio/bin/alluxio runTests
 ```
 
@@ -112,8 +105,7 @@ tests.
 
 From a node in the cluster, you can ssh to other nodes in the cluster without password with:
 
-```
-bash
+```bash
 $ ssh AlluxioWorker1
 ```
 
@@ -121,8 +113,7 @@ $ ssh AlluxioWorker1
 
 Under `deploy/vagrant` directory, you can run:
 
-```
-bash
+```bash
 $ ./destroy
 ```
 
