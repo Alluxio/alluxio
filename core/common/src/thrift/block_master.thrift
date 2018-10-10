@@ -150,6 +150,9 @@ struct BlockHeartbeatTResponse {
 struct CommitBlockTOptions {}
 struct CommitBlockTResponse {}
 
+struct CommitBlockInUfsTOptions {}
+struct CommitBlockInUfsTResponse {}
+
 struct GetWorkerIdTOptions {}
 struct GetWorkerIdTResponse {
   1: i64 workerId
@@ -190,6 +193,16 @@ service BlockMasterWorkerService extends common.AlluxioService {
     /** the method options */ 6: CommitBlockTOptions options,
     )
     throws (1: exception.AlluxioTException e)
+
+    /**
+     * Marks the given block as committed which resides in UFS.
+     */
+    CommitBlockInUfsTResponse commitBlockInUfs(
+      /** the id of the block being committed */ 1: i64 blockId,
+      /** the length of the block being committed */ 2: i64 length,
+      /** the method options */ 3: CommitBlockInUfsTOptions options,
+      )
+      throws (1: exception.AlluxioTException e)
 
   /**
    * Returns a worker id for the given network address.

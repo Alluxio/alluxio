@@ -118,6 +118,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   private AtomicReference<Long> mWorkerId;
 
+  private final UfsManager mUfsManager;
   /**
    * Constructs a default block worker.
    *
@@ -153,6 +154,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
+    mUfsManager = ufsManager;
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, ufsManager);
 
     Metrics.registerGauges(this);
@@ -320,6 +322,18 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
+  public void commitBlockInUfs(long blockId, long length) throws IOException {
+    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
+    try {
+      blockMasterClient.commitBlockInUfs(blockId, length);
+    } catch (Exception e) {
+      throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
+    } finally {
+      mBlockMasterClientPool.release(blockMasterClient);
+    }
+  }
+
+  @Override
   public String createBlock(long sessionId, long blockId, String tierAlias, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
@@ -478,6 +492,20 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   @Override
   public boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException {
+    if (!options.hasUfsPath() && options.hasBlockInUfsTier() && options.getBlockInUfsTier()) {
+      // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock flag.
+      UfsManager.UfsClient ufsClient;
+      try {
+        ufsClient = mUfsManager.get(options.getMountId());
+      } catch (alluxio.exception.status.NotFoundException
+          | alluxio.exception.status.UnavailableException e) {
+        LOG.warn("Can not open UFS block: mount id {} not found",
+            options.getMountId(), e.getMessage());
+        return false;
+      }
+      options = options.toBuilder().setUfsPath(
+          alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId)).build();
+    }
     return mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options);
   }
 
