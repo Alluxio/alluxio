@@ -122,13 +122,9 @@ public final class AlluxioBlockStore {
   /**
    * @return the info of all block workers eligible for reads and writes
    */
-  public List<BlockWorkerInfo> getEligibleWorkers() throws IOException {
+  public synchronized List<BlockWorkerInfo> getEligibleWorkers() throws IOException {
     if (mWorkerInfoList == null || mWorkerRefreshPolicy.attempt()) {
-      synchronized (mWorkerInfoList) {
-        if (mWorkerInfoList == null) {
-          mWorkerInfoList = getAllWorkers();
-        }
-      }
+      mWorkerInfoList = getAllWorkers();
     }
     return mWorkerInfoList;
   }
