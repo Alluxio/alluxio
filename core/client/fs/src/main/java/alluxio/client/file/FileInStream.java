@@ -91,6 +91,9 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   /** Cached block stream for the positioned read API. */
   private BlockInStream mCachedPositionedReadStream;
 
+  /** The last block id for which async cache was triggered. */
+  private long mLastBlockIdCacheTriggered;
+
   /** A map of worker addresses to the most recent epoch time when client fails to read from it. */
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
 
@@ -106,6 +109,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     mPosition = 0;
     mBlockInStream = null;
     mCachedPositionedReadStream = null;
+    mLastBlockIdCacheTriggered = 0;
   }
 
   /* Input Stream methods */
@@ -332,11 +336,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     cache = cache && !overReplicated;
     boolean passiveCache = Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
     long channelTimeout = Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
-    if (cache) {
-      // Get relevant information from the stream.
-      WorkerNetAddress dataSource = stream.getAddress();
-      long blockId = stream.getId();
-
+    // Get relevant information from the stream.
+    WorkerNetAddress dataSource = stream.getAddress();
+    long blockId = stream.getId();
+    if (cache && (mLastBlockIdCacheTriggered != blockId)) {
       WorkerNetAddress worker;
       if (passiveCache && mContext.hasLocalWorker()) { // send request to local worker
         worker = mContext.getLocalWorker();
@@ -356,6 +359,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           NettyRPCContext rpcContext =
               NettyRPCContext.defaults().setChannel(channel).setTimeout(channelTimeout);
           NettyRPC.fireAndForget(rpcContext, new ProtoMessage(request));
+          mLastBlockIdCacheTriggered = blockId;
         } finally {
           mContext.releaseNettyChannel(worker, channel);
         }
