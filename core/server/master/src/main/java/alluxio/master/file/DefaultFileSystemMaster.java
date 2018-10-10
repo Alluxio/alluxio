@@ -3202,22 +3202,26 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       String ufsFingerprint;
+      Fingerprint ufsFpParsed;
       UfsStatus cachedStatus = statusCache.get(inodePath.getUri());
       if (cachedStatus == null) {
+        // TODO(david): change the interface so that getFingerprint returns a parsed fingerprint
         ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
+        ufsFpParsed = Fingerprint.parse(ufsFingerprint);
       } else {
         Pair<AccessControlList, DefaultAccessControlList> aclPair
             = ufs.getAclPair(ufsUri.toString());
 
         if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
-          ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), cachedStatus).serialize();
+          ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus);
+          ufsFingerprint = ufsFpParsed.serialize();
         } else {
-          ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), cachedStatus,
-              aclPair.getFirst()).serialize();
+          ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus,
+              aclPair.getFirst());
+          ufsFingerprint = ufsFpParsed.serialize();
         }
       }
 
-      Fingerprint ufsFpParsed = Fingerprint.parse(ufsFingerprint);
       boolean containsMountPoint = mMountTable.containsMountPoint(inodePath.getUri());
 
       UfsSyncUtils.SyncPlan syncPlan =

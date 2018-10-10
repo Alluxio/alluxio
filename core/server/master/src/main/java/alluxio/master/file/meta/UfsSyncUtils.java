@@ -35,8 +35,9 @@ public final class UfsSyncUtils {
    */
   public static SyncPlan computeSyncPlan(InodeView inode, Fingerprint ufsFingerprint,
       boolean containsMountPoint) {
-    boolean isContentSynced = inodeUfsIsContentSynced(inode, ufsFingerprint);
-    boolean isMetadataSynced = inodeUfsIsMetadataSynced(inode, ufsFingerprint);
+    Fingerprint inodeFingerprint =  Fingerprint.parse(inode.getUfsFingerprint());
+    boolean isContentSynced = inodeUfsIsContentSynced(inode, inodeFingerprint, ufsFingerprint);
+    boolean isMetadataSynced = inodeUfsIsMetadataSynced(inode, inodeFingerprint, ufsFingerprint);
     boolean ufsExists = ufsFingerprint.isValid();
     boolean ufsIsDir = ufsFingerprint != null
         && Fingerprint.Type.DIRECTORY.name().equals(ufsFingerprint.getTag(Fingerprint.Tag.TYPE));
@@ -91,12 +92,12 @@ public final class UfsSyncUtils {
    * @param ufsFingerprint the ufs fingerprint to check for the sync
    * @return true of the inode is synced with the ufs status
    */
-  public static boolean inodeUfsIsContentSynced(InodeView inode, Fingerprint ufsFingerprint) {
+  public static boolean inodeUfsIsContentSynced(InodeView inode, Fingerprint inodeFingerprint,
+      Fingerprint ufsFingerprint) {
     boolean isSyncedUnpersisted =
         !inode.isPersisted() && !ufsFingerprint.isValid();
     boolean isSyncedPersisted;
 
-    Fingerprint inodeFingerprint =  Fingerprint.parse(inode.getUfsFingerprint());
     isSyncedPersisted = inode.isPersisted()
         && inodeFingerprint.matchContent(ufsFingerprint)
         && inodeFingerprint.isValid();
@@ -111,8 +112,8 @@ public final class UfsSyncUtils {
    * @param ufsFingerprint the ufs fingerprint to check for the sync
    * @return true of the inode is synced with the ufs status
    */
-  public static boolean inodeUfsIsMetadataSynced(InodeView inode, Fingerprint ufsFingerprint) {
-    Fingerprint inodeFingerprint = Fingerprint.parse(inode.getUfsFingerprint());
+  public static boolean inodeUfsIsMetadataSynced(InodeView inode, Fingerprint inodeFingerprint,
+      Fingerprint ufsFingerprint) {
     return inodeFingerprint.isValid() && inodeFingerprint.matchMetadata(ufsFingerprint);
   }
 
