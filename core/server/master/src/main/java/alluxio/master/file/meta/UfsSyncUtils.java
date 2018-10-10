@@ -89,6 +89,7 @@ public final class UfsSyncUtils {
    * check, so for directory inodes, this does not consider the children inodes.
    *
    * @param inode the inode to check for sync
+   * @param inodeFingerprint the inode's parsed fingerprint
    * @param ufsFingerprint the ufs fingerprint to check for the sync
    * @return true of the inode is synced with the ufs status
    */
@@ -109,6 +110,7 @@ public final class UfsSyncUtils {
    * Returns true if the given inode's metadata matches the ufs fingerprint.
    *
    * @param inode the inode to check for sync
+   * @param inodeFingerprint the inode's parsed fingerprint
    * @param ufsFingerprint the ufs fingerprint to check for the sync
    * @return true of the inode is synced with the ufs status
    */
