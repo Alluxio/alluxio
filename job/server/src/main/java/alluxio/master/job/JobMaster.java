@@ -185,6 +185,7 @@ public final class JobMaster extends AbstractNonJournaledMaster {
    *
    * @param jobConfig the job configuration
    * @return the job id tracking the progress
+   *
    * @throws JobDoesNotExistException when the job doesn't exist
    * @throws ResourceExhaustedException if the job master is too busy to run the job
    */
@@ -198,6 +199,7 @@ public final class JobMaster extends AbstractNonJournaledMaster {
       // Discard old jobs that have completion time beyond retention policy
       Iterator<JobInfo> jobIterator = mFinishedJobs.iterator();
       // Used to denote whether space could be reserved for the new job
+      // It's 'true' if job master is at full capacity
       boolean isfull = true;
       while (jobIterator.hasNext()) {
         JobInfo oldestJob = jobIterator.next();
