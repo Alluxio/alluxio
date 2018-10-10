@@ -31,15 +31,15 @@ a. As a rule of thumb set the min heap size to half the max heap size.
 
 b. Each thread spawned by the master JVM requires off heap space determined by the thread stack
 size. When setting the heap size, ensure that you have enough memory allocated for off heap storage.
-For example, to spawn `50` thousand threads with a default thread stack size of `1MB` ensure you
+For example, to spawn `50000` threads with a default thread stack size of `1MB` ensure you
 have at least `50GB` of off-heap space available.
 
 #### Thread Pool Size
 An executor pool is used on the master to handle concurrent client requests. If you expect a large
 number of concurrent clients communicating with the master, tune the thread pool size by modifying
 the following properties. The actual thread count depends on the maximum concurrency expected on the
-cluster. For example, if spawning `10` thousand concurrent tasks (clients) each with a client thread
-pool size of `4`, set the master thread pool max to greater than `40` thousand.
+cluster. For example, if spawning `10000` concurrent tasks (clients) each with a client thread
+pool size of `4`, set the master thread pool max to greater than `40000`.
 ```properties
 alluxio.master.worker.threads.max=51200
 alluxio.master.worker.threads.min=25600
