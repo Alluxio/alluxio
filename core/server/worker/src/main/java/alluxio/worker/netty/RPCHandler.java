@@ -75,29 +75,26 @@ class RPCHandler extends ChannelInboundHandlerAdapter {
 
   private void handleRemoveBlockRequest(final ChannelHandlerContext ctx,
       final Protocol.RemoveBlockRequest request) {
-    mRPCExecutor.submit(new Runnable() {
-      @Override
-      public void run() {
-        final long sessionId = IdUtils.createSessionId();
-        RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<Void>() {
+    mRPCExecutor.submit(() -> {
+      final long sessionId = IdUtils.createSessionId();
+      RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<Void>() {
 
-          @Override
-          public Void call() throws Exception {
-            mWorker.removeBlock(sessionId, request.getBlockId());
-            ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
-            return null;
-          }
+        @Override
+        public Void call() throws Exception {
+          mWorker.removeBlock(sessionId, request.getBlockId());
+          ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
+          return null;
+        }
 
-          @Override
-          public void exceptionCaught(Throwable throwable) {
-            ctx.writeAndFlush(
-                RPCProtoMessage.createResponse(AlluxioStatusException.fromThrowable(throwable)));
-            // This is actually not necessary since removeBlock should be able to
-            // clean up any resources if it fails. Just to be safe.
-            mWorker.cleanupSession(sessionId);
-          }
-        }, "HandleRemoveBlockRequest", "Request=%s", request);
-      }
+        @Override
+        public void exceptionCaught(Throwable throwable) {
+          ctx.writeAndFlush(
+              RPCProtoMessage.createResponse(AlluxioStatusException.fromThrowable(throwable)));
+          // This is actually not necessary since removeBlock should be able to
+          // clean up any resources if it fails. Just to be safe.
+          mWorker.cleanupSession(sessionId);
+        }
+      }, "HandleRemoveBlockRequest", "Request=%s", request);
     });
   }
 }
