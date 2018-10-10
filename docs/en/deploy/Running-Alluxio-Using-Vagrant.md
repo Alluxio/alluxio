@@ -31,7 +31,7 @@ $ sudo pip install -r pip-req.txt
 ```
 
 
-## Deploy locally on Virtual Box using Vagrant 
+## Deploy locally on Virtual Box
 ### Additional Prerequisites
 
 * Download and Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
@@ -107,7 +107,7 @@ $ ./destroy
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the virtual machines are terminated.
 
-## Deploy on AWS EC2 using Vagrant
+## Deploy on AWS EC2
 
 ### Additional Prerequisites
 
@@ -255,7 +255,7 @@ $ ./create <number of machines> aws
 
 Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
 
-## Deploy on Google Compute Engine (GCE) with Vagrant 
+## Deploy on Google Compute Engine (GCE)
 
 ### Additional Prerequisites
 
