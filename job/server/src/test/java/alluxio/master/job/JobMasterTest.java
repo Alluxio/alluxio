@@ -19,7 +19,6 @@ import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.TestJobConfig;
 import alluxio.exception.JobDoesNotExistException;
-import alluxio.job.meta.JobInfo;
 import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.journal.noop.NoopJournalSystem;
@@ -57,8 +56,8 @@ public final class JobMasterTest {
   public void before() throws Exception {
     // Can't use ConfigurationRule due to conflicts with PowerMock.
     Configuration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, TEST_JOB_MASTER_JOB_CAPACITY);
-    mJobMaster = new JobMaster(new MasterContext(new NoopJournalSystem()),
-        Mockito.mock(UfsManager.class));
+    mJobMaster =
+        new JobMaster(new MasterContext(new NoopJournalSystem()), Mockito.mock(UfsManager.class));
     mJobMaster.start(true);
   }
 
@@ -83,9 +82,10 @@ public final class JobMasterTest {
   public void run() throws Exception {
     JobCoordinator coordinator = PowerMockito.mock(JobCoordinator.class);
     PowerMockito.mockStatic(JobCoordinator.class);
-    Mockito.when(JobCoordinator
-        .create(Mockito.any(CommandManager.class), Mockito.any(UfsManager.class), Mockito.anyList(),
-            Mockito.any(JobInfo.class))).thenReturn(coordinator);
+    Mockito.when(
+        JobCoordinator.create(Mockito.any(CommandManager.class), Mockito.any(UfsManager.class),
+            Mockito.anyList(), Mockito.anyLong(), Mockito.any(JobConfig.class), Mockito.any(null)))
+        .thenReturn(coordinator);
     TestJobConfig jobConfig = new TestJobConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
       mJobMaster.run(jobConfig);
@@ -97,9 +97,10 @@ public final class JobMasterTest {
   public void flowControl() throws Exception {
     JobCoordinator coordinator = PowerMockito.mock(JobCoordinator.class);
     PowerMockito.mockStatic(JobCoordinator.class);
-    Mockito.when(JobCoordinator
-        .create(Mockito.any(CommandManager.class), Mockito.any(UfsManager.class), Mockito.anyList(),
-            Mockito.any(JobInfo.class))).thenReturn(coordinator);
+    Mockito.when(
+        JobCoordinator.create(Mockito.any(CommandManager.class), Mockito.any(UfsManager.class),
+            Mockito.anyList(), Mockito.anyLong(), Mockito.any(JobConfig.class), Mockito.any(null)))
+        .thenReturn(coordinator);
     TestJobConfig jobConfig = new TestJobConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
       mJobMaster.run(jobConfig);
