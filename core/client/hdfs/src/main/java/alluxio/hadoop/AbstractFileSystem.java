@@ -37,8 +37,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.MasterInquireClient.Factory;
-import alluxio.refresh.RefreshPolicy;
-import alluxio.refresh.TimeoutRefresh;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.uri.Authority;
@@ -108,11 +106,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
 
-  /** Cached map for workers. */
-  private Map<String, WorkerNetAddress> mWorkerToHostMap = null;
-  /** The policy to refresh workers list. */
-  private RefreshPolicy mWorkerRefreshPolicy = null;
-
   /**
    * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
    * handler for tests.
@@ -122,8 +115,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   AbstractFileSystem(FileSystem fileSystem) {
     mFileSystem = fileSystem;
-    mWorkerRefreshPolicy =
-        new TimeoutRefresh(Configuration.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     sInitialized = true;
   }
 
@@ -772,13 +763,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   private Map<String, WorkerNetAddress> getHostToWorkerMap() throws IOException {
-    if (mWorkerToHostMap == null || mWorkerRefreshPolicy.attempt()) {
-      mWorkerToHostMap = getHostToWorkerMapInternal();
-    }
-    return mWorkerToHostMap;
-  }
-
-  private Map<String, WorkerNetAddress> getHostToWorkerMapInternal() throws IOException {
     List<BlockWorkerInfo> workers = AlluxioBlockStore.create(mContext).getEligibleWorkers();
     return workers.stream().collect(
         toMap(worker -> worker.getNetAddress().getHost(), BlockWorkerInfo::getNetAddress,
