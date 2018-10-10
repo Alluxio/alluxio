@@ -69,7 +69,7 @@ public final class AlluxioJobMasterRestServiceHandler {
   @ReturnType("alluxio.wire.AlluxioJobMasterInfo")
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
-  return RestUtils.call(() -> {
+    return RestUtils.call(() -> {
       boolean rawConfig = false;
       if (rawConfiguration != null) {
         rawConfig = rawConfiguration;
