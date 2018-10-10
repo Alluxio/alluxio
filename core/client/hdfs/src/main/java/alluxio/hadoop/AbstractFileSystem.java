@@ -328,6 +328,26 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     return ret;
   }
 
+  @Override
+  public short getDefaultReplication() {
+    return (short) Math.max(1, CreateFileOptions.defaults().getReplicationMin());
+  }
+
+  @Override
+  public boolean setReplication(Path path, short replication) throws IOException {
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+
+    try {
+      if (!mFileSystem.exists(uri) || mFileSystem.getStatus(uri).isFolder()) {
+        return false;
+      }
+      mFileSystem.setAttribute(uri, SetAttributeOptions.defaults().setReplicationMin(replication));
+      return true;
+    } catch (AlluxioException e) {
+      throw new IOException(e);
+    }
+  }
+
   /**
    * {@inheritDoc}
    *
@@ -358,7 +378,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   private int getReplica(URIStatus status) {
-    return BLOCK_REPLICATION_CONSTANT;
+    return status.getReplicationMin();
   }
 
   /**
