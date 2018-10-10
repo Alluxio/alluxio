@@ -224,6 +224,25 @@ public final class AlluxioBlockStoreTest {
   }
 
   @Test
+  public void getOutStreamWithReplicated() throws Exception {
+    PowerMockito.mockStatic(NettyRPC.class);
+    File file = File.createTempFile("test", ".tmp");
+    ProtoMessage response = new ProtoMessage(
+        Protocol.LocalBlockCreateResponse.newBuilder().setPath(file.getAbsolutePath()).build());
+    when(NettyRPC.call(any(NettyRPCContext.class), any(ProtoMessage.class))).thenReturn(response);
+    when(mMasterClient.getWorkerInfoList()).thenReturn(Lists
+        .newArrayList(new alluxio.wire.WorkerInfo().setAddress(WORKER_NET_ADDRESS_LOCAL),
+            new alluxio.wire.WorkerInfo().setAddress(WORKER_NET_ADDRESS_REMOTE)));
+    OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+        .setLocationPolicy(new MockFileWriteLocationPolicy(
+            Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL, WORKER_NET_ADDRESS_REMOTE)))
+        .setWriteType(WriteType.MUST_CACHE).setReplicationMin(2);
+    BlockOutStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+
+    assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
+  }
+
+  @Test
   public void getInStreamUfs() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
