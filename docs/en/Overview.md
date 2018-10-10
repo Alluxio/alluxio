@@ -8,7 +8,7 @@ group: Home
 {:toc}
 
 
-## What Alluxio Is
+## What is Alluxio
 
 Alluxio is the world’s first memory-speed virtual distributed storage
 system. It unifies data access and bridges computation frameworks and underlying storage systems.
@@ -44,7 +44,6 @@ Alluxio helps overcome the obstacles to extracting value from data by making it
 simple to give applications access to whatever data is needed, regardless of
 format or location. The benefits of Alluxio Include:
 
-
 * **Memory-Speed I/O**: Alluxio
 can be used as a distributed shared caching service so that compute applications
 talking to Alluxio can transparently cache frequently accessed data, especially
@@ -68,7 +67,7 @@ system configuration and management.
 * **Easy Application Deployment**: Alluxio
 manages communication between applications and file or object storage,
 translating data access requests from applications to any persistent underlying
-storage interface. Alluxio is Hadoop compatible. 
+storage interface. Alluxio is Hadoop compatible.
 Existing data analytics applications, such as Spark and MapReduce
 programs, can run on top of Alluxio without any code change.
 
@@ -101,12 +100,12 @@ applications and file or object storage, eliminating the need for complex system
 configuration and management. File data can look like object data and vice
 versa.
 
-To understand more details on Alluxio internals, please read 
-[Alluxio architecture and data flow]({{ site.baseurl }}{% link en/Concepts.md %}).
+To understand more details on Alluxio internals, please read
+[Alluxio architecture and data flow]({{ site.baseurl }}{% link en/Architecture-DataFlow.md %}).
 
 ## Getting Started
 
-To quickly get Alluxio up and running, take a look at our 
+To quickly get Alluxio up and running, take a look at our
 [Getting Started]({{ site.baseurl }}{% link en/Getting-Started.md %})
 page which will go through how to deploy Alluxio and run some basic examples in a local environment.
 See a list of [companies](https://alluxio.org/community/powered-by-alluxio) that are using Alluxio.
@@ -117,10 +116,9 @@ You can get the released versions of Alluxio from the
 [Project Downloads Page](http://alluxio.org/download). Each release comes with prebuilt
 binaries compatibile with various Hadoop versions. If you would like to build the project from the
 source code, check out the
-[Building From Master Branch Documentation](Building-Alluxio-From-Source.html). If you have any
+[Building From Master Branch Documentation]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}). If you have any
 questions, please feel free to ask at our
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users). For users
 can not access Google Group, please use its
 [mirror](http://alluxio-users.85194.x6.nabble.com/) (notes: the mirror does not have information
 before May 2016).
-

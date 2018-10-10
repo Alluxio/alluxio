@@ -60,7 +60,7 @@ main HDFS data to the local compute jobs. In addition, Alluxio will
 transparently cache frequently accessed data to improve the locality and reduce
 network traffic of these jobs.
 
-See example use cases from [Tencent News](http://alluxio-com-site-prod.s3.amazonaws.com/resource/media/tencent-case-study-delivering-customized-news-to-over-100-million-montly-users)
+See example use cases from [Tencent News](http://alluxio-com-site-prod.s3.amazonaws.com/resource/media/tencent-case-study-delivering-customized-news-to-over-100-million-montly-users).
 
 ## Common Storage Access Service
 
@@ -81,10 +81,10 @@ See example use cases from [Starburst Presto](https://www.starburstdata.com/tech
 Alluxio provides a mounting API that makes it possible for applications to
 access data across multiple sources in the same filesystem namespace without
 the complexity to configure connection details like client library version,
-different security models and etc. From applications' perspective, they are 
-access a "logical filesystem" whose data can be backed by multiple different 
+different security models and etc. From applications' perspective, they are
+access a "logical filesystem" whose data can be backed by multiple different
 persistent storages (or under storage in Alluxio terminology). This can greatly
-simplify the application development, maintenance and management.  
+simplify the application development, maintenance and management.
 
 See example use cases from
 [Lenovo](http://alluxio-com-site-prod.s3.amazonaws.com/resource/media/lenovo-analyzes-petabytes-of-smartphone-data-from-multiple-locations-and-eliminates-etl-with-alluxio).
