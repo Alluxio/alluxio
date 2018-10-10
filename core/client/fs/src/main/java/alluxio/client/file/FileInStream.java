@@ -92,7 +92,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   private BlockInStream mCachedPositionedReadStream;
 
   /** The last block id for which async cache was triggered. */
-  private long mLastBlockIdCacheTriggered;
+  private long mLastBlockIdCached;
 
   /** A map of worker addresses to the most recent epoch time when client fails to read from it. */
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
@@ -109,7 +109,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     mPosition = 0;
     mBlockInStream = null;
     mCachedPositionedReadStream = null;
-    mLastBlockIdCacheTriggered = 0;
+    mLastBlockIdCached = 0;
   }
 
   /* Input Stream methods */
@@ -339,7 +339,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     // Get relevant information from the stream.
     WorkerNetAddress dataSource = stream.getAddress();
     long blockId = stream.getId();
-    if (cache && (mLastBlockIdCacheTriggered != blockId)) {
+    if (cache && (mLastBlockIdCached != blockId)) {
       WorkerNetAddress worker;
       if (passiveCache && mContext.hasLocalWorker()) { // send request to local worker
         worker = mContext.getLocalWorker();
@@ -359,7 +359,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           NettyRPCContext rpcContext =
               NettyRPCContext.defaults().setChannel(channel).setTimeout(channelTimeout);
           NettyRPC.fireAndForget(rpcContext, new ProtoMessage(request));
-          mLastBlockIdCacheTriggered = blockId;
+          mLastBlockIdCached = blockId;
         } finally {
           mContext.releaseNettyChannel(worker, channel);
         }
