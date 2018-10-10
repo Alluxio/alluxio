@@ -69,22 +69,19 @@ public final class AlluxioJobMasterRestServiceHandler {
   @ReturnType("alluxio.wire.AlluxioJobMasterInfo")
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
-    return RestUtils.call(new RestUtils.RestCallable<AlluxioJobMasterInfo>() {
-      @Override
-      public AlluxioJobMasterInfo call() throws Exception {
-        boolean rawConfig = false;
-        if (rawConfiguration != null) {
-          rawConfig = rawConfiguration;
-        }
-        AlluxioJobMasterInfo result =
-            new AlluxioJobMasterInfo()
-                .setConfiguration(getConfigurationInternal(rawConfig))
-                .setStartTimeMs(mJobMaster.getStartTimeMs())
-                .setUptimeMs(mJobMaster.getUptimeMs())
-                .setVersion(RuntimeConstants.VERSION)
-                .setWorkers(mJobMaster.getJobMaster().getWorkerInfoList());
-        return result;
+  return RestUtils.call(() -> {
+      boolean rawConfig = false;
+      if (rawConfiguration != null) {
+        rawConfig = rawConfiguration;
       }
+      AlluxioJobMasterInfo result =
+          new AlluxioJobMasterInfo()
+              .setConfiguration(getConfigurationInternal(rawConfig))
+              .setStartTimeMs(mJobMaster.getStartTimeMs())
+              .setUptimeMs(mJobMaster.getUptimeMs())
+              .setVersion(RuntimeConstants.VERSION)
+              .setWorkers(mJobMaster.getJobMaster().getWorkerInfoList());
+      return result;
     });
   }
 
