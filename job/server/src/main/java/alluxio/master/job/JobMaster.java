@@ -44,7 +44,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -119,13 +119,16 @@ public final class JobMaster extends AbstractNonJournaledMaster {
 
   /**
    * Used to store JobCoordinator instances per job Id.
+   * This member is accessed concurrently and its instance type is ConcurrentHashMap.
    */
   private final Map<Long, JobCoordinator> mIdToJobCoordinator;
 
   /**
    * Used to keep track of finished jobs that are still within retention policy.
+   * This member is accessed concurrently and its instance type is ConcurrentSkipListSet.
    */
   private final SortedSet<JobInfo> mFinishedJobs;
+
   /**
    * The manager for all ufs.
    */
@@ -143,7 +146,7 @@ public final class JobMaster extends AbstractNonJournaledMaster {
     mJobIdGenerator = new JobIdGenerator();
     mCommandManager = new CommandManager();
     mIdToJobCoordinator = new ConcurrentHashMap<>();
-    mFinishedJobs = Collections.synchronizedSortedSet(Sets.<JobInfo>newTreeSet());
+    mFinishedJobs = new ConcurrentSkipListSet<>();
     mUfsManager = ufsManager;
   }
 
