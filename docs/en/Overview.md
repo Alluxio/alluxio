@@ -15,60 +15,60 @@ system. It unifies data access and bridges computation frameworks and underlying
 Applications only need to connect with Alluxio to access data stored in any underlying storage
 systems. Additionally, Alluxio’s memory-centric architecture enables data access at speeds that is
 orders of magnitude faster than existing solutions.
-It runs on commodity hardware, creating a shared data layer
-abstracting the files or objects in underlying persistent storage
-systems. Applications connect to Alluxio via a standard interface, accessing
-data from a single unified source.
+It runs on commodity hardware, creating a shared data layer abstracting the
+files or objects in underlying persistent storage systems. Applications connect
+to Alluxio via a standard interface, accessing data from a single unified
+source.
 
-The Alluxio project is open source under
-[Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE) and is deployed at
-many companies. It is one of the fastest growing open source projects. With three
-years of open source history, Alluxio has attracted more than
-[800 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 150
-institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
-[Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [Google](https://www.google.com),
-[IBM](https://www.ibm.com), [Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/),
-[Red Hat](https://www.redhat.com/), [UC Berkeley](https://amplab.cs.berkeley.edu/), and
-[Yahoo](https://www.yahoo.com/).
+The Alluxio project is open source under [Apache License
+2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE) and is deployed at
+many companies. It is one of the fastest growing open source projects. With
+three years of open source history, Alluxio has attracted more than [800
+contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over
+150 institutions, including [Alibaba](http://www.alibaba.com),
+[Alluxio](http://www.alluxio.com/), [Baidu](https://www.baidu.com),
+[CMU](https://www.cmu.edu/), [Google](https://www.google.com),
+[IBM](https://www.ibm.com), [Intel](http://www.intel.com/),
+[NJU](http://www.nju.edu.cn/english/), [Red Hat](https://www.redhat.com/), [UC
+Berkeley](https://amplab.cs.berkeley.edu/), and [Yahoo](https://www.yahoo.com/).
 The project is the storage layer of the Berkeley Data Analytics Stack
-([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
-[Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
-Today, Alluxio is deployed in production by 100s organizations, and runs on clusters that exceed
-1,000 nodes.
+([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the [Fedora
+distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).  Today,
+Alluxio is deployed in production by 100s organizations, and runs on clusters
+that exceed 1,000 nodes.
 
 <img src="{{site.baseurl}}{% link img/stack.png %}" width="800"/>
 
-## Benefits of Alluxio
+## Benefits
 
 Alluxio helps overcome the obstacles to extracting value from data by making it
 simple to give applications access to whatever data is needed, regardless of
 format or location. The benefits of Alluxio Include:
 
-* **Memory-Speed I/O**: Alluxio
-can be used as a distributed shared caching service so that compute applications
-talking to Alluxio can transparently cache frequently accessed data, especially
-data from remote locations, to provide in-memory I/O throughput.
+* **Memory-Speed I/O**: Alluxio can be used as a distributed shared caching
+service so that compute applications talking to Alluxio can transparently cache
+frequently accessed data, especially data from remote locations, to provide
+in-memory I/O throughput.
 
-* **Simplified Cloud and Object Storage Adoption**: Cloud and object storage systems use
-different semantics that have performance implications compared to traditional
-file systems. For example, when accessing data in cloud storage there is no
-node-level locality or cross-application caching. There are also different
-performance characteristics in common file system operations like directory
-listing (‘ls’) and ‘rename’, which often add significant overhead to
+* **Simplified Cloud and Object Storage Adoption**: Cloud and object storage
+systems use different semantics that have performance implications compared to
+traditional file systems. For example, when accessing data in cloud storage
+there is no node-level locality or cross-application caching. There are also
+different performance characteristics in common file system operations like
+directory listing (‘ls’) and ‘rename’, which often add significant overhead to
 analytics. Deploying Alluixo with cloud or object storage can close the
 semantics gap and achieve significant performance gains.
 
-* **Simplified Data Management**: Alluxio provides a single point of access to multiple data
-sources. For example, If you need to access data stored in multiple versions of
-HDFS or multiple cloud storage vendors Alluxio also gives applications the
-ability to talk to different versions of the same storage, without complex
-system configuration and management.
+* **Simplified Data Management**: Alluxio provides a single point of access to
+multiple data sources. For example, If you need to access data stored in
+multiple versions of HDFS or multiple cloud storage vendors Alluxio also gives
+applications the ability to talk to different versions of the same storage,
+without complex system configuration and management.
 
-* **Easy Application Deployment**: Alluxio
-manages communication between applications and file or object storage,
-translating data access requests from applications to any persistent underlying
-storage interface. Alluxio is Hadoop compatible.
-Existing data analytics applications, such as Spark and MapReduce
+* **Easy Application Deployment**: Alluxio manages communication between
+applications and file or object storage, translating data access requests from
+applications to any persistent underlying storage interface. Alluxio is Hadoop
+compatible.  Existing data analytics applications, such as Spark and MapReduce
 programs, can run on top of Alluxio without any code change.
 
 ## How Alluxio Works

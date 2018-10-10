@@ -10,34 +10,33 @@ group: Home
 
 Here is a description of a few common use cases of Alluxio.
 
-## A Distributed Caching Layer for Data on Cloud or Object Storage
+## A Distributed Caching Layer for Data on Object Storage
 
-In many companies or organizations, an increasingly popular architecture for
-big-data analytics is to leverage the more cost-effective object storage as the
-single source of data. In this architecture, Bigdata analytics like Hadoop
-or Spark jobs directly
-access either the public cloud object services (e.g., AWS S3, Azure blob
-storage, Google Cloud Storage, Aliyun OSS, Tencent COS and etc) or the
-on-premise object stores (e.g., Ceph, Swift and etc).
+In many organizations, an increasingly popular architecture is to leverage the
+object storage as the single source of data for bigdata analytics jobs like
+Hadoop, Spark or Presto. Object storage can be public object storage services
+(e.g., AWS S3, Azure blob storage, Google Cloud Storage, Aliyun OSS, Tencent COS
+and etc) or the on-premise object stores (e.g., Ceph, Swift and etc).
 
-One problem is that even object stores may provide a filesystem-like interface
-they are not a "real" filesystem for a few reasons:
+Though object stores are often more cost-effective, scalable, available and
+easier to maintain, they are not a "real" filesystem for a few reasons even
+they may provide a filesystem-like interface:
 
-- Lack of filesystem-level data caching so when multiple jobs are access the
- same set of data, they will not benefit from caching frequently accessed common
- data like in a local filesystem.
-- Lack of node-level data locality on compute frameworks as data is always read
- remotely and never node local to the compute tasks.
+- Lack of filesystem-level data caching so multiple jobs accessing the
+ same data set can benefit from caching the frequently accessed common
+ data.
+- Lack of node-level data locality on computation as data is always read
+ remotely and never node-local to the compute tasks.
 - Operations to list objects can be very slow especially when there is a massive
  amount of objects in the bucket.
-- Operations to rename objects can be very inefficient and often implies weaker
+- Operations to rename objects can be very slow and get weaker
  consistency guarantees.
 
-In architecture like this, deploying Alluxio on compute side and configured with
+In such architectures, deploying Alluxio on compute side and configured with
 data persisted at these object stores can greatly benefit the
-application. Alluxio can not only cache the hot data local to the compute and
+applications. Alluxio can not only cache the hot data local closer to the compute and
 possbiliy shared by different applications, but also manage the metadata
-separately to avoid certain slow object operations to object stores.
+separately to avoid certain inefficient metadata operations in object stores.
 
 See example use cases from
 [BazzarVoice](https://www.slideshare.net/ThaiBui7/hybrid-collaborative-tiered-storage-with-alluxio), [Myntra](http://alluxio-com-site-prod.s3.amazonaws.com/resource/media/myntra-case-study-accelerating-analytics-in-the-cloud-for-mobile-e-commerce).
@@ -62,7 +61,7 @@ network traffic of these jobs.
 
 See example use cases from [Tencent News](http://alluxio-com-site-prod.s3.amazonaws.com/resource/media/tencent-case-study-delivering-customized-news-to-over-100-million-montly-users).
 
-## Common Storage Access Service
+## A Common Storage Access Layer
 
 Many users deploy Alluxio as a storage abstraction layer for common data access
 request.  Alluxio supports storage connectors for many storage types including
