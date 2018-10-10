@@ -3059,6 +3059,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // The requested path does not exist in Alluxio, so just load metadata.
         pathsToLoad.add(inodePath.getUri().getPath());
       } else {
+        // List the status of the entire directory so we have the data ready for fingerprints
         AlluxioURI path = inodePath.getUri();
         MountTable.Resolution resolution = mMountTable.resolve(path);
         AlluxioURI ufsUri = resolution.getUri();
