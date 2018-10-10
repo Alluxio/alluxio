@@ -27,6 +27,7 @@ public final class TimeoutRefreshTest {
   @Test
   public void timeout() {
     final long timeoutMs = 500;
+    final long slackMs = 200;
     TimeoutRefresh timeoutRefresh = new TimeoutRefresh(timeoutMs);
     // First check, should attempt
     Assert.assertTrue(timeoutRefresh.attempt());
@@ -34,6 +35,7 @@ public final class TimeoutRefreshTest {
     Assert.assertFalse(timeoutRefresh.attempt());
 
     CommonUtils.sleepMs(timeoutMs);
+    CommonUtils.sleepMs(slackMs);
 
     Assert.assertTrue(timeoutRefresh.attempt());
     Assert.assertFalse(timeoutRefresh.attempt());
