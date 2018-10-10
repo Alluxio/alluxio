@@ -7,43 +7,24 @@ group: Home
 * Table of Contents
 {:toc}
 
-Alluxio is the world’s first memory speed virtual distributed storage
+
+## What Alluxio Is
+
+Alluxio is the world’s first memory-speed virtual distributed storage
 system. It unifies data access and bridges computation frameworks and underlying storage systems.
 Applications only need to connect with Alluxio to access data stored in any underlying storage
 systems. Additionally, Alluxio’s memory-centric architecture enables data access at speeds that is
 orders of magnitude faster than existing solutions.
+It runs on commodity hardware, creating a shared data layer
+abstracting the files or objects in underlying persistent storage
+systems. Applications connect to Alluxio via a standard interface, accessing
+data from a single unified source.
 
-Alluxio holds a unique place in the big data ecosystem, residing between storage systems (such as Amazon S3, Apache HDFS or OpenStack Swift) and computation frameworks and applications (such as Apache Spark or Hadoop MapReduce) to provide a central point of access with a memory-centric design. Alluxio works best when computation frameworks and distributed storage are decoupled and Alluxio is deployed alongside a cluster’s computation framework.
-
-For user applications and computation frameworks, Alluxio is the storage underneath that usually collocates with the computation frameworks, so that Alluxio can provide fast storage, facilitating data sharing and locality between jobs, regardless of whether they are running on the same computation engine. As a result, Alluxio can serve the data at memory speed when data is local, or the computation cluster network speed when data is in Alluxio. Data is only read once from the under storage system on the first time it’s accessed. Therefore, the data access can be accelerated even when the access to the under storage is not fast.
-
-For under storage systems, Alluxio bridges the gap between big data applications and traditional storage systems, and expands the set of workloads available to utilize the data. Since Alluxio hides the integration of under storage systems from applications, any under storage can back all the applications and frameworks running on top of Alluxio. Also, when mounting multiple under storage systems simultaneously, Alluxio can serve as a unifying layer for any number of varied data sources.
-
-In the big data ecosystem, Alluxio lies between computation frameworks or jobs, such as Apache
-Spark, Apache MapReduce, Apache HBase, Apache Hive, or Apache Flink, and various kinds of storage
-systems, such as Amazon S3, Google Cloud Storage, OpenStack Swift, GlusterFS, HDFS, MaprFS, Ceph,
-NFS, and Alibaba OSS. Alluxio brings significant performance improvement to the ecosystem; for
-example, [Baidu](https://www.baidu.com)
-uses Alluxio to speedup the throughput of their data analytics pipeline
-[30 times](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf). Barclays makes the
-impossible possible with Alluxio to accelerate jobs from
-[hours to seconds](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon).
-Qunar performs
-[real-time data analytics](http://www.alluxio.com/2016/07/qunar-performs-real-time-data-analytics-up-to-300x-faster-with-alluxio/)
-on top of Alluxio. Beyond performance, Alluxio bridges new workloads with data stored in traditional
-storage systems. Users can run Alluxio using its
-[standalone cluster mode](Running-Alluxio-on-a-Cluster.html), for example on
-[Amazon EC2](Running-Alluxio-on-EC2.html),
-[Google Compute Engine](Running-Alluxio-on-GCE.html), or launch Alluxio with
-[Apache Mesos](Running-Alluxio-on-Mesos.html) or
-[Apache Yarn](Running-Alluxio-Yarn-Integration.html).
-
-Alluxio is Hadoop compatible. Existing data analytics applications, such as Spark and MapReduce
-programs, can run on top of Alluxio without any code change. The project is open source under
+The Alluxio project is open source under
 [Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE) and is deployed at
 many companies. It is one of the fastest growing open source projects. With three
 years of open source history, Alluxio has attracted more than
-[700 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 150
+[800 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 150
 institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
 [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [Google](https://www.google.com),
 [IBM](https://www.ibm.com), [Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/),
@@ -55,48 +36,78 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 Today, Alluxio is deployed in production by 100s organizations, and runs on clusters that exceed
 1,000 nodes.
 
-[Downloads](http://alluxio.org/download/) |
-[User Guide](Getting-Started.html) |
-[Developer Guide](Contributing-to-Alluxio.html) |
-[Meetup Group](https://www.meetup.com/Alluxio/) |
-[Issue Tracking](https://alluxio.atlassian.net/browse/ALLUXIO) |
-[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
-[Videos](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA) |
-[Github](https://github.com/alluxio/alluxio/) |
-[Releases](http://alluxio.org/releases/)
+<img src="{{site.baseurl}}{% link img/stack.png %}" width="800"/>
 
-## Current Features
+## Benefits of Alluxio
 
-* **[Flexible File API](File-System-API.html)** Alluxio's native API is similar to that of the
-``java.io.File`` class, providing InputStream and OutputStream interfaces and efficient support for
-memory-mapped I/O. We recommend using this API to get the best performance from Alluxio.
-Alternatively, Alluxio provides a Hadoop compatible FileSystem interface, allowing Hadoop MapReduce
-and Spark to use Alluxio in place of HDFS.
+Alluxio helps overcome the obstacles to extracting value from data by making it
+simple to give applications access to whatever data is needed, regardless of
+format or location. The benefits of Alluxio Include:
 
-* **Pluggable Under Storage** To provide fault-tolerance, Alluxio checkpoints data to the
-underlying storage system. It has a generic interface to make plugging different underlayer storage
-systems easy. We currently support Microsoft Azure Blob Store, Amazon S3, Google Cloud Storage,
-OpenStack Swift, GlusterFS, HDFS, MaprFS, Ceph, NFS, Alibaba OSS, Minio, and single-node local file
-systems, and support for many other file systems is coming.
 
-* **[Alluxio Storage](Alluxio-Storage.html)** Alluxio can manage memory and local storage such SSDs
-and HDDs to accelerate data access. If finer grained control is required, the tiered storage feature
-can be used to automatically manage data between different tiers, keeping hot data in faster tiers.
-Custom policies are easily pluggable, and a pin concept allows for direct user control.
+* **Memory-Speed I/O**: Alluxio
+can be used as a distributed shared caching service so that compute applications
+talking to Alluxio can transparently cache frequently accessed data, especially
+data from remote locations, to provide in-memory I/O throughput.
 
-* **[Unified Namespace](Unified-and-Transparent-Namespace.html)** Alluxio enables effective
-data management across different storage systems through the mount feature. Furthermore,
-transparent naming ensures that file names and directory hierarchy for objects created in Alluxio
-is preserved when persisting these objects to the underlying storage system.
+* **Simplified Cloud and Object Storage Adoption**: Cloud and object storage systems use
+different semantics that have performance implications compared to traditional
+file systems. For example, when accessing data in cloud storage there is no
+node-level locality or cross-application caching. There are also different
+performance characteristics in common file system operations like directory
+listing (‘ls’) and ‘rename’, which often add significant overhead to
+analytics. Deploying Alluixo with cloud or object storage can close the
+semantics gap and achieve significant performance gains.
 
-* **[Web UI](Web-Interface.html) & [Command Line](Command-Line-Interface.html)** Users can browse
-the file system easily through the web UI. Under debug mode, administrators can view detailed
-information of each file, including locations, checkpoint path, etc. Users can also use
-``./bin/alluxio fs`` to interact with Alluxio, e.g. copy data in and out of the file system.
+* **Simplified Data Management**: Alluxio provides a single point of access to multiple data
+sources. For example, If you need to access data stored in multiple versions of
+HDFS or multiple cloud storage vendors Alluxio also gives applications the
+ability to talk to different versions of the same storage, without complex
+system configuration and management.
+
+* **Easy Application Deployment**: Alluxio
+manages communication between applications and file or object storage,
+translating data access requests from applications to any persistent underlying
+storage interface. Alluxio is Hadoop compatible. 
+Existing data analytics applications, such as Spark and MapReduce
+programs, can run on top of Alluxio without any code change.
+
+## How Alluxio Works
+
+Alluxio is far more than simply a caching solution. A rich set of intelligent
+data management capabilities ensure efficient use of memory resources, high
+performance, and data continuity. Data is unified with a single point of access,
+and a standard interface makes data access transparent to applications without
+any changes. The solution is based on three key areas of innovation working
+together to provide a unique set of capabilities.
+
+1. **Intelligent Cache**: Alluxio clusters act as a read/write cache for data
+in connected storage systems. Configurable policies automatically optimize data
+placement for performance and reliability across both memory and disk
+(SSD/HDD). Caching is transparent to the user, and uses read/write buffering to
+maintain consistency with persistent storage.
+See [Alluxio Storage Management]({{ site.baseurl }}{% link en/advanced/Alluxio-Storage-Management.md %})
+for more details.
+
+1. **Global Namespace**: A single point of access to multiple independent storage
+systems regardless of physical location. Alluxio provides a unified view of all
+data sources and a standard interface for applications.
+See [Namespace Management]({{ site.baseurl }}{% link en/advanced/Namespace-Management.md %})
+for more details.
+
+1. **Server-Side API Translation**: Alluxio transparently converts from a standard client-side
+interface to any storage interface. Alluxio manages communication between
+applications and file or object storage, eliminating the need for complex system
+configuration and management. File data can look like object data and vice
+versa.
+
+To understand more details on Alluxio internals, please read 
+[Alluxio architecture and data flow]({{ site.baseurl }}{% link en/Concepts.md %}).
 
 ## Getting Started
 
-To quickly get Alluxio up and running, take a look at our [Getting Started](Getting-Started.html)
+To quickly get Alluxio up and running, take a look at our 
+[Getting Started]({{ site.baseurl }}{% link en/Getting-Started.md %})
 page which will go through how to deploy Alluxio and run some basic examples in a local environment.
 See a list of [companies](https://alluxio.org/community/powered-by-alluxio) that are using Alluxio.
 
@@ -113,10 +124,3 @@ can not access Google Group, please use its
 [mirror](http://alluxio-users.85194.x6.nabble.com/) (notes: the mirror does not have information
 before May 2016).
 
-## Use Cases
-TODO: fill this section (binfan)
-### Data acceleration
-
-### Distributed cache for Presto / SparkSQL
-
-### API translation for Machine learning
