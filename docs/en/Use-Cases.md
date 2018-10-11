@@ -26,10 +26,13 @@ are not a "real" filesystem for a few reasons even they may provide a filesystem
 - Lack of node-level data locality on computation as data is always read remotely and never
  node-local to the compute tasks.
 
-- Operations to list objects can be very slow especially when there is a massive amount of objects
- in the bucket.
+- Different performance implications. For example, operations to list objects can be very slow
+ especially when there is a massive amount of objects in the bucket, and operations to rename
+ objects can be very slow and get weaker consistency guarantees.
 
-- Operations to rename objects can be very slow and get weaker consistency guarantees.
+- Throughput limitation is enforced between compute node (e.g. EC2) to storage (e.g., S3).
+
+- Different Security model is used in object storage from file systems.
 
 In such architectures, deploying Alluxio on compute side and configured with data persisted at these
 object stores can greatly benefit the applications. Alluxio can not only cache the hot data local
@@ -49,10 +52,11 @@ Hadoop cluster, leading to the need to either read data remotely on job executio
 pipelines to preload data into satellite clusters prior to jobs execution.
 
 Alluxio can accelerate the remote data read from main Hadoop cluster without adding extra ETL steps
-ahead. Deployed on the compute nodes on the satellite cluster and configured to connect to the main
-Hadoop cluster, an Alluxio service can serve like a local data proxy layer that provides the same
+ahead. When deployed on the compute nodes in the satellite cluster and configured to connect to the
+main Hadoop cluster, Alluxio can serve like a local data proxy layer that provides the same
 namespace of the main HDFS data to the local compute jobs. In addition, Alluxio will transparently
-cache frequently accessed data to improve the locality and reduce network traffic of these jobs.
+cache frequently accessed data local to the satellite cluster and reduce network traffic as well as
+the load on the main Hadoop cluster.
 
 See example use cases from [Tencent
 News](http://alluxio-com-site-prod.s3.amazonaws.com/resource/media/tencent-case-study-delivering-customized-news-to-over-100-million-montly-users).
