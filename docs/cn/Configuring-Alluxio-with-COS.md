@@ -13,8 +13,6 @@ priority: 4
 
 ## 初始步骤
 
-
-
 通常，Alluxio以集群模式在多个机器上运行。需要在机器上部署二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)。
 
 为了在COS上使用Alluxio，需要创建一个bucket（或者使用一个已有的bucket）。还要注意在该bucket里使用的目录，可以在该bucket中新建一个目录，或者使用一个存在的目录。在该指南中，COS Bucket的名称为COS_ALLUXIO_BUCKET，在该bucket里的目录名称为COS_DATA。还需提供一个COS的APPID与REGION，它们指定了你的bucket在哪个范围，本向导中的APPID名为COS_APP_ID, REGION名为COS_REGION。要了解更关于COS配置的信息，[请参考这里](https://cloud.tencent.com/document/product/436/7751)。
@@ -40,21 +38,21 @@ fs.cos.region=<COS_REGION>
 fs.cos.app.id=<COS_APP_ID>
 ```
 
-更改完成后，Alluxio应该能够将COS作为底层文件系统运行，你可以尝试[使用COS在本地运行Alluxio](#running-alluxio-locally-with-s3)
+更改完成后，Alluxio应该能够将COS作为底层文件系统运行，你可以尝试[使用COS在本地运行Alluxio](#running-alluxio-locally-with-cos)
 
 ### 嵌套目录安装
 
 COS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 [Mount命令](Command-Line-Interface.html#mount)可以实现这一目的。例如，下面的命令将COS实例内部的目录挂载到Alluxio的/cos目录
 
 ```bash
-    bin/alluxio fs mount --option fs.cos.access.key=<COS_SECRET_ID> 
+    bin/alluxio fs mount --option fs.cos.access.key=<COS_SECRET_ID> \
     --option fs.cos.secret.key=<COS_SECRET_KEY> \
     --option fs.cos.region=<COS_REGION> \
     --option fs.cos.app.id=<COS_APP_ID> \
     /cos cos://<COS_ALLUXIO_BUCKET>/<COS_DATA>/
 ```
 
-## 使用COS在本地运行Alluxio
+## 使用COS在本地运行Alluxio {#running-alluxio-locally-with-cos}
 
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
