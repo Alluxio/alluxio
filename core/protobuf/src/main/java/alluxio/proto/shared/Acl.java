@@ -61,7 +61,12 @@ public final class Acl {
       return internalValueMap;
     }
     private static com.google.protobuf.Internal.EnumLiteMap<AclAction>
-        internalValueMap = AclAction::valueOf;
+        internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<AclAction>() {
+            public AclAction findValueByNumber(int number) {
+              return AclAction.valueOf(number);
+            }
+          };
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
