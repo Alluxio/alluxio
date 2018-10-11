@@ -3078,7 +3078,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               }
             }
           } catch (Exception e) {
-            LOG.debug("List Status failed {}", inodePath.getUri(), e);
+            LOG.debug("ListStatus failed as an preparation step for syncMetadata {}",
+                inodePath.getUri(), e);
           }
           SyncResult result =
               syncInodeMetadata(rpcContext, inodePath, syncDescendantType, statusCache);
