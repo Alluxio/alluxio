@@ -156,8 +156,11 @@ public final class Configuration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public static void set(PropertyKey key, Object value, Source source) {
-    Preconditions.checkArgument(key != null && value != null,
-        String.format("the key value pair (%s, %s) cannot have null", key, value));
+    Preconditions.checkArgument(key != null && value != null && !value.equals(""),
+        String.format("The key value pair (%s, %s) cannot be null", key, value));
+    Preconditions.checkArgument(!value.equals(""),
+        String.format("The key \"%s\" cannot be have an empty string as a value. Use "
+            + "Configuration.unset to remove a key from the configuration.", key));
     PROPERTIES.put(key, String.valueOf(value), source);
   }
 

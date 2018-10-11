@@ -12,11 +12,8 @@
 package alluxio.worker;
 
 import alluxio.Constants;
-import alluxio.HealthCheckClient;
-import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.status.UnauthenticatedException;
+import alluxio.common.RpcPortHealthCheckClient;
 import alluxio.retry.RetryPolicy;
-import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,40 +24,18 @@ import java.util.function.Supplier;
 /**
  * WorkerHealthCheckClient check if worker is serving RPC.
  */
-public class WorkerHealthCheckClient implements HealthCheckClient {
-  private static final Logger LOG = LoggerFactory.getLogger(WorkerHealthCheckClient.class);
-
-  private final InetSocketAddress mWorkerAddress;
-  private final Supplier<RetryPolicy> mRetryPolicySupplier;
+public class WorkerHealthCheckClient extends RpcPortHealthCheckClient {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(alluxio.worker.WorkerHealthCheckClient.class);
 
   /**
    * Creates a worker health check client.
    *
-   * @param workerAddress The potential worker address
+   * @param jobWorkerAddress The potential job_worker address
    * @param retryPolicySupplier the retry policy supplier
    */
-  public WorkerHealthCheckClient(InetSocketAddress workerAddress,
-      Supplier<RetryPolicy> retryPolicySupplier) {
-    mWorkerAddress = workerAddress;
-    mRetryPolicySupplier = retryPolicySupplier;
-  }
-
-  @Override
-  public boolean isServing() {
-    RetryPolicy retry = mRetryPolicySupplier.get();
-    while (retry.attempt()) {
-      try {
-        LOG.debug("Checking whether {} is listening for RPCs", mWorkerAddress);
-        NetworkAddressUtils.pingService(mWorkerAddress,
-            Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME);
-        LOG.debug("Successfully connected to {}", mWorkerAddress);
-        return true;
-      } catch (ConnectionFailedException e) {
-        LOG.debug("Failed to connect to {}", mWorkerAddress);
-      } catch (UnauthenticatedException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    return false;
+  public WorkerHealthCheckClient(InetSocketAddress jobWorkerAddress,
+                                    Supplier<RetryPolicy> retryPolicySupplier) {
+    super(jobWorkerAddress, Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME, retryPolicySupplier);
   }
 }

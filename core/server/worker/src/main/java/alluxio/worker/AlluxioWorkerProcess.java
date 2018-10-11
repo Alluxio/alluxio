@@ -365,7 +365,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    */
   private boolean isDomainSocketEnabled() {
     return NettyUtils.WORKER_CHANNEL_TYPE == ChannelType.EPOLL
-        && !Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS).isEmpty();
+        && Configuration.containsKey(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
   }
 
   @Override

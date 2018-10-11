@@ -66,8 +66,8 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
    * @param masterContext the context for metrics master
    */
   DefaultMetricsMaster(MasterContext masterContext) {
-    this(masterContext, new SystemClock(), ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory(Constants.METRICS_MASTER_NAME, 2));
+    this(masterContext, new SystemClock(),
+        ExecutorServiceFactories.cachedThreadPool(Constants.METRICS_MASTER_NAME));
   }
 
   /**

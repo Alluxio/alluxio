@@ -116,6 +116,16 @@ public final class ConfigurationUtils {
   }
 
   /**
+   * @return whether the configuration describes how to find the job master host, either through
+   *         explicit configuration or through zookeeper
+   */
+  public static boolean jobMasterHostConfigured() {
+    boolean usingZk = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
+        && Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS);
+    return Configuration.isSet(PropertyKey.JOB_MASTER_HOSTNAME) || usingZk;
+  }
+
+  /**
    * @return whether the configuration describes how to find the master host, either through
    *         explicit configuration or through zookeeper
    */

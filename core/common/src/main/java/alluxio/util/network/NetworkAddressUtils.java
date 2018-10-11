@@ -69,6 +69,31 @@ public final class NetworkAddressUtils {
    * bind address.
    */
   public enum ServiceType {
+
+    /**
+     * Job master RPC service (Thrift).
+     */
+    JOB_MASTER_RPC("Alluxio Job Manager Master RPC service", PropertyKey.JOB_MASTER_HOSTNAME,
+        PropertyKey.JOB_MASTER_BIND_HOST, PropertyKey.JOB_MASTER_RPC_PORT),
+
+    /**
+     * Job master web service (Jetty).
+     */
+    JOB_MASTER_WEB("Alluxio Job Manager Master Web service", PropertyKey.JOB_MASTER_WEB_HOSTNAME,
+        PropertyKey.JOB_MASTER_WEB_BIND_HOST, PropertyKey.JOB_MASTER_WEB_PORT),
+
+    /**
+     * Job worker RPC service (Thrift).
+     */
+    JOB_WORKER_RPC("Alluxio Job Manager Worker RPC service", PropertyKey.WORKER_HOSTNAME,
+        PropertyKey.JOB_WORKER_BIND_HOST, PropertyKey.JOB_WORKER_RPC_PORT),
+
+    /**
+     * Job master web service (Jetty).
+     */
+    JOB_WORKER_WEB("Alluxio Job Manager Worker Web service", PropertyKey.WORKER_WEB_HOSTNAME,
+        PropertyKey.JOB_WORKER_WEB_BIND_HOST, PropertyKey.JOB_WORKER_WEB_PORT),
+
     /**
      * Master RPC service (Thrift).
      */
@@ -390,6 +415,7 @@ public final class NetworkAddressUtils {
     return getLocalHostName();
   }
 
+  // TODO(zac): Handle the JOB_WORKER case in this method.
   /**
    * Gets a local node name from configuration if it is available, falling back on localhost lookup.
    *
@@ -397,6 +423,11 @@ public final class NetworkAddressUtils {
    */
   public static String getLocalNodeName() {
     switch (CommonUtils.PROCESS_TYPE.get()) {
+      case JOB_MASTER:
+        if (Configuration.containsKey(PropertyKey.JOB_MASTER_HOSTNAME)) {
+          return Configuration.get(PropertyKey.JOB_MASTER_HOSTNAME);
+        }
+        break;
       case CLIENT:
         if (Configuration.isSet(PropertyKey.USER_HOSTNAME)) {
           return Configuration.get(PropertyKey.USER_HOSTNAME);

@@ -22,6 +22,10 @@ BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 USAGE="Usage: alluxio-start.sh [-hNwm] [-i backup] ACTION [MOPT] [-f]
 Where ACTION is one of:
   all [MOPT]         \tStart all masters, proxies, and workers.
+  job_master         \tStart the job_master on this node.
+  job_masters        \tStart job_masters on master nodes.
+  job_worker         \tStart a job_worker on this node.
+  job_workers        \tStart job_workers on worker nodes.
   local [MOPT]       \tStart all processes locally.
   master             \tStart the local master on this node.
   secondary_master   \tStart the local secondary master on this node.
@@ -49,7 +53,11 @@ MOPT (Mount Option) is one of:
            hdfs://mycluster/alluxio_backups/alluxio-journal-YYYY-MM-DD-timestamp.gz.
 -m         launch monitor process to ensure the target processes come up.
 -N         do not try to kill previous running processes before starting new ones.
--w         wait for processes to end before returning."
+-w         wait for processes to end before returning.
+
+Supported environment variables:
+
+ALLUXIO_JOB_WORKER_COUNT - identifies how many job workers to start per node (default = 1)"
 
 ensure_dirs() {
   if [[ ! -d "${ALLUXIO_LOGS_DIR}" ]]; then
@@ -158,6 +166,50 @@ do_mount() {
 
 stop() {
   ${BIN}/alluxio-stop.sh $1
+}
+
+start_job_master() {
+  if [[ "$1" == "-f" ]]; then
+    ${LAUNCHER} "${BIN}/alluxio" format
+  fi
+
+  if [[ ${ALLUXIO_MASTER_SECONDARY} != "true" ]]; then
+    if [[ -z ${ALLUXIO_JOB_MASTER_JAVA_OPTS} ]] ; then
+      ALLUXIO_JOB_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+    fi
+
+    echo "Starting job master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
+    (nohup ${JAVA} -cp ${CLASSPATH} \
+     ${ALLUXIO_JOB_MASTER_JAVA_OPTS} \
+     alluxio.master.AlluxioJobMaster > ${ALLUXIO_LOGS_DIR}/job_master.out 2>&1) &
+   fi
+}
+
+start_job_masters() {
+  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "job_master"
+}
+
+start_job_worker() {
+  if [[ -z ${ALLUXIO_JOB_WORKER_JAVA_OPTS} ]] ; then
+    ALLUXIO_JOB_WORKER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+  fi
+
+  echo "Starting job worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
+  (nohup ${JAVA} -cp ${CLASSPATH} \
+   ${ALLUXIO_JOB_WORKER_JAVA_OPTS} \
+   alluxio.worker.AlluxioJobWorker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
+  ALLUXIO_JOB_WORKER_JAVA_OPTS+=" -Dalluxio.job.worker.rpc.port=0 -Dalluxio.job.worker.web.port=0"
+  local nworkers=${ALLUXIO_JOB_WORKER_COUNT:-1}
+  for (( c = 1; c < ${nworkers}; c++ )); do
+    echo "Starting job worker #$((c+1)) @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
+    (nohup ${JAVA} -cp ${CLASSPATH} \
+     ${ALLUXIO_JOB_WORKER_JAVA_OPTS} \
+     alluxio.worker.AlluxioJobWorker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
+  done
+}
+
+start_job_workers() {
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "job_worker"
 }
 
 start_logserver() {
@@ -455,8 +507,10 @@ main() {
   case "${ACTION}" in
     all)
       start_masters "${FORMAT}"
+      start_job_masters
       sleep 2
       start_workers "${MOPT}"
+      start_job_workers
       start_proxies
       ;;
     local)
@@ -464,9 +518,23 @@ main() {
       ALLUXIO_MASTER_SECONDARY=true
       start_master
       ALLUXIO_MASTER_SECONDARY=false
+      start_job_master
       sleep 2
       start_worker "${MOPT}"
+      start_job_worker
       start_proxy
+      ;;
+    job_master)
+      start_job_master
+      ;;
+    job_masters)
+      start_job_masters
+      ;;
+    job_worker)
+      start_job_worker
+      ;;
+    job_workers)
+      start_job_workers
       ;;
     master)
       start_master "${FORMAT}"

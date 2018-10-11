@@ -35,6 +35,8 @@ public final class SetAttributeOptions {
   private Short mMode;
   private boolean mRecursive;
   private long mOperationTimeMs;
+  private Integer mReplicationMax;
+  private Integer mReplicationMin;
   private String mUfsFingerprint;
 
   /**
@@ -64,6 +66,8 @@ public final class SetAttributeOptions {
       mMode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
       mRecursive = options.isRecursive();
       mOperationTimeMs = System.currentTimeMillis();
+      mReplicationMax = options.isSetReplicationMax() ? options.getReplicationMax() : null;
+      mReplicationMin = options.isSetReplicationMin() ? options.getReplicationMin() : null;
     }
   }
 
@@ -136,6 +140,20 @@ public final class SetAttributeOptions {
    */
   public Short getMode() {
     return mMode;
+  }
+
+  /**
+   * @return the maximum number of block replication
+   */
+  public Integer getReplicationMax() {
+    return mReplicationMax;
+  }
+
+  /**
+   * @return the minimum number of block replication
+   */
+  public Integer getReplicationMin() {
+    return mReplicationMin;
   }
 
   /**
@@ -258,6 +276,24 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * @param replicationMax the maximum number of block replication
+   * @return the updated options object
+   */
+  public SetAttributeOptions setReplicationMax(int replicationMax) {
+    mReplicationMax = replicationMax;
+    return this;
+  }
+
+  /**
+   * @param replicationMin the minimum number of block replication
+   * @return the updated options object
+   */
+  public SetAttributeOptions setReplicationMin(int replicationMin) {
+    mReplicationMin = replicationMin;
+    return this;
+  }
+
+  /**
    * @param ufsFingerprint the ufs fingerprint
    * @return the updated options object
    */
@@ -283,6 +319,8 @@ public final class SetAttributeOptions {
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode)
+        && Objects.equal(mReplicationMax, that.mReplicationMax)
+        && Objects.equal(mReplicationMin, that.mReplicationMin)
         && Objects.equal(mRecursive, that.mRecursive)
         && mOperationTimeMs == that.mOperationTimeMs
         && Objects.equal(mUfsFingerprint, that.mUfsFingerprint);
@@ -290,9 +328,9 @@ public final class SetAttributeOptions {
 
   @Override
   public int hashCode() {
-    return Objects
-        .hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode, mRecursive,
-            mOperationTimeMs, mCommonOptions, mUfsFingerprint);
+    return Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode,
+        mRecursive, mOperationTimeMs, mReplicationMax, mReplicationMin, mCommonOptions,
+        mUfsFingerprint);
   }
 
   @Override
@@ -308,6 +346,8 @@ public final class SetAttributeOptions {
         .add("mode", mMode)
         .add("recursive", mRecursive)
         .add("operationTimeMs", mOperationTimeMs)
+        .add("replicationMax", mReplicationMax)
+        .add("replicationMin", mReplicationMin)
         .add("ufsFingerprint", mUfsFingerprint)
         .toString();
   }

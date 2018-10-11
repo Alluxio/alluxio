@@ -46,6 +46,9 @@ public final class OutStreamOptions {
   private String mGroup;
   private Mode mMode;
   private AccessControlList mAcl;
+  private int mReplicationDurable;
+  private int mReplicationMax;
+  private int mReplicationMin;
   private String mUfsPath;
   private long mMountId;
 
@@ -70,6 +73,9 @@ public final class OutStreamOptions {
     mGroup = SecurityUtils.getGroupFromLoginModule();
     mMode = Mode.defaults().applyFileUMask();
     mMountId = IdUtils.INVALID_MOUNT_ID;
+    mReplicationDurable = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
+    mReplicationMax = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
+    mReplicationMin = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
   }
 
   /**
@@ -141,6 +147,27 @@ public final class OutStreamOptions {
    */
   public Mode getMode() {
     return mMode;
+  }
+
+  /**
+   * @return the number of block replication for durable write
+   */
+  public int getReplicationDurable() {
+    return mReplicationDurable;
+  }
+
+  /**
+   * @return the maximum number of block replication
+   */
+  public int getReplicationMax() {
+    return mReplicationMax;
+  }
+
+  /**
+   * @return the minimum number of block replication
+   */
+  public int getReplicationMin() {
+    return mReplicationMin;
   }
 
   /**
@@ -284,6 +311,33 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @param replicationDurable the number of block replication for durable write
+   * @return the updated options object
+   */
+  public OutStreamOptions setReplicationDurable(int replicationDurable) {
+    mReplicationDurable = replicationDurable;
+    return this;
+  }
+
+  /**
+   * @param replicationMax the maximum number of block replication
+   * @return the updated options object
+   */
+  public OutStreamOptions setReplicationMax(int replicationMax) {
+    mReplicationMax = replicationMax;
+    return this;
+  }
+
+  /**
+   * @param replicationMin the minimum number of block replication
+   * @return the updated options object
+   */
+  public OutStreamOptions setReplicationMin(int replicationMin) {
+    mReplicationMin = replicationMin;
+    return this;
+  }
+
+  /**
    * @param mode the permission
    * @return the updated options object
    */
@@ -310,6 +364,9 @@ public final class OutStreamOptions {
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
+        && Objects.equal(mReplicationDurable, that.mReplicationDurable)
+        && Objects.equal(mReplicationMax, that.mReplicationMax)
+        && Objects.equal(mReplicationMin, that.mReplicationMin)
         && Objects.equal(mUfsPath, that.mUfsPath)
         && Objects.equal(mWriteTier, that.mWriteTier)
         && Objects.equal(mWriteType, that.mWriteType);
@@ -327,6 +384,9 @@ public final class OutStreamOptions {
         mOwner,
         mTtl,
         mTtlAction,
+        mReplicationDurable,
+        mReplicationMax,
+        mReplicationMin,
         mUfsPath,
         mWriteTier,
         mWriteType
@@ -348,6 +408,9 @@ public final class OutStreamOptions {
         .add("ufsPath", mUfsPath)
         .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
+        .add("replicationDurable", mReplicationDurable)
+        .add("replicationMax", mReplicationMax)
+        .add("replicationMin", mReplicationMin)
         .toString();
   }
 }

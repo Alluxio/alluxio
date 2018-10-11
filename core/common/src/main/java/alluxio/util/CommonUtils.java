@@ -488,7 +488,8 @@ public final class CommonUtils {
         }
         long remainingMs = endMs - System.currentTimeMillis();
         if (remainingMs <= 0) {
-          throw new TimeoutException(String.format("Timed out after %dms", timeoutMs));
+          throw new TimeoutException(
+              String.format("Timed out after %dms", timeoutMs - remainingMs));
         }
         CommonUtils.sleepMs(Math.min(remainingMs, 50));
       }
@@ -528,6 +529,8 @@ public final class CommonUtils {
 
   /** Alluxio process types. */
   public enum ProcessType {
+    JOB_MASTER,
+    JOB_WORKER,
     CLIENT,
     MASTER,
     PROXY,

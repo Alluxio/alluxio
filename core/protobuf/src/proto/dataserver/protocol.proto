@@ -10,6 +10,7 @@ import "shared/acl.proto";
 enum RequestType {
   ALLUXIO_BLOCK = 0;
   UFS_FILE = 1;
+  UFS_FALLBACK_BLOCK = 2;
 }
 
 // The read request.
@@ -55,6 +56,8 @@ message OpenUfsBlockOptions {
   optional bool no_cache = 6;
   // The client does not need to set this. This is set by the worker.
   optional string user = 7;
+  // If set to true, the block is possibly stored as a UFS block.
+  optional bool block_in_ufs_tier = 8;
 }
 
 // The write request.
@@ -75,6 +78,8 @@ message WriteRequest {
   optional CreateUfsFileOptions create_ufs_file_options = 7;
 
   optional bool flush = 8;
+  //This is only applicable for ufs block writes.
+  optional CreateUfsBlockOptions create_ufs_block_options = 9;
 }
 
 // Options to create a UFS file.
@@ -86,6 +91,19 @@ message CreateUfsFileOptions {
   optional int32 mode = 4;
   optional int64 mount_id = 5;
   optional alluxio.proto.shared.AccessControlList acl = 6;
+}
+
+// Options to create a block file in UFS.
+// next available: 3
+message CreateUfsBlockOptions {
+  // the number of bytes previously written to block store
+  // zero if no previous temp block created
+  optional int64 bytes_in_block_store = 1;
+  // mount ID of the UFS to write to
+  optional int64 mount_id = 2;
+  // true if the write request is already a fallback from
+  // a failed short-circuit write.
+  optional bool fallback = 3;
 }
 
 // The response.
@@ -136,6 +154,7 @@ message LocalBlockCreateRequest {
   optional int64 space_to_reserve = 4;
   // If set, only reserve space for the block.
   optional bool only_reserve_space = 5;
+  optional bool cleanup_on_failure = 6;
 }
 
 // next available id: 2
@@ -147,4 +166,9 @@ message LocalBlockCreateResponse {
 message LocalBlockCompleteRequest {
   optional int64 block_id = 1;
   optional bool cancel = 2;
+}
+
+// next available id: 2
+message RemoveBlockRequest {
+  optional int64 block_id = 1;
 }

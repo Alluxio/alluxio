@@ -186,6 +186,20 @@ public class URIStatus {
   }
 
   /**
+   * @return the maximum number of replicas of the entity referenced by this uri, mutable
+   */
+  public int getReplicationMax() {
+    return mInfo.getReplicationMax();
+  }
+
+  /**
+   * @return the minimum number of replicas of the entity referenced by this uri, mutable
+   */
+  public int getReplicationMin() {
+    return mInfo.getReplicationMin();
+  }
+
+  /**
    * @return whether the entity referenced by this uri can be stored in Alluxio space, mutable
    */
   public boolean isCacheable() {
