@@ -44,8 +44,6 @@ public abstract class AbstractFileSystemCommand implements Command {
    *
    * @param plainPath an AlluxioURI that does not contain wildcard
    * @param cl object containing the original commandLine
-   * @throws AlluxioException
-   * @throws IOException
    */
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
@@ -56,8 +54,6 @@ public abstract class AbstractFileSystemCommand implements Command {
    * but we only want to print the header for once.
    *
    * @param cl object containing the original commandLine
-   * @throws AlluxioException
-   * @throws IOException
    */
   protected void processHeader(CommandLine cl) throws IOException {
   }
@@ -67,8 +63,6 @@ public abstract class AbstractFileSystemCommand implements Command {
    *
    * @param wildCardPath an AlluxioURI that may or may not contain a wildcard
    * @param cl object containing the original commandLine
-   * @throws AlluxioException
-   * @throws IOException
    */
   protected void runWildCardCmd(AlluxioURI wildCardPath, CommandLine cl) throws IOException {
     List<AlluxioURI> paths = FileSystemShellUtils.getAlluxioURIs(mFileSystem, wildCardPath);
