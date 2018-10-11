@@ -181,7 +181,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUsedBytes() {
-	return RestUtils.call(mStoreMeta::getUsedBytes);
+    return RestUtils.call(mStoreMeta::getUsedBytes);
   }
 
   /**
