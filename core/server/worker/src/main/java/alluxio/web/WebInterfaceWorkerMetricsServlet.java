@@ -88,12 +88,7 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
       }
     });
 
-    Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
-      @Override
-      public boolean matches(String name, Metric metric) {
-        return name.endsWith("Ops");
-      }
-    });
+    Map<String, Counter> rpcInvocations = mr.getCounters((name, metric) -> name.endsWith("Ops"));
 
     Map<String, Metric> operations = new TreeMap<>();
     for (Map.Entry<String, Counter> entry: counters.entrySet()) {
