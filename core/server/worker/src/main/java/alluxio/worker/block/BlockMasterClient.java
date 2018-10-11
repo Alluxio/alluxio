@@ -141,7 +141,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
       final Map<String, List<Long>> addedBlocks, final List<Metric> metrics) throws IOException {
     return retryRPC(() -> mClient.blockHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks,
-        new BlockHeartbeatTOptions(metrics)).getCommand());
+      new BlockHeartbeatTOptions(metrics)).getCommand());
   }
 
   /**
