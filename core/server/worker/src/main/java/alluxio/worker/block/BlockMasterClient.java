@@ -140,13 +140,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
       final Map<String, List<Long>> addedBlocks, final List<Metric> metrics) throws IOException {
-    return retryRPC(new RpcCallable<Command>() {
-      @Override
-      public Command call() throws TException {
-        return mClient.blockHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks,
-            new BlockHeartbeatTOptions(metrics)).getCommand();
-      }
-    });
+    return retryRPC(() -> mClient.blockHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks,
+        new BlockHeartbeatTOptions(metrics)).getCommand());
   }
 
   /**
