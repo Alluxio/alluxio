@@ -21,7 +21,7 @@ the cluster as a whole would be unavailable. We highly recommend running Alluxio
 * A single master node, and 1 or more worker nodes
 * SSH login without password to all nodes. You can add a public ssh key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
-* A shared storage system to mount to Alluxio (accessible by all Alluxio nodes)
+* A shared storage system to mount to Alluxio (accessible by all Alluxio nodes). For example, HDFS or Amazon S3. 
 
 ## Setup
 
@@ -35,7 +35,7 @@ every node.
 
 ### Configuration
 
-On the master node of the installation,, create the `conf/alluxio-site.properties` configuration file from the template.
+On the master node of the installation, create the `conf/alluxio-site.properties` configuration file from the template.
 
 ```bash
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
@@ -106,11 +106,11 @@ $ ./bin/alluxio runTests
 
 High availability in Alluxio is based upon a multi-master approach, where multiple master processes
 are running in the system. One of these processes is elected the leader and is used by all workers
-and clients as the primary point of contact. The other masters act as standby, and use the shared
+and clients as the primary point of contact. The other masters act as standby, and use a shared
 journal to ensure that they maintain the same file system metadata as the leader. The standby masters
 do not serve any client or worker requests.
 
-If the leader master fails, a standby master will automatically chosen to take over and become the
+If the leader master fails, a standby master will automatically be chosen to take over and become the
 new leader. Once the new leader starts serving, Alluxio clients and workers proceed as usual. Note
 that during the failover to a standby master, clients may experience brief delays or transient errors.
 
@@ -119,12 +119,18 @@ that during the failover to a standby master, clients may experience brief delay
 * Multiple master nodes, and 1 or more worker nodes
 * SSH login without password to all nodes. You can add a public ssh key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
-* A shared storage system to mount to Alluxio (accessible by all Alluxio nodes)
+* A shared storage system to mount to Alluxio (accessible by all Alluxio nodes). For example, HDFS or Amazon S3. 
 * A [ZooKeeper](http://zookeeper.apache.org/) instance. Alluxio masters use ZooKeeper for leader election,
 and Alluxio clients and workers use ZooKeeper to inquire about the identity of the current leader master.
-* A shared reliable filesystem on which to place the journal. This shared filesystem must be
-accessible by all the masters. The leader master writes to the journal on this shared filesystem,
-while the standby masters continually replay the journal entries to stay up-to-date.
+* A shared storage system on which to place the journal (accessible by all Alluxio nodes). The leader
+master writes to the journal on this shared storage system, while the standby masters continually
+replay the journal entries to stay up-to-date. The journal storage system is recommended to be:
+  - Highly available. All metadata modifications on the master requires writing to the journal, so any
+  downtime of the journal storage system will directly impact the Alluxio master availability.
+  - Filesystem, not an object store. The Alluxio master writes to journal files to this storage
+  system, and utilizes filesystem operations such as rename and flush. Object stores do not support
+  these operations, and/or perform them slowly, so when the journal is stored on an object store,
+  the Alluxio master operation throughput is significantly reduced.
 
 ## Setup
 
@@ -163,13 +169,13 @@ The configuration parameters which must be set are:
   - Examples: `alluxio.underfs.address=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.underfs.address=s3a://bucket/dir/` 
 - `alluxio.master.journal.folder=<JOURNAL_URI>`
   - This is set to the URI of the shared journal location for the Alluxio leader master to write the journal to,
-  and for standby masters replay journal entries from. This shared shared storage system must be
+  and for standby masters to replay journal entries from. This shared shared storage system must be
   accessible by all master nodes.
   - Examples: `alluxio.master.journal.folder=hdfs://1.2.3.4:9000/alluxio/journal/`
 
 This is the minimal configuration to start Alluxio with HA.
 
-Make sure all masters nodes and all worker nodes have configured their respective
+Make sure all master nodes and all worker nodes have configured their respective
 `conf/alluxio-site.properties` configuration file appropriately.
 
 Once all the Alluxio masters and workers are configured in this way, Alluxio in HA mode is ready to
@@ -334,8 +340,9 @@ appropriate configuration. In most cases, the new worker's configuration should 
 the other workers' configuration. Once the worker is started, it will register itself with the Alluxio
 master, and become part of the Alluxio cluster.
 
-Removing a worker is as simple as stopping the worker process. Once the worker is stopped, the master will
-consider the worker as "lost", and no longer consider it as part of the cluster.
+Removing a worker is as simple as stopping the worker process. Once the worker is stopped, and after
+a timeout on the master (configured by master parameter `alluxio.master.worker.timeout`), the master
+will consider the worker as "lost", and no longer consider it as part of the cluster.
 
 ## Add/Remove Masters
 
