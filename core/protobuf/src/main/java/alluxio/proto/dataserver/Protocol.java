@@ -62,12 +62,7 @@ public final class Protocol {
       return internalValueMap;
     }
     private static com.google.protobuf.Internal.EnumLiteMap<RequestType>
-        internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<RequestType>() {
-            public RequestType findValueByNumber(int number) {
-              return RequestType.valueOf(number);
-            }
-          };
+        internalValueMap = RequestType::valueOf;
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
@@ -7553,12 +7548,7 @@ public final class Protocol {
         return internalValueMap;
       }
       private static com.google.protobuf.Internal.EnumLiteMap<Type>
-          internalValueMap =
-            new com.google.protobuf.Internal.EnumLiteMap<Type>() {
-              public Type findValueByNumber(int number) {
-                return Type.valueOf(number);
-              }
-            };
+          internalValueMap = RequestType::valueOf;
 
       public final com.google.protobuf.Descriptors.EnumValueDescriptor
           getValueDescriptor() {
