@@ -27,12 +27,14 @@ Alluxio is open sourced under the Apache 2.0 license.
 
 There are multiple possible reasons to check out:
 1. The job can be computation bound and does not spend too much time in reading/writing data.
-In this case, speeding up I/O performance will not help too much.
+In this case, speeding up I/O performance which is not the bottleneck will help less.
 1. The persistent storage is colocated with compute (e.g., Alluxio is connected to a local
-HDFS), and the input data of the job is buffer-cached.
-1. Due to some mis-configuration, tasks of your job not reading from their local Alluxio workers
-but from network, results in low data-locality.
-1. Input data is already evicted out, the job is not really reading from Alluxio cache.
+HDFS), and the input data of the job is in the OS
+[buffer cache](https://www.tldp.org/LDP/sag/html/buffer-cache.html).
+1. Due to some mis-configuration, tasks of this job are not reading from their local Alluxio workers
+but from remote Alluxio workers through network, resulting in low data-locality.
+1. Input data is not loaded into Alluxio yet or already evicted out, the job is not really reading
+from Alluxio cache but from the under storage.
 
 ## Shall I run Alluxio as a stand-alone system or on YARN, Mesos or Kubernetes?
 
@@ -45,16 +47,19 @@ en/deploy/Running-Alluxio-On-Kubernetes.md %}).
 
 Alluxio is primarily developed in Java and exposes Java-like File APIs for other applications to
 interact with. Alluxio supports other language bindings including [Python client]({{ site.baseurl
-}}{% link en/api/FS-API.md %}#python), [Restful client]({{ site.baseurl }}{% link en/api/FS-API.md
-%}#rest-api).
+}}{% link en/api/FS-API.md %}#python), [Golang client]({{ site.baseurl }}{% link en/api/FS-API.md
+%}#go).
 
 ## What happens if my data set does not fit in memory?
 
-Depends on the system setup, Alluxio may leverage local SSD and HDD. It keeps hot data in Alluxio,
-and cold data in under storage systems. You can read more about Alluxio storage setup
-[here](Alluxio-Storage.html).
+- It is not required for the input data set to fit in Alluxio storage space in order for
+applications to work. Alluxio will transparently and dynamically load data on demand from under
+storage.
+- To help more hot data fit in Alluxio storage space, you can configure Alluxio to leverage storage
+resource like SSD and HDD in addition to memory to extend Alluxio storage capacity. You can read
+more about Alluxio storage setup [here](Alluxio-Storage.html).
 
-## Alluxio service supports fault tolerant mode?
+## Does Alluxio support a fault tolerant mode?
 
 Yes. Please see instructions about [Deploy Alluxio on a Cluster]({{ site.baseurl }}{% link
 en/deploy/Running-Alluxio-On-a-Cluster.md %}).
