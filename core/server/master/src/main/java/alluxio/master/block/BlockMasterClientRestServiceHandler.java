@@ -67,12 +67,7 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME;
-      }
-    });
+    return RestUtils.call(() -> Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME);
   }
 
   /**
