@@ -13,7 +13,7 @@ Alluxio可以运行在一个Docker容器中，本指南介绍如何使用Alluxio
 
 # 基础教程
 
-这篇教程主要介绍了如何在单节点上启动docker上的Alluxio
+这篇教程主要介绍如何在单节点上使用 Docker 运行 Alluxio。
 
 # 前期准备
 
@@ -230,3 +230,5 @@ FROM ubuntu:16.04
 ```
 
 然后你可以用和创建支持FUSE的镜像一样的命令来创建镜像并且运行它。https://hub.docker.com/r/alluxio/alluxio-tensorflow/有一个预先创建好的带有TersorFlow的docker镜像。
+
+
