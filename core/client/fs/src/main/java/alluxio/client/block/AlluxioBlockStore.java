@@ -14,7 +14,9 @@ package alluxio.client.block;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
@@ -30,6 +32,8 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.TieredIdentityFactory;
+import alluxio.refresh.RefreshPolicy;
+import alluxio.refresh.TimeoutRefresh;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FormatUtils;
 import alluxio.wire.BlockInfo;
@@ -64,6 +68,11 @@ public final class AlluxioBlockStore {
   private final FileSystemContext mContext;
   private final TieredIdentity mTieredIdentity;
 
+  /** Cached map for workers. */
+  private List<BlockWorkerInfo> mWorkerInfoList = null;
+  /** The policy to refresh workers list. */
+  private RefreshPolicy mWorkerRefreshPolicy = null;
+
   /**
    * Creates an Alluxio block store with default file system context and default local hostname.
    *
@@ -93,6 +102,8 @@ public final class AlluxioBlockStore {
   AlluxioBlockStore(FileSystemContext context, TieredIdentity tieredIdentity) {
     mContext = context;
     mTieredIdentity = tieredIdentity;
+    mWorkerRefreshPolicy =
+        new TimeoutRefresh(Configuration.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
   }
 
   /**
@@ -111,8 +122,11 @@ public final class AlluxioBlockStore {
   /**
    * @return the info of all block workers eligible for reads and writes
    */
-  public List<BlockWorkerInfo> getEligibleWorkers() throws IOException {
-    return getAllWorkers();
+  public synchronized List<BlockWorkerInfo> getEligibleWorkers() throws IOException {
+    if (mWorkerInfoList == null || mWorkerRefreshPolicy.attempt()) {
+      mWorkerInfoList = getAllWorkers();
+    }
+    return mWorkerInfoList;
   }
 
   /**
