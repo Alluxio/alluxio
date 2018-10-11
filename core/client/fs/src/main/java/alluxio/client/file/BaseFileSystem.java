@@ -490,15 +490,18 @@ public class BaseFileSystem implements FileSystem {
     if (uri.hasScheme()) {
       String warnMsg = "The URI scheme \"{}\" is ignored and not required in URIs passed to"
           + " the Alluxio Filesystem client.";
-      if (uri.getScheme().equals(Constants.SCHEME)) {
-        LOG.warn(warnMsg, Constants.SCHEME);
-      } else if (uri.getScheme().equals(Constants.SCHEME_FT)) {
-        LOG.warn(warnMsg, Constants.SCHEME_FT);
-      } else {
-        throw new IllegalArgumentException(
-            String.format("Scheme %s:// in AlluxioURI is invalid. Schemes in filesystem"
-                + " operations are ignored. \"alluxio://\" or no scheme at all is valid.",
-                uri.getScheme()));
+      switch (uri.getScheme()) {
+        case Constants.SCHEME:
+          LOG.warn(warnMsg, Constants.SCHEME);
+          break;
+        case Constants.SCHEME_FT:
+          LOG.warn(warnMsg, Constants.SCHEME_FT);
+          break;
+        default:
+          throw new IllegalArgumentException(
+              String.format("Scheme %s:// in AlluxioURI is invalid. Schemes in filesystem"
+                  + " operations are ignored. \"alluxio://\" or no scheme at all is valid.",
+                  uri.getScheme()));
       }
     }
 
