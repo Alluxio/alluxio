@@ -3808,12 +3808,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               mPersistJobs.remove(fileId);
               break;
             case COMPLETED:
-              mPersistCheckerPool.execute(new Runnable() {
-                @Override
-                public void run() {
-                  handleSuccess(job);
-                }
-              });
+              mPersistCheckerPool.execute(() -> handleSuccess(job));
               break;
             default:
               throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());
