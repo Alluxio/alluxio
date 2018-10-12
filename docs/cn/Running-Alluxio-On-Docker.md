@@ -13,7 +13,7 @@ Alluxio可以运行在一个Docker容器中，本指南介绍如何使用Alluxio
 
 # 基础教程
 
-这篇教程主要介绍了如何在单节点上启动docker上的Alluxio
+这篇教程主要介绍如何在单节点上使用Docker运行Alluxio。
 
 # 前期准备
 
