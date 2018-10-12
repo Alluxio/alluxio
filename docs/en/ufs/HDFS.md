@@ -6,8 +6,6 @@ group: Under Stores
 priority: 0
 ---
 
-TODO: Combine with Secure HDFS doc
-
 * Table of Contents
 {:toc}
 
@@ -26,7 +24,7 @@ with the correct Hadoop version (recommended), or
 
 Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
 work with Apache Hadoop HDFS of version `2.2.0`. To work with Hadoop distributions of other
-versions, one needs to specify  the correct Hadoop profile and run the following in your Alluxio
+versions, one needs to specify the correct Hadoop profile and run the following in your Alluxio
 directory:
 
 ```bash
@@ -54,9 +52,9 @@ the `${ALLUXIO_HOME}/assembly/server/target` directory.
 
 ## Configuring Alluxio
 
-You need to configure Alluxio to use under storage systems by modifying
-`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
-template.
+To configure Alluxio to use HDFS as under storage, you will need to modify the configuration
+file `conf/alluxio-site.properties`.
+If the file does not exist, create the configuration file from the template.
 
 ```bash
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
@@ -76,8 +74,7 @@ alluxio.underfs.address=hdfs://<NAMENODE>:<PORT>
 
 ### HDFS namenode HA mode
 
-
-To configure Alluxio work with HDFS namenodes in HA mode, you need to configure Alluxio servers to
+To configure Alluxio to work with HDFS namenodes in HA mode, you need to configure Alluxio servers to
 access HDFS with the proper configuration file. Note that once this is set, your applications using
 Alluxio client do not need any special configuration.
 
@@ -95,18 +92,17 @@ alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdf
 ```
 
 Then, set the under storage address to `hdfs://nameservice/` (`nameservice` is the name of HDFS
-service already configured in `core-site.xml`) if you are mapping HDFS root directory to Alluxio,
-or `hdfs://nameservice/alluxio/data` if only the HDFS directory `/alluxio/data` is mapped to
-Alluxio.
+service already configured in `core-site.xml`). To mount an HDFS subdirectory to Alluxio instead
+of the whole HDFS namespace, change the under storage address to something like
+`hdfs://nameservice/alluxio/data`.
 
 ```
 alluxio.underfs.address=hdfs://nameservice/
 ```
 
-### Enforce User/Permission Mapping
+### User/Permission Mapping
 
-Alluxio supports POSIX-like filesystem [user and permission checking]({{ site.baseurl }}{% link en/advanced/Security.md %}) and this is
-enabled by default since v1.3.
+Alluxio supports POSIX-like filesystem [user and permission checking]({{ site.baseurl }}{% link en/advanced/Security.md %}).
 To ensure that the permission information of files/directories including user, group and mode in
 HDFS is consistent with Alluxio (e.g., a file created by user Foo in Alluxio is persisted to
 HDFS also with owner as user Foo), the user to start Alluxio master and worker processes
@@ -123,22 +119,54 @@ user to start Alluxio process (e.g., "alluxio") to this group ("hdfs"); if this 
 set, add a group to this property where your Alluxio running user is a member of this newly added
 group.
 
-Note that, the user set above is only the identity that starts Alluxio master and worker
+The user set above is only the identity that starts Alluxio master and worker
 processes. Once Alluxio servers started, it is **unnecessary** to run your Alluxio client
 applications using this user.
 
+### HDFS Security Configuration
+
+If your HDFS cluster is Kerberized, security configuration is needed for Alluxio to be able to
+communicate with the HDFS cluster. Set the following Alluxio properties in `alluxio-site.properties`:
+
+```properties
+alluxio.master.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
+alluxio.master.principal=hdfs/<_HOST>@<REALM>
+alluxio.worker.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
+alluxio.worker.principal=hdfs/<_HOST>@<REALM>
+```
+
+#### Custom Kerberos Realm/KDC
+
+By default, Alluxio will use machine-level Kerberos configuration to determine the Kerberos realm
+and KDC. You can override these defaults by setting the JVM properties
+`java.security.krb5.realm` and `java.security.krb5.kdc`.
+
+To set these, set `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
+
+```bash
+ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
+```
+
 ## Running Alluxio Locally with HDFS
 
-Before this step, please make sure your HDFS cluster is running and the directory mapped to Alluxio
-exists. After everything is configured, you can start up Alluxio locally to see that everything
-works.
+Before this step, make sure your HDFS cluster is running and the directory mapped to Alluxio
+exists.
+
+If connecting to secure HDFS, run `kinit` on all Alluxio nodes.
+Use the principal `hdfs` and the keytab that you configured earlier in `alluxio-site.properties`
+A known limitation is that the Kerberos TGT may expire after
+the max renewal lifetime. You can work around this by renewing the TGT periodically. Otherwise you
+may see `No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)`
+when starting Alluxio services.
+
+Finally, you are ready to start the Alluxio servers!
 
 ```bash
 $ bin/alluxio format
 $ bin/alluxio-start.sh local
 ```
 
-This should start one Alluxio master and one Alluxio worker locally. You can see the master UI at
+This will start one Alluxio master and one Alluxio worker locally. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:
@@ -146,9 +174,15 @@ Next, you can run a simple example program:
 ```bash
 $ bin/alluxio runTests
 ```
+
+If the test fails with permission errors, make sure that the current user (`${USER}`) has
+read/write access to the HDFS directory mounted to Alluxio. By default,
+the login user is the current user of the host OS. To change the user, set the value of
+`alluxio.security.login.username` in `conf/alluxio-site.properties` to the desired username.
+
 After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
 to verify the files and directories created by Alluxio exist. For this test, you should see
-files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at 
+files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
 [http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)
 
 You can stop Alluxio any time by running:
