@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
+
 
 /**
  * Basic implementation of {@link UfsManager}.
@@ -137,12 +137,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkNotNull(ufsUri, "ufsUri");
     Preconditions.checkNotNull(ufsConf, "ufsConf");
-    mMountIdToUfsInfoMap.put(mountId, new UfsClient(new Supplier<UnderFileSystem>() {
-      @Override
-      public UnderFileSystem get() {
-        return getOrAdd(ufsUri, ufsConf);
-      }
-    }, ufsUri));
+    mMountIdToUfsInfoMap.put(mountId, new UfsClient(() -> getOrAdd(ufsUri, ufsConf), ufsUri));
   }
 
   @Override
