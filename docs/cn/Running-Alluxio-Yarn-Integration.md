@@ -9,7 +9,7 @@ priority: 4
 * 内容列表
 {:toc}
 
-注意：YARN不是非常适合像Alluxio这样的长时间运行的应用，我们推荐[these instructions](Running-Alluxio-Yarn-Standalone.html)来将Alluxio与YARN一起运行，而不是作为YARN内的一个应用来运行。
+注意：YARN 不是非常适合像 Alluxio 这样长时间运行的应用，我们推荐根据[该指南](Running-Alluxio-Yarn-Standalone.html)来将 Alluxio 与 YARN 一起运行，而不是作为 YARN 内的一个应用来运行。
 
 ## 前期准备
 
