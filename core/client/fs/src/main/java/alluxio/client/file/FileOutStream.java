@@ -1,7 +1,7 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
  * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * available at www.apache.org/licenses/LICENSE-2.0.
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -98,11 +98,11 @@ public class FileOutStream extends AbstractOutStream {
     mBytesWritten = 0;
     if (!mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream = null;
-    } else { // Write is through to the under storage, create mUnderStorageOutputStream
+    } else { // Write is through to the under storage, create mUnderStorageOutputStream.
       WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
           options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getEligibleWorkers(), 0);
       if (workerNetAddress == null) {
-        // Assume no worker is available because block size is 0
+        // Assume no worker is available because block size is 0.
         throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
       }
       try {
@@ -170,7 +170,7 @@ public class FileOutStream extends AbstractOutStream {
         scheduleAsyncPersist();
       }
     } catch (Throwable e) { // must catch Throwable
-      throw mCloser.rethrow(e); // IOException will be thrown as-is
+      throw mCloser.rethrow(e); // IOException will be thrown as-is.
     } finally {
       mClosed = true;
       mCloser.close();
