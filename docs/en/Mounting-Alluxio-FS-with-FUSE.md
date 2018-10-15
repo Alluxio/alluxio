@@ -159,7 +159,9 @@ characteristics, please be aware that:
 * The user and group are mapped to the Unix user and group only when Alluxio is configured to use
   shell-based mapping, by setting `alluxio.security.group.mapping.class` to `ShellBasedUnixGroupsMapping`
   in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the
-  user and group of the user who started the alluxio-fuse process.
+  user and group of the user who started the alluxio-fuse process. If the `ShellBasedUnixGroupsMapping` is set
+  but the original user and group of the file/directory does not exist, `ll` will also return the
+  user and group of the user who started the alluxio-fuse process. 
 
 ## Performance considerations
 
