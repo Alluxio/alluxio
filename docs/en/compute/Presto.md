@@ -6,9 +6,6 @@ group: Compute
 priority: 2
 ---
 
-* Table of Contents
-{:toc}
-
 [Presto](https://prestodb.io/)
 is an open source distributed SQL query engine for running interactive analytic queries
 on data at a large scale.
@@ -19,6 +16,9 @@ transparently cache the data frequently accessed (e.g., tables commonly used) in
 distributed storage.
 Co-locating Alluxio workers with Presto workers can benefit data locality and reduce the I/O access
 latency especially when data is remote or network is slow or congested.
+
+* Table of Contents
+{:toc}
 
 ## Prerequisites
 

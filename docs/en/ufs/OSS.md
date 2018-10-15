@@ -2,7 +2,7 @@
 layout: global
 title: Configuring Alluxio with OSS
 nickname: Alluxio with OSS
-group: Under Store
+group: Under Stores
 priority: 10
 ---
 

@@ -6,11 +6,12 @@ group: Advanced
 priority: 0
 ---
 
-## Introduction
-
 Alluxio is a scalable distributed file system designed to handle many workers within a single cluster.
 Several parameters can be tuned to prevent the Alluxio master from getting overloaded. This page
 aims to enumerate a list of such parameters which should be tuned for the scale of your cluster.
+
+* Table of Contents
+{:toc}
 
 ### Alluxio Master Configuration
 

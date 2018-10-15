@@ -6,21 +6,21 @@ group: Compute
 priority: 1
 ---
 
-* Table of Contents
-{:toc}
-
 This guide describes how to get Alluxio running with Apache Hadoop MapReduce, so that you can
 easily run your MapReduce programs with files stored on Alluxio.
+
+* Table of Contents
+{:toc}
 
 ## Prerequisites
 
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
-This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball 
+This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
 downloaded from Alluxio [download page](http://www.alluxio.org/download).
-Alternatively, advanced users can compile this client jar from the source code 
+Alternatively, advanced users can compile this client jar from the source code
 by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
-* In order to run some simple map-reduce examples, we also recommend you download the 
+* In order to run some simple map-reduce examples, we also recommend you download the
 [map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples)
 based on your hadoop version, or if you are using Hadoop 1, this
 [examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1).
@@ -111,18 +111,18 @@ $ bin/alluxio fs ls /wordcount/output
 $ bin/alluxio fs cat /wordcount/output/part-r-00000
 ```
 
-> Tips：The previous wordcount example is also applicable to Alluxio in fault tolerant mode with Zookeeper. 
-Please follow the instructions in 
+> Tips：The previous wordcount example is also applicable to Alluxio in fault tolerant mode with Zookeeper.
+Please follow the instructions in
 [HDFS API to connect to Alluxio with high availability]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}#hdfs-api).
 
 ## Advanced Setup
 
 ### Distributing the Alluxio Client Jar
 
-This guide on	
-[how to include 3rd party libraries from Cloudera](http://blog.cloudera.com/blog/2011/01/how-to-include-third-party-libraries-in-your-map-reduce-job/)	
-describes several ways to distribute the jars. From that guide, the recommended way to distributed	
-the Alluxio client jar is to use the distributed cache, via the `-libjars` command line option.	
+This guide on
+[how to include 3rd party libraries from Cloudera](http://blog.cloudera.com/blog/2011/01/how-to-include-third-party-libraries-in-your-map-reduce-job/)
+describes several ways to distribute the jars. From that guide, the recommended way to distributed
+the Alluxio client jar is to use the distributed cache, via the `-libjars` command line option.
 Another way to distribute the client jar is to manually distribute it to all the Hadoop nodes.
 
 You could place the client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the `$HADOOP_HOME/lib`
@@ -138,7 +138,7 @@ when the jar is already on every node, then the `-libjars` command line option i
 
 ### Logging Configuration
 
-Logs with Hadoop can be modified in many different ways. If you wish to directly modify the 
+Logs with Hadoop can be modified in many different ways. If you wish to directly modify the
 `log4j.properties` file for Hadoop, then you can add or modify appenders within
 `${HADOOP_HOME}/conf/log4j.properties` on each of the nodes in your cluster.
 

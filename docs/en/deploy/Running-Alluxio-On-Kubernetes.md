@@ -9,13 +9,16 @@ priority: 3
 Alluxio can be run on Kubernetes. This guide demonstrates how to run Alluxio
 on Kubernetes using the specification that comes in the Alluxio Github repository.
 
-# Basic Tutorial
+* Table of Contents
+{:toc}
+
+## Basic Tutorial
 
 This tutorial walks through a basic Alluxio setup on Kubernetes.
 
-## Prerequisites
+### Prerequisites
 
-- A Kubernetes cluster (version >= 1.8). Alluxio workers will use `emptyDir` volumes with a 
+- A Kubernetes cluster (version >= 1.8). Alluxio workers will use `emptyDir` volumes with a
 restricted size using the `sizeLimit` parameter. This is an alpha feature in Kubernetes 1.8.
 Please ensure the feature is enabled.
 - An Alluxio Docker image. Refer to [this page]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-Docker.md %}) for instructions
@@ -24,7 +27,7 @@ Alluxio processes. This can be achieved by pushing the image to an accessible Do
 or pushing the image individually to all hosts. If using a private Docker registry, refer to the
 Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 
-## Clone the Alluxio repo
+### Clone the Alluxio repo
 
 ```bash
 $ git clone https://github.com/Alluxio/alluxio.git
@@ -33,9 +36,9 @@ $ cd integration/kubernetes
 
 The kubernetes specifications required to deploy Alluxio can be found under `integration/kubernetes`.
 
-## Enable short-circuit operations
+### Enable short-circuit operations
 
-Short-circuit access enables clients to perform read and write operations directly against the 
+Short-circuit access enables clients to perform read and write operations directly against the
 worker memory instead of having to go through the worker process. Set up a domain socket on all hosts
 eligible to run the Alluxio worker process to enable this mode of operation.
 
@@ -59,7 +62,7 @@ alluxio.worker.data.server.domain.socket.as.uuid=true
 alluxio.worker.data.server.domain.socket.address=/tmp/domain
 ```
 
-## Provision a Persistent Volume
+### Provision a Persistent Volume
 
 Alluxio master can be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 for storing the journal. The volume, once claimed, is persisted across restarts of the master process.
@@ -79,8 +82,8 @@ Create the persistent volume.
 $ kubectl create -f alluxio-journal-volume.yaml
 ```
 
-## Configure Alluxio properties
-Alluxio containers in Kubernetes use environment variables to set Alluxio properties. Refer to 
+### Configure Alluxio properties
+Alluxio containers in Kubernetes use environment variables to set Alluxio properties. Refer to
 [Docker configuration](Running-Alluxio-On-Docker.html) for the corresponding environment variable
 name for Alluxio properties in `conf/alluxio-site.properties`.
 
@@ -97,7 +100,7 @@ Create a ConfigMap.
 $ kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxio.properties
 ```
 
-## Deploy
+### Deploy
 
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
 location of the Docker image, and CPU and memory requirements for pods.
@@ -122,7 +125,7 @@ If using peristent volumes for Alluxio master, the status of the volume should c
 $ kubectl get pv alluxio-journal-volume
 ```
 
-## Verify
+### Verify
 
 Once ready, access the Alluxio CLI from the master pod and run basic I/O tests.
 ```bash
@@ -135,7 +138,7 @@ $ cd /opt/alluxio
 $ ./bin/alluxio runTests
 ```
 
-## Uninstall
+### Uninstall
 
 Uninstall Alluxio:
 ```bash

@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Troubleshooting
+nickname: Troubleshooting
 group: Operations
 priority: 0
 ---
