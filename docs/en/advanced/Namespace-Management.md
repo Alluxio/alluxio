@@ -79,20 +79,20 @@ Below is an example of configuration having an HDFS path to be the root of Allux
 alluxio.underfs.address=hdfs://HDFS_HOSTNAME:9000
 ``` 
 
-If the root mount point requires additional parameters such as aws credentials, it can be specified in the configuration file as well. 
-
-```
-aws.accessKeyId=<AWS_ACCESS_KEY_ID>
-aws.secretKey=<AWS_SECRET_ACCESS_KEY>
-```
-
-For the mount options for the root mount point, they should use the configuration prefix:
+Mount options for the root mount point can be configured using the configuration prefix:
 
 `alluxio.master.mount.table.root.option.<some alluxio property>`
 
 in the configuration file.
 
-Example:
+For example, if the root mount point requires aws credentials, it can be specified in the configuration file like this. 
+
+```
+alluxio.master.mount.table.root.option.aws.accessKeyId=<AWS_ACCESS_KEY_ID>
+alluxio.master.mount.table.root.option.aws.secretKey=<AWS_SECRET_ACCESS_KEY>
+```
+
+Below are more examples of setting other types of parameters such as kerberos client parameters for the root mount point.
 
 ```
 alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.principal=client
