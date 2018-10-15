@@ -74,7 +74,7 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
 
     // concatenate strings
     if (field.startsWith(VALUE_TYPE_STRING)) {
-      StringBuffer sSum = new StringBuffer();
+      StringBuilder sSum = new StringBuilder();
       while (values.hasNext()) {
         sSum.append(values.next().toString()).append(";");
       }
