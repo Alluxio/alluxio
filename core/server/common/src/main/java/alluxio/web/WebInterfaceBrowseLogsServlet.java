@@ -39,12 +39,8 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
 
   private final String mBrowseJsp;
   private final String mViewJsp;
-  private static final FilenameFilter LOG_FILE_FILTER = new FilenameFilter() {
-    @Override
-    public boolean accept(File dir, String name) {
-      return name.toLowerCase().endsWith(".log");
-    }
-  };
+  private static final FilenameFilter LOG_FILE_FILTER =
+      (dir, name) -> name.toLowerCase().endsWith(".log");
 
   /**
    * Creates a new instance of {@link WebInterfaceBrowseLogsServlet}.
