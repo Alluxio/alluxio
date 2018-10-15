@@ -81,7 +81,7 @@ public final class AlluxioFuseUtils {
     try {
       output = ShellUtils.execCommand("id", option, username).trim();
     } catch (IOException e) {
-      LOG.error("Failed to get id from {} with option {}", username, option);
+      LOG.debug("Failed to get id from {} with option {}", username, option);
       return -1;
     }
     return Long.parseLong(output);

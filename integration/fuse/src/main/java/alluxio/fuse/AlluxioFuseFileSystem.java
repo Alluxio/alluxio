@@ -22,6 +22,7 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
 import alluxio.util.CommonUtils;
@@ -279,16 +280,22 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      // for shell-based group mapping, use the uid and gid of the corresponding user registered in
-      // unix; otherwise use uid and gid of the user running alluxio-fuse
+      // for shell-based group mapping, try to get the uid and gid of file/dir owner.
+      // If the user does not registered in the unix or we use other group mapping service,
+      // uid and gid of the user running alluxio-fuse will be set.
+      long uid = -1;
+      long gid = -1;
       if (mIsShellGroupMapping) {
         String owner = status.getOwner();
-        stat.st_uid.set(AlluxioFuseUtils.getUid(owner));
-        stat.st_gid.set(AlluxioFuseUtils.getGid(owner));
-      } else {
-        stat.st_uid.set(UID);
-        stat.st_gid.set(GID);
+        uid = AlluxioFuseUtils.getUid(owner);
+        gid = AlluxioFuseUtils.getGid(owner);
       }
+      if (uid == -1 || gid == -1) {
+        uid = UID;
+        gid = GID;
+      }
+      stat.st_uid.set(uid);
+      stat.st_gid.set(gid);
 
       int mode = status.getMode();
       if (status.isFolder()) {
