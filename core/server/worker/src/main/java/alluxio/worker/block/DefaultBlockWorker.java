@@ -558,29 +558,14 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
      */
     public static void registerGauges(final BlockWorker blockWorker) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_TOTAL),
-          new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              return blockWorker.getStoreMeta().getCapacityBytes();
-            }
-          });
+          () -> blockWorker.getStoreMeta().getCapacityBytes());
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_USED),
-          new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              return blockWorker.getStoreMeta().getUsedBytes();
-            }
-          });
+          () -> blockWorker.getStoreMeta().getUsedBytes());
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_FREE),
-          new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              return blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
-                  .getUsedBytes();
-            }
-          });
+          () -> blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
+                      .getUsedBytes());
 
       StorageTierAssoc assoc = blockWorker.getStoreMeta().getStorageTierAssoc();
       for (int i = 0; i < assoc.size(); i++) {
