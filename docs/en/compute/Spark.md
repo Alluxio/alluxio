@@ -156,17 +156,8 @@ $ spark-submit \
 ```
 
 Note that, in client mode you need set `--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"` instead of
-`--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH` (see [explanation](https://spark.apache.org/docs/latest/configuration.html)).
-
-
-In the Spark Shell, this can be achieved by:
-
-```scala
-val conf = new SparkConf()
-    .set("spark.driver.extraJavaOptions", "-Dalluxio.user.file.writetype.default=CACHE_THROUGH")
-    .set("spark.executor.extraJavaOptions", "-Dalluxio.user.file.writetype.default=CACHE_THROUGH")
-val sc = new SparkContext(conf)
-```
+`--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH` (see
+[explanation](https://spark.apache.org/docs/2.3.2/configuration.html)).
 
 ## Advanced Usage
 

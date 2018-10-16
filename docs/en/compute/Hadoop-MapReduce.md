@@ -30,7 +30,7 @@ based on your hadoop version, or if you are using Hadoop 1, this
 ### Configuring Hadoop Core-site Properties
 
 Note that, this step is only required for Hadoop 1.x and can be skipped by users of Hadoop 2.x or
-later. Add the following two properties to the `core-site.xml` file of your Hadoop installation:
+later. Add the following property to the `core-site.xml` file of your Hadoop installation:
 
 ```xml
 <property>
@@ -132,7 +132,8 @@ when the jar is already on every node, then the `-libjars` command line option i
 
 ### Customize Alluxio User Properties for All MapReduce Jobs
 
-Let us use the setup of Spark to talk to Alluxio service in HA Mode as an example.
+Alluxio configuration parameters can be added to the Hadoop `core-site.xml` file to affect all MapReduce jobs.
+Let us use the setup of Hadoop to interact with the Alluxio service in HA Mode as an example.
 If you are running multiple Alluxio masters in with a Zookeeper service running at
 `zkHost1:2181`, `zkHost2:2181`, and `zkHost3:2181`,
 add the following two properties to the `core-site.xml` file of your Hadoop installation:
