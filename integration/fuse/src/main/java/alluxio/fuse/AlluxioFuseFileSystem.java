@@ -23,7 +23,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.Mode;
-import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -98,8 +97,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     mOpenFiles = new HashMap<>();
 
     final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
-    mIsShellGroupMapping = ShellBasedUnixGroupsMapping.class.getName()
-        .equals(Configuration.get(PropertyKey.SECURITY_GROUP_MAPPING_CLASS));
+    mIsShellGroupMapping = Configuration.getBoolean(PropertyKey.FUSE_SHELL_GROUP_MAPPING_ENABLED);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
@@ -140,9 +138,9 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
     if (!mIsShellGroupMapping) {
-      LOG.info("Cannot change the owner of path {} because the group mapping is not shell based",
+      LOG.info("Cannot change the owner of path {} because the shell based group mapping is not enabled in Fuse.",
           path);
-      // not supported if the group mapping is not shell based
+      // not supported if the shell based group mapping is not enabled
       return -ErrorCodes.ENOSYS();
     }
     try {
@@ -280,7 +278,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
       // for shell-based group mapping, try to get the uid and gid of file/dir owner.
-      // If the user does not registered in the unix or we use other group mapping service,
+      // If the shell-based group mapping is not enabled in Fuse or the user does not registered in the unix,
       // uid and gid of the user running alluxio-fuse will be set.
       long uid = -1;
       long gid = -1;
