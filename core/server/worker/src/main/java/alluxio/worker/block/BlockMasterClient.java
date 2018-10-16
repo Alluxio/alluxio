@@ -84,13 +84,10 @@ public final class BlockMasterClient extends AbstractMasterClient {
    */
   public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
       final String tierAlias, final long blockId, final long length) throws IOException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length,
-            new CommitBlockTOptions());
-        return null;
-      }
+    retryRPC((RpcCallable<Void>) () -> {
+      mClient.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length,
+          new CommitBlockTOptions());
+      return null;
     });
   }
 
