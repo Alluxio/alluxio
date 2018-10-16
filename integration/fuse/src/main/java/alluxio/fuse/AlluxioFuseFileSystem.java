@@ -138,8 +138,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
     if (!mIsShellGroupMapping) {
-      LOG.info("Cannot change the owner of path {} because the shell based group mapping is not enabled in Fuse.",
-          path);
+      LOG.info("Cannot change the owner of path {} "
+          + "because the shell based group mapping is not enabled in Fuse.", path);
       // not supported if the shell based group mapping is not enabled
       return -ErrorCodes.ENOSYS();
     }
@@ -278,7 +278,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
       // for shell-based group mapping, try to get the uid and gid of file/dir owner.
-      // If the shell-based group mapping is not enabled in Fuse or the user does not registered in the unix,
+      // If the shell-based group mapping is not enabled in Fuse
+      // or the user does not registered in the unix,
       // uid and gid of the user running alluxio-fuse will be set.
       long uid = -1;
       long gid = -1;
