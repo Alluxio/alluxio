@@ -134,6 +134,19 @@ to ensure this jar is on the classpath.
 Note that the jars must be installed again for each update to a new release. On the other hand,
 when the jar is already on every node, then the `-libjars` command line option is not needed.
 
+### Customize Alluxio User Properties for MapReduce Jobs
+
+Hadoop MapReduce users can add `"-Dproperty=value"` after the `hadoop jar` or `yarn jar` command
+and the properties will be propagated to all the tasks of this job.  For example, the following
+MapReduce job of wordcount sets write type to `CACHE_THROUGH` when writing to Alluxio:
+
+```bash
+$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
+-Dalluxio.user.file.writetype.default=CACHE_THROUGH \
+-libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
+<INPUT FILES> <OUTPUT DIRECTORY>
+```
+
 ## Troubleshooting
 
 ### Logging Configuration

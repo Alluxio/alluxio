@@ -142,8 +142,30 @@ In this way, it requires no extra setup for Spark configuration.
 
 ### Customize Alluxio User Properties for Spark Jobs
 
-To customize Alluxio client-side properties in a Spark job, see
-[how to configure Spark Jobs](Configuration-Settings.html#spark-jobs).
+Spark users can use pass JVM system properties to Spark jobs by adding `"-Dproperty=value"` to
+`spark.executor.extraJavaOptions` for Spark executors and `spark.driver.extraJavaOptions` for
+Spark drivers. For example, to submit a Spark job with the write `CACHE_THROUGH` when writing to
+ Alluxio:
+
+```bash
+$ spark-submit \
+--conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
+--conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
+...
+```
+
+Note that, in client mode you need set `--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"` instead of 
+`--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH` (see [explanation](https://spark.apache.org/docs/latest/configuration.html)).
+
+
+In the Spark Shell, this can be achieved by:
+
+```scala
+val conf = new SparkConf()
+    .set("spark.driver.extraJavaOptions", "-Dalluxio.user.file.writetype.default=CACHE_THROUGH")
+    .set("spark.executor.extraJavaOptions", "-Dalluxio.user.file.writetype.default=CACHE_THROUGH")
+val sc = new SparkContext(conf)
+```
 
 ## Advanced Usage
 

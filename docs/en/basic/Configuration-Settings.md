@@ -9,7 +9,8 @@ priority: 0
 {:toc}
 
 An Alluxio cluster can be configured by setting the values of Alluxio
-[configuration properties](Configuration-Properties.html). The two major components to configure
+[configuration properties](
+{{ site.baseurl }}{% link en/reference/Properties-List.md %}). The two major components to configure
 are
 [Alluxio servers](#configure-alluxio-cluster) (masters and workers), and
 [Alluxio clients]((#configure-applications)) (part of applications).
@@ -18,12 +19,12 @@ are
 
 Customizing how an application job interacts with Alluxio service is application specific. Here
 we provide recommendations for a few common applications.
-
-TODO: maybe we should mention that only the user/client properties can/need to be configured.
+Note that, it is only valid for users to set client-side configurations
+(e.g., properties prefixed with `alluxio.user`); setting server-side properties
+(e.g., properties prefixed with `alluxio.master` and `alluxio.worker`) at application
+will not take effect.
 
 ### Alluxio Shell Commands
-
-TODO: Mention this the alluxio shell will take the config in site-properties. May have to point to that section.
 
 Alluxio shell users can put JVM system properties `-Dproperty=value` after `fs` command and
 before the subcommand (e.g., `copyFromLocal`) to specify Alluxio user properties
@@ -34,48 +35,27 @@ from the command line. For example, the following Alluxio shell command sets the
 $ bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLocal README.md /README.md
 ```
 
+Note that, as a part of Alluxio deployment, Alluxio shell will also take the configuration in 
+`${ALLUXIO_HOME}/conf/alluxio-site.properties` when it is run from Alluxio installation 
+`${ALLUXIO_HOME}`.
+
 ### Spark Jobs
 
-Spark users can use pass JVM system properties to Spark jobs by adding `"-Dproperty=value"` to
-`spark.executor.extraJavaOptions` for Spark executors and `spark.driver.extraJavaOptions` for
-Spark drivers. For example, to submit a Spark job with the write `CACHE_THROUGH` when writing to
- Alluxio:
+To customize Alluxio client-side properties in a Spark job,
+Spark users can use pass Alluxio properties as JVM system properties to `spark-submit` 
+according to [Spark documentation](https://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit).
 
-```bash
-$ spark-submit \
---conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
---conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
-...
-```
-
-TODO: does this work for the driver side? We should use the `--driver-java-options` for the driver
-options, since this also works for local drivers.
-TODO: link to the configuration section of the spark page
-
-In the Spark Shell, this can be achieved by:
-
-```scala
-val conf = new SparkConf()
-    .set("spark.driver.extraJavaOptions", "-Dalluxio.user.file.writetype.default=CACHE_THROUGH")
-    .set("spark.executor.extraJavaOptions", "-Dalluxio.user.file.writetype.default=CACHE_THROUGH")
-val sc = new SparkContext(conf)
-```
+See [examples to configure Alluxio properties for Spark Jobs]({{ site.baseurl }}{% link en/compute/Spark.md %}#customize-alluxio-user-properties-for-spark-jobs).
 
 ### Hadoop MapReduce Jobs
 
 Hadoop MapReduce users can add `"-Dproperty=value"` after the `hadoop jar` or `yarn jar` command
-and the properties will be propagated to all the tasks of this job.  For example, the following
-MapReduce job of wordcount sets write type to `CACHE_THROUGH` when writing to Alluxio:
+and the properties will be propagated to all the tasks of this job.  
 
-```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
--Dalluxio.user.file.writetype.default=CACHE_THROUGH \
--libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
-<INPUT FILES> <OUTPUT DIRECTORY>
-```
-TODO: link to the configuration section of the hadoop MR page
+See [examples to configure Alluxio properties for MapReduce Jobs]({{ site.baseurl }}{% link en/compute/Hadoop-MapReduce.md %}#customize-alluxio-user-properties-for-mapreduce-jobs).
 
 ### Hive Queries
+
 TODO: brief information about configuring hive queries
 TODO: link to the configuration section of the hive page
 
