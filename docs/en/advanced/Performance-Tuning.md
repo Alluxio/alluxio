@@ -15,6 +15,13 @@ This document goes over all the knobs that can be turned to tune Alluxio perform
 
 If you aren't seeing the performance you expect, follow this checklist to fix common issues.
 
+1. Are all nodes working?
+
+   We should first check out if the Alluxio cluster is healthy. One can check the webUI at 
+   `http://MasterHost:19999` to find out if masters and workers are working correctly from a brouswer. 
+   Alternatively, one can run `bin/alluxio fsadmin report` to collect similar information from the console.
+   Important metrics to check out include the number of lost workers, last heartbeat time and etc to see
+   if any masters or workers are out of service.
 1. Are short-circuit operations working?
 
    If your compute application is running co-located with your Alluxio workers, make sure the
@@ -50,6 +57,13 @@ If you aren't seeing the performance you expect, follow this checklist to fix co
    you can adjust `alluxio.user.network.netty.writer.close.timeout` (5 minutes by default). Increase this value if you
    are writing large files to object storages with a slow network connection. On closing a file for an
    object store, the entire object is uploaded during the close timeout.
+1. Do you see frequent JVM GC?
+
+   Frequent and long GC operations on master or worker JVMs can cause the process very slow. If you suspect
+   the performance degraded due to heavy GC load, you can verify your hypothesis by adding  
+   `ALLUXIO_JAVA_OPTS=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+PrintGCTimestamps"`
+   to `conf/alluxio-env.sh`, start Alluxio service and check the output in `logs/master.out` for masters and 
+   `logs/worker.out` for workers.
 
 If you're still looking for solutions, check out the [metrics system][2] to better understand how
 your jobs are performing. The remainder of this doc discusses various knobs that can be turned to
@@ -63,8 +77,8 @@ help tune Alluxio to your needs.
 ### JVM Monitoring
 
 To detect long GC pauses, Alluxio administrators can set
-"alluxio.master.jvm.monitor.enabled=true"
-for masters or "alluxio.worker.jvm.monitor.enabled=true"
+"`alluxio.master.jvm.monitor.enabled=true`"
+for masters or "`alluxio.worker.jvm.monitor.enabled=true`"
 for workers. When this is activated, Alluxio will run a monitoring thread which periodically runs
 Thread.sleep and tests the delay between when it was supposed to wake up and when it actually woke
 up. A long delay indicates that GC could be taking a long time. If the delay exceeds a certain
@@ -102,14 +116,14 @@ space is almost full.
 
 This performance degradation is due to less-optimized UFS read schedule which is termed as the
 “thundering-herd" problem in Alluxio. One way to resolve this problem is to apply deterministic
-hashing. By specifying “alluxio.user.ufs.block.read.location.policy=DeterministicHashPolicy",
+hashing. By specifying "`alluxio.user.ufs.block.read.location.policy=DeterministicHashPolicy`",
 Alluxio will select only one “random" worker to read the given block from UFS. As a result, even
 multiple Alluxio clients are requesting the same block from different nodes, only that “selected"
 worker will read from UFS and cache only on that worker. Sometimes we want more parallelism, then
 one can also change the value of
-“alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards" from 1 (default) to N so
+"`alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards`" from 1 (default) to N so
 there will be no more than N workers working at the same time to cold-read and cache this block.
-Note that, for different block even in the same file, they will select different “N" workers and
+Note that, for different block even in the same file, they will select different "N" workers and
 thus achieve balanced load across the cluster.
 
 ## Master Tuning
@@ -130,9 +144,9 @@ before giving up and shutting down the master</td>
 </tr>
 </table>
 
-Increasing alluxio.master.journal.flush.batch.time can improve metadata throughput, but reduce
+Increasing `alluxio.master.journal.flush.batch.time` can improve metadata throughput, but reduce
 metadata latency. To keep master alive across long journal downtimes (e.g. HDFS crashing), set
-alluxio.master.journal.flush.timeout to a large value
+`alluxio.master.journal.flush.timeout` to a large value
 
 ### Journal garbage collection
 
@@ -157,7 +171,7 @@ storage yet, the Alluxio will still return the UFS block locations. Therefore, i
 not in Alluxio storage, the Alluxio master will have to consult the UFS for the UFS block locations,
 which would require an additional RPC to the UFS. This extra overhead may be expensive, so the
 Alluxio master maintains a cache to store these UFS block locations. The parameter
-alluxio.master.ufs.block.location.cache.capacity controls the size of this cache. If it is set to 0,
+`alluxio.master.ufs.block.location.cache.capacity` controls the size of this cache. If it is set to 0,
 the cache is disabled.
 
 Increasing the cache size will allow the Alluxio master to store more UFS block locations, and be
@@ -169,29 +183,29 @@ throughput, primarily for files which are not resident in Alluxio storage.
 When Alluxio mounts a UFS to a path in the Alluxio namespace, the Alluxio master maintains metadata
 about the UFS namespace. The UFS metadata is pulled into the Alluxio master on demand, when a client
 accesses a path. When a client accesses a path which does not currently exist in Alluxio, Alluxio
-may consult the UFS to load the UFS metadata. There are 3 options for loading a missing path: Never,
-Once, Always. "Never" will never consult the UFS, and "Always" will always interact with the UFS,
+may consult the UFS to load the UFS metadata. There are 3 options for loading a missing path: `Never`,
+`Once`, `Always`. "`Never`" will never consult the UFS, and "`Always`" will always interact with the UFS,
 but the "Once" behavior is approximated in the Alluxio master. The Alluxio master maintains a cache
-to approximate which UFS paths have been previously loaded, to approximate the "Once" behavior. The
-parameter alluxio.master.ufs.path.cache.capacity controls the number of paths to store in the cache.
+to approximate which UFS paths have been previously loaded, to approximate the "`Once`" behavior. The
+parameter `alluxio.master.ufs.path.cache.capacity` controls the number of paths to store in the cache.
 A larger cache size will consume more memory, but will better approximate the "Once" behavior.
 
 Additionally, the Alluxio master maintains the UFS path cache asynchronously, in order to avoid
 synchronous interactions with the UFS. Alluxio uses a thread pool to process the paths
 asynchronously, and the size of the thread pool is controlled by
-alluxio.master.ufs.path.cache.threads. Increasing the number of threads can decrease the staleness
+`alluxio.master.ufs.path.cache.threads`. Increasing the number of threads can decrease the staleness
 of the UFS path cache, but may impact performance by increasing work on the Alluxio master, as well
 as increasing the parallel interactions with the UFS. If this is set to 0, the cache is disabled,
-and the "Once" setting will behave like the "Always" setting.
+and the "`Once`" setting will behave like the "`Always`" setting.
 
 ## Worker Tuning
 
 ### Block thread pool size
 
-Alluxio.worker.block.threads.max configures the maximum number of incoming RPC requests to block
+Property `alluxio.worker.block.threads.max` configures the maximum number of incoming RPC requests to block
 worker that can be handled. This value is used to configure maximum number of threads in Thrift
 thread pool with block worker. This value should be greater than the sum of
-alluxio.user.block.worker.client.threads across concurrent Alluxio clients. Otherwise, the worker
+`alluxio.user.block.worker.client.threads` across concurrent Alluxio clients. Otherwise, the worker
 connection pool can be drained, preventing new connections from being established.
 
 ### Async caching
@@ -205,14 +219,14 @@ caching on required a read of the entire block (512MB); now the client reads 10M
 processing while an Alluxio worker loads the 512MB block in the background.
 
 A tunable configuration for this feature is the
-“alluxio.worker.network.netty.async.cache.manager.threads.max" property. This determines the maximum
+`alluxio.worker.network.netty.async.cache.manager.threads.max` property. This determines the maximum
 number of concurrent blocks a worker will attempt to cache. By default the value is high (512), but
 in cases where large amounts of data are expected to be asynchronously cached concurrently, lowering
 the value can reduce resource contention (e.g., # of cores)
 
 ### Netty Configs
 
-alluxio.worker.network.netty.rpc.threads.max - Default value is 2048, consider increasing this value
+`alluxio.worker.network.netty.rpc.threads.max` - Default value is 2048, consider increasing this value
 if you have a very large number of concurrent client accesses and are seeing threadpool exhausted
 errors on the worker.
 
@@ -299,7 +313,7 @@ modifications to existing UFS files. Therefore, Alluxio enables syncing the UFS 
 Alluxio's metadata. To sync the metadata for a particular path, the Alluxio master will query the
 UFS for the same path, and then update the corresponding Alluxio metadata to match the UFS
 information. Users can optionally configure Alluxio to "sync" metadata with the UFS when running any
-Alluxio command. The user defined configuration value alluxio.user.file.metadata.sync.interval
+Alluxio command. The user defined configuration value `alluxio.user.file.metadata.sync.interval`
 controls how often Alluxio operations should sync with the UFS. This configuration parameter defines
 the interval of time between multiple UFS synchronizations. A value of -1 means no syncing will be
 performed. 0 means Alluxio will always sync with UFS for every Alluxio operation. Any positive time
@@ -318,7 +332,7 @@ be higher for the Alluxio metadata to be stale. Interacting with the UFS incurs 
 overheads, so it is recommended to limit frequent UFS syncing.
 
 Since the UFS sync feature includes the loading metadata functionality, if UFS syncing is performed,
-the loading metadata configuration parameter, alluxio.user.file.metadata.load.type, is ignored. In
+the loading metadata configuration parameter, `alluxio.user.file.metadata.load.type`, is ignored. In
 comparison to the loading metadata feature, UFS sync takes care of any UFS modifications, like
 deleting files, or updating the timestamp, in addition to discovering new files.
 
@@ -326,7 +340,7 @@ deleting files, or updating the timestamp, in addition to discovering new files.
 
 Passive caching causes data to be re-cached in an Alluxio worker when one or more copies already
 exist in Alluxio storage. Passive caching should be disabled
-(alluxio.user.file.passive.cache.enabled=false) when the workloads being run have no locality
+(`alluxio.user.file.passive.cache.enabled=false`) when the workloads being run have no locality
 concept and the dataset being accessed is large compared to the Alluxio storage of one worker. If
 passive caching is enabled, you may see data blocks residing in many workers, possibly all of them,
 greatly reducing the amount of Alluxio storage available for unique data.
