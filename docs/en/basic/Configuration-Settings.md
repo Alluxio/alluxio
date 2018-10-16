@@ -35,33 +35,38 @@ from the command line. For example, the following Alluxio shell command sets the
 $ bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLocal README.md /README.md
 ```
 
-Note that, as a part of Alluxio deployment, Alluxio shell will also take the configuration in 
-`${ALLUXIO_HOME}/conf/alluxio-site.properties` when it is run from Alluxio installation 
+Note that, as a part of Alluxio deployment, Alluxio shell will also take the configuration in
+`${ALLUXIO_HOME}/conf/alluxio-site.properties` when it is run from Alluxio installation
 `${ALLUXIO_HOME}`.
 
-### Spark Jobs
+### Spark
 
-To customize Alluxio client-side properties in a Spark job,
-Spark users can use pass Alluxio properties as JVM system properties to `spark-submit` 
-according to [Spark documentation](https://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit).
+To customize Alluxio client-side properties in Spark,
+Spark users can use pass Alluxio properties as JVM system properties.
+See examples for [the entire Spark Service]({{ site.baseurl }}{% link en/compute/Spark.md
+%}#customize-alluxio-user-properties-for-all-spark-jobs)
+or for [individual Spark Jobs]({{ site.baseurl }}{% link en/compute/Spark.md
+ %}#customize-alluxio-user-properties-for-individual-spark-jobs).
 
-See [examples to configure Alluxio properties for Spark Jobs]({{ site.baseurl }}{% link en/compute/Spark.md %}#customize-alluxio-user-properties-for-spark-jobs).
+### Hadoop MapReduce
 
-### Hadoop MapReduce Jobs
+See examples to configure Alluxio properties for [the entire MapReduce service]({{ site.baseurl }}{% link en/compute/Hadoop-MapReduce.md %}#customize-alluxio-user-properties-for-all-mapreduce-jobs)
+or for [individual MapReduce jobs]({{ site.baseurl }}{% link en/compute/Hadoop-MapReduce.md
+%}#customize-alluxio-user-properties-for-individual-mapreduce-jobs).
 
-Hadoop MapReduce users can add `"-Dproperty=value"` after the `hadoop jar` or `yarn jar` command
-and the properties will be propagated to all the tasks of this job.  
+### Hive
 
-See [examples to configure Alluxio properties for MapReduce Jobs]({{ site.baseurl }}{% link en/compute/Hadoop-MapReduce.md %}#customize-alluxio-user-properties-for-mapreduce-jobs).
+When accessing Alluxio service, Hive can be configured to use customized Alluxio
+client-side properties for the entire service.
+See [examples]({{ site.baseurl }}{% link
+en/compute/Hive.md %}#customize-alluxio-user-properties).
 
-### Hive Queries
+### Presto
 
-TODO: brief information about configuring hive queries
-TODO: link to the configuration section of the hive page
-
-### Presto Queries
-TODO: brief information about configuring presto queries
-TODO: link to the configuration section of the presto page
+When accessing Alluxio service, Presto can be configured to use customized Alluxio
+client-side properties for the entire service.
+See [examples]({{ site.baseurl }}{% link
+en/compute/Presto.md %}#customize-alluxio-user-properties).
 
 ## Configure Alluxio Cluster
 
@@ -162,7 +167,7 @@ does not exist yet, you can create one by copying the template:
 $ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```
 
-## Specify Cluster-Wide Defaults
+### Specify Cluster-Wide Defaults
 
 Since v1.8, each Alluxio client can initialize its configuration with the cluster-wide
 configuration values retrieved from masters. In addition to client applications, Alluxio workers
@@ -248,12 +253,12 @@ alluxio.debug=false (DEFAULT)
 
 ## Server Configuration Checker
 
-Server-side configuration checker helps discover configuration errors and warnings. 
+Server-side configuration checker helps discover configuration errors and warnings.
 Suspected configuration errors are reported through the web UI, `doctor` CLI, and master logs.
 
 The web UI shows the result of the server configuration check.
 
-![webUi]({{site.data.img.screenshot_configuration_checker_webui}})
+![webUi]({{ site.baseurl }}/img/screenshot_configuration_checker_webui.png)
 
 Users can also run the `fsadmin doctor` command to get the same results.
 
@@ -263,4 +268,4 @@ $ bin/alluxio fsadmin doctor configuration
 
 Configuration warnings can also be seen in the master logs.
 
-![masterLogs]({{site.data.img.screenshot_configuration_checker_masterlogs}})
+![masterLogs]({{ site.baseurl }}/img/screenshot_configuration_checker_masterlogs.png)

@@ -193,7 +193,7 @@ setting in Hive such as the default filesystem which is covered in the next sect
 
 ## Advanced Setup
 
-### Add Additional Alluxio client-side properties
+### Customize Alluxio User Properties
 
 There are two ways to specify any Alluxio client properties for Hive queries when
 connecting to Alluxio service:
@@ -227,7 +227,7 @@ Alternatively, modify `conf/hive-site.xml` to have:
  in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
 
 If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
-`zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`, it requires setting 
+`zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`, it requires setting
 set the Alluxio properties `alluxio.zookeeper.enabled` and `alluxio.zookeeper.address`
 
 One approach is to set in `alluxio-site.properties`.
@@ -344,5 +344,5 @@ This command will report potential problems that might prevent you from running 
 ### Logging Configuration
 
 If you wish to modify how your Hive client logs information, see the detailed page within the Hive
-documentation that 
+documentation that
 [explains how to configure logging for your Hive application][https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-HiveLoggingErrorLogsHiveLogs]

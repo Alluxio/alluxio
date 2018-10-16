@@ -16,31 +16,27 @@ easily run your MapReduce programs with files stored on Alluxio.
 
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
-This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball 
+This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
 downloaded from Alluxio [download page](http://www.alluxio.org/download).
-Alternatively, advanced users can compile this client jar from the source code 
+Alternatively, advanced users can compile this client jar from the source code
 by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
-* In order to run some simple map-reduce examples, we also recommend you download the 
+* In order to run some simple map-reduce examples, we also recommend you download the
 [map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples)
 based on your hadoop version, or if you are using Hadoop 1, this
 [examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1).
 
 ## Basic Setup
 
-### Configuring Hadoop
+### Configuring Hadoop Core-site Properties
 
-Add the following two properties to the `core-site.xml` file of your Hadoop installation:
+Note that, this step is only required for Hadoop 1.x and can be skipped by users of Hadoop 2.x or
+later. Add the following two properties to the `core-site.xml` file of your Hadoop installation:
 
 ```xml
 <property>
   <name>fs.alluxio.impl</name>
   <value>alluxio.hadoop.FileSystem</value>
-  <description>The Alluxio FileSystem (Hadoop 1.x and 2.x)</description>
-</property>
-<property>
-  <name>fs.AbstractFileSystem.alluxio.impl</name>
-  <value>alluxio.hadoop.AlluxioFileSystem</value>
-  <description>The Alluxio AbstractFileSystem (Hadoop 2.x)</description>
+  <description>The Alluxio FileSystem</description>
 </property>
 ```
 
@@ -111,18 +107,18 @@ $ bin/alluxio fs ls /wordcount/output
 $ bin/alluxio fs cat /wordcount/output/part-r-00000
 ```
 
-> Tips：The previous wordcount example is also applicable to Alluxio in fault tolerant mode with Zookeeper. 
-Please follow the instructions in 
+> Tips：The previous wordcount example is also applicable to Alluxio in fault tolerant mode with Zookeeper.
+Please follow the instructions in
 [HDFS API to connect to Alluxio with high availability]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}#hdfs-api).
 
 ## Advanced Setup
 
 ### Distributing the Alluxio Client Jar
 
-This guide on	
-[how to include 3rd party libraries from Cloudera](http://blog.cloudera.com/blog/2011/01/how-to-include-third-party-libraries-in-your-map-reduce-job/)	
-describes several ways to distribute the jars. From that guide, the recommended way to distributed	
-the Alluxio client jar is to use the distributed cache, via the `-libjars` command line option.	
+This guide on
+[how to include 3rd party libraries from Cloudera](http://blog.cloudera.com/blog/2011/01/how-to-include-third-party-libraries-in-your-map-reduce-job/)
+describes several ways to distribute the jars. From that guide, the recommended way to distributed
+the Alluxio client jar is to use the distributed cache, via the `-libjars` command line option.
 Another way to distribute the client jar is to manually distribute it to all the Hadoop nodes.
 
 You could place the client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the `$HADOOP_HOME/lib`
@@ -134,7 +130,27 @@ to ensure this jar is on the classpath.
 Note that the jars must be installed again for each update to a new release. On the other hand,
 when the jar is already on every node, then the `-libjars` command line option is not needed.
 
-### Customize Alluxio User Properties for MapReduce Jobs
+### Customize Alluxio User Properties for All MapReduce Jobs
+
+Let us use the setup of Spark to talk to Alluxio service in HA Mode as an example.
+If you are running multiple Alluxio masters in with a Zookeeper service running at
+`zkHost1:2181`, `zkHost2:2181`, and `zkHost3:2181`,
+add the following two properties to the `core-site.xml` file of your Hadoop installation:
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+  </property>
+</configuration>
+```
+
+### Customize Alluxio User Properties for Individual MapReduce Jobs
 
 Hadoop MapReduce users can add `"-Dproperty=value"` after the `hadoop jar` or `yarn jar` command
 and the properties will be propagated to all the tasks of this job.  For example, the following
@@ -151,7 +167,7 @@ $ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.
 
 ### Logging Configuration
 
-Logs with Hadoop can be modified in many different ways. If you wish to directly modify the 
+Logs with Hadoop can be modified in many different ways. If you wish to directly modify the
 `log4j.properties` file for Hadoop, then you can add or modify appenders within
 `${HADOOP_HOME}/conf/log4j.properties` on each of the nodes in your cluster.
 
