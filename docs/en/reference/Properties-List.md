@@ -8,8 +8,6 @@ priority: 0
 * Table of Contents
 {:toc}
 
-TODO: Ensure the categories are up to date (do we need to add SERVER?)
-
 All Alluxio configuration settings fall into one of the six categories:
 [Common](#common-configuration) (shared by Master and Worker),
 [Master specific](#master-configuration), [Worker specific](#worker-configuration),
