@@ -109,9 +109,10 @@ Also, the input file `Input_HDFS` now will be 100% loaded in the Alluxio file sy
 
 ## Advanced Setup
 
-### Alluxio in Fault Tolerant Mode
+### Customize Alluxio User Properties for All Spark Jobs
 
-If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
+Let us use the setup of Spark to talk to Alluxio service in HA Mode as an example.
+If you are running multiple Alluxio masters in with a Zookeeper service running at
 `zkHost1:2181`, `zkHost2:2181`, and `zkHost3:2181`,
 add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf`:
 
@@ -140,16 +141,29 @@ After Alluxio 1.8 (not included), users can encode the Zookeeper service address
 inside an Alluxio URI (see [details](#access-data-from-alluxio-in-ha-mode)).
 In this way, it requires no extra setup for Spark configuration.
 
-### Customize Alluxio User Properties for Spark Jobs
+### Customize Alluxio User Properties for Individual Spark Jobs
 
-To customize Alluxio client-side properties in a Spark job, see
-[how to configure Spark Jobs](Configuration-Settings.html#spark-jobs).
+Spark users can use pass JVM system properties to Spark jobs by adding `"-Dproperty=value"` to
+`spark.executor.extraJavaOptions` for Spark executors and `spark.driver.extraJavaOptions` for
+Spark drivers. For example, to submit a Spark job with the write `CACHE_THROUGH` when writing to
+ Alluxio:
+
+```bash
+$ spark-submit \
+--conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
+--conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
+...
+```
+
+Note that, in client mode you need set `--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"` instead of
+`--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH` (see
+[explanation](https://spark.apache.org/docs/2.3.2/configuration.html)).
 
 ## Advanced Usage
 
 ### Access Data from Alluxio in HA Mode
 
-If Spark is set up by the instructions in [Alluxio with HA](#alluxio-in-fault-tolerant-mode),
+If Spark is set up by the instructions in [Alluxio with HA](#customize-alluxio-user-properties-for-all-spark-jobs),
 you can write URIs using the "`alluxio://`" scheme without specifying an Alluxio master in the authority.
 This is because in HA mode, the address of primary Alluxio master will be served by the configured Zookeeper
 service rather than a user-specified hostname derived from the URI.

@@ -132,7 +132,7 @@ Presto Server log:
 
 ## Advanced Setup
 
-### Configure Alluxio properties
+### Customize Alluxio User Properties
 
 To configure additional Alluxio properties, you can append the conf path (i.e. `${ALLUXIO_HOME}/conf`) containing [`alluxio-site.properties`](Configuration-Settings.html) to Presto's JVM config at `etc/jvm.config` under Presto folder. The advantage of this approach is to have all the Alluxio properties set within the same file of `alluxio-site.properties`.
 

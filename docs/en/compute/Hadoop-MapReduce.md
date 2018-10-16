@@ -27,20 +27,16 @@ based on your hadoop version, or if you are using Hadoop 1, this
 
 ## Basic Setup
 
-### Configuring Hadoop
+### Configuring Hadoop Core-site Properties
 
-Add the following two properties to the `core-site.xml` file of your Hadoop installation:
+Note that, this step is only required for Hadoop 1.x and can be skipped by users of Hadoop 2.x or
+later. Add the following property to the `core-site.xml` file of your Hadoop installation:
 
 ```xml
 <property>
   <name>fs.alluxio.impl</name>
   <value>alluxio.hadoop.FileSystem</value>
-  <description>The Alluxio FileSystem (Hadoop 1.x and 2.x)</description>
-</property>
-<property>
-  <name>fs.AbstractFileSystem.alluxio.impl</name>
-  <value>alluxio.hadoop.AlluxioFileSystem</value>
-  <description>The Alluxio AbstractFileSystem (Hadoop 2.x)</description>
+  <description>The Alluxio FileSystem</description>
 </property>
 ```
 
@@ -133,6 +129,40 @@ to ensure this jar is on the classpath.
 
 Note that the jars must be installed again for each update to a new release. On the other hand,
 when the jar is already on every node, then the `-libjars` command line option is not needed.
+
+### Customize Alluxio User Properties for All MapReduce Jobs
+
+Alluxio configuration parameters can be added to the Hadoop `core-site.xml` file to affect all MapReduce jobs.
+Let us use the setup of Hadoop to interact with the Alluxio service in HA Mode as an example.
+If you are running multiple Alluxio masters in with a Zookeeper service running at
+`zkHost1:2181`, `zkHost2:2181`, and `zkHost3:2181`,
+add the following two properties to the `core-site.xml` file of your Hadoop installation:
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+  </property>
+</configuration>
+```
+
+### Customize Alluxio User Properties for Individual MapReduce Jobs
+
+Hadoop MapReduce users can add `"-Dproperty=value"` after the `hadoop jar` or `yarn jar` command
+and the properties will be propagated to all the tasks of this job.  For example, the following
+MapReduce job of wordcount sets write type to `CACHE_THROUGH` when writing to Alluxio:
+
+```bash
+$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
+-Dalluxio.user.file.writetype.default=CACHE_THROUGH \
+-libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
+<INPUT FILES> <OUTPUT DIRECTORY>
+```
 
 ## Troubleshooting
 

@@ -193,7 +193,7 @@ setting in Hive such as the default filesystem which is covered in the next sect
 
 ## Advanced Setup
 
-### Add Additional Alluxio client-side properties
+### Customize Alluxio User Properties
 
 There are two ways to specify any Alluxio client properties for Hive queries when
 connecting to Alluxio service:
