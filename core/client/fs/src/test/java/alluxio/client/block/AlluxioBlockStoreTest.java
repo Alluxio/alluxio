@@ -27,6 +27,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.exception.status.NotFoundException;
 import alluxio.network.netty.NettyRPC;
 import alluxio.network.netty.NettyRPCContext;
 import alluxio.exception.ExceptionMessage;
@@ -262,6 +263,32 @@ public final class AlluxioBlockStoreTest {
     assertEquals(worker1, mBlockStore.getInStream(BLOCK_ID, options).getAddress());
     // Location policy chooses worker2 second.
     assertEquals(worker2, mBlockStore.getInStream(BLOCK_ID, options).getAddress());
+  }
+
+  @Test
+  public void getInStreamNoWorkers() throws Exception {
+    URIStatus dummyStatus =
+        new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L)));
+    InStreamOptions options = new InStreamOptions(dummyStatus, OpenFileOptions.defaults());
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
+    when(mMasterClient.getWorkerInfoList()).thenReturn(Collections.emptyList());
+
+    mException.expect(UnavailableException.class);
+    mException.expectMessage("No Alluxio worker available");
+    mBlockStore.getInStream(BLOCK_ID, options).getAddress();
+  }
+
+  @Test
+  public void getInStreamMissingBlock() throws Exception {
+    URIStatus dummyStatus = new URIStatus(
+        new FileInfo().setPersisted(false).setBlockIds(Collections.singletonList(0L)));
+    InStreamOptions options = new InStreamOptions(dummyStatus, OpenFileOptions.defaults());
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
+    when(mMasterClient.getWorkerInfoList()).thenReturn(Collections.emptyList());
+
+    mException.expect(NotFoundException.class);
+    mException.expectMessage("unavailable in both Alluxio and UFS");
+    mBlockStore.getInStream(BLOCK_ID, options).getAddress();
   }
 
   @Test
