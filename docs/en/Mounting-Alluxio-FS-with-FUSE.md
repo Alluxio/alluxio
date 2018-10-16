@@ -161,7 +161,7 @@ characteristics, please be aware that:
   Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the
   user and group of the user who started the alluxio-fuse process. 
   If the `alluxio.fuse.shell.group.mapping.enabled` is set to `true`
-  but the original user and group of the file/directory does not exist, `ll` will also return the
+  but the file/dir owner is not registered in the unix, `ll` will also return the
   user and group of the user who started the alluxio-fuse process. 
 
 ## Performance considerations

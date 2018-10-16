@@ -2926,12 +2926,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey FUSE_SHELL_GROUP_MAPPING_ENABLED =
       new Builder(Name.FUSE_SHELL_GROUP_MAPPING_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether to enable shell based user group mapping service "
-              + "in Fuse integration. If the property is set to true, "
-              + "the 'id' command will be executed to get the uid and gid of file/dir owner. "
-              + "If the owner does not registered in the unix or this property is set to false, "
-              + "user and group of the user who started the alluxio-fuse process "
-              + "will be used as the user/group of the file/dir.")
+          .setDescription("Whether to map the user and group to the Unix user and group "
+              + "in Fuse integration. If the owner does not registered in the unix "
+              + "or this property is set to false, user and group of the user "
+              + "who started the alluxio-fuse process will be used.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.NONE)
           .build();

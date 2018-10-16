@@ -139,8 +139,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
     if (!mIsShellGroupMapping) {
       LOG.info("Cannot change the owner of path {} "
-          + "because the shell based group mapping is not enabled in Fuse.", path);
-      // not supported if the shell based group mapping is not enabled
+          + "because the shell based group mapping is not enabled in Alluxio-Fuse.", path);
       return -ErrorCodes.ENOSYS();
     }
     try {
