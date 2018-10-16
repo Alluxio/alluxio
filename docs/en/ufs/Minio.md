@@ -10,14 +10,14 @@ priority: 10
 {:toc}
 
 This guide describes how to configure Alluxio with [Minio](https://minio.io/) as the
-under storage system. Alluxio natively provides the `s3a://` scheme (recommended for better performance). You can
-use this scheme to connect Alluxio with Minio server.
+under storage system. Alluxio natively provides the `s3a://` scheme (recommended for better
+performance). You can use this scheme to connect Alluxio with Minio server.
 
 ## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-From-Source.html), or
-[download the binaries locally](Running-Alluxio-Locally.html).
+[compile Alluxio]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
+[download the binaries locally]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 ## Setup Minio
 
@@ -29,15 +29,16 @@ template.
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Minio is an object storage server built for cloud applications and DevOps. Minio provides an open source alternative to AWS S3.
+Minio is an object storage server built for cloud applications and DevOps. Minio provides an open
+source alternative to AWS S3.
 
-Launch a Minio server instance using the steps mentioned [here](http://docs.minio.io/docs/minio-quickstart-guide). Then create a
-bucket (or use an existing bucket). Once the server is launched, keep a note of Minio server endpoint, accessKey
-and secretKey.
+Launch a Minio server instance using the steps mentioned
+[here](http://docs.minio.io/docs/minio-quickstart-guide). Then create a bucket (or use an existing
+bucket). Once the server is launched, keep a note of Minio server endpoint, accessKey and secretKey.
 
 You should also note the directory you want to use in that bucket, either by creating
-a new directory in the bucket, or using an existing one. For the purposes of this guide, the Minio bucket name is called
-`MINIO_BUCKET`, and the directory in that bucket is called `MINIO_DIRECTORY`.
+a new directory in the bucket, or using an existing one. For the purposes of this guide, the Minio
+bucket name is called `MINIO_BUCKET`, and the directory in that bucket is called `MINIO_DIRECTORY`.
 
 ## Configuring Alluxio
 
@@ -56,5 +57,6 @@ aws.accessKeyId=<MINIO_ACCESS_KEY_ID>
 aws.secretKey=<MINIO_SECRET_KEY_ID>
 ```
 
-For these parameters, replace `<MINIO_ENDPOINT>` with the hostname and port of your Minio service, e.g.,
-`http://localhost:9000`. If the port value is left unset, it defaults to port 80 for `http` and 443 for `https`.
+For these parameters, replace `<MINIO_ENDPOINT>` with the hostname and port of your Minio service,
+e.g., `http://localhost:9000`. If the port value is left unset, it defaults to port 80 for `http`
+and 443 for `https`.

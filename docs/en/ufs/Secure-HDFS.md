@@ -22,8 +22,8 @@ To run an Alluxio cluster on a set of machines, you must deploy Alluxio server b
 these machines. You can either
 [download the precompiled binaries directly](http://www.alluxio.org/download)
 with the correct Hadoop version (recommended), or
-[compile the binaries from Alluxio source code](Building-Alluxio-From-Source.html)
-(for advanced users).
+[compile the binaries from Alluxio source code]({{site.baseurl}}{% link
+en/contributor/Building-Alluxio-From-Source.md %}) (for advanced users).
 
 Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
 work with Apache Hadoop HDFS of version `2.2.0`. To work with Hadoop distributions of other
@@ -46,8 +46,9 @@ $ mvn install -Phadoop-3 -Dhadoop.version=3.0.0 -DskipTests
 ```
 
 Please visit the
-[Building Alluxio Master Branch](Building-Alluxio-From-Source.html#distro-support) page for more
-information about support for other distributions.
+[Building Alluxio Master Branch]({{site.baseurl}}{link %
+en/contributor/Building-Alluxio-From-Source.md %}#distro-support) page for more information about
+support for other distributions.
 
 If everything succeeds, you should see
 `alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in

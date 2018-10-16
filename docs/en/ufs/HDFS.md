@@ -45,8 +45,9 @@ $ mvn install -Phadoop-3 -Dhadoop.version=3.0.0 -DskipTests
 ```
 
 Please visit the
-[Building Alluxio Master Branch]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}#distro-support) page for more
-information about support for other distributions.
+[Building Alluxio Master Branch]({{ site.baseurl }}{% link
+en/contributor/Building-Alluxio-From-Source.md %}#distro-support) page for more information about
+support for other distributions.
 
 If everything succeeds, you should see
 `alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in
@@ -105,7 +106,8 @@ alluxio.underfs.address=hdfs://nameservice/
 
 ### Enforce User/Permission Mapping
 
-Alluxio supports POSIX-like filesystem [user and permission checking]({{ site.baseurl }}{% link en/advanced/Security.md %}) and this is
+Alluxio supports POSIX-like filesystem [user and permission checking]({{ site.baseurl }}{% link
+en/advanced/Security.md %}) and this is
 enabled by default since v1.3.
 To ensure that the permission information of files/directories including user, group and mode in
 HDFS is consistent with Alluxio (e.g., a file created by user Foo in Alluxio is persisted to

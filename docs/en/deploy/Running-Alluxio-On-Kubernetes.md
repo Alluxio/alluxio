@@ -18,11 +18,12 @@ This tutorial walks through a basic Alluxio setup on Kubernetes.
 - A Kubernetes cluster (version >= 1.8). Alluxio workers will use `emptyDir` volumes with a 
 restricted size using the `sizeLimit` parameter. This is an alpha feature in Kubernetes 1.8.
 Please ensure the feature is enabled.
-- An Alluxio Docker image. Refer to [this page]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-Docker.md %}) for instructions
-to build an image. The image must be available for a pull from all Kubernetes hosts running
-Alluxio processes. This can be achieved by pushing the image to an accessible Docker registry,
-or pushing the image individually to all hosts. If using a private Docker registry, refer to the
-Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+- An Alluxio Docker image. Refer to [this page]({{ site.baseurl }}{% link
+en/deploy/Running-Alluxio-On-Docker.md %}) for instructions to build an image. The image must be
+available for a pull from all Kubernetes hosts running Alluxio processes. This can be achieved by
+pushing the image to an accessible Docker registry, or pushing the image individually to all hosts.
+If using a private Docker registry, refer to the Kubernetes
+[documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 
 ## Clone the Alluxio repo
 
@@ -66,6 +67,7 @@ for storing the journal. The volume, once claimed, is persisted across restarts 
 
 Create the persistent volume spec from the template. The access mode `ReadWriteMany` is used to allow
 multiple Alluxio master nodes to access the shared volume.
+
 ```bash
 $ cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
 ```
@@ -81,8 +83,8 @@ $ kubectl create -f alluxio-journal-volume.yaml
 
 ## Configure Alluxio properties
 Alluxio containers in Kubernetes use environment variables to set Alluxio properties. Refer to 
-[Docker configuration](Running-Alluxio-On-Docker.html) for the corresponding environment variable
-name for Alluxio properties in `conf/alluxio-site.properties`.
+[Docker configuration]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-Docker.md %}) for the
+corresponding environment variable name for Alluxio properties in `conf/alluxio-site.properties`.
 
 Define all environment variables in a single file. Copy the properties template at
 `integration/kubernetes/conf`, and modify or add any configuration properties as required.

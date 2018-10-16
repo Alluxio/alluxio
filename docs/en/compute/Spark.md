@@ -143,16 +143,16 @@ In this way, it requires no extra setup for Spark configuration.
 ### Customize Alluxio User Properties for Spark Jobs
 
 To customize Alluxio client-side properties in a Spark job, see
-[how to configure Spark Jobs](Configuration-Settings.html#spark-jobs).
+[how to configure Spark Jobs]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}#spark-jobs).
 
 ## Advanced Usage
 
 ### Access Data from Alluxio in HA Mode
 
 If Spark is set up by the instructions in [Alluxio with HA](#alluxio-in-fault-tolerant-mode),
-you can write URIs using the "`alluxio://`" scheme without specifying an Alluxio master in the authority. 
-This is because in HA mode, the address of primary Alluxio master will be served by the configured Zookeeper
-service rather than a user-specified hostname derived from the URI.
+you can write URIs using the "`alluxio://`" scheme without specifying an Alluxio master in the
+authority.  This is because in HA mode, the address of primary Alluxio master will be served by the
+configured Zookeeper service rather than a user-specified hostname derived from the URI.
 
 ```scala
 > val s = sc.textFile("alluxio:///Input")
@@ -174,7 +174,8 @@ This feature of encoding Zookeeper service address into Alluxio URIs is not avai
 
 > Note that you must use semicolons rather than commas to separate different Zookeeper addresses to
 refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
-Please refer to the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
+Please refer to the instructions in [HDFS API to connect to Alluxio with high
+availability]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}#hdfs-api).
 
 ### Cache RDD into Alluxio
 
@@ -280,29 +281,31 @@ SPARK_LOCAL_HOSTNAME=simple30
 In either way, the Spark Worker addresses become hostnames and Locality Level becomes `NODE_LOCAL` as shown
 in Spark WebUI below.
 
-![hostname]({{ site.baseurl }}/img/screenshot_datalocality_sparkwebui.png)
+![hostname]({{ site.baseurl }}{% link img/screenshot_datalocality_sparkwebui.png %})
 
-![locality]({{ site.baseurl }}/img/screenshot_datalocality_tasklocality.png)
+![locality]({{ site.baseurl }}{% link img/screenshot_datalocality_tasklocality.png %})
 
 ### Data Locality of Spark Jobs on YARN
 
 To maximize the amount of locality your Spark jobs attain, you should use as many
 executors as possible, hopefully at least one executor per node.
-As with all methods of Alluxio deployment, there should also be an Alluxio worker on all computation nodes.
+As with all methods of Alluxio deployment, there should also be an Alluxio worker on all computation 
+odes.
 
-When a Spark job is run on YARN, Spark launches its executors without taking data locality into account.
-Spark will then correctly take data locality into account when deciding how to distribute tasks to its
-executors. For example, if `host1` contains `blockA` and a job using `blockA` is launched on the YARN
-cluster with `--num-executors=1`, Spark might place the only executor on `host2` and have poor locality.
-However, if `--num-executors=2` and executors are started on `host1` and `host2`, Spark will be smart
-enough to prioritize placing the job on `host1`.
+When a Spark job is run on YARN, Spark launches its executors without taking data locality into
+account. Spark will then correctly take data locality into account when deciding how to distribute
+tasks to its executors. For example, if `host1` contains `blockA` and a job using `blockA` is
+launched on the YARN cluster with `--num-executors=1`, Spark might place the only executor on
+`host2` and have poor locality. However, if `--num-executors=2` and executors are started on `host1`
+and `host2`, Spark will be smart enough to prioritize placing the job on `host1`.
 
 ### `Class alluxio.hadoop.FileSystem not found` Issues with SparkSQL and Hive MetaStore
 
-To run the `spark-shell` with the Alluxio client, the Alluxio client jar will have to be added to the classpath of the
-Spark driver and Spark executors, as [described earlier](Running-Spark-on-Alluxio.html#configure-spark).
-However, sometimes SparkSQL may fail to save tables to the Hive MetaStore (location in Alluxio), with an error
-message similar to the following:
+To run the `spark-shell` with the Alluxio client, the Alluxio client jar will have to be added to
+the classpath of the
+Spark driver and Spark executors, as [described earlier](#basic-setup). However, sometimes
+SparkSQL may fail to save tables to the Hive MetaStore (location in Alluxio), with an error message
+similar to the following:
 
 ```
 org.apache.hadoop.hive.ql.metadata.HiveException: MetaException(message:java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found)

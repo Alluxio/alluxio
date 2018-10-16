@@ -15,8 +15,8 @@ This guide describes how to configure Alluxio with an under storage system suppo
 ## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-From-Source.html), or
-[download the binaries locally](Running-Alluxio-Locally.html).
+[compile Alluxio]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
+[download the binaries locally]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 ## Configuring Alluxio
 
@@ -40,8 +40,9 @@ fs.swift.use.public.url=<swift-use-public>
 fs.swift.auth.method=<swift-auth-model>
 ```
 
-Replace `<container>/<folder>` with an existing Swift container location. Possible values of `<swift-use-public>`
-are `true`, `false`. Possible values of `<swift-auth-model>` are `keystonev3`, `keystone`, `tempauth`, `swiftauth`. 
+Replace `<container>/<folder>` with an existing Swift container location. Possible values of
+`<swift-use-public>` are `true`, `false`. Possible values of `<swift-auth-model>` are `keystonev3`,
+`keystone`, `tempauth`, `swiftauth`. 
 
 When using either keystone authentication, the following parameter can optionally be set:
 
@@ -55,7 +56,10 @@ value of `<swift-use-public>`  to `false`.
 
 ## Options for Swift Object Storage
 
-Using the Swift module makes [Ceph Object Storage](https://ceph.com/ceph-storage/object-storage/) and [IBM SoftLayer](http://www.softlayer.com/object-storage) Object Storage as under storage options for Alluxio. To use Ceph, the [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/) module must be deployed.
+Using the Swift module makes [Ceph Object Storage](https://ceph.com/ceph-storage/object-storage/)
+and [IBM SoftLayer](http://www.softlayer.com/object-storage) Object Storage as under storage options
+for Alluxio. To use Ceph, the [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/) module must
+be deployed.
 
 ## Running Alluxio Locally with Swift
 
@@ -96,7 +100,8 @@ $ mvn test -DtestSwiftContainerKey=swift://<container>
 
 ## Swift Access Control
 
-If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object storage.
+If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object
+storage.
 
 The Swift credentials specified in Alluxio (`fs.swift.user`, `fs.swift.tenant` and
 `fs.swift.password`) represents a Swift user. Swift service backend checks the user permission to

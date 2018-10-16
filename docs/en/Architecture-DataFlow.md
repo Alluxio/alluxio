@@ -42,11 +42,11 @@ the components a system admin would maintain and manage. The clients are used to
 talk to Alluxio servers by the applications, such as Spark or MapReduce jobs,
 Alluxio command-line, or the FUSE layer.
 
-![Architecture overview]({{ site.baseurl }}/img/architecture-overview.png)
+![Architecture overview]({{ site.baseurl }}{% link img/architecture-overview.png %})
 
 ### Master
 
-![Alluxio master]({{ site.baseurl }}/img/architecture-master.png)
+![Alluxio master]({{ site.baseurl }}{% link img/architecture-master.png %})
 
 Alluxio master service can be deployed as one primary master and several standby
 masters for fault tolerance. When the primary master goes down, a standby master
@@ -74,7 +74,7 @@ Alluxio components.
 
 ### Worker
 
-![Alluxio worker]({{ site.baseurl }}/img/architecture-worker.png)
+![Alluxio worker]({{ site.baseurl }}{% link img/architecture-worker.png %})
 
 Alluxio workers are responsible for managing user-configurable local resources
 allocated to Alluxio (e.g. memory, SSDs, HDDs etc.). Alluxio workers store data
@@ -144,7 +144,7 @@ addition to memory, so local data access speed may vary depending on the local
 storage media. To learn more about this topic, please refer to the
 [tiered storage document]({{ site.baseurl }}{% link en/advanced/Alluxio-Storage-Management.md %}#multiple-tier-storage).
 
-![Data Flow of Read from a Local Worker]({{ site.baseurl }}/img/dataflow-local-cache-hit.gif)
+![Data Flow of Read from a Local Worker]({{ site.baseurl }}{% link img/dataflow-local-cache-hit.gif %})
 
 #### Remote Cache Hit
 
@@ -158,7 +158,7 @@ reading from remote workers over reading from under storage because the network
 speed between Alluxio workers is typically faster than the speed between Alluxio
 workers and the under storage.
 
-![Data Flow of Read from a Remote Worker]({{ site.baseurl }}/img/dataflow-remote-cache-hit.gif)
+![Data Flow of Read from a Remote Worker]({{ site.baseurl }}{% link img/dataflow-remote-cache-hit.gif %})
 
 #### Cache Misses
 
@@ -181,7 +181,7 @@ once. Partial caching is not on the critical path, but may still impact
 performance if the network bandwidth between Alluxio and the under storage
 system is a bottleneck.
 
-![Cache Miss data flow]({{ site.baseurl }}/img/dataflow-cache-miss.gif)
+![Cache Miss data flow]({{ site.baseurl }}{% link img/dataflow-cache-miss.gif %})
 
 #### Cache Skipped
 
@@ -212,7 +212,7 @@ under storage, data can be lost if the machine crashes or data needs to be freed
 up for newer writes. As a result, the `MUST_CACHE` setting is useful for writing
 temporary data when data loss can be tolerated.
 
-![MUST_CACHE data flow]({{ site.baseurl }}/img/dataflow-must-cache.gif)
+![MUST_CACHE data flow]({{ site.baseurl }}{% link img/dataflow-must-cache.gif %})
 
 #### Write through to UFS (`CACHE_THROUGH`)
 
@@ -225,7 +225,7 @@ match the write speed of the under storage. The `CACHE_THROUGH` write type is
 recommended when data persistence is required. A local copy is also written, so
 any future reads of the data can be served from local memory directly.
 
-![CACHE_THROUGH data flow]({{ site.baseurl }}/img/dataflow-cache-through.gif)
+![CACHE_THROUGH data flow]({{ site.baseurl }}{% link img/dataflow-cache-through.gif %})
 
 #### Write back to UFS (`ASYNC_THROUGH`)
 
@@ -234,4 +234,4 @@ data is written synchronously to an Alluxio worker and asynchronously to the
 under storage system. `ASYNC_THROUGH` can provide data write at memory speed
 while still persisting the data.
 
-![ASYNC_THROUGH data flow]({{ site.baseurl }}/img/dataflow-async-through.gif)
+![ASYNC_THROUGH data flow]({{ site.baseurl }}{% link img/dataflow-async-through.gif %})

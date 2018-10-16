@@ -30,14 +30,14 @@ difficult to incorporate in a local environment. If you are interested in runnin
 example which highlights the performance benefits of Alluxio, try out the instructions in either of
 these two whitepapers: [Accelerating on-demand data analytics with
 Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-with-alluxio),
-[Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/blog/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
+[Accelerating data analytics on Ceph object storage with Alluxio](https://www.alluxio.com/blog/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
 
 ## Prerequisites
 
 For the following quick start guide, you will need:
 
 * Mac OS X or Linux
-* [Java 8 or newer](Java-Setup.html)
+* [Java 8 or newer](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 * **[Bonus]** AWS account and keys
 
 ### Setup SSH (Mac OS X)
@@ -122,7 +122,7 @@ $ ./bin/alluxio validateEnv local ulimit
 
 Will only run validation tasks that check your local system resource limits.
 
-You can check out [this page](Developer-Tips.html) for detailed usage information regarding this command.
+You can check out [this page]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}) for detailed usage information regarding this command.
 
 ## Starting Alluxio
 
@@ -148,7 +148,7 @@ Congratulations! Alluxio is now up and running! You can visit
 ## Using the Alluxio Shell
 
 Now that Alluxio is running, we can examine the Alluxio file system with the
-[Alluxio shell](Command-Line-Interface.html). The Alluxio shell enables many command-line operations
+[Alluxio shell]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}). The Alluxio shell enables many command-line operations
 for interacting with Alluxio. You can invoke the Alluxio shell with the following command:
 
 ```bash
@@ -229,7 +229,7 @@ shows the file as **PERSISTED**.
 
 Alluxio unifies access to storage systems with the unified namespace feature. Read the [Unified
 Namespace blog post](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
-and the [unified namespace documentation](Unified-and-Transparent-Namespace.html) for more detailed
+and the [unified namespace documentation]({{site.baseurl}}{% link en/advanced/Namespace-Management.md %}) for more detailed
 explanations of the feature.
 
 This feature allows users to mount different storage systems into the Alluxio namespace and
@@ -372,42 +372,35 @@ resources are below.
 
 Alluxio can be deployed in many different environments.
 
-* [Alluxio on Local Machine](Running-Alluxio-Locally.html)
-* [Alluxio Standalone on a Cluster](Running-Alluxio-on-a-Cluster.html)
-* [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
-* [Alluxio on Docker](Running-Alluxio-On-Docker.html)
-* [Alluxio on EC2](Running-Alluxio-on-EC2.html)
-* [Alluxio on GCE](Running-Alluxio-on-GCE.html)
-* [Alluxio with Mesos on EC2](Running-Alluxio-on-Mesos.html)
-* [Alluxio with Fault Tolerance on EC2](Running-Alluxio-Fault-Tolerant-on-EC2.html)
-* [Alluxio YARN Integration](Running-Alluxio-Yarn-Integration.html)
-* [Alluxio Standalone with YARN](Running-Alluxio-Yarn-Standalone.html)
+* [Alluxio on Local Machine]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %})
+* [Alluxio Standalone on a Cluster]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %})
+* [Alluxio on Docker]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-Docker.md %})
+* [Alluxio with Mesos on EC2]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-Mesos.md %})
+* [Alluxio On YARN]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-Yarn.md %})
 
 ### Under Storage Systems
 
 There are many Under storage systems that can be accessed through Alluxio.
 
-* [Alluxio with Azure Blob Store](Configuring-Alluxio-with-Azure-Blob-Store.html)
-* [Alluxio with S3](Configuring-Alluxio-with-S3.html)
-* [Alluxio with GCS](Configuring-Alluxio-with-GCS.html)
-* [Alluxio with Minio](Configuring-Alluxio-with-Minio.html)
-* [Alluxio with Ceph](Configuring-Alluxio-with-Ceph.html)
-* [Alluxio with Swift](Configuring-Alluxio-with-Swift.html)
-* [Alluxio with GlusterFS](Configuring-Alluxio-with-GlusterFS.html)
-* [Alluxio with MapR-FS](Configuring-Alluxio-with-MapR-FS.html)
-* [Alluxio with HDFS](Configuring-Alluxio-with-HDFS.html)
-* [Alluxio with Secure HDFS](Configuring-Alluxio-with-secure-HDFS.html)
-* [Alluxio with OSS](Configuring-Alluxio-with-OSS.html)
-* [Alluxio with NFS](Configuring-Alluxio-with-NFS.html)
+* [Alluxio with Azure Blob Store]({{site.baseurl}}{% link en/ufs/Azure-Blob-Store.md %})
+* [Alluxio with S3]({{site.baseurl}}{% link en/ufs/S3.md %})
+* [Alluxio with GCS]({{site.baseurl}}{% link en/ufs/GCS.md %})
+* [Alluxio with Minio]({{site.baseurl}}{% link en/ufs/Minio.md %})
+* [Alluxio with Ceph]({{site.baseurl}}{% link en/ufs/Ceph.md %})
+* [Alluxio with Swift]({{site.baseurl}}{% link en/ufs/Swift.md %})
+* [Alluxio with GlusterFS]({{site.baseurl}}{% link en/ufs/GlusterFS.md %})
+* [Alluxio with MapR-FS]({{site.baseurl}}{% link en/ufs/MapR-FS.md %})
+* [Alluxio with HDFS]({{site.baseurl}}{% link en/ufs/HDFS.md %})
+* [Alluxio with Secure HDFS]({{site.baseurl}}{% link en/ufs/Secure-HDFS.md %})
+* [Alluxio with OSS]({{site.baseurl}}{% link en/ufs/OSS.md %})
+* [Alluxio with NFS]({{site.baseurl}}{% link en/ufs/NFS.md %})
 
 ### Frameworks and Applications
 
 Different frameworks and applications work with Alluxio.
 
-* [Apache Spark with Alluxio](Running-Spark-on-Alluxio.html)
-* [Apache Hadoop MapReduce with Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html)
-* [Apache HBase with Alluxio](Running-HBase-on-Alluxio.html)
-* [Apache Flink with Alluxio](Running-Flink-on-Alluxio.html)
-* [Presto with Alluxio](Running-Presto-with-Alluxio.html)
-* [Apache Hive with Alluxio](Running-Hive-with-Alluxio.html)
-* [Apache Zeppelin with Alluxio](Accessing-Alluxio-from-Zeppelin.html)
+* [Apache Spark with Alluxio]({{site.baseurl}}{% link en/compute/Spark.md %})
+* [Apache Hadoop MapReduce with Alluxio]({{site.baseurl}}{% link en/compute/Hadoop-MapReduce.md %})
+* [Apache HBase with Alluxio]({{site.baseurl}}{% link en/compute/HBase.md %})
+* [Apache Hive with Alluxio]({{site.baseurl}}{% link en/compute/Hive.md %})
+* [Presto with Alluxio]({{site.baseurl}}{% link en/compute/Presto.md %})

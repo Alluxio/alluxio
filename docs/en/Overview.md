@@ -81,7 +81,7 @@ site.baseurl }}{% link en/advanced/Alluxio-Storage-Management.md %}) for more de
 
 1. **Global Namespace**: A single point of access to multiple independent storage systems regardless
 of physical location. Alluxio provides a unified view of all data sources and a standard interface
-for applications.  See [Namespace Management]({{ site.baseurl }}{% link
+for applications.  See [Namespace Management]({{ site.baseur4l }}{% link
 en/advanced/Namespace-Management.md %}) for more details.
 
 1. **Server-Side API Translation**: Alluxio transparently converts from a standard client-side
@@ -106,7 +106,7 @@ Page](http://alluxio.org/download). Each release comes with prebuilt binaries co
 various Hadoop versions. If you would like to build the project from the source code, check out the
 [Building From Master Branch Documentation]({{ site.baseurl }}{% link
 en/contributor/Building-Alluxio-From-Source.md %}). If you have any questions, please feel free to
-ask at our [User Mailing
-List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users). For users can not access
-Google Group, please use its [mirror](http://alluxio-users.85194.x6.nabble.com/) (notes: the mirror
-does not have information before May 2016).
+ask at our [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).
+For users can not access Google Group, please use its
+[mirror](http://alluxio-users.85194.x6.nabble.com/) (notes: the mirror does not have information
+before May 2016).

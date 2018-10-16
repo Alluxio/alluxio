@@ -24,7 +24,8 @@ Usage: alluxio [COMMAND]
 ## General operations
 
 In this section, we list the usages and examples of general Alluxio operations except file system 
-and file system admin operations. File system admin operations are listed in the [Admin CLI doc](Admin-CLI.html).
+and file system admin operations. File system admin operations are listed in the [Admin CLI
+doc]({{site.baseurl}}{% link en/operation/Admin-CLI.md %}).
 
 ### format
 
@@ -677,7 +678,10 @@ For example, `touch` can be used to create a file signifying the compeletion of 
 
 ### unmount
 
-The `unmount` command disassociates an Alluxio path with an under storage directory. Alluxio metadata for the mount point will be removed along with any data blocks, but the under storage system will retain all metadata and data. See [Unified Namespace](Unified-and-Transparent-Namespace.html) for more dtails.
+The `unmount` command disassociates an Alluxio path with an under storage directory. Alluxio
+metadata for the mount point will be removed along with any data blocks, but the under storage
+system will retain all metadata and data. See [Unified Namespace]({{site.baseurl}}{% link
+en/advanced/Namespace-Management.md %}) for more details.
 
 For example, `unmount` can be used to remove an under storage system when the users no longer need data from that system.
 

@@ -70,7 +70,8 @@ system's total memory. This ramdisk will be used as the only storage medium allo
 Alluxio worker.
 
 Alluxio storage is configured through Alluxio's configuration in `alluxio-site.properties`. See the
-[configuration docs](Configuration-Settings.html) for detailed information.
+[configuration docs]({{site.baseurl}}% link en/basic/Configuration-Settings.md %}) for detailed
+information.
 
 A common modification to the default is to explicitly set the ramdisk size. For example, to set the
 ramdisk size to be 16GB on each worker:
@@ -151,8 +152,8 @@ explicitly moving hot data to higher tiers.
 #### Configure Tiered Storage
 
 Tiered storage can be enabled in Alluxio using
-[configuration parameters](Configuration-Settings.html). To specify additional tiers for Alluxio,
-use the following configuration parameters:
+[configuration parameters]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}). To
+specify additional tiers for Alluxio, use the following configuration parameters:
 
 ```
 alluxio.worker.tieredstore.levels

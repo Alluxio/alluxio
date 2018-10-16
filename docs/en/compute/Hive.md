@@ -66,7 +66,7 @@ $ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname
 View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
 creates:
 
-![HiveTableInAlluxio]({{ site.baseurl }}/img/screenshot_hive_table_in_alluxio.png)
+![HiveTableInAlluxio]({{ site.baseurl }}{% link img/screenshot_hive_table_in_alluxio.png %})
 
 ### Create a New Internal Table
 
@@ -224,7 +224,8 @@ Alternatively, modify `conf/hive-site.xml` to have:
 ### Connect to Alluxio with HA
 
 > Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
- in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).
+ in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to
+ Alluxio with high availability]({site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}#hdfs-api).
 
 If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
 `zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`, it requires setting 
@@ -255,9 +256,7 @@ Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
 
 ### Experimental: Use Alluxio as the Default Filesystem
 
-This section talks about
-how to use Alluxio as the default file system
-for Hive.
+This section talks about how to use Alluxio as the default file system for Hive.
 Apache Hive can also use Alluxio through a generic file system interface to replace the
 Hadoop file system. In this way, the Hive uses Alluxio as the default file system and its internal
 metadata and intermediate results will be stored in Alluxio by default.
@@ -312,7 +311,7 @@ OVERWRITE INTO TABLE u_user;
 View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
 creates:
 
-![HiveTableInAlluxio]({{ site.baseurl }}/img/screenshot_hive_table_in_alluxio.png)
+![HiveTableInAlluxio]({{ site.baseurl }}{% link img/screenshot_hive_table_in_alluxio.png %})
 
 Using a single query:
 
@@ -322,7 +321,7 @@ hive> select * from u_user;
 
 And you can see the query results from console:
 
-![HiveQueryResult]({{ site.baseurl }}/img/screenshot_hive_query_result.png)
+![HiveQueryResult]({{ site.baseurl }}{% link img/screenshot_hive_query_result.png %})
 
 ## Troubleshooting
 

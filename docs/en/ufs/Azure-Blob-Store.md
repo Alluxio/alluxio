@@ -9,11 +9,15 @@ priority: 0
 * Table of Contents
 {:toc}
 
-This guide describes how to configure Alluxio with [Azure Blob Store](https://azure.microsoft.com/en-in/services/storage/blobs/) as the under storage system.
+This guide describes how to configure Alluxio with [Azure Blob
+Store](https://azure.microsoft.com/en-in/services/storage/blobs/) as the under storage system.
 
 ## Initial Setup
 
-To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these machines. You can either [compile the binaries from Alluxio source code](Building-Alluxio-From-Source.html), or [download the precompiled binaries directly](Running-Alluxio-Locally.html).
+To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
+machines. You can either [compile the binaries from Alluxio source
+code]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %}), or [download the
+precompiled binaries directly]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 Also, in preparation for using Azure Blob Store with Alluxio, create a new container in your Azure
 storage account or use an existing container. You should also note that the directory you want to
@@ -52,7 +56,8 @@ alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob
 
 ### Nested Mount
 An Azure blob store location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ site.baseurl }}{% link en/basic/Command-Line-Interface.md %}) can be used for this purpose.
+to multiple under storage systems. Alluxio's [Command Line Interface]({{ site.baseurl }}{% link
+en/basic/Command-Line-Interface.md %}) can be used for this purpose.
 
 ```bash
 $ ./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\
@@ -70,7 +75,8 @@ $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
 
-This should start an Alluxio master and an Alluxio worker. You can see the master UI at [http://localhost:19999](http://localhost:19999).
+This should start an Alluxio master and an Alluxio worker. You can see the master UI at
+[http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:
 
