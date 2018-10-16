@@ -17,10 +17,10 @@ If you aren't seeing the performance you expect, follow this checklist to fix co
 
 1. Are all nodes working?
 
-   We should first check out if the Alluxio cluster is healthy. One can check the webUI at 
+   First check out if the Alluxio cluster is healthy. You can check the webUI at 
    `http://MasterHost:19999` to find out if masters and workers are working correctly from a brouswer. 
-   Alternatively, one can run `bin/alluxio fsadmin report` to collect similar information from the console.
-   Important metrics to check out include the number of lost workers, last heartbeat time and etc to see
+   Alternatively, you can run `bin/alluxio fsadmin report` to collect similar information from the console.
+   Important metrics to check out include the number of lost workers, last heartbeat time, etc to see
    if any masters or workers are out of service.
 1. Are short-circuit operations working?
 
@@ -80,7 +80,7 @@ To detect long GC pauses, Alluxio administrators can set
 "`alluxio.master.jvm.monitor.enabled=true`"
 for masters or "`alluxio.worker.jvm.monitor.enabled=true`"
 for workers. When this is activated, Alluxio will run a monitoring thread which periodically runs
-Thread.sleep and tests the delay between when it was supposed to wake up and when it actually woke
+`Thread.sleep` and tests the delay between when it was supposed to wake up and when it actually woke
 up. A long delay indicates that GC could be taking a long time. If the delay exceeds a certain
 threshold, the thread will print diagnostic information such memory usage and garbage collection
 counts. These parameters further control the behavior of the monitor thread:
