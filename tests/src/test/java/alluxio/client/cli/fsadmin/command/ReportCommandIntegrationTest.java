@@ -75,7 +75,7 @@ public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest
     Assert.assertEquals(0, ret);
     String output = mOutput.toString();
     Assert.assertThat(output,
-        CoreMatchers.containsString("Alluxio under filesystem information: "));
+        CoreMatchers.containsString("Alluxio under storage system information:"));
     Assert.assertThat(output,
         CoreMatchers.containsString("not read-only, not shared, properties={})"));
   }
