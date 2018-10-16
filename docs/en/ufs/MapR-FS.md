@@ -63,9 +63,9 @@ read how to [configure Alluxio](Configuration-Settings.html). For Alluxio proces
 can be set in the property file `alluxio-site.properties`. For more information, please read about
 [configuration of Alluxio with property files](Configuration-Settings.html#property-files).
 
-## Configuring Alluxio to use MapR-FS as Under File System
+## Configuring Alluxio to use MapR-FS as Under Storage
 
-There are various ways to configure Alluxio to use MapR-FS as the Under File System. If you want to
+There are various ways to configure Alluxio to use MapR-FS as under storage. If you want to
 mount MapR-FS to the root of Alluxio, add the following to `conf/alluxio-site.properties`:
 
 ```properties

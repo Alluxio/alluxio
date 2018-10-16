@@ -91,11 +91,11 @@ $ ./bin/alluxio fsadmin report capacity -workers AlluxioWorker1,127.0.0.1
 $ ./bin/alluxio fsadmin report metrics
 ```
 
-`report ufs` will report all the mounted under file system information of Alluxio cluster.
+`report ufs` will report all the mounted under storage system information of Alluxio cluster.
 
 ```bash
 $ ./bin/alluxio fsadmin report ufs
-Alluxio under filesystem information:
+Alluxio under storage system information:
 hdfs://localhost:9000/ on / (hdfs, capacity=-1B, used=-1B, not read-only, not shared, properties={})
 ```
 

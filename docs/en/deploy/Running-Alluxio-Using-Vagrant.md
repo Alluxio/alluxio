@@ -41,7 +41,7 @@ $ sudo pip install -r pip-req.txt
 
 ### Launch Cluster
 
-Now you can launch the Alluxio cluster with Hadoop as under filesystem by running the script under deploy/vagrant:
+Now you can launch the Alluxio cluster with Hadoop as under storage by running the script under deploy/vagrant:
 
 ```bash
 $ ./create <number of machines> vb
@@ -251,9 +251,9 @@ In order to enable spot instances, you have to modify the file: `deploy/vagrant/
 
     Spot_Price: “X.XX”
 
-For AWS EC2, the default underfs is S3. You need to sign into your [Amazon S3 console](http://aws.amazon.com/s3/), create a S3 bucket and write the bucket's name to the field `S3:Bucket` in `conf/ufs.yml`. To use other under storage systems, configure the field `Type` and the corresponding configurations in `conf/ufs.yml`.
+For AWS EC2, the default under storage is S3. You need to sign into your [Amazon S3 console](http://aws.amazon.com/s3/), create a S3 bucket and write the bucket's name to the field `S3:Bucket` in `conf/ufs.yml`. To use other under storage systems, configure the field `Type` and the corresponding configurations in `conf/ufs.yml`.
 
-Now you can launch the Alluxio cluster with your chosen under filesystem in your chosen availability zone by running
+Now you can launch the Alluxio cluster with your chosen under storage in your chosen availability zone by running
 the script under `deploy/vagrant`:
 
 ```bash
@@ -314,7 +314,7 @@ $ cp deploy/vagrant/conf/gce.yml.template deploy/vagrant/conf/gce.yml
 In the configuration file `deploy/vagrant/conf/gce.yml`, set the project id, service account,
 location to JSON key and ssh username you've just created.
 
-For GCE, the default underfs is Google Cloud Storage (GCS). Visit the
+For GCE, the default under storage is Google Cloud Storage (GCS). Visit the
 [Storage page](https://console.cloud.google.com/storage/) of the Google Cloud console, create a GCS
 bucket, and set the bucket's name to the field `GCS:Bucket` in `conf/ufs.yml`. To use other
 under storage systems, configure the field `Type` and the corresponding configurations in

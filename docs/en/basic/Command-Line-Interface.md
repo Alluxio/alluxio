@@ -33,7 +33,7 @@ The `format` command will format the Alluxio master and all workers.
 If you run this command for an existing Alluxio cluster, all data and metadata stored in Alluxio will be deleted. 
 However, data in under storage will not be changed.
 
-If `-s` specified, only format if underfs is local and doesn't already exist.
+If `-s` specified, only format if under storage is local and doesn't already exist.
 
 Warning: `format` is required when you run Alluxio for the first time. 
 `format` should only be called while the cluster is not running.
@@ -50,7 +50,7 @@ $ ./bin/alluxio format -s
 The `formatMaster` command will format the Alluxio master.
 
 Alluxio master stores the metadata of the Alluxio related file system operations 
-and files stored in Allxuio workers. If a under file system file is written through Alluxio 
+and files stored in Allxuio workers. If a under storage file is written through Alluxio 
 or a user runs some `getStatus` related operations (e.g. `fs ls` command) on it,
 Alluxio master will also store its metadata. `formatMaster` cleans the journal system 
 and deletes all those metadata.
@@ -287,7 +287,12 @@ For example, when trying out a new computation job, `cat` can be used as a quick
 
 ### checkConsistency
 
-The `checkConsistency` command compares Alluxio and under storage metadata for a given path. If the path is a directory, the entire subtree will be compared. The command returns a message listing each inconsistent file or directory. The system administrator should reconcile the differences of these files at their discretion. To avoid metadata inconsistencies between Alluxio and under storages, design your systems to modify files and directories through the Alluxio and avoid directly modifying state in the underlying storage.
+The `checkConsistency` command compares Alluxio and under storage metadata for a given path. If the
+path is a directory, the entire subtree will be compared. The command returns a message listing each
+inconsistent file or directory. The system administrator should reconcile the differences of these
+files at their discretion. To avoid metadata inconsistencies between Alluxio and under storages,
+design your systems to modify files and directories through Alluxio and avoid directly modifying
+state in the under storage.
 
 If the `-r` option is used, the checkConsistency command will repair all inconsistent files and directories
 under the given path. If an inconsistent file or directory exists only in under storage, its metadata will
@@ -305,7 +310,7 @@ For example, `checkConsistency` can be used to periodically validate the integri
 
 The `checksum` command outputs the md5 value of a file in Alluxio.
 
-For example, `checksum` can be used to verify the content of a file stored in Alluxio matches the content stored in an UnderFS or local filesystem:
+For example, `checksum` can be used to verify the content of a file stored in Alluxio.
 
 {% include Command-Line-Interface/checksum.md %}
 
@@ -384,7 +389,7 @@ the Alluxio file system.
 
 If the `-R` option is used and the source designates a directory, cp copies the entire subtree at source to the destination.
 
-For example, `cp` can be used to copy files between Under file systems.
+For example, `cp` can be used to copy files between under storage systems.
 
 {% include Command-Line-Interface/cp.md %}
 
@@ -536,7 +541,7 @@ For example, `masterInfo` can be used to print information regarding master faul
 
 ### mkdir
 
-The `mkdir` command creates a new directory in Alluxio space. It is recursive and will create any nonexistent parent directories. Note that the created directory will not be created in the under storage system until a file in the directory is persisted to the underlying storage. Using `mkdir` on an invalid or already existing path will fail.
+The `mkdir` command creates a new directory in Alluxio space. It is recursive and will create any nonexistent parent directories. Note that the created directory will not be created in the under storage system until a file in the directory is persisted to the under storage. Using `mkdir` on an invalid or already existing path will fail.
 
 For example, `mkdir` can be used by an admin to set up the basic folder structures.
 

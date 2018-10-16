@@ -65,7 +65,7 @@ $ bin/alluxio fsadmin backup
 
 By default, this will write a backup named
 `alluxio-journal-YYYY-MM-DD-timestamp.gz` to the "/alluxio_backups" directory of
-the root under file system, e.g. hdfs://cluster/alluxio_backups. This default
+the root under storage system, e.g. hdfs://cluster/alluxio_backups. This default
 backup directory can be configured by setting `alluxio.master.backup.directory`
 
 ```

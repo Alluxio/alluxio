@@ -83,7 +83,7 @@ interaction with Alluxio managed storage and under storage through `ReadType` an
 write behavior when writing a new file, ie. whether the data should be written in Alluxio Storage.
 
 Below is a table of the expected behaviors of `ReadType`. Reads will always prefer Alluxio storage
-over the under storage system.
+over the under storage.
 
 <table class="table table-striped">
 <tr><th>Read Type</th><th>Behavior</th>

@@ -196,7 +196,7 @@ $ ./bin/alluxio fs cat /LICENSE
 ...
 ```
 
-With the default configuration, Alluxio uses the local file system as its UnderFileSystem (UFS). The
+With the default configuration, Alluxio uses the local file system as its under file storage (UFS). The
 default path for the UFS is `./underFSStorage`. We can see what is in the UFS with:
 
 ```bash
