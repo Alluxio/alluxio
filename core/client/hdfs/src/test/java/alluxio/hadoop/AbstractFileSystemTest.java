@@ -304,15 +304,12 @@ public class AbstractFileSystemTest {
     when(mMockFileSystemContext.getMasterAddress())
         .thenReturn(new InetSocketAddress("randomhost", 410));
     for (int i = 0; i < 100; i++) {
-      Thread t = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          URI uri = URI.create(Constants.HEADER + "randomhost:410/");
-          try {
-            org.apache.hadoop.fs.FileSystem.get(uri, conf);
-          } catch (IOException e) {
-            fail();
-          }
+      Thread t = new Thread(() -> {
+        URI uri = URI.create(Constants.HEADER + "randomhost:410/");
+        try {
+          org.apache.hadoop.fs.FileSystem.get(uri, conf);
+        } catch (IOException e) {
+          fail();
         }
       });
       threads.add(t);
