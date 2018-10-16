@@ -7,7 +7,6 @@ group: Home
 * Table of Contents
 {:toc}
 
-
 Here is a description of a few common use cases of Alluxio.
 
 ## A Distributed Caching Layer for Data on Object Storage
