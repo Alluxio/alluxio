@@ -6,11 +6,11 @@ group: Compute
 priority: 2
 ---
 
-* Table of Contents
-{:toc}
-
 This guide describes how to run [Apache Hive](http://hive.apache.org/) with Alluxio, so
 that you can easily store Hive tables in Alluxio's tiered storage.
+
+* Table of Contents
+{:toc}
 
 ## Prerequisites
 

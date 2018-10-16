@@ -6,14 +6,13 @@ group: Contributor Resources
 priority: 0
 ---
 
+This guide describes how to clone the Alluxio repository, compile the source code, and run tests in your environment.
+
 * Table of Contents
 {:toc}
 
-## Introduction
+## Required Software
 
-This guide describes how to clone the Alluxio repository, compile the source code, and run tests in your environment.
-
-- Required software
 - [Java 8 installed on your system](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 - [Maven 3.3.9 or later](http://maven.apache.org/download.cgi)
 - [Git](https://git-scm.org/downloads)

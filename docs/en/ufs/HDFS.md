@@ -3,7 +3,7 @@ layout: global
 title: HDFS
 nickname: HDFS
 group: Under Stores
-priority: 0
+priority: 1
 ---
 
 * Table of Contents

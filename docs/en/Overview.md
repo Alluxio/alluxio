@@ -7,7 +7,6 @@ group: Home
 * Table of Contents
 {:toc}
 
-
 ## What is Alluxio
 
 Alluxio is the world’s first memory-speed virtual distributed storage system. It unifies data access

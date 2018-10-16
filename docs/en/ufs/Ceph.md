@@ -2,7 +2,7 @@
 layout: global
 title: Configuring Alluxio with Ceph
 nickname: Alluxio with Ceph
-group: Under Store
+group: Under Stores
 priority: 10
 ---
 

@@ -6,11 +6,11 @@ group: Compute
 priority: 1
 ---
 
-* Table of Contents
-{:toc}
-
 This guide describes how to get Alluxio running with Apache Hadoop MapReduce, so that you can
 easily run your MapReduce programs with files stored on Alluxio.
+
+* Table of Contents
+{:toc}
 
 ## Prerequisites
 

@@ -9,8 +9,6 @@ priority: 3
 * Table of Contents
 {:toc}
 
-TODO(Andrew, Zac): Migrate content from Code-Conventions, add missing content
-
 ## IDE
 
 We recommend using either Eclipse or IntelliJ IDEA to contribute to Alluxio. You can generate an

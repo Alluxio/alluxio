@@ -2,7 +2,7 @@
 layout: global
 title: Configuring Alluxio with OBS
 nickname: Alluxio with OBS
-group: Under Store
+group: Under Stores
 priority: 10
 ---
 

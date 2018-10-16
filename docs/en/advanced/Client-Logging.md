@@ -6,13 +6,11 @@ group: Advanced
 priority: 1
 ---
 
-* Table of Contents
-{:toc}
-
-## Introduction
-
 This page summarizes how to find client-specific logs and modify logging levels in order to debug
 client-side issues with your Alluxio installation.
+
+* Table of Contents
+{:toc}
 
 ## Log Location
 
@@ -31,7 +29,7 @@ and how to configure them.
 It is important to note that while Alluxio specifically uses log4j to perform logging, the location
 of client logs varies by application and will typically be found in the same location as the
 application logs for each compute framework.
- 
+
 ## Log Levels
 
 Often it's useful to change the log level of the Alluxio client running in the compute framework

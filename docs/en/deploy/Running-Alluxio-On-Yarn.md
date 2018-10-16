@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 6
 ---
 
+* Table of Contents
+{:toc}
+
 This document discusses how to run Alluxio in a YARN environment. There are two
 approaches: [running Alluxio alongside YARN](#running-alluxio-alongside-yarn), and
 [running Alluxio as an application on top of YARN](#running-alluxio-as-a-yarn-application).

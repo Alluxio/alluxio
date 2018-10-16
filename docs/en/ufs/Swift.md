@@ -2,7 +2,7 @@
 layout: global
 title: Configuring Alluxio with Swift
 nickname: Alluxio with Swift
-group: Under Store
+group: Under Stores
 priority: 10
 ---
 
@@ -41,7 +41,7 @@ fs.swift.auth.method=<swift-auth-model>
 ```
 
 Replace `<container>/<folder>` with an existing Swift container location. Possible values of `<swift-use-public>`
-are `true`, `false`. Possible values of `<swift-auth-model>` are `keystonev3`, `keystone`, `tempauth`, `swiftauth`. 
+are `true`, `false`. Possible values of `<swift-auth-model>` are `keystonev3`, `keystone`, `tempauth`, `swiftauth`.
 
 When using either keystone authentication, the following parameter can optionally be set:
 
