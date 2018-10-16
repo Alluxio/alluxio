@@ -98,11 +98,11 @@ public class FileOutStream extends AbstractOutStream {
     mBytesWritten = 0;
     if (!mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream = null;
-    } else { // Write is through to the under storage, create mUnderStorageOutputStream
+    } else { // Write is through to the under storage, create mUnderStorageOutputStream.
       WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
           options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getEligibleWorkers(), 0);
       if (workerNetAddress == null) {
-        // Assume no worker is available because block size is 0
+        // Assume no worker is available because block size is 0.
         throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
       }
       try {
@@ -170,7 +170,7 @@ public class FileOutStream extends AbstractOutStream {
         scheduleAsyncPersist();
       }
     } catch (Throwable e) { // must catch Throwable
-      throw mCloser.rethrow(e); // IOException will be thrown as-is
+      throw mCloser.rethrow(e); // IOException will be thrown as-is.
     } finally {
       mClosed = true;
       mCloser.close();
