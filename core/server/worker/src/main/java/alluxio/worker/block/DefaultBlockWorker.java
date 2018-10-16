@@ -565,7 +565,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_FREE),
               () -> blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
-                  .getUsedBytes());
+                   .getUsedBytes());
 
       StorageTierAssoc assoc = blockWorker.getStoreMeta().getStorageTierAssoc();
       for (int i = 0; i < assoc.size(); i++) {
