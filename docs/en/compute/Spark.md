@@ -165,7 +165,7 @@ Note that, in client mode you need set `--driver-java-options "-Dalluxio.user.fi
 
 If Spark is set up by the instructions in [Alluxio with HA](#customize-alluxio-user-properties-for-all-spark-jobs),
 you can write URIs using the "`alluxio://`" scheme without specifying an Alluxio master in the authority.
-This is because in HA mode, the address of primary Alluxio master will be served by the configured Zookeeper
+This is because in HA mode, the address of leader Alluxio master will be served by the configured Zookeeper
 service rather than a user-specified hostname derived from the URI.
 
 ```scala
