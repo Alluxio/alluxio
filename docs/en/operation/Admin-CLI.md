@@ -38,7 +38,7 @@ Back up to a specific directory in the under storage.
 $ ./bin/alluxio fsadmin backup /alluxio/special_backups
 Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
 ```
-Back up to a specific directory on the primary master's local filesystem.
+Back up to a specific directory on the leader master's local filesystem.
 ```
 $ ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
 Successfully backed up journal to file:///opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2

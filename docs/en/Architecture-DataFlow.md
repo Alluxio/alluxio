@@ -36,8 +36,8 @@ Hadoop MapReduce).  There are multiple benefits to have this layer in the stack:
   layer for any number of varied data sources.
 
 At a high level, Alluxio can be divided into three components: the master,
-workers, and clients.  Alluxio consists a single primary master and multiple
-workers.  The master and workers together make up the Alluxio servers, which are
+workers, and clients. Alluxio consists a single leader master, multiple standby masters,
+and multiple workers. The masters and workers together make up the Alluxio servers, which are
 the components a system admin would maintain and manage. The clients are used to
 talk to Alluxio servers by the applications, such as Spark or MapReduce jobs,
 Alluxio command-line, or the FUSE layer.
@@ -48,26 +48,26 @@ Alluxio command-line, or the FUSE layer.
 
 ![Alluxio master]({{ site.baseurl }}/img/architecture-master.png)
 
-Alluxio master service can be deployed as one primary master and several standby
-masters for fault tolerance. When the primary master goes down, a standby master
-is elected to become the new primary master.
+Alluxio master service can be deployed as one leader master and several standby
+masters for fault tolerance. When the leader master goes down, a standby master
+is elected to become the new leader master.
 
-#### Primary Master
+#### Leader Master
 
-There is only one primary master in an Alluxio cluster. The primary master is
+There is only one leader master in an Alluxio cluster. The leader master is
 responsible for managing the global metadata of the system. This includes file
 system metadata (e.g. the namespace tree), block metadata (e.g block locations),
 and worker capacity metadata (free and used space). Alluxio clients interact
 with the leader master to read or modify this metadata. In addition, all workers
-periodically send heartbeat information to the primary master to maintain their
-participation in the cluster. The primary master does not initiate communication
+periodically send heartbeat information to the leader master to maintain their
+participation in the cluster. The leader master does not initiate communication
 with other components; it only responds to requests via RPC
-services. Additionally, the primary master writes journals to a distributed
+services. Additionally, the leader master writes journals to a distributed
 persistent storage to allow for recovery of master state information.
 
 #### Standby Masters
 
-Standby masters read journals written by the primary master to keep their own
+Standby masters read journals written by the leader master to keep their own
 copies of master state up-to-date. They also write journal checkpoints for
 faster recovery in the future. They do not process any requests from other
 Alluxio components.
@@ -97,7 +97,7 @@ documentation for [Tiered Storage]({{ site.baseurl }}{% link en/advanced/Alluxio
 ### Client
 
 The Alluxio client provides users a gateway to interact with the Alluxio
-servers. It initiates communication with the primary master to carry out
+servers. It initiates communication with the leader master to carry out
 metadata operations and with workers to read and write data that is stored in
 Alluxio. Alluxio supports a native filesystem API in Java, and bindings in
 multiple languages including REST, Go and Python. In addition to that, Alluxio
