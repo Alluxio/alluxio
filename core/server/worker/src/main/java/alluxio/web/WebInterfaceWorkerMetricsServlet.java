@@ -16,6 +16,7 @@ import alluxio.worker.block.DefaultBlockWorker;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 
 import java.io.IOException;
@@ -80,7 +81,12 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("workerCapacityUsedPercentage", workerCapacityUsedPercentage);
     request.setAttribute("workerCapacityFreePercentage", 100 - workerCapacityUsedPercentage);
 
-    Map<String, Counter> counters = mr.getCounters((name, metric) -> !(name.endsWith("Ops")));
+    Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
+      @Override
+      public boolean matches(String name, Metric metric) {
+        return !(name.endsWith("Ops"));
+      }
+    });
 
     Map<String, Counter> rpcInvocations = mr.getCounters((name, metric) -> name.endsWith("Ops"));
 
