@@ -71,7 +71,7 @@ public final class AlluxioBlockStore {
   /** Cached map for workers. */
   private List<BlockWorkerInfo> mWorkerInfoList = null;
   /** The policy to refresh workers list. */
-  private RefreshPolicy mWorkerRefreshPolicy = null;
+  private final RefreshPolicy mWorkerRefreshPolicy;
 
   /**
    * Creates an Alluxio block store with default file system context and default local hostname.
@@ -183,11 +183,16 @@ public final class AlluxioBlockStore {
         || options.getStatus().getPersistenceState().equals("TO_BE_PERSISTED")) {
       blockWorkerInfo = getEligibleWorkers();
       workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
+      if (workerPool.isEmpty()) {
+        throw new UnavailableException(
+            "No Alluxio worker available. Check that your workers are still running");
+      }
     } else {
       workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
-    }
-    if (workerPool.isEmpty()) {
-      throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
+      if (workerPool.isEmpty()) {
+        throw new NotFoundException(
+            ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
+      }
     }
     // Workers to read the block, after considering failed workers.
     Set<WorkerNetAddress> workers = handleFailedWorkers(workerPool, failedWorkers);
