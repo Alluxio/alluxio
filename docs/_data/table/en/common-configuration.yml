@@ -12,7 +12,7 @@ alluxio.fuse.fs.name:
   'The FUSE file system name.'
 alluxio.fuse.maxwrite.bytes:
   'Maximum granularity of write operations, capped by the kernel to 128KB max (as of Linux 3.16.0).'
-alluxio.fuse.shell.user.group.translation.enabled:
+alluxio.fuse.user.group.translation.enabled:
   'Whether to translate Alluxio users and groups into Unix users and groups when exposing Alluxio files through the FUSE API. When this property is set to false, the user and group for all FUSE files will match the user who started the alluxio-fuse process.'
 alluxio.home:
   'Alluxio installation directory.'

@@ -11,14 +11,13 @@
 
 package alluxio.fuse;
 
+import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -52,22 +51,25 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Retrieves the gid of the given user name and group name.
-   * The group must be registered and must contain the user to get the gid.
+   * Retrieves the gid of the given group.
    *
-   * @param userName the user name
    * @param groupName the group name
    * @return gid
    */
-  public static long getGid(String userName, String groupName) throws IOException {
-    // TODO(lu) find more efficient get gid/groupName method
-    String result = ShellUtils.execCommand("id", userName);
-    String groups = result.substring(result.indexOf("groups="));
-    Pattern pattern = Pattern.compile("([0-9]+)\\(" + groupName + "\\)");
-    Matcher matcher = pattern.matcher(groups);
-    if (matcher.find()) {
-      return Long.valueOf(matcher.group(1));
-    } else {
+  public static long getGidFromGroupName(String groupName) throws IOException {
+    String result = "";
+    if (OSUtils.isLinux()) {
+      String script = "getent group " + groupName + " | cut -d: -f3";
+      result = ShellUtils.execCommand("bash", "-c", script).trim();
+    } else if (OSUtils.isMacOS()) {
+      String script = "dscl . -read /Groups/" + groupName
+          + " | awk '($1 == \"PrimaryGroupID:\") { print $2 }'";
+      result = ShellUtils.execCommand("bash", "-c", script).trim();
+    }
+    try {
+      return Long.valueOf(result);
+    } catch (NumberFormatException e) {
+      LOG.error("Failed to get gid from group name {}.", groupName);
       return -1;
     }
   }
@@ -93,23 +95,21 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Gets the group name from the user name and group id.
-   * The user must belong to the group to get the group name.
+   * Gets the group name from the group id.
    *
-   * @param userName the user name
    * @param gid the group id
    * @return group name
    */
-  public static String getGroupName(String userName, long gid) throws IOException {
-    String result = ShellUtils.execCommand("id", userName);
-    String groups = result.substring(result.indexOf("groups="));
-    Pattern pattern = Pattern.compile(String.valueOf(gid) + "\\(([^\\(\\)]+)\\)");
-    Matcher matcher = pattern.matcher(groups);
-    if (matcher.find()) {
-      return matcher.group(1);
-    } else {
-      return "";
+  public static String getGroupName(long gid) throws IOException {
+    if (OSUtils.isLinux()) {
+      String script = "getent group " + gid + " | cut -d: -f1";
+      return ShellUtils.execCommand("bash", "-c", script).trim();
+    } else if (OSUtils.isMacOS()) {
+      String script = "dscl . list /Groups PrimaryGroupID | awk '($2 == \""
+          + gid + "\") { print $1 }'";
+      return ShellUtils.execCommand("bash", "-c", script).trim();
     }
+    return "";
   }
 
   /**

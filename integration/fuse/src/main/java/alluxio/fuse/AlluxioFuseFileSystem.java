@@ -99,7 +99,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
     final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
     mIsUserGroupTranslation
-        = Configuration.getBoolean(PropertyKey.FUSE_SHELL_USER_GROUP_TRANSLATION_ENABLED);
+        = Configuration.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
@@ -147,14 +147,19 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     }
     try {
       String userName = AlluxioFuseUtils.getUserName(uid);
-      String groupName = AlluxioFuseUtils.getGroupName(userName, gid);
+      String groupName = AlluxioFuseUtils.getGroupName(gid);
       if (userName.isEmpty()) {
         LOG.error("Failed to get user name from uid {}", uid);
         return -ErrorCodes.EFAULT();
       }
       if (groupName.isEmpty()) {
-        LOG.error("Failed to get group name from gid {}. "
-            + "Gid {} is invalid or does not contain uid {}", gid, gid, uid);
+        LOG.error("Failed to get group name from gid {}. ", gid);
+        return -ErrorCodes.EFAULT();
+      }
+      if (!CommonUtils.getGroups(userName).contains(groupName)) {
+        LOG.error("Cannot change owner and group of file {} "
+            + "because user {} with id {} does not belong to group {} with id {}.",
+            path, userName, uid, groupName, gid);
         return -ErrorCodes.EFAULT();
       }
       SetAttributeOptions options =
@@ -296,8 +301,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
        */
       if (mIsUserGroupTranslation) {
         String owner = status.getOwner();
+        String group = status.getGroup();
         long uid = AlluxioFuseUtils.getUid(owner);
-        long gid = AlluxioFuseUtils.getGid(owner, status.getGroup());
+        long gid = AlluxioFuseUtils.getGidFromGroupName(status.getGroup());
+        if (uid == -1 || (gid != -1 && !CommonUtils.getGroups(owner).contains(group))) {
+          gid = -1;
+        }
         stat.st_uid.set(uid);
         stat.st_gid.set(gid);
       } else {

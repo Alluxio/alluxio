@@ -67,7 +67,7 @@ public class AlluxioFuseFileSystemTest {
   @Rule
   public ConfigurationRule mConfiguration =
       new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, "0",
-          PropertyKey.FUSE_SHELL_USER_GROUP_TRANSLATION_ENABLED, "true"));
+          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, "true"));
 
   @Before
   public void before() throws Exception {
@@ -100,7 +100,7 @@ public class AlluxioFuseFileSystemTest {
     long gid = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
     mFuseFs.chown("/foo/bar", uid, gid);
     String userName = System.getProperty("user.name");
-    String groupName = AlluxioFuseUtils.getGroupName(userName, gid);
+    String groupName = AlluxioFuseUtils.getGroupName(gid);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     SetAttributeOptions options =
         SetAttributeOptions.defaults().setGroup(groupName).setOwner(userName);
