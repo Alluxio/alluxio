@@ -32,9 +32,14 @@ log4j configuration used by the application. For more information about logging,
 
 ## Alluxio remote debug
 
-Usually, Alluxio does not run on the development environment, which makes it difficult to debug Alluxio. We locate problem's method is 'log-build-deploy-scanlog', the efficiency of the problem localization is low and need to modify the code and trigger new deployment, which is not allowed in some time.
+Usually, Alluxio does not run on the development environment, which makes it difficult to debug Alluxio. We locate
+problem's method is 'log-build-deploy-scanlog', the efficiency of the problem localization is low and need to modify
+the code and trigger new deployment, which is not allowed in some time.
 
-Java remote debugging technology can make it simple to debug Alluxio in source level without modify any source. You need to append the JVM remote debugging parameters and then start debugging server. There are several ways to append the remote debugging parameters, you can export the properties in shell or `alluxio-env.sh`, add the following configuration properties.
+Java remote debugging technology can make it simple to debug Alluxio in source level without modify any source. You
+need to append the JVM remote debugging parameters and then start debugging server. There are several ways to append
+the remote debugging parameters, you can export the properties in shell or `alluxio-env.sh`, add the following
+configuration properties.
 
 ```bash
 export ALLUXIO_WORKER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6606"
@@ -42,11 +47,17 @@ export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_
 export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
 ```
 
-Specially, if you want to debug shell command, you can add the `-debug` flag to start a debug server with the jvm debug parameters `ALLUXIO_USER_DEBUG_JAVA_OPTS`. Such as `alluxio fs -debug ls /`.
+Specially, if you want to debug shell command, you can add the `-debug` flag to start a debug server with the jvm debug
+parameters `ALLUXIO_USER_DEBUG_JAVA_OPTS`. Such as `alluxio fs -debug ls /`.
 
-`suspend = y/n` will decide whether the JVM process wait until the debugger connects. If you want to debug with the shell command, set the `suspend = y`. Otherwise, you can set `suspend = n` so that avoid unnecessary waiting time.
+`suspend = y/n` will decide whether the JVM process wait until the debugger connects. If you want to debug with the
+shell command, set the `suspend = y`. Otherwise, you can set `suspend = n` so that avoid unnecessary waiting time.
 
-After start the master or worker, use eclipse or IntelliJ idea and other java IDE, new a java remote configuration, set the debug server's host and port, then start debug session. If you set a breakpoint which can be reached, the ide will enter debug mode, you can read and write the current context's variables, call stack, thread list, expression evaluation. You can also execute debugging control instrument, such as 'step into', 'step over', 'resume', 'suspend' and so on. If you get this skill, you will locate problem faster, and will impressed by the source code you have debugged.
+After start the master or worker, use eclipse or IntelliJ idea and other java IDE, new a java remote configuration,
+set the debug server's host and port, then start debug session. If you set a breakpoint which can be reached, the ide
+will enter debug mode, you can read and write the current context's variables, call stack, thread list, expression
+evaluation. You can also execute debugging control instrument, such as 'step into', 'step over', 'resume', 'suspend'
+and so on. If you get this skill, you will locate problem faster, and will impressed by the source code you have debugged.
 
 ## Setup FAQ
 
@@ -209,10 +220,14 @@ potentially add latency for master to serve requests.
 
 ### Q: I added some files in under file system. How can I reveal the files in Alluxio?
 
-By default, Alluxio loads the list of files the first time a directory is visited. Alluxio will keep using the cached file list regardless of the changes in the under file system. To reveal new files from under file system, you can use the command `alluxio fs ls -f /some/path` to manually discover the new content inside a specific folder. Another way to refresh a directory is to use UFS sync.
-You can either use it in command line by running `alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=${SOME_INTERVAL} /path` or by setting the same configuration property in masters' `alluxio-site.properties`. The value for the configuration property is used to
-determine the minimum interval between two syncs. You can read more about loading files from under file system [here](../advanced/Loading-Under-File-Storage-Metadata.html).
-
+By default, Alluxio loads the list of files the first time a directory is visited. Alluxio will keep using the
+cached file list regardless of the changes in the under file system. To reveal new files from under file system,
+you can use the command `alluxio fs ls -f /some/path` to manually discover the new content inside a specific
+folder. Another way to refresh a directory is to use UFS sync. You can either use it in command line by running
+`alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=${SOME_INTERVAL} /path` or by setting the same
+configuration property in masters' `alluxio-site.properties`. The value for the configuration property is used to
+determine the minimum interval between two syncs. You can read more about loading files from under file system
+[here](../advanced/Loading-Under-File-Storage-Metadata.html).
 
 ### Q: I see an error "Block ?????? is unavailable in both Alluxio and UFS" while reading some file. Where is my file?
 
@@ -225,12 +240,20 @@ A: When writing files to Alluxio, one of the several write type can be used to t
 `THROUGH`: data will be only written to UFS
 
 By default the write type used by Alluxio client is `MUST_CACHE`, therefore a new file written to Alluxio is only stored in Alluxio
-worker storage, and can be evicted when Alluxio worker storage is full and some new data needs to be cached. To make sure data is persisted, either use `CACHE_THROUGH` or `THROUGH` write type, or [pin](../basic/Command-Line-Interface.html#pin) the files you would like to preserve.
+worker storage, and can be evicted when Alluxio worker storage is full and some new data needs to be cached. To make sure
+data is persisted, either use `CACHE_THROUGH` or `THROUGH` write type, or [pin](../basic/Command-Line-Interface.html#pin) the files
+you would like to preserve.
 
+Another possible cause for this error is that the block exists in the file system, but no worker has connected to master. In that
+case the error will go away once at least one worker containing this block is connected.
 
 ### Q: I run some Alluxio shell command, and it hangs without giving any output. What's going on?
 
-A: Most Alluxio shell commands requires connecting to Alluxio master to execute. If the command fails to connect to master it will keep retrying several times, appearing as "hanging" for a long time. It is also possible that some command can take a long time to execute, such as persisting a large file on a slow UFS. If you want to know what happens under the hood, check the user log(stored as `${ALLUXIO_HOME}/logs/user_${USER_NAME}.log` by default) or master log (stored as `${ALLUXIO_HOME}/logs/master.log` on the master node by default).
+A: Most Alluxio shell commands require connecting to Alluxio master to execute. If the command fails to connect to master it will
+keep retrying several times, appearing as "hanging" for a long time. It is also possible that some command can take a long time to
+execute, such as persisting a large file on a slow UFS. If you want to know what happens under the hood, check the user log (stored
+as `${ALLUXIO_HOME}/logs/user_${USER_NAME}.log` by default) or master log (stored as `${ALLUXIO_HOME}/logs/master.log` on the master
+node by default).
 
 ## Performance FAQ
 
