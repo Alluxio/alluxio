@@ -66,9 +66,10 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
+
   private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
-  private final boolean mIsShellGroupMapping;
+  private final boolean mIsUserGroupTranslation;
 
   private final FileSystem mFileSystem;
   // base path within Alluxio namespace that is used for FUSE operations
@@ -97,7 +98,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     mOpenFiles = new HashMap<>();
 
     final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
-    mIsShellGroupMapping = Configuration.getBoolean(PropertyKey.FUSE_SHELL_GROUP_MAPPING_ENABLED);
+    mIsUserGroupTranslation
+        = Configuration.getBoolean(PropertyKey.FUSE_SHELL_USER_GROUP_TRANSLATION_ENABLED);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
@@ -131,26 +133,28 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   /**
    * Changes the owner of an Alluxio file.
    *
-   * This operation only works when the group mapping service is shelled based and the user is
-   * registered in unix. Otherwise it errors as not implemented. This is because the input uid and
-   * gid must match the user and group in Unix.
+   * This operation only works when the shell user group translation is enabled in Alluxio-Fuse,
+   * the user and group are registered in unix, and the user belongs to the group.
+   * Otherwise it errors as not implemented. This is because the input uid and gid
+   * must match the user and group in Unix and should be valid.
    */
   @Override
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
-    if (!mIsShellGroupMapping) {
+    if (!mIsUserGroupTranslation) {
       LOG.info("Cannot change the owner of path {} "
-          + "because the shell based group mapping is not enabled in Alluxio-Fuse.", path);
+          + "because the shell user group translation is not enabled in Alluxio-Fuse.", path);
       return -ErrorCodes.ENOSYS();
     }
     try {
       String userName = AlluxioFuseUtils.getUserName(uid);
-      String groupName = AlluxioFuseUtils.getGroupName(uid);
+      String groupName = AlluxioFuseUtils.getGroupName(userName, gid);
       if (userName.isEmpty()) {
         LOG.error("Failed to get user name from uid {}", uid);
         return -ErrorCodes.EFAULT();
       }
       if (groupName.isEmpty()) {
-        LOG.error("Failed to get group name from uid {}", uid);
+        LOG.error("Failed to get group name from gid {}. "
+            + "Gid {} is invalid or does not contain uid {}", gid, gid, uid);
         return -ErrorCodes.EFAULT();
       }
       SetAttributeOptions options =
@@ -276,23 +280,30 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      // for shell-based group mapping, try to get the uid and gid of file/dir owner.
-      // If the shell-based group mapping is not enabled in Fuse
-      // or the user does not registered in the unix,
-      // uid and gid of the user running alluxio-fuse will be set.
-      long uid = -1;
-      long gid = -1;
-      if (mIsShellGroupMapping) {
+      /**
+       * User group rule:
+       *
+       * A) Shell user group translation service disabled. The user and group for all FUSE files
+       *    will match the user who started the alluxio-fuse process(the UID and GID below).
+       * B) Shell user group translation service enabled.
+       *    a) User and group registered and User belongs to group.
+       *       Get and use the uid of user and gid of group.
+       *    b) User and group registered, but user does not belong to group in this unix.
+       *       Or user registered, but group is not registered.
+       *       Get and use the uid of user, but gid is set to -1 (show as nogroup).
+       *    c) User and group unregistered.
+       *       Uid and gid are set to -1. (show as nouser and nogroup).
+       */
+      if (mIsUserGroupTranslation) {
         String owner = status.getOwner();
-        uid = AlluxioFuseUtils.getUid(owner);
-        gid = AlluxioFuseUtils.getGid(owner);
+        long uid = AlluxioFuseUtils.getUid(owner);
+        long gid = AlluxioFuseUtils.getGid(owner, status.getGroup());
+        stat.st_uid.set(uid);
+        stat.st_gid.set(gid);
+      } else {
+        stat.st_uid.set(UID);
+        stat.st_gid.set(GID);
       }
-      if (uid == -1 || gid == -1) {
-        uid = UID;
-        gid = GID;
-      }
-      stat.st_uid.set(uid);
-      stat.st_gid.set(gid);
 
       int mode = status.getMode();
       if (status.isFolder()) {
