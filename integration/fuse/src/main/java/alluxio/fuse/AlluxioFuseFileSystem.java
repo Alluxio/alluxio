@@ -292,7 +292,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
        *       Or user registered, but group is not registered.
        *       Get and use the uid of user, but gid is set to -1 (show as nogroup).
        *    c) User and group unregistered.
-       *       Uid and gid are set to -1. (show as nouser and nogroup).
+       *       Uid and gid are set to -1. (show as nobody and nogroup).
        */
       if (mIsUserGroupTranslation) {
         String owner = status.getOwner();
