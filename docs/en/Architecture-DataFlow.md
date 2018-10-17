@@ -36,8 +36,8 @@ Hadoop MapReduce).  There are multiple benefits to have this layer in the stack:
   layer for any number of varied data sources.
 
 At a high level, Alluxio can be divided into three components: the master,
-workers, and clients.  Alluxio consists a single leader master and multiple
-workers.  The master and workers together make up the Alluxio servers, which are
+workers, and clients. Alluxio consists a single leader master, multiple standby masters,
+and multiple workers. The masters and workers together make up the Alluxio servers, which are
 the components a system admin would maintain and manage. The clients are used to
 talk to Alluxio servers by the applications, such as Spark or MapReduce jobs,
 Alluxio command-line, or the FUSE layer.
