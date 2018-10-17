@@ -6,8 +6,6 @@ group: Operations
 priority: 0
 ---
 
-TODO(Feng): Review existing content and add new content for common problems we've seen
-
 * Table of Contents
 {:toc}
 
@@ -29,13 +27,20 @@ Workers, when you ran into any issues. If you do not understand the error messag
 try to search them in the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users),
 in case the problem has been discussed before.
 
-TODO(feng): brifely talk about client side logging and point user to the [logging page](https://github.com/Alluxio/alluxio/blob/doc-restructure/docs/en/operation/Logging-Conventions.md).
+The client-side logs are also helpful when Alluxio service is running but the client cannot connect to the servers.
+Alluxio client emits logging messages through log4j, so the location of the logs is determined by the client side
+log4j configuration used by the application. For more information about logging, please check out [this page](../advanced/Client-Logging.html).
 
 ## Alluxio remote debug
 
-Usually, Alluxio does not run on the development environment, which makes it difficult to debug Alluxio. We locate problem's method is 'log-build-deploy-scanlog', the efficiency of the problem localization is low and need to modify the code and trigger new deployment, which is not allowed in some time.
+Usually, Alluxio does not run on the development environment, which makes it difficult to debug Alluxio. We locate
+problem's method is 'log-build-deploy-scanlog', the efficiency of the problem localization is low and need to modify
+the code and trigger new deployment, which is not allowed in some time.
 
-Java remote debugging technology can make it simple to debug Alluxio in source level without modify any source. You need to append the JVM remote debugging parameters and then start debugging server. There are several ways to append the remote debugging parameters, you can export the properties in shell or `alluxio-env.sh`, add the following configuration properties.
+Java remote debugging technology can make it simple to debug Alluxio in source level without modify any source. You
+need to append the JVM remote debugging parameters and then start debugging server. There are several ways to append
+the remote debugging parameters, you can export the properties in shell or `alluxio-env.sh`, add the following
+configuration properties.
 
 ```bash
 export ALLUXIO_WORKER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6606"
@@ -43,11 +48,17 @@ export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_
 export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
 ```
 
-Specially, if you want to debug shell command, you can add the `-debug` flag to start a debug server with the jvm debug parameters `ALLUXIO_USER_DEBUG_JAVA_OPTS`. Such as `alluxio fs -debug ls /`.
+Specially, if you want to debug shell command, you can add the `-debug` flag to start a debug server with the jvm debug
+parameters `ALLUXIO_USER_DEBUG_JAVA_OPTS`. Such as `alluxio fs -debug ls /`.
 
-`suspend = y/n` will decide whether the JVM process wait until the debugger connects. If you want to debug with the shell command, set the `suspend = y`. Otherwise, you can set `suspend = n` so that avoid unnecessary waiting time.
+`suspend = y/n` will decide whether the JVM process wait until the debugger connects. If you want to debug with the
+shell command, set the `suspend = y`. Otherwise, you can set `suspend = n` so that avoid unnecessary waiting time.
 
-After start the master or worker, use eclipse or IntelliJ idea and other java IDE, new a java remote configuration, set the debug server's host and port, then start debug session. If you set a breakpoint which can be reached, the ide will enter debug mode, you can read and write the current context's variables, call stack, thread list, expression evaluation. You can also execute debugging control instrument, such as 'step into', 'step over', 'resume', 'suspend' and so on. If you get this skill, you will locate problem faster, and will impressed by the source code you have debugged.
+After start the master or worker, use eclipse or IntelliJ idea and other java IDE, new a java remote configuration,
+set the debug server's host and port, then start debug session. If you set a breakpoint which can be reached, the ide
+will enter debug mode, you can read and write the current context's variables, call stack, thread list, expression
+evaluation. You can also execute debugging control instrument, such as 'step into', 'step over', 'resume', 'suspend'
+and so on. If you get this skill, you will locate problem faster, and will impressed by the source code you have debugged.
 
 ## Setup FAQ
 
@@ -55,7 +66,7 @@ After start the master or worker, use eclipse or IntelliJ idea and other java ID
 
 A: First check `${ALLUXIO_HOME}/logs` to see if there are any master or worker logs. Follow the clue
 indicated by the error logs. Otherwise please double check if you missed any configuration
-steps in [Running-Alluxio-Locally](Running-Alluxio-Locally.html).
+steps in [Running-Alluxio-Locally](../deploy/Running-Alluxio-Locally.html).
 
 Typical issues:
 - `ALLUXIO_UNDERFS_ADDRESS` is not configured correctly.
@@ -63,8 +74,8 @@ Typical issues:
 
 ### Q: I'm trying to deploy Alluxio in a cluster with Spark/HDFS. Are there any suggestions?
 
-A: Please follow [Running-Alluxio-on-a-Cluster](Running-Alluxio-on-a-Cluster.html),
-[Configuring-Alluxio-with-HDFS](Configuring-Alluxio-with-HDFS.html).
+A: Please follow [Running-Alluxio-on-a-Cluster](../deploy/Running-Alluxio-on-a-Cluster.html),
+[Configuring-Alluxio-with-HDFS](../ufs/HDFS.html).
 
 Tips:
 
@@ -74,7 +85,7 @@ Tips:
 
 ### Q: I'm having problems setting up Alluxio cluster on EC2. Can you advice?
 
-A: Please follow [Running-Alluxio-on-EC2.html](Running-Alluxio-on-EC2.html) for details.
+A: Please follow [Deploy-Alluxio-on-EC2](../deploy/Running-Alluxio-Using-Vagrant.html#deploy-on-aws-ec2) for details.
 
 Typical issues:
 - Please make sure AWS access keys and Key Pairs are set up.
@@ -82,8 +93,11 @@ Typical issues:
 bucket, without the `s3a://` prefix.
 - If you are not able to access the UI, please check that your security group allows incoming traffic on port 19999.
 
-TODO(feng) add a section for "Unsupported major.minor version 52.0" java issue.
+### Q: Why do I see "Unsupported major.minor version 52.0" error when I start Alluxio?
 
+A: Alluxio requires Java 8 runtime to function properly. If this error is seen at the start of Alluxio master/worker, please setup
+your environment so that the default java version is 8. If you see this error while using an application to access files on Alluxio,
+please make sure your application is running on Java 8.
 
 ## Usage FAQ
 
@@ -146,10 +160,10 @@ A: This problem can be caused by different possible reasons.
 - Please double-check if the port of Alluxio master address is correct. The default listening port for Alluxio master is port 19998,
 while a common mistake causing this error message is due to using a wrong port in master address(e.g., using port 19999 which is the default Web UI port for Alluxio master).
 - Please ensure that the security settings of Alluxio client and master are consistent.
-Alluxio provides different approaches to [authenticate](Security.html#authentication) users by configuring `alluxio.security.authentication.type`.
+Alluxio provides different approaches to [authenticate](../advanced/Security.html#authentication) users by configuring `alluxio.security.authentication.type`.
 This error happens if this property is configured with different values across servers and clients
 (e.g., one uses the default value `NOSASL` while the other is customized to `SIMPLE`).
-Please read [Configuration-Settings](Configuration-Settings.html) for how to customize Alluxio clusters and applications.
+Please read [Configuration-Settings](../basic/Configuration-Settings.html) for how to customize Alluxio clusters and applications.
 
 ### Q: I'm copying or writing data to Alluxio while seeing error messages like "Failed to cache: Not enough space to store block on worker". Why?
 
@@ -159,7 +173,7 @@ A: This error indicates insufficient space left on Alluxio workers to complete y
 You can change the location policy for this command by changing `alluxio.user.file.copyfromlocal.write.location.policy.class` property.
 
     Before version 1.6.0, if you are copying a file to Alluxio using `copyFromLocal`, by default this shell command applies `LocalFirstPolicy`
-and stores data on the local worker (see [location policy](File-System-API.html#location-policy)).
+and stores data on the local worker (see [location policy](../api/FS-API.html#location-policy)).
 In this case, you will see the above error once the local worker does not have enough space.
 To distribute the data of your file on different workers, you can change this policy to `RoundRobinPolicy` (see below).
 
@@ -169,9 +183,9 @@ $ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.
 
 
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.
-See [Command-Line-Interface](Command-Line-Interface.html) for more details.
+See [Command-Line-Interface](../basic/Command-Line-Interface.html) for more details.
 - Increase the capacity of workers by changing `alluxio.worker.memory.size` property.
-See [Configuration](Configuration-Settings.html#common-configuration) for more description.
+See [Configuration](../basic/Configuration-Settings.html#common-configuration) for more description.
 
 
 ### Q: I'm writing a new file/directory to Alluxio and seeing journal errors in my application
@@ -205,18 +219,51 @@ or [other approaches](https://stackoverflow.com/questions/880557/socket-accept-t
 value in `conf/alluxio-site.properties`. Note that, reducing the value of these two properties may
 potentially add latency for master to serve requests.
 
-TODO(feng) add a section about discover file updates in under fs.
+### Q: I added some files in under file system. How can I reveal the files in Alluxio?
 
-TODO(feng) add a section about missing blocks and different write types.
+By default, Alluxio loads the list of files the first time a directory is visited. Alluxio will keep using the
+cached file list regardless of the changes in the under file system. To reveal new files from under file system,
+you can use the command `alluxio fs ls -f /some/path` to manually discover the new content inside a specific
+folder. Another way to refresh a directory is to use UFS sync. You can either use it in command line by running
+`alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=${SOME_INTERVAL} /path` or by setting the same
+configuration property in masters' `alluxio-site.properties`. The value for the configuration property is used to
+determine the minimum interval between two syncs. You can read more about loading files from under file system
+[here](../advanced/Loading-Under-File-Storage-Metadata.html).
 
-TODO(feng) add a section for hanging commands
+### Q: I see an error "Block ?????? is unavailable in both Alluxio and UFS" while reading some file. Where is my file?
+
+A: When writing files to Alluxio, one of the several write type can be used to tell Alluxio worker how the data should be stored:
+
+`MUST_CACHE`: data will be stored in Alluxio only
+
+`CACHE_THROUGH`: data will be cached in Alluxio as well as written to UFS
+
+`THROUGH`: data will be only written to UFS
+
+By default the write type used by Alluxio client is `MUST_CACHE`, therefore a new file written to Alluxio is only stored in Alluxio
+worker storage, and can be evicted when Alluxio worker storage is full and some new data needs to be cached. To make sure
+data is persisted, either use `CACHE_THROUGH` or `THROUGH` write type, or [pin](../basic/Command-Line-Interface.html#pin) the files
+you would like to preserve.
+
+Another possible cause for this error is that the block exists in the file system, but no worker has connected to master. In that
+case the error will go away once at least one worker containing this block is connected.
+
+### Q: I run some Alluxio shell command, and it hangs without giving any output. What's going on?
+
+A: Most Alluxio shell commands require connecting to Alluxio master to execute. If the command fails to connect to master it will
+keep retrying several times, appearing as "hanging" for a long time. It is also possible that some command can take a long time to
+execute, such as persisting a large file on a slow UFS. If you want to know what happens under the hood, check the user log (stored
+as `${ALLUXIO_HOME}/logs/user_${USER_NAME}.log` by default) or master log (stored as `${ALLUXIO_HOME}/logs/master.log` on the master
+node by default).
 
 ## Performance FAQ
-TODO(feng): Point user to the performance tuning page.
+
 ### Q: I tested Alluxio/Spark against HDFS/Spark (running simple word count of GBs of files). There is no discernible performance difference. Why?
 
 A: Alluxio accelerates your system performance by leveraging temporal or spatial locality using distributed in-memory storage
 (and tiered storage). If your workloads don't have any locality, you will not see tremendous performance boost.
+
+**For a comprehensive guide on tuning performance of Alluxio cluster, please check out [this page](../advanced/Performance-Tuning.html).**
 
 ## Environment
 
