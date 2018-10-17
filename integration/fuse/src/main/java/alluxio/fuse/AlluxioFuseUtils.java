@@ -42,7 +42,7 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Retrieves the effective gid of the given user name.
+   * Retrieves the primary gid of the given user.
    *
    * @param userName the user name
    * @return gid
@@ -53,13 +53,14 @@ public final class AlluxioFuseUtils {
 
   /**
    * Retrieves the gid of the given user name and group name.
-   * The group name must be registered and must contain the user to get the gid.
+   * The group must be registered and must contain the user to get the gid.
    *
    * @param userName the user name
    * @param groupName the group name
    * @return gid
    */
   public static long getGid(String userName, String groupName) throws IOException {
+    // TODO(lu) find more efficient get gid/groupName method
     String result = ShellUtils.execCommand("id", userName);
     String groups = result.substring(result.indexOf("groups="));
     Pattern pattern = Pattern.compile("([0-9]+)\\(" + groupName + "\\)");
@@ -82,7 +83,7 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Gets the effective group name from the user name.
+   * Gets the primary group name from the user name.
    *
    * @param userName the user name
    * @return group name
