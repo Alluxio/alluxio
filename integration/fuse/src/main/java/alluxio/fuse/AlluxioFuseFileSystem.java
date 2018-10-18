@@ -131,35 +131,32 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Changes the owner of an Alluxio file.
+   * Changes the user and group ownership of an Alluxio file.
+   * This operation only works when the user group translation is enabled in Alluxio-Fuse.
    *
-   * This operation only works when the shell user group translation is enabled in Alluxio-Fuse,
-   * the user and group are registered in unix, and the user belongs to the group.
-   * Otherwise it errors as not implemented. This is because the input uid and gid
-   * must match the user and group in Unix and should be valid.
+   * @param path the path of the file
+   * @param uid the uid to change to
+   * @param gid the gid to change to
+   * @return 0 on success, a negative value on error
    */
   @Override
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
     if (!mIsUserGroupTranslation) {
-      LOG.info("Cannot change the owner of path {} "
-          + "because the shell user group translation is not enabled in Alluxio-Fuse.", path);
+      LOG.info("Cannot change the owner of path {}. Please set {} to be true to enable "
+          + "user group translation in Alluxio-Fuse.",
+          path, PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED.getName());
       return -ErrorCodes.ENOSYS();
     }
     try {
       String userName = AlluxioFuseUtils.getUserName(uid);
       String groupName = AlluxioFuseUtils.getGroupName(gid);
+      // Uid and gid should exist in the unix to get valid user name and group name
       if (userName.isEmpty()) {
         LOG.error("Failed to get user name from uid {}", uid);
         return -ErrorCodes.EFAULT();
       }
       if (groupName.isEmpty()) {
-        LOG.error("Failed to get group name from gid {}. ", gid);
-        return -ErrorCodes.EFAULT();
-      }
-      if (!CommonUtils.getGroups(userName).contains(groupName)) {
-        LOG.error("Cannot change owner and group of file {} "
-            + "because user {} with id {} does not belong to group {} with id {}.",
-            path, userName, uid, groupName, gid);
+        LOG.error("Failed to get group name from gid {}.", gid);
         return -ErrorCodes.EFAULT();
       }
       SetAttributeOptions options =
@@ -285,30 +282,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      /**
-       * User group rule:
-       *
-       * A) Shell user group translation service disabled. The user and group for all FUSE files
-       *    will match the user who started the alluxio-fuse process(the UID and GID below).
-       * B) Shell user group translation service enabled.
-       *    a) User and group registered and User belongs to group.
-       *       Get and use the uid of user and gid of group.
-       *    b) User and group registered, but user does not belong to group in this unix.
-       *       Or user registered, but group is not registered.
-       *       Get and use the uid of user, but gid is set to -1 (show as nogroup).
-       *    c) User and group unregistered.
-       *       Uid and gid are set to -1. (show as nobody and nogroup).
-       */
       if (mIsUserGroupTranslation) {
-        String owner = status.getOwner();
-        String group = status.getGroup();
-        long uid = AlluxioFuseUtils.getUid(owner);
-        long gid = AlluxioFuseUtils.getGidFromGroupName(status.getGroup());
-        if (uid == -1 || (gid != -1 && !CommonUtils.getGroups(owner).contains(group))) {
-          gid = -1;
-        }
-        stat.st_uid.set(uid);
-        stat.st_gid.set(gid);
+        // Translate the file owner/group to unix uid/gid
+        // Show as uid==-1 (nobody) if owner does not exist in unix
+        // Show as gid==-1 (nogroup) if group does not exist in unix
+        stat.st_uid.set(AlluxioFuseUtils.getUid(status.getOwner()));
+        stat.st_gid.set(AlluxioFuseUtils.getGidFromGroupName(status.getGroup()));
       } else {
         stat.st_uid.set(UID);
         stat.st_gid.set(GID);

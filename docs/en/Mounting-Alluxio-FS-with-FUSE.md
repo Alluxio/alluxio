@@ -157,8 +157,8 @@ characteristics, please be aware that:
 * Alluxio does not have hard-link and soft-link concepts, so the commands like `ln` are not supported,
   neither the hardlinks number is displayed in `ll` output.
 * The user and group are mapped to the Unix user and group only when Alluxio Fuse is configured to use
-  shell user group translation service, by setting `alluxio.fuse.shell.user.group.translation.enabled` to `true` in `conf/alluxio-site.properties`. 
-  Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the
+  shell user group translation service, by setting `alluxio.fuse.user.group.translation.enabled` to `true` 
+  in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the
   user and group of the user who started the alluxio-fuse process. The translation service
   does not change the actual file permission when running `ll`. 
 
