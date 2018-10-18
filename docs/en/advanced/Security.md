@@ -19,14 +19,18 @@ Alluxio also supports other authentication modes like `NOSASL` and `CUSTOM`.
 (by default), Alluxio file system will grant or deny user access based on the requesting user and
 the POSIX permission model of the files or directories to access.
 Note that, authentication cannot be `NOSASL` as authorization requires user information.
-1. [Access Control Lists](#Access-Contro-Lists): In addition to the POSIX permission model, Alluxio implements an Access Control List(ACL) model similar to those found in Linux and HDFS.
-The ACL model is more flexible and allows administrators to manage any user or group's permissions to any file system object. 
-1. [Impersonation](#impersonation): Alluxio supports user impersonation so one user can access Alluxio on the behalf of another user. This can be useful if an Alluxio client is part of a service which provides access to Alluxio for many different users.
+1. [Access Control Lists](#Access-Control-Lists): In addition to the POSIX permission model, Alluxio
+implements an Access Control List(ACL) model similar to those found in Linux and HDFS. The ACL model
+is more flexible and allows administrators to manage any user or group's permissions to any file
+system object. 
+1. [Impersonation](#impersonation): Alluxio supports user impersonation so one user can access
+Alluxio on the behalf of another user. This can be useful if an Alluxio client is part of a service
+which provides access to Alluxio for many different users.
 1. [Auditing](#auditing): If `alluxio.master.audit.logging.enabled=true`, Alluxio file system
 maintains an audit log for user accesses to file metadata.
 
-See [Security specific configuration](Configuration-Settings.html#security-configuration) for
-different security properties.
+See [Security specific configuration]({{site.baseurl}}{% link en/reference/Properties-List.md %}#security-configuration)
+for different security properties.
 
 ## Authentication
 
@@ -120,48 +124,57 @@ The owner, group, and permissions can be changed by two ways:
 
 1. User application invokes the `setAttribute(...)` method of `FileSystem API` or `Hadoop API`.
 2. CLI command in shell. See
-[chown](Command-Line-Interface.html#chown),
-[chgrp](Command-Line-Interface.html#chgrp),
-[chmod](Command-Line-Interface.html#chmod).
+[chown]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#chown),
+[chgrp]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#chgrp),
+[chmod]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#chmod).
 
 The owner can only be changed by super user.
 The group and permission can only be changed by super user and file owner.
 
 ## Access Control Lists
-Posix permission model allows administrators to grant permissions to owners, owning groups and other users. 
-The permission bits model is sufficient for most cases. 
-However, to help administrators express more complicated security policies,
-Alluxio also supports Access Control Lists (ACLs).
-ACLs allow administrators to grant permissions to any user or group. 
+Posix permission model allows administrators to grant permissions to owners, owning groups and other
+users.  The permission bits model is sufficient for most cases. However, to help administrators
+express more complicated security policies, Alluxio also supports Access Control Lists (ACLs). ACLs
+allow administrators to grant permissions to any user or group. 
 
-In Alluxio's ACL model, a file or directory's Access Control List consists of many ACL entries. There are two types of ACL entries, Access ACL entries and Default ACL entries. 
+In Alluxio's ACL model, a file or directory's Access Control List consists of many ACL entries.
+There are two types of ACL entries, Access ACL entries and Default ACL entries. 
 
-1. Access ACL Entries:
+### 1. Access ACL Entries:
 
-   This type of ACL entry specifies a particular user or group's permission to read, write and execute. 
-Each ACL entry consists of a type, which can be one of user, group or mask, an optional name and a permission string similar to the POSIX permission bits. 
-The following table shows the different types of ACL entries that can appear in the access ACL. 
+This type of ACL entry specifies a particular user or group's permission to read, write and
+execute. 
 
-	|ACL Entry Type| Description|
-|------------------------|------------------------|
+Each ACL entry consists of a type, which can be one of user, group or mask, an optional name and a
+permission string similar to the POSIX permission bits.  The following table shows the different
+types of ACL entries that can appear in the access ACL. 
+
+|ACL Entry Type| Description|
+|:----------------------:|:-----------------------|
 |user:userid:permission  | Sets the access ACLs for a user. Empty userid implies the permission is for the owner of the file.|
 |group:groupid:permission| Sets the access ACLs for a group. Empty groupid implies the permission is for the owning group of the file.|
 |other::permission.      | Sets the access ACLs for all users not specified above.|
 |mask::permission        | Sets the effective rights mask.  The ACL mask indicates the maximum permissions allowed for all users other than the owner and for groups.|
 
-	Notice that ACL entries describing owner's, owning group's and other's permissions exist in the standard POSIX permission bits model already. For example, a standard POSIX permission of `755` translates into an ACL list as follows: `user::rwx, group::r-x, other::r-x`.
-These three entries are always present in every file and directory.
-When there are entries in addition to these standard entries, the ACL is considered an extended ACL. 
+Notice that ACL entries describing owner's, owning group's and other's permissions exist in the
+standard POSIX permission bits model already. For example, a standard POSIX permission of `755`
+translates into an ACL list as follows: `user::rwx, group::r-x, other::r-x`.
 
-A mask entry is automatically generated when an ACL becomes extended. 
-Unless specifically set by the user, the mask's value is adjusted to be the union of all permissions affected by the mask entry. 
+These three entries are always present in every file and directory. When there are entries in
+addition to these standard entries, the ACL is considered an extended ACL. 
+
+A mask entry is automatically generated when an ACL becomes extended. Unless specifically set by the
+user, the mask's value is adjusted to be the union of all permissions affected by the mask entry.
 This includes all the user entries other than the owner and all the group entries. 
 	
-	For example, `user::rw-` is an ACL entry. This entry has the type `user`, with an unspecified name, which means the owner of the file. `rw-` means the owner of the file has `read` and `write` permissions but no `execute` permission. 
+For example, `user::rw-` is an ACL entry. This entry has the type `user`, with an unspecified name,
+which means the owner of the file. `rw-` means the owner of the file has `read` and `write`
+permissions but no `execute` permission. 
+
 Another example is a file with `group:interns:rwx` and a mask `mask::r--`. The first entry grants all permissions to the group `interns`. 
 However, because the mask is the maximum permission allowed for all groups, the `interns` group will have read-only access to the file.  
 
-2. Default ACL Entries:
+### 2. Default ACL Entries:
 
 	Default ACLs only apply to directories. 
 Any new file or directory created within a directory with a default ACL will inherit the default ACL as its access ACL. 
@@ -182,8 +195,8 @@ The ACL of a file and directory can be managed by two ways:
 
 1. User application invokes the `setFacl(...)` method of `FileSystem API` or `Hadoop API` to change the ACL and invokes the `getFacl(...)` to obtain the current ACL. 
 2. CLI command in shell. See
-[setfacl](Command-Line-Interface.html#setfacl),
-[getfacl](Command-Line-Interface.html#getfacl)
+[getfacl]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#getfacl)
+[setfacl]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#setfacl),
 
 The ACL of a file or directory can only be changed by super user and file/directory owner.
 
@@ -281,7 +294,7 @@ It is similar to the format of HDFS audit log [wiki](https://wiki.apache.org/had
 
 To enable Alluxio audit logging, you need to set the JVM property
 `alluxio.master.audit.logging.enabled` to `true`, see
-[Configuration settings](Configuration-Settings.html).
+[Configuration settings]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}).
 
 ## Encryption
 

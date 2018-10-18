@@ -9,8 +9,8 @@ priority: 0
 {:toc}
 
 An Alluxio cluster can be configured by setting the values of Alluxio
-[configuration properties](Configuration-Properties.html). The two major components to configure
-are
+[configuration properties]({{site.baseurl}}{% link en/reference/Properties-List.md %}). The
+two major components to configure are
 [Alluxio servers](#configure-alluxio-cluster) (masters and workers), and
 [Alluxio clients]((#configure-applications)) (part of applications).
 
@@ -18,8 +18,6 @@ are
 
 Customizing how an application job interacts with Alluxio service is application specific. Here
 we provide recommendations for a few common applications.
-
-TODO: maybe we should mention that only the user/client properties can/need to be configured.
 
 ### Alluxio Shell Commands
 
@@ -200,24 +198,21 @@ which will be distributed and become cluster-wide default values for new Alluxio
 
 For example, a common Alluxio property `alluxio.user.file.writetype.default` is default to
 `MUST_CACHE` which only writes to Alluxio space. In an Alluxio cluster
-deployment where data persistence is preferred and all jobs need to write through to both UFS and Alluxio, with Alluxio v1.8 or later the admin can simply add
+deployment where data persistence is preferred and all jobs need to write through to both UFS and
+Alluxio, with Alluxio v1.8 or later the admin can simply add
 `alluxio.user.file.writetype.default=CACHE_THROUGH` to all the masters'
 `${ALLUXIO_HOME}/conf/alluxio-site.properties`. After restarting the cluster, all the new jobs will
 automatically set property `alluxio.user.file.writetype.default` to `CACHE_THROUGH` as its default
 value.
 
 Clients can still ignore or overwrite the cluster-wide default values, by either
-specifying the user property `alluxio.user.conf.cluster.default.enabled=false` to
-decline loading the cluster-wide default values or
-following the approaches described in
-[Configure Alluxio for Applications](Configuration-Settings.html#configure-applications) to
-overwrite the same properties.
+specifying the user property `alluxio.user.conf.cluster.default.enabled=false` to decline loading
+the cluster-wide default values or following the approaches described in
+[Configure Alluxio for Applications](#configure-applications) to overwrite the same properties.
 
 > Note that, before v1.8, `${ALLUXIO_HOME}/conf/alluxio-site.properties` file is only loaded by
-Alluxio server
-> processes and will be ignored by applications interacting with Alluxio service through Alluxio
-client,
-> unless `${ALLUXIO_HOME}/conf` is on applications' classpath.
+> Alluxio server processes and will be ignored by applications interacting with Alluxio service
+> through Alluxio client, unless `${ALLUXIO_HOME}/conf` is on applications' classpath.
 
 ## Configuration Sources
 

@@ -21,7 +21,8 @@ The main requirement is a computer with MacOS or Linux-based operating system in
 does not have Windows support at this time.
 
 If you haven't already, we recommend first cloning and compiling the Alluxio source code with our
-[Building Alluxio from Source Tutorial](Building-Alluxio-from-Source.html)
+[Building Alluxio from Source Tutorial]({{site.baseurl}}{% link
+en/contributor/Building-Alluxio-From-Source.md %})
 
 ### Software Requirements
 
@@ -116,7 +117,8 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dche
 
 This should take less than 1 minute.
 
-Here are more [details for building Alluxio](Building-Alluxio-From-Source.html).
+Here are more [details for building Alluxio]({{site.baseurl}}{% link
+en/contributor/Building-Alluxio-From-Source.md %}).
 
 ## Taking a New Contributor JIRA Ticket
 
@@ -192,12 +194,14 @@ with:
 $ git commit -m "<concise but descriptive commit message>"
 ```
 
-If you want more details, please visit [instructions on how to create commits](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository).
+If you want more details, please visit [instructions on how to create
+commits](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository).
 
 ### Sending a Pull Request
 
 After you have finished all the changes to address the JIRA ticket, you are ready to submit a pull
-request to the Alluxio project! Here are [detailed instructions on sending a pull request](https://help.github.com/articles/using-pull-requests/),
+request to the Alluxio project! Here are [detailed instructions on sending a pull
+request](https://help.github.com/articles/using-pull-requests/),
 but the following is a common way to do it.
 
 After you have created all necessary local commits, you can push all your commits to your repository
@@ -226,7 +230,9 @@ or "Improve java doc of method Foo").
 In the first line of the description box, please add a link back to the JIRA ticket. The link will
 look something like: `https://alluxio.atlassian.net/browse/ALLUXIO-####`.
 
-If you are submitting fixes to documentation, or fixing minor things which don't require a ticket (for example, small typos in code) you may prefix your pull request title with either **[DOCFIX]** or **[SMALLFIX]** respectively.
+If you are submitting fixes to documentation, or fixing minor things which don't require a ticket
+(for example, small typos in code) you may prefix your pull request title with either **[DOCFIX]**
+or **[SMALLFIX]** respectively.
 
 Once everything is set, click on the **Create pull request** button. Congratulations! Your first
 pull request for Alluxio has been submitted!
@@ -265,13 +271,14 @@ There are a few things that new contributors can do to familiarize themselves wi
 
 1. Take on some
    [Beginner Alluxio tickets](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20Beginner%20AND%20assignee%20in%20(EMPTY)).
-1.  [Run Alluxio Locally](Running-Alluxio-Locally.html)
-1.  [Run Alluxio on a Cluster](Running-Alluxio-on-a-Cluster.html)
-1.  Read [Configuration-Settings](Configuration-Settings.html) and [Command-Line Interface](Command-Line-Interface.html)
+1.  [Run Alluxio Locally]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %})
+1.  [Run Alluxio on a Cluster]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %})
+1.  Read [Configuration Settings]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}) and
+[Command Line Interface]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %})
 1.  Read a [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
-1.  [Build Alluxio From Source](Building-Alluxio-From-Source.html)
-1.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request. You are also welcome to address
-issues in our [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO).
+1.  [Build Alluxio From Source]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %})
+1.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request.
+You are also welcome to address issues in our [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO).
 Here is a list of unassigned
 [New Contributor Tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY)).
 Please limit 2 tasks per New Contributor.

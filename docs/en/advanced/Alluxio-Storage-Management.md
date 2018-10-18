@@ -70,7 +70,7 @@ system's total memory. This ramdisk will be used as the only storage medium allo
 Alluxio worker.
 
 Alluxio storage is configured through Alluxio's configuration in `alluxio-site.properties`. See the
-[configuration docs]({{site.baseurl}}% link en/basic/Configuration-Settings.md %}) for detailed
+[configuration docs]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}) for detailed
 information.
 
 A common modification to the default is to explicitly set the ramdisk size. For example, to set the
@@ -130,7 +130,7 @@ space in the top tier, the write will fail. If the file size exceeds the size of
 write will also fail.
 
 The user can also specify the tier that the data will be written to via
-[configuration settings](#configuration-parameters-for-tiered-storage).
+[configuration settings](#configure-tiered-storage).
 
 Reading data with the ReadType.CACHE or ReadType.CACHE_PROMOTE will also result in the data being
 written into Alluxio. In this case, the data is always written to the top tier.
@@ -364,7 +364,7 @@ For example, to set the interval to 10 minutes, add the following to `alluxio-si
 alluxio.master.ttl.checker.interval=10m
 ```
 
-Refer to the [configuration page]({{site.baseurl}} {% link en/basic/Configuration-Settings.md %})
+Refer to the [configuration page]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %})
 for more details on setting Alluxio configurations.
 
 While the master node enforces TTLs, it is up to the clients to set the appropriate TTLs.

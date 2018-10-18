@@ -96,7 +96,11 @@ When running Alluxio with resource managers like Mesos and YARN, Alluxio has add
 
 ### Security Configuration
 
-The security configuration specifies information regarding the security features, such as authentication and file permission. Settings for authentication take effect for master, worker, and user. Settings for file permission only take effect for master. See [Security](Security.html) for more information about security features.
+The security configuration specifies information regarding the security features, such as
+authentication and file permission. Settings for authentication take effect for master, worker, and
+user. Settings for file permission only take effect for master. See
+[Security]({{site.baseurl}}{% link en/advanced/Security.md %})
+for more information about security features.
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>

@@ -81,12 +81,12 @@ No, Alluxio runs on different under storage systems like HDFS, Amazon S3, Swift.
 
 ## How can I learn more about Alluxio?
 
-You can read the recent [blogs]({{site.baseurl}}/resources/posts) and 
-[presentations]({{site.baseurl}}/resources/presentations).
+You can read the recent [blogs](https://alluxio.org/resources/posts) and 
+[presentations](https://alluxio.org/resources/presentations).
 
 We also hosts meetup group for Alluxio and please join
 [http://www.meetup.com/Alluxio/](http://www.meetup.com/Alluxio/). You can also find more Alluxio
-events [here]({{ site.baseurl }}/resources/events).
+events [here](https://alluxio.org/resources/events).
 
 ## Where can I report issues or propose new features?
 

@@ -391,7 +391,6 @@ There are many Under storage systems that can be accessed through Alluxio.
 * [Alluxio with GlusterFS]({{site.baseurl}}{% link en/ufs/GlusterFS.md %})
 * [Alluxio with MapR-FS]({{site.baseurl}}{% link en/ufs/MapR-FS.md %})
 * [Alluxio with HDFS]({{site.baseurl}}{% link en/ufs/HDFS.md %})
-* [Alluxio with Secure HDFS]({{site.baseurl}}{% link en/ufs/Secure-HDFS.md %})
 * [Alluxio with OSS]({{site.baseurl}}{% link en/ufs/OSS.md %})
 * [Alluxio with NFS]({{site.baseurl}}{% link en/ufs/NFS.md %})
 

@@ -10,7 +10,8 @@ priority: 0
 {:toc}
 
 This page is intended for developers of under storage extensions. Please look at [managing
-extensions](UFSExtensions.html) for a guide to using existing extensions.
+extensions]({{site.baseurl}}{% link en/ufs/Ufs-Extensions.md%}) for a guide to using existing
+extensions.
 
 ## Introduction
 
@@ -30,15 +31,16 @@ Building a new under storage connector involves:
 - Declaring the service implementation
 - Bundling up the implementation and transitive dependencies in an uber JAR
 
-A reference implementation can be found in the [alluxio-extensions](https://github.com/Alluxio
-/alluxio-extensions/tree/master/underfs/tutorial) repository. In the rest of this section we
-describe the steps involved in writing a new under storage extension. The sample project, called
-`DummyUnderFileSystem`, uses maven as the build and dependency management tool, and forwards all
-operations to a local filesystem.
+A reference implementation can be found in the [alluxio-extensions](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/tutorial)
+repository. In the rest of this section we describe the steps involved in writing a new under
+storage extension. The sample project, called `DummyUnderFileSystem`, uses maven as the build and
+dependency management tool, and forwards all operations to a local filesystem.
 
 ### Implement the Under Storage Interface
 
-The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3A Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3a) are two good examples of how to enable a storage system to serve as Alluxio's underlying storage.
+The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3A 
+Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3a) are two good examples of how
+to enable a storage system to serve as Alluxio's underlying storage.
 
 Step 1: Implement the interface `UnderFileSystem`
 
@@ -148,4 +150,5 @@ extensions.
 Congratulations! You have developed a new under storage extension to Alluxio. Let the community
 know by submitting a pull request to the Alluxio
 [repository](https://github.com/Alluxio/alluxio/tree/master/docs/en/UFSExtensions.md) to edit the
-list of extensions section on the [documentation page](UFSExtensions.html).
+list of extensions section on the [documentation page]({{site.baseurl}}{% link
+en/ufs/Ufs-Extensions.md %}).

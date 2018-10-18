@@ -34,7 +34,7 @@ Today, Alluxio is deployed in production by 100s organizations, and runs on clus
 
 <div style="text-align:center">
 <span>
-<img src="{{site.baseurl}}{% link img/stack.png %}" width="800"/>
+<img alt="Alluxio Data Stack" src="{{site.baseurl}}{% link img/stack.png %}" width="800"/>
 </span>
 </div>
 
