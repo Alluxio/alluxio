@@ -476,7 +476,7 @@ $ ./bin/alluxio fs getCapacityBytes
 
 To determine the percentage of used space you can do `100 * (getUsedBytes/getCapacityBytes)`.
 Another option to view the storage capacity and usage of an Alluxio cluster is by using the web
-interface which can be found at `http:/{MASTER_IP}:${alluxio.master.web.port}/
+interface which can be found at `http:/{MASTER_IP}:${alluxio.master.web.port}/`
 
 The Alluxio master web interface gives the user a visual overview of the cluster and how much
 storage space is used. More detailed information about the Alluxio web interface can be
