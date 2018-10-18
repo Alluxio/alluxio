@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Configuring Alluxio with Ceph
-nickname: Alluxio with Ceph
+title: Ceph
+nickname: Ceph
 group: Under Stores
 priority: 10
 ---

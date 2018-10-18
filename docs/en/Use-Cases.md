@@ -2,6 +2,7 @@
 layout: global
 title: Use Cases
 group: Home
+priority: 1
 ---
 
 * Table of Contents

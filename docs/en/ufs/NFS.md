@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Configuring Alluxio with NFS
-nickname: Alluxio with NFS
+title: NFS
+nickname: NFS
 group: Under Stores
 priority: 10
 ---

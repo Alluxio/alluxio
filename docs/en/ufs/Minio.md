@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Configuring Alluxio with Minio
-nickname: Alluxio with Minio
+title: Minio
+nickname: Minio
 group: Under Stores
 priority: 10
 ---
