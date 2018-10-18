@@ -5,7 +5,7 @@ alluxio.master.audit.logging.queue.capacity:
 alluxio.master.backup.directory:
   'Default directory for writing master metadata backups. This path is relative to the root directory of the root UFS. For example, if the root ufs directory is hdfs://cluster/alluxio/data, the default backup directory will be hdfs://cluster/alluxio_backups'
 alluxio.master.bind.host:
-  'The hostname that Alluxio master binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
+  'The hostname that Alluxio master binds to.'
 alluxio.master.client.socket.cleanup.interval:
   'Interval for removing closed client sockets from internal tracking.'
 alluxio.master.cluster.metrics.update.interval:
@@ -101,7 +101,7 @@ alluxio.master.ufs.path.cache.capacity:
 alluxio.master.ufs.path.cache.threads:
   'The maximum size of the thread pool for asynchronously processing paths for the UFS path cache. Greater number of threads will decrease the amount of staleness in the async cache, but may impact performance. If this is set to 0, the cache will be disabled, and `alluxio.user.file.metadata.load.type=Once` will behave like `Always`.'
 alluxio.master.web.bind.host:
-  'The hostname Alluxio master web UI binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
+  'The hostname Alluxio master web UI binds to.'
 alluxio.master.web.hostname:
   'The hostname of Alluxio Master web UI.'
 alluxio.master.web.port:

@@ -1,0 +1,1 @@
+htmlproofer --allow-hash-href --file-ignore "/cn/,/pt/" --url-ignore "/localhost:*/" ./_site > htmlproofer.report 2>&1

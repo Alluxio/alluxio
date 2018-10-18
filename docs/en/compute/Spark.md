@@ -156,7 +156,7 @@ $ spark-submit \
 ```
 
 To customize Alluxio client-side properties in a Spark job, see
-[how to configure Spark Jobs]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}#spark-jobs).
+[how to configure Spark Jobs]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}#spark).
 
 Note that, in client mode you need set `--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"` instead of
 `--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH` (see
@@ -192,7 +192,7 @@ This feature of encoding Zookeeper service address into Alluxio URIs is not avai
 > Note that you must use semicolons rather than commas to separate different Zookeeper addresses to
 refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
 Please refer to the instructions in [HDFS API to connect to Alluxio with high
-availability]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}#hdfs-api).
+availability]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}#Configure-Alluxio-Clients-for-HA).
 
 ### Cache RDD into Alluxio
 
@@ -237,10 +237,11 @@ See the blog article
 ### Logging Configuration
 
 You may configure Spark's application logging for debugging purposes. Spark's
-documentation explains [how to configure logging for a Spark application.]((https://spark.apache.org/docs/latest/configuration.html#configuring-logging))
+documentation explains
+[how to configure logging for a Spark application.](https://spark.apache.org/docs/latest/configuration.html#configuring-logging)
 
 If you are using YARN then there is a separate section which explains
-[how to configure logging with YARN for a Spark application.]((https://spark.apache.org/docs/latest/running-on-yarn.html#debugging-your-application))
+[how to configure logging with YARN for a Spark application.](https://spark.apache.org/docs/latest/running-on-yarn.html#debugging-your-application)
 
 
 ### Check Spark is Correctly Set Up

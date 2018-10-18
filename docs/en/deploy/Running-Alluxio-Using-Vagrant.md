@@ -13,7 +13,7 @@ priority: 5
 Alluxio can be deployed locally or in the cloud using the [Vagrant
 scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with Alluxio. The
 scripts let you create, configure, and destroy clusters that come automatically configured locally,
-with [Amazon EC2](https://ec2.amazon.com/) or with [Google Compute Engine](https:/cloud.google.com).
+with [Amazon EC2](https://aws.amazon.com/ec2/) or with [Google Compute Engine](https:/cloud.google.com).
 
 ## Common Prerequisites
 

@@ -155,7 +155,7 @@ leverage the Scala shell, as discussed in this
 [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
 
 - The fuse tests are ignored if the libfuse library is missing. To run those tests, please install the correct libraries
-mentioned in [this page](Mounting-Alluxio-FS-with-FUSE.html#requirements).
+mentioned in [this page]({{site.baseurl}}{% link en/api/FUSE-API.md %}#requirements).
 
 ## Modifying a Thrift RPC definition
 

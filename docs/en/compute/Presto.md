@@ -224,7 +224,7 @@ It is recommended to increase `alluxio.user.network.netty.timeout` to a bigger v
 ### Error message "No FileSystem for scheme: alluxio" on queries
 
 When you see error messages like the following, it is likely that Alluxio client jar is not put
-into the classpath of Presto worker. Please follow [instructions](#distribute-the-alluxio-client-jar-to-all-presto-workers)
+into the classpath of Presto worker. Please follow [instructions](#distribute-the-alluxio-client-jar-to-all-presto-servers)
 to fix this issue.
 
 ```

@@ -52,13 +52,13 @@ for training to be performed on all data from any data source, which can lead to
 performance.
 
 Alluxio also includes a FUSE interface for a convenient and familiar use experience. With [Alluxio
-FUSE]({{site.baseurl}}{% link en/api/Mounting-Alluxio-FS-with-FUSE.md %}), an Alluxio instance can
+FUSE]({{site.baseurl}}{% link en/api/FUSE-API.md %}), an Alluxio instance can
 be mounted to the local file system, so interacting with Alluxio is as simple as interacting with
 local files and directories. This enables users to continue to use familiar tools and paradigms to
 interact with their data. Since Alluxio can connect to multiple disparate storage, this means any
 data from any storage can look like a local file or directory.
 
-![Fuse]({{site.data.img.fuse}})
+![Fuse]({{site.baseurl}}{% link img/fuse.png %})
 
 Finally, Alluxio also provides [local caching]({{site.baseurl}}{% link
 en/advanced/Alluxio-Storage-Management.md %}) of frequently used data. This is particularly useful
@@ -69,7 +69,7 @@ data, so deep learning training can be more cost effective, and take less time.
 ## Setting up Alluxio FUSE
 
 In this section, we will follow the instructions in the
-[FUSE section]({{site.baseurl}}{% link en/api/Mounting-Alluxio-FS-with-FUSE.md %}) to setup FUSE,
+[FUSE section]({{site.baseurl}}{% link en/api/FUSE-API.md %}) to setup FUSE,
 access training data of ImageNet in S3, and allow deep learning frameworks to access the data
 through FUSE.
 

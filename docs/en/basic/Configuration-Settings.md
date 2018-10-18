@@ -13,7 +13,7 @@ An Alluxio cluster can be configured by setting the values of Alluxio
 {{ site.baseurl }}{% link en/reference/Properties-List.md %}). The two major components to configure
 are
 [Alluxio servers](#configure-alluxio-cluster) (masters and workers), and
-[Alluxio clients]((#configure-applications)) (part of applications).
+[Alluxio clients](#configure-applications) (part of applications).
 
 ## Configure Applications
 
@@ -217,7 +217,7 @@ remaining paths once this `alluxio-site.properties` file is found.
 configuration based on the cluster-wide default configuration served by the masters.
 
 If no above user-specified configuration is found for a property, Alluxio runtime will fallback to
-its [default property value](Configuration-Properties.html).
+its [default property value]({{site.baseurl}}{% link en/reference/Properties-List.md %}).
 
 To check the value of a specific configuration property and the source of its value, users can use
 the following commandline:

@@ -225,7 +225,7 @@ Alternatively, modify `conf/hive-site.xml` to have:
 
 > Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
  in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to
- Alluxio with high availability]({site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}#hdfs-api).
+ Alluxio with high availability]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}#Configure-Alluxio-Clients-for-HA).
 
 If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
 `zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`, it requires setting

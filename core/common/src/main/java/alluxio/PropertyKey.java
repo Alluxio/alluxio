@@ -1056,8 +1056,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_BIND_HOST =
       new Builder(Name.MASTER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname that Alluxio master binds to. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setDescription("The hostname that Alluxio master binds to.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
@@ -1420,8 +1419,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_WEB_BIND_HOST =
       new Builder(Name.MASTER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname Alluxio master web UI binds to. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setDescription("The hostname Alluxio master web UI binds to.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WEB_HOSTNAME =
@@ -1510,8 +1508,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BIND_HOST =
       new Builder(Name.WORKER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname Alluxio's worker node binds to. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setDescription("The hostname Alluxio's worker node binds to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -1556,8 +1553,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_DATA_BIND_HOST =
       new Builder(Name.WORKER_DATA_BIND_HOST)
           .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname that the Alluxio worker's data server runs on. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setDescription("The hostname that the Alluxio worker's data server runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2108,8 +2104,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_WEB_BIND_HOST =
       new Builder(Name.WORKER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname Alluxio worker's web server binds to. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setDescription("The hostname Alluxio worker's web server binds to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2203,8 +2198,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey PROXY_WEB_BIND_HOST =
       new Builder(Name.PROXY_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname that the Alluxio proxy's web server runs on. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setDescription("The hostname that the Alluxio proxy's web server runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
