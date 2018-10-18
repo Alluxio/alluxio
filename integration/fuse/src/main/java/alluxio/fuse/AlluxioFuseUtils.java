@@ -67,7 +67,7 @@ public final class AlluxioFuseUtils {
       result = ShellUtils.execCommand("bash", "-c", script).trim();
     }
     try {
-      return Long.valueOf(result);
+      return Long.parseLong(result);
     } catch (NumberFormatException e) {
       LOG.error("Failed to get gid from group name {}.", groupName);
       return -1;
