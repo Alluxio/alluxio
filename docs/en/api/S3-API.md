@@ -3,7 +3,7 @@ layout: global
 title: S3 API
 nickname: S3 API
 group: APIs
-priority: 0
+priority: 1
 ---
 
 * Table of Contents

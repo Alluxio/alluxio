@@ -2,11 +2,11 @@
 layout: global
 title: Overview
 group: Home
+priority: 0
 ---
 
 * Table of Contents
 {:toc}
-
 
 ## What is Alluxio
 
@@ -32,11 +32,9 @@ and also part of the [Fedora distribution](https://fedoraproject.org/wiki/SIGs/b
 Today, Alluxio is deployed in production by 100s organizations, and runs on clusters that exceed
 1,000 nodes.
 
-<div style="text-align:center">
-<span>
-<img alt="Alluxio Data Stack" src="{{site.baseurl}}{% link img/stack.png %}" width="800"/>
-</span>
-</div>
+<p align="center">
+<img src="{{site.baseurl}}{% link img/stack.png %}" width="800" alt="Ecosystem"/>
+</p>
 
 ## Benefits
 

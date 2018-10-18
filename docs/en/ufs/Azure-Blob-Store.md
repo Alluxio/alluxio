@@ -3,7 +3,7 @@ layout: global
 title: Azure Blob Store
 nickname: Azure Blob Store
 group: Under Stores
-priority: 0
+priority: 2
 ---
 
 * Table of Contents

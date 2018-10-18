@@ -1,8 +1,8 @@
 ---
 layout: global
-title: Configuring Alluxio with MapR-FS
-nickname: Alluxio with MapR-FS
-group: Under Store
+title: MapR-FS
+nickname: MapR-FS
+group: Under Stores
 priority: 10
 ---
 
@@ -64,9 +64,9 @@ Alluxio processes, this parameter can be set in the property file `alluxio-site.
 more information, please read about [configuration of Alluxio with property files]({% link
 en/basic/Configuration-Settings.md %}#property-files).
 
-## Configuring Alluxio to use MapR-FS as Under File System
+## Configuring Alluxio to use MapR-FS as Under Storage
 
-There are various ways to configure Alluxio to use MapR-FS as the Under File System. If you want to
+There are various ways to configure Alluxio to use MapR-FS as under storage. If you want to
 mount MapR-FS to the root of Alluxio, add the following to `conf/alluxio-site.properties`:
 
 ```properties

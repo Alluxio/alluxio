@@ -5,6 +5,7 @@ nickname: Alluxio on Vagrant
 group: Deploying Alluxio
 priority: 5
 ---
+
 * Table of Contents
 {:toc}
 
@@ -15,7 +16,8 @@ scripts let you create, configure, and destroy clusters that come automatically 
 with [Amazon EC2](https://ec2.amazon.com/) or with [Google Compute Engine](https:/cloud.google.com).
 
 ## Common Prerequisites
-There are several prerequisites for all three deployment scenarios that are suppported. 
+
+There are several prerequisites for all three deployment scenarios that are suppported.
 
 * Download and Install [Vagrant](https://www.vagrantup.com/downloads.html)
 * [Clone Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine
@@ -33,15 +35,15 @@ in `deploy/vagrant` run:
 $ sudo pip install -r pip-req.txt
 ```
 
-
 ## Deploy locally on Virtual Box
+
 ### Additional Prerequisites
 
 * Download and Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 
 ### Launch Cluster
 
-Now you can launch the Alluxio cluster with Hadoop as under filesystem by running the script under deploy/vagrant:
+Now you can launch the Alluxio cluster with Hadoop as under storage by running the script under deploy/vagrant:
 
 ```bash
 $ ./create <number of machines> vb
@@ -50,6 +52,7 @@ $ ./create <number of machines> vb
 Each node of the cluster runs an Alluxio worker, and the AlluxioMaster runs an Alluxio master.
 
 ### Access and Verify Cluster
+
 **Access through Web UI**
 
 After the command `./create <number of machines> vb` succeeds, you can see two green lines like
@@ -122,6 +125,7 @@ $ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dumm
 ```
 
 ### Launch Cluster
+
 To run an Alluxio cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/).
 
@@ -237,7 +241,9 @@ to destroy the cluster that you created. Only one cluster can be created at a ti
 command succeeds, the EC2 instances are terminated.
 
 ### Advanced Tips
+
 **Spot Instance**
+
 Using spot instances is a way to reduce EC2 cost. Spot instances are non-guaranteed instances which are priced with bidding.
 Note that spot instances may be taken away from you if someone bids more, and there are no more spot instances available.
 However, for short-term testing, spot instances are very appropriate, because it is rare that spot instances are taken from you.
@@ -253,7 +259,7 @@ console](http://aws.amazon.com/s3/), create a S3 bucket and write the bucket's n
 `S3:Bucket` in `conf/ufs.yml`. To use other under storage systems, configure the field `Type` and
 the corresponding configurations in `conf/ufs.yml`.
 
-Now you can launch the Alluxio cluster with your chosen under filesystem in your chosen availability zone by running
+Now you can launch the Alluxio cluster with your chosen under storage in your chosen availability zone by running
 the script under `deploy/vagrant`:
 
 ```bash
@@ -288,12 +294,12 @@ Next, you will need your JSON keys for your GCE project. Go to the
 [IAM & Admin](https://console.cloud.google.com/projectselector/iam-admin) page in the Console.
 
 If you are creating a new service account, make sure to check the option "Furnish a new private key"
-and the "JSON" key type, and the JSON key will be downloaded. 
+and the "JSON" key type, and the JSON key will be downloaded.
 Save the JSON key in a safe location.
 
 If you are using an existing service account, you should have already downloaded the JSON keys.
 If not, you can create a new JSON key for the existing service account (click on the 3 dots to the
-right, then "create key"), which will download the JSON key. 
+right, then "create key"), which will download the JSON key.
 Save the JSON key in a safe location.
 
 Using the [gcloud sdk](https://console.cloud.google.com) configure keys for ssh:
@@ -314,7 +320,7 @@ $ cp deploy/vagrant/conf/gce.yml.template deploy/vagrant/conf/gce.yml
 In the configuration file `deploy/vagrant/conf/gce.yml`, set the project id, service account,
 location to JSON key and ssh username you've just created.
 
-For GCE, the default underfs is Google Cloud Storage (GCS). Visit the
+For GCE, the default under storage is Google Cloud Storage (GCS). Visit the
 [Storage page](https://console.cloud.google.com/storage/) of the Google Cloud console, create a GCS
 bucket, and set the bucket's name to the field `GCS:Bucket` in `conf/ufs.yml`. To use other
 under storage systems, configure the field `Type` and the corresponding configurations in

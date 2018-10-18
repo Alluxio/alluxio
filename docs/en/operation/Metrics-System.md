@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Metrics System
+nickname: Metrics
 group: Operations
 priority: 0
 ---

@@ -65,7 +65,7 @@ $ bin/alluxio fsadmin backup
 
 By default, this will write a backup named
 `alluxio-journal-YYYY-MM-DD-timestamp.gz` to the "/alluxio_backups" directory of
-the root under file system, e.g. hdfs://cluster/alluxio_backups. This default
+the root under storage system, e.g. hdfs://cluster/alluxio_backups. This default
 backup directory can be configured by setting `alluxio.master.backup.directory`
 
 ```
@@ -91,13 +91,13 @@ The `<backup_uri>` should be a full URI path that is available to all masters, e
 `hdfs://[namenodeserver]:[namenodeport]/alluxio_backups/alluxio-journal-YYYY-MM-DD-timestamp.gz`
 
 If starting up masters individually, pass the `-i` argument to each one. The master which
-becomes primary first will import the journal backup, and the rest will ignore the `-i`.
+becomes leader first will import the journal backup, and the rest will ignore the `-i`.
 
 If the restore succeeds, you should see a log message along the lines of
 ```
 INFO AlluxioMasterProcess - Restored 57 entries from backup
 ```
-in the primary master logs.
+in the leader master logs.
 
 ### Changing masters
 
@@ -114,7 +114,7 @@ copied to the new master.
 
 When running with a single master, the journal folder size will grow indefinitely
 as metadata operations are written to journal log files. To address this, production
-deployments should run in HA mode with multiple Alluxio masters. The non-primary
+deployments should run in HA mode with multiple Alluxio masters. The standby
 masters will create checkpoints of the master state and clean up the logs that
 were written prior to the checkpoints. For example, if 3 million alluxio files were
 created and then 2 million were deleted, the journal logs would contain 5 million
@@ -124,11 +124,11 @@ metadata for the 1 million remaining files, and the original 5 million entries w
 By default, checkpoints are automatically taken every 2 million entries. This can be configured by
 setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setting
 the value lower will reduce the amount of disk space needed by the journal at the
-cost of additional work for the secondary masters.
+cost of additional work for the standby masters.
 
 If HA mode is not an option, it is possible to run a master on the same node as a
 dedicated secondary master. The second master exists only to write checkpoints, and
-will not serve client requests if the primary master dies. In this setup, both
+will not serve client requests if the leader master dies. In this setup, both
 masters have similar memory requirements since they both need to hold all Alluxio
 metadata in memory. To start a dedicated secondary master for writing periodic checkpoints,
 run

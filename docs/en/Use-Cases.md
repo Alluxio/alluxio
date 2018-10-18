@@ -2,11 +2,11 @@
 layout: global
 title: Use Cases
 group: Home
+priority: 1
 ---
 
 * Table of Contents
 {:toc}
-
 
 Here is a description of a few common use cases of Alluxio.
 

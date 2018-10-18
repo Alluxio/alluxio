@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Admin Command Line Interface
+nickname: Admin CLI
 group: Operations
 priority: 0
 ---
@@ -37,7 +38,7 @@ Back up to a specific directory in the under storage.
 $ ./bin/alluxio fsadmin backup /alluxio/special_backups
 Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
 ```
-Back up to a specific directory on the primary master's local filesystem.
+Back up to a specific directory on the leader master's local filesystem.
 ```
 $ ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
 Successfully backed up journal to file:///opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
@@ -54,7 +55,7 @@ $ ./bin/alluxio fsadmin doctor configuration
 
 ### report
 
-The `report` command provides Alluxio running cluster information. 
+The `report` command provides Alluxio running cluster information.
 
 If no argument is passed in, `report` will report the leader master, worker number, and capacity information.
 
@@ -70,10 +71,10 @@ Alluxio cluster summary:
     (only a subset of the results is shown)
 ```
 
-`report capacity` will report Alluxio cluster capacity information for different subsets of workers: 
+`report capacity` will report Alluxio cluster capacity information for different subsets of workers:
 * `-live` Live workers
 * `-lost` Lost workers
-* `-workers <worker_names>` Specified workers, host names or ip addresses separated by `,`. 
+* `-workers <worker_names>` Specified workers, host names or ip addresses separated by `,`.
 
 ```bash
 # Capacity information of all workers
@@ -90,11 +91,11 @@ $ ./bin/alluxio fsadmin report capacity -workers AlluxioWorker1,127.0.0.1
 $ ./bin/alluxio fsadmin report metrics
 ```
 
-`report ufs` will report all the mounted under file system information of Alluxio cluster.
+`report ufs` will report all the mounted under storage system information of Alluxio cluster.
 
 ```bash
-$ ./bin/alluxio fsadmin report ufs 
-Alluxio under filesystem information:
+$ ./bin/alluxio fsadmin report ufs
+Alluxio under storage system information:
 hdfs://localhost:9000/ on / (hdfs, capacity=-1B, used=-1B, not read-only, not shared, properties={})
 ```
 

@@ -6,19 +6,19 @@ group: Compute
 priority: 2
 ---
 
-* Table of Contents
-{:toc}
-
 This guide describes how to run [Apache HBase](http://hbase.apache.org/), so
 that you can easily store HBase tables into Alluxio at various storage levels.
+
+* Table of Contents
+{:toc}
 
 ## Prerequisites
 
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
-This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball 
+This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
 downloaded from Alluxio [download page](http://www.alluxio.org/download).
-Alternatively, advanced users can compile this client jar from the source code 
+Alternatively, advanced users can compile this client jar from the source code
 by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
 * [Deploy HBase](https://hbase.apache.org/book.html#configuration)
 Please follow this guides for setting up HBase.
@@ -122,7 +122,7 @@ After this mapreduce job finishes, you can see a result like this:
 
 ### Alluxio in HA mode
 
-When Alluxio is running in fault tolerant mode, change the `hbase.rootdir` property in `conf/hbase-site.xml` 
+When Alluxio is running in fault tolerant mode, change the `hbase.rootdir` property in `conf/hbase-site.xml`
 to include Zookeeper information.
 
 ```xml
@@ -146,7 +146,7 @@ change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE
 
 ### Alternative way to distribute the Alluxio Client jar
 
-Instead of specifying the location of the jar file in the `$HBASE_CLASSPATH` environment variable, 
+Instead of specifying the location of the jar file in the `$HBASE_CLASSPATH` environment variable,
 users could copy the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase
 (make sure it's available on all cluster nodes).
 

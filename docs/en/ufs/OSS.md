@@ -1,8 +1,8 @@
 ---
 layout: global
-title: Configuring Alluxio with OSS
-nickname: Alluxio with OSS
-group: Under Store
+title: Aliyun Object Storage Service
+nickname: Aliyun Object Storage Service
+group: Under Stores
 priority: 10
 ---
 

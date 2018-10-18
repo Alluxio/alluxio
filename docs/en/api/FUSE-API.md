@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Mounting Alluxio with FUSE
-nickname: Alluxio-FUSE
+title: FUSE-based POSIX API
+nickname: POSIX API
 group: APIs
-priority: 7
+priority: 3
 ---
 
 * Table of Contents

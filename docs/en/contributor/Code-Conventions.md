@@ -17,7 +17,6 @@ We greatly appreciate any contribution; whether new features or bug fixes.
 > [Contribution Guide]({{site.baseurl}}{% link en/contributor/Contributor-Getting-Started.md %}) and
 > finish a new contributor task before making more advanced changes to Alluxio.
 
-
 ## Submitting Code
 
 - We encourage you to break your work into small, single-purpose patches if possible. It is much
@@ -211,7 +210,7 @@ part of the public API and should not care about implementation details. Tests s
 on testing only one thing.
 
 4. Give your test a name that describes what functionality it's testing. The functionality being
-tested should ideally be simple enough to fit into a name, e.g. 
+tested should ideally be simple enough to fit into a name, e.g.
 `removeNonexistentBlockThrowsException`, `mkdirCreatesDirectory`, or `cannotMkdirExistingFile`.
 
 ```java

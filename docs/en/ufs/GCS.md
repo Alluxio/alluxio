@@ -1,9 +1,9 @@
 ---
 layout: global
 title: Google Cloud Storage
-nickname: GCS
+nickname: Google Cloud Storage
 group: Under Stores
-priority: 0
+priority: 2
 ---
 
 * Table of Contents

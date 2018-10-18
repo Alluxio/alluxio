@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Under Storage Extensions
-nickname: UFS Extensions
+title: Third-party Under Storage Extensions
+nickname: Third-party UFS
 group: Under Stores
-priority: 1
+priority: 100
 ---
 
 * Table of Contents
@@ -23,8 +23,8 @@ can be used to enable Alluxio to work with new storage systems which may not hav
 Following is a list of under storage extension projects:
 
 - [S3N](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/s3n)
-- [GlusterFS](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/glusterfs) 
-- [OBS](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs) 
+- [GlusterFS](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/glusterfs)
+- [OBS](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs)
 
 ## Managing Extensions
 

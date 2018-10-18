@@ -6,7 +6,6 @@ group: Advanced
 priority: 0
 ---
 
-
 * Table of Contents
 {:toc}
 
@@ -51,7 +50,7 @@ Replicas of data within Alluxio are independent of the replicas which may exist 
 number of data replicas within Alluxio storage is determined dynamically by cluster activity. It is
 also possible to have zero copies of a file within Alluxio, but still have access to it. Due to the
 fact that Alluxio relies on UFSs for a majority of data storage, Alluxio doesn't need to always
-keep copies of data that aren't currently being used. 
+keep copies of data that aren't currently being used.
 
 Alluxio also supports tiered storage, which makes the system storage media aware, enabling data
 storage optimizations similar to L1/L2 cpu caches.
@@ -478,7 +477,7 @@ $ ./bin/alluxio fs getCapacityBytes
 
 To determine the percentage of used space you can do `100 * (getUsedBytes/getCapacityBytes)`.
 Another option to view the storage capacity and usage of an Alluxio cluster is by using the web
-interface which can be found at `http:/{MASTER_IP}:${alluxio.master.web.port}/
+interface which can be found at `http:/{MASTER_IP}:${alluxio.master.web.port}/`
 
 The Alluxio master web interface gives the user a visual overview of the cluster and how much
 storage space is used. More detailed information about the Alluxio web interface can be

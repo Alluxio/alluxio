@@ -1,8 +1,8 @@
 ---
 layout: global
-title: Configuring Alluxio with OBS
-nickname: Alluxio with OBS
-group: Under Store
+title: OBS
+nickname: OBS
+group: Under Stores
 priority: 10
 ---
 

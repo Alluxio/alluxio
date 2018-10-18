@@ -6,14 +6,12 @@ group: Contributor Resources
 priority: 1
 ---
 
-* Table of Contents
-{:toc}
-
-## Introduction
-
 We warmly welcome you to the Alluxio community. We are excited for your contributions and
 engagement with our project! This guide aims to give you step by step instructions on how
 to get started becoming a contributor to the Alluxio open source project.
+
+* Table of Contents
+{:toc}
 
 ## Prerequisites
 
@@ -43,7 +41,7 @@ contributions. You can check this in [your profile email settings](https://githu
 #### Jira Account
 
 The [Alluxio open source project uses JIRA](https://alluxio.atlassian.net/projects/ALLUXIO/issues)
-to track features, bugs, and issues. Please 
+to track features, bugs, and issues. Please
 [create an Alluxio JIRA account](https://alluxio.atlassian.net/admin/users/sign-up) in order to
 open tickets, track tickets, and provide fixes for tickets. If you are unable to create a JIRA
 account through the portal, please send a message to jira-admin@alluxio.org in the following

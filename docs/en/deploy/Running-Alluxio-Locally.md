@@ -6,6 +6,8 @@ group: Deploying Alluxio
 priority: 1
 ---
 
+This guide goes over how to run and test Alluxio on your local machine.
+
 * Table of Contents
 {:toc}
 

@@ -3,7 +3,7 @@ layout: global
 title: Frequently Asked Questions
 nickname: FAQ
 group: Home
-priority: 0
+priority: 10
 ---
 
 * Table of Contents

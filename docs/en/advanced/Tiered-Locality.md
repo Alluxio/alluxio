@@ -11,10 +11,10 @@ priority: 1
 
 Alluxio's tiered locality feature enables applications to make intelligent, topology-based decisions
 about which Alluxio workers to read from and write to.
-For an application running on `host1`, reading data from an Alluxio worker on `host1` is more efficient 
+For an application running on `host1`, reading data from an Alluxio worker on `host1` is more efficient
 than reading from a worker on `host2`. Similarly, reading from a worker on the same rack or in the same
 datacenter is faster than reading from a worker on a different rack or different datacenter. You can take
-advantage of these various levels of locality by configuring your servers and clients with network 
+advantage of these various levels of locality by configuring your servers and clients with network
 topology information.
 
 ## Tiered Identity
@@ -24,7 +24,7 @@ identity is an address tuple such as **`(node=node_name, rack=rack_name, datacen
 Each pair in the tuple is called a *locality tier*.
 Alluxio clients favor reading from and writing to workers that are "more local". For example, if a client has
 identity **`(node=A, rack=rack1, datacenter=dc1)`**, it will prefer to read from a worker at
-**`(node=B, rack=rack1, datacenter=dc1)`** over a worker at **`(node=C, rack=rack2, datacenter=dc1)`** because 
+**`(node=B, rack=rack1, datacenter=dc1)`** over a worker at **`(node=C, rack=rack2, datacenter=dc1)`** because
 node `B` is on the same rack as the client, and node `C` is on a different rack.
 
 ## Basic Setup
@@ -36,22 +36,22 @@ To configure tiered locality, follow these steps:
    for each entity. The output format is a comma-separated list of `tierName=tierValue pairs`.
    ```
    #!/bin/bash
-  
+
    node=$(hostname)
    # Ask EC2 which availability zone we're in
    availability_zone=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
-   
+
    echo "node=${node},availability_zone=${availability_zone}"
    ```
-  
+
 1. Make the script executable with `chmod +x alluxio-locality.sh`.
 
 1. Include the script on the classpath of your applications and Alluxio servers. For servers,
    you can put the file in the `conf` directory.
-  
+
 1. On the Alluxio master(s), set `alluxio.locality.order=node,availability_zone` to define the order
    of locality tiers.
-  
+
 1. Restart Alluxio servers to pick up the configuration changes.
 
 To verify that the configuration is working, check the master, worker, and application logs. You
@@ -61,7 +61,7 @@ should see a line like
 INFO  TieredIdentityFactory - Initialized tiered identity TieredIdentity(node=ip-xx-xx-xx-xx, availability_zone=us-east-1)
 ```
 
-If you're having problems, try running your locality script directly to check its output, and make sure 
+If you're having problems, try running your locality script directly to check its output, and make sure
 it is executable by the user running the Alluxio servers.
 
 ## Advanced
