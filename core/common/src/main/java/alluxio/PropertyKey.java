@@ -458,7 +458,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORK_DIR)
           .setDefaultValue(String.format("${%s}", Name.HOME))
           .setDescription("The directory to use for Alluxio's working directory. By default, "
-              + "the journal, logs, and under file system data (if using local filesystem) "
+              + "the journal, logs, and under file storage data (if using local filesystem) "
               + "are written here.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -513,7 +513,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_ADDRESS =
       new Builder(Name.UNDERFS_ADDRESS)
           .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
-          .setDescription("Alluxio directory in the under file system.")
+          .setDescription("Under file storage address. This property is deprecated; "
+              + "use alluxio.master.mount.table.root.ufs instead")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
@@ -528,7 +529,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_CLEANUP_ENABLED =
       new Builder(Name.UNDERFS_CLEANUP_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether or not to clean up under filesystem periodically."
+          .setDescription("Whether or not to clean up under file storage periodically."
               + "Some ufs operations may not be completed and cleaned up successfully "
               + "in normal ways and leave some intermediate data that needs periodical cleanup."
               + "If enabled, all the mount points will be cleaned up when a leader master starts "
@@ -540,7 +541,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_CLEANUP_INTERVAL)
           .setDefaultValue("1day")
           .setDescription("The interval for periodically cleaning all the "
-              + " mounted under filesystem.")
+              + " mounted under file storages.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();

@@ -113,7 +113,7 @@ $ cd ${ALLUXIO_HOME}
 $ mvn test
 ```
 
-This will use the local filesystem as the under filesystem.
+This will use the local filesystem as the under storage.
 
 - Run a single unit test:
 
@@ -131,14 +131,14 @@ $ mvn test -pl underfs/hdfs
 Run unit tests for HDFS UFS module with a different Hadoop version:
 
 ```bash
-# build and run test on HDFS under filesystem module for Hadoop 2.7.0
+# build and run test on HDFS under storage module for Hadoop 2.7.0
 $ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
-# build and run test on HDFS under filesystem module for Hadoop 3.0.0
+# build and run test on HDFS under storage module for Hadoop 3.0.0
 $ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 ```
 
 The above unit tests will create a simulated HDFS service with the specific version.
-To run more comprehensive tests on HDFS under filesystem using a real and running HDFS deployment:
+To run more comprehensive tests on HDFS under storage using a real and running HDFS deployment:
 
 ```bash
 $ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
