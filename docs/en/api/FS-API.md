@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Filesystem API
-nickname: FS API
+nickname: Filesystem API
 group: APIs
 priority: 0
 ---
