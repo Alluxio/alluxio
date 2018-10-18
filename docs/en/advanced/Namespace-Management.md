@@ -6,13 +6,17 @@ group: Advanced
 priority: 0
 ---
 
+This page summarizes how to manage different under storage systems (or UFS as mentioned in this 
+page) in Alluxio namespace through mounting API and achieve transparent naming, and how to keep the 
+files in sync. 
+
 * Table of Contents
 {:toc}
 
-# Introduction
+## Introduction
 Alluxio enables effective data management across different storage systems through its use of transparent naming and mounting API.
 
-## Unified namespace
+### Unified namespace
 One of the key benefit that Alluxio provides is a unified namespace to the applications.
 This is an abstraction that allows applications to access multiple independent storage systems through the same name space and interface.
 Applications simply communicate with Alluxio and Alluxio interacts with the different underlying storage systems.
@@ -38,13 +42,13 @@ mount(new AlluxioURI("alluxio://host:port/Data"), new AlluxioURI("s3a://bucket/d
 ```
 
 
-## UFS namespace
+### UFS namespace
 In addition to the unified namespace Alluxio provides, each underlying file system that is mounted in Alluxio namespace has its own namespace.
 We call this the UFS namespace. In the example provided above, we have two UFS namespaces, one for the S3 under storage and one for the HDFS under storage. 
 When the user changes the file in the UFS namespace without going through Alluxio, the UFS namespace and the Alluxio namespace can potentially get out of sync.
 When this happens, a [UFS Metadata Sync](#Ufs-Metadata-Sync) operation is required to synchronize between the Alluxio namespace and the UFS namespace. 
  
-## Transparent Naming
+### Transparent Naming
 
 Transparent naming maintains an identity between the Alluxio namespace and the underlying storage
 system namespace.
@@ -67,11 +71,11 @@ open a file). The data of the file is not loaded to Alluxio during this process.
 Alluxio, one can read the data using `FileInStream` or use the `load` command of the Alluxio shell.
 
 
-# Mounting Under File System (UFS)
+## Mounting Under Storage Systems
 Mounting in Alluxio works similarly to mounting a volume in a Linux file system.
 The mount command attaches a UFS to the file system tree in the Alluxio namespace. 
 
-## Root Mount Point
+### Root Mount Point
 The root mount point of the Alluxio namespace can be specified by adding the following line to the configuration file in `conf/alluxio-site.properties`.
 Below is an example of configuration having an HDFS path to be the root of Alluxio namespace.
 
@@ -101,20 +105,19 @@ alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.impersonati
 alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.version=hdp-2.6
 ```
 
-## Nested Mount Points
+### Nested Mount Points
 In addition to the root mount point, other under filesystems can be mounted into Alluxio namespace by using the mount command. Using the `--option` flag, the user can pass additional parameters to the mount operation, such as credentials for S3 storage. 
 
 ```bash
 $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
 $ ./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId> --option aws.secretKey=<secretKey>
   /mnt/s3 s3a://data-bucket/
-
 ```
 
 The result of this mount command is that the ufs path will be attached to the Alluxio namespace at the designated location.
 Note that mount points can be nested as well. For example, we can mount one UFS at  `alluxio:///path1`, and then mount another UFS at  `alluxio:///path1/path2`
 
-# Relationship Between Alluxio Namespace and UFS Namespace
+## Relationship Between Alluxio and UFS Namespace
 Alluxio provides a unified namespace, acting like a cache for data in one or more
 under file storage (UFS) systems. This section discusses how Alluxio interacts with
 UFSes to discover UFS files and make them available through Alluxio.
@@ -138,7 +141,7 @@ changes go through Alluxio, this has no user-facing impact.
 However, it is sometimes necessary for Alluxio to handle out of band UFS changes.
 That is where the metadata sync feature comes into play.
 
-## UFS Metadata Sync
+### UFS Metadata Sync
 
 > The UFS metadata sync feature has been available since version `1.7.0`.
 
@@ -164,18 +167,20 @@ re-load the metadata for the updated file. If a file is deleted in the UFS, Allu
 will delete the file from Alluxio's namespace as well. Lastly, Alluxio will detect
 newly added files and make them available to Alluxio clients.
 
-## Techniques for managing UFS sync
+### Techniques for managing UFS sync
 
-### Daily Metadata Sync
+#### Daily Metadata Sync
 
 If your UFS is only updated once a day, you can run
 
-`alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0 /`
+```bash
+$ alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0
+```
 
 after the update, then use the default `-1` for the rest of the day to avoid calls
 to the UFS.
 
-### Centralized Configuration
+#### Centralized Configuration
 
 For clusters where the UFS is often changing and jobs needs to see the updates,
 it can be inconvenient for every client to need to specify a sync interval. To
@@ -188,26 +193,28 @@ In masters' `alluxio-site.properties`:
 
 Note that master needs to be restarted to pick up configuration changes.
 
-## Other Methods for Loading New UFS Files
+### Other Methods for Loading New UFS Files
 
 The UFS sync discussed previously is the recommended method for loading files from
 the UFS. There are a couple other methods mentioned here for completeness.
 
-`alluxio.user.file.metadata.load.type`: This property can be set to either
+* `alluxio.user.file.metadata.load.type`: This property can be set to either
 `ALWAYS`, `ONCE`, or `NEVER`. It acts similar to
-`alluxio.user.file.metadata.sync.interval`, but with two caveats: (1) It only
+`alluxio.user.file.metadata.sync.interval`, but with two caveats: 
+    1. It only
 discovers new files, and doesn't re-load UFS-modified files or remove UFS-deleted
-files, and (2) it only applies to the `exists`, `list`, and `getStatus` RPCs.
+files, and 
+    1. it only applies to the `exists`, `list`, and `getStatus` RPCs.
 `ALWAYS` will always check the UFS for new files, `ONCE` will use the default
 behavior of only scanning each directory once ever, and `NEVER` will prevent Alluxio
 from scanning for new files at all.
 
-`alluxio fs ls -f /path`: The `-f` option to `ls` acts the same as setting
+* `alluxio fs ls -f /path`: The `-f` option to `ls` acts the same as setting
 `alluxio.user.file.metadata.load.type` to `ALWAYS`. It discovers new files, but
 doesn't detect modified or deleted UFS files. For that, instead pass the
 `-Dalluxio.user.file.metadata.sync.interval=0` option to `ls`.
 
-# Examples
+## Examples
 
 The following examples assume that Alluxio source code
 exists in the `${ALLUXIO_HOME}` directory and that there is an instance of Alluxio running locally.
@@ -320,4 +327,5 @@ $ bin/alluxio fs ls -R /
 
 ## Resources
 
-[Unified Namespace Blog Post](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
+- A blog post explaining [Unified Namespace](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
+- A blog post on [Optimizations to speed up metadata operations](https://www.alluxio.com/blog/how-to-speed-up-alluxio-metadata-operations-up-to-100x)

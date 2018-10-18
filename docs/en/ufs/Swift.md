@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Configuring Alluxio with Swift
-nickname: Alluxio with Swift
+title: Swift
+nickname: Swift
 group: Under Stores
 priority: 10
 ---

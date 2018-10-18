@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Under Storage Extensions
-nickname: UFS Extensions
+title: Third-party Under Storage Extensions
+nickname: Third-party UFS
 group: Under Stores
 priority: 100
 ---

@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Configuring Alluxio with GlusterFS
-nickname: Alluxio with GlusterFS
+title: GlusterFS
+nickname: GlusterFS
 group: Under Stores
 priority: 10
 ---

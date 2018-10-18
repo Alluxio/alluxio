@@ -2,6 +2,7 @@
 layout: global
 title: Architecture and Data Flow
 group: Home
+priority: 2
 ---
 
 * Table of Contents
@@ -42,11 +43,15 @@ the components a system admin would maintain and manage. The clients are used to
 talk to Alluxio servers by the applications, such as Spark or MapReduce jobs,
 Alluxio command-line, or the FUSE layer.
 
-![Architecture overview]({{ site.baseurl }}/img/architecture-overview.png)
+<p align="center">
+<img src="{{site.baseurl}}{% link img/architecture-overview.png %}" alt="Architecture overview"/>
+</p>
 
 ### Master
 
-![Alluxio master]({{ site.baseurl }}/img/architecture-master.png)
+<p align="center">
+<img src="{{site.baseurl}}{% link img/architecture-master.png %}" alt="Alluxio master"/>
+</p>
 
 Alluxio master service can be deployed as one leader master and several standby
 masters for fault tolerance. When the leader master goes down, a standby master
@@ -74,7 +79,9 @@ Alluxio components.
 
 ### Worker
 
-![Alluxio worker]({{ site.baseurl }}/img/architecture-worker.png)
+<p align="center">
+<img src="{{site.baseurl}}{% link img/architecture-worker.png %}" alt="Alluxio worker"/>
+</p>
 
 Alluxio workers are responsible for managing user-configurable local resources
 allocated to Alluxio (e.g. memory, SSDs, HDDs etc.). Alluxio workers store data
@@ -144,7 +151,9 @@ addition to memory, so local data access speed may vary depending on the local
 storage media. To learn more about this topic, please refer to the
 [tiered storage document]({{ site.baseurl }}{% link en/advanced/Alluxio-Storage-Management.md %}#multiple-tier-storage).
 
-![Data Flow of Read from a Local Worker]({{ site.baseurl }}/img/dataflow-local-cache-hit.gif)
+<p align="center">
+<img src="{{site.baseurl}}{% link img/dataflow-local-cache-hit.gif %}" alt="Data Flow of Read from a Local Worker"/>
+</p>
 
 #### Remote Cache Hit
 
@@ -158,7 +167,9 @@ reading from remote workers over reading from under storage because the network
 speed between Alluxio workers is typically faster than the speed between Alluxio
 workers and the under storage.
 
-![Data Flow of Read from a Remote Worker]({{ site.baseurl }}/img/dataflow-remote-cache-hit.gif)
+<p align="center">
+<img src="{{site.baseurl}}{% link img/dataflow-remote-cache-hit.gif %}" alt="Data Flow of Read from a Remote Worker"/>
+</p>
 
 #### Cache Misses
 
@@ -181,7 +192,9 @@ once. Partial caching is not on the critical path, but may still impact
 performance if the network bandwidth between Alluxio and the under storage
 system is a bottleneck.
 
-![Cache Miss data flow]({{ site.baseurl }}/img/dataflow-cache-miss.gif)
+<p align="center">
+<img src="{{site.baseurl}}{% link img/dataflow-cache-miss.gif %}" alt="Cache Miss data flow"/>
+</p>
 
 #### Cache Skipped
 
@@ -212,7 +225,9 @@ under storage, data can be lost if the machine crashes or data needs to be freed
 up for newer writes. As a result, the `MUST_CACHE` setting is useful for writing
 temporary data when data loss can be tolerated.
 
-![MUST_CACHE data flow]({{ site.baseurl }}/img/dataflow-must-cache.gif)
+<p align="center">
+<img src="{{site.baseurl}}{% link img/dataflow-must-cache.gif %}" alt="MUST_CACHE data flow"/>
+</p>
 
 #### Write through to UFS (`CACHE_THROUGH`)
 
@@ -225,7 +240,9 @@ match the write speed of the under storage. The `CACHE_THROUGH` write type is
 recommended when data persistence is required. A local copy is also written, so
 any future reads of the data can be served from local memory directly.
 
-![CACHE_THROUGH data flow]({{ site.baseurl }}/img/dataflow-cache-through.gif)
+<p align="center">
+<img src="{{site.baseurl}}{% link img/dataflow-cache-through.gif %}" alt="CACHE_THROUGH data flow"/>
+</p>
 
 #### Write back to UFS (`ASYNC_THROUGH`)
 
@@ -234,4 +251,6 @@ data is written synchronously to an Alluxio worker and asynchronously to the
 under storage system. `ASYNC_THROUGH` can provide data write at memory speed
 while still persisting the data.
 
-![ASYNC_THROUGH data flow]({{ site.baseurl }}/img/dataflow-async-through.gif)
+<p align="center">
+<img src="{{site.baseurl}}{% link img/dataflow-async-through.gif %}" alt="ASYNC_THROUGH data flow"/>
+</p>

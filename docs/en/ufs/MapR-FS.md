@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Configuring Alluxio with MapR-FS
-nickname: Alluxio with MapR-FS
+title: MapR-FS
+nickname: MapR-FS
 group: Under Stores
 priority: 10
 ---
