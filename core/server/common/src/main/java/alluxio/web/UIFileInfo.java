@@ -39,7 +39,7 @@ public final class UIFileInfo {
    * Provides ordering of {@link UIFileInfo} based off a string comparison of the
    * absolute paths.
    */
-  public static final Ordering<UIFileInfo> PATH_STRING_COMPARE = 
+  public static final Ordering<UIFileInfo> PATH_STRING_COMPARE =
       Ordering.natural().onResultOf(
           (Function<UIFileInfo, Comparable<String>>) input -> input.mAbsolutePath);
 
