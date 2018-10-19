@@ -114,7 +114,7 @@ hive> select * from u_user;
 
 And you can see the query results from console:
 
-![HiveQueryResult]({{ site.baseurl }}/img/screenshot_hive_query_result.png)
+![HiveQueryResult]({{ site.baseurl }}{% link img/screenshot_hive_query_result.png %})
 
 ## Example: Serve Existing Tables Stored in HDFS from Alluxio
 

@@ -79,7 +79,7 @@ site.baseurl }}{% link en/advanced/Alluxio-Storage-Management.md %}) for more de
 
 1. **Global Namespace**: A single point of access to multiple independent storage systems regardless
 of physical location. Alluxio provides a unified view of all data sources and a standard interface
-for applications.  See [Namespace Management]({{ site.baseur4l }}{% link
+for applications.  See [Namespace Management]({{ site.baseurl }}{% link
 en/advanced/Namespace-Management.md %}) for more details.
 
 1. **Server-Side API Translation**: Alluxio transparently converts from a standard client-side

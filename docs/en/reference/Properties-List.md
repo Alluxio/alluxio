@@ -45,7 +45,7 @@ the port number.
   </tr>
 {% endfor %}
 </table>
- 
+
 ## Worker Configuration
 
 The worker configuration specifies information regarding the worker nodes, such as the address and
@@ -61,7 +61,6 @@ the port number.
   </tr>
 {% endfor %}
 </table>
-
 
 ## User Configuration
 

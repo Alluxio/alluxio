@@ -256,7 +256,7 @@ Suspected configuration errors are reported through the web UI, `doctor` CLI, an
 
 The web UI shows the result of the server configuration check.
 
-![webUi]({{ site.baseurl }}/img/screenshot_configuration_checker_webui.png)
+![webUi]({{ site.baseurl }}{% link img/screenshot_configuration_checker_webui.png %})
 
 Users can also run the `fsadmin doctor` command to get the same results.
 
@@ -266,4 +266,4 @@ $ bin/alluxio fsadmin doctor configuration
 
 Configuration warnings can also be seen in the master logs.
 
-![masterLogs]({{ site.baseurl }}/img/screenshot_configuration_checker_masterlogs.png)
+![masterLogs]({{ site.baseurl }}{% link img/screenshot_configuration_checker_masterlogs.png %})
