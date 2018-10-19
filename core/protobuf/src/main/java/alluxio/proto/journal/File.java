@@ -48,12 +48,7 @@ public final class File {
       return internalValueMap;
     }
     private static com.google.protobuf.Internal.EnumLiteMap<PTtlAction>
-        internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<PTtlAction>() {
-            public PTtlAction findValueByNumber(int number) {
-              return PTtlAction.valueOf(number);
-            }
-          };
+        internalValueMap = PTtlAction::valueOf;
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
