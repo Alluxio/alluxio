@@ -48,12 +48,7 @@ public final class File {
       return internalValueMap;
     }
     private static com.google.protobuf.Internal.EnumLiteMap<PTtlAction>
-        internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<PTtlAction>() {
-            public PTtlAction findValueByNumber(int number) {
-              return PTtlAction.valueOf(number);
-            }
-          };
+        internalValueMap = PTtlAction::valueOf;
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
@@ -157,8 +152,13 @@ public final class File {
       return internalValueMap;
     }
     private static com.google.protobuf.Internal.EnumLiteMap<SetAclAction>
-        internalValueMap = PTtlAction::valueOf;
-d
+        internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<SetAclAction>() {
+            public SetAclAction findValueByNumber(int number) {
+              return SetAclAction.valueOf(number);
+            }
+          };
+
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
@@ -21533,3 +21533,4 @@ d
 
   // @@protoc_insertion_point(outer_class_scope)
 }
+
