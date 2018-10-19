@@ -157,13 +157,8 @@ public final class File {
       return internalValueMap;
     }
     private static com.google.protobuf.Internal.EnumLiteMap<SetAclAction>
-        internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<SetAclAction>() {
-            public SetAclAction findValueByNumber(int number) {
-              return SetAclAction.valueOf(number);
-            }
-          };
-
+        internalValueMap = PTtlAction::valueOf;
+d
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
