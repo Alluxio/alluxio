@@ -23,7 +23,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.Mode;
-import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -67,9 +66,10 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
+
   private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
-  private final boolean mIsShellGroupMapping;
+  private final boolean mIsUserGroupTranslation;
 
   private final FileSystem mFileSystem;
   // base path within Alluxio namespace that is used for FUSE operations
@@ -98,8 +98,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     mOpenFiles = new HashMap<>();
 
     final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
-    mIsShellGroupMapping = ShellBasedUnixGroupsMapping.class.getName()
-        .equals(Configuration.get(PropertyKey.SECURITY_GROUP_MAPPING_CLASS));
+    mIsUserGroupTranslation
+        = Configuration.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
@@ -131,29 +131,32 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Changes the owner of an Alluxio file.
+   * Changes the user and group ownership of an Alluxio file.
+   * This operation only works when the user group translation is enabled in Alluxio-Fuse.
    *
-   * This operation only works when the group mapping service is shelled based and the user is
-   * registered in unix. Otherwise it errors as not implemented. This is because the input uid and
-   * gid must match the user and group in Unix.
+   * @param path the path of the file
+   * @param uid the uid to change to
+   * @param gid the gid to change to
+   * @return 0 on success, a negative value on error
    */
   @Override
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
-    if (!mIsShellGroupMapping) {
-      LOG.info("Cannot change the owner of path {} because the group mapping is not shell based",
-          path);
-      // not supported if the group mapping is not shell based
+    if (!mIsUserGroupTranslation) {
+      LOG.info("Cannot change the owner of path {}. Please set {} to be true to enable "
+          + "user group translation in Alluxio-Fuse.",
+          path, PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED.getName());
       return -ErrorCodes.ENOSYS();
     }
     try {
       String userName = AlluxioFuseUtils.getUserName(uid);
-      String groupName = AlluxioFuseUtils.getGroupName(uid);
+      String groupName = AlluxioFuseUtils.getGroupName(gid);
+      // Uid and gid should exist in the unix to get valid user name and group name
       if (userName.isEmpty()) {
         LOG.error("Failed to get user name from uid {}", uid);
         return -ErrorCodes.EFAULT();
       }
       if (groupName.isEmpty()) {
-        LOG.error("Failed to get group name from uid {}", uid);
+        LOG.error("Failed to get group name from gid {}.", gid);
         return -ErrorCodes.EFAULT();
       }
       SetAttributeOptions options =
@@ -279,12 +282,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      // for shell-based group mapping, use the uid and gid of the corresponding user registered in
-      // unix; otherwise use uid and gid of the user running alluxio-fuse
-      if (mIsShellGroupMapping) {
-        String owner = status.getOwner();
-        stat.st_uid.set(AlluxioFuseUtils.getUid(owner));
-        stat.st_gid.set(AlluxioFuseUtils.getGid(owner));
+      if (mIsUserGroupTranslation) {
+        // Translate the file owner/group to unix uid/gid
+        // Show as uid==-1 (nobody) if owner does not exist in unix
+        // Show as gid==-1 (nogroup) if group does not exist in unix
+        stat.st_uid.set(AlluxioFuseUtils.getUid(status.getOwner()));
+        stat.st_gid.set(AlluxioFuseUtils.getGidFromGroupName(status.getGroup()));
       } else {
         stat.st_uid.set(UID);
         stat.st_gid.set(GID);

@@ -2923,6 +2923,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
+  public static final PropertyKey FUSE_USER_GROUP_TRANSLATION_ENABLED =
+      new Builder(Name.FUSE_USER_GROUP_TRANSLATION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to translate Alluxio users and groups "
+              + "into Unix users and groups when exposing Alluxio files through the FUSE API. "
+              + "When this property is set to false, the user and group for all FUSE files "
+              + "will match the user who started the alluxio-fuse process.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.NONE)
+          .build();
 
   //
   // Security related properties
@@ -3762,6 +3772,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
+    public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
+        "alluxio.fuse.user.group.translation.enabled";
 
     //
     // Security related properties
