@@ -11,6 +11,7 @@
 
 package alluxio.fuse;
 
+import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 
 import org.slf4j.Logger;
@@ -50,6 +51,30 @@ public final class AlluxioFuseUtils {
   }
 
   /**
+   * Retrieves the gid of the given group.
+   *
+   * @param groupName the group name
+   * @return gid
+   */
+  public static long getGidFromGroupName(String groupName) throws IOException {
+    String result = "";
+    if (OSUtils.isLinux()) {
+      String script = "getent group " + groupName + " | cut -d: -f3";
+      result = ShellUtils.execCommand("bash", "-c", script).trim();
+    } else if (OSUtils.isMacOS()) {
+      String script = "dscl . -read /Groups/" + groupName
+          + " | awk '($1 == \"PrimaryGroupID:\") { print $2 }'";
+      result = ShellUtils.execCommand("bash", "-c", script).trim();
+    }
+    try {
+      return Long.parseLong(result);
+    } catch (NumberFormatException e) {
+      LOG.error("Failed to get gid from group name {}.", groupName);
+      return -1;
+    }
+  }
+
+  /**
    * Gets the user name from the user id.
    *
    * @param uid user id
@@ -60,13 +85,31 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Gets the group name from the user id.
+   * Gets the primary group name from the user name.
    *
-   * @param uid user id
+   * @param userName the user name
    * @return group name
    */
-  public static String getGroupName(long uid) throws IOException {
-    return ShellUtils.execCommand("id", "-ng", Long.toString(uid)).trim();
+  public static String getGroupName(String userName) throws IOException {
+    return ShellUtils.execCommand("id", "-ng", userName).trim();
+  }
+
+  /**
+   * Gets the group name from the group id.
+   *
+   * @param gid the group id
+   * @return group name
+   */
+  public static String getGroupName(long gid) throws IOException {
+    if (OSUtils.isLinux()) {
+      String script = "getent group " + gid + " | cut -d: -f1";
+      return ShellUtils.execCommand("bash", "-c", script).trim();
+    } else if (OSUtils.isMacOS()) {
+      String script = "dscl . list /Groups PrimaryGroupID | awk '($2 == \""
+          + gid + "\") { print $1 }'";
+      return ShellUtils.execCommand("bash", "-c", script).trim();
+    }
+    return "";
   }
 
   /**
