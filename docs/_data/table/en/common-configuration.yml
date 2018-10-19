@@ -69,7 +69,7 @@ alluxio.proxy.s3.writetype:
 alluxio.proxy.stream.cache.timeout:
   'The timeout for the input and output streams cache eviction in the proxy.'
 alluxio.proxy.web.bind.host:
-  'The hostname that the Alluxio proxy''s web server runs on. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
+  'The hostname that the Alluxio proxy''s web server runs on.'
 alluxio.proxy.web.hostname:
   'The hostname Alluxio proxy''s web UI binds to.'
 alluxio.proxy.web.port:

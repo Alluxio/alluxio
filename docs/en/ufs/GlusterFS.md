@@ -15,8 +15,8 @@ storage system.
 ## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-From-Source.html), or
-[download the binaries locally](Running-Alluxio-Locally.html).
+[compile Alluxio]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
+[download the binaries locally]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 ## Configuring Alluxio
 

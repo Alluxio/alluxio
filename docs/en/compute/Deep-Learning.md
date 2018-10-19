@@ -44,32 +44,34 @@ network IO will increase costs and increase the time to process the data.
 While there are several data management related issues with deep learning, Alluxio can help with
 the  data access challenges. Alluxio in its simplest form is a virtual file system which
 transparently connects to existing storage systems and presents them as a single system to users.
-Using Alluxio's [unified namespace](Unified-and-Transparent-Namespace.html), many storage
-technologies can be mounted into Alluxio, including cloud storage like S3, Azure, and GCS. Because
-Alluxio can already integrate with storage systems, deep learning frameworks only need to interact
-with Alluxio, to be able to access all the data from all storage. This opens the door for training
-to be performed on all data from any data source, which can lead to better model performance.
+Using Alluxio's [unified namespace]({{site.baseurl}}{% link en/advanced/Namespace-Management.md %}),
+many storage technologies can be mounted into Alluxio, including cloud storage like S3, Azure, and
+GCS. Because Alluxio can already integrate with storage systems, deep learning frameworks only need
+to interact with Alluxio, to be able to access all the data from all storage. This opens the door
+for training to be performed on all data from any data source, which can lead to better model
+performance.
 
 Alluxio also includes a FUSE interface for a convenient and familiar use experience. With [Alluxio
-FUSE](Mounting-Alluxio-FS-with-FUSE.html), an Alluxio instance can be mounted to the local file
-system, so interacting with Alluxio is as simple as interacting with local files and directories.
-This enables users to continue to use familiar tools and paradigms to interact with their data.
-Since Alluxio can connect to multiple disparate storage, this means any data from any storage can
-look like a local file or directory.
+FUSE]({{site.baseurl}}{% link en/api/FUSE-API.md %}), an Alluxio instance can
+be mounted to the local file system, so interacting with Alluxio is as simple as interacting with
+local files and directories. This enables users to continue to use familiar tools and paradigms to
+interact with their data. Since Alluxio can connect to multiple disparate storage, this means any
+data from any storage can look like a local file or directory.
 
-![Fuse]({{site.data.img.fuse}})
+![Fuse]({{site.baseurl}}{% link img/fuse.png %})
 
-Finally, Alluxio also provides [local caching](Alluxio-Storage.html) of frequently used data. This
-is particularly useful when the data is remote from the computation, such as the disaggregate
-compute from storage environment. Since Alluxio can cache the data locally, network IO is not
-incurred for accessing the data, so deep learning training can be more cost effective, and take
-less time.
+Finally, Alluxio also provides [local caching]({{site.baseurl}}{% link
+en/advanced/Alluxio-Storage-Management.md %}) of frequently used data. This is particularly useful
+when the data is remote from the computation, such as the disaggregate compute from storage
+environment. Since Alluxio can cache the data locally, network IO is not incurred for accessing the
+data, so deep learning training can be more cost effective, and take less time.
 
 ## Setting up Alluxio FUSE
 
 In this section, we will follow the instructions in the
-[FUSE section](Mounting-Alluxio-FS-with-FUSE.html) to setup FUSE, access training data of ImageNet
-in S3, and allow deep learning frameworks to access the data through FUSE.
+[FUSE section]({{site.baseurl}}{% link en/api/FUSE-API.md %}) to setup FUSE,
+access training data of ImageNet in S3, and allow deep learning frameworks to access the data
+through FUSE.
 
 First, we’ll create a folder at the root in Alluxio
 
@@ -135,7 +137,8 @@ application development, which otherwise would need the integration of each part
 system as well as the configurations of the credentials.
 
 On top of the unification benefit, Alluxio can also bring performance benefits.
-The benchmark evaluates the throughput of the training model from the input training images in the unit of images/sec. The training in fact involves three stages of utilizing different resources:
+The benchmark evaluates the throughput of the training model from the input training images in the
+unit of images/sec. The training in fact involves three stages of utilizing different resources:
  - Data reads (I/O): choose and read image files from source.
  - Image Processing (CPU): Decode image records into images, preprocess, and organize into
  mini-batches.

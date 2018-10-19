@@ -43,8 +43,9 @@ $ mvn install -Phadoop-3 -Dhadoop.version=3.0.0 -DskipTests
 ```
 
 Please visit the
-[Building Alluxio Master Branch]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}#distro-support) page for more
-information about support for other distributions.
+[Building Alluxio Master Branch]({{ site.baseurl }}{% link
+en/contributor/Building-Alluxio-From-Source.md %}#hadoop-distribution-support) page for more information about
+support for other distributions.
 
 If everything succeeds, you should see
 `alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in

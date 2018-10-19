@@ -62,7 +62,9 @@ variable to increase the memory heap size for maven:
 $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 ```
 
-The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages the system. If this is the first time you are building the project, it can take a while to download all the dependencies. Subsequent builds, however, will be much faster.
+The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages
+the system. If this is the first time you are building the project, it can take a while to download
+all the dependencies. Subsequent builds, however, will be much faster.
 
 ## Test
 
@@ -76,7 +78,10 @@ $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local SudoMount
 ```
 
-To verify that Alluxio is running, you can visit [http://localhost:19999](http://localhost:19999) or check the log in the `alluxio/logs` directory. The `worker.log` and `master.log` files will typically be the most useful. It may take a few seconds for the web server to start. You can also run a simple program to test that data can be read and written to Alluxio's UFS:
+To verify that Alluxio is running, you can visit [http://localhost:19999](http://localhost:19999) or
+check the log in the `alluxio/logs` directory. The `worker.log` and `master.log` files will
+typically be the most useful. It may take a few seconds for the web server to start. You can also
+run a simple program to test that data can be read and written to Alluxio's UFS:
 
 ```bash
 $ ./bin/alluxio runTests

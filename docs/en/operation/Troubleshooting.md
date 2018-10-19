@@ -29,7 +29,8 @@ in case the problem has been discussed before.
 
 The client-side logs are also helpful when Alluxio service is running but the client cannot connect to the servers.
 Alluxio client emits logging messages through log4j, so the location of the logs is determined by the client side
-log4j configuration used by the application. For more information about logging, please check out [this page](../advanced/Client-Logging.html).
+log4j configuration used by the application. For more information about logging, please check out
+[this page]({{site.baseurl}}{% link en/advanced/Client-Logging.md %}).
 
 ## Alluxio remote debug
 
@@ -66,7 +67,7 @@ and so on. If you get this skill, you will locate problem faster, and will impre
 
 A: First check `${ALLUXIO_HOME}/logs` to see if there are any master or worker logs. Follow the clue
 indicated by the error logs. Otherwise please double check if you missed any configuration
-steps in [Running-Alluxio-Locally](../deploy/Running-Alluxio-Locally.html).
+steps in [Running-Alluxio-Locally]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 Typical issues:
 - `ALLUXIO_UNDERFS_ADDRESS` is not configured correctly.
@@ -74,8 +75,8 @@ Typical issues:
 
 ### Q: I'm trying to deploy Alluxio in a cluster with Spark/HDFS. Are there any suggestions?
 
-A: Please follow [Running-Alluxio-on-a-Cluster](../deploy/Running-Alluxio-on-a-Cluster.html),
-[Configuring-Alluxio-with-HDFS](../ufs/HDFS.html).
+A: Please follow [Running-Alluxio-on-a-Cluster]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}),
+[Configuring-Alluxio-with-HDFS]({{site.baseurl}}{% link en/ufs/HDFS.md %}).
 
 Tips:
 
@@ -85,7 +86,7 @@ Tips:
 
 ### Q: I'm having problems setting up Alluxio cluster on EC2. Can you advice?
 
-A: Please follow [Deploy-Alluxio-on-EC2](../deploy/Running-Alluxio-Using-Vagrant.html#deploy-on-aws-ec2) for details.
+A: Please follow [Deploy-Alluxio-on-EC2]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Using-Vagrant.md %}#deploy-on-aws-ec2) for details.
 
 Typical issues:
 - Please make sure AWS access keys and Key Pairs are set up.
@@ -160,10 +161,10 @@ A: This problem can be caused by different possible reasons.
 - Please double-check if the port of Alluxio master address is correct. The default listening port for Alluxio master is port 19998,
 while a common mistake causing this error message is due to using a wrong port in master address(e.g., using port 19999 which is the default Web UI port for Alluxio master).
 - Please ensure that the security settings of Alluxio client and master are consistent.
-Alluxio provides different approaches to [authenticate](../advanced/Security.html#authentication) users by configuring `alluxio.security.authentication.type`.
+Alluxio provides different approaches to [authenticate]({{site.baseurl}}{% link en/advanced/Security.md %}#authentication) users by configuring `alluxio.security.authentication.type`.
 This error happens if this property is configured with different values across servers and clients
 (e.g., one uses the default value `NOSASL` while the other is customized to `SIMPLE`).
-Please read [Configuration-Settings](../basic/Configuration-Settings.html) for how to customize Alluxio clusters and applications.
+Please read [Configuration-Settings]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}) for how to customize Alluxio clusters and applications.
 
 ### Q: I'm copying or writing data to Alluxio while seeing error messages like "Failed to cache: Not enough space to store block on worker". Why?
 
@@ -173,7 +174,7 @@ A: This error indicates insufficient space left on Alluxio workers to complete y
 You can change the location policy for this command by changing `alluxio.user.file.copyfromlocal.write.location.policy.class` property.
 
     Before version 1.6.0, if you are copying a file to Alluxio using `copyFromLocal`, by default this shell command applies `LocalFirstPolicy`
-and stores data on the local worker (see [location policy](../api/FS-API.html#location-policy)).
+and stores data on the local worker (see [location policy]({{site.baseurl}}{% link en/api/FS-API.md %}#location-policy)).
 In this case, you will see the above error once the local worker does not have enough space.
 To distribute the data of your file on different workers, you can change this policy to `RoundRobinPolicy` (see below).
 
@@ -183,9 +184,9 @@ $ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.
 
 
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.
-See [Command-Line-Interface](../basic/Command-Line-Interface.html) for more details.
+See [Command-Line-Interface]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}) for more details.
 - Increase the capacity of workers by changing `alluxio.worker.memory.size` property.
-See [Configuration](../basic/Configuration-Settings.html#common-configuration) for more description.
+See [Configuration]({{site.baseurl}}{% link en/reference/Properties-List.md %}#common-configuration) for more description.
 
 
 ### Q: I'm writing a new file/directory to Alluxio and seeing journal errors in my application
@@ -228,7 +229,7 @@ folder. Another way to refresh a directory is to use UFS sync. You can either us
 `alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=${SOME_INTERVAL} /path` or by setting the same
 configuration property in masters' `alluxio-site.properties`. The value for the configuration property is used to
 determine the minimum interval between two syncs. You can read more about loading files from under file system
-[here](../advanced/Loading-Under-File-Storage-Metadata.html).
+[here]({{site.baseurl}}{% link en/advanced/Namespace-Management.md %}#ufs-metadata-sync).
 
 ### Q: I see an error "Block ?????? is unavailable in both Alluxio and UFS" while reading some file. Where is my file?
 
@@ -242,7 +243,7 @@ A: When writing files to Alluxio, one of the several write type can be used to t
 
 By default the write type used by Alluxio client is `MUST_CACHE`, therefore a new file written to Alluxio is only stored in Alluxio
 worker storage, and can be evicted when Alluxio worker storage is full and some new data needs to be cached. To make sure
-data is persisted, either use `CACHE_THROUGH` or `THROUGH` write type, or [pin](../basic/Command-Line-Interface.html#pin) the files
+data is persisted, either use `CACHE_THROUGH` or `THROUGH` write type, or [pin]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#pin) the files
 you would like to preserve.
 
 Another possible cause for this error is that the block exists in the file system, but no worker has connected to master. In that
@@ -263,7 +264,7 @@ node by default).
 A: Alluxio accelerates your system performance by leveraging temporal or spatial locality using distributed in-memory storage
 (and tiered storage). If your workloads don't have any locality, you will not see tremendous performance boost.
 
-**For a comprehensive guide on tuning performance of Alluxio cluster, please check out [this page](../advanced/Performance-Tuning.html).**
+**For a comprehensive guide on tuning performance of Alluxio cluster, please check out [this page]({{site.baseurl}}{% link en/advanced/Performance-Tuning.md %}).**
 
 ## Environment
 

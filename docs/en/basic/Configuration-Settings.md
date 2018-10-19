@@ -13,12 +13,13 @@ An Alluxio cluster can be configured by setting the values of Alluxio
 {{ site.baseurl }}{% link en/reference/Properties-List.md %}). The two major components to configure
 are
 [Alluxio servers](#configure-alluxio-cluster) (masters and workers), and
-[Alluxio clients]((#configure-applications)) (part of applications).
+[Alluxio clients](#configure-applications) (part of applications).
 
 ## Configure Applications
 
 Customizing how an application job interacts with Alluxio service is application specific. Here
 we provide recommendations for a few common applications.
+
 Note that, it is only valid for users to set client-side configurations
 (e.g., properties prefixed with `alluxio.user`); setting server-side properties
 (e.g., properties prefixed with `alluxio.master` and `alluxio.worker`) at application
@@ -185,24 +186,21 @@ which will be distributed and become cluster-wide default values for new Alluxio
 
 For example, a common Alluxio property `alluxio.user.file.writetype.default` is default to
 `MUST_CACHE` which only writes to Alluxio space. In an Alluxio cluster
-deployment where data persistence is preferred and all jobs need to write through to both UFS and Alluxio, with Alluxio v1.8 or later the admin can simply add
+deployment where data persistence is preferred and all jobs need to write through to both UFS and
+Alluxio, with Alluxio v1.8 or later the admin can simply add
 `alluxio.user.file.writetype.default=CACHE_THROUGH` to all the masters'
 `${ALLUXIO_HOME}/conf/alluxio-site.properties`. After restarting the cluster, all the new jobs will
 automatically set property `alluxio.user.file.writetype.default` to `CACHE_THROUGH` as its default
 value.
 
 Clients can still ignore or overwrite the cluster-wide default values, by either
-specifying the user property `alluxio.user.conf.cluster.default.enabled=false` to
-decline loading the cluster-wide default values or
-following the approaches described in
-[Configure Alluxio for Applications](Configuration-Settings.html#configure-applications) to
-overwrite the same properties.
+specifying the user property `alluxio.user.conf.cluster.default.enabled=false` to decline loading
+the cluster-wide default values or following the approaches described in
+[Configure Alluxio for Applications](#configure-applications) to overwrite the same properties.
 
 > Note that, before v1.8, `${ALLUXIO_HOME}/conf/alluxio-site.properties` file is only loaded by
-Alluxio server
-> processes and will be ignored by applications interacting with Alluxio service through Alluxio
-client,
-> unless `${ALLUXIO_HOME}/conf` is on applications' classpath.
+> Alluxio server processes and will be ignored by applications interacting with Alluxio service
+> through Alluxio client, unless `${ALLUXIO_HOME}/conf` is on applications' classpath.
 
 ## Configuration Sources
 
@@ -219,7 +217,7 @@ remaining paths once this `alluxio-site.properties` file is found.
 configuration based on the cluster-wide default configuration served by the masters.
 
 If no above user-specified configuration is found for a property, Alluxio runtime will fallback to
-its [default property value](Configuration-Properties.html).
+its [default property value]({{site.baseurl}}{% link en/reference/Properties-List.md %}).
 
 To check the value of a specific configuration property and the source of its value, users can use
 the following commandline:
@@ -258,7 +256,7 @@ Suspected configuration errors are reported through the web UI, `doctor` CLI, an
 
 The web UI shows the result of the server configuration check.
 
-![webUi]({{ site.baseurl }}/img/screenshot_configuration_checker_webui.png)
+![webUi]({{ site.baseurl }}{% link img/screenshot_configuration_checker_webui.png %})
 
 Users can also run the `fsadmin doctor` command to get the same results.
 
@@ -268,4 +266,4 @@ $ bin/alluxio fsadmin doctor configuration
 
 Configuration warnings can also be seen in the master logs.
 
-![masterLogs]({{ site.baseurl }}/img/screenshot_configuration_checker_masterlogs.png)
+![masterLogs]({{ site.baseurl }}{% link img/screenshot_configuration_checker_masterlogs.png %})

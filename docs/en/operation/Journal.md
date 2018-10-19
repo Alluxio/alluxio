@@ -72,7 +72,8 @@ backup directory can be configured by setting `alluxio.master.backup.directory`
 alluxio.master.backup.directory=/alluxio/backups
 ```
 
-See the [backup command documentation](Admin-CLI.html#backup) for additional backup options.
+See the [backup command documentation]({{site.baseurl}}{% link en/operation/Admin-CLI.md %}#backup)
+for additional backup options.
 
 ### Restoring from a backup
 

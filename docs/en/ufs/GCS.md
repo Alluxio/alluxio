@@ -9,7 +9,8 @@ priority: 2
 * Table of Contents
 {:toc}
 
-This guide describes how to configure Alluxio with [Google Cloud Storage (GCS)](https://cloud.google.com/storage/) as the under storage system.
+This guide describes how to configure Alluxio with [Google Cloud Storage (GCS)](https://cloud.google.com/storage/)
+as the under storage system.
 
 ## Initial Setup
 
@@ -53,13 +54,14 @@ Note: GCS interoperability is disabled by default. Please click on the Interoper
 in [GCS setting](https://console.cloud.google.com/storage/settings) and enable this feature.
 Then click on `Create a new key` to get the Access Key and Secret pair.
 
-After these changes, Alluxio should be configured to work with GCS as its under storage system, and you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
+After these changes, Alluxio should be configured to work with GCS as its under storage system, and
+you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
 
 ### Configuring Application Dependency
 
 When building your application to use Alluxio, your application should include a client module, the
-`alluxio-core-client-fs` module to use the [Alluxio file system interface]({{ site.baseurl }}{% link en/api/FS-API.md %}) or
-the `alluxio-core-client-hdfs` module to use the
+`alluxio-core-client-fs` module to use the [Alluxio file system interface]({{ site.baseurl }}{% link
+en/api/FS-API.md %}) or the `alluxio-core-client-hdfs` module to use the
 [Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS). For example, if you
 are using [maven](https://maven.apache.org/), you can add the dependency to your application with:
 

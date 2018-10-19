@@ -195,4 +195,5 @@ different workers are distinguished by the IP/hostname of the machine on which t
 
 ## Configuration Properties
 
-You can find the properties related to logging in the [table of configuration properties]({{site.baseurl}}{%link en/reference/Properties-List.md %}#alluxio.logger.type)
+You can find the properties related to logging in the [table of configuration
+properties]({{site.baseurl}}{%link en/reference/Properties-List.md %}#alluxio.logger.type)

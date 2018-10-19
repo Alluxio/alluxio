@@ -117,7 +117,7 @@ Using Alluxio's Java API, users can set the policy in `CreateFileOptions` for wr
 `OpenFileOptions` for reading files into Alluxio.
 
 Users can simply override the default policy class in the
-[configuration file](Configuration-Settings.html) at property
+[configuration file]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}) at property
 `alluxio.user.file.write.location.policy.class`. The built-in policies include:
 
 * **LocalFirstPolicy (alluxio.client.file.policy.LocalFirstPolicy)**
@@ -150,8 +150,8 @@ this policy preference exists only for local workers, not remote workers; remote
 blocks to the highest tier.
 
 By default, data is written to the top tier. Users can modify the default setting through the
-`alluxio.user.file.write.tier.default` [configuration](Configuration-Settings.html) property or
-override it through an option to the `FileSystem#createFile(AlluxioURI)` API call.
+`alluxio.user.file.write.tier.default` [configuration]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %})
+property or override it through an option to the `FileSystem#createFile(AlluxioURI)` API call.
 
 ### Accessing an existing file in Alluxio
 
@@ -221,7 +221,7 @@ worker on each compute node.
 ## Python
 
 Alluxio has a [Python Client](https://github.com/Alluxio/alluxio-py) for interacting with Alluxio through its
-[REST API](Clients-Rest.html). The Python client exposes an API similar to the [Alluxio Java API](Clients-Alluxio-Java.html).
+[REST API](#Rest-API). The Python client exposes an API similar to the [Alluxio Java API](#Java-Client).
 See the [doc](http://alluxio-py.readthedocs.io) for detailed documentation about all available
 methods. See the [example](https://github.com/Alluxio/alluxio-py/blob/master/example.py) of how to perform basic filesystem
 operations in Alluxio.
@@ -341,7 +341,7 @@ if __name__ == '__main__':
 ## Go
 
 Alluxio has a [Go Client](https://github.com/Alluxio/alluxio-go) for interacting with Alluxio through its
-[REST API](Clients-Rest.html). The Go client exposes an API similar to the [Alluxio Java API](Clients-Alluxio-Java.html).
+[REST API](#Rest-API). The Go client exposes an API similar to the [Alluxio Java API](#Java-Client).
 See the [godoc](http://godoc.org/github.com/Alluxio/alluxio-go) for detailed documentation about all available
 methods. The godoc includes examples of how to download, upload, check existence for, and list status for files in
 Alluxio.

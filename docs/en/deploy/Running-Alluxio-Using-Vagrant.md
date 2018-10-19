@@ -10,8 +10,10 @@ priority: 5
 {:toc}
 
 ## Introduction
-
-Alluxio can be deployed locally or in the cloud using the [Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with Alluxio. The scripts let you create, configure, and destroy clusters that come automatically configured locally, with [Amazon EC2](https://ec2.amazon.com/) or with [Google Compute Engine](https:/cloud.google.com).
+Alluxio can be deployed locally or in the cloud using the [Vagrant
+scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with Alluxio. The
+scripts let you create, configure, and destroy clusters that come automatically configured locally,
+with [Amazon EC2](https://aws.amazon.com/ec2/) or with [Google Compute Engine](https:/cloud.google.com).
 
 ## Common Prerequisites
 
@@ -127,7 +129,8 @@ $ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dumm
 To run an Alluxio cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/).
 
-If you are not familiar with Amazon EC2, you can read [this tutorial](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html) first.
+If you are not familiar with Amazon EC2, you can read [this
+tutorial](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html) first.
 
 Then create [access keys](https://aws.amazon.com/developers/access-keys/) and set shell environment
 variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` by:
@@ -217,8 +220,8 @@ After the tests finish, visit Alluxio web UI at `http://{MASTER_IP}:19999` again
 File System` in the navigation bar, and you should see the files written to Alluxio by the above
 tests.
 
-You can login to [AWS web console](https://console.aws.amazon.com/console), then go to your S3 console,
-and find some files written into your S3 bucket by the above tests.
+You can login to [AWS web console](https://console.aws.amazon.com/console), then go to your S3
+console, and find some files written into your S3 bucket by the above tests.
 
 From a node in the cluster, you can ssh to other nodes in the cluster without password with:
 
@@ -251,7 +254,10 @@ In order to enable spot instances, you have to modify the file: `deploy/vagrant/
 
     Spot_Price: “X.XX”
 
-For AWS EC2, the default under storage is S3. You need to sign into your [Amazon S3 console](http://aws.amazon.com/s3/), create a S3 bucket and write the bucket's name to the field `S3:Bucket` in `conf/ufs.yml`. To use other under storage systems, configure the field `Type` and the corresponding configurations in `conf/ufs.yml`.
+For AWS EC2, the default underfs is S3. You need to sign into your [Amazon S3
+console](http://aws.amazon.com/s3/), create a S3 bucket and write the bucket's name to the field
+`S3:Bucket` in `conf/ufs.yml`. To use other under storage systems, configure the field `Type` and
+the corresponding configurations in `conf/ufs.yml`.
 
 Now you can launch the Alluxio cluster with your chosen under storage in your chosen availability zone by running
 the script under `deploy/vagrant`:
@@ -351,9 +357,9 @@ below shown at the end of the shell output:
 
 Default port for Alluxio Web UI is **19999**.
 
-Before you can access the Web UI, a network firewall rule needs to be made to allow tcp traffic on port 19999.
-This can be done through the [Console](https://console.cloud.google.com) UI or using a gcloud command like the
-following, which assumes a network named 'default'.
+Before you can access the Web UI, a network firewall rule needs to be made to allow tcp traffic on
+port 19999. This can be done through the [Console](https://console.cloud.google.com) UI or using a
+gcloud command like the following, which assumes a network named 'default'.
 
 ```bash
 $ gcloud compute firewall-rules create alluxio-ui --allow tcp:19999

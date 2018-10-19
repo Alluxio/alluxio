@@ -40,7 +40,7 @@ from Alluxio cache but from the under storage.
 
 We recommend to run Alluxio as a stand-alone system.  We support running Alluxio on [YARN]({{
 site.baseurl }}{% link en/deploy/Running-Alluxio-On-Yarn.md %}), [Mesos]({{ site.baseurl }}{% link
-en/deploy/Running-Alluxio-on-Mesos.md %}), and [Kubernetes]({{ site.baseurl }}{% link
+en/deploy/Running-Alluxio-On-Mesos.md %}), and [Kubernetes]({{ site.baseurl }}{% link
 en/deploy/Running-Alluxio-On-Kubernetes.md %}).
 
 ## Which programming language does Alluxio support?
@@ -57,7 +57,8 @@ applications to work. Alluxio will transparently and dynamically load data on de
 storage.
 - To help more hot data fit in Alluxio storage space, you can configure Alluxio to leverage storage
 resource like SSD and HDD in addition to memory to extend Alluxio storage capacity. You can read
-more about Alluxio storage setup [here](Alluxio-Storage.html).
+more about Alluxio storage setup [here]({{site.baseurl}}{% link 
+en/advanced/Alluxio-Storage-Management.md %}).
 
 ## Does Alluxio support a fault tolerant mode?
 
@@ -71,7 +72,8 @@ No, re-balancing of data blocks in Alluxio is not supported currently.
 ## How can I add support for other under store systems?
 
 Yes, in fact support for other under storages is in progress by many contributors. Here is the
-[documentation](DevelopingUFSExtensions.html) for adding other under storage systems.
+[documentation]({{site.baseurl}}{% link en/ufs/Ufs-Extensions.md %}) for adding other under storage
+systems.
 
 ## Does Alluxio always need HDFS?
 
@@ -79,11 +81,12 @@ No, Alluxio runs on different under storage systems like HDFS, Amazon S3, Swift.
 
 ## How can I learn more about Alluxio?
 
-You can read the recent [blogs](/resources/posts) and [presentations](/resources/presentations).
+You can read the recent [blogs](https://alluxio.org/resources/posts) and 
+[presentations](https://alluxio.org/resources/presentations).
 
 We also hosts meetup group for Alluxio and please join
 [http://www.meetup.com/Alluxio/](http://www.meetup.com/Alluxio/). You can also find more Alluxio
-events [here]({{ site.baseurl }}/resources/events).
+events [here](https://alluxio.org/resources/events).
 
 ## Where can I report issues or propose new features?
 
@@ -99,5 +102,5 @@ forward to seeing you there.
 
 ## How can I contribute to Alluxio?
 
-Thank you for the interest to contribute. Please read [our contribute guide]({{ site.baseurl }}{%
+Thank you for the interest to contribute. Please read [our contributor guide]({{ site.baseurl }}{%
 link en/contributor/Contributor-Getting-Started.md %}).

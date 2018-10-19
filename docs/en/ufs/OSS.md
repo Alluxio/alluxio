@@ -17,8 +17,9 @@ Service (OSS) is a massive, secure and highly reliable cloud storage service pro
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines.You can either
-[compile the binaries from Alluxio source code](Building-Alluxio-From-Source.html),
-or [download the precompiled binaries directly](Running-Alluxio-Locally.html).
+[compile the binaries from Alluxio source code]({{site.baseurl}}{% link
+en/contributor/Building-Alluxio-From-Source.md %}), or [download the precompiled binaries
+directly]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 Also, in preparation for using OSS with alluxio, create a bucket or use an existing bucket. You
 should also note the directory you want to use in that bucket, either by creating a new
@@ -32,7 +33,7 @@ information about OSS Bucket, please see [here](https://intl.aliyun.com/help/doc
 ## Mounting OSS
 
 Alluxio unifies access to different storage systems through the
-[unified namespace](Unified-and-Transparent-Namespace.html) feature. An OSS location can be
+[unified namespace]({{site.baseurl}}{% link en/advanced/Namespace-Management.md %}) feature. An OSS location can be
 either mounted at the root of the Alluxio namespace or at a nested directory.
 
 ### Root Mount
@@ -66,7 +67,7 @@ and you can try to run alluxio locally with OSS.
 ### Nested Mount
 An OSS location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's
-[Mount Command](Command-Line-Interface.html#mount) can be used for this purpose.
+[Mount Command]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#mount) can be used for this purpose.
 For example, the following command mounts a directory inside an OSS bucket into Alluxio directory
 `/oss`:
 

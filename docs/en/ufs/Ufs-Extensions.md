@@ -10,7 +10,8 @@ priority: 100
 {:toc}
 
 This page is intended for users of under storage extensions. Please look at [developing
-extensions](DevelopingUFSExtensions.html) for an extension development guide.
+extensions]({{site.baseurl}}{% link en/api/Ufs-Extension-API.md %}) for an extension development
+guide.
 
 Alluxio can be extended with the addition of under storage modules at runtime. Under storage
 extensions (built as JARs) can be included at a specific location to be picked up by core Alluxio
