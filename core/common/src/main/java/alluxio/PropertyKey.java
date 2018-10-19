@@ -556,7 +556,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING)
-          .setDefaultValue("")
           .setDescription("Optionally, specify a preset gcs owner id to Alluxio username "
               + "static mapping in the format \"id1=user1;id2=user2\". The Google Cloud "
               + "Storage IDs can be found at the console address "
@@ -702,7 +701,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)
-          .setDefaultValue("")
           .setDescription("Optionally, specify a preset s3 canonical id to Alluxio username "
               + "static mapping, in the format \"id1=user1;id2=user2\". The AWS S3 canonical "
               + "ID can be found at the console address "
@@ -1596,7 +1594,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
       new Builder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS)
-          .setDefaultValue("")
           .setDescription("The path to the domain socket. Short-circuit reads make use of a "
               + "UNIX domain socket when this is set (non-empty). This is a special path in "
               + "the file system that allows the client and the AlluxioWorker to communicate. "
@@ -2539,6 +2536,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("When file's ttl is expired, the action performs on it. "
               + "DELETE by default")
           .build();
+  public static final PropertyKey USER_FILE_UFS_TIER_ENABLED =
+      new Builder(Name.USER_FILE_UFS_TIER_ENABLED)
+          .setDescription("When workers run out of available memory, whether the client can skip "
+              + "writing data to Alluxio but fallback to write to UFS without stopping the "
+              + "application. This property only works when the write type is ASYNC_THROUGH.")
+          .setDefaultValue(false).build();
   public static final PropertyKey USER_FILE_WRITE_LOCATION_POLICY =
       new Builder(Name.USER_FILE_WRITE_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
@@ -2748,6 +2751,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "an exponential backoff. This property determines the maximum duration to retry for"
               + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
           .build();
+  public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
+      new Builder(Name.USER_WORKER_LIST_REFRESH_INTERVAL)
+          .setDefaultValue("2min")
+          .setDescription("The interval used to refresh the live worker list on the client")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   /**
    * @deprecated since version 1.8 and will be removed in version 2.0.
    */
@@ -2824,6 +2834,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "under file system through a worker's data server. Currently only "
               + "`alluxio.client.netty.NettyUnderFileSystemFileWriter` (remote write using "
               + "netty) is valid.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
+      new Builder(Name.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to return all workers as block location if ufs block locations "
+              + "are not co-located with any Alluxio workers or is empty.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3652,6 +3670,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_REPLICATION_MIN = "alluxio.user.file.replication.min";
     public static final String USER_FILE_REPLICATION_DURABLE =
         "alluxio.user.file.replication.durable";
+    public static final String USER_FILE_UFS_TIER_ENABLED = "alluxio.user.file.ufs.tier.enabled";
     public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
         "alluxio.user.file.seek.buffer.size.bytes";
     public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
@@ -3719,6 +3738,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.delegation.write.buffer.size.bytes";
     public static final String USER_UFS_FILE_READER_CLASS = "alluxio.user.ufs.file.reader.class";
     public static final String USER_UFS_FILE_WRITER_CLASS = "alluxio.user.ufs.file.writer.class";
+    public static final String USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
+        "alluxio.user.ufs.block.location.all.fallback.enabled";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY =
         "alluxio.user.ufs.block.read.location.policy";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
@@ -3726,6 +3747,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
+    public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
+        "alluxio.user.worker.list.refresh.interval";
 
     //
     // FUSE integration related properties

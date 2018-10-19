@@ -3059,10 +3059,33 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // The requested path does not exist in Alluxio, so just load metadata.
         pathsToLoad.add(inodePath.getUri().getPath());
       } else {
-        SyncResult result =
-            syncInodeMetadata(rpcContext, inodePath, syncDescendantType);
-        deletedInode = result.getDeletedInode();
-        pathsToLoad = result.getPathsToLoad();
+        // List the status of the entire directory so we have the data ready for fingerprints
+        AlluxioURI path = inodePath.getUri();
+        MountTable.Resolution resolution = mMountTable.resolve(path);
+        AlluxioURI ufsUri = resolution.getUri();
+        try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+          UnderFileSystem ufs = ufsResource.get();
+          ListOptions listOptions = ListOptions.defaults();
+          // statusCache stores uri to ufsstatus mapping that is used to construct fingerprint
+          Map<AlluxioURI, UfsStatus> statusCache = new HashMap<>();
+          listOptions.setRecursive(syncDescendantType == DescendantType.ALL);
+          try {
+            UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
+            if (children != null) {
+              for (UfsStatus childStatus : children) {
+                statusCache.put(inodePath.getUri().joinUnsafe(childStatus.getName()),
+                    childStatus);
+              }
+            }
+          } catch (Exception e) {
+            LOG.debug("ListStatus failed as an preparation step for syncMetadata {}",
+                inodePath.getUri(), e);
+          }
+          SyncResult result =
+              syncInodeMetadata(rpcContext, inodePath, syncDescendantType, statusCache);
+          deletedInode = result.getDeletedInode();
+          pathsToLoad = result.getPathsToLoad();
+        }
       }
     } catch (Exception e) {
       LOG.error("Failed to remove out-of-sync metadata for path: {}", inodePath.getUri(), e);
@@ -3148,11 +3171,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param inodePath the Alluxio inode path to sync with UFS
    * @param syncDescendantType how to sync descendants
+   * @param statusCache a pre-populated cache of ufs statuses that can be used to construct
+   *                    fingerprint
    * @return the result of the sync, including if the inode was deleted, and if further load
    *         metadata is required
    */
   private SyncResult syncInodeMetadata(RpcContext rpcContext, LockedInodePath inodePath,
-      DescendantType syncDescendantType)
+      DescendantType syncDescendantType, Map<AlluxioURI, UfsStatus> statusCache)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     // Set to true if the given inode was deleted.
     boolean deletedInode = false;
@@ -3182,8 +3207,27 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
-      String ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
-      Fingerprint ufsFpParsed = Fingerprint.parse(ufsFingerprint);
+      String ufsFingerprint;
+      Fingerprint ufsFpParsed;
+      UfsStatus cachedStatus = statusCache.get(inodePath.getUri());
+      if (cachedStatus == null) {
+        // TODO(david): change the interface so that getFingerprint returns a parsed fingerprint
+        ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
+        ufsFpParsed = Fingerprint.parse(ufsFingerprint);
+      } else {
+        Pair<AccessControlList, DefaultAccessControlList> aclPair
+            = ufs.getAclPair(ufsUri.toString());
+
+        if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
+          ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus);
+          ufsFingerprint = ufsFpParsed.serialize();
+        } else {
+          ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus,
+              aclPair.getFirst());
+          ufsFingerprint = ufsFpParsed.serialize();
+        }
+      }
+
       boolean containsMountPoint = mMountTable.containsMountPoint(inodePath.getUri());
 
       UfsSyncUtils.SyncPlan syncPlan =
@@ -3254,7 +3298,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               syncDescendantType = DescendantType.NONE;
             }
             SyncResult syncResult =
-                syncInodeMetadata(rpcContext, tempInodePath, syncDescendantType);
+                syncInodeMetadata(rpcContext, tempInodePath, syncDescendantType, statusCache);
             pathsToLoad.addAll(syncResult.getPathsToLoad());
           }
         }
@@ -3808,12 +3852,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               mPersistJobs.remove(fileId);
               break;
             case COMPLETED:
-              mPersistCheckerPool.execute(new Runnable() {
-                @Override
-                public void run() {
-                  handleSuccess(job);
-                }
-              });
+              mPersistCheckerPool.execute(() -> handleSuccess(job));
               break;
             default:
               throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());

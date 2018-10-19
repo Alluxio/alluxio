@@ -22,10 +22,10 @@ BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 USAGE="Usage: alluxio-start.sh [-hNwm] [-i backup] ACTION [MOPT] [-f]
 Where ACTION is one of:
   all [MOPT]         \tStart all masters, proxies, and workers.
-  job_master         \tStart the job master on this node.
-  job_masters        \tStart job masters on master nodes.
-  job_worker         \tStart a job worker on this node.
-  job_workers        \tStart job workers on worker nodes.
+  job_master         \tStart the job_master on this node.
+  job_masters        \tStart job_masters on master nodes.
+  job_worker         \tStart a job_worker on this node.
+  job_workers        \tStart job_workers on worker nodes.
   local [MOPT]       \tStart all processes locally.
   master             \tStart the local master on this node.
   secondary_master   \tStart the local secondary master on this node.

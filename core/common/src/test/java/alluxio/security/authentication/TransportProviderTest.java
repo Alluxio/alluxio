@@ -360,13 +360,7 @@ public final class TransportProviderTest {
             .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     // start the server in a new thread
-    Thread serverThread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        mServer.serve();
-      }
-    });
-
+    Thread serverThread = new Thread(() -> mServer.serve());
     serverThread.start();
 
     // ensure server is running, and break if it does not start serving in 2 seconds.

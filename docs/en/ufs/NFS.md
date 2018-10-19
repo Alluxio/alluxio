@@ -40,20 +40,29 @@ alluxio.underfs.address=/mnt/nfs
 
 Simply run the following command to start Alluxio filesystem.
 
-{% include Configuring-Alluxio-with-NFS/start-alluxio.md %}
+```bash
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
+```
 
 To verify that Alluxio is running, you can visit
 **[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder.
 
 Next, you can run a simple example program:
 
-{% include Configuring-Alluxio-with-NFS/runTests.md %}
+```bash
+$ ./bin/alluxio runTests
+```
 
 After this succeeds, you can visit your NFS volume to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
 
-{% include Configuring-Alluxio-with-NFS/nfs-file.md %}
+```
+/mnt/nfs/default_tests_files/Basic_CACHE_THROUGH
+```
 
 You can stop Alluxio any time by running:
 
-{% include Configuring-Alluxio-with-NFS/stop-alluxio.md %}
+```bash
+$ ./bin/alluxio-stop.sh local
+```

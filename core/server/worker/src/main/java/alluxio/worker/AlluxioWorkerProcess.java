@@ -122,14 +122,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mRegistry = new WorkerRegistry();
       List<Callable<Void>> callables = new ArrayList<>();
       for (final WorkerFactory factory : ServiceUtils.getWorkerServiceLoader()) {
-        callables.add(new Callable<Void>() {
-          @Override
-          public Void call() throws Exception {
-            if (factory.isEnabled()) {
-              factory.create(mRegistry, mUfsManager);
-            }
-            return null;
+        callables.add(() -> {
+          if (factory.isEnabled()) {
+            factory.create(mRegistry, mUfsManager);
           }
+          return null;
         });
       }
       // In the worst case, each worker factory is blocked waiting for the dependent servers to be
@@ -365,7 +362,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    */
   private boolean isDomainSocketEnabled() {
     return NettyUtils.WORKER_CHANNEL_TYPE == ChannelType.EPOLL
-        && !Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS).isEmpty();
+        && Configuration.containsKey(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
   }
 
   @Override

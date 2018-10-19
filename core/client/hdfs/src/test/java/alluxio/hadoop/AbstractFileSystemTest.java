@@ -304,15 +304,12 @@ public class AbstractFileSystemTest {
     when(mMockFileSystemContext.getMasterAddress())
         .thenReturn(new InetSocketAddress("randomhost", 410));
     for (int i = 0; i < 100; i++) {
-      Thread t = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          URI uri = URI.create(Constants.HEADER + "randomhost:410/");
-          try {
-            org.apache.hadoop.fs.FileSystem.get(uri, conf);
-          } catch (IOException e) {
-            fail();
-          }
+      Thread t = new Thread(() -> {
+        URI uri = URI.create(Constants.HEADER + "randomhost:410/");
+        try {
+          org.apache.hadoop.fs.FileSystem.get(uri, conf);
+        } catch (IOException e) {
+          fail();
         }
       });
       threads.add(t);
@@ -535,7 +532,20 @@ public class AbstractFileSystemTest {
   }
 
   @Test
-  public void getBlockLocationsNoMatchingWorkers() throws Exception {
+  public void getBlockLocationsNoMatchingWorkersDefault() throws Exception {
+    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
+    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    List<WorkerNetAddress> blockWorkers = Arrays.asList();
+    List<String> ufsLocations = Arrays.asList("worker0", "worker3");
+    List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
+
+    List<WorkerNetAddress> expectedWorkers = Collections.EMPTY_LIST;
+
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+  }
+
+  @Test
+  public void getBlockLocationsNoMatchingWorkersWithFallback() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
     List<WorkerNetAddress> blockWorkers = Arrays.asList();
@@ -544,11 +554,28 @@ public class AbstractFileSystemTest {
 
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
+    try (Closeable conf =
+        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true")
+            .toResource()) {
+      verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+    }
+  }
+
+  @Test
+  public void getBlockLocationsNoUfsLocationsDefault() throws Exception {
+    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
+    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    List<WorkerNetAddress> blockWorkers = Arrays.asList();
+    List<String> ufsLocations = Arrays.asList();
+    List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
+
+    List<WorkerNetAddress> expectedWorkers = Collections.EMPTY_LIST;
+
     verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
   }
 
   @Test
-  public void getBlockLocationsNoUfsLocations() throws Exception {
+  public void getBlockLocationsNoUfsLocationsWithFallback() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
     List<WorkerNetAddress> blockWorkers = Arrays.asList();
@@ -557,7 +584,11 @@ public class AbstractFileSystemTest {
 
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
-    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+    try (Closeable conf =
+        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true")
+            .toResource()) {
+      verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+    }
   }
 
   void verifyBlockLocations(List<WorkerNetAddress> blockWorkers, List<String> ufsLocations,
